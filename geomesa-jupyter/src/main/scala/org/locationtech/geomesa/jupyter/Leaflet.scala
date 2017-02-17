@@ -61,11 +61,9 @@ object L {
        |  var str = "";
        |  for (var i in keys) {
        |    var key = keys[i];
-       |    if (key != "geom") {
-       |      var prop = layer.feature.properties[key];
-       |      str = str + "<b>" + key + "</b>: " + prop;
-       |      if (i < keys.length - 1 ) str = str + "<br>";
-       |    }
+       |    var prop = layer.feature.properties[key];
+       |    str = str + "<b>" + key + "</b>: " + prop;
+       |    if (i < keys.length - 1 ) str = str + "<br>";
        |  }
        |  layer.bindPopup(str);
        |  layer.on({click: onClick});
@@ -73,13 +71,13 @@ object L {
      """.stripMargin
   }
 
-  private case class PointToLayer(style: StyleOption) {
+  private case class PointToLayer(style: StyleOption, radius: Double = 5.0) {
     val styleOptions = style.render
     def render: String =
       s"""
         |pointToLayer: function(feature, latlng) {
         |  return L.circleMarker(latlng, {
-        |                                   radius: 5,
+        |                                   radius: $radius,
         |                                   ${styleOptions.replace("}", "").replace("{", "")}
         |                                  });
         |}
@@ -111,49 +109,87 @@ object L {
        """.stripMargin
   }
 
-  case class DataFrameLayer(df: DataFrame, idField: String, style: StyleOption) extends GeoRenderable {
-    private val dfc = df.collect() // expensive operation
-    private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
-    private val builder = new SimpleFeatureBuilder(sft)
-    // expensive map operation
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, r, builder, r.getAs[String](idField))).toSeq
-    private val sftLayer = SimpleFeatureLayer(sftSeq, style)
-    override def render: String = sftLayer.render
+  trait DataFrameLayer {
+    def df: DataFrame
+    def idField: String
+    def style: StyleOption
   }
 
-  case class SimpleFeatureLayer(features: Seq[SimpleFeature], style: StyleOption) extends GeoRenderable {
-    override def render: String =
-      s"""{
-         |L.geoJson(${features.map(simpleFeatureToGeoJSON).mkString("[",",","]")},
-         |    {
-         |      onEachFeature: onFeature,
-         |      ${
-        if (features.head.getDefaultGeometry.asInstanceOf[Geometry].getGeometryType == "Point")
-          PointToLayer (style).render
-        else s"style: ${style.render}"
-      }
-         |    }
-         |).addTo(map);
-         |
-         |${OnFeatureClick.render};}
-       """.stripMargin
+  trait SimpleFeatureLayer {
+    def features: Seq[SimpleFeature]
+    def style: StyleOption
 
-    private def simpleFeatureToGeoJSON(sf: SimpleFeature) = {
+    def simpleFeatureToGeoJSON(sf: SimpleFeature) = {
       import scala.collection.JavaConversions._
       s"""
          |{
          |    "type": "Feature",
          |    "properties": {
-         |        ${sf.getType.getAttributeDescriptors.zip(sf.getAttributes).filter{case(a,b) => b != null}.map { case (d, a) => propToJson(d, a) }.mkString(sep =",\n")}
+         |        ${sf.getType.getAttributeDescriptors.zip(sf.getAttributes)
+                      .filter{case(a,b) => b != null && !b.isInstanceOf[Geometry]}
+                      .map { case (d, a) => propToJson(d, a) }.mkString(sep =",\n")
+                   }
          |    },
          |    "geometry": ${new GeometryJSON().toString(sf.getDefaultGeometry.asInstanceOf[Geometry])}
          |}
        """.stripMargin
     }
 
-    private def propToJson(ad: AttributeDescriptor, a: Object) =
+    def propToJson(ad: AttributeDescriptor, a: Object) =
       if(a!= null) s""""${ad.getLocalName}": '${StringEscapeUtils.escapeJson(a.toString)}'"""
       else s""""${ad.getLocalName}": ''"""
+  }
+
+  case class DataFrameLayerNonPoint(df: DataFrame, idField: String, style: StyleOption)
+    extends GeoRenderable with DataFrameLayer {
+    private val dfc = df.collect() // expensive operation
+    private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
+    private val builder = new SimpleFeatureBuilder(sft)
+    // expensive map operation
+    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, r, builder, r.getAs[String](idField))).toSeq
+    private val sftLayer = SimpleFeatureLayerNonPoint(sftSeq, style)
+    override def render: String = sftLayer.render
+  }
+
+  case class DataFrameLayerPoint(df: DataFrame, idField: String, style: StyleOption, radius: Double = 5.0)
+    extends GeoRenderable with DataFrameLayer {
+    private val dfc = df.collect() // expensive operation
+    private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
+    private val builder = new SimpleFeatureBuilder(sft)
+    // expensive map operation
+    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, r, builder, r.getAs[String](idField))).toSeq
+    private val sftLayer = SimpleFeatureLayerPoint(sftSeq, style, radius)
+    override def render: String = sftLayer.render
+  }
+
+  case class SimpleFeatureLayerNonPoint(features: Seq[SimpleFeature], style: StyleOption)
+    extends GeoRenderable with SimpleFeatureLayer {
+    override def render: String =
+      s"""{
+         |L.geoJson(${features.map(simpleFeatureToGeoJSON).mkString("[",",","]")},
+         |    {
+         |      onEachFeature: onFeature,
+         |      style: ${style.render}
+         |    }
+         |).addTo(map);
+         |
+         |${OnFeatureClick.render};}
+       """.stripMargin
+  }
+
+  case class SimpleFeatureLayerPoint(features: Seq[SimpleFeature], style: StyleOption, radius: Double = 5.0)
+    extends GeoRenderable with SimpleFeatureLayer {
+    override def render: String =
+      s"""{
+          |L.geoJson(${features.map(simpleFeatureToGeoJSON).mkString("[",",","]")},
+          |    {
+          |      onEachFeature: onFeature,
+          |      ${ PointToLayer(style, radius).render }
+          |    }
+          |).addTo(map);
+          |
+         |${OnFeatureClick.render};}
+       """.stripMargin
   }
 
   case class Circle(cx: Double, cy: Double, radiusMeters: Double, style: StyleOption) extends GeoRenderable {
