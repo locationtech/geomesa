@@ -101,7 +101,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
     try {
       // get the query plan to set up the iterators, ranges, etc
       // getMultipleQueryPlan will return the fallback if any
-      /q/ element of the plan is a JoinPlan
+      // element of the plan is a JoinPlan
       val sft = ds.getSchema(query.getTypeName)
       val qps = AccumuloJobUtils.getMultipleQueryPlan(ds, query)
 
