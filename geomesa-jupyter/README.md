@@ -87,12 +87,12 @@ based on a specific property value is provided below:
 The following table provides options that might be of interest:
 
 
- | Option       | Type        | Description            |
- | ------------ | ----------- | ---------------------- |
- | color        | String      | Stroke color           |
- | weight       | Number      | Stroke width in pixels |
- | opacity      | Number      | Stroke opacity         |
- | fillColor    | String      | Fill color             |
- | fillOpacity  | Number      | Fill opacity           |
+| Option       | Type        | Description            |
+| ------------ | ----------- | ---------------------- |
+| color        | String      | Stroke color           |
+| weight       | Number      | Stroke width in pixels |
+| opacity      | Number      | Stroke opacity         |
+| fillColor    | String      | Fill color             |
+| fillOpacity  | Number      | Fill opacity           |
  
 Note: Options are comma-separated (i.e. ```{ color: "#ff0000", fillColor: "#0000ff" }```)
