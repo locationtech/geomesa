@@ -49,7 +49,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
     val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
     val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
 
-    def queryPlanToRDD(sft: => SimpleFeatureType, qp: => AccumuloQueryPlan, conf: Configuration) = {
+    def queryPlanToRDD(sft: SimpleFeatureType, qp: AccumuloQueryPlan, conf: Configuration) = {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
@@ -101,9 +101,9 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
     try {
       // get the query plan to set up the iterators, ranges, etc
       // getMultipleQueryPlan will return the fallback if any
-      // element of the plan is a JoinPlan
-      lazy val sft = ds.getSchema(query.getTypeName)
-      lazy val qps = AccumuloJobUtils.getMultipleQueryPlan(ds, query)
+      /q/ element of the plan is a JoinPlan
+      val sft = ds.getSchema(query.getTypeName)
+      val qps = AccumuloJobUtils.getMultipleQueryPlan(ds, query)
 
       // can return a union of the RDDs because the query planner *should*
       // be rewriting ORs to make them logically disjoint
