@@ -124,14 +124,14 @@ object GenerateFeatureWrappers {
    * @param args (0) - base directory for the maven project
    *             (1) - package to place the implicit classes
    */
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     val basedir = args(0)
     val packageName = args(1)
     assert(basedir != null)
     assert(packageName != null)
 
     val folder = new File(basedir + "/src/main/resources")
-    val resources = Some(folder).filter(_.isDirectory).map(findFormatFiles).getOrElse(Seq.empty)
+    val resources = Some(folder).filter(_.isDirectory).map(findFormatFiles).getOrElse(Seq.empty).sortBy(_.getName)
     val sfts = resources.map(r => SimpleFeatureTypes.createType(ConfigFactory.parseFile(r)))
 
     if (sfts.isEmpty) {
