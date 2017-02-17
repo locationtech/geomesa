@@ -453,18 +453,13 @@ Math Functions
 Usage:
 
 All math functions accept: Integers, Doubles, Floats and parsable Strings.
-All math functions return: Doubles. If another data type is needed, convert the value afterwards.
-
-Nesting operations is not currently supported and each operation will need to be saved as a new
-value in the converter to be used.
+All math functions return: Doubles. If another data type is needed, convert the value afterwards. e.g. ``add($1,$2)::long``
 
 Example:
 
 ::
 
-  { name = "value1",  transform = "$1::int"               }
-  { name = "value2",  transform = "$2::double"            }
-  { name = "total",   transform = "add($value1, $value2)" }
+  { name = "value3",   transform = "add($value1, multiply($value2, 1.2))::double" }
 
 add
 ^^^
