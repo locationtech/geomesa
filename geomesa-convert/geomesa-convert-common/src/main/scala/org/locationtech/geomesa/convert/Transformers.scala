@@ -191,20 +191,48 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = e.dependenciesOf(fieldNameMap)
   }
   case class Cast2Int(e: Expr) extends CastExpr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      e.eval(args).asInstanceOf[String].toInt
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Int =
+      e.eval(args) match {
+        case null => null.asInstanceOf[Int]
+        case i: Int => i
+        case d: Double => d.toInt
+        case f: Float => f.toInt
+        case l: Long =>  l.toInt
+        case a: Any => a.asInstanceOf[String].toInt
+      }
   }
   case class Cast2Long(e: Expr) extends CastExpr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      e.eval(args).asInstanceOf[String].toLong
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Long =
+      e.eval(args) match {
+        case null => null.asInstanceOf[Long]
+        case i: Int => i.toLong
+        case d: Double => d.doubleValue.toLong
+        case f: Float => f.toLong
+        case l: Long =>  l
+        case a: Any => a.asInstanceOf[String].toLong
+      }
   }
   case class Cast2Float(e: Expr) extends CastExpr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      e.eval(args).asInstanceOf[String].toFloat
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Float =
+      e.eval(args) match {
+        case null => null.asInstanceOf[Float]
+        case i: Int => i.toFloat
+        case d: Double => d.toFloat
+        case f: Float => f
+        case l: Long =>  l.toFloat
+        case a: Any => a.asInstanceOf[String].toFloat
+      }
   }
   case class Cast2Double(e: Expr) extends CastExpr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      e.eval(args).asInstanceOf[String].toDouble
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Double =
+      e.eval(args) match {
+        case null => null.asInstanceOf[Double]
+        case i: Int => i.toDouble
+        case d: Double => d
+        case f: Float => f.toDouble
+        case l: Long =>  l.toDouble
+        case a: Any => a.asInstanceOf[String].toDouble
+      }
   }
   case class Cast2Boolean(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
@@ -582,6 +610,7 @@ class CastFunctionFactory extends TransformerFunctionFactory {
   val stringToDouble = TransformerFn("stringToDouble") {
     args => tryConvert(args(0).asInstanceOf[String], (s) => s.toDouble, args(1))
   }
+  // Note we convert these to double first to leverage double's scientific notation parsing.
   val stringToInt = TransformerFn("stringToInt", "stringToInteger") {
     args => tryConvert(args(0).asInstanceOf[String], (s) => s.toInt, args(1))
   }

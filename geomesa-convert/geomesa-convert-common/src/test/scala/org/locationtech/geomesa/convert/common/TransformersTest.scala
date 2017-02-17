@@ -147,10 +147,27 @@ class TransformersTest extends Specification {
         "cast to int" >> {
           val exp = Transformers.parseTransform("$1::int")
           exp.eval(Array("", "1")) mustEqual 1
+          exp.eval(Array("", 1E2)) mustEqual 100
         }
         "cast to integer" >> {
           val exp = Transformers.parseTransform("$1::integer")
           exp.eval(Array("", "1")) mustEqual 1
+          exp.eval(Array("", 1E2)) mustEqual 100
+        }
+        "cast to long" >> {
+          val exp = Transformers.parseTransform("$1::long")
+          exp.eval(Array("", "1")) mustEqual 1L
+          exp.eval(Array("", 1E2)) mustEqual 100L
+        }
+        "cast to float" >> {
+          val exp = Transformers.parseTransform("$1::float")
+          exp.eval(Array("", "1")) mustEqual 1f
+          exp.eval(Array("", 1E2)) mustEqual 100f
+        }
+        "cast to double" >> {
+          val exp = Transformers.parseTransform("$1::double")
+          exp.eval(Array("", "1")) mustEqual 1d
+          exp.eval(Array("", 1E2)) mustEqual 100d
         }
         "cast to bool" >> {
           val exp = Transformers.parseTransform("$1::bool")
