@@ -36,7 +36,7 @@ Find the master node instance and then scp the distro as follows.
 
 .. code-block:: shell
 
-   $ gcloud beta compute scp --zone $ZONEID  ~/.m2/repository/org/locationtech/geomesa/geomesa-bigtable-dist_2.11/1.3.1-SNAPSHOT/geomesa-bigtable-dist_2.11-1.3.1-SNAPSHOT-bin.tar.gz <user>@<masterhost>:~/
+   $ gcloud beta compute scp --zone $ZONEID  ~/.m2/repository/org/locationtech/geomesa/geomesa-bigtable-dist_2.11/1.3.1-SNAPSHOT/geomesa-bigtable-dist_2.11-1.3.1-SNAPSHOT-bin.tar.gz <masterhost>:~/
 
 Log in to the master node using gcloud ssh as follows.
 
@@ -70,7 +70,7 @@ Now, you can run a spark shell and execute Spark SQL over your GeoMesa on Bigtab
 
 .. code-block:: shell
 
-   $ spark-shell --jars ~/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-1.3.1-SNAPSHOT.jar,~/geomesa/lib/bigtable-hbase-1.2-0.9.4.jar
+   $ spark-shell --jars $HOME/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-1.3.1-SNAPSHOT.jar,$HOME/geomesa/lib/bigtable-hbase-1.2-0.9.4.jar
 
 From the Spark shell prompt.
 
@@ -78,6 +78,6 @@ From the Spark shell prompt.
 
    scala> val df = spark.read.format("geomesa").option("bigtable.table.name", "geomesa.gdelt").option("geomesa.feature", "gdelt").load()
    scala> df.createOrReplaceTempView("gdelt")
-   spark.sql("select actor1Name,actor2Name,geom,dtg from gdelt where st_contains(st_geomFromWKT('POLYGON((-80 35,-70 35,-70 40,-80 40,-80 35))'),geom)").show()
+   scala> spark.sql("select actor1Name,actor2Name,geom,dtg from gdelt where st_contains(st_geomFromWKT('POLYGON((-80 35,-70 35,-70 40,-80 40,-80 35))'),geom)").show()
 
 
