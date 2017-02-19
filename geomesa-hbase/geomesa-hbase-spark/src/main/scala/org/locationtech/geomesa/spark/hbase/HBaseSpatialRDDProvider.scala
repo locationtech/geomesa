@@ -2,7 +2,7 @@ package org.locationtech.geomesa.spark.hbase
 
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.Scan
+import org.apache.hadoop.hbase.client.{Get, Scan}
 import org.apache.hadoop.hbase.mapreduce.MultiTableInputFormat
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.hadoop.hbase.util.Base64
@@ -44,7 +44,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
       GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
       val scans = qp.ranges.map { s =>
-        val scan = s.asInstanceOf[Scan]
+        val scan = s
         // need to set the table name in each scan
         scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
         convertScanToString(scan)
@@ -56,9 +56,14 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
   }
 
 
-  private def convertScanToString(scan: Scan): String = {
-    val proto = ProtobufUtil.toScan(scan)
-    Base64.encodeBytes(proto.toByteArray)
+  private def convertScanToString(scan: org.apache.hadoop.hbase.client.Query): String = scan match {
+    case g: Get =>
+      val proto = ProtobufUtil.toGet(g)
+      Base64.encodeBytes(proto.toByteArray)
+
+    case s: Scan =>
+      val proto = ProtobufUtil.toScan(s)
+      Base64.encodeBytes(proto.toByteArray)
   }
 
 

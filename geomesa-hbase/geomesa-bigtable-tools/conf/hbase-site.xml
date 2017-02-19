@@ -9,7 +9,7 @@
   </property>
   <property>
     <name>google.bigtable.project.id</name>
-    <value>[INSTANCE-ID]</value>
+    <value>[PROJECT-ID]</value>
   </property>
   <property>
     <name>google.bigtable.rpc.timeout.ms</name>

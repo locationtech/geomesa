@@ -62,7 +62,6 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
       }
     }
 
-
     var staged: SimpleFeature = _
     private val nextFeature =
       (filterOpt, transformSchema) match {
