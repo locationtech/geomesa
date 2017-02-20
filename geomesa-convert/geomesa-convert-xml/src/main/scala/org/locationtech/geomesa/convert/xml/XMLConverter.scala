@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io.{InputStream, StringReader}
+import java.io.{BufferedInputStream, InputStream, StringReader}
 import java.nio.charset.StandardCharsets
 import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
 import javax.xml.parsers.DocumentBuilderFactory
@@ -19,6 +19,7 @@ import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
+import org.apache.commons.io.input.BOMInputStream
 import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
@@ -65,13 +66,15 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
   }
 
   // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
-  override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] =
+  override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] = {
+    val bomis = new BOMInputStream(is) // This detects and excludes the BOM if it exists
     lineMode match {
       case LineMode.Single =>
-        processInput(Source.fromInputStream(is, StandardCharsets.UTF_8.displayName).getLines(), ec)
+        processInput(Source.fromInputStream(bomis, StandardCharsets.UTF_8.displayName).getLines(), ec)
       case LineMode.Multi =>
-        processInput(Iterator(IOUtils.toString(is, StandardCharsets.UTF_8.displayName)), ec)
+        processInput(Iterator(IOUtils.toString(bomis, StandardCharsets.UTF_8.displayName)), ec)
     }
+  }
 }
 
 class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] with LazyLogging {
