@@ -8,14 +8,18 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, File, FileInputStream, InputStream}
+import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.convert.xml.XMLConverterFactory
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
 class XMLConverterTest extends Specification {
@@ -454,6 +458,43 @@ class XMLConverterTest extends Specification {
       features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
       features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
       features.head.getUserData.get("my.user.key") mustEqual 127d
+    }
+
+    "Parse XMLs with a BOM" >> {
+
+      val xml = new File("src/test/resources/bomTest.xml")
+      xml.exists() mustEqual true
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "xml"
+          |   id-field     = "uuid()"
+          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   options {
+          |     line-mode  = "multi"
+          |   }
+          |   fields = [
+          |     // paths can be any xpath - relative to the feature-path, or absolute
+          |     { name = "number", path = "number",           transform = "$0::integer" }
+          |     { name = "color",  path = "color",            transform = "trim($0)" }
+          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val xmlConverter = (new XMLConverterFactory).buildConverter(sft, parserConf)
+      val features = xmlConverter.process(new FileInputStream(xml)).toList
+      features must haveLength(2)
+      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+      features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
     }
   }
 }
