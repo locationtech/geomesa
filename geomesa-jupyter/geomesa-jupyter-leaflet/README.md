@@ -71,8 +71,8 @@ The snippet below is an example of rendering dataframes in Leaflet in a Jupyter 
 ![ScreenShot](assets/Leaflet.png)
 
 ### StyleOptionFunction
-This case class allows you to specify a javascript function to perform styling. The anonymous function
-that you will pass takes a feature as an argument and returns a style javascript object. An example of styling
+This case class allows you to specify a Javascript function to perform styling. The anonymous function
+that you will pass takes a feature as an argument and returns a Javascript style object. An example of styling
 based on a specific property value is provided below:
 
 ```javascript

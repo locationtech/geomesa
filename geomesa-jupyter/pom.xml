@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-jupyter_2.11</artifactId>
-    <name>GeoMesa Accumulo</name>
+    <name>GeoMesa Jupyter</name>
     <packaging>pom</packaging>
 
     <modules>
