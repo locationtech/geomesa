@@ -148,26 +148,46 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("$1::int")
           exp.eval(Array("", "1")) mustEqual 1
           exp.eval(Array("", 1E2)) mustEqual 100
+          exp.eval(Array("", 1)) mustEqual 1
+          exp.eval(Array("", 1D)) mustEqual 1
+          exp.eval(Array("", 1F)) mustEqual 1
+          exp.eval(Array("", 1L)) mustEqual 1
         }
         "cast to integer" >> {
           val exp = Transformers.parseTransform("$1::integer")
           exp.eval(Array("", "1")) mustEqual 1
           exp.eval(Array("", 1E2)) mustEqual 100
+          exp.eval(Array("", 1)) mustEqual 1
+          exp.eval(Array("", 1D)) mustEqual 1
+          exp.eval(Array("", 1F)) mustEqual 1
+          exp.eval(Array("", 1L)) mustEqual 1
         }
         "cast to long" >> {
           val exp = Transformers.parseTransform("$1::long")
           exp.eval(Array("", "1")) mustEqual 1L
           exp.eval(Array("", 1E2)) mustEqual 100L
+          exp.eval(Array("", 1)) mustEqual 1L
+          exp.eval(Array("", 1D)) mustEqual 1L
+          exp.eval(Array("", 1F)) mustEqual 1L
+          exp.eval(Array("", 1L)) mustEqual 1L
         }
         "cast to float" >> {
           val exp = Transformers.parseTransform("$1::float")
-          exp.eval(Array("", "1")) mustEqual 1f
-          exp.eval(Array("", 1E2)) mustEqual 100f
+          exp.eval(Array("", "1")) mustEqual 1F
+          exp.eval(Array("", 1E2)) mustEqual 100F
+          exp.eval(Array("", 1)) mustEqual 1F
+          exp.eval(Array("", 1D)) mustEqual 1F
+          exp.eval(Array("", 1F)) mustEqual 1F
+          exp.eval(Array("", 1L)) mustEqual 1F
         }
         "cast to double" >> {
           val exp = Transformers.parseTransform("$1::double")
-          exp.eval(Array("", "1")) mustEqual 1d
-          exp.eval(Array("", 1E2)) mustEqual 100d
+          exp.eval(Array("", "1")) mustEqual 1D
+          exp.eval(Array("", 1E2)) mustEqual 100D
+          exp.eval(Array("", 1)) mustEqual 1D
+          exp.eval(Array("", 1D)) mustEqual 1D
+          exp.eval(Array("", 1F)) mustEqual 1D
+          exp.eval(Array("", 1L)) mustEqual 1D
         }
         "cast to bool" >> {
           val exp = Transformers.parseTransform("$1::bool")
