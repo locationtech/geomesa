@@ -167,8 +167,8 @@ class JsonConverterTest extends Specification {
           |     { name = "number", json-type = "integer", path = "$.number",                                           }
           |     { name = "color",  json-type = "string",  path = "$.color",            transform = "trim($0)"          }
           |     { name = "weight", json-type = "double",  path = "$.physical.weight",                                  }
-          |     { name = "lat",    json-type = "double",  path = "$.lat",                                              }
-          |     { name = "lon",    json-type = "double",  path = "$.lon",                                              }
+          |     { name = "lat",    json-type = "double",  root-path = "$.lat",                                         }
+          |     { name = "lon",    json-type = "double",  root-path = "$.lon",                                         }
           |     { name = "geom",                                                       transform = "point($lon, $lat)" }
           |   ]
           | }
