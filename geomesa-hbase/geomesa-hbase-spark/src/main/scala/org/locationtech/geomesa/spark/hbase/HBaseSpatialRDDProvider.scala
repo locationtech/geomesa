@@ -10,6 +10,7 @@ import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory, HBaseQueryPlan}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDDProvider
@@ -30,7 +31,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
 
     // get the query plan to set up the iterators, ranges, etc
     lazy val sft = ds.getSchema(origQuery.getTypeName)
-    lazy val qp = ds.getQueryPlan(origQuery).head.asInstanceOf[HBaseQueryPlan]
+    lazy val qp = ds.getQueryPlan(origQuery).head
 
     if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
       sc.emptyRDD[SimpleFeature]
@@ -43,6 +44,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
       GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
       GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
+      qp.filter.secondary.foreach { f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)) }
       val scans = qp.ranges.map { s =>
         val scan = s
         // need to set the table name in each scan
