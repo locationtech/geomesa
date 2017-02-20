@@ -41,8 +41,10 @@ class LeafletTest extends Specification {
 
     "a polygon" >> {
       import L._
-      val rendered = clean(gf.createPolygon(Array((10,10),(10,11),(11,11),(11,10),(10,10)).map { case (x,y) => new Coordinate(x,y)}).render)
-      "L.polygon([[10.0,10.0],[11.0,10.0],[11.0,11.0],[10.0,11.0],[10.0,10.0]],{fillOpacity:0}).addTo(map);" must be equalTo rendered
+      implicit val renderer = gf.createPolygon(Array((10,10),(10,11),(11,11),(11,10),(10,10)).map { case (x,y) => new Coordinate(x,y)})
+      val rendered = clean(JTSPolyLayer(StyleOptions()).render)
+      println(rendered)
+      s"L.polygon([[10.0,10.0],[11.0,10.0],[11.0,11.0],[10.0,11.0],[10.0,10.0]],${clean(StyleOptions().render)}).addTo(map);" must be equalTo rendered
     }
   }
 

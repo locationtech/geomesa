@@ -19,6 +19,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.Params._
+import org.locationtech.geomesa.hbase.index.HBaseZ3Index
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -101,31 +102,6 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       }
 
       testTransforms(ds)
-
-      def testLooseBbox(ds: HBaseDataStore, loose: Boolean) = {
-        val filter = ECQL.toFilter("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z")
-        val out = new ExplainString
-        ds.getQueryPlan(new Query(typeName, filter), explainer = out)
-        val filterLine = "Client-side filter: "
-        val clientSideFilter = out.toString.split("\n").map(_.trim).find(_.startsWith(filterLine)).map(_.substring(filterLine.length))
-        if (loose) {
-          clientSideFilter must beSome("None")
-        } else {
-          clientSideFilter must beSome(org.locationtech.geomesa.filter.filterToString(filter))
-        }
-      }
-
-      // test default loose bbox config
-      testLooseBbox(ds, loose = true)
-
-      forall(Seq(true, "true", java.lang.Boolean.TRUE)) { loose =>
-        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
-        testLooseBbox(ds, loose = true)
-      }
-      forall(Seq(false, "false", java.lang.Boolean.FALSE)) { loose =>
-        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
-        testLooseBbox(ds, loose = false)
-      }
     }
 
     "work with polys" in {

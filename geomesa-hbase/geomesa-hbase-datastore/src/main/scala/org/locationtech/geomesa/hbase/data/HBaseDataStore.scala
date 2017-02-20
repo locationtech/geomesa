@@ -10,12 +10,13 @@ package org.locationtech.geomesa.hbase.data
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
+import org.geotools.data.Query
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
-import org.locationtech.geomesa.index.utils.LocalLocking
+import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -60,6 +61,12 @@ class HBaseDataStore(val connection: Connection, config: HBaseDataStoreConfig)
     } finally {
       admin.close()
     }
+  }
+
+  override def getQueryPlan(query: Query,
+                            index: Option[HBaseFeatureIndexType] = None,
+                            explainer: Explainer = new ExplainLogging): Seq[HBaseQueryPlan] = {
+    super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[HBaseQueryPlan]]
   }
 
   override def dispose(): Unit = {
