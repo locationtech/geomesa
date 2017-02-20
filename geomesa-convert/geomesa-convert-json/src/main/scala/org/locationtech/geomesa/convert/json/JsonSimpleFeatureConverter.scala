@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert.json
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
-import com.google.gson.{JsonArray, JsonElement, JsonObject}
+import com.google.gson.{JsonArray, JsonElement, JsonNull, JsonObject}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
 import com.jayway.jsonpath.{Configuration, JsonPath}
 import com.typesafe.config.Config
@@ -45,9 +45,13 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
        root.map { r => extractFromRoot(json, r) }.getOrElse(Seq(Array[Any](json)))
      }.getOrElse(Seq(Array()))
 
+  // NB:  Currently the JSON support for Converters parses the entire JSON document into memory.
+  //  In the event that we wish to build SimpleFeatures from a 'feature path' and from globally referenced
+  //  fields, we have a small issue.
+  //  This solution involves handing a pointer to the feature path and the entire document.
   def extractFromRoot(json: AnyRef, r: JsonPath): Seq[Array[Any]] =
     r.read[JsonArray](json, jsonConfig).map { o =>
-      Array[Any](o)
+      Array[Any](o, json)
     }.toSeq
 
   // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
@@ -136,7 +140,18 @@ trait BaseJsonField[T] extends Field {
     super.eval(mutableArray)
   }
 
-  def evaluateJsonPath(args: Array[Any]): JsonElement = expression.read[JsonElement](args(0), jsonConfig)
+
+  def evaluateJsonPath(args: Array[Any]): JsonElement = {
+    val ret = expression.read[JsonElement](args(0), jsonConfig)
+    // In the event that we are reading from a 'feature path' and global context, we try to read the
+    //  'feature path' which is the first element of the array.
+    //  If it is null, we can read what we can from the global context.
+    if (ret.isJsonNull && args.length > 1) {
+      expression.read[JsonElement](args(1), jsonConfig)
+    } else {
+      ret
+    }
+  }
 
 }
 

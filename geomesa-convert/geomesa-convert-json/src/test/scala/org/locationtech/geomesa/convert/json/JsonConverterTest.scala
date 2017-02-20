@@ -125,6 +125,71 @@ class JsonConverterTest extends Specification {
       features(1).getDefaultGeometry must be equalTo pt2
     }
 
+    // NB: To enable this feature, we are reading the JSON path relative from the global context and the 'feature path'.
+    //  The data on the feature path has priority.
+    "parse multiple features out of a single document using arrays" >> {
+      val jsonStr =
+        """ {
+          |    DataSource: { name: "myjson" },
+          |    lat: 5,
+          |    lon: 4,
+          |    Features: [
+          |      {
+          |        id: 1,
+          |        number: 123,
+          |        color: "red",
+          |        physical: {
+          |          weight: 127.5,
+          |          height: "5'11"
+          |        }
+          |      },
+          |      {
+          |        id: 2,
+          |        number: 456,
+          |        color: "blue",
+          |        physical: {
+          |          weight: 150,
+          |          height: "5'11"
+          |        }
+          |      }
+          |    ]
+          | }
+        """.stripMargin
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   feature-path = "$.Features[*]"
+          |   fields = [
+          |     { name = "id",     json-type = "integer", path = "$.id",               transform = "toString($0)"      }
+          |     { name = "number", json-type = "integer", path = "$.number",                                           }
+          |     { name = "color",  json-type = "string",  path = "$.color",            transform = "trim($0)"          }
+          |     { name = "weight", json-type = "double",  path = "$.physical.weight",                                  }
+          |     { name = "lat",    json-type = "double",  path = "$.lat",                                              }
+          |     { name = "lon",    json-type = "double",  path = "$.lon",                                              }
+          |     { name = "geom",                                                       transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val pt1 = new Point(new Coordinate(4, 5), new PrecisionModel(PrecisionModel.FIXED), 4326)
+      val pt2 = new Point(new Coordinate(4, 5), new PrecisionModel(PrecisionModel.FIXED), 4326)
+
+      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      val features = converter.processInput(Iterator(jsonStr)).toList
+      features must haveLength(2)
+      features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+      features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+      features(0).getDefaultGeometry must be equalTo pt1
+      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+      features(1).getDefaultGeometry must be equalTo pt2
+    }
+
     "parse in single line-mode" >> {
 
       val jsonStr1 =
