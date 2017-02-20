@@ -28,7 +28,7 @@ To build, run
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-examples-avro``
+    $ mvn clean install -pl geomesa-examples-avro
 
 Run the Tutorial
 ----------------

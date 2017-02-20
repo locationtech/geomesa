@@ -11,9 +11,6 @@ package org.locationtech.geomesa.accumulo.index
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
-import org.locationtech.geomesa.accumulo.index.z2.Z2Index
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{decomposeAnd, decomposeOr}
@@ -46,8 +43,7 @@ class QueryFilterSplitterTest extends Specification {
     .point("geom", default = true)
     .build("QueryFilterSplitterTest")
 
-  sft.setSchemaVersion(org.locationtech.geomesa.CURRENT_SCHEMA_VERSION)
-  sft.setIndices(AccumuloFeatureIndex.getDefaultIndices(sft).map(i => (i.name, i.version, IndexMode.ReadWrite)))
+  sft.setIndices(AccumuloFeatureIndex.CurrentIndices.filter(_.supports(sft)).map(i => (i.name, i.version, IndexMode.ReadWrite)))
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft, IndexMode.Any))
@@ -479,8 +475,7 @@ class QueryFilterSplitterTest extends Specification {
 
     "support indexed date attributes" >> {
       val sft = SimpleFeatureTypes.createType("dtgIndex", "dtg:Date:index=full,*geom:Point:srid=4326")
-      sft.setSchemaVersion(org.locationtech.geomesa.CURRENT_SCHEMA_VERSION)
-      sft.setIndices(AccumuloFeatureIndex.getDefaultIndices(sft).map(i => (i.name, i.version, IndexMode.ReadWrite)))
+      sft.setIndices(AccumuloFeatureIndex.CurrentIndices.filter(_.supports(sft)).map(i => (i.name, i.version, IndexMode.ReadWrite)))
       val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft, IndexMode.Any))
       val filter = f("dtg TEQUALS 2014-01-01T12:30:00.000Z")
       val options = splitter.getQueryOptions(filter)

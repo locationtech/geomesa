@@ -44,3 +44,55 @@
 ```
 
 ![ScreenShot](assets/Jupyter.png)
+
+## Adding Layers to a map and displaying in notebook
+
+The snippet below is an example of rendering dataframes in Leaflet in a Jupyter notebook.
+
+```scala
+
+  implicit val displayer: String => Unit = { s => kernel.display.content("text/html", s) }
+  
+  val function = """
+    function(feature) {
+      switch (feature.properties.plane_type) {
+        case "A388": return {color: "#1c2957"}
+        default: return {color: "#cdb87d"}
+      }
+    }
+  """
+  
+  val sftLayer = time { L.DataFrameLayerNonPoint(flights_over_state, "__fid__", L.StyleOptionFunction(function)) }
+  val apLayer = time { L.DataFrameLayerPoint(flyovers, "origin", L.StyleOptions(color="#1c2957", fillColor="#cdb87d"), 2.5) }
+  val stLayer = time { L.DataFrameLayerNonPoint(queryOnStates, "ST", L.StyleOptions(color="#1c2957", fillColor="#cdb87d", fillOpacity= 0.45)) }
+  displayer(L.render(Seq[L.GeoRenderable](sftLayer,stLayer,apLayer),zoom = 1, path = "path/to/files"))
+```
+
+![ScreenShot](assets/Leaflet.png)
+
+### StyleOptionFunction
+This case class allows you to specify a javascript function to perform styling. The anonymous function
+that you will pass takes a feature as an argument and returns a style javascript object. An example of styling
+based on a specific property value is provided below:
+
+```javascript
+   function(feature) { 
+     switch(feature.properties.someProp) {
+       case "someValue": return { color: "#ff0000" }
+       default         : return { color: "#0000ff" }
+     }
+   }
+```
+
+The following table provides options that might be of interest:
+
+
+| Option       | Type        | Description            |
+| ------------ | ----------- | ---------------------- |
+| color        | String      | Stroke color           |
+| weight       | Number      | Stroke width in pixels |
+| opacity      | Number      | Stroke opacity         |
+| fillColor    | String      | Fill color             |
+| fillOpacity  | Number      | Fill opacity           |
+ 
+Note: Options are comma-separated (i.e. ```{ color: "#ff0000", fillColor: "#0000ff" }```)

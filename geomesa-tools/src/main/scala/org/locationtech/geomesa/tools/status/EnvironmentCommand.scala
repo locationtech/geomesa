@@ -19,7 +19,6 @@ class EnvironmentCommand extends Command {
 
   override val name = "env"
   override val params = new EnvironmentParameters()
-
   // TODO accumulo environment?
   override def execute(): Unit = {
     import scala.collection.JavaConversions._

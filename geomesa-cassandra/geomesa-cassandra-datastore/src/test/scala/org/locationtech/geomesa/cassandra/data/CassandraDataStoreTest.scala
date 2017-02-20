@@ -20,6 +20,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
@@ -56,6 +57,17 @@ class CassandraDataStoreTest extends Specification {
       ds.createSchema(SimpleFeatureTypes.createType("test:test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date"))
       ds.getTypeNames.toSeq must contain("test")
       ds.dispose()
+      ok
+    }
+
+    "list schemas with with new datastore" >> {
+      val ds = getDataStore
+      ds must not(beNull)
+      ds.createSchema(SimpleFeatureTypes.createType("test:test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date"))
+      ds.dispose()
+      val ds2 = getDataStore
+      ds2.getTypeNames.toSeq must contain("test")
+      ds2.dispose()
       ok
     }
 
@@ -197,6 +209,42 @@ class CassandraDataStoreTest extends Specification {
       val sft = ds.getSchema("testcolumnordering")
       sft.getAttributeDescriptors.head.getLocalName mustEqual "name"
       ds.dispose()
+      ok
+    }
+
+    "find points around the world" >> {
+      val (ds, fs) = initializeDataStore("testfindingpoints")
+      val gf = JTSFactoryFinder.getGeometryFactory
+
+      val testCoords = List(
+        ("11", 40, 40, 2014),
+        ("12", 40, -40, 2015),
+        ("13", -40, 40, 2016),
+        ("14", -40, -40, 2014),
+        ("15", -179, -89, 2015),
+        ("16", -179, 89, 2016),
+        ("17", 179, -89, 2014),
+        ("18", 179, 89, 2015),
+        ("19", 0, 0, 2016),
+        ("20", 2, 2, 2014),
+        ("21", 179, 1, 2015),
+        ("22", 1, 89, 2016)
+      )
+
+      val testFeatures = testCoords
+        .map({ case (id, x, y, year) =>
+          SimpleFeatureBuilder.build(fs.getSchema, Array(id, 30, gf.createPoint(new Coordinate(x, y)), new DateTime(s"$year-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], id)
+        })
+
+      fs.addFeatures(DataUtilities.collection(testFeatures))
+
+      for ((id, x, y, year) <- testCoords) {
+        val filt = ECQL.toFilter(s"bbox(geom, ${x - 1}, ${y - 1}, ${x + 1}, ${1 + y}, 'EPSG:4326') and dtg between $year-01-01T00:00:00.000Z and $year-01-08T00:00:00.000Z")
+        val features = fs.getFeatures(filt).features().toList
+        features must haveLength(1)
+        val feature = features.head
+        feature.getAttribute("name").toString mustEqual id
+      }
       ok
     }
   }

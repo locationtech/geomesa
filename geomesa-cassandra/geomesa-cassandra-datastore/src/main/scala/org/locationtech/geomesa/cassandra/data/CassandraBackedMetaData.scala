@@ -29,7 +29,7 @@ trait CassandraMetadataAdapter extends MetadataAdapter {
 
   override protected def checkIfTableExists: Boolean = {
     try {
-      session.execute(s"SELECT 1 FROM $catalog").nonEmpty
+      session.execute(s"select table_name from system_schema.tables where keyspace_name = '${session.getLoggedKeyspace}' and table_name = '$catalog'").nonEmpty
     } catch {
       case NonFatal(_) => false
     }

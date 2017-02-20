@@ -25,9 +25,10 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
-    Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex)
+    Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex, HBaseAttributeDateIndex)
 
-  override val CurrentIndices: Seq[HBaseFeatureIndex] = AllIndices
+  override val CurrentIndices: Seq[HBaseFeatureIndex] =
+    Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex)
 
   val DataColumnFamily = Bytes.toBytes("d")
   val DataColumnFamilyDescriptor = new HColumnDescriptor(DataColumnFamily)
@@ -106,7 +107,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
       if (ranges.head.isInstanceOf[Get]) {
-        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], ecql, toFeatures)
+        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], toFeatures)
       } else {
         // we want to ensure some parallelism in our batch scanning
         // as not all scans will take the same amount of time, we want to have multiple per-thread
@@ -115,7 +116,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
         val scans = ranges.asInstanceOf[Seq[Scan]]
         val minScans = if (ds.config.queryThreads == 1) { 1 } else { ds.config.queryThreads * scansPerThread }
         if (scans.length >= minScans) {
-          ScanPlan(filter, table, scans, ecql, toFeatures)
+          ScanPlan(filter, table, scans, toFeatures)
         } else {
           // split up the scans so that we get some parallelism
           val multiplier = math.ceil(minScans.toDouble / scans.length).toInt
@@ -123,7 +124,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
             val splits = IndexAdapter.splitRange(scan.getStartRow, scan.getStopRow, multiplier)
             splits.map { case (start, stop) => new Scan(scan).setStartRow(start).setStopRow(stop) }
           }
-          ScanPlan(filter, table, splitScans, ecql, toFeatures)
+          ScanPlan(filter, table, splitScans, toFeatures)
         }
       }
     }

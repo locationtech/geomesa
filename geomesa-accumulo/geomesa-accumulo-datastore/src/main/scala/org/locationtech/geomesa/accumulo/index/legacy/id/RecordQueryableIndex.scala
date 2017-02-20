@@ -6,16 +6,16 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index.id
+package org.locationtech.geomesa.accumulo.index.legacy.id
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Mutation, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
@@ -23,11 +23,11 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait RecordQueryableIndex extends AccumuloFeatureIndexType
+trait RecordQueryableIndex extends AccumuloFeatureIndex
     with IdFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
     with LazyLogging {
 
-  writable: AccumuloWritableIndex =>
+  writable: RecordWritableIndex =>
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 

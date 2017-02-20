@@ -138,16 +138,16 @@ object CassandraPrimaryKey {
 
   def unapply(idx: Int): Key = {
     val dk = idx >> 16
-    val z = idx & 0x000000ff
+    val z = idx & 0x0000ffff
     val (x, y) = SFC2D.toPoint(z)
     Key(idx, x, y, dk, z)
   }
 
   def apply(dtg: DateTime, x: Double, y: Double): Key = {
-    val dk = epochWeeks(dtg).getWeeks << 16
+    val dk = epochWeeks(dtg).getWeeks
     val z = SFC2D.toIndex(x, y).toInt
     val (rx, ry) = SFC2D.toPoint(z)
-    val idx = dk + z
+    val idx = (dk << 16) + z
     Key(idx, rx, ry, dk, z)
   }
 

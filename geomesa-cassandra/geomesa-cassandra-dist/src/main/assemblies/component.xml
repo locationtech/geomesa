@@ -104,5 +104,11 @@
             <destName>README-convert.md</destName>
             <outputDirectory>docs</outputDirectory>
         </file>
+        <!-- autocomplete -->
+        <file>
+            <source>../geomesa-cassandra-tools/target/autocomplete.sh</source>
+            <destName>autocomplete.sh</destName>
+            <outputDirectory>conf</outputDirectory>
+        </file>
     </files>
 </component>

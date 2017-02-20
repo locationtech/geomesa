@@ -363,8 +363,7 @@ Using the SFT and Converter config files we can then ingest our csv file with th
       -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
 
 
-For more documentation on converter configuration, refer to the the ``geomesa-$VERSION/docs/README-convert.md`` file
-in the binary distribution.
+For more documentation on converter configuration, see :doc:`/user/convert/index`.
 
 Shape files may also be ingested::
 
@@ -413,6 +412,8 @@ For ``s3a``:
 After you have enabled S3 in your Hadoop configuration you can ingest with GeoMesa tools. Note that you can still
 use the Kleene star (*) with S3.:
 
+.. code-block:: bash
+
     $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3a://bucket/path/file*
 
 For ``s3n``:
@@ -446,6 +447,8 @@ S3n paths are prefixed in hadoop with ``s3n://`` as shown below::
       -c geomesa_catalog -i instance -s yourspec \
       -C convert s3n://bucket/path/file s3n://bucket/path/*
 
+
+.. _accumulo_tools_raster:
 
 Working with raster data
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -524,10 +527,12 @@ Example usage::
 add-attribute-index
 ~~~~~~~~~~~~~~~~~~~
 
-Add an attribute index for a specified list of attributes.::
+Add attribute indices for a specified list of attributes.::
 
     $ geomesa add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
-        -f test_feature -a attribute1,attribute2 --coverage full
+      -f test_feature -a attribute1,attribute2 --coverage full
+
+This will launch a map-reduce job creating attribute indices for each attribute listed in ``-a``. This is essentially a convenience wrapper for invoking the job described in :ref:`attribute_indexing_job`.
 
 env
 ~~~

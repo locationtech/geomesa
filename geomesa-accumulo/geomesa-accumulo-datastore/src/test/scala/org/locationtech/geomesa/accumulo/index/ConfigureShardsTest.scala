@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.index
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
@@ -54,7 +53,7 @@ class ConfigureShardsTest extends Specification with TestWithDataStore {
       var shardSet: Set[Long] = Set[Long]()
       ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
         val bytes = r.getKey.getRow.getBytes
-        val shard = bytes.head.toInt
+        val shard = bytes(1).toInt
         shardSet = shardSet + shard
       }
       shardSet must haveSize(8)
