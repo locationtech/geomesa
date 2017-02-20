@@ -11,6 +11,7 @@ package org.apache.spark.sql
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Coordinate, Point, Polygon}
 import com.vividsolutions.jts.util.GeometricShapeFactory
+import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
@@ -40,14 +41,14 @@ object SQLGeometryProcessingFunctions extends LazyLogging {
     ST_antimeridianSafeGeom(gsf.createCircle())
   }
 
-  val ST_antimeridianSafeGeom: Geometry => Geometry = geom => {
+  val ST_antimeridianSafeGeom: Geometry => Geometry = nullableUDF(geom => {
     GeohashUtils.getInternationalDateLineSafeGeometry(geom) match {
       case Success(g) => g
       case Failure(e) =>
         logger.warn(s"Error splitting geometry on anti-meridian for $geom", e)
         geom
     }
-  }
+  })
 
   val ST_BufferPoint: (Point, Double) => Geometry = (p, d) => {
     val degrees = DistanceUtils.dist2Degrees(d/1000.0, DistanceUtils.EARTH_MEAN_RADIUS_KM)

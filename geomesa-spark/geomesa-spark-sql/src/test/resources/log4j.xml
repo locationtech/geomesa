@@ -31,7 +31,7 @@
     </category>
 
     <category name="org.spark_project.jetty">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
 
     <!-- un-comment the following line to enable verbose log messages

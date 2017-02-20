@@ -12,6 +12,7 @@ import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
+import org.apache.spark.sql.SQLTypes
 import org.geotools.data.DataStoreFinder
 import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
@@ -33,19 +34,11 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     val ds = DataStoreFinder.getDataStore(dsParams)
     val spark = SparkSQLTestUtils.createSparkSession()
     val sc = spark.sqlContext
-
-    SparkSQLTestUtils.ingestChicago(ds)
-
-    val df = spark.read
-      .format("geomesa")
-      .options(dsParams)
-      .option("geomesa.feature", "chicago")
-      .load()
-    logger.info(df.schema.treeString)
-    df.createOrReplaceTempView("chicago")
-
+    SQLTypes.init(sc)
 
     "st_box2DFromGeoHash" >> {
+      sc.sql("select st_box2DFromGeoHash(null, null)").collect.head(0) must beNull
+
       val r = sc.sql(
         s"""
            |select st_box2DFromGeoHash('ezs42', 25)
@@ -63,6 +56,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_geomFromGeoHash" >> {
+      sc.sql("select st_geomFromGeoHash(null, null)").collect.head(0) must beNull
+
       val r = sc.sql(
         s"""
            |select st_geomFromGeoHash('ezs42', 25)
@@ -80,6 +75,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_geomFromWKT" >> {
+      sc.sql("select st_geomFromWKT(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_geomFromWKT('POINT(0 0)')
@@ -90,6 +87,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_geometryFromText" >> {
+      sc.sql("select st_geometryFromText(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_geometryFromText('POINT(0 0)')
@@ -100,6 +99,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_geomFromWKB" >> {
+      sc.sql("select st_geomFromWKB(null)").collect.head(0) must beNull
+
       val geomArr = Array[Byte](0,
         0, 0, 0, 3,
         0, 0, 0, 1,
@@ -117,6 +118,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_lineFromText" >> {
+      sc.sql("select st_lineFromText(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_lineFromText('LINESTRING(0 0, 1 1, 2 2)')
@@ -126,6 +129,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_makeBBOX" >> {
+      sc.sql("select st_makeBBOX(null, null, null, null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_makeBBOX(0.0, 0.0, 2.0, 2.0)
@@ -135,6 +140,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_makeBox2D" >> {
+      sc.sql("select st_makeBox2D(null, null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_makeBox2D(st_castToPoint(st_geomFromWKT('POINT(0 0)')),
@@ -146,6 +153,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_makePolygon" >> {
+      sc.sql("select st_makePolygon(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         s"""
            |select st_makePolygon(st_castToLineString(
@@ -156,6 +165,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_makePoint" >> {
+      sc.sql("select st_makePoint(null, null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_makePoint(0, 0)
@@ -165,6 +176,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_makePointM" >> {
+      sc.sql("select st_makePointM(null, null, null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_makePointM(0, 0, 1)
@@ -174,6 +187,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_mLineFromText" >> {
+      sc.sql("select st_mLineFromText(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_mLineFromText('MULTILINESTRING((0 0, 1 1, 2 2), (0 1, 1 2, 2 3))')
@@ -185,6 +200,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_mPointFromText" >> {
+      sc.sql("select st_mPointFromText(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_mPointFromText('MULTIPOINT((0 0), (1 1))')
@@ -195,6 +212,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_mPolyFromText" >> {
+      sc.sql("select st_mPolyFromText(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_mPolyFromText('MULTIPOLYGON((( -1 -1, 0 1, 1 -1, -1 -1 )),((-4 4, 4 4, 4 -4, -4 -4, -4 4),
@@ -208,6 +227,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_point" >> {
+      sc.sql("select st_point(null, null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_point(0, 0)
@@ -217,6 +238,7 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_pointFromGeoHash" >> {
+      sc.sql("select st_pointFromGeoHash(null, null)").collect.head(0) must beNull
       val r = sc.sql(
         s"""
            |select st_pointFromGeoHash('ezs42', 25)
@@ -229,6 +251,7 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_pointFromText" >> {
+      sc.sql("select st_pointFromText(null)").collect.head(0) must beNull
       val r = sc.sql(
         """
           |select st_pointFromText('Point(0 0)')
@@ -238,6 +261,7 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_pointFromWKB" >> {
+      sc.sql("select st_pointFromWKB(null)").collect.head(0) must beNull
       val pointArr = Array[Byte](0, 0, 0, 0, 1,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0)
@@ -250,6 +274,7 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_polygon" >> {
+      sc.sql("select st_polygon(null)").collect.head(0) must beNull
       val r = sc.sql(
         s"""
            |select st_polygon(st_castToLineString(
@@ -260,6 +285,7 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_polygonFromText" >> {
+      sc.sql("select st_polygonFromText(null)").collect.head(0) must beNull
       val r = sc.sql(
         """
           |select st_polygonFromText('POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))')

@@ -87,12 +87,18 @@ class SparkSQLDataTest extends Specification with LazyLogging {
     }
 
     "st_translate" >> {
-      val r = sc.sql(
-        """
+      "null" >> {
+        sc.sql("select st_translate(null, null, null)").collect.head(0) must beNull
+      }
+
+      "point" >> {
+        val r = sc.sql(
+          """
           |select st_translate(st_geomFromWKT('POINT(0 0)'), 5, 12)
         """.stripMargin)
 
-      r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 12)")
+        r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 12)")
+      }
     }
 
     "where __fid__ equals" >> {
