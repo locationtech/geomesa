@@ -452,7 +452,7 @@ Math Functions
 
 Usage:
 
-All math functions accept: Integers, Doubles, Floats and parsable Strings.
+All math functions accept: Integers, Doubles, Floats, Longs and parsable Strings.
 All math functions return: Doubles. If another data type is needed, convert the value afterwards. e.g. ``add($1,$2)::long``
 
 Example:
