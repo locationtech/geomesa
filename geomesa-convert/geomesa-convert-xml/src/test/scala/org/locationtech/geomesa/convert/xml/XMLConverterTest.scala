@@ -8,21 +8,17 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io.{ByteArrayInputStream, File, FileInputStream, InputStream}
+import java.io.{ByteArrayInputStream, File, FileInputStream}
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Point
-import com.vividsolutions.jts.io.WKTReader
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.convert.xml.XMLConverterFactory
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
 class XMLConverterTest extends Specification {
