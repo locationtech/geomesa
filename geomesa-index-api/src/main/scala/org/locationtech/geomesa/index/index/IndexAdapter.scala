@@ -13,7 +13,7 @@
 
 package org.locationtech.geomesa.index.index
 
-import com.typesafe.scalalogging.{LazyLogging, Logger}
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -96,7 +96,7 @@ object IndexAdapter {
 
   // helper shim to let other classes avoid importing IndexAdapter.logger
   object IndexAdapterLogger extends LazyLogging {
-    def log: Logger = logger
+    def log = logger
   }
 
   /**
