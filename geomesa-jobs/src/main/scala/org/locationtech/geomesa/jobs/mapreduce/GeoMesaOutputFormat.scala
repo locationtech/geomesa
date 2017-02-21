@@ -17,9 +17,8 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
+import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
-import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -72,54 +71,6 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
     new NullOutputFormat[Text, SimpleFeature]().getOutputCommitter(context)
 }
 
-/**
-  * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
-  * simple features.
-  *
-  * @param reader
-  */
-class GeoMesaRecordReader[FI <: GeoMesaFeatureIndex[_, _, _]]
-(
-  sft: SimpleFeatureType,
-  table: FI,
-  reader: RecordReader[Array[Byte], Array[Byte]],
-  hasId: Boolean,
-  decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer
-) extends RecordReader[Text, SimpleFeature] {
-
-  private var currentFeature: SimpleFeature = null
-
-  private val getId = table.getIdFromRow(sft)
-
-  override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
-    reader.initialize(split, context)
-  }
-  override def getProgress: Float = reader.getProgress
-
-  override def nextKeyValue(): Boolean = nextKeyValueInternal()
-
-  /**
-    * Get the next key value from the underlying reader, incrementing the reader when required
-    */
-  private def nextKeyValueInternal(): Boolean = {
-    if (reader.nextKeyValue()) {
-      currentFeature = decoder.deserialize(reader.getCurrentValue)
-      if (!hasId) {
-        val row = reader.getCurrentKey
-        currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row, 0, row.length))
-      }
-      true
-    } else {
-      false
-    }
-  }
-
-  override def getCurrentValue: SimpleFeature = currentFeature
-
-  override def getCurrentKey = new Text(currentFeature.getID)
-
-  override def close(): Unit = { reader.close() }
-}
 
 
 /**
