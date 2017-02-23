@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process
 
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
-import org.locationtech.geomesa.accumulo.process.{JoinProcess, SamplingProcess}
+import org.locationtech.geomesa.accumulo.process.{JoinProcess, RouteSearchProcess, SamplingProcess}
 import org.locationtech.geomesa.accumulo.process.knn.KNearestNeighborSearchProcess
 import org.locationtech.geomesa.accumulo.process.proximity.ProximitySearchProcess
 import org.locationtech.geomesa.accumulo.process.query.QueryProcess
@@ -34,5 +34,6 @@ class ProcessFactory
     classOf[HashAttributeProcess],
     classOf[HashAttributeColorProcess],
     classOf[SamplingProcess],
-    classOf[JoinProcess]
+    classOf[JoinProcess],
+    classOf[RouteSearchProcess]
   )

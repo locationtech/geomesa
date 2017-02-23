@@ -25,13 +25,13 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanner
-import org.locationtech.geomesa.accumulo.process.SamplingVisitor
 import org.locationtech.geomesa.accumulo.process.knn.KNNVisitor
 import org.locationtech.geomesa.accumulo.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
 import org.locationtech.geomesa.accumulo.process.stats.StatsVisitor
 import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
 import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
+import org.locationtech.geomesa.accumulo.process.{RouteVisitor, SamplingVisitor}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
@@ -146,6 +146,7 @@ class AccumuloFeatureCollection(source: AccumuloFeatureSource, query: Query)
       case v: SamplingVisitor  => v.setValue(v.sample(source, query))
       case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
       case v: AttributeVisitor => v.setValue(v.unique(source, query))
+      case v: RouteVisitor     => v.routeSearch(source, query)
 
       case v: MinVisitor if v.getExpression.isInstanceOf[PropertyName] =>
         val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName

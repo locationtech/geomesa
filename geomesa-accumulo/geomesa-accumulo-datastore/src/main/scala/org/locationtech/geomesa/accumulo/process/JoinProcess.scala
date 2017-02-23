@@ -98,7 +98,7 @@ class JoinProcess extends VectorProcess with LazyLogging {
         throw new IllegalArgumentException("Please specify binDtg for BIN output format")
       }
       val track = Option(binTrackId).orElse(toTrackId(secondary.getSchema)).orElse(toTrackId(primary.getSchema))
-      Some(EncodingOptions(dtg, track, Option(binLabel)))
+      Some(EncodingOptions(None, Some(dtg), track, Option(binLabel)))
     } else {
       None
     }
