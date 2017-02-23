@@ -17,8 +17,9 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.index.api.WrappedFeature
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
+import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -72,6 +73,56 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
 }
 
 /**
+  * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
+  * simple features.
+  *
+  * @param reader
+  */
+class GeoMesaRecordReader[FI <: GeoMesaFeatureIndex[_, _, _]]
+(
+  sft: SimpleFeatureType,
+  table: FI,
+  reader: RecordReader[Array[Byte], Array[Byte]],
+  hasId: Boolean,
+  decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer
+) extends RecordReader[Text, SimpleFeature] {
+
+  private var currentFeature: SimpleFeature = null
+
+  private val getId = table.getIdFromRow(sft)
+
+  override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
+    reader.initialize(split, context)
+  }
+  override def getProgress: Float = reader.getProgress
+
+  override def nextKeyValue(): Boolean = nextKeyValueInternal()
+
+  /**
+    * Get the next key value from the underlying reader, incrementing the reader when required
+    */
+  private def nextKeyValueInternal(): Boolean = {
+    if (reader.nextKeyValue()) {
+      currentFeature = decoder.deserialize(reader.getCurrentValue)
+      if (!hasId) {
+        val row = reader.getCurrentKey
+        currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row, 0, row.length))
+      }
+      true
+    } else {
+      false
+    }
+  }
+
+  override def getCurrentValue: SimpleFeature = currentFeature
+
+  override def getCurrentKey = new Text(currentFeature.getID)
+
+  override def close(): Unit = { reader.close() }
+}
+
+
+/**
  * Record writer for GeoMesa SimpleFeatures.
  *
  * Key is ignored. If the feature type for the given feature does not exist yet, it will be created.
@@ -80,15 +131,15 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
     (params: Map[String, String], indices: Option[Seq[String]], context: TaskAttemptContext)
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  val ds = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
+  val ds: GeoMesaDataStore[DS, F, W] = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
 
   val sftCache    = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
   val writerCache = scala.collection.mutable.Map.empty[String, GeoMesaFeatureWriter[_, _, _, _]]
 
-  val written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
-  val failed  = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
+  val written: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
+  val failed: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
 
-  override def write(key: Text, value: SimpleFeature) = {
+  override def write(key: Text, value: SimpleFeature): Unit = {
     val sftName = value.getFeatureType.getTypeName
     // TODO we shouldn't serialize the sft with each feature
     // ensure that the type has been created if we haven't seen it before
@@ -125,7 +176,7 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
     }
   }
 
-  override def close(context: TaskAttemptContext) = {
+  override def close(context: TaskAttemptContext): Unit = {
     writerCache.values.foreach(IOUtils.closeQuietly)
     ds.dispose()
   }

@@ -114,7 +114,7 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
   private val (tables, writeConverters, removeConverters) =
     GeoMesaFeatureWriter.getTablesAndConverters[DS, F, W](sft, ds, indices)
 
-  protected val mutators = createMutators(tables)
+  protected val mutators: IndexedSeq[T] = createMutators(tables)
   private val writers = mutators.zip(writeConverters)
   private val removers = mutators.zip(removeConverters)
 
