@@ -27,7 +27,6 @@ class HBaseIngestCommand extends IngestCommand[HBaseDataStore] with HBaseDataSto
 
   override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
     () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HBASE_HOME"),
-    () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME"),
     () => ClassPathUtils.getJarsFromEnvironment("HBASE_HOME"),
     () => ClassPathUtils.getJarsFromClasspath(classOf[HBaseDataStore]),
     () => ClassPathUtils.getJarsFromClasspath(classOf[Connection])
