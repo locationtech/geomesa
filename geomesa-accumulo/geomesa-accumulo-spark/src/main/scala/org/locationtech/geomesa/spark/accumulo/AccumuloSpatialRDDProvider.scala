@@ -108,7 +108,10 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
       // can return a union of the RDDs because the query planner *should*
       // be rewriting ORs to make them logically disjoint
       // e.g. "A OR B OR C" -> "A OR (B NOT A) OR ((C NOT A) NOT B)"
-      sc.union(qps.map(queryPlanToRDD(sft, _, new Configuration(conf))))
+      if (qps.length == 1)
+        queryPlanToRDD(sft, qps.head, conf) // no union needed for single query plan
+      else
+        sc.union(qps.map(queryPlanToRDD(sft, _, new Configuration(conf))))
     } finally {
       if (ds != null) {
         ds.dispose()
