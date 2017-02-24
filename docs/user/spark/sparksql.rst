@@ -3,8 +3,8 @@ SparkSQL
 
 GeoMesa SparkSQL support builds upon the ``DataSet``/``DataFrame`` API present
 in the Spark SQL module to provide geospatial capabilities. This includes
-custom geospatial data types and functions, the ability to create a DataFrame
-from a GeoTools DataStore, and optimizations to improve SQL query performance.
+custom geospatial data types and functions, the ability to create a ``DataFrame``
+from a GeoTools ``DataStore``, and optimizations to improve SQL query performance.
 
 GeoMesa SparkSQL code is provided by the ``geomesa-spark-sql`` module:
 
@@ -36,8 +36,6 @@ via SparkSQL:
     // Create SparkSession
     val sparkSession = SparkSession.builder()
       .appName("testSpark")
-      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .config("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
       .config("spark.sql.crossJoin.enabled", "true")
       .master("local[*]")
       .getOrCreate()
@@ -67,31 +65,47 @@ via SparkSQL:
     +-------+------+-----------+--------------------+-----------------+
     */
 
-Usage
-^^^^^
-
+Configuration
+^^^^^^^^^^^^^
 Because GeoMesa SparkSQL stacks on top of the ``geomesa-spark-core`` module,
 one or more of the ``SpatialRDDProvider`` implementations, as described in
-:doc:`/user/spark/core`, must be included on the classpath.
+:doc:`/user/spark/core`, must be included on the classpath. The shaded JAR built by the
+**geomesa-accumulo-spark-runtime** module (``geomesa-accumulo/geomesa-accumulo-spark-runtime``
+in the source distribution) contains all of the dependencies needed to run
+the :ref:`accumulo_rdd_provider` as well as **geomesa-spark-sql**. This shaded
+JAR can be passed (for example) to the ``spark-submit`` command via the ``--jars``
+option:
 
-As well, Spark should be configured to register ``GeoMesaSparkKryoRegistor``. This
-can be done when creating the ``SparkSession``:
+.. code-block:: bash
 
-.. code-block:: scala
+    --jars file://path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar
 
-    val sparkSession = SparkSession.builder()
-      .appName("testSpark")
-      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .config("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
-      .master("local[*]")
-      .getOrCreate()
+or passed to Spark via the appropriate mechanism in notebook servers such as
+Jupyter (see :doc:`jupyter`) or Zeppelin.
+
+This shaded JAR should also provide the dependencies needed for the
+:ref:`converter_rdd_provider` and :ref:`geotools_rdd_provider`, so these JARs
+may simply be added to ``--jars`` as well (though in the latter
+case additional JARs may be needed to implement the GeoTools data store accessed).
+
+.. note::
+
+    When using the :ref:`accumulo_rdd_provider` or :ref:`converter_rdd_provider`
+    with **geomesa-spark-sql**, it is not necessary to set up the Kryo serialization
+    described in :ref:`spark_sf_serialization`. However, this may be required when
+    using the :ref:`geotools_rdd_provider`.
 
 If you will be ``JOIN``-ing multiple ``DataFrame``\s together, it will be necessary
-to add the ``spark.sql.crossJoin.enabled`` property as well.
+to add the ``spark.sql.crossJoin.enabled`` property when creating the
+``SparkSession`` object:
 
 .. code-block:: scala
 
-    .config("spark.sql.crossJoin.enabled", "true")
+    val spark = SparkSession.builder().
+       // ...
+       config("spark.sql.crossJoin.enabled", "true").
+       // ...
+       getOrCreate()
 
 .. warning::
 
@@ -99,6 +113,8 @@ to add the ``spark.sql.crossJoin.enabled`` property as well.
     sets of data joined are very small, and consider using the ``broadcast()`` method
     to ensure that at least one ``DataFrame`` joined is in memory.
 
+Usage
+^^^^^
 
 To create a GeoMesa SparkSQL-enabled ``DataFrame`` with data corresponding to a particular
 feature type, do the following:
