@@ -122,13 +122,7 @@ object AccumuloJobUtils extends LazyLogging {
         // this query has a join, which we can't execute from input formats
         // instead, fall back to a full table scan
         logger.warn("Desired query plan contains joins - falling back to full table scan")
-        val qps = ds.getQueryPlan(query, Some(fallbackIndex))
-        if (qps.length > 1) {
-          logger.error("The query being executed requires multiple scans, which is not currently " +
-            "supported by GeoMesa. Your result set will be partially incomplete. " +
-            s"Query: ${filterToString(query.getFilter)}")
-        }
-        qps
+        ds.getQueryPlan(query, Some(fallbackIndex))
       } else {
         queryPlans
       }
