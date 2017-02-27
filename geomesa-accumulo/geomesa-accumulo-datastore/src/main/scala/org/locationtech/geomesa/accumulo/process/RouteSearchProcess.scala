@@ -46,14 +46,19 @@ class RouteSearchProcess extends VectorProcess with BinProcessOutput with LazyLo
     * @param routes routes to match
     * @param bufferSize buffer around the routes to search, in meters
     * @param headingThreshold threshold to match the heading of the route, in degrees
-    * @param routeGeomField geometry attribute in the route features that contains the route, optional - will use default geometry if not provided
-    * @param geomField geometry attribute in input features to match with the route, optional - will use default geometry if not provided
+    * @param routeGeomField geometry attribute in the route features that contains the route, optional
+    *                       will use default geometry if not provided
+    * @param geomField geometry attribute in input features to match with the route, optional
+    *                  will use default geometry if not provided
     * @param bidirectional consider the direction of the route or just the path of the route
     * @param headingField heading attribute in input features, required unless input geometries are linestrings
     * @param bins encode the result in bin format
-    * @param binGeom geometry attribute to encode in the bin format, optional - will use default geometry if not provided
-    * @param binDtg date attribute to encode in the bin format, optional - will use default date if not provided
-    * @param binTrackId track id attribute to encode in the bin format, optional - will use feature id if not provided
+    * @param binGeom geometry attribute to encode in the bin format, optional
+    *                will use default geometry if not provided
+    * @param binDtg date attribute to encode in the bin format, optional
+    *               will use default date if not provided
+    * @param binTrackId track id attribute to encode in the bin format, optional
+    *                   will use feature id if not provided
     * @param binLabel label attribute to encode in the bin format, optional
     * @return
     */
@@ -158,7 +163,7 @@ class RouteVisitor(routes: Seq[LineString],
     orFilters(routes.map(ls => ff.dwithin(ff.property(geomAttribute), ff.literal(ls), routeBuffer, "meters")))
 
   // for manual check, rewrite the filter to handle meters
-  // geotools doesn't handle this, we normally do it in our query planner
+  // normally handled in our query planner, but we are going to use the filter directly here
   private lazy val manualRouteFilter = routeFilter match {
     case f: DWithin => new QueryPlanFilterVisitor(null).visit(f, null).asInstanceOf[Filter]
     case f: Or      => new QueryPlanFilterVisitor(null).visit(f, null).asInstanceOf[Filter]
