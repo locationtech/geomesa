@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io.{ByteArrayInputStream, File, FileInputStream, InputStream}
+import java.io.{ByteArrayInputStream, File, FileInputStream}
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
+import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.convert.xml.XMLConverterFactory
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
 class XMLConverterTest extends Specification {
@@ -87,6 +86,74 @@ class XMLConverterTest extends Specification {
       features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
       features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
       features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+    }
+
+    "parse multiple features out of a single document with the geometry in the repeated XML tag" >> {
+
+      val sftConf2 = ConfigFactory.parseString(
+        """{ type-name = "xmlFeatureType"
+          |  attributes = [
+          |    {name = "number", type = "Integer"}
+          |    {name = "color",  type = "String"}
+          |    {name = "weight", type = "Double"}
+          |    {name = "source", type = "String"}
+          |    {name = "geom",   type = "Point"}
+          |  ]
+          |}
+        """.stripMargin)
+      val sft2 = SimpleFeatureTypes.createType(sftConf2)
+
+      val xml =
+        """<doc>
+          |  <DataSource>
+          |    <name>myxml</name>
+          |  </DataSource>
+          |  <Feature lon="1.23" lat="4.23">
+          |    <number>123</number>
+          |    <color>red</color>
+          |    <physical weight="127.5" height="5'11"/>
+          |  </Feature>
+          |  <Feature lon="4.56" lat="7.56">
+          |    <number>456</number>
+          |    <color>blue</color>
+              <physical weight="150" height="h2"/>
+          |  </Feature>
+          |</doc>
+        """.stripMargin
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "xml"
+          |   id-field     = "uuid()"
+          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   fields = [
+          |     // paths can be any xpath - relative to the feature-path, or absolute
+          |     { name = "number", path = "number",           transform = "$0::integer" }
+          |     { name = "color",  path = "color",            transform = "trim($0)" }
+          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "lon",    path = "./@lon", transform = "$0::double" }
+          |     { name = "lat",    path = "./@lat", transform = "$0::double" }
+          |     { name = "geom",   transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](sft2, parserConf)
+      val features = converter.processInput(Iterator(xml)).toList
+      features must haveLength(2)
+      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      features.head.getAttribute("geom").asInstanceOf[Point] mustEqual WKTUtils.read("POINT(1.23 4.23)").asInstanceOf[Point]
+
+      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+      features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      features(1).getAttribute("geom").asInstanceOf[Point] mustEqual WKTUtils.read("POINT(4.56 7.56)").asInstanceOf[Point]
     }
 
     "parse nested feature nodes" >> {
