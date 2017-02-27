@@ -127,7 +127,7 @@ Description: Custom date parser.
 Usage: ``date($format, $1)``
 
 Example:
-``date('YYYY-MM-dd\'T\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')``
+``date('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')``
 
 dateTime
 ^^^^^^^^
