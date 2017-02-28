@@ -3,7 +3,7 @@ build/scala*
 build/*.jar
 build/build.out
 docs/_build
-docs/common.pyc
+*.pyc
 *.iws
 *.ipr
 *.iml
