@@ -12,6 +12,7 @@ import java.io.{BufferedWriter, StringWriter}
 import java.util.ServiceLoader
 
 import org.apache.hadoop.conf.Configuration
+import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.{Partition, SparkContext, TaskContext}
 import org.apache.spark.rdd.RDD
 import org.geotools.data.Query
@@ -56,6 +57,7 @@ trait Schema {
 
 class SpatialRDD(rdd: RDD[SimpleFeature], sft: SimpleFeatureType) extends RDD[SimpleFeature](rdd) with Schema {
 
+  GeoMesaSparkKryoRegistratorEndpoint.register()
   GeoMesaSparkKryoRegistrator.register(sft)
 
   private val sft_name = sft.getTypeName

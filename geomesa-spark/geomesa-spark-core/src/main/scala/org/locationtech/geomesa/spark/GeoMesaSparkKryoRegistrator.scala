@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
+import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoRegistrator
 import org.geotools.data.DataStore
@@ -59,6 +60,8 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 
 object GeoMesaSparkKryoRegistrator {
 
+  GeoMesaSparkKryoRegistratorEndpoint.register()
+
   private val typeCache = new ConcurrentHashMap[Int, SimpleFeatureType]()
 
   def identifier(sft: SimpleFeatureType): Int = math.abs(MurmurHash3.stringHash(CacheKeyGenerator.cacheKey(sft)))
@@ -76,11 +79,12 @@ object GeoMesaSparkKryoRegistrator {
   }
 
   def getType(id: Int): SimpleFeatureType =
-    Option(typeCache.get(id)).orElse {
-      val fromProps = fromSystemProperties(id)
-      fromProps.foreach(sft => typeCache.put(id, sft))
-      fromProps
-    }.orNull
+    Option(typeCache.get(id))
+      .orElse {
+        fromSystemProperties(id) orElse GeoMesaSparkKryoRegistratorEndpoint.resolver(id)
+          .map { sft => typeCache.put(id, sft); sft }
+      }
+      .orNull
 
   def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
 
@@ -88,6 +92,7 @@ object GeoMesaSparkKryoRegistrator {
 
   def register(sft: SimpleFeatureType): Unit = GeoMesaSparkKryoRegistrator.putTypeIfAbsent(sft)
 
+  @deprecated
   def broadcast(partitions: RDD[_]): Unit = {
     val encodedTypes = typeCache
       .map { case (_, sft) => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)) }
@@ -113,5 +118,6 @@ object GeoMesaSparkKryoRegistrator {
     } yield {
       SimpleFeatureTypes.createType(name, spec)
     }
-
 }
+
+
