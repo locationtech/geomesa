@@ -12,19 +12,11 @@ PACKAGE_EXTENSIONS = {'.zip', '.egg', '.jar'}
 
 
 def configure(jars=[], packages=[], files=[], spark_home=None, spark_master='yarn', tmp_path=None):
+
     os.environ['PYSPARK_PYTHON'] = sys.executable
-    
-    spark_classpath = os.environ.get('SPARK_CLASSPATH', '')
-    if len(spark_classpath) > 1:
-        spark_jars = spark_classpath.split(',')
-        spark_jars_set = {jar for jar in spark_jars}
-        spark_jars = spark_jars + [jar for jar in jars if jar not in spark_jars_set]
-    else:
-        spark_jars = jars
-    os.environ['SPARK_CLASSPATH'] = ','.join(spark_jars)
-    
+
     spark_home = process_spark_home(spark_home)
-    
+
     pyspark_dir = os.path.join(spark_home, 'python')
     pyspark_lib_dir = os.path.join(pyspark_dir, 'lib')
     pyspark_lib_zips = glob.glob(os.path.join(pyspark_lib_dir, '*.zip'))
@@ -41,7 +33,14 @@ def configure(jars=[], packages=[], files=[], spark_home=None, spark_master='yar
 
     import pyspark
 
-    return (
+    # Need differential behavior based for <= Spark 2.0.x, Spark 2.1.0
+    #  is the fist release to provide the module __version__ attribute
+    pyspark_pre21 = getattr(pyspark, '__version__', None) is None
+
+    if pyspark_pre21 and len(jars) > 0:
+        os.environ['PYSPARK_SUBMIT_ARGS'] = ' '.join(['--driver-class-path', ','.join(jars), 'pyspark-shell'])
+
+    conf = (
         pyspark.SparkConf()
         .setMaster(spark_master)
         .set('spark.yarn.dist.jars', ','.join(jars))
@@ -49,6 +48,11 @@ def configure(jars=[], packages=[], files=[], spark_home=None, spark_master='yar
         .setExecutorEnv('PYTHONPATH', ":".join(map(os.path.basename, py_files)))
         .setExecutorEnv('PYSPARK_PYTHON', sys.executable)
     )
+
+    if not pyspark_pre21 and len(jars):
+        conf.set('spark.driver.extraClassPath', ','.join(jars))
+
+    return conf
 
         
 def process_spark_home(spark_home):
