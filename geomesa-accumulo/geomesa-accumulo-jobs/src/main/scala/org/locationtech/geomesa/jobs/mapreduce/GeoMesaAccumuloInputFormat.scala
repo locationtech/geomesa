@@ -177,10 +177,11 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     // 2. Get splits from #tserver locations * AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER (geomesa.mapreduce.splits.tserver.max)
     // 3. Get splits from AccumuloInputFormat.getSplits(context)
     val grpSplitsMax: Option[Int] = AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.option.flatMap { prop =>
-      try { Some(prop.toInt).filter(_ > 0) } catch {
+      try {
+        Some(prop.toInt).filter(_ > 0)
+      } catch {
         case e: java.lang.NumberFormatException =>
-          prop.foreach( value => logger.warn(s"Unable to parse geomesa.mapreduce.splits.max = $value is not a valid Int."))
-          None
+          throw new IllegalArgumentException(s"Unable to parse geomesa.mapreduce.splits.max = $prop contains an invalid Int.", e)
       }
     }
 
@@ -198,16 +199,19 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
       }
 
     grpSplitsMax.orElse(grpSplitsPerTServer) match {
-      case Some(size) => logger.debug(s"Using desired splits with result of ${accumuloSplits.length} splits")
+      case Some(numberOfSplits) =>
+        logger.debug(s"Using desired splits with result of $numberOfSplits splits")
+        val splitSize: Int = accumuloSplits.length / numberOfSplits
         accumuloSplits.groupBy(_.getLocations()(0)).flatMap{ case (location, splits) =>
-          splits.grouped(size).map{ group =>
+          splits.grouped(splitSize).map{ group =>
             val split = new GroupedSplit
             split.location = location
             split.splits.append(group.map(_.asInstanceOf[RangeInputSplit]): _*)
             split
           }
         }.toList
-      case None => logger.debug(s"Using default Accumulo Splits with ${accumuloSplits.length} splits")
+      case None =>
+        logger.debug(s"Using default Accumulo Splits with ${accumuloSplits.length} splits")
         accumuloSplits
     }
   }
