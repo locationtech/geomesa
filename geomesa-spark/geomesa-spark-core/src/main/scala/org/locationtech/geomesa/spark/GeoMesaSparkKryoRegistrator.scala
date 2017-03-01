@@ -52,7 +52,6 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
         serializer.read(kryo, in, clazz)
       }
     }
-
     kryo.setReferences(false)
     SimpleFeatureSerializers.simpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
   }
@@ -85,7 +84,9 @@ object GeoMesaSparkKryoRegistrator {
 
   def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
 
-  def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach(GeoMesaSparkKryoRegistrator.putTypeIfAbsent)
+  def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach(register)
+
+  def register(sft: SimpleFeatureType): Unit = GeoMesaSparkKryoRegistrator.putTypeIfAbsent(sft)
 
   def broadcast(partitions: RDD[_]): Unit = {
     val encodedTypes = typeCache
