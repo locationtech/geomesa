@@ -71,8 +71,6 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
     new NullOutputFormat[Text, SimpleFeature]().getOutputCommitter(context)
 }
 
-
-
 /**
  * Record writer for GeoMesa SimpleFeatures.
  *
