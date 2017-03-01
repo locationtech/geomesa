@@ -17,7 +17,7 @@ class HBaseFeature(val feature: SimpleFeature, serializer: SimpleFeatureSerializ
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
-  lazy val fullValue = new RowValue(DataColumnFamily, DataColumnQualifier, serializer.serialize(feature))
+  lazy val fullValue = new RowValue(DataColumnFamily.getBytes, DataColumnQualifier.getBytes, serializer.serialize(feature))
 }
 
 class RowValue(val cf: Array[Byte], val cq: Array[Byte], toValue: => Array[Byte]) {
