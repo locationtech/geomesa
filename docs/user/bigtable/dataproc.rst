@@ -36,7 +36,7 @@ Find the master node instance and then scp the distro as follows.
 
 .. code-block:: shell
 
-   $ gcloud beta compute scp --zone $ZONEID  ~/.m2/repository/org/locationtech/geomesa/geomesa-bigtable-dist_2.11/1.3.1-SNAPSHOT/geomesa-bigtable-dist_2.11-1.3.1-SNAPSHOT-bin.tar.gz <masterhost>:~/
+   $ gcloud beta compute scp --zone $ZONEID  ~/.m2/repository/org/locationtech/geomesa/geomesa-bigtable-dist_2.11/$VERSION/geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz <masterhost>:~/
 
 Log in to the master node using gcloud ssh as follows.
 
@@ -50,15 +50,15 @@ spark runtime jar.
 
 .. code-block:: shell
 
-   $ tar zxvf geomesa-bigtable-dist_2.11-1.3.1-SNAPSHOT-bin.tar.gz
-   $ ln -s geomesa-bigtable_2.11-1.3.1-SNAPSHOT geomesa
+   $ tar zxvf geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz
+   $ ln -s geomesa-bigtable_2.11-$VERSION geomesa
    $ export PATH=$PATH:~/geomesa/bin
    $ export HADOOP_HOME=/usr/lib/hadoop
    $ export HBASE_HOME=/usr/lib/hbase
    $ vi geomesa/conf/hbase-site.xml
    $ cp geomesa/conf/hbase-site.xml geomesa/dist/spark/
    $ cd geomesa/dist/spark/
-   $ jar uvf geomesa-hbase-spark-runtime_2.11-1.3.1-SNAPSHOT.jar hbase-site.xml
+   $ jar uvf geomesa-hbase-spark-runtime_2.11-$VERSION hbase-site.xml
 
 Download sample GDELT data and ingest it as follows.
 
@@ -70,7 +70,7 @@ Now, you can run a spark shell and execute Spark SQL over your GeoMesa on Bigtab
 
 .. code-block:: shell
 
-   $ spark-shell --jars $HOME/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-1.3.1-SNAPSHOT.jar,$HOME/geomesa/lib/bigtable-hbase-1.2-0.9.4.jar
+   $ spark-shell --jars $HOME/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-$VERSION.jar,$HOME/geomesa/lib/bigtable-hbase-1.2-0.9.4.jar
 
 From the Spark shell prompt.
 
@@ -78,6 +78,6 @@ From the Spark shell prompt.
 
    scala> val df = spark.read.format("geomesa").option("bigtable.table.name", "geomesa.gdelt").option("geomesa.feature", "gdelt").load()
    scala> df.createOrReplaceTempView("gdelt")
-   scala> spark.sql("select actor1Name,actor2Name,geom,dtg from gdelt where st_contains(st_geomFromWKT('POLYGON((-80 35,-70 35,-70 40,-80 40,-80 35))'),geom)").show()
+   scala> spark.sql("SELECT actor1Name,actor2Name,geom,dtg FROM gdelt WHERE st_contains(st_geomFromWKT('POLYGON((-80 35,-70 35,-70 40,-80 40,-80 35))'),geom)").show()
 
 

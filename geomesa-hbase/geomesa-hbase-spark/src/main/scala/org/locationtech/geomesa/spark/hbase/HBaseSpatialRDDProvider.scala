@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.spark.hbase
 
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.{Get, Scan}
 import org.apache.hadoop.hbase.mapreduce.MultiTableInputFormat
@@ -19,10 +18,11 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory, HBaseQueryPlan}
+import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDDProvider
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.SimpleFeature
 
 class HBaseSpatialRDDProvider extends SpatialRDDProvider {
@@ -65,7 +65,6 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     }
   }
 
-
   private def convertScanToString(scan: org.apache.hadoop.hbase.client.Query): String = scan match {
     case g: Get =>
       val proto = ProtobufUtil.toGet(g)
@@ -75,7 +74,6 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       val proto = ProtobufUtil.toScan(s)
       Base64.encodeBytes(proto.toByteArray)
   }
-
 
   /**
     * Writes this RDD to a GeoMesa table.
@@ -103,7 +101,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
           featureWriter.write()
         }
       } finally {
-        IOUtils.closeQuietly(featureWriter)
+        CloseQuietly(featureWriter)
         ds.dispose()
       }
     }
