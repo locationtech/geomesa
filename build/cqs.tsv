@@ -45,7 +45,6 @@ com.sun.jersey:jersey-json	1.9	compile
 com.sun.jersey:jersey-server	1.9	compile
 com.sun.xml.bind:jaxb-core	2.2.11	compile
 com.sun.xml.bind:jaxb-impl	2.2.11	compile
-com.sun.xml.bind:jaxb-impl	2.2.3-1	compile
 com.thoughtworks.paranamer:paranamer	2.6	compile
 com.typesafe:config	1.2.1	compile
 com.typesafe.scala-logging:scala-logging_2.11	3.1.0	compile
@@ -87,10 +86,8 @@ it.geosolutions.jaiext.utilities:jt-utilities	1.0.9	compile
 it.geosolutions.jaiext.vectorbin:jt-vectorbin	1.0.9	compile
 it.geosolutions.jaiext.warp:jt-warp	1.0.9	compile
 it.geosolutions.jaiext.zonal:jt-zonal	1.0.9	compile
-javax.activation:activation	1.1	compile
 javax.inject:javax.inject	1	compile
-javax.xml.bind:jaxb-api	2.2.2	compile
-javax.xml.stream:stax-api	1.0-2	compile
+javax.xml.bind:jaxb-api	2.2.7	compile
 joda-time:joda-time	2.3	compile
 log4j:log4j	1.2.17	compile
 net.iharder:base64	2.3.8	compile
