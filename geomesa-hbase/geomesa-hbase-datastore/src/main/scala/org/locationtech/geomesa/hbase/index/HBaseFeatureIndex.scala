@@ -1,17 +1,18 @@
-/** *********************************************************************
-  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-  * All rights reserved. This program and the accompanying materials
-  * are made available under the terms of the Apache License, Version 2.0
-  * which accompanies this distribution and is available at
-  * http://www.opensource.org/licenses/apache2.0.php.
-  * ************************************************************************/
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 
 package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
-import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
@@ -31,14 +32,14 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   override val CurrentIndices: Seq[HBaseFeatureIndex] =
     Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex)
 
-  val DataColumnFamily = new Text("d")
-  val DataColumnFamilyDescriptor = new HColumnDescriptor(DataColumnFamily.getBytes)
+  val DataColumnFamily = Bytes.toBytes("d")
+  val DataColumnFamilyDescriptor = new HColumnDescriptor(DataColumnFamily)
 
-  val DataColumnQualifier = new Text("d")
-  val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier.getBytes)
+  val DataColumnQualifier = Bytes.toBytes("d")
+  val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
-                        columnFamily: Text,
+                        columnFamily: Array[Byte],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature],
                         reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]])
 
@@ -114,7 +115,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val ScanConfig(hbaseFilters, cf, toFeatures, reduce) = scanConfig(sft, filter, hints, ecql, dedupe)
 
       if (ranges.head.isInstanceOf[Get]) {
-        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], toFeatures)
+        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
       } else {
         // we want to ensure some parallelism in our batch scanning
         // as not all scans will take the same amount of time, we want to have multiple per-thread
@@ -138,10 +139,10 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
   }
 
   override protected def range(start: Array[Byte], end: Array[Byte]): Query =
-    new Scan(start, end).addColumn(DataColumnFamily.getBytes, DataColumnQualifier.getBytes)
+    new Scan(start, end).addColumn(DataColumnFamily, DataColumnQualifier)
 
   override protected def rangeExact(row: Array[Byte]): Query =
-    new Get(row).addColumn(DataColumnFamily.getBytes, DataColumnQualifier.getBytes)
+    new Get(row).addColumn(DataColumnFamily, DataColumnQualifier)
 
   override protected def rowAndValue(result: Result): RowAndValue = {
     val cell = result.rawCells()(0)

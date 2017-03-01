@@ -15,12 +15,13 @@ import org.locationtech.geomesa.hbase.utils.BatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.{SimpleFeature}
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
   def table: TableName
   def ranges: Seq[Query]
+  def remoteFilters: Seq[HBaseFilter]
   // note: entriesToFeatures encapsulates ecql and transform
   def resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]
 
@@ -49,6 +50,7 @@ object HBaseQueryPlan {
 case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override val table: TableName = null
   override val ranges: Seq[Query] = Seq.empty
+  override val remoteFilters: Seq[HBaseFilter] = Nil
   override val resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature] = (i) => Iterator.empty
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
@@ -59,14 +61,15 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
                     remoteFilters: Seq[HBaseFilter] = Nil,
                     resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-      val results = new BatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
-      SelfClosingIterator(resultsToFeatures(results), results.close)
+    val results = new BatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
+    SelfClosingIterator(resultsToFeatures(results), results.close)
   }
 }
 
 case class GetPlan(filter: HBaseFilterStrategyType,
                    table: TableName,
                    ranges: Seq[Get],
+                   remoteFilters: Seq[HBaseFilter] = Nil,
                    resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
