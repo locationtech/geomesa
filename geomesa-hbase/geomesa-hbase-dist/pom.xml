@@ -32,6 +32,15 @@
             <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
         </dependency>
 
+        <!-- GeoServer Plugins -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-gs-plugin_${scala.binary.version}</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
+        </dependency>
+
         <!-- tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -58,22 +67,6 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>hbase</id>
-            <dependencies>
-                <!-- GeoServer Plugins -->
-                <dependency>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-hbase-gs-plugin_${scala.binary.version}</artifactId>
-                    <classifier>install</classifier>
-                    <version>${project.version}</version>
-                    <type>tar.gz</type>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
     <build>
         <plugins>
