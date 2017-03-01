@@ -10,7 +10,7 @@ GeoMesa can be run on top of HBase using S3 as the underlying storage engine.  T
 Bootstrap an EMR cluster with HBase
 -----------------------------------
 
-First, you will need to configure an S3 bucket for use by HBase.  Create a json file called ``geomesa-hbase-on-s3.json`` with the following content.  Make sure to replace ``geomesa-root-path`` with a unique root directory for HBase.
+First, you will need to configure an S3 bucket for use by HBase.  Create a json file called ``geomesa-hbase-on-s3.json`` with the following content.  Make sure to replace ``<geomesa-root-path>`` with a unique root directory for HBase.
 
 .. code-block:: javascript
 
@@ -18,12 +18,13 @@ First, you will need to configure an S3 bucket for use by HBase.  Create a json 
      {
        "Classification": "hbase-site",
        "Properties": {
-         "hbase.rootdir": "s3://<geomesa-root-path>/root"}
+         "hbase.rootdir": "s3://<geomesa-root-path>/root"
+       }
      },
      {
        "Classification": "hbase",
        "Properties": {
-       "hbase.emr.storageMode":"s3"
+         "hbase.emr.storageMode": "s3"
        }
      }
   ]
@@ -35,7 +36,7 @@ Then, ensure that the bucket exists.
    $ aws s3 mb s3://<geomesa-root-path>/root
 
 
-Then, Use the following command to bootstrap an EMR cluster with HBase.  You will need to change the ``KeyName`` to the IAM key pair you intend to use for this cluster and ``SubnetId`` to the id of the subnet if that key is associated with a specific subnet.  You can also edit the instance types to a size appropriate for your use case.  Specify the appropriate path to the json file you created in the last step.
+Then, use the following command to bootstrap an EMR cluster with HBase.  You will need to change the ``KeyName`` to the IAM key pair you intend to use for this cluster and ``SubnetId`` to the id of the subnet if that key is associated with a specific subnet.  You can also edit the instance types to a size appropriate for your use case.  Specify the appropriate path to the json file you created in the last step.
 
 .. note::
 
@@ -122,6 +123,6 @@ Within the Spark shell, you can connect to GDELT and issues some queries.
 
    scala> df.createOrReplaceTempView("gdelt")
 
-   scala> spark.sql("select globalEventId,geom,dtg from gdelt limit 5").show() 
+   scala> spark.sql("SELECT globalEventId,geom,dtg FROM gdelt LIMIT 5").show()
 
 

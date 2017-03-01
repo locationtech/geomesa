@@ -11,7 +11,6 @@ package org.locationtech.geomesa.jobs.mapreduce
 import java.io.IOException
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat
@@ -21,6 +20,7 @@ import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -128,7 +128,7 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
   }
 
   override def close(context: TaskAttemptContext): Unit = {
-    writerCache.values.foreach(IOUtils.closeQuietly)
+    writerCache.values.foreach(v => CloseQuietly(v))
     ds.dispose()
   }
 }
