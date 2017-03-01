@@ -32,7 +32,6 @@ commons-collections:commons-collections	3.2.2	compile
 commons-configuration:commons-configuration	1.6	compile
 commons-daemon:commons-daemon	1.0.13	compile
 commons-digester:commons-digester	1.8	compile
-commons-el:commons-el	1.0	compile
 commons-httpclient:commons-httpclient	3.1	compile
 commons-io:commons-io	2.1	compile
 commons-lang:commons-lang	2.6	compile
@@ -90,7 +89,6 @@ it.geosolutions.jaiext.warp:jt-warp	1.0.9	compile
 it.geosolutions.jaiext.zonal:jt-zonal	1.0.9	compile
 javax.activation:activation	1.1	compile
 javax.inject:javax.inject	1	compile
-javax.servlet:servlet-api	2.5	compile
 javax.xml.bind:jaxb-api	2.2.2	compile
 javax.xml.stream:stax-api	1.0-2	compile
 joda-time:joda-time	2.3	compile
@@ -229,8 +227,6 @@ org.slf4j:slf4j-api	1.7.5	compile
 org.slf4j:slf4j-log4j12	1.7.5	compile
 org.tukaani:xz	1.0	compile
 picocontainer:picocontainer	1.2	compile
-tomcat:jasper-compiler	5.5.23	compile
-tomcat:jasper-runtime	5.5.23	compile
 xmlenc:xmlenc	0.52	compile
 
 com.datastax.cassandra:cassandra-driver-core	3.0.0	provided
