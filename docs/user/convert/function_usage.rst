@@ -127,7 +127,7 @@ Description: Custom date parser.
 Usage: ``date($format, $1)``
 
 Example:
-``date('YYYY-MM-dd\'T\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')``
+``date('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')``
 
 dateTime
 ^^^^^^^^
@@ -393,7 +393,7 @@ stringToInt or stringToInteger
 Description: Converts a string into a integer, with a default value if
 conversion fails.
 
-Usage; ``stringToInt($1, $2)``
+Usage: ``stringToInt($1, $2)``
 
 Example: ``stringToInt('1', 0) = 1``
 
@@ -405,7 +405,7 @@ stringToLong
 Description: Converts a string into a long, with a default value if
 conversion fails.
 
-Usage; ``stringToLong($1, $2)``
+Usage: ``stringToLong($1, $2)``
 
 Example: ``stringToLong('1', 0L) = 1L``
 
@@ -417,7 +417,7 @@ stringToFloat
 Description: Converts a string into a float, with a default value if
 conversion fails.
 
-Usage; ``stringToFloat($1, $2)``
+Usage: ``stringToFloat($1, $2)``
 
 Example: ``stringToFloat('1.0', 0.0f) = 1.0f``
 
@@ -429,7 +429,7 @@ stringToDouble
 Description: Converts a string into a double, with a default value if
 conversion fails.
 
-Usage; ``stringToDouble($1, $2)``
+Usage: ``stringToDouble($1, $2)``
 
 Example: ``stringToDouble('1.0', 0.0) = 1.0d``
 
@@ -441,11 +441,61 @@ stringToBoolean
 Description: Converts a string into a boolean, with a default value if
 conversion fails.
 
-Usage; ``stringToBoolean($1, $2)``
+Usage: ``stringToBoolean($1, $2)``
 
 Example: ``stringToBoolean('true', false) = true``
 
 Example: ``stringToBoolean('55', false) = false``
+
+Math Functions
+~~~~~~~~~~~~~~
+
+Usage:
+
+All math functions accept: Integers, Doubles, Floats, Longs and parsable Strings.
+All math functions return: Doubles. If another data type is needed, convert the value afterwards. e.g. ``add($1,$2)::long``
+
+Example:
+
+::
+
+  { name = "value3",   transform = "add($value1, multiply($value2, 1.2))::double" }
+
+add
+^^^
+
+Description: Adds two or more values.
+
+Example: ``add($1,$2)``
+
+Example: ``add($1,$2,"10")``
+
+subtract
+^^^^^^^^
+
+Description: Subtracts two or more values.
+
+Example: ``subtract($1,$2)``
+
+Example: ``subtract($1,$2,1.0f)``
+
+multiply
+^^^^^^^^
+
+Description: Multiply two or more values.
+
+Example: ``multiply($1,$2)``
+
+Example: ``multiply($1,$2,0.01d)``
+
+divide
+^^^^^^
+
+Description: Divides two or more values sequentially.
+
+Example: ``divide($1,$2)``
+
+Example: ``divide($1,$2,"15")`` is equivalent to ``($1/$2)/"15"``
 
 List and Map Parsing
 ~~~~~~~~~~~~~~~~~~~~

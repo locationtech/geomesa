@@ -13,47 +13,49 @@ import java.awt.geom.AffineTransform
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.operation.distance.DistanceOp
 import org.apache.spark.sql.udaf.ConvexHull
+import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.referencing.operation.transform.AffineTransform2D
 
 object SQLSpatialFunctions {
+  import java.{lang => jl}
+
   // Geometry editors
   val ST_Translate: (Geometry, Double, Double) => Geometry =
     (g, deltaX, deltaY) => translate(g, deltaX, deltaY)
 
   // Spatial relationships
   // DE-9IM relations
-  val ST_Contains:   (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.contains(geom2)
-  val ST_Covers:     (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.covers(geom2)
-  val ST_Crosses:    (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.crosses(geom2)
-  val ST_Disjoint:   (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.disjoint(geom2)
-  val ST_Equals:     (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.equals(geom2)
-  val ST_Intersects: (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.intersects(geom2)
-  val ST_Overlaps:   (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.overlaps(geom2)
-  val ST_Touches:    (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.touches(geom2)
-  val ST_Within:     (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.within(geom2)
-  val ST_Relate:     (Geometry, Geometry) => String =
-    (geom1, geom2) => geom1.relate(geom2).toString
+  val ST_Contains:   (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.contains(geom2))
+  val ST_Covers:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.covers(geom2))
+  val ST_Crosses:    (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.crosses(geom2))
+  val ST_Disjoint:   (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.disjoint(geom2))
+  val ST_Equals:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.equals(geom2))
+  val ST_Intersects: (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.intersects(geom2))
+  val ST_Overlaps:   (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.overlaps(geom2))
+  val ST_Touches:    (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.touches(geom2))
+  val ST_Within:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.within(geom2))
+  val ST_Relate:     (Geometry, Geometry) => String = nullableUDF((geom1, geom2) => geom1.relate(geom2).toString)
   val ST_RelateBool: (Geometry, Geometry, String) => Boolean =
-    (geom1, geom2, pattern) => geom1.relate(geom2, pattern)
+    nullableUDF((geom1, geom2, pattern) => geom1.relate(geom2, pattern))
 
-  val ST_Area: Geometry => java.lang.Double = g => g.getArea
-  val ST_Centroid: Geometry => Point = g => g.getCentroid
+  val ST_Area: Geometry => jl.Double = nullableUDF(g => g.getArea)
+  val ST_Centroid: Geometry => Point = nullableUDF(g => g.getCentroid)
   val ST_ClosestPoint: (Geometry, Geometry) => Point =
-    (g1, g2) => closestPoint(g1, g2)
-  val ST_Distance: (Geometry, Geometry) => java.lang.Double =
-    (g1, g2) => g1.distance(g2)
-  val ST_DistanceSpheroid: (Geometry, Geometry) => java.lang.Double =
-    (s, e) => fastDistance(s.getCoordinate, e.getCoordinate)
-  val ST_Length: Geometry => java.lang.Double = g => g.getLength
+    nullableUDF((g1, g2) => closestPoint(g1, g2))
+  val ST_Distance: (Geometry, Geometry) => jl.Double =
+    nullableUDF((g1, g2) => g1.distance(g2))
+  val ST_DistanceSpheroid: (Geometry, Geometry) => jl.Double =
+    nullableUDF((s, e) => fastDistance(s.getCoordinate, e.getCoordinate))
+  val ST_Length: Geometry => jl.Double = nullableUDF(g => g.getLength)
 
   // Assumes input is two points, for use with collect_list and window functions
-  val ST_AggregateDistanceSpheroid: Seq[Geometry] => java.lang.Double = a => ST_DistanceSpheroid(a(0), a(1))
+  val ST_AggregateDistanceSpheroid: Seq[Geometry] => jl.Double = a => ST_DistanceSpheroid(a(0), a(1))
 
-  val ST_LengthSpheroid: LineString => java.lang.Double = line =>
-    line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum
+  val ST_LengthSpheroid: LineString => jl.Double =
+    nullableUDF(line => line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum)
 
   // Geometry Processing
   val ch = new ConvexHull

@@ -35,21 +35,21 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
 
   import KryoLazyAggregatingIterator._
 
-  var sft: SimpleFeatureType = null
-  var index: AccumuloFeatureIndex = null
-  var source: SortedKeyValueIterator[Key, Value] = null
+  var sft: SimpleFeatureType = _
+  var index: AccumuloFeatureIndex = _
+  var source: SortedKeyValueIterator[Key, Value] = _
 
-  private var validate: (SimpleFeature) => Boolean = null
+  private var validate: (SimpleFeature) => Boolean = _
 
   // our accumulated result
   private var result: T = _
 
-  protected var topKey: Key = null
+  protected var topKey: Key = _
   private var topValue: Value = new Value()
-  private var currentRange: aRange = null
+  private var currentRange: aRange = _
 
-  private var reusableSf: KryoBufferSimpleFeature = null
-  private var getId: (Text) => String = null
+  private var reusableSf: KryoBufferSimpleFeature = _
+  private var getId: (Text) => String = _
 
   // server-side deduplication - not 100% effective, but we can't dedupe client side as we don't send ids
   private val idsSeen = scala.collection.mutable.HashSet.empty[String]
@@ -138,6 +138,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   // hook to allow overrides in non-kryo subclasses
   def decode(value: Array[Byte]): SimpleFeature = {
     reusableSf.setBuffer(value)
+    reusableSf.setId(getId(source.getTopKey.getRow))
     reusableSf
   }
 

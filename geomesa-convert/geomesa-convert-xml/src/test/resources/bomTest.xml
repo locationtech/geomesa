@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<doc info="This file has a hidden BOM (byte order mark) as the first character. Take care when modifying this file to preserve it.">
+  <DataSource>
+    <name>myxml</name>
+  </DataSource>
+  <Feature>
+    <number>123</number>
+    <color>red</color>
+    <physical weight="127.5" height="5'11"/>
+  </Feature>
+  <Feature>
+    <number>456</number>
+    <color>blue</color>
+    <physical weight="150" height="h2"/>
+  </Feature>
+</doc>

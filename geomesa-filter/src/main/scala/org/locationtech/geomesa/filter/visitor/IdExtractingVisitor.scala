@@ -42,12 +42,9 @@ class IdExtractingVisitor extends FilterVisitor {
     (andOption(yes).orNull, andOption(no).orNull)
   }
 
-  override def visit(f: Not, data: AnyRef): AnyRef = {
-    val (yes, no) = f.getFilter.accept(this, data).asInstanceOf[(Filter, Filter)]
-    (if (yes == null) null else ff.not(yes), if (no == null) null else ff.not(no))
-  }
-
   override def visit(f: Id, data: AnyRef): AnyRef = (f, null)
+
+  override def visit(f: Not, data: AnyRef): AnyRef = (null, f)
 
   override def visit(f: IncludeFilter, data: AnyRef): AnyRef = (null, f)
 

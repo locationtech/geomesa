@@ -138,6 +138,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       testDirect("st_contains", "poly4", boxRef, boxes("extEdge"), false)
       testDirect("st_contains", "poly5", boxRef, boxes("ext"),     false)
       testDirect("st_contains", "poly6", boxRef, boxes("corner"),  false)
+
+      sc.sql("select st_contains(null, null)").collect.head(0) must beNull
     }
 
     "st_covers" >> {
@@ -164,6 +166,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       testDirect("st_covers", "poly4", boxRef, boxes("extEdge"), false)
       testDirect("st_covers", "poly5", boxRef, boxes("ext"),     false)
       testDirect("st_covers", "poly6", boxRef, boxes("corner"),  false)
+
+      sc.sql("select st_covers(null, null)").collect.head(0) must beNull
     }
 
     "st_crosses" >> {
@@ -174,6 +178,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       testDirect("st_crosses", "touches",  lineRef, lines("touches"),  false)
       testDirect("st_crosses", "crosses",  lineRef, lines("crosses"),  true)
       testDirect("st_crosses", "disjoint", lineRef, lines("disjoint"), false)
+
+      sc.sql("select st_crosses(null, null)").collect.head(0) must beNull
     }
 
     "st_disjoint" >> {
@@ -197,6 +203,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       testDirect("st_disjoint", "poly4", boxRef, boxes("extEdge"), false)
       testDirect("st_disjoint", "poly5", boxRef, boxes("ext"),     true)
       testDirect("st_disjoint", "poly6", boxRef, boxes("corner"),  false)
+
+      sc.sql("select st_disjoint(null, null)").collect.head(0) must beNull
     }
 
     "st_equals" >> {
@@ -218,6 +226,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
         Seq("int")
       )
       testDirect("st_equals", "polygon", boxRef, "POLYGON((10 0, 10 10, 0 10, 0 0, 10 0))", true)
+
+      sc.sql("select st_equals(null, null)").collect.head(0) must beNull
     }
 
     "st_intersects" >> {
@@ -241,6 +251,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       testDirect("st_intersects", "poly4", boxRef, boxes("extEdge"), true)
       testDirect("st_intersects", "poly5", boxRef, boxes("ext"),     false)
       testDirect("st_intersects", "poly6", boxRef, boxes("corner"),  true)
+
+      sc.sql("select st_intersects(null, null)").collect.head(0) must beNull
     }
 
     "st_overlaps" >> {
@@ -263,6 +275,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       testDirect("st_overlaps", "poly4", boxRef, boxes("extEdge"), false)
       testDirect("st_overlaps", "poly5", boxRef, boxes("ext"),     false)
       testDirect("st_overlaps", "poly6", boxRef, boxes("corner"),  false)
+
+      sc.sql("select st_overlaps(null, null)").collect.head(0) must beNull
     }
 
     "st_touches" >> {
@@ -285,6 +299,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       testDirect("st_touches", "poly4", boxRef, boxes("extEdge"), true)
       testDirect("st_touches", "poly5", boxRef, boxes("ext"),     false)
       testDirect("st_touches", "poly6", boxRef, boxes("corner"),  true)
+
+      sc.sql("select st_touches(null, null)").collect.head(0) must beNull
     }
 
     "st_within" >> {
@@ -308,6 +324,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       testDirect("st_within", "poly4", boxes("extEdge"), boxRef, false)
       testDirect("st_within", "poly5", boxes("ext"),     boxRef, false)
       testDirect("st_within", "poly6", boxes("corner"),  boxRef, false)
+
+      sc.sql("select st_within(null, null)").collect.head(0) must beNull
     }
 
     "st_relate" >> {
@@ -319,6 +337,9 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
 
       val r2 = sc.sql(s"select st_relateBool($l1, $l2, 'FF*FF****')").collect()
       r2.head.getAs[Boolean](0) mustEqual true
+
+      sc.sql("select st_relate(null, null)").collect.head(0) must beNull
+      sc.sql("select st_relateBool(null, null, null)").collect.head(0) must beNull
     }
 
     // other relationship functions
@@ -342,12 +363,16 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       r4.collect
         .map(row => row.getAs[String]("name"))
           .toSeq must containTheSameElementsAs(Seq("overlap"))
+
+      sc.sql("select st_area(null)").collect.head(0) must beNull
     }
 
     "st_centroid" >> {
       val r = sc.sql(s"select st_centroid(st_geomFromWKT('$boxRef'))")
       val d = r.collect()
       d.head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 5)").asInstanceOf[Point]
+
+      sc.sql("select st_centroid(null)").collect.head(0) must beNull
     }
 
     "st_closestpoint" >> {
@@ -355,6 +380,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       val pt1  = "st_geomFromWKT('POINT(15 5)')"
       val r = sc.sql(s"select st_closestpoint($box1, $pt1)").collect()
       r.head.getAs[Point](0) mustEqual WKTUtils.read("POINT(10 5)")
+
+      sc.sql("select st_closestpoint(null, null)").collect.head(0) must beNull
     }
 
     "st_distance" >> {
@@ -366,6 +393,9 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
 
       val r2 = sc.sql(s"select st_distanceSpheroid($pt1, $pt2)").collect()
       r2.head.getAs[Double](0) must beCloseTo(1113194.0, 1.0)
+
+      sc.sql("select st_distance(null, null)").collect.head(0) must beNull
+      sc.sql("select st_distanceSpheroid(null, null)").collect.head(0) must beNull
     }
 
     "st_length" >> {
@@ -380,6 +410,8 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
         s"select st_length(st_geomFromWKT('$boxRef'))"
       ).collect()
       r2.head.getAs[Double](0) mustEqual 40.0
+
+      sc.sql("select st_length(null)").collect.head(0) must beNull
     }
 
     // after

@@ -22,6 +22,7 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeForma
 import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.StringLike
 import scala.collection.mutable
 import scala.util.Try
 import scala.util.matching.Regex
@@ -190,20 +191,44 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = e.dependenciesOf(fieldNameMap)
   }
   case class Cast2Int(e: Expr) extends CastExpr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      e.eval(args).asInstanceOf[String].toInt
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Int =
+      e.eval(args) match {
+        case int: Int       => int
+        case double: Double => double.toInt
+        case float: Float   => float.toInt
+        case long: Long     => long.toInt
+        case any: Any       => any.toString.toInt
+      }
   }
   case class Cast2Long(e: Expr) extends CastExpr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      e.eval(args).asInstanceOf[String].toLong
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Long =
+      e.eval(args) match {
+        case int: Int       => int.toLong
+        case double: Double => double.toLong
+        case float: Float   => float.toLong
+        case long: Long     => long
+        case any: Any       => any.toString.toLong
+      }
   }
   case class Cast2Float(e: Expr) extends CastExpr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      e.eval(args).asInstanceOf[String].toFloat
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Float =
+      e.eval(args) match {
+        case int: Int       => int.toFloat
+        case double: Double => double.toFloat
+        case float: Float   => float
+        case long: Long     => long.toFloat
+        case any: Any       => any.toString.toFloat
+      }
   }
   case class Cast2Double(e: Expr) extends CastExpr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      e.eval(args).asInstanceOf[String].toDouble
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Double =
+      e.eval(args) match {
+        case int: Int       => int.toDouble
+        case double: Double => double
+        case float: Float   => float.toDouble
+        case long: Long     => long.toDouble
+        case any: Any       => any.toString.toDouble
+      }
   }
   case class Cast2Boolean(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
@@ -599,5 +624,44 @@ class CastFunctionFactory extends TransformerFunctionFactory {
       return default
     }
     try { conversion(s) } catch { case e: Exception => default }
+  }
+}
+
+class MathFunctionFactory extends TransformerFunctionFactory {
+  override def functions = Seq(add, subtract, multiply, divide)
+
+  def parseDouble(v: Any): Double = {
+    v match {
+      case int: Int       => int.toDouble
+      case double: Double => double
+      case float: Float   => float.toDouble
+      case long: Long     => long.toDouble
+      case string: String => string.toDouble
+      case any: Any       => any.toString.toDouble
+    }
+  }
+
+  val add = TransformerFn("add") { args =>
+    var s: Double = 0.0
+    args.foreach(s += parseDouble(_))
+    s
+  }
+
+  val multiply = TransformerFn("multiply") { args =>
+    var s: Double = 1.0
+    args.foreach(s *= parseDouble(_))
+    s
+  }
+
+  val subtract = TransformerFn("subtract") { args =>
+    var s: Double = parseDouble(args(0))
+    args.drop(1).foreach(s -= parseDouble(_))
+    s
+  }
+
+  val divide = TransformerFn("divide") { args =>
+    var s: Double = parseDouble(args(0))
+    args.drop(1).foreach(s /= parseDouble(_))
+    s
   }
 }

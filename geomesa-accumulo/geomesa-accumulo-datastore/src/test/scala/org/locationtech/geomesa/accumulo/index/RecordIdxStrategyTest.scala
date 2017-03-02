@@ -67,6 +67,13 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
   def runQuery(query: Query) = planner.runQuery(sft, query, Some(RecordIndex))
 
   "RecordIdxStrategy" should {
+    "support NOT queries" in {
+      val query = new Query(sftName, ECQL.toFilter("NOT IN('2', '3')"))
+      val results = runQuery(query).toList
+      results must haveLength(18)
+      results.map(_.getID) must containTheSameElementsAs(Seq("0", "1") ++ (4 until 20).map(_.toString))
+    }
+
     "support bin queries" in {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("IN ('2', '3')"))

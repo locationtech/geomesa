@@ -52,6 +52,8 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
     }
 
     "st_asBinary" >> {
+      sc.sql("select st_asBinary(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_asBinary(st_geomFromWKT('POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))'))
@@ -65,6 +67,10 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
     }
 
     "st_asGeoJSON" >> {
+      "null" >> {
+        sc.sql("select st_asGeoJSON(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val r = sc.sql(
           """
@@ -141,6 +147,8 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
     }
 
     "st_asLatLonText" >> {
+      sc.sql("select st_asLatLonText(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_asLatLonText(geom) from chicago
@@ -150,6 +158,8 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
     }
 
     "st_asText" >> {
+      sc.sql("select st_asText(null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
           |select st_asText(geom) from chicago
@@ -159,6 +169,8 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
     }
 
     "st_geoHash" >> {
+      sc.sql("select st_geoHash(null, null)").collect.head(0) must beNull
+
       val r = sc.sql(
         """
         |select st_geoHash(geom, 25) from chicago
