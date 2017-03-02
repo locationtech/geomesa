@@ -93,7 +93,7 @@ trait IngestParams extends CatalogParam
 
 object IngestCommand {
   // If you change this, update the regex in GeneralShapefileIngest for URLs
-  private val RemotePrefixes = Seq("hdfs", "s3n", "s3a")
+  private val RemotePrefixes = Seq("hdfs", "s3n", "s3a", "wasb", "wasbs")
 
   def isDistributedUrl(url: String): Boolean = RemotePrefixes.exists(url.startsWith)
 }
