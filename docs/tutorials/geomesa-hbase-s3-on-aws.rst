@@ -115,7 +115,7 @@ You can then query the data using the GeoMesa command line export tool.
     
     $ cd /opt/geomesa
     $ cp /etc/hbase/conf/hbase-site.xml .
-    $ jar uf lib/geomesa-hbase-tools_2.11-1.3.1-SNAPSHOT.jar hbase-site.xml
+    $ jar uf lib/geomesa-hbase-tools_2.11-${VERSION}.jar hbase-site.xml
     $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt s3a://path/to/gdeltfile.csv
 
 
@@ -126,7 +126,7 @@ To start executing SQL queries using Spark over your GeoMesa on HBase on S3 clus
 
 .. code-block:: shell
     
-    $ JARS=file:///usr/lib/hbase/hbase-common.jar,file:///usr/lib/hbase/hbase-client.jar,file:///usr/lib/hbase/hbase-protocol.jar,file:///usr/lib/hbase/hbase-server.jar,file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-1.3.1-SNAPSHOT.jar,file:///usr/lib/hbase/lib/metrics-core-2.2.0.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+    $ JARS=file:///usr/lib/hbase/hbase-common.jar,file:///usr/lib/hbase/hbase-client.jar,file:///usr/lib/hbase/hbase-protocol.jar,file:///usr/lib/hbase/hbase-server.jar,file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///usr/lib/hbase/lib/metrics-core-2.2.0.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
 Then, start up the Spark shell
 
