@@ -22,27 +22,6 @@
             <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
-    <!--
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
-            <version>${hbase.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-common</artifactId>
-            <version>${hbase.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-protocol</artifactId>
-            <version>${hbase.version}</version>
-            <scope>compile</scope>
-        </dependency>
--->
-
 
         <!-- only needed for packaging into the shaded jar -->
         <dependency>
