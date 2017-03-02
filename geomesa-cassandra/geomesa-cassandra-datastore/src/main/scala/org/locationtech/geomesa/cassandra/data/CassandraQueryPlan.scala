@@ -19,11 +19,10 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
 import com.datastax.driver.core.Row
-import com.datastax.driver.core.Statement
 
 sealed trait CassandraQueryPlan extends CassandraQueryPlanType {
   def filter: CassandraFilterStrategyType
-  def ranges: Seq[Statement]
+  def ranges: Seq[CassandraRow]
   def table: String
   def clientSideFilter: Option[Filter]
 
@@ -46,14 +45,14 @@ object CassandraQueryPlan {
 // plan that will not actually scan anything
 case class EmptyPlan(filter: CassandraFilterStrategyType) extends CassandraQueryPlan {
   override val table: String = ""
-  override val ranges: Seq[Statement] = Seq.empty
+  override val ranges: Seq[CassandraRow] = Seq.empty
   override val clientSideFilter: Option[Filter] = None
   override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
 case class QueryPlan(filter: CassandraFilterStrategyType,
                     table: String,
-                    ranges: Seq[Statement],
+                    ranges: Seq[CassandraRow],
                     clientSideFilter: Option[Filter],
                     entriesToFeatures: Iterator[Row] => Iterator[SimpleFeature]) extends CassandraQueryPlan {
 
@@ -63,8 +62,8 @@ case class QueryPlan(filter: CassandraFilterStrategyType,
     // TODO multi-thread the range queries, leave single threaded for now for debug
     var results = Array[Row]()
 
-    ranges.foreach(stmt => {
-      results = results ++ ds.session.execute(stmt)
+    ranges.foreach(row => {
+      results = results ++ ds.session.execute(row.stmt.get)
     })
 
     SelfClosingIterator(entriesToFeatures(results.iterator))

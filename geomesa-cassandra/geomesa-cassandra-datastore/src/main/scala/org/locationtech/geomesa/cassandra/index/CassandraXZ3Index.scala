@@ -13,6 +13,6 @@ import org.locationtech.geomesa.cassandra.data._
 import org.locationtech.geomesa.index.index.XZ3Index
 
 case object CassandraXZ3Index
-    extends CassandraFeatureIndex with XZ3Index[CassandraDataStore, CassandraFeature, Statement, Statement] {
+    extends CassandraFeatureIndex with XZ3Index[CassandraDataStore, CassandraFeature, CassandraRow, CassandraRow] {
   override val version: Int = 1
 }

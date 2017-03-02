@@ -63,9 +63,9 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     new CassandraDataStore(session, cfg)
   }
 
-  override def getDisplayName: String = "Cassandra (GeoMesa)"
+  override def getDisplayName: String = CassandraDataStoreFactory.DisplayName
 
-  override def getDescription: String = "GeoMesa Cassandra Data Store"
+  override def getDescription: String = CassandraDataStoreFactory.Description
 
   override def getParametersInfo: Array[Param] = Array(CPParam, KSParam, NSParam, CatalogParam, GenerateStatsParam, AuditQueriesParam, CachingParam, LooseBBoxParam, QueryThreadsParam, QueryTimeoutParam)
 

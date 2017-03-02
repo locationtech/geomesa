@@ -13,6 +13,7 @@ import java.util.UUID
 import collection.JavaConverters._
 
 import com.datastax.driver.core._
+import com.datastax.driver.core.querybuilder._
 import org.geotools.data.{FeatureWriter => FW}
 import org.joda.time.DateTime
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -35,25 +36,19 @@ class CassandraModifyFeatureWriter(sft: SimpleFeatureType,
 trait CassandraFeatureWriter extends CassandraFeatureWriterType {
   private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
-  override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[Any] = {
-    // this is a no-op for cassandra but we need to satisfy the interface
-    // return metadata about table
-    val m = ds.session.getCluster().getMetadata
-  	val km = m.getKeyspace(ds.session.getLoggedKeyspace)
-    tables.map { name =>
-      None
-    }
+  override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[String] = {
+    tables
   }
 
-  override protected def executeWrite(any: Any, writes: Seq[Statement]): Unit = {
-    writes.foreach(stmt => {
-      ds.session.execute(stmt)
+  override protected def executeWrite(tname: String, writes: Seq[CassandraRow]): Unit = {
+    writes.foreach(row => {
+      ds.session.execute(row.qs.get.format(tname),  row.values.get:_*)
     })
   }
 
-  override protected def executeRemove(any: Any, removes: Seq[Statement]): Unit = {
-    removes.foreach(stmt => {
-      ds.session.execute(stmt)
+  override protected def executeRemove(tname: String, removes: Seq[CassandraRow]): Unit = {
+    removes.foreach(row => {
+      ds.session.execute(row.qs.get.format(tname))
     })
   }
 

@@ -35,19 +35,15 @@ object CassandraFeatureIndex extends CassandraIndexManagerType {
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[CassandraFeatureIndex] =
     Seq(CassandraZ3Index, CassandraXZ3Index, CassandraZ2Index, CassandraXZ2Index, CassandraIdIndex, CassandraAttributeIndex)
-
   override val CurrentIndices: Seq[CassandraFeatureIndex] = AllIndices
 }
 
 trait CassandraFeatureIndex extends CassandraFeatureIndexType
-    with IndexAdapter[CassandraDataStore, CassandraFeature, Statement, Statement] with ClientSideFiltering[Row] {
+    with IndexAdapter[CassandraDataStore, CassandraFeature, CassandraRow, CassandraRow] with ClientSideFiltering[Row] {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   type RowToValues = (Array[Byte]) => Any
-
-  var getRowValues:RowToValues = {row => (0L, 0L, "")}
-  var tableName = ""
-  var ks = ""
 
   def getRowValuesFromSFT(sft: SimpleFeatureType): RowToValues = {
     // table sharing + shard + 2 byte short + 8 byte long + fid
@@ -66,107 +62,105 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType
 
   override def configure(sft: SimpleFeatureType, ds: CassandraDataStore): Unit = {
     super.configure(sft, ds)
-    tableName = getTableName(sft.getTypeName, ds)
-    getRowValues = getRowValuesFromSFT(sft)
-
+    val tableName = getTableName(sft.getTypeName, ds)
     val cluster = ds.session.getCluster
-    ks = ds.session.getLoggedKeyspace
+    val ks = ds.session.getLoggedKeyspace
     val table = cluster.getMetadata().getKeyspace(ks).getTable(tableName);
-
     if (table == null){
       ds.session.execute(s"CREATE TABLE $tableName (pk int, sharing text, z bigint, fid text, sf blob, PRIMARY KEY (pk, sharing, z, fid))")
     }
   }
 
   override def delete(sft: SimpleFeatureType, ds: CassandraDataStore, shared: Boolean): Unit = {
-    val name = getTableName(sft.getTypeName, ds)
+    val tableName = getTableName(sft.getTypeName, ds)
     ds.session.execute(s"drop table $tableName")
   }
 
-  override protected def createInsert(row: Array[Byte], cf: CassandraFeature): Statement = {
-    val (pk:java.lang.Integer, z:java.lang.Long, fid:java.lang.String, sharing:java.lang.String) = getRowValues(row)
-    new SimpleStatement(s"INSERT INTO $tableName (pk, z, fid, sharing, sf) values (?, ?, ?, ?, ?)",
-      pk,
-      z,
-      fid,
-      sharing:java.lang.String,
-      ByteBuffer.wrap(cf.fullValue)
-    )
+  override protected def createInsert(row: Array[Byte], cf: CassandraFeature): CassandraRow = {
+    val (pk:java.lang.Integer, z:java.lang.Long, fid:java.lang.String, sharing:java.lang.String) = getRowValuesFromSFT(cf.feature.getFeatureType)(row)
+    val qs = "INSERT INTO %s (pk, z, fid, sharing, sf) VALUES (?, ?, ?, ?, ?)"
+    CassandraRow(qs=Some(qs), values=Some(Seq(pk, z, fid, sharing, ByteBuffer.wrap(cf.fullValue))))
   }
 
-  override protected def createDelete(row: Array[Byte], cf: CassandraFeature): Statement = {
-    val (pk:java.lang.Integer, z:java.lang.Long, sharing:java.lang.String, fid:java.lang.String) = getRowValues(row)
-    new SimpleStatement(s"DELETE FROM $tableName WHERE pk=$pk AND fid='$fid' AND sharing='$sharing'")
+  override protected def createDelete(row: Array[Byte], cf: CassandraFeature): CassandraRow = {
+    val (pk:java.lang.Integer, z:java.lang.Long, sharing:java.lang.String, fid:java.lang.String) = getRowValuesFromSFT(cf.feature.getFeatureType)(row)
+    val qs = "DELETE FROM %s WHERE pk=$pk AND fid=$fid AND sharing=$sharing"
+    CassandraRow(qs=Some(qs))
   }
 
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: CassandraDataStore,
-                                  filter: FilterStrategy[CassandraDataStore, CassandraFeature, Statement],
+                                  filter: FilterStrategy[CassandraDataStore, CassandraFeature, CassandraRow],
                                   hints: Hints,
-                                  queries: Seq[Statement],
+                                  ranges: Seq[CassandraRow],
                                   ecql: Option[Filter]): CassandraQueryPlanType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-    if (queries.isEmpty) {
+
+    if (ranges.isEmpty) {
       EmptyPlan(filter)
     } else {
+      val ks = ds.session.getLoggedKeyspace
+      val tableName = getTableName(sft.getTypeName, ds)
+      val getRowValues = getRowValuesFromSFT(sft)
+
+      val queries = ranges.map(row => {
+        val select = QueryBuilder.select.all.from(ks, tableName)
+        val start = row.start.get
+        val end = row.end.getOrElse(Array())
+
+        if ((start.length > 0) && (end.length > 0)){
+          val (stPk, stZ, stFid, stSharing) = getRowValues(start)
+          val (edPk, edZ, edFid, _) = getRowValues(end)
+
+          val where = if (stPk == edPk) {
+            select.where(QueryBuilder.eq("pk", stPk))
+          } else {
+            select.where(QueryBuilder.in("pk", java.util.Arrays.asList(stPk, edPk)))
+          }
+
+          where.and(QueryBuilder.eq("sharing", stSharing))
+            .and(QueryBuilder.gt("z", stZ))
+            .and(QueryBuilder.lt("z", edZ))
+
+          if (stFid.asInstanceOf[java.lang.String].length > 0){
+            where.and(QueryBuilder.gte("fid", stFid))
+              .and(QueryBuilder.lte("fid", edFid))
+          }
+        } else if (start.length > 0){
+          val (stPk, stZ, stSharing, stFid, z3Interval) = getRowValues(start)
+
+          val where = select.where(QueryBuilder.eq("pk", stPk))
+            .and(QueryBuilder.eq("sharing", stSharing))
+            .and(QueryBuilder.gte("z", stZ))
+
+          if (stFid.asInstanceOf[java.lang.String].length > 0){
+            where.and(QueryBuilder.gte("fid", stFid))
+          }
+        } else if (end.length > 0){
+          val (edPk, edZ, edSharing, edFid, z3Interval) = getRowValues(end)
+
+          val where = select.where(QueryBuilder.eq("pk", edPk))
+            .and(QueryBuilder.eq("sharing", edSharing))
+            .and(QueryBuilder.lte("z", edZ))
+
+          if (edFid.asInstanceOf[java.lang.String].length > 0){
+            where.and(QueryBuilder.lte("fid", edFid))
+          }
+
+        }
+        CassandraRow(stmt=Some(select))
+      })
       val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
       QueryPlan(filter, tableName, queries, ecql, toFeatures)
     }
   }
 
-  override protected def range(start: Array[Byte], end: Array[Byte]): Statement = {
-    val select = QueryBuilder.select.all.from(ks, tableName)
-
-    if ((start.length > 0) && (end.length > 0)){
-      val (stPk, stZ, stFid, stSharing) = getRowValues(start)
-      val (edPk, edZ, edFid, _) = getRowValues(end)
-
-      val where = if (stPk == edPk) {
-        select.where(QueryBuilder.eq("pk", stPk))
-      } else {
-        select.where(QueryBuilder.in("pk", java.util.Arrays.asList(stPk, edPk)))
-      }
-
-      where.and(QueryBuilder.eq("sharing", stSharing))
-        .and(QueryBuilder.gt("z", stZ))
-        .and(QueryBuilder.lt("z", edZ))
-
-      if (stFid.asInstanceOf[java.lang.String].length > 0){
-        where.and(QueryBuilder.gte("fid", stFid))
-          .and(QueryBuilder.lte("fid", edFid))
-      }
-    } else if (start.length > 0){
-      val (stPk, stZ, stSharing, stFid, z3Interval) = getRowValues(start)
-
-      val where = select.where(QueryBuilder.eq("pk", stPk))
-        .and(QueryBuilder.eq("sharing", stSharing))
-        .and(QueryBuilder.gte("z", stZ))
-
-      if (stFid.asInstanceOf[java.lang.String].length > 0){
-        where.and(QueryBuilder.gte("fid", stFid))
-      }
-    } else if (end.length > 0){
-      val (edPk, edZ, edSharing, edFid, z3Interval) = getRowValues(end)
-
-      val where = select.where(QueryBuilder.eq("pk", edPk))
-        .and(QueryBuilder.eq("sharing", edSharing))
-        .and(QueryBuilder.lte("z", edZ))
-
-      if (edFid.asInstanceOf[java.lang.String].length > 0){
-        where.and(QueryBuilder.lte("fid", edFid))
-      }
-
-    }
-    select
+  override protected def range(start:Array[Byte], end: Array[Byte]):CassandraRow = {
+    CassandraRow(start=Some(start), end=Some(end))
   }
 
-  override protected def rangeExact(row: Array[Byte]): Statement = {
-    val (pk, sharing, fid, z) = getRowValues(row)
-    new SimpleStatement(s"""SELECT * FROM $tableName
-          | WHERE pk = $pk
-          | AND sharing = '$sharing'
-          | AND fid = '$fid'
-          | AND z = $z""".stripMargin)
+  override protected def rangeExact(row: Array[Byte]): CassandraRow = {
+    CassandraRow(start=Some(row))
   }
 
   override protected def rowAndValue(result: Row): RowAndValue = {

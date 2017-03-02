@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 case object CassandraXZ2Index
-    extends CassandraFeatureIndex with XZ2Index[CassandraDataStore, CassandraFeature, Statement, Statement] {
+    extends CassandraFeatureIndex with XZ2Index[CassandraDataStore, CassandraFeature, CassandraRow, CassandraRow] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 

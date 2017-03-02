@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa
 
-import org.locationtech.geomesa.cassandra.data.{CassandraDataStore, CassandraFeature}
+import org.locationtech.geomesa.cassandra.data.{CassandraDataStore, CassandraFeature, CassandraRow}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -16,14 +16,14 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import com.datastax.driver.core._
 
 package object cassandra {
-  type CassandraDataStoreType = GeoMesaDataStore[CassandraDataStore, CassandraFeature, Statement]
-  type CassandraFeatureIndexType = GeoMesaFeatureIndex[CassandraDataStore, CassandraFeature, Statement]
-  type CassandraFilterPlanType = FilterPlan[CassandraDataStore, CassandraFeature, Statement]
-  type CassandraFilterStrategyType = FilterStrategy[CassandraDataStore, CassandraFeature, Statement]
-  type CassandraQueryPlannerType = QueryPlanner[CassandraDataStore, CassandraFeature, Statement]
-  type CassandraQueryPlanType = QueryPlan[CassandraDataStore, CassandraFeature, Statement]
-  type CassandraIndexManagerType = GeoMesaIndexManager[CassandraDataStore, CassandraFeature, Statement]
-  type CassandraFeatureWriterType = GeoMesaFeatureWriter[CassandraDataStore, CassandraFeature, Statement, Any]
-  type CassandraAppendFeatureWriterType = GeoMesaAppendFeatureWriter[CassandraDataStore, CassandraFeature, Statement, Any]
-  type CassandraModifyFeatureWriterType = GeoMesaModifyFeatureWriter[CassandraDataStore, CassandraFeature, Statement, Any]
+  type CassandraDataStoreType = GeoMesaDataStore[CassandraDataStore, CassandraFeature, CassandraRow]
+  type CassandraFeatureIndexType = GeoMesaFeatureIndex[CassandraDataStore, CassandraFeature, CassandraRow]
+  type CassandraFilterPlanType = FilterPlan[CassandraDataStore, CassandraFeature, CassandraRow]
+  type CassandraFilterStrategyType = FilterStrategy[CassandraDataStore, CassandraFeature, CassandraRow]
+  type CassandraQueryPlannerType = QueryPlanner[CassandraDataStore, CassandraFeature, CassandraRow]
+  type CassandraQueryPlanType = QueryPlan[CassandraDataStore, CassandraFeature, CassandraRow]
+  type CassandraIndexManagerType = GeoMesaIndexManager[CassandraDataStore, CassandraFeature, CassandraRow]
+  type CassandraFeatureWriterType = GeoMesaFeatureWriter[CassandraDataStore, CassandraFeature, CassandraRow, String]
+  type CassandraAppendFeatureWriterType = GeoMesaAppendFeatureWriter[CassandraDataStore, CassandraFeature, CassandraRow, String]
+  type CassandraModifyFeatureWriterType = GeoMesaModifyFeatureWriter[CassandraDataStore, CassandraFeature, CassandraRow, String]
 }

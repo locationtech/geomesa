@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 case object CassandraZ2Index
-    extends CassandraFeatureIndex with Z2Index[CassandraDataStore, CassandraFeature, Statement, Statement] {
+    extends CassandraFeatureIndex with Z2Index[CassandraDataStore, CassandraFeature, CassandraRow, CassandraRow] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
