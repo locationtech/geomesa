@@ -126,7 +126,7 @@ To start executing SQL queries using Spark over your GeoMesa on HBase on S3 clus
 
 .. code-block:: shell
     
-    $ JARS=file:///home/ec2-user/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+    $ JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
 Then, start up the Spark shell
 
