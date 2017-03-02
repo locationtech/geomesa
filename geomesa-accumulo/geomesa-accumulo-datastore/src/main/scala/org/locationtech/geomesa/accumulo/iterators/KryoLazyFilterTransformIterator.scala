@@ -38,14 +38,15 @@ class KryoLazyFilterTransformIterator extends
 
   import KryoLazyFilterTransformIterator._
 
-  var source: SortedKeyValueIterator[Key, Value] = null
+  var source: SortedKeyValueIterator[Key, Value] = _
   val topValue: Value = new Value()
 
-  var sft: SimpleFeatureType = null
-  var filter: (SimpleFeature) => Boolean = null
+  var sft: SimpleFeatureType = _
+  var filter: (SimpleFeature) => Boolean = _
 
-  var reusableSf: KryoBufferSimpleFeature = null
-  var hasTransform: Boolean = false
+  var reusableSf: KryoBufferSimpleFeature = _
+  var setId: () => Unit = _
+  var hasTransform: Boolean = _
 
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: jMap[String, String],
@@ -78,6 +79,14 @@ class KryoLazyFilterTransformIterator extends
       case (None, Some(s))    => s
       case (Some(c), Some(s)) => (sf) => c.evaluate(sf) && s(sf)
     }
+
+    setId = if (index.serializedWithId || cql.isEmpty) { () => {} } else {
+      val getFromRow = index.getIdFromRow(sft)
+      () => {
+        val row = source.getTopKey.getRow()
+        reusableSf.setId(getFromRow(row.getBytes, 0, row.getLength))
+      }
+    }
   }
 
   override def seek(range: Range, columnFamilies: jCollection[ByteSequence], inclusive: Boolean): Unit = {
@@ -104,6 +113,7 @@ class KryoLazyFilterTransformIterator extends
     var found = false
     while (!found && source.hasTop) {
       reusableSf.setBuffer(source.getTopValue.get())
+      setId()
       if (filter(reusableSf)) {
         found = true
       } else {

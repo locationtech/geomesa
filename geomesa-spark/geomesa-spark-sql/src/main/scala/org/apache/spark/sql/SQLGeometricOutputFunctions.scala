@@ -9,6 +9,7 @@
 package org.apache.spark.sql
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
 import org.geotools.geojson.geom.GeometryJSON
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -18,11 +19,12 @@ object SQLGeometricOutputFunctions {
   private val geomJSON = new ThreadLocal[GeometryJSON]() {
     override def initialValue() = new GeometryJSON()
   }
-  val ST_AsBinary: Geometry => Array[Byte] = geom => WKBUtils.write(geom)
-  val ST_AsGeoJSON: Geometry => String = geom => geomJSON.get().toString(geom)
-  val ST_AsLatLonText: Point => String = point => toLatLonString(point)
-  val ST_AsText: Geometry => String = geom => geom.toText
-  val ST_GeoHash: (Geometry, Int) => String = (geom, prec) => GeoHash(geom.getInteriorPoint, prec).hash
+  val ST_AsBinary: Geometry => Array[Byte] = nullableUDF(geom => WKBUtils.write(geom))
+  val ST_AsGeoJSON: Geometry => String = nullableUDF(geom => geomJSON.get().toString(geom))
+  val ST_AsLatLonText: Point => String = nullableUDF(point => toLatLonString(point))
+  val ST_AsText: Geometry => String = nullableUDF(geom => geom.toText)
+  val ST_GeoHash: (Geometry, Int) => String =
+    nullableUDF((geom, prec) => GeoHash(geom.getInteriorPoint, prec).hash)
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_asBinary", ST_AsBinary)

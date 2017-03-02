@@ -8,47 +8,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-jupyter_2.11</artifactId>
-    <name>GeoMesa Jupyter Extensions</name>
+    <name>GeoMesa Jupyter</name>
+    <packaging>pom</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-data</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-    </dependencies>
+    <modules>
+        <module>geomesa-jupyter-leaflet</module>
+    </modules>
 
     <profiles>
         <profile>
-            <id>scala-2.11</id>
-            <activation>
-                <property><name>!scala-2.10</name></property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-xml_${scala.binary.version}</artifactId>
-                </dependency>
-            </dependencies>
+            <!-- built in a profile for licensing reasons -->
+            <id>vegas</id>
+            <modules>
+                <module>geomesa-jupyter-vegas</module>
+            </modules>
         </profile>
     </profiles>
 

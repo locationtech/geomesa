@@ -64,9 +64,11 @@ The built Toree distribution can then be installed via ``pip`` (or ``pip3``):
 
 .. code-block:: bash
 
-    $ pip install --upgrade --pre ./dist/toree-pip/toree-0.2.0.dev1.tar.gz
+    $ pip install --upgrade ./dist/toree-pip/toree-0.2.0.dev1.tar.gz
     $ pip freeze | grep toree
     toree==0.2.0.dev1
+
+.. _jupyter_configure_toree:
 
 Configure Toree and GeoMesa
 ---------------------------
@@ -101,7 +103,46 @@ If you have the GeoMesa Accumulo distribution installed at ``GEOMESA_ACCUMULO_HO
 
     The JARs specified will be in the respective ``target`` directory of each module of the source distribution if you built GeoMesa from source.
 
-You may also consider adding ``geomesa-tools-2.11-$VERSION-data.jar`` to include prepackaged converters for publically available data sources (as described in :ref:`prepackaged_converters`), or ``geomesa-jupyter-2.11-$VERSION.jar`` to include an interface for the `Leaflet`_ visualization library.
+You may also consider adding ``geomesa-tools-2.11-$VERSION-data.jar`` to include prepackaged converters for publically available data sources (as described in :ref:`prepackaged_converters`), ``geomesa-jupyter-leaflet-2.11-$VERSION.jar`` to include an interface for the `Leaflet`_ spatial visualization library, and/or ``geomesa-jupyter-vegas-2.11-$VERSION.jar`` to use the `Vegas`_ data plotting library (see :ref:`jupyter_vegas` below).
+
+.. _jupyter_vegas:
+
+Vegas for Data Plotting
+-----------------------
+
+The `Vegas`_ library may be used with GeoMesa, Spark, and Toree in Jupyter to plot quantitative data. The ``geomesa-jupyter-vegas`` module builds a shaded JAR containing all of the dependencies needed to run Vegas in Jupyter+Toree. This module must be built from source, using the ``vegas`` profile:
+
+.. code-block:: bash
+
+    $ mvn clean install -Pvegas -pl geomesa-jupyter/geomesa-jupyter-vegas
+
+This will build ``geomesa-jupyter-vegas_2.11-$VERSION.jar`` in the ``target`` directory of the module, and should be added to the list of JARs in the ``jupyter toree install`` command described in :ref:`jupyter_configure_toree`:
+
+.. code-block:: bash
+
+    jars="$jars,file:///path/to/geomesa-jupyter-vegas_2.11-$VERSION.jar"
+    # then continue with "jupyter toree install" as before
+
+To use Vegas within Jupyter, load the appropriate libraries and a displayer:
+
+.. code-block:: scala
+
+    import vegas._
+    import vegas.render.HTMLRenderer._
+    import vegas.sparkExt._
+
+    implicit val displayer: String => Unit = { s => kernel.display.content("text/html", s) }
+
+Then use the ``withDataFrame`` method to plot data in a ``DataFrame``:
+
+.. code-block:: scala
+
+    Vegas("Simple bar chart").
+      withDataFrame(df).
+      encodeX("a", Ordinal).
+      encodeY("b", Quantitative).
+      mark(Bar).
+      show(displayer)
 
 Running Jupyter
 ---------------
@@ -128,3 +169,4 @@ Your notebook server should launch and be accessible at http://localhost:8888/ (
 .. _Python: https://www.python.org/
 .. _SBT: http://www.scala-sbt.org/
 .. _Spark: http://spark.apache.org/
+.. _Vegas: https://github.com/vegas-viz/Vegas

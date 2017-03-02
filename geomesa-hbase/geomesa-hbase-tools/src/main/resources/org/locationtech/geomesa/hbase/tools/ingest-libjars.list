@@ -7,6 +7,10 @@ geomesa
 gson
 gt
 hbase
+hbase-client
+hbase-server
+hbase-protocol
+htrace
 joda
 json-path
 json-simple
@@ -15,7 +19,10 @@ jsr
 jts
 kryo
 mango
+metrics
 minlog
+netty
+parboiled
 scala
 spatial4j
 sfcurve

@@ -16,6 +16,7 @@
         <module>geomesa-spark-core</module>
         <module>geomesa-spark-geotools</module>
         <module>geomesa-spark-sql</module>
+        <module>geomesa_pyspark</module>
     </modules>
 
 </project>
