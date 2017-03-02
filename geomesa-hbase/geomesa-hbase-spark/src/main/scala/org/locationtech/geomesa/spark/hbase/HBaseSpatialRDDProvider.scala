@@ -20,7 +20,7 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.spark.SpatialRDDProvider
+import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.SimpleFeature
@@ -34,21 +34,24 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
   def rdd(conf: Configuration,
           sc: SparkContext,
           dsParams: Map[String, String],
-          origQuery: Query): RDD[SimpleFeature] = {
+          origQuery: Query): SpatialRDD = {
+    import org.locationtech.geomesa.index.conf.QueryHints._
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[HBaseDataStore]
 
     // get the query plan to set up the iterators, ranges, etc
     lazy val sft = ds.getSchema(origQuery.getTypeName)
     lazy val qp = ds.getQueryPlan(origQuery).head
 
-    if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
-      sc.emptyRDD[SimpleFeature]
-    } else {
-      import org.locationtech.geomesa.index.conf.QueryHints._
 
+
+    if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
+      val transform = origQuery.getHints.getTransformSchema
+      SpatialRDD(sc.emptyRDD[SimpleFeature], transform.getOrElse(sft))
+    } else {
       val query = ds.queryPlanner.configureQuery(origQuery, sft)
+      val transform = query.getHints.getTransformSchema
       GeoMesaConfigurator.setSerialization(conf)
-      query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+      transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
       GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
       GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
       GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
@@ -61,7 +64,8 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       }
       conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
 
-      sc.newAPIHadoopRDD(conf, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
+      val rdd = sc.newAPIHadoopRDD(conf, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
+      SpatialRDD(rdd, transform.getOrElse(sft))
     }
   }
 
