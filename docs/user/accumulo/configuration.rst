@@ -30,10 +30,10 @@ geomesa.batchwriter.timeout.millis
 
 See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)>`__
 
-Map Reduce Splits Properties
-----------------------------
+Map Reduce Input Splits Properties
+----------------------------------
 
-The following properties control the configure of Accumulo table splits.
+The following properties control the number of input splits for a map reduce job.
 See the `Accumulo Docs <https://accumulo.apache.org/1.7/accumulo_user_manual#_splitting>`__
 
 geomesa.mapreduce.splits.max
