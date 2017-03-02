@@ -152,7 +152,7 @@ org.locationtech.spatial4j:spatial4j	0.6	compile
 org.objenesis:objenesis	1.0	compile
 org.parboiled:parboiled-core	1.1.7	compile
 org.parboiled:parboiled-scala_2.11	1.1.7	compile
-org.scala-lang.modules:scala-parser-combinators_2.11	1.0.4	compile
+org.scala-lang.modules:scala-parser-combinators_2.11	1.0.5	compile
 org.scala-lang.modules:scala-xml_2.11	1.0.5	compile
 org.scala-lang:scala-compiler	2.11.7	compile
 org.scala-lang:scala-library	2.11.7	compile

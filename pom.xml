@@ -59,7 +59,7 @@
         <scala.binary.version>2.11</scala.binary.version>
 
         <scala.xml.version>1.0.5</scala.xml.version>
-        <scala.parsers.version>1.0.4</scala.parsers.version>
+        <scala.parsers.version>1.0.5</scala.parsers.version>
 
         <geoserver.version>2.9.1</geoserver.version>
         <gt.version>15.1</gt.version>
