@@ -185,18 +185,18 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
       }
     }
 
-    lazy val grpSplitsPerTServer: Option[Int] =
-      AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.option match {
-        case Some(desiredSplits) =>
-          val numLocations = accumuloSplits.flatMap(_.getLocations).toArray.distinct.length
-          val splitsPerTServer = try { desiredSplits.toInt } catch {
-            case e: java.lang.NumberFormatException =>
-              logger.warn(s"Unable to parse geomesa.mapreduce.splits.tserver.max = " + s"$desiredSplits is not a valid Int.")
-              1 // Identity, don't split locations
-          }
-          if (numLocations > 0 && splitsPerTServer > 0) Some(numLocations * splitsPerTServer) else None
-        case None => None
-      }
+    lazy val grpSplitsPerTServer: Option[Int] = AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.option match {
+      case Some(desiredSplits) =>
+        val numLocations = accumuloSplits.flatMap(_.getLocations).toArray.distinct.length
+        val splitsPerTServer = try {
+          desiredSplits.toInt
+        } catch {
+          case e: java.lang.NumberFormatException =>
+            throw new IllegalArgumentException(s"Unable to parse geomesa.mapreduce.splits.tserver.max = $desiredSplits contains an invalid Int.", e)
+        }
+        if (numLocations > 0 && splitsPerTServer > 0) Some(numLocations * splitsPerTServer) else None
+      case None => None
+     }
 
     grpSplitsMax.orElse(grpSplitsPerTServer) match {
       case Some(numberOfSplits) =>
