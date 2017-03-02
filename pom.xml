@@ -2145,15 +2145,22 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-protocol</artifactId>
+                <version>${hbase.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-common</artifactId>
                 <version>${hbase.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.hbase</groupId>
-                <artifactId>hbase-protocol</artifactId>
+                <artifactId>hbase-common</artifactId>
                 <version>${hbase.version}</version>
-                <scope>provided</scope>
+                <classifier>tests</classifier>
+                <scope>test</scope>
             </dependency>
 
             <!-- geoserver 2.9 spring version -->

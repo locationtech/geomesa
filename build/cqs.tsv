@@ -109,7 +109,6 @@ org.apache.curator:curator-recipes	2.7.1	compile
 org.apache.hbase:hbase-annotations	1.2.3	compile
 org.apache.hbase:hbase-client	1.2.3	compile
 org.apache.hbase:hbase-common	1.2.3	compile
-org.apache.hbase:hbase-common	tests:1.2.3	compile
 org.apache.hbase:hbase-hadoop2-compat	1.2.3	compile
 org.apache.hbase:hbase-hadoop-compat	1.2.3	compile
 org.apache.hbase:hbase-procedure	1.2.3	compile
