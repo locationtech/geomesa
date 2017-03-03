@@ -97,7 +97,7 @@ directory, and build the module using the ``hbase`` Maven profile:
     $ mvn clean install -Phbase
 
 After building, extract ``target/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
-``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.1.5
+``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.2.3
 bundled. If you require a different version, modify the ``pom.xml`` and rebuild following
 the instructions above.
 
