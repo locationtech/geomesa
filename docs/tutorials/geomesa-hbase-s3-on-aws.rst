@@ -49,7 +49,7 @@ You may desire to run ``aws configure`` before running this command. If you don'
 
 .. note::
 
-  In the code below, ``$VERSION`` = |release|
+   In the code below, ``$VERSION`` = |release|
 
 .. code-block:: shell
 
@@ -112,11 +112,15 @@ You can then query the data using the GeoMesa command line export tool.
 .. note::
 
     Currently GeoMesa HBase does not support ingest from S3 when using EMR clusters. There is a workaround that is enabled by adding the hbase-site.xml file to the classpath by inserting it into a jar:
-    
+
+.. code-block:: shell
+
     $ cd /opt/geomesa
     $ cp /etc/hbase/conf/hbase-site.xml .
     $ jar uf lib/geomesa-hbase-tools_2.11-${VERSION}.jar hbase-site.xml
-    $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt s3a://path/to/gdeltfile.csv
+    $ files=$(for x in `seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d"`; do echo "s3a://gdelt-open-data/events/$x.export.csv"; done)
+    $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt $files
+
 
 
 Setup GeoMesa and SparkSQL
