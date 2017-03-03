@@ -45,7 +45,7 @@ Next, create a local json file named ``geomesa-hbase-on-s3.json`` with the follo
 
 Then, use the following command to bootstrap an EMR cluster with HBase.  You will need to change ``__KEY_NAME__`` to the IAM key pair you intend to use for this cluster and ``__SUBNET_ID__`` to the id of the subnet if that key is associated with a specific subnet.  You can also edit the instance types to a size appropriate for your use case.  Specify the appropriate path to the json file you created in the last step.
 
-You may desire to run ``aws configure`` before running this command. If you don't you'll need to specify a region something like ``--region us-west2``. Also, you'll need to ensure that your EC2 instance has the IAM Role to perform the ``elasticmapreduce:RunJobFlow`` action. The config below will create a single master and 3 worker nodes. You may wish to increase or decrease the number of worker nodes or change the instance types to suit your query needs.
+You may desire to run ``aws configure`` before running this command. If you don't you'll need to specify a region something like ``--region us-west-2``. Also, you'll need to ensure that your EC2 instance has the IAM Role to perform the ``elasticmapreduce:RunJobFlow`` action. The config below will create a single master and 3 worker nodes. You may wish to increase or decrease the number of worker nodes or change the instance types to suit your query needs.
 
 .. note::
 
