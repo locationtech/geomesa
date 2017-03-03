@@ -57,7 +57,7 @@ trait Schema {
 
 class SpatialRDD(rdd: RDD[SimpleFeature], sft: SimpleFeatureType) extends RDD[SimpleFeature](rdd) with Schema {
 
-  GeoMesaSparkKryoRegistratorEndpoint.register()
+  GeoMesaSparkKryoRegistratorEndpoint.init()
   GeoMesaSparkKryoRegistrator.register(sft)
 
   private val sft_name = sft.getTypeName

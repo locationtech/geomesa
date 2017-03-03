@@ -33,7 +33,7 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
       val cache = new ConcurrentHashMap[Int, SimpleFeatureSerializer]()
 
       override def write(kryo: Kryo, out: Output, feature: SimpleFeature): Unit = {
-        val id = GeoMesaSparkKryoRegistrator.putTypeIfAbsent(feature.getFeatureType)
+        val id = GeoMesaSparkKryoRegistrator.putType(feature.getFeatureType)
         var serializer = cache.get(id)
         if (serializer == null) {
           serializer = new SimpleFeatureSerializer(feature.getFeatureType)
@@ -60,7 +60,7 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 
 object GeoMesaSparkKryoRegistrator {
 
-  GeoMesaSparkKryoRegistratorEndpoint.register()
+  GeoMesaSparkKryoRegistratorEndpoint.init()
 
   private val typeCache = new ConcurrentHashMap[Int, SimpleFeatureType]()
 
@@ -68,29 +68,22 @@ object GeoMesaSparkKryoRegistrator {
 
   def putType(sft: SimpleFeatureType): Int = {
     val id = identifier(sft)
-    typeCache.put(id, sft)
-    id
-  }
-
-  def putTypeIfAbsent(sft: SimpleFeatureType): Int = {
-    val id = identifier(sft)
-    typeCache.putIfAbsent(id, sft)
+    if (typeCache.putIfAbsent(id, sft) == null) GeoMesaSparkKryoRegistratorEndpoint.putType(sft)
     id
   }
 
   def getType(id: Int): SimpleFeatureType =
-    Option(typeCache.get(id))
-      .orElse {
-        fromSystemProperties(id) orElse GeoMesaSparkKryoRegistratorEndpoint.resolver(id)
-          .map { sft => typeCache.put(id, sft); sft }
-      }
-      .orNull
+    Option(typeCache.get(id)).orElse {
+        fromSystemProperties(id) orElse GeoMesaSparkKryoRegistratorEndpoint.getType(id) map {
+          sft => typeCache.put(id, sft); sft
+        }
+      }.orNull
 
   def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
 
   def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach(register)
 
-  def register(sft: SimpleFeatureType): Unit = GeoMesaSparkKryoRegistrator.putTypeIfAbsent(sft)
+  def register(sft: SimpleFeatureType): Unit = GeoMesaSparkKryoRegistrator.putType(sft)
 
   @deprecated
   def broadcast(partitions: RDD[_]): Unit = {
