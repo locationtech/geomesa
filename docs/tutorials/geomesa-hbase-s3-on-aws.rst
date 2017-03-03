@@ -1,7 +1,7 @@
 Bootstrapping GeoMesa HBase on AWS S3
 ==========================================================
 
-GeoMesa can be run on top of HBase using S3 as the underlying storage engine.  This mode of running GeoMesa is cost-effective as one sizes the database cluster for the compute and memory requirements, not the storage requirements.  The following guide describes how to bootstrap GeoMesa in this manner.  This guide assumes you have an Amazon Web Services account already provisioned as well as an IAM key pair.  To set up the AWS command line tools, follow the instructions found in the AWS `online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
+GeoMesa can be run on top of HBase using S3 as the underlying storage engine.  This mode of running GeoMesa is cost-effective as one sizes the database cluster for the compute and memory requirements, not the storage requirements.  The following guide describes how to bootstrap GeoMesa in this manner.  This guide assumes you have an Amazon Web Services account already provisioned as well as an IAM key pair.  To set up the AWS command line tools, follow the instructions found in the AWS `online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_. The instructions below were executed on an AWS EC2 machine running Amazon Linux.
 
 .. _Amazon Web Services: https://aws.amazon.com/
 
@@ -10,7 +10,21 @@ GeoMesa can be run on top of HBase using S3 as the underlying storage engine.  T
 Bootstrap an EMR cluster with HBase
 -----------------------------------
 
-First, you will need to configure an S3 bucket for use by HBase.  Create a json file called ``geomesa-hbase-on-s3.json`` with the following content.  Make sure to replace ``<geomesa-root-path>`` with a unique root directory for HBase.
+First, you will need to configure an S3 bucket for use by HBase. Make sure to replace ``<bucket-name>`` with your bucket name. You can also use a different root directory for HBase if you desire. If you're using the AWS CLI you can create a bucket and the root "directory" this:
+
+.. code-block:: shell
+   
+   $ aws s3 mb s3://<bucket-name>
+   $ aws s3api put-object --bucket <bucket-name> --key hbase-root/
+
+You should now be able to list the contents of your bucket:
+
+.. code-block:: shell
+   
+   $ aws s3 ls s3://<bucket-name>/
+                                PRE hbase-root/
+
+Next, create a local json file named ``geomesa-hbase-on-s3.json`` with the following content.  Make sure to replace ``<bucket-name>/hbase-root`` with a unique root directory for HBase that you configured in the previous step.
 
 .. code-block:: javascript
 
@@ -18,7 +32,7 @@ First, you will need to configure an S3 bucket for use by HBase.  Create a json 
      {
        "Classification": "hbase-site",
        "Properties": {
-         "hbase.rootdir": "s3://<geomesa-root-path>/root"
+         "hbase.rootdir": "s3://<bucket-name>/hbase-root"
        }
      },
      {
@@ -29,14 +43,9 @@ First, you will need to configure an S3 bucket for use by HBase.  Create a json 
      }
   ]
 
-Then, ensure that the bucket exists.
+Then, use the following command to bootstrap an EMR cluster with HBase.  You will need to change ``__KEY_NAME__`` to the IAM key pair you intend to use for this cluster and ``__SUBNET_ID__`` to the id of the subnet if that key is associated with a specific subnet.  You can also edit the instance types to a size appropriate for your use case.  Specify the appropriate path to the json file you created in the last step.
 
-.. code-block:: shell
-   
-   $ aws s3 mb s3://<geomesa-root-path>/root
-
-
-Then, use the following command to bootstrap an EMR cluster with HBase.  You will need to change the ``KeyName`` to the IAM key pair you intend to use for this cluster and ``SubnetId`` to the id of the subnet if that key is associated with a specific subnet.  You can also edit the instance types to a size appropriate for your use case.  Specify the appropriate path to the json file you created in the last step.
+You may desire to run ``aws configure`` before running this command. If you don't you'll need to specify a region something like ``--region us-west2``. Also, you'll need to ensure that your EC2 instance has the IAM Role to perform the ``elasticmapreduce:RunJobFlow`` action. The config below will create a single master and 3 worker nodes. You may wish to increase or decrease the number of worker nodes or change the instance types to suit your query needs.
 
 .. note::
 
@@ -44,7 +53,7 @@ Then, use the following command to bootstrap an EMR cluster with HBase.  You wil
 
 .. code-block:: shell
 
-  $ aws emr create-cluster                                \                                                                                                                                     
+   $ aws emr create-cluster                               \
     --name "GeoMesa HBase on S3"                          \
     --release-label emr-5.2.0                             \
     --output text                                         \
@@ -98,7 +107,17 @@ You can then query the data using the GeoMesa command line export tool.
 
 .. code-block:: shell
 
-    $ geomesa-hbase export -c geomesa.gdelt -f gdelt -m 100
+    $ geomesa-hbase export -c geomesa.gdelt -f gdelt -m 50
+
+.. note::
+
+    Currently GeoMesa HBase does not support ingest from S3 when using EMR clusters. There is a workaround that is enabled by adding the hbase-site.xml file to the classpath by inserting it into a jar:
+    
+    $ cd /opt/geomesa
+    $ cp /etc/hbase/conf/hbase-site.xml .
+    $ jar uf lib/geomesa-hbase-tools_2.11-${VERSION}.jar hbase-site.xml
+    $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt s3a://path/to/gdeltfile.csv
+
 
 Setup GeoMesa and SparkSQL
 -----------------------------------------------------------------
@@ -107,7 +126,7 @@ To start executing SQL queries using Spark over your GeoMesa on HBase on S3 clus
 
 .. code-block:: shell
     
-    $ JARS=file:///usr/lib/hbase/hbase-common.jar,file:///usr/lib/hbase/hbase-client.jar,file:///usr/lib/hbase/hbase-protocol.jar,file:///usr/lib/hbase/hbase-server.jar,file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+    $ JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
 Then, start up the Spark shell
 
