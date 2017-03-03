@@ -448,6 +448,43 @@ S3n paths are prefixed in hadoop with ``s3n://`` as shown below::
       -C convert s3n://bucket/path/file s3n://bucket/path/*
 
 
+Enabling Azure Ingest
+^^^^^^^^^^^^^^^^^^^^^
+
+Hadoop ships with implementations of Azure-based filesystems, which can be enabled in the Hadoop configuration used with
+GeoMesa tools. Specifically, GeoMesa tools can perform ingests using the (`wasb`) and (`wasbs`) filesystems.
+Edit the ``$HADOOP_CONF_DIR/core-site.xml`` file in your Hadoop installation as shown below
+(these instructions apply to Hadoop 2.5.0 and higher). In addition, the hadoop-azure and azure-storage jars need to be
+available.
+
+.. warning::
+
+    Azure credentials are valuable! They pay for services and control read and write protection for data. Be sure to keep
+    your core-site.xml configuration file safe. It is recommended that you use Azure's SSL enable file protocal
+    variant `wasbs` where possible.
+
+Configuration:
+
+To enable, place the following in your Hadoop Installation's core-site.xml.
+
+.. code-block:: xml
+
+    <!-- core-site.xml -->
+    <property>
+      <name>fs.azure.account.key.ACCOUNTNAME.blob.core.windows.net</name>
+      <value>XXXX YOUR ACCOUNT KEY</value>
+    </property>
+
+After you have enabled Azure in your Hadoop configuration you can ingest with GeoMesa tools. Note that you can still
+use the Kleene star (*) with Azure.:
+
+.. code-block:: bash
+
+    $ geomesa ingest -u username -p password \
+      -c geomesa_catalog -i instance -s yourspec \
+      -C convert wasb://CONTAINER@ACCOUNTNAME.blob.core.windows.net/files/*
+
+
 .. _accumulo_tools_raster:
 
 Working with raster data

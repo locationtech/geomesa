@@ -36,7 +36,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     ensureSameFs(IngestCommand.RemotePrefixes)
 
     if (params.fmt == Shp) {
-      // If someone is ingesting file from hdfs or S3, we add the Hadoop URL Factories to the JVM.
+      // If someone is ingesting file from hdfs, S3, or wasb we add the Hadoop URL Factories to the JVM.
       if (params.files.exists(IngestCommand.isDistributedUrl)) {
         import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
         val factory = new FsUrlStreamHandlerFactory

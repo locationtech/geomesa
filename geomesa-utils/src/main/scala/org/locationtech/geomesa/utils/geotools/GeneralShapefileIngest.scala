@@ -36,7 +36,7 @@ object GeneralShapefileIngest {
   //  This allows for us to ingest files from HDFS, S3, and Azure (WASBS and WASB).
   def getShapefileDatastore(shapefilePath: String): FileDataStore = {
     // NOTE this regex is designed to work for s3a, s3n, etc.
-    if (shapefilePath.matches("""\w{3,4,5}:\/\/.*$""")) {
+    if (shapefilePath.matches("""\w{3,5}:\/\/.*$""")) {
       DataStoreFinder.getDataStore(Map("url" -> shapefilePath)).asInstanceOf[FileDataStore]
     } else {
       FileDataStoreFinder.getDataStore(new File(shapefilePath))
