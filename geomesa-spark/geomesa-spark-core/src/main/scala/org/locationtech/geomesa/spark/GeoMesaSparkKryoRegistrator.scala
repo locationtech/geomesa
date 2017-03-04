@@ -60,9 +60,9 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 
 object GeoMesaSparkKryoRegistrator {
 
-  GeoMesaSparkKryoRegistratorEndpoint.init()
-
   private val typeCache = new ConcurrentHashMap[Int, SimpleFeatureType]()
+
+  GeoMesaSparkKryoRegistratorEndpoint.init()
 
   def identifier(sft: SimpleFeatureType): Int = math.abs(MurmurHash3.stringHash(CacheKeyGenerator.cacheKey(sft)))
 
@@ -72,12 +72,21 @@ object GeoMesaSparkKryoRegistrator {
     id
   }
 
+  def putTypes(types: Seq[SimpleFeatureType]): Seq[Int] =
+    types.map { sft =>
+      val id = identifier(sft)
+      typeCache.putIfAbsent(id, sft)
+      id
+    }
+
   def getType(id: Int): SimpleFeatureType =
     Option(typeCache.get(id)).orElse {
         fromSystemProperties(id) orElse GeoMesaSparkKryoRegistratorEndpoint.getType(id) map {
           sft => typeCache.put(id, sft); sft
         }
       }.orNull
+
+  def getTypes: Seq[SimpleFeatureType] = Seq(typeCache.values.toSeq: _*)
 
   def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
 
