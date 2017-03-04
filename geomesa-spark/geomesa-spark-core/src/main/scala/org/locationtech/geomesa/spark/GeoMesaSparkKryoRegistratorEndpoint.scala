@@ -9,13 +9,14 @@
 package org.apache.spark.geomesa
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.rpc.{RpcCallContext, RpcEndpoint, RpcEnv}
+import org.apache.spark.rpc.{RpcCallContext, RpcEndpoint, RpcEnv, RpcTimeout}
 import org.apache.spark.util.RpcUtils
 import org.apache.spark.{SparkContext, SparkEnv}
 import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 
@@ -41,19 +42,26 @@ object GeoMesaSparkKryoRegistratorEndpoint extends LazyLogging {
   class SchemaEndpoint(val rpcEnv: RpcEnv) extends RpcEndpoint with LazyLogging {
     override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
       case id: Int =>
-        logger.info(s"request for kryo schema $id from ${context.senderAddress}")
+        logger.info(s"kryo schema get ($id) from ${context.senderAddress}")
         val spec = Option(GeoMesaSparkKryoRegistrator.getType(id)).map(sft => (sft.getTypeName, encodeType(sft)))
         context.reply(spec)
       case (name: String, spec: String) =>
         val id = GeoMesaSparkKryoRegistrator.putType(createType(name, spec))
-        logger.info(s"registration of kryo schmea $id from ${context.senderAddress}")
+        logger.info(s"kryo schmea put ($id) from ${context.senderAddress}")
         context.reply(id)
     }
     override def receive: PartialFunction[Any, Unit] = {
       case (name: String, spec: String) =>
         val id = GeoMesaSparkKryoRegistrator.putType(createType(name, spec))
-        logger.info(s"registration of kryo schmea $id")
+        logger.info(s"kryo schmea put ($id)")
     }
+  }
+
+  private def askSync[T: ClassTag](message: Any, timeout: RpcTimeout = Timeout): (T, Long) = {
+    val start = System.nanoTime()
+    val result = timeout.awaitResult(EndpointRef.ask[T](message, timeout))
+    val delta = (System.nanoTime() - start)/1000000L
+    (result, delta)
   }
 
   lazy val getType: Int => Option[SimpleFeatureType] =
@@ -62,14 +70,14 @@ object GeoMesaSparkKryoRegistratorEndpoint extends LazyLogging {
       .map(_ => getTypeExecutor).getOrElse(getTypeNoOp)
 
   private val getTypeExecutor: Int => Option[SimpleFeatureType] = id => {
-    logger.info(s"schema $id request via rpc from ${EndpointRef.address}")
-    val ask = EndpointRef.ask[Option[(String, String)]](id)
-    Timeout.awaitResult(ask) match {
+    logger.info(s"schema $id get via rpc from ${EndpointRef.address}")
+    val (result, delta) = askSync[Option[(String, String)]](id)
+    result match {
       case Some((name, spec)) =>
-        logger.info(s"schema $id resolved via rpc")
+        logger.info(s"schema $id get via rpc success ($delta ms)")
         Option(createType(name, spec))
       case _ =>
-        logger.warn(s"schema $id not resolved via rpc")
+        logger.warn(s"schema $id get via rpc failed ($delta ms)")
         None
     }
   }
@@ -81,8 +89,13 @@ object GeoMesaSparkKryoRegistratorEndpoint extends LazyLogging {
     .map(_ => putTypeExecutor).getOrElse(putTypeNoOp)
 
   private val putTypeExecutor: SimpleFeatureType => Unit = sft => {
-    logger.info(s"schema ${sft.getTypeName} sent via rpc from ${EndpointRef.address}")
-    Timeout.awaitResult(EndpointRef.ask[Int]((sft.getTypeName, encodeType(sft))))
+    logger.info(s"schema ${sft.getTypeName} put via rpc to ${EndpointRef.address}")
+    val (result, delta) = askSync[Int]((sft.getTypeName, encodeType(sft)))
+    result match {
+      case id: Int => logger.info(s"schema ${sft.getTypeName} ($id) put via rpc success ($delta ms)")
+      case _ => logger.warn(s"schema ${sft.getTypeName} put via rpc failed ($delta ms)")
+    }
+
   }
 
   private val putTypeNoOp: SimpleFeatureType => Unit = _ => {}
