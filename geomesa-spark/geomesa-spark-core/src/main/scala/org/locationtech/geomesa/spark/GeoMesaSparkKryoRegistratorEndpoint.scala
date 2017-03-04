@@ -84,20 +84,20 @@ object GeoMesaSparkKryoRegistratorEndpoint extends LazyLogging {
 
   private val getTypeNoOp: Int => Option[SimpleFeatureType] = _ => None
 
-  lazy val putType: SimpleFeatureType => Unit = Option(SparkEnv.get)
+  lazy val putType: (Int, SimpleFeatureType) => Unit = Option(SparkEnv.get)
     .filterNot(_.executorId == SparkContext.DRIVER_IDENTIFIER)
     .map(_ => putTypeExecutor).getOrElse(putTypeNoOp)
 
-  private val putTypeExecutor: SimpleFeatureType => Unit = sft => {
+  private val putTypeExecutor: (Int, SimpleFeatureType) => Unit = (id, sft) => {
     logger.info(s"schema ${sft.getTypeName} put via rpc to ${EndpointRef.address}")
     val (result, delta) = askSync[Int]((sft.getTypeName, encodeType(sft)))
     result match {
-      case id: Int => logger.info(s"schema ${sft.getTypeName} ($id) put via rpc success ($delta ms)")
-      case _ => logger.warn(s"schema ${sft.getTypeName} put via rpc failed ($delta ms)")
+      case result_id: Int if result_id == id => logger.info(s"schema $id put via rpc success ($delta ms)")
+      case result_id: Int => logger.error(s"schema $id put via rpc error, mismatch schema hash [$result_id != $id] ($delta ms)")
+      case _ => logger.warn(s"schema $id put via rpc failed ($delta ms)")
     }
-
   }
 
-  private val putTypeNoOp: SimpleFeatureType => Unit = _ => {}
+  private val putTypeNoOp: (Int, SimpleFeatureType) => Unit = (_,_) => {}
 
 }
