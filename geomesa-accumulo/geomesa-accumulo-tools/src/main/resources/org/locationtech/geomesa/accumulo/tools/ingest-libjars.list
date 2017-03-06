@@ -15,6 +15,9 @@ gson
 gt
 htrace
 joda
+json4s-ast
+json4s-core
+json4s-native
 json-path
 json-simple
 json-smart
@@ -24,8 +27,11 @@ kryo
 libthrift
 mango
 minlog
+paranamer
 parboiled
+Saxon-HE
 scala
-spatial4j
+scalap
 sfcurve
+spatial4j
 stream

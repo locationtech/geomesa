@@ -135,6 +135,12 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-native_${scala.binary.version}</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>

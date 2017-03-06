@@ -88,7 +88,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
    */
   override def run(): Unit = {
     beforeRunTasks()
-    val distPrefixes = Seq("hdfs://", "s3n://", "s3a://")
+    val distPrefixes = Seq("hdfs://", "s3n://", "s3a://", "wasb://", "wasbs://")
     if (distPrefixes.exists(inputs.head.toLowerCase.startsWith)) {
       Command.user.info("Running ingestion in distributed mode")
       runDistributed()
