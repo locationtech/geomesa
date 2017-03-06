@@ -188,20 +188,24 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     lazy val grpSplitsPerTServer: Option[Int] = AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.option match {
       case Some(desiredSplits) =>
         val numLocations = accumuloSplits.flatMap(_.getLocations).toArray.distinct.length
-        val splitsPerTServer = try {
-          desiredSplits.toInt
-        } catch {
-          case e: java.lang.NumberFormatException =>
-            throw new IllegalArgumentException(s"Unable to parse geomesa.mapreduce.splits.tserver.max = $desiredSplits contains an invalid Int.", e)
-        }
-        if (numLocations > 0 && splitsPerTServer > 0) Some(numLocations * splitsPerTServer) else None
+        if (numLocations > 0) {
+          val splitsPerTServer = try {
+            val ds = desiredSplits.toInt
+            if (ds <= 0) throw new java.lang.NumberFormatException("Ints <= 0 are not allowed.")
+            ds
+          } catch {
+            case e: java.lang.NumberFormatException =>
+              throw new IllegalArgumentException(s"Unable to parse geomesa.mapreduce.splits.tserver.max = $desiredSplits contains an invalid Int.", e)
+          }
+          Some(numLocations * splitsPerTServer)
+        } else None
       case None => None
      }
 
     grpSplitsMax.orElse(grpSplitsPerTServer) match {
       case Some(numberOfSplits) =>
         logger.debug(s"Using desired splits with result of $numberOfSplits splits")
-        val splitSize: Int = accumuloSplits.length / numberOfSplits
+        val splitSize: Int = math.ceil(accumuloSplits.length.toDouble / numberOfSplits).toInt
         accumuloSplits.groupBy(_.getLocations()(0)).flatMap{ case (location, splits) =>
           splits.grouped(splitSize).map{ group =>
             val split = new GroupedSplit
