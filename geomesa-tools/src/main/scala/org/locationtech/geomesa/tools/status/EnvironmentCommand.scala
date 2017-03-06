@@ -25,7 +25,11 @@ class EnvironmentCommand extends Command {
 
     if (params.sfts == null && params.converters == null && !params.listSfts &&
       !params.listConverters && !params.describeSfts && !params.describeConverters) {
-      throw new ParameterException("Specific environment was not provided")
+      Command.output.info("No flags given; displaying list of SFTs and Converters.")
+      Command.output.info(s"Use 'help $name' to see complete command options.")
+
+      listSftsNames()
+      listConverterNames()
     } else {
       if (params.listSfts) {
         listSftsNames()
