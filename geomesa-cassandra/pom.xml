@@ -18,33 +18,12 @@
         <module>geomesa-cassandra-tools</module>
     </modules>
 
-    <properties>
-        <cassandra.version>3.0.0</cassandra.version>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-cassandra-datastore_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.datastax.cassandra</groupId>
-                <artifactId>cassandra-driver-core</artifactId>
-                <version>${cassandra.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.datastax.cassandra</groupId>
-                <artifactId>cassandra-driver-mapping</artifactId>
-                <version>${cassandra.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>18.0</version>
+                <version>${cassandra.guava.version}</version>
                 <scope>provided</scope>
             </dependency>
         </dependencies>

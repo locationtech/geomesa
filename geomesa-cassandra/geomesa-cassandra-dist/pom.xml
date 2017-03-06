@@ -21,18 +21,17 @@
         <!-- Cassandra Tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools_2.11</artifactId>
+            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-cassandra-tools_2.11</artifactId>
-            <version>${project.version}</version>
+            <artifactId>geomesa-cassandra-tools_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- Cassandra Datastore -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-cassandra-datastore_2.11</artifactId>
+            <artifactId>geomesa-cassandra-datastore_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- GeoServer Plugins -->
