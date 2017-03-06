@@ -20,7 +20,6 @@ class AttributeIndexTest extends Specification {
       forall(Seq(0, 32, 127, 128, 129, 255, 256, 257)) { i =>
         val bytes = AttributeIndex.indexToBytes(i)
         bytes must haveLength(2)
-        println(bytes.mkString(" "))
         val recovered = AttributeIndex.bytesToIndex(bytes(0), bytes(1))
         recovered mustEqual i
       }
