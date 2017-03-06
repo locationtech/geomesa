@@ -18,7 +18,7 @@ plugin JARs into in the right directory and restart GeoServer.
 
 On the "Add Store" page, select "Cassandra (GeoMesa)". The Cassandra data store requires three parameters:
 
-* **geomesa.cassandra.contact.point** - the connection point Cassandra, in the form ``<host>:<port>`` -
+* **geomesa.cassandra.contact.point** - the connection point for Cassandra, in the form ``<host>:<port>`` -
   for a default local installation this will be ``localhost:9042``.
 
 * **geomesa.cassandra.keyspace** - the Cassandra keyspace to use (must exist already)

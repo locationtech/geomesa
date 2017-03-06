@@ -1,24 +1,34 @@
 Using the Cassandra DataStore Programmatically
 ==============================================
 
-Since the Cassandra DataStore is just another Geotools DataStore, you can use it exactly as
-you would any other Geotools DataStore such as the PostGIS DataStore or the Accumulo DataStore.
-To get a connection to a Cassandra DataStore, use the ``DataStoreFinder``:
+An instance of a Cassandra data store can be obtained through the normal GeoTools discovery methods,
+assuming that the GeoMesa code is on the classpath.
 
 .. code-block:: java
 
-    import com.google.common.collect.ImmutableMap;
-    import org.geotools.data.DataStore;
-    import org.geotools.data.DataStoreFinder;
-    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
+    Map<String, Serializable> parameters = new HashMap<>();
+    parameters.put("geomesa.cassandra.contact.point", "127.0.0.1:9142");
+    parameters.put("geomesa.cassandra.keyspace", "geomesa");
+    parameters.put("geomesa.cassandra.catalog.table", "mycatalog");
+    org.geotools.data.DataStore dataStore =
+        org.geotools.data.DataStoreFinder.getDataStore(parameters);
 
-    import java.io.IOException;
-    import java.util.Arrays;
-    import java.util.Map;
+The data store requires three parameters:
 
-    Map<String, ?> params = ImmutableMap.of(
-       "geomesa.cassandra.catalog.table", "127.0.0.1:9142",
-       "geomesa.cassandra.keyspace", "geomesa_cassandra",
-       "geomesa.cassandra.contact.point", "mycatalog");
-    DataStore ds = DataStoreFinder.getDataStore(params);
-    ds.createSchema(SimpleFeatureTypes.createType("test", "testjavaaccess", "foo:Int,dtg:Date,*geom:Point:srid=4326"));
+* **geomesa.cassandra.contact.point** - the connection point for Cassandra, in the form ``<host>:<port>`` -
+  for a default local installation this will be ``localhost:9042``.
+
+* **geomesa.cassandra.keyspace** - the Cassandra keyspace to use (must exist already)
+
+* **geomesa.cassandra.catalog.table** - the name of the Cassandra table that stores feature type data
+
+In addition, there are several optional configuration parameters:
+
+* **auditQueries** - Audit queries being run in a log file
+* **caching** - Cache the results of queries for faster repeated searches. Warning: large result sets can swamp memory
+* **looseBoundingBox** - use loose bounding boxes - queries will be faster but may return extraneous result
+* **queryThreads** - the number of threads to use per query
+* **queryTimeout** - the max time a query will be allowed to run before being killed, in seconds
+
+More information on using GeoTools can be found in the `GeoTools user guide
+<http://docs.geotools.org/stable/userguide/>`__.

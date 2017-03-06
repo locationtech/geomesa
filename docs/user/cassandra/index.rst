@@ -14,4 +14,3 @@ source distribution.
     install
     usage
     geoserver
-    contribute

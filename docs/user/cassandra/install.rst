@@ -121,7 +121,7 @@ To install the plugins, extract the archive and copy the contents to the ``WEB-I
 directory of your GeoServer installation. You will also need to install the Cassandra JARs; these
 are not bundled to allow for different versions. The distribution includes a script to download
 the JARs: ``bin/install-cassandra-jars.sh``. Call it with the path to the GeoServer ``WEB-INF/lib`` directory.
-By default It will install the following JARs:
+By default, it will install the following JARs:
 
  * cassandra-all-3.0.11.jar
  * cassandra-driver-core-3.0.0.jar
