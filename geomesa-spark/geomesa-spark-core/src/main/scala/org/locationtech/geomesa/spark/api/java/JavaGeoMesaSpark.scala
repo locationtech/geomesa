@@ -24,8 +24,8 @@ import scala.collection.JavaConversions._
 
 object JavaGeoMesaSpark {
 
-  def apply(params: java.util.Map[String, java.io.Serializable]) =
-    JavaSpatialRDDProvider(GeoMesaSpark.apply(params))
+  def apply(params: java.util.Map[String, _ <: java.io.Serializable]) =
+    JavaSpatialRDDProvider(GeoMesaSpark.apply(params.asInstanceOf[java.util.Map[String, java.io.Serializable]]))
 }
 
 class JavaSpatialRDDProvider(provider: SpatialRDDProvider) {
