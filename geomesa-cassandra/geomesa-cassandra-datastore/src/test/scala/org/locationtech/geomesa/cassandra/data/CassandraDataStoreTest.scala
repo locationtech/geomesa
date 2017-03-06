@@ -183,7 +183,6 @@ object CassandraDataStoreTest {
   def params =  Map(
     Params.ContactPointParam.getName -> CassandraDataStoreTest.CP,
     Params.KeySpaceParam.getName -> "geomesa_cassandra",
-    Params.NSParam.getName -> "http://geomesa.org",
     Params.CatalogParam.getName -> "test_sft"
   )
   def CP: String = s"$host:$port"
