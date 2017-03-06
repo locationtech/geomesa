@@ -211,10 +211,10 @@ class BinFileExport(os: OutputStream,
   import BinaryOutputEncoder._
 
   val id = idAttribute.orElse(Some("id"))
-  val latLon = latAttribute.flatMap(lat => lonAttribute.map(lon => (lat, lon)))
+  val latLon = for (lat <- latAttribute; lon <- lonAttribute) yield { LatLonAttributes(lat, lon) }
 
   override def write(fc: SimpleFeatureCollection) =
-    encodeFeatureCollection(fc, os, EncodingOptions(dtgAttribute, id, lblAttribute, latLon, AxisOrder.LonLat))
+    encodeFeatureCollection(fc, os, EncodingOptions(latLon, Option(dtgAttribute), id, lblAttribute))
 
   override def flush() = os.flush()
 
