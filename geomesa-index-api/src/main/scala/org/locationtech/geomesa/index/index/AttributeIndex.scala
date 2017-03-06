@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.index
 import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, Collection => JCollection}
 
-import com.google.common.primitives.{Bytes, UnsignedBytes}
+import com.google.common.primitives.{Bytes, Shorts, UnsignedBytes}
 import com.typesafe.scalalogging.LazyLogging
 import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.data.DataUtilities
@@ -267,10 +267,10 @@ object AttributeIndex {
   val typeRegistry   = LexiTypeEncoders.LEXI_TYPES
 
   // store 2 bytes for the index of the attribute in the sft - this allows up to 32k attributes in the sft.
-  def indexToBytes(i: Int): Array[Byte] = Array((i << 8).asInstanceOf[Byte], i.asInstanceOf[Byte])
+  def indexToBytes(i: Int): Array[Byte] = Shorts.toByteArray(i.toShort)
 
-  // TODO verify this
-  def bytesToIndex(b0: Byte, b1: Byte): Short = ((b0 >> 8) + b1).toShort
+  // convert back from bytes to the index of the attribute
+  def bytesToIndex(b0: Byte, b1: Byte): Short = Shorts.fromBytes(b0, b1)
 
   /**
     * Gets the row prefix for a given attribute
