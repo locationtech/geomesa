@@ -11,11 +11,12 @@ package org.locationtech.geomesa.cassandra.data
 
 import java.io.Serializable
 import java.util
+import java.util.Collections
 
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -39,15 +40,22 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
           None
         }
     val caching = CachingParam.lookupWithDefault[Boolean](params)
-    val cluster =
+
+    val clusterBuilder =
       Cluster.builder()
         .addContactPoint(cp)
         .withPort(port.toInt)
         .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
         .withRetryPolicy(DefaultRetryPolicy.INSTANCE)
         .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))
-        .build()
 
+    val user = UserNameParam.lookUp(params).asInstanceOf[String]
+    val password = PasswordParam.lookUp(params).asInstanceOf[String]
+    if (user != null && password != null) {
+      clusterBuilder.withCredentials(user, password)
+    }
+
+    val cluster = clusterBuilder.build()
     val session = cluster.connect(ks)
     val catalog = CatalogParam.lookUp(params).asInstanceOf[String]
 
@@ -65,8 +73,9 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = CassandraDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] = Array(ContactPointParam, KeySpaceParam, CatalogParam, GenerateStatsParam,
-    AuditQueriesParam, LooseBBoxParam, CachingParam, QueryThreadsParam, QueryTimeoutParam)
+  override def getParametersInfo: Array[Param] = Array(ContactPointParam, KeySpaceParam, CatalogParam,
+    UserNameParam, PasswordParam, GenerateStatsParam, AuditQueriesParam, LooseBBoxParam, CachingParam,
+    QueryThreadsParam, QueryTimeoutParam)
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean = params.containsKey(KeySpaceParam.key)
 
@@ -85,6 +94,8 @@ object CassandraDataStoreFactory {
     val ContactPointParam  = new Param("geomesa.cassandra.contact.point", classOf[String], "HOST:PORT to Cassandra",   true)
     val KeySpaceParam      = new Param("geomesa.cassandra.keyspace",      classOf[String], "Cassandra Keyspace", true)
     val CatalogParam       = new Param("geomesa.cassandra.catalog.table", classOf[String], "Name of GeoMesa catalog table", true)
+    val UserNameParam      = new Param("geomesa.cassandra.username", classOf[String], "Username to connect with", false)
+    val PasswordParam      = new Param("geomesa.cassandra.password", classOf[String], "Password to connect with", false, null, Collections.singletonMap(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE))
     val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
     val AuditQueriesParam  = GeoMesaDataStoreFactory.AuditQueriesParam
     val CachingParam       = GeoMesaDataStoreFactory.CachingParam
