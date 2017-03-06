@@ -181,8 +181,8 @@ object CassandraDataStoreTest {
   def host: String = EmbeddedCassandraServerHelper.getHost
   def port: Int = EmbeddedCassandraServerHelper.getNativeTransportPort
   def params =  Map(
-    Params.CPParam.getName -> CassandraDataStoreTest.CP,
-    Params.KSParam.getName -> "geomesa_cassandra",
+    Params.ContactPointParam.getName -> CassandraDataStoreTest.CP,
+    Params.KeySpaceParam.getName -> "geomesa_cassandra",
     Params.NSParam.getName -> "http://geomesa.org",
     Params.CatalogParam.getName -> "test_sft"
   )

@@ -30,8 +30,8 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: util.Map[String, Serializable]): DataStore = {
     import GeoMesaDataStoreFactory.RichParam
 
-    val Array(cp, port) = CPParam.lookUp(params).asInstanceOf[String].split(":")
-    val ks = KSParam.lookUp(params).asInstanceOf[String]
+    val Array(cp, port) = ContactPointParam.lookUp(params).asInstanceOf[String].split(":")
+    val ks = KeySpaceParam.lookUp(params).asInstanceOf[String]
     val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
     val audit = if (AuditQueriesParam.lookupWithDefault[Boolean](params)) {
           Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "cassandra")
@@ -65,10 +65,10 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = CassandraDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] = Array(CPParam, KSParam, CatalogParam, GenerateStatsParam,
+  override def getParametersInfo: Array[Param] = Array(ContactPointParam, KeySpaceParam, CatalogParam, GenerateStatsParam,
     AuditQueriesParam, LooseBBoxParam, CachingParam, QueryThreadsParam, QueryTimeoutParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = params.containsKey(KSParam.key)
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = params.containsKey(KeySpaceParam.key)
 
   override def isAvailable = true
 
@@ -82,8 +82,8 @@ object CassandraDataStoreFactory {
   val Description = "Apache Cassandra\u2122 distributed key/value store"
 
   object Params {
-    val CPParam            = new Param("geomesa.cassandra.contact.point", classOf[String], "HOST:PORT to Cassandra",   true)
-    val KSParam            = new Param("geomesa.cassandra.keyspace",      classOf[String], "Cassandra Keyspace", true)
+    val ContactPointParam  = new Param("geomesa.cassandra.contact.point", classOf[String], "HOST:PORT to Cassandra",   true)
+    val KeySpaceParam      = new Param("geomesa.cassandra.keyspace",      classOf[String], "Cassandra Keyspace", true)
     val CatalogParam       = new Param("geomesa.cassandra.catalog.table", classOf[String], "Name of GeoMesa catalog table", true)
     val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
     val AuditQueriesParam  = GeoMesaDataStoreFactory.AuditQueriesParam
