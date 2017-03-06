@@ -9,28 +9,13 @@
 package org.locationtech.geomesa.accumulo.tools
 
 import com.beust.jcommander.Parameter
-import org.locationtech.geomesa.tools.CatalogParam
+import org.locationtech.geomesa.tools.{CatalogParam, RequiredCredentialsParams}
 
 /**
   * Shared Accumulo-specific command line parameters
   */
 
 trait AccumuloDataStoreParams extends AccumuloConnectionParams with CatalogParam
-
-trait PasswordParams {
-  @Parameter(names = Array("-p", "--password"), description = "Accumulo password (will prompt if not supplied)")
-  var password: String = null
-}
-
-trait RequiredCredentialsParams extends PasswordParams {
-  @Parameter(names = Array("-u", "--user"), description = "Accumulo user name", required = true)
-  var user: String = null
-}
-
-trait OptionalCredentialsParams extends PasswordParams {
-  @Parameter(names = Array("-u", "--user"), description = "Accumulo user name")
-  var user: String = null
-}
 
 trait InstanceNameParams extends OptionalZookeepersParam {
   @Parameter(names = Array("-i", "--instance"), description = "Accumulo instance name")

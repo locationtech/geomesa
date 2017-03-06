@@ -17,13 +17,13 @@ The data store requires three parameters:
 
 * **geomesa.cassandra.contact.point** - the connection point for Cassandra, in the form ``<host>:<port>`` -
   for a default local installation this will be ``localhost:9042``.
-
 * **geomesa.cassandra.keyspace** - the Cassandra keyspace to use (must exist already)
-
 * **geomesa.cassandra.catalog.table** - the name of the Cassandra table that stores feature type data
 
 In addition, there are several optional configuration parameters:
 
+* **geomesa.cassandra.username** - Username used to connect to the Cassandra instance
+* **geomesa.cassandra.password** - Password used to connect to the Cassandra instance
 * **auditQueries** - Audit queries being run in a log file
 * **caching** - Cache the results of queries for faster repeated searches. Warning: large result sets can swamp memory
 * **looseBoundingBox** - use loose bounding boxes - queries will be faster but may return extraneous result

@@ -20,7 +20,9 @@ trait CassandraDataStoreCommand extends DataStoreCommand[CassandraDataStore] {
   override def connection: Map[String, String] = Map(
     CassandraDataStoreFactory.Params.CatalogParam.getName      -> params.catalog,
     CassandraDataStoreFactory.Params.KeySpaceParam.getName     -> params.keySpace,
-    CassandraDataStoreFactory.Params.ContactPointParam.getName -> params.contactPoint
+    CassandraDataStoreFactory.Params.ContactPointParam.getName -> params.contactPoint,
+    CassandraDataStoreFactory.Params.UserNameParam.getName     -> params.user,
+    CassandraDataStoreFactory.Params.PasswordParam.getName     -> params.password
   )
 }
 

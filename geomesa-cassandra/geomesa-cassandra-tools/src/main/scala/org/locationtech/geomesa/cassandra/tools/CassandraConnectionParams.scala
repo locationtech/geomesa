@@ -9,9 +9,10 @@
 package org.locationtech.geomesa.cassandra.tools
 
 import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.tools.OptionalCredentialsParams
 
-trait CassandraConnectionParams {
-  @Parameter(names = Array("--contact-point", "-p"), description = "Cassandra contact point (address of a Cassandra node)", required = true)
+trait CassandraConnectionParams extends OptionalCredentialsParams {
+  @Parameter(names = Array("--contact-point", "-P"), description = "Cassandra contact point (address of a Cassandra node)", required = true)
   var contactPoint: String = null
 
   @Parameter(names = Array("--key-space", "-k"), description = "Cassandra key space (must already exist)", required = true)
