@@ -29,4 +29,12 @@ object CassandraRunner extends Runner {
     new CassandraRemoveSchemaCommand,
     new CassandraIngestCommand
   )
+
+  override def environmentErrorInfo(): Option[String] = {
+    if (sys.env.get("CASSANDRA_LIB").isEmpty) {
+      Option("Warning: you have not set the CASSANDRA_LIB environment variable." +
+        "\nGeoMesa tools will not run without the appropriate" +
+        "\nCassandra jars in the tools classpath.")
+    } else { None }
+  }
 }

@@ -100,6 +100,7 @@ function containsElement() {
 
 function registerAutocomplete() {
   echo "Do you want to register Autocomplete?"
+  echo "(This requires ~/.bash_completion exists or is creatable.)"
   read -p "Use default [Y/n] or enter path: " -r
   if [[ ! $REPLY =~ ^[Nn]$ ]]; then
     if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
@@ -122,8 +123,9 @@ function registerAutocomplete() {
   fi
 }
 
-echo >&2 "Using %%gmtools.dist.name%%_HOME = $%%gmtools.dist.name%%_HOME"
+# Reconfigure %%gmtools.dist.name%%_HOME
 if [[ $1 = configure ]]; then
+  echo >&2 "Using %%gmtools.dist.name%%_HOME = $%%gmtools.dist.name%%_HOME"
   read -p "Do you want to reset this? Y\n " -n 1 -r
   if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
     echo >&2 ""

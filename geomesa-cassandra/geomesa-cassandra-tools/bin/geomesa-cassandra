@@ -16,16 +16,6 @@ fi
 # Load common functions and setup
 . "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
-# Warn user about missing environment variables
-if [[ (-z "$CASSANDRA_LIB") ]]; then
-  message="Warning: you have not set the CASSANDRA_LIB environment variable."
-  message="${message}\nGeoMesa tools will not run without the appropriate"
-  message="${message}\nCassandra jars in the tools classpath."
-  echo >&2 ""
-  echo -e >&2 "$message"
-  echo >&2 ""
-fi
-
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"

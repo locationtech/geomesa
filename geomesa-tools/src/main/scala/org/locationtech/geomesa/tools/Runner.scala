@@ -11,20 +11,28 @@ package org.locationtech.geomesa.tools
 import java.io.File
 
 import com.beust.jcommander.{JCommander, ParameterException}
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-trait Runner {
+trait Runner extends LazyLogging {
 
   def name: String
+  def environmentErrorInfo(): Option[String] = { None }
 
   def main(args: Array[String]): Unit = {
     try {
       parseCommand(args).execute()
     } catch {
+      case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
+        val msg = s"Warning: Missing dependency for command execution: ${e.getMessage}"
+        logger.error(msg, e)
+        Command.user.error(msg)
+        environmentErrorInfo().foreach(Command.user.error)
+        sys.exit(-1)
       case e: ParameterException => Command.user.error(e.getMessage); sys.exit(-1)
       case NonFatal(e) => Command.user.error(e.getMessage, e); sys.exit(-1)
     }
