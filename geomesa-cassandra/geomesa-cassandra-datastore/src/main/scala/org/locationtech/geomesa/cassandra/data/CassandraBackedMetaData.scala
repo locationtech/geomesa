@@ -1,11 +1,11 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2017 IBM
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
-
 
 package org.locationtech.geomesa.cassandra.data
 
@@ -19,20 +19,17 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-class CassandraBackedMetaData[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])
+class CassandraBackedMetadata[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])
     extends CachedLazyMetadata[T] with CassandraMetadataAdapter
 
 trait CassandraMetadataAdapter extends MetadataAdapter {
 
   def session: Session
   def catalog: String
-
   override protected def checkIfTableExists: Boolean = {
-    try {
-      session.execute(s"select table_name from system_schema.tables where keyspace_name = '${session.getLoggedKeyspace}' and table_name = '$catalog'").nonEmpty
-    } catch {
-      case NonFatal(_) => false
-    }
+    val m = session.getCluster.getMetadata
+    val km = m.getKeyspace(session.getLoggedKeyspace)
+    (km.getTable(catalog) != null)
   }
 
   override protected def createTable(): Unit = {

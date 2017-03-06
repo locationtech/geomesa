@@ -11,33 +11,48 @@ package org.locationtech.geomesa.cassandra.data;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
+
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.HashMap;
+
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import org.junit.Test;
 
 public class CassandraDataStoreTestJava {
 
-    @BeforeClass
-    public static void init() {
-        CassandraDataStoreTest.startServer();
-    }
+  @BeforeClass
+  public static void init() {
+    CassandraDataStoreTest.startServer();
+  }
 
-    @Test
-    public void testDataAccess() throws IOException {
-        Map<String, ?> params = ImmutableMap.of(
-                CassandraDataStoreParams.CONTACT_POINT().getName() , CassandraDataStoreTest.CP(),
-                CassandraDataStoreParams.KEYSPACE().getName()      , "geomesa_cassandra",
-                CassandraDataStoreParams.NAMESPACE().getName()     , "CassandraDataStoreTestJava");
-        DataStore ds = DataStoreFinder.getDataStore(params);
-        Assert.assertNotNull("DataStore must not be null", ds);
-        ds.createSchema(SimpleFeatureTypes.createType("test", "testjavaaccess", "foo:Int,dtg:Date,*geom:Point:srid=4326"));
-        Assert.assertTrue("Types should contain testjavaaccess", Collections2.filter(Arrays.asList(ds.getTypeNames()), Predicates.equalTo("testjavaaccess")).size() == 1);
-    }
+  @AfterClass
+  public static void cleanup() {
+    CassandraDataStoreTest.cleanup();
+  }
+
+  @Test
+  public void testDataAccess() throws IOException {
+    // build the map of parameters
+    Map<String, Serializable> params = new HashMap<>();
+    params.put("geomesa.cassandra.contact.point", "localhost:9042");
+    params.put("geomesa.cassandra.keyspace" , "geomesa_cassandra");
+    params.put("geomesa.cassandra.namespace","CassandraDataStoreTestJava");
+
+    // fetch the data store from the finder
+    DataStore ds = DataStoreFinder.getDataStore(params);
+
+    Assert.assertNotNull("DataStore must not be null", ds);
+    ds.createSchema(SimpleFeatureTypes.createType("test", "testjavaaccess", "foo:Int,dtg:Date,*geom:Point:srid=4326"));
+    Assert.assertTrue("Types should contain testjavaaccess", Collections2.filter(Arrays.asList(ds.getTypeNames()), Predicates.equalTo("testjavaaccess")).size() == 1);
+  }
 }

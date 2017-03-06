@@ -67,4 +67,10 @@ To install the plugins, extract the archive and copy the contents to the ``WEB-I
 directory of your GeoServer installation. You will also need to copy the JARs from the
 ``lib`` directory of your Cassandra installation into the GeoServer ``WEB-INF/lib`` directory.
 
+apache-cassandra-3.0.11.jar
+apache-cassandra-clientutil-3.0.11.jar
+apache-cassandra-thrift-3.0.11.jar
+cassandra-driver-core-3.0.0.jar
+cassandra-driver-mapper-3.0.0.jar
+
 Restart GeoServer after the JARs are installed.

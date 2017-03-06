@@ -27,26 +27,13 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cassandra-tools_2.11</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Cassandra Datastore -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cassandra-datastore_2.11</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
-
 
         <!-- GeoServer Plugins -->
         <dependency>
@@ -55,25 +42,6 @@
             <classifier>install</classifier>
             <version>${project.version}</version>
             <type>tar.gz</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-
-        <!-- additional -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <scope>compile</scope>
         </dependency>
 
     </dependencies>
