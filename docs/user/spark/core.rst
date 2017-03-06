@@ -99,17 +99,21 @@ Add these two entries to ``$SPARK_HOME/conf/spark-defaults.conf``
     When using Spark in a notebook server, this will require disabling the automatic
     creation of a ``SparkContext``.
 
-After setting the configuration options, register each ``SimpleFeatureType``
-with the ``register()`` method, either by passing a ``Seq[SimpleFeatureType]``
-or a GeoTools ``DataStore``:
+After setting the configuration options, RDDs created by the GeoMesa
+``SpatialRDDProvider`` implementations will be properly registered with the
+serializer provider.
 
-.. code-block:: scala
+.. note::
 
-    GeoMesaSparkKryoRegistrator.register(Seq(sft1, sft2))
-    // OR
-    GeoMesaSparkKryoRegistrator.register(ds) // registers all SFTs in DataStore
+    If you manually create an ``RDD[SimpleFeature]`` object without using a
+    ``SpatialRDDProvider`` implementation, you will have to manually register the
+    corresponding ``SimpleFeatureType``\ s with ``GeoMesaSparkKryoRegistrator``:
 
-and invoke ``broadcast()`` on each ``RDD[SimpleFeature]``:
+    .. code-block:: scala
+
+        GeoMesaSparkKryoRegistrator.register(Seq(sft1, sft2))
+
+Finally, invoke ``broadcast()`` on each ``RDD[SimpleFeature]``:
 
 .. code-block:: scala
 
