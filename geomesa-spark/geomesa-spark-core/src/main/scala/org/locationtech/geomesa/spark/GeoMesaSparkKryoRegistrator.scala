@@ -68,7 +68,7 @@ object GeoMesaSparkKryoRegistrator {
 
   def putType(sft: SimpleFeatureType): Int = {
     val id = identifier(sft)
-    if (typeCache.putIfAbsent(id, sft) == null) GeoMesaSparkKryoRegistratorEndpoint.putType(id, sft)
+    if (typeCache.putIfAbsent(id, sft) == null) GeoMesaSparkKryoRegistratorEndpoint.Client.putType(id, sft)
     id
   }
 
@@ -81,7 +81,7 @@ object GeoMesaSparkKryoRegistrator {
 
   def getType(id: Int): SimpleFeatureType =
     Option(typeCache.get(id)).orElse {
-        fromSystemProperties(id) orElse GeoMesaSparkKryoRegistratorEndpoint.getType(id) map {
+        fromSystemProperties(id) orElse GeoMesaSparkKryoRegistratorEndpoint.Client.getType(id) map {
           sft => typeCache.put(id, sft); sft
         }
       }.orNull

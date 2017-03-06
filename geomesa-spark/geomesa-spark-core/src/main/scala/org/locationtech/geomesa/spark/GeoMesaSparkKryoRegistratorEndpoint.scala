@@ -8,6 +8,8 @@
 
 package org.apache.spark.geomesa
 
+import java.io.Serializable
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.rpc.{RpcCallContext, RpcEndpoint, RpcEnv, RpcTimeout}
 import org.apache.spark.util.RpcUtils
@@ -27,83 +29,95 @@ object GeoMesaSparkKryoRegistratorEndpoint extends LazyLogging {
   private lazy val Timeout = RpcUtils.askRpcTimeout(SparkEnv.get.conf)
   private lazy val EndpointRef = RpcUtils.makeDriverRef(EndpointName, SparkEnv.get.conf, SparkEnv.get.rpcEnv)
 
+  lazy val Client: KryoClient = Option(SparkEnv.get)
+    .filterNot(_.executorId == SparkContext.DRIVER_IDENTIFIER)
+    .map(_ => ExecutorKryoClient).getOrElse(DriverKryoClient)
+
   def init(): Unit = {
     Option(SparkEnv.get).foreach {
       sparkEnv =>
         sparkEnv.executorId match {
           case SparkContext.DRIVER_IDENTIFIER =>
             val rpcEnv = sparkEnv.rpcEnv
-            Try(rpcEnv.setupEndpoint(EndpointName, new SchemaEndpoint(rpcEnv))) match {
-              case Success(ref) => logger.info(s"kryo-schema rpc endpoint registered on driver ${ref.address}")
+            Try(rpcEnv.setupEndpoint(EndpointName, new KryoEndpoint(rpcEnv))) match {
+              case Success(ref) => logger.info(s"$EndpointName rpc endpoint registered on driver ${ref.address}")
               // Can't test if endpoint already exists using available abstractions, failure expected if already bound
-              case Failure(e) => logger.debug(s"kryo-schema rpc endpoint registration failed", e)
+              case Failure(e) => logger.debug(s"$EndpointName rpc endpoint registration failed", e)
             }
-          case _ =>
-            logger.info(s"schemas request via rpc from ${EndpointRef.address}")
-            val (result, delta) = askSync[Seq[(String, String)]](None)
-            logger.info(s"schemas request via rpc, success (count=${result.size}) ($delta ms)")
-            GeoMesaSparkKryoRegistrator.putTypes(result.map{case (name, spec) => createType(name, spec)})
-      }
+          case _ => GeoMesaSparkKryoRegistrator.putTypes(Client.getTypes())
+        }
     }
   }
 
-  class SchemaEndpoint(val rpcEnv: RpcEnv) extends RpcEndpoint with LazyLogging {
+  class KryoEndpoint(val rpcEnv: RpcEnv) extends RpcEndpoint with LazyLogging {
     override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
-      case id: Int =>
-        logger.info(s"schema get ($id) from ${context.senderAddress}")
-        val spec = Option(GeoMesaSparkKryoRegistrator.getType(id)).map(sft => (sft.getTypeName, encodeType(sft)))
-        context.reply(spec)
-      case (name: String, spec: String) =>
-        val id = GeoMesaSparkKryoRegistrator.putType(createType(name, spec))
-        logger.info(s"schmea put ($id) from ${context.senderAddress}")
-        context.reply(id)
-      case None =>
-        logger.info(s"schemas requested from ${context.senderAddress}")
-        val specs = GeoMesaSparkKryoRegistrator.getTypes.map(sft => (sft.getTypeName, encodeType(sft)))
-        context.reply(specs)
+      case message: KryoMessage[_] =>
+        logger.info(s"$message received via rpc from ${context.senderAddress}")
+        context.reply(message.reply)
     }
   }
 
-  private def askSync[T: ClassTag](message: Any, timeout: RpcTimeout = Timeout): (T, Long) = {
-    val start = System.nanoTime()
-    val result = timeout.awaitResult(EndpointRef.ask[T](message, timeout))
-    val delta = (System.nanoTime() - start)/1000000L
-    (result, delta)
-  }
+  trait KryoMessage[R] {
+    def reply: R
 
-  lazy val getType: Int => Option[SimpleFeatureType] =
-    Option(SparkEnv.get)
-      .filterNot(_.executorId == SparkContext.DRIVER_IDENTIFIER)
-      .map(_ => getTypeExecutor).getOrElse(getTypeNoOp)
-
-  private val getTypeExecutor: Int => Option[SimpleFeatureType] = id => {
-    logger.info(s"schema $id get via rpc from ${EndpointRef.address}")
-    val (result, delta) = askSync[Option[(String, String)]](id)
-    result match {
-      case Some((name, spec)) =>
-        logger.info(s"schema $id get via rpc, success ($delta ms)")
-        Option(createType(name, spec))
-      case _ =>
-        logger.warn(s"schema $id get via rpc, failed ($delta ms)")
-        None
+    def ask(timeout: RpcTimeout = Timeout)(implicit c: ClassTag[R]): R = {
+      logger.info(s"$this sent via rpc to ${EndpointRef.address}")
+      val start = System.nanoTime()
+      val result = timeout.awaitResult[R](EndpointRef.ask[R](this, timeout))
+      val delta = (System.nanoTime() - start) / 1000000L
+      logger.info(s"$this response via rpc, $delta ms")
+      result
     }
   }
 
-  private val getTypeNoOp: Int => Option[SimpleFeatureType] = _ => None
+  class KryoGetTypeMessage(id: Int) extends KryoMessage[Option[(String, String)]] with Serializable {
+    def reply: Option[(String, String)] = Option(GeoMesaSparkKryoRegistrator.getType(id))
 
-  lazy val putType: (Int, SimpleFeatureType) => Unit = Option(SparkEnv.get)
-    .filterNot(_.executorId == SparkContext.DRIVER_IDENTIFIER)
-    .map(_ => putTypeExecutor).getOrElse(putTypeNoOp)
-
-  private val putTypeExecutor: (Int, SimpleFeatureType) => Unit = (id, sft) => {
-    logger.info(s"schema ${sft.getTypeName} put via rpc to ${EndpointRef.address}")
-    val (result, delta) = askSync[Int]((sft.getTypeName, encodeType(sft)))
-    result match {
-      case _ :Int => logger.info(s"schema $id put via rpc, success ($delta ms)")
-      case _ => logger.warn(s"schema $id put via rpc, failed ($delta ms)")
-    }
+    override def toString: String = s"getType(id=$id)"
   }
 
-  private val putTypeNoOp: (Int, SimpleFeatureType) => Unit = (_,_) => {}
+  class KryoGetTypesMessage() extends KryoMessage[Seq[(String, String)]] with Serializable {
+    def reply: Seq[(String, String)] = GeoMesaSparkKryoRegistrator.getTypes.map(encodeSchema)
+
+    override def toString: String = s"getTypes()"
+  }
+
+  class KryoPutTypeMessage(name: String, spec: String) extends KryoMessage[Int] with Serializable {
+    def this(sft: SimpleFeatureType) = this(sft.getTypeName, encodeType(sft))
+
+    def reply: Int = GeoMesaSparkKryoRegistrator.putType(createType(name, spec))
+
+    override def toString: String = s"putType(...)"
+  }
+
+  trait KryoClient {
+    def getTypes(): Seq[SimpleFeatureType]
+
+    def getType(id: Int): Option[SimpleFeatureType]
+
+    def putType(id: Int, schema: SimpleFeatureType): Int
+  }
+
+  protected object ExecutorKryoClient extends KryoClient {
+    def getTypes(): Seq[SimpleFeatureType] = new KryoGetTypesMessage().ask().map(decodeSchema)
+
+    def getType(id: Int): Option[SimpleFeatureType] = new KryoGetTypeMessage(id).ask()
+
+    def putType(id: Int, sft: SimpleFeatureType): Int = new KryoPutTypeMessage(sft).ask()
+  }
+
+  protected object DriverKryoClient extends KryoClient {
+    def getTypes(): Seq[SimpleFeatureType] = Seq.empty
+
+    def getType(id: Int) = None
+
+    def putType(id: Int, sft: SimpleFeatureType): Int = id
+  }
+
+  implicit def encodeSchema(t: SimpleFeatureType): (String, String) = (t.getTypeName, encodeType(t))
+
+  implicit def decodeSchema(t: (String, String)): SimpleFeatureType = createType(t._1, t._2)
+
+  implicit def optionSchema(t: Option[(String, String)]): Option[SimpleFeatureType] = t.map(decodeSchema)
 
 }
