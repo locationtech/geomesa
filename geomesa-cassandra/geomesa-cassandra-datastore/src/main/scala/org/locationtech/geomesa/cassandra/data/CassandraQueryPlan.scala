@@ -10,7 +10,7 @@
 package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core.{Row, Statement}
-import org.locationtech.geomesa.cassandra.utils.BatchScan
+import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
 import org.locationtech.geomesa.cassandra.{CassandraFilterStrategyType, CassandraQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -59,7 +59,7 @@ case class QueryPlan(filter: CassandraFilterStrategyType,
   override val hasDuplicates: Boolean = false
 
   override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = {
-    val results = new BatchScan(ds.session, ranges, numThreads, 100000)
+    val results = new CassandraBatchScan(ds.session, ranges, numThreads, 100000)
     SelfClosingIterator(entriesToFeatures(results), results.close)
   }
 }

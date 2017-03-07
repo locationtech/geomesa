@@ -6,66 +6,64 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ******************************************************************************/
 
-package org.locationtech.geomesa.cassandra.utils
+package org.locationtech.geomesa.index.utils
 
-import java.nio.ByteBuffer
-import java.util.concurrent.{ConcurrentLinkedQueue, CountDownLatch, Executors, LinkedBlockingQueue}
+import java.util.concurrent._
 
-import com.datastax.driver.core._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.JavaConversions._
 
-class BatchScan(session: Session, ranges: Seq[Statement], threads: Int, buffer: Int)
-    extends CloseableIterator[Row] {
-
-  import BatchScan.Sentinel
+abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, buffer: Int)
+    extends CloseableIterator[R] {
 
   require(threads > 0, "Thread count must be greater than 0")
 
   private val inQueue = new ConcurrentLinkedQueue(ranges)
-  private val outQueue = new LinkedBlockingQueue[Row](buffer)
+  private val outQueue = new LinkedBlockingQueue[R](buffer)
 
   private val pool = Executors.newFixedThreadPool(threads + 1)
   private val latch = new CountDownLatch(threads)
+
+  private val sentinel: R = singletonSentinel
+  private var retrieved: R = _
 
   (0 until threads).foreach(_ => pool.submit(new SingleThreadScan()))
   pool.submit(new Terminator)
   pool.shutdown()
 
-  private var retrieved: Row = _
+  protected def scan(range: T, out: BlockingQueue[R])
+  protected def singletonSentinel: R
 
   override def hasNext: Boolean = {
     if (retrieved != null) {
       true
     } else {
       retrieved = outQueue.take
-      if (!retrieved.eq(Sentinel)) {
+      if (!retrieved.eq(sentinel)) {
         true
       } else {
-        outQueue.put(Sentinel) // re-queue in case hasNext is called again
-        retrieved = null
+        outQueue.put(sentinel) // re-queue in case hasNext is called again
+        retrieved = null.asInstanceOf[R]
         false
       }
     }
   }
 
-  override def next(): Row = {
+  override def next(): R = {
     val n = retrieved
-    retrieved = null
+    retrieved = null.asInstanceOf[R]
     n
   }
 
-  override def close(): Unit = {
-    pool.shutdownNow()
-  }
+  override def close(): Unit = pool.shutdownNow()
 
   private class SingleThreadScan extends Runnable {
     override def run(): Unit = {
       try {
         var range = inQueue.poll
         while (range != null && !Thread.currentThread().isInterrupted) {
-          session.execute(range).foreach(outQueue.put)
+          scan(range, outQueue)
           range = inQueue.poll
         }
       } finally {
@@ -79,22 +77,8 @@ class BatchScan(session: Session, ranges: Seq[Statement], threads: Int, buffer: 
       try {
         latch.await()
       } finally {
-        outQueue.put(Sentinel)
+        outQueue.put(sentinel)
       }
     }
-  }
-}
-
-object BatchScan {
-  private val Sentinel: Row = new AbstractGettableData(ProtocolVersion.NEWEST_SUPPORTED) with Row {
-    override def getIndexOf(name: String): Int = -1
-    override def getColumnDefinitions: ColumnDefinitions = null
-    override def getToken(i: Int): Token = null
-    override def getToken(name: String): Token = null
-    override def getPartitionKeyToken: Token = null
-    override def getType(i: Int): DataType = null
-    override def getValue(i: Int): ByteBuffer = null
-    override def getName(i: Int): String = null
-    override def getCodecRegistry: CodecRegistry = null
   }
 }
