@@ -117,5 +117,4 @@ object GeoMesaConfigurator {
   }
 
   val serializationString: String = s"$writableSerialization,$simpleFeatureSerialization"
-
 }

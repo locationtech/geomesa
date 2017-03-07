@@ -37,6 +37,11 @@ package object accumulo {
       val SCAN_BATCH_RANGES    = SystemProperty("geomesa.scan.ranges.batch", "20000")
     }
 
+    object AccumuloMapperProperties {
+      val DESIRED_SPLITS_PER_TSERVER = SystemProperty("geomesa.mapreduce.splits.tserver.max")
+      val DESIRED_ABSOLUTE_SPLITS = SystemProperty("geomesa.mapreduce.splits.max")
+    }
+
     object BatchWriterProperties {
       // Measured in millis, default 60 seconds
       val WRITER_LATENCY_MILLIS  = SystemProperty("geomesa.batchwriter.latency.millis", (60 * 1000L).toString)
