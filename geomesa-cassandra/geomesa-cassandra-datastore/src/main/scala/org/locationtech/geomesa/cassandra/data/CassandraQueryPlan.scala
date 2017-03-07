@@ -10,6 +10,7 @@
 package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core.{Row, Statement}
+import org.locationtech.geomesa.cassandra.utils.BatchScan
 import org.locationtech.geomesa.cassandra.{CassandraFilterStrategyType, CassandraQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -18,8 +19,9 @@ import org.opengis.filter.Filter
 
 sealed trait CassandraQueryPlan extends CassandraQueryPlanType {
   def filter: CassandraFilterStrategyType
-  def ranges: Seq[Statement]
   def table: String
+  def ranges: Seq[Statement]
+  def numThreads: Int
   def clientSideFilter: Option[Filter]
 
   override def explain(explainer: Explainer, prefix: String): Unit =
@@ -27,7 +29,6 @@ sealed trait CassandraQueryPlan extends CassandraQueryPlanType {
 }
 
 object CassandraQueryPlan {
-
   def explain(plan: CassandraQueryPlan, explainer: Explainer, prefix: String): Unit = {
     import org.locationtech.geomesa.filter.filterToString
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
@@ -42,6 +43,7 @@ object CassandraQueryPlan {
 case class EmptyPlan(filter: CassandraFilterStrategyType) extends CassandraQueryPlan {
   override val table: String = ""
   override val ranges: Seq[Statement] = Seq.empty
+  override val numThreads: Int = 0
   override val clientSideFilter: Option[Filter] = None
   override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
@@ -49,15 +51,15 @@ case class EmptyPlan(filter: CassandraFilterStrategyType) extends CassandraQuery
 case class QueryPlan(filter: CassandraFilterStrategyType,
                     table: String,
                     ranges: Seq[Statement],
+                    numThreads: Int,
+                     // note: filter is applied in entriesToFeatures, this is just for explain logging
                     clientSideFilter: Option[Filter],
                     entriesToFeatures: Iterator[Row] => Iterator[SimpleFeature]) extends CassandraQueryPlan {
 
   override val hasDuplicates: Boolean = false
 
   override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = {
-    import scala.collection.JavaConversions._
-    // TODO multi-thread the range queries, leave single threaded for now for debug
-    val iter = ranges.iterator.flatMap(ds.session.execute(_).iterator())
-    SelfClosingIterator(entriesToFeatures(iter))
+    val results = new BatchScan(ds.session, ranges, numThreads, 100000)
+    SelfClosingIterator(entriesToFeatures(results), results.close)
   }
 }

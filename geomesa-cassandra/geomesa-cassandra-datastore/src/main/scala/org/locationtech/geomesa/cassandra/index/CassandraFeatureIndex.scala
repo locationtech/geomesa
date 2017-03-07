@@ -126,7 +126,7 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType
         }
         select
       }
-      QueryPlan(filter, tableName, statements, ecql, toFeatures)
+      QueryPlan(filter, tableName, statements, ds.config.queryThreads, ecql, toFeatures)
     }
   }
 
