@@ -37,7 +37,7 @@ import org.opengis.filter.{Filter, Or}
   title = "Route Search",
   description = "Performs a search based on a route"
 )
-class RouteSearchProcess extends VectorProcess with BinProcessOutput with LazyLogging {
+class RouteSearchProcess extends VectorProcess with LazyLogging {
 
   /**
     * Finds features around a route that are heading along the route and not just crossing over it
@@ -52,14 +52,6 @@ class RouteSearchProcess extends VectorProcess with BinProcessOutput with LazyLo
     *                  will use default geometry if not provided
     * @param bidirectional consider the direction of the route or just the path of the route
     * @param headingField heading attribute in input features, required unless input geometries are linestrings
-    * @param bins encode the result in bin format
-    * @param binGeom geometry attribute to encode in the bin format, optional
-    *                will use default geometry if not provided
-    * @param binDtg date attribute to encode in the bin format, optional
-    *               will use default date if not provided
-    * @param binTrackId track id attribute to encode in the bin format, optional
-    *                   will use feature id if not provided
-    * @param binLabel label attribute to encode in the bin format, optional
     * @return
     */
   @DescribeResult(description = "Output feature collection")
@@ -79,17 +71,7 @@ class RouteSearchProcess extends VectorProcess with BinProcessOutput with LazyLo
               @DescribeParameter(name = "bidirectional", description = "Match the route direction or match just the route path", min = 0)
               bidirectional: java.lang.Boolean,
               @DescribeParameter(name = "headingField", description = "Attribute that will be examined for heading in the input features. If not provided, input features geometries must be LineStrings", min = 0)
-              headingField: String,
-              @DescribeParameter(name = "bins", description = "Return BIN records instead of regular records", min = 0)
-              bins: java.lang.Boolean,
-              @DescribeParameter(name = "binGeom", description = "Geometry field to use for BIN records", min = 0)
-              binGeom: String,
-              @DescribeParameter(name = "binDtg", description = "Date field to use for BIN records", min = 0)
-              binDtg: String,
-              @DescribeParameter(name = "binTrackId", description = "Track field to use for BIN records", min = 0)
-              binTrackId: String,
-              @DescribeParameter(name = "binLabel", description = "Label field to use for BIN records", min = 0)
-              binLabel: String
+              headingField: String
              ): SimpleFeatureCollection = {
 
     logger.debug(s"Route searching on collection type ${features.getClass.getName}")
@@ -139,13 +121,8 @@ class RouteSearchProcess extends VectorProcess with BinProcessOutput with LazyLo
     }
 
     val visitor = new RouteVisitor(routeGeoms, bufferSize, headingThreshold, bi, geomAttribute, isPoints, Option(headingField))
-
     features.accepts(visitor, new NullProgressListener)
-    val results = visitor.getResult.results
-
-    configureOutput(features.getSchema, results, bins, binGeom, binDtg, binTrackId, binLabel)
-
-    results
+    visitor.getResult.results
   }
 }
 

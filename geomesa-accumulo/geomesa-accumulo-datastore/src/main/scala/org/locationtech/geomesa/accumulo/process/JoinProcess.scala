@@ -21,8 +21,6 @@ import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.process.query.{QueryResult, QueryVisitor}
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.EncodingOptions
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
@@ -43,10 +41,6 @@ class JoinProcess extends VectorProcess with LazyLogging {
     * @param joinAttribute attribute to join on
     * @param joinFilter additional filter to apply to joined features
     * @param attributes attributes to return, from both collections, qualified by schema name
-    * @param bins flag to return results in BIN format
-    * @param binDtg date field for bin records - will use default date if not specified
-    * @param binTrackId track ID field for bin records - will not include trackId if not specified
-    * @param binLabel label field for bin record (optional)
     * @param monitor listener to monitor progress
     * @throws org.geotools.process.ProcessException if something goes wrong
     * @return
@@ -63,14 +57,6 @@ class JoinProcess extends VectorProcess with LazyLogging {
               joinFilter: Filter,
               @DescribeParameter(name = "attributes", description = "Attributes to return. Attribute names should be qualified with the schema name, e.g. foo.bar", min = 0, max = 128, collectionType = classOf[String])
               attributes: java.util.List[String],
-              @DescribeParameter(name = "bins", description = "Return BIN records instead of regular records", min = 0)
-              bins: java.lang.Boolean,
-              @DescribeParameter(name = "binDtg", description = "Date field to use for BIN records", min = 0)
-              binDtg: String,
-              @DescribeParameter(name = "binTrackId", description = "Track field to use for BIN records", min = 0)
-              binTrackId: String,
-              @DescribeParameter(name = "binLabel", description = "Label field to use for BIN records", min = 0)
-              binLabel: String,
               monitor: ProgressListener): SimpleFeatureCollection = {
 
     import org.locationtech.geomesa.filter.ff
@@ -88,20 +74,6 @@ class JoinProcess extends VectorProcess with LazyLogging {
 
     val joinDescriptor = secondary.getSchema.getDescriptor(joinAttribute)
     require(joinDescriptor != null, s"Attribute '$joinAttribute' does not exist in the joined feature collection")
-
-    val binOptions = if (bins != null && bins) {
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-      def toDtg(schema: SimpleFeatureType) = schema.getDtgField.map(a => s"${schema.getTypeName}.$a")
-      def toTrackId(schema: SimpleFeatureType) = schema.getBinTrackId.map(a => s"${schema.getTypeName}.$a")
-
-      val dtg = Option(binDtg).orElse(toDtg(secondary.getSchema)).orElse(toDtg(primary.getSchema)).getOrElse {
-        throw new IllegalArgumentException("Please specify binDtg for BIN output format")
-      }
-      val track = Option(binTrackId).orElse(toTrackId(secondary.getSchema)).orElse(toTrackId(primary.getSchema))
-      Some(EncodingOptions(None, Some(dtg), track, Option(binLabel)))
-    } else {
-      None
-    }
 
     // create the return sft based on the input attributes, or by combining the qualified names from each schema
     val returnSft = if (attributes != null && attributes.nonEmpty) {
@@ -183,12 +155,6 @@ class JoinProcess extends VectorProcess with LazyLogging {
           override def close(): Unit = delegate.close()
         }
       }
-    }
-
-    // pass bin parameters off to the output format
-    binOptions match {
-      case None    => BinaryOutputEncoder.CollectionEncodingOptions.remove(result.getID)
-      case Some(o) => BinaryOutputEncoder.CollectionEncodingOptions.put(result.getID, o)
     }
 
     result
