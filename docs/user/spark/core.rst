@@ -103,22 +103,6 @@ After setting the configuration options, RDDs created by the GeoMesa
 ``SpatialRDDProvider`` implementations will be properly registered with the
 serializer provider.
 
-.. note::
-
-    If you manually create an ``RDD[SimpleFeature]`` object without using a
-    ``SpatialRDDProvider`` implementation, you will have to manually register the
-    corresponding ``SimpleFeatureType``\ s with ``GeoMesaSparkKryoRegistrator``:
-
-    .. code-block:: scala
-
-        GeoMesaSparkKryoRegistrator.register(Seq(sft1, sft2))
-
-Finally, invoke ``broadcast()`` on each ``RDD[SimpleFeature]``:
-
-.. code-block:: scala
-
-    GeoMesaSparkKryoRegistrator.broadcast(rdd)
-
 .. _spark_core_usage:
 
 Usage
