@@ -44,8 +44,6 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType
 
   private val FeatureColumn = NamedColumn("sf", -1, "blob", classOf[ByteBuffer])
 
-  private lazy val insertPlaceholder = (0 until columns.length + 1).map(_ => "?").mkString(", ")
-
   protected def columns: Seq[NamedColumn]
 
   protected def rowToColumns(sft: SimpleFeatureType, row: Array[Byte]): Seq[RowValue]

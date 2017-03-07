@@ -43,11 +43,14 @@ trait CassandraFeatureWriter extends CassandraFeatureWriterType {
   override protected def executeRemove(tname: String, removes: Seq[Seq[RowValue]]): Unit = {
     removes.foreach { values =>
       val delete = QueryBuilder.delete.all.from(tname)
-      values.foreach(v => if (v.value != null) { delete.where(QueryBuilder.eq(v.column.name, v.value)) })
+      values.foreach { value =>
+        if (value.value != null) {
+          delete.where(QueryBuilder.eq(value.column.name, value.value))
+        }
+      }
       ds.session.execute(delete)
     }
   }
 
   override def wrapFeature(feature: SimpleFeature): CassandraFeature = new CassandraFeature(feature, serializer)
-
 }

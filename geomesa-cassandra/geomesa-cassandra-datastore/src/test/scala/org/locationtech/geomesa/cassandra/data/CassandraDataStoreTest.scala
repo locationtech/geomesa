@@ -202,8 +202,7 @@ class CassandraDataStoreTest extends Specification {
       fw.close()
 
       forall(filters) { f =>
-  println(f)
-        SelfClosingIterator(fs.getFeatures(ECQL.toFilter(f))).toSeq mustEqual toAdd.head
+        SelfClosingIterator(fs.getFeatures(ECQL.toFilter(f))).toSeq mustEqual Seq(toAdd.head)
       }
 
       ds.removeSchema(typeName)
