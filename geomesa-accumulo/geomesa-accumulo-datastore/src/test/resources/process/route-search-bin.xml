@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <!-- curl -X POST -d @route-search-bin.xml 'http://localhost:8080/geoserver/wps' -H 'Content-Type: text/xml' -->
+  <ows:Identifier>geomesa:BinConversion</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>features</ows:Identifier>
+      <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
+        <wps:Body>
+          <wps:Execute version="1.0.0" service="WPS">
+            <ows:Identifier>geomesa:RouteSearch</ows:Identifier>
+            <wps:DataInputs>
+              <wps:Input>
+                <ows:Identifier>features</ows:Identifier>
+                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                  <wps:Body>
+                    <wfs:GetFeature service="WFS" version="1.1.0" outputFormat="text/xml; subtype=gml/3.1.1" xmlns:geomesa="geomesa">
+                      <wfs:Query typeName="geomesa:route-tracks" srsName="EPSG:4326"/>
+                    </wfs:GetFeature>
+                  </wps:Body>
+                </wps:Reference>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>routes</ows:Identifier>
+                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                  <wps:Body>
+                    <wfs:GetFeature service="WFS" version="1.1.0" outputFormat="text/xml; subtype=gml/3.1.1" xmlns:geomesa="geomesa">
+                      <wfs:Query typeName="geomesa:routes" srsName="EPSG:4326"/>
+                    </wfs:GetFeature>
+                  </wps:Body>
+                </wps:Reference>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>bufferSize</ows:Identifier>
+                <wps:Data>
+                  <wps:LiteralData>1000</wps:LiteralData>
+                </wps:Data>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>headingThreshold</ows:Identifier>
+                <wps:Data>
+                  <wps:LiteralData>5</wps:LiteralData>
+                </wps:Data>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>headingField</ows:Identifier>
+                <wps:Data>
+                  <wps:LiteralData>heading</wps:LiteralData>
+                </wps:Data>
+              </wps:Input>
+            </wps:DataInputs>
+            <wps:ResponseForm>
+              <wps:RawDataOutput mimeType="application/xml">
+                <ows:Identifier>result</ows:Identifier>
+              </wps:RawDataOutput>
+            </wps:ResponseForm>
+          </wps:Execute>
+        </wps:Body>
+      </wps:Reference>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>geom</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>geom</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>dtg</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>dtg</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>track</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>id</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>axisOrder</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>lonlat</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput mimeType="application/vnd.binary-viewer">
+      <ows:Identifier>result</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>
