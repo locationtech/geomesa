@@ -216,4 +216,19 @@
         </description>
         <final>false</final>
     </property>
+
+    <property>
+        <name>geomesa.cassandra.connection.timeout.millis</name>
+        <value>30000</value>
+        <description>This property controls the connection timeout for a Cassandra session</description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.cassandra.read.timeout.millis</name>
+        <value>30000</value>
+        <description>This property controls the read timeout for a Cassandra session</description>
+        <final>false</final>
+    </property>
+
 </configuration>

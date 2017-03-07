@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.tools
 
-import java.io.FileNotFoundException
-
 import com.beust.jcommander.{JCommander, ParameterException}
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.accumulo.tools.data._
@@ -17,15 +15,14 @@ import org.locationtech.geomesa.accumulo.tools.export.{AccumuloBinExportCommand,
 import org.locationtech.geomesa.accumulo.tools.ingest.{AccumuloIngestCommand, IngestRasterCommand}
 import org.locationtech.geomesa.accumulo.tools.stats._
 import org.locationtech.geomesa.accumulo.tools.status._
+import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
 import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
 import org.locationtech.geomesa.tools.utils.Prompt
-import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.concurrent._
 import scala.util.Try
-import scala.util.control.NonFatal
 import scala.xml.XML
 
 object AccumuloRunner extends Runner {
