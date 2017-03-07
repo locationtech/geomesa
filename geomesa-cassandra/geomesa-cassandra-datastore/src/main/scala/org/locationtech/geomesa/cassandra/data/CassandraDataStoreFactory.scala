@@ -30,15 +30,16 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 
   override def createDataStore(params: util.Map[String, Serializable]): DataStore = {
     import GeoMesaDataStoreFactory.RichParam
+    import org.locationtech.geomesa.cassandra.CassandraSystemProperties.{ConnectionTimeoutMillis, ReadTimeoutMillis}
 
     val Array(cp, port) = ContactPointParam.lookUp(params).asInstanceOf[String].split(":")
     val ks = KeySpaceParam.lookUp(params).asInstanceOf[String]
     val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
     val audit = if (AuditQueriesParam.lookupWithDefault[Boolean](params)) {
-          Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "cassandra")
-        } else {
-          None
-        }
+      Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "cassandra")
+    } else {
+      None
+    }
     val caching = CachingParam.lookupWithDefault[Boolean](params)
 
     val clusterBuilder =
@@ -48,6 +49,14 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
         .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
         .withRetryPolicy(DefaultRetryPolicy.INSTANCE)
         .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))
+
+    val socketOptions = (ReadTimeoutMillis.option, ConnectionTimeoutMillis.option) match {
+      case (Some(r), Some(c)) => Some(new SocketOptions().setConnectTimeoutMillis(c.toInt).setReadTimeoutMillis(r.toInt))
+      case (Some(r), None) => Some(new SocketOptions().setReadTimeoutMillis(r.toInt))
+      case (None, Some(c)) => Some(new SocketOptions().setConnectTimeoutMillis(c.toInt))
+      case _ => None
+    }
+    socketOptions.foreach(clusterBuilder.withSocketOptions)
 
     val user = UserNameParam.lookUp(params).asInstanceOf[String]
     val password = PasswordParam.lookUp(params).asInstanceOf[String]

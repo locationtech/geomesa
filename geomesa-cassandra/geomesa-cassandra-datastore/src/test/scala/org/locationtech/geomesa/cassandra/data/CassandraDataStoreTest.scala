@@ -40,15 +40,17 @@ class CassandraDataStoreTest extends Specification {
 
   sequential
 
+  var ds: CassandraDataStore = _
+
   step {
     CassandraDataStoreTest.startServer()
+    ds = DataStoreFinder.getDataStore(CassandraDataStoreTest.params).asInstanceOf[CassandraDataStore]
   }
 
   "CassandraDataStore" should {
 
     "work with points" in {
       val typeName = "testpoints"
-      val ds = DataStoreFinder.getDataStore(CassandraDataStoreTest.params).asInstanceOf[CassandraDataStore]
 
       ds.getSchema(typeName) must beNull
 
@@ -80,6 +82,7 @@ class CassandraDataStoreTest extends Specification {
           testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.dropRight(2))
           testQuery(ds, typeName, "bbox(geom,42,48,52,62)", transforms, toAdd.drop(2))
           testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
+          testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
         }
       }
 
@@ -130,8 +133,6 @@ class CassandraDataStoreTest extends Specification {
     "work with polys" in {
       val typeName = "testpolys"
 
-      val ds = DataStoreFinder.getDataStore(CassandraDataStoreTest.params).asInstanceOf[CassandraDataStore]
-
       ds.getSchema(typeName) must beNull
 
       ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String:index=true,dtg:Date,*geom:Polygon:srid=4326"))
@@ -161,6 +162,55 @@ class CassandraDataStoreTest extends Specification {
       testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
     }
 
+    "delete schemas" in {
+      val typeName = "testdelete"
+
+      ds.getSchema(typeName) must beNull
+
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String:index=true,dtg:Date,*geom:Point:srid=4326"))
+
+      val sft = ds.getSchema(typeName)
+
+      sft must not(beNull)
+
+      val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+
+      val toAdd = (0 until 2).map { i =>
+        val sf = new ScalaSimpleFeature(i.toString, sft)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(0, s"name$i")
+        sf.setAttribute(1, f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute(2, s"POINT(4$i 5$i)")
+        sf
+      }
+
+      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+      ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 2).map(_.toString))
+
+      val filters = Seq("INCLUDE", "IN('0', '1')", "name = 'name0' OR name = 'name1'", "bbox(geom, 39, 49, 42, 52)",
+        "bbox(geom, 39, 49, 42, 52) AND dtg during 2014-01-01T00:00:00.000Z/2014-01-03T00:00:00.000Z")
+
+      forall(filters) { f =>
+        SelfClosingIterator(fs.getFeatures(ECQL.toFilter(f))).toSeq must containTheSameElementsAs(toAdd)
+      }
+
+      val fw = ds.getFeatureWriter(typeName, ECQL.toFilter("IN('1')"), Transaction.AUTO_COMMIT)
+      fw.hasNext must beTrue
+      fw.next
+      fw.remove()
+      fw.hasNext must beFalse
+      fw.close()
+
+      forall(filters) { f =>
+  println(f)
+        SelfClosingIterator(fs.getFeatures(ECQL.toFilter(f))).toSeq mustEqual toAdd.head
+      }
+
+      ds.removeSchema(typeName)
+
+      ds.getSchema(typeName) must beNull
+    }
+
     def testQuery(ds: CassandraDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
       val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
       val features = SelfClosingIterator(fr).toList
@@ -175,12 +225,16 @@ class CassandraDataStoreTest extends Specification {
       }
     }
   }
+
+  step {
+    ds.dispose()
+  }
 }
 
 object CassandraDataStoreTest {
   def host: String = EmbeddedCassandraServerHelper.getHost
   def port: Int = EmbeddedCassandraServerHelper.getNativeTransportPort
-  def params =  Map(
+  def params = Map(
     Params.ContactPointParam.getName -> CassandraDataStoreTest.CP,
     Params.KeySpaceParam.getName -> "geomesa_cassandra",
     Params.CatalogParam.getName -> "test_sft"

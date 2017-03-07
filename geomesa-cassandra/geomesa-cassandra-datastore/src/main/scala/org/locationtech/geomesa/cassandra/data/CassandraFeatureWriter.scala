@@ -42,7 +42,7 @@ trait CassandraFeatureWriter extends CassandraFeatureWriterType {
 
   override protected def executeRemove(tname: String, removes: Seq[Seq[RowValue]]): Unit = {
     removes.foreach { values =>
-      val delete = QueryBuilder.delete.all.from(ds.session.getLoggedKeyspace, tname)
+      val delete = QueryBuilder.delete.all.from(tname)
       values.foreach(v => if (v.value != null) { delete.where(QueryBuilder.eq(v.column.name, v.value)) })
       ds.session.execute(delete)
     }

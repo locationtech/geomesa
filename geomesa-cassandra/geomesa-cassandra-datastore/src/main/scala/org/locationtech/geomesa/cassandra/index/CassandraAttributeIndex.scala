@@ -46,7 +46,10 @@ case object CassandraAttributeIndex
     var featureId: String = null
 
     if (offset < row.length) {
-      val nullByte = row.indexOf(AttributeIndex.NullByte, offset)
+      val nullByte = {
+        val i = row.indexOf(AttributeIndex.NullByte, offset)
+        if (i == -1) { row.length } else { i }
+      }
       lexicoded = new String(row, offset, nullByte - offset, StandardCharsets.UTF_8)
       offset = nullByte + 1
       if (offset < row.length) {

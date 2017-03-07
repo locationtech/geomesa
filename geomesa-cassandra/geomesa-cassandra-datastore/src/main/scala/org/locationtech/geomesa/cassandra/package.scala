@@ -12,6 +12,7 @@ package org.locationtech.geomesa
 import org.locationtech.geomesa.cassandra.data.{CassandraDataStore, CassandraFeature}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 package object cassandra {
   type CassandraDataStoreType = GeoMesaDataStore[CassandraDataStore, CassandraFeature, Seq[RowValue]]
@@ -29,4 +30,9 @@ package object cassandra {
   case class RowValue(column: NamedColumn, value: AnyRef)
   case class RowRange(column: NamedColumn, start: AnyRef, end: AnyRef)
   case class CassandraRow(table: String, values: Seq[RowValue])
+
+  object CassandraSystemProperties {
+    val ReadTimeoutMillis       = SystemProperty("geomesa.cassandra.read.timeout.millis")
+    val ConnectionTimeoutMillis = SystemProperty("geomesa.cassandra.connection.timeout.millis")
+  }
 }

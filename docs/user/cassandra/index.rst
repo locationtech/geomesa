@@ -14,3 +14,4 @@ source distribution.
     install
     usage
     geoserver
+    runtime_config
