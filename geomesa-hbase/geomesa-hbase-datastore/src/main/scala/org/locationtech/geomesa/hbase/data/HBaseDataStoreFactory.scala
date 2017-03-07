@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  *************************************************************************/
 
 package org.locationtech.geomesa.hbase.data
 
@@ -24,15 +24,25 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
 
   import HBaseDataStoreFactory.Params._
 
+  // TODO: investigate multiple HBase connections per jvm
+  private lazy val globalConnection = {
+    val ret = ConnectionFactory.createConnection(HBaseConfiguration.create())
+    Runtime.getRuntime.addShutdownHook(new Thread() {
+      override def run(): Unit = {
+        ret.close()
+      }
+    })
+    ret
+  }
+
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]) = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
     import GeoMesaDataStoreFactory.RichParam
 
-    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse {
-      ConnectionFactory.createConnection(HBaseConfiguration.create())
-    }
+    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
+
     val catalog = BigTableNameParam.lookup[String](params)
 
     val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
@@ -58,7 +68,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
     Array(BigTableNameParam, QueryThreadsParam, QueryTimeoutParam, GenerateStatsParam,
       AuditQueriesParam, LooseBBoxParam, CachingParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]) = params.containsKey(BigTableNameParam.key)
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = HBaseDataStoreFactory.canProcess(params)
 
   override def isAvailable = true
 
@@ -88,4 +98,7 @@ object HBaseDataStoreFactory {
                                   queryTimeout: Option[Long],
                                   looseBBox: Boolean,
                                   caching: Boolean) extends GeoMesaDataStoreConfig
+
+  def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+    params.containsKey(Params.BigTableNameParam.key)
 }

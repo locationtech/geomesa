@@ -20,7 +20,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
             <exclusions>
                 <!-- exclude older guava version used by hbase -->
                 <exclusion>
@@ -32,12 +31,10 @@
         <dependency>
             <groupId>com.google.cloud.bigtable</groupId>
             <artifactId>bigtable-hbase-1.2</artifactId>
-            <version>${bigtable.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.cloud.bigtable</groupId>
             <artifactId>bigtable-hbase-mapreduce</artifactId>
-            <version>${bigtable.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
