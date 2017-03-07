@@ -1,5 +1,6 @@
 /***********************************************************************
 * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Portions Crown Copyright (c) 2017 Dstl
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -18,8 +19,11 @@ import org.locationtech.geomesa.tools.CatalogParam
 trait AccumuloDataStoreParams extends AccumuloConnectionParams with CatalogParam
 
 trait PasswordParams {
-  @Parameter(names = Array("-p", "--password"), description = "Accumulo password (will prompt if not supplied)")
+  @Parameter(names = Array("-p", "--password"), description = "Accumulo password (will prompt if not supplied and not using Kerberos)")
   var password: String = null
+
+  @Parameter(names = Array("--keytab"), description = "Path to Accumulo user Kerberos keytab file")
+  var keytab: String = null
 }
 
 trait RequiredCredentialsParams extends PasswordParams {

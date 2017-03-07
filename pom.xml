@@ -2277,6 +2277,7 @@
                             <include>**/*Test.java</include>
                         </includes>
                         <argLine>${maven.test.jvmargs}</argLine>
+
                     </configuration>
                 </plugin>
                 <plugin>

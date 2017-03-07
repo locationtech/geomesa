@@ -28,3 +28,4 @@ To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-qu
    jobs
    raster
    internals
+   kerberos

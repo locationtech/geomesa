@@ -96,9 +96,15 @@ The command line arguments the script accepts are:
 
 * -u <Accumulo username>
 * -n <Accumulo namespace>
-* -p <Accumulo password> (optional, will prompt if not supplied)
+* -p <Accumulo password>
+* -t <Use a cached Kerberos TGT>
 * -g <Path of GeoMesa distributed runtime JAR> (optional, will default to the distribution folder and without raster support)
 * -h <HDFS URI e.g. hdfs://localhost:54310> (optional, will attempt to determine if not supplied)
+
+Since ``accumulo shell`` does not directly support Kerberos keytabs, if using Kerberos (``-t``) then a cached Kerberos
+ticket-granting-ticket (TGT) should be obtained using the ``kinit`` command.
+
+If ``-t`` is specified, ``-p`` must not be specified. If both ``-p`` and ``-t`` are omitted, the user is prompted for a password.
 
 Alternatively you can manually install the distributed runtime JAR with these commands:
 
