@@ -128,20 +128,22 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
   private def init(conf: Configuration) = if (sft == null) {
     import scala.collection.JavaConversions._
 
-    val params = GeoMesaConfigurator.getDataStoreInParams(conf)
-    val ds = DataStoreFinder.getDataStore(new CaseInsensitiveMap(params).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[HBaseDataStore]
-    sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
+    val featureType = GeoMesaConfigurator.getFeatureType(conf)
     val tableName = GeoMesaConfigurator.getTable(conf)
-    table = HBaseFeatureIndex.indices(sft, IndexMode.Read)
-      .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
-      .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
+    if (sft == null || sft.getTypeName != featureType) {
+      val params = new CaseInsensitiveMap(GeoMesaConfigurator.getDataStoreInParams(conf))
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      sft = ds.getSchema(featureType)
+      table = HBaseFeatureIndex.indices(sft, IndexMode.Read)
+        .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
+        .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
 
+    }
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
     HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
     conf.set(TableInputFormat.INPUT_TABLE, tableName)
   }
-
 
   /**
     * Gets splits for a job.
