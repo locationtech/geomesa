@@ -97,34 +97,25 @@ class BinConversionProcess extends VectorProcess with LazyLogging {
 class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
     extends FeatureCalc with FeatureAttributeVisitor with LazyLogging {
 
-  private var resultCalc: BinResult = _
+  import scala.collection.JavaConversions._
 
   // for collecting results manually
-  private var manualResults: scala.collection.mutable.Queue[Array[Byte]] = _
-  private var manualConversion: (SimpleFeature) => Array[Byte] = _
+  private val manualResults = scala.collection.mutable.Queue.empty[Array[Byte]]
+  private val manualConversion = BinaryOutputEncoder.encodeFeatures(sft, options)
 
-  override def getResult: BinResult = resultCalc
+  private var result = new Iterator[Array[Byte]] {
+    override def next(): Array[Byte] = manualResults.dequeue()
+    override def hasNext: Boolean = manualResults.nonEmpty
+  }
+
+  override def getResult: BinResult = BinResult(result)
 
   // manually called for non-accumulo feature collections
-  override def visit(feature: Feature): Unit = {
-    val sf = feature.asInstanceOf[SimpleFeature]
-
-    if (manualResults == null) {
-      manualResults = scala.collection.mutable.Queue.empty
-      val iterator = new java.util.Iterator[Array[Byte]] {
-        override def next(): Array[Byte] = manualResults.dequeue()
-        override def hasNext: Boolean = manualResults.nonEmpty
-      }
-      resultCalc = BinResult(iterator)
-      manualConversion = BinaryOutputEncoder.encodeFeatures(sf.getFeatureType, options)
-    }
-
-    manualResults += manualConversion.apply(sf)
-  }
+  override def visit(feature: Feature): Unit =
+    manualResults += manualConversion.apply(feature.asInstanceOf[SimpleFeature])
 
   // allows us to accept visitors from retyping feature collections
   override def getExpressions: java.util.List[Expression] = {
-    import scala.collection.JavaConversions._
     val geom = options.geomField.toSeq.map { case GeometryAttribute(g, _) => g }
     (geom ++ options.dtgField ++ options.trackIdField ++ options.labelField).collect {
       case a if a != "id" => ff.property(a)
@@ -138,7 +129,6 @@ class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
     * @param query may contain additional filters to apply
     */
   def binQuery(source: SimpleFeatureSource, query: Query): Unit = {
-    import scala.collection.JavaConversions._
     logger.debug(s"Visiting source type: ${source.getClass.getName}")
 
     query.getHints.put(QueryHints.BIN_TRACK_KEY, options.trackIdField.getOrElse("id"))
@@ -147,9 +137,11 @@ class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
     options.labelField.foreach(query.getHints.put(QueryHints.BIN_LABEL_KEY, _))
 
     val features = SelfClosingIterator(source.getFeatures(query))
-    val result = features.map(_.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
-    resultCalc = BinResult(result)
+    result = result ++
+        features.map(_.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
   }
 }
 
-case class BinResult(results: java.util.Iterator[Array[Byte]]) extends AbstractCalcResult
+case class BinResult(results: java.util.Iterator[Array[Byte]]) extends AbstractCalcResult {
+  override def getValue: AnyRef = results
+}
