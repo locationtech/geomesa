@@ -46,6 +46,30 @@ object BinaryOutputEncoder extends LazyLogging {
   }
 
   /**
+    * Encodes features individually
+    *
+    * @param options fields, etc to encode
+    */
+  def encodeFeatures(sft: SimpleFeatureType, options: EncodingOptions): (SimpleFeature) => Array[Byte] = {
+    // encodes the values in either 16 or 24 bytes
+    val encode: (ValuesToEncode) => Array[Byte] = options.labelField match {
+      case Some(_) => (v) => {
+        val toEncode = ExtendedValues(v.lat, v.lon, v.dtg, v.track, v.label)
+        Convert2ViewerFunction.encodeToByteArray(toEncode)
+      }
+      case None => (v) => {
+        val toEncode = BasicValues(v.lat, v.lon, v.dtg, v.track)
+        Convert2ViewerFunction.encodeToByteArray(toEncode)
+      }
+    }
+
+    toValues(sft, options) match {
+      case Right(toValue) => (sf) => encode(toValue(sf))
+      case Left(toValue)  => (sf) => toValue(sf).flatMap(encode(_)).toArray
+    }
+  }
+
+  /**
     * Encodes a feature collection to bin format. Features are written to the output stream.
     *
     * @param fc feature collection to encode
@@ -59,7 +83,33 @@ object BinaryOutputEncoder extends LazyLogging {
       options: EncodingOptions,
       sort: Boolean = false): Unit = {
 
-    val sft = fc.getSchema
+    val iter = toValues(fc.getSchema, options) match {
+      case Right(toValue) => fc.features.map(toValue)
+      case Left(toValue)  => fc.features.flatMap(toValue)
+    }
+
+    // encodes the values in either 16 or 24 bytes
+    val encode: (ValuesToEncode) => Unit = options.labelField match {
+      case Some(_) => (v) => {
+        val toEncode = ExtendedValues(v.lat, v.lon, v.dtg, v.track, v.label)
+        Convert2ViewerFunction.encode(toEncode, output)
+      }
+      case None => (v) => {
+        val toEncode = BasicValues(v.lat, v.lon, v.dtg, v.track)
+        Convert2ViewerFunction.encode(toEncode, output)
+      }
+    }
+
+    if (sort) {
+      iter.toList.sorted.foreach(encode)
+    } else {
+      iter.foreach(encode)
+    }
+    // Feature collection has already been closed by SelfClosingIterator
+  }
+
+  private def toValues(sft: SimpleFeatureType, options: EncodingOptions):
+      Either[(SimpleFeature) => Seq[ValuesToEncode], (SimpleFeature) => ValuesToEncode] = {
 
     val geomField = options.geomField.getOrElse(GeometryAttribute(sft.getGeometryDescriptor.getLocalName))
     val dtgField = options.dtgField.orElse(sft.getDtgField).orNull
@@ -137,6 +187,8 @@ object BinaryOutputEncoder extends LazyLogging {
 
     // gets the track id from a feature
     val getTrackId: (SimpleFeature) => Int = options.trackIdField match {
+      case None => (f) => f.getID.hashCode
+
       case Some(trackId) if trackId == "id" => (f) => f.getID.hashCode
 
       case Some(trackId) =>
@@ -145,8 +197,6 @@ object BinaryOutputEncoder extends LazyLogging {
           val track = f.getAttribute(trackIndex)
           if (track == null) { 0 } else { track.hashCode }
         }
-
-      case None => (_) => 0
     }
 
     // gets the label from a feature
@@ -161,21 +211,9 @@ object BinaryOutputEncoder extends LazyLogging {
       case None => (_) => 0L
     }
 
-    // encodes the values in either 16 or 24 bytes
-    val encode: (ValuesToEncode) => Unit = options.labelField match {
-      case Some(_) => (v) => {
-        val toEncode = ExtendedValues(v.lat, v.lon, v.dtg, v.track, v.label)
-        Convert2ViewerFunction.encode(toEncode, output)
-      }
-      case None => (v) => {
-        val toEncode = BasicValues(v.lat, v.lon, v.dtg, v.track)
-        Convert2ViewerFunction.encode(toEncode, output)
-      }
-    }
-
-    val iter = if (isLineString) {
+    if (isLineString) {
       // expand the line string into individual points to encode
-      fc.features().flatMap { sf =>
+      Left({ sf =>
         val points = getLineLatLon(sf)
         val dates = getLineDtg(sf)
         if (points.length != dates.length) {
@@ -189,22 +227,16 @@ object BinaryOutputEncoder extends LazyLogging {
             ValuesToEncode(lat, lon, dates(i), trackId, label)
           }
         }
-      }
+      })
     } else {
-      fc.features().map { sf =>
+      Right({ sf =>
         val (lat, lon) = getLatLon(sf)
         val dtg = getDtg(sf)
         val trackId = getTrackId(sf)
         val label = getLabel(sf)
         ValuesToEncode(lat, lon, dtg, trackId, label)
-      }
+      })
     }
-    if (sort) {
-      iter.toList.sorted.foreach(encode)
-    } else {
-      iter.foreach(encode)
-    }
-    // Feature collection has already been closed by SelfClosingIterator
   }
 
   private def pointToXY(p: Point) = (p.getX.toFloat, p.getY.toFloat)

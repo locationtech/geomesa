@@ -31,7 +31,7 @@ import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
 import org.locationtech.geomesa.accumulo.process.stats.StatsVisitor
 import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
 import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
-import org.locationtech.geomesa.accumulo.process.{RouteVisitor, SamplingVisitor}
+import org.locationtech.geomesa.accumulo.process.{BinVisitor, RouteVisitor, SamplingVisitor}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
@@ -147,6 +147,7 @@ class AccumuloFeatureCollection(source: AccumuloFeatureSource, query: Query)
       case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
       case v: AttributeVisitor => v.setValue(v.unique(source, query))
       case v: RouteVisitor     => v.routeSearch(source, query)
+      case v: BinVisitor       => v.binQuery(source, query)
 
       case v: MinVisitor if v.getExpression.isInstanceOf[PropertyName] =>
         val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName

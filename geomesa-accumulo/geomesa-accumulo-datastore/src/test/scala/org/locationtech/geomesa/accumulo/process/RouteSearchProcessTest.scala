@@ -80,7 +80,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
       val input = ds.getFeatureSource(sft.getTypeName).getFeatures()
       val routes = ds.getFeatureSource(routeSft.getTypeName).getFeatures()
 
-      val collection = process.execute(input, routes, 1000.0, 5.0, null, null, false, "heading", false, null, null, null, null)
+      val collection = process.execute(input, routes, 1000.0, 5.0, null, null, false, "heading")
 
       val results = SelfClosingIterator(collection.features).toSeq
       results must containTheSameElementsAs(features1)
@@ -90,7 +90,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
       val input = ds.getFeatureSource(sft.getTypeName).getFeatures()
       val routes = ds.getFeatureSource(routeSft.getTypeName).getFeatures()
 
-      val collection = process.execute(input, routes, 1000.0, 15.0, null, null, false, "heading", false, null, null, null, null)
+      val collection = process.execute(input, routes, 1000.0, 15.0, null, null, false, "heading")
 
       val results = SelfClosingIterator(collection.features).toSeq
       results must containTheSameElementsAs(features1 ++ features2)
@@ -100,7 +100,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
       val input = ds.getFeatureSource(sft.getTypeName).getFeatures()
       val routes = ds.getFeatureSource(routeSft.getTypeName).getFeatures()
 
-      val collection = process.execute(input, routes, 100000.0, 5.0, null, null, false, "heading", false, null, null, null, null)
+      val collection = process.execute(input, routes, 100000.0, 5.0, null, null, false, "heading")
 
       val results = SelfClosingIterator(collection.features).toSeq
       results must containTheSameElementsAs(features1 ++ features3)
@@ -110,7 +110,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
       val input = ds.getFeatureSource(sft.getTypeName).getFeatures()
       val routes = ds.getFeatureSource(routeSft.getTypeName).getFeatures()
 
-      val collection = process.execute(input, routes, 1000.0, 5.0, null, null, true, "heading", false, null, null, null, null)
+      val collection = process.execute(input, routes, 1000.0, 5.0, null, null, true, "heading")
 
       val results = SelfClosingIterator(collection.features).toSeq
       results must containTheSameElementsAs(features0 ++ features1)
@@ -121,7 +121,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
       val input = new ReTypingFeatureCollection(ds.getFeatureSource(sft.getTypeName).getFeatures(), retyped)
       val routes = ds.getFeatureSource(routeSft.getTypeName).getFeatures()
 
-      val collection = process.execute(input, routes, 1000.0, 5.0, null, null, false, "heading", false, null, null, null, null)
+      val collection = process.execute(input, routes, 1000.0, 5.0, null, null, false, "heading")
 
       val results = SelfClosingIterator(collection.features).toSeq
       results.map(_.getAttributes) must containTheSameElementsAs(features1.map(_.getAttributes))
