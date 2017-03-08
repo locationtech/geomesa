@@ -187,6 +187,8 @@ object BinaryOutputEncoder extends LazyLogging {
 
     // gets the track id from a feature
     val getTrackId: (SimpleFeature) => Int = options.trackIdField match {
+      case None => (f) => f.getID.hashCode
+
       case Some(trackId) if trackId == "id" => (f) => f.getID.hashCode
 
       case Some(trackId) =>
@@ -195,8 +197,6 @@ object BinaryOutputEncoder extends LazyLogging {
           val track = f.getAttribute(trackIndex)
           if (track == null) { 0 } else { track.hashCode }
         }
-
-      case None => (_) => 0
     }
 
     // gets the label from a feature
