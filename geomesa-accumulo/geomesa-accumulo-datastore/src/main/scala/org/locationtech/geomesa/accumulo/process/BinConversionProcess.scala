@@ -50,12 +50,12 @@ class BinConversionProcess extends VectorProcess with LazyLogging {
   def execute(
               @DescribeParameter(name = "features", description = "Input feature collection to query ")
               features: SimpleFeatureCollection,
+              @DescribeParameter(name = "track", description = "Track field to use for BIN records", min = 0)
+              track: String,
               @DescribeParameter(name = "geom", description = "Geometry field to use for BIN records", min = 0)
               geom: String,
               @DescribeParameter(name = "dtg", description = "Date field to use for BIN records", min = 0)
               dtg: String,
-              @DescribeParameter(name = "track", description = "Track field to use for BIN records", min = 0)
-              track: String,
               @DescribeParameter(name = "label", description = "Label field to use for BIN records", min = 0)
               label: String,
               @DescribeParameter(name = "axisOrder", description = "Axis order - either latlon or lonlat", min = 0)
@@ -78,7 +78,7 @@ class BinConversionProcess extends VectorProcess with LazyLogging {
       Some(GeometryAttribute(name, axis.getOrElse(AxisOrder.LonLat))) // note: wps seems to always be lon first
     }
     val dtgField   = Option(dtg).orElse(sft.getDtgField)
-    val trackField = Option(track).orElse(sft.getBinTrackId).orElse(Some("id"))
+    val trackField = Option(track).orElse(sft.getBinTrackId)
     val labelField = Option(label)
 
     // validate inputs
