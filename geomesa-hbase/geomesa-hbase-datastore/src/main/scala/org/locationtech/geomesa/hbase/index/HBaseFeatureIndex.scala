@@ -33,6 +33,8 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
   override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[HBaseFeatureIndex] =
     super.indices(sft, mode).asInstanceOf[Seq[HBaseFeatureIndex]]
+  override def index(identifier: String): HBaseFeatureIndex =
+    super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 
   val DataColumnFamily = Bytes.toBytes("d")
   val DataColumnFamilyDescriptor = new HColumnDescriptor(DataColumnFamily)

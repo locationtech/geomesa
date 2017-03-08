@@ -42,19 +42,17 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     lazy val sft = ds.getSchema(origQuery.getTypeName)
     lazy val qp = ds.getQueryPlan(origQuery).head
 
-
-
     if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
       val transform = origQuery.getHints.getTransformSchema
       SpatialRDD(sc.emptyRDD[SimpleFeature], transform.getOrElse(sft))
     } else {
       val query = ds.queryPlanner.configureQuery(origQuery, sft)
       val transform = query.getHints.getTransformSchema
+      GeoMesaConfigurator.setSchema(conf, sft)
       GeoMesaConfigurator.setSerialization(conf)
-      transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+      GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)
       GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
-      GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
-      GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
+      transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
       qp.filter.secondary.foreach { f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)) }
       val scans = qp.ranges.map { s =>
         val scan = s
