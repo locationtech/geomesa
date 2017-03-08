@@ -10,9 +10,9 @@ package org.locationtech.geomesa.cassandra.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.cassandra.tools.commands._
+import org.locationtech.geomesa.cassandra.tools.export.CassandraExportCommand
 import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
 import org.locationtech.geomesa.tools.{Command, Runner}
-
 
 object CassandraRunner extends Runner {
 
@@ -27,6 +27,14 @@ object CassandraRunner extends Runner {
     new CassandraGetSftConfigCommand,
     new CassandraCreateSchemaCommand,
     new CassandraRemoveSchemaCommand,
-    new CassandraIngestCommand
+    new CassandraIngestCommand,
+    new CassandraExportCommand
   )
+
+  override def environmentErrorInfo(): Option[String] = {
+    if (sys.env.get("CASSANDRA_HOME").isEmpty) {
+      Option("Warning: you have not set the CASSANDRA_HOME environment variable." +
+        "\nGeoMesa tools will not run without the appropriate Cassandra jars on the classpath.")
+    } else { None }
+  }
 }

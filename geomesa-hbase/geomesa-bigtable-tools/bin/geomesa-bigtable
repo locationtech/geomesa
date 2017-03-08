@@ -23,24 +23,6 @@ if [[ -n "$HADOOP_HOME" ]]; then
   fi
 fi
 
-# Warn user about missing environment variables
-if [[ -z "$HADOOP_HOME" ]]; then
-  message="Warning: you have not set HADOOP_HOME as an environment variable."
-  message="${message}\nGeoMesa tools will not run without the appropriate Hadoop jars in the tools classpath."
-  message="${message}\nPlease ensure that those jars are present in the classpath by running 'geomesa-bigtable classpath' ."
-  message="${message}\nTo take corrective action, please place the necessary jar files in the lib directory of geomesa-tools."
-  echo >&2 ""
-  echo -e >&2 "$message"
-  echo >&2 ""
-elif [[ -z "$HADOOP_CONF_DIR" ]]; then
-  message="Warning: you have not set HADOOP_CONF_DIR as an environment variable."
-  message="${message}\nGeoMesa tools looks for this folder relative to the path of the HADOOP_HOME environment variables."
-  message="${message}\nTo take corrective action, please set these environment variable to the appropriate locations"
-  echo >&2 ""
-  echo -e >&2 "$message"
-  echo >&2 ""
-fi
-
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):${HADOOP_CONF_DIR}"

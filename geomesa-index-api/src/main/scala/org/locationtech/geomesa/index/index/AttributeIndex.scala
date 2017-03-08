@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.index
 import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, Collection => JCollection}
 
-import com.google.common.primitives.{Bytes, UnsignedBytes}
+import com.google.common.primitives.{Bytes, Shorts, UnsignedBytes}
 import com.typesafe.scalalogging.LazyLogging
 import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.data.DataUtilities
@@ -143,7 +143,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     * - 2 bytes storing the index of the attribute in the sft
     * - n bytes storing the lexicoded attribute value
     * - NULLBYTE as a separator
-    * - 12 bytes storing the dtg/z-index of the feature (OPTIONAL - only if the sft has a dtg or geom field)
+    * - n bytes storing the secondary z-index of the feature - identified by getSecondaryIndexKeyLength
     * - n bytes storing the feature ID
     */
   protected def getRowKeys(sft: SimpleFeatureType): (F) => Seq[(Int, Array[Byte])] = {
@@ -167,6 +167,9 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
   protected def secondaryIndex(sft: SimpleFeatureType): Option[IndexKeySpace[_]] =
     Seq(Z3Index, XZ3Index, Z2Index, XZ2Index).find(_.supports(sft))
 
+  protected def getSecondaryIndexKeyLength(sft: SimpleFeatureType): Int =
+    secondaryIndex(sft).map(_.indexKeyLength).getOrElse(0)
+
   // ranges for querying - equals
   private def equals(sft: SimpleFeatureType, i: Int, value: Any, secondary: Seq[(Array[Byte], Array[Byte])]): Seq[R] = {
     val prefix = Bytes.concat(sft.getTableSharingBytes, indexToBytes(i))
@@ -189,9 +192,6 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
       case Some(toKey) => (f) => toKey(f.feature)
     }
   }
-
-  private def getSecondaryIndexKeyLength(sft: SimpleFeatureType): Int =
-    secondaryIndex(sft).map(_.indexKeyLength).getOrElse(0)
 
   private def getSecondaryIndexRanges(sft: SimpleFeatureType,
                                       filter: Filter,
@@ -267,7 +267,10 @@ object AttributeIndex {
   val typeRegistry   = LexiTypeEncoders.LEXI_TYPES
 
   // store 2 bytes for the index of the attribute in the sft - this allows up to 32k attributes in the sft.
-  def indexToBytes(i: Int): Array[Byte] = Array((i << 8).asInstanceOf[Byte], i.asInstanceOf[Byte])
+  def indexToBytes(i: Int): Array[Byte] = Shorts.toByteArray(i.toShort)
+
+  // convert back from bytes to the index of the attribute
+  def bytesToIndex(b0: Byte, b1: Byte): Short = Shorts.fromBytes(b0, b1)
 
   /**
     * Gets the row prefix for a given attribute

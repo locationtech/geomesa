@@ -11,8 +11,7 @@ package org.locationtech.geomesa.tools.export.formats
 import java.io.OutputStream
 
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.filter.function.AxisOrder
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, encodeFeatureCollection}
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, LatLonAttributes, encodeFeatureCollection}
 import org.locationtech.geomesa.tools.export.BinExportParams
 
 class BinExporter(os: OutputStream,
@@ -23,16 +22,16 @@ class BinExporter(os: OutputStream,
                   lblAttribute: Option[String]) extends FeatureExporter {
 
   val id = idAttribute.orElse(Some("id"))
-  val latLon = latAttribute.flatMap(lat => lonAttribute.map(lon => (lat, lon)))
+  val latLon = for (lat <- latAttribute; lon <- lonAttribute) yield { LatLonAttributes(lat, lon) }
 
   override def export(fc: SimpleFeatureCollection): Option[Long] = {
-    encodeFeatureCollection(fc, os, EncodingOptions(dtgAttribute, id, lblAttribute, latLon, AxisOrder.LonLat))
+    encodeFeatureCollection(fc, os, EncodingOptions(latLon, Option(dtgAttribute), id, lblAttribute))
     None
   }
 
-  override def flush() = os.flush()
+  override def flush(): Unit = os.flush()
 
-  override def close() = os.close()
+  override def close(): Unit = os.close()
 }
 
 object BinExporter {

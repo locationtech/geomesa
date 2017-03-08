@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
-import org.locationtech.geomesa.accumulo.process.SamplingVisitor
+import org.locationtech.geomesa.accumulo.process.{RouteVisitor, SamplingVisitor}
 import org.locationtech.geomesa.accumulo.process.knn.KNNVisitor
 import org.locationtech.geomesa.accumulo.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
@@ -19,7 +18,6 @@ import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
 import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.opengis.feature.FeatureVisitor
-import org.opengis.filter.expression.PropertyName
 import org.opengis.util.ProgressListener
 
 /**
@@ -37,6 +35,7 @@ class AccumuloFeatureCollection(source: GeoMesaFeatureSource, query: Query)
       case v: SamplingVisitor  => v.setValue(v.sample(source, query))
       case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
       case v: AttributeVisitor => v.setValue(v.unique(source, query))
+      case v: RouteVisitor     => v.routeSearch(source, query)
       case _ => super.accepts(visitor, progress)
     }
 }

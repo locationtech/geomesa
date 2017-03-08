@@ -55,9 +55,9 @@ function setvar() {
 # ==================================================================
 
 
-# Cassandra lib directory
+# Cassandra home directory
 #
-# setvar CASSANDRA_LIB /path/to/cassandra/lib
+# setvar CASSANDRA_HOME /path/to/cassandra
 
 
 

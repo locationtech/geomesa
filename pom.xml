@@ -82,6 +82,8 @@
         <spark.version>2.0.0</spark.version>
         <hbase.version>1.2.3</hbase.version>
         <hbase.guava.version>12.0.1</hbase.guava.version>
+        <cassandra.version>3.0.0</cassandra.version>
+        <cassandra.guava.version>18.0</cassandra.guava.version>
         <kafka.08.version>0.8.2.1</kafka.08.version>
         <kafka.09.version>0.9.0.1</kafka.09.version>
         <kafka.10.version>0.10.0.1</kafka.10.version>
@@ -1517,6 +1519,16 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-cassandra-datastore_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-cassandra-tools_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -2162,6 +2174,18 @@
                 <classifier>tests</classifier>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.datastax.cassandra</groupId>
+                <artifactId>cassandra-driver-core</artifactId>
+                <version>${cassandra.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.datastax.cassandra</groupId>
+                <artifactId>cassandra-driver-mapping</artifactId>
+                <version>${cassandra.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!-- geoserver 2.9 spring version -->
             <dependency>
@@ -2257,7 +2281,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>1.5.0</version>
+                    <version>1.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2378,13 +2402,18 @@
                     <artifactId>license-maven-plugin</artifactId>
                     <version>2.10</version>
                     <configuration>
-                        <header>build/ccri-copyright.txt</header>
+                        <header>build/copyright/ccri.txt</header>
+                        <validHeaders>
+                            <validHeader>build/copyright/ccri-2016.txt</validHeader>
+                            <validHeader>build/copyright/ibm.txt</validHeader>
+                            <validHeader>build/copyright/ibm-ccri.txt</validHeader>
+                        </validHeaders>
                         <properties>
-                            <year>2016</year>
+                            <year>2017</year>
                             <owner>Commonwealth Computer Research, Inc.</owner>
                         </properties>
                         <headerDefinitions>
-                            <definitions>build/geomesa-header.xml</definitions>
+                            <definitions>build/copyright/geomesa-header.xml</definitions>
                         </headerDefinitions>
                         <mapping>
                             <java>GEOMESA_JAVA</java>

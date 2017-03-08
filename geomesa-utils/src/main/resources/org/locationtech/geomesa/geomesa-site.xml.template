@@ -16,7 +16,7 @@
 <!-- over system properties set through command line parameters change   -->
 <!-- the <final> tag to true.                                            -->
 
-<!-- By default configuration properties with empty values will not be   -->
+<!-- By default, configuration properties with empty values will not be  -->
 <!-- applied, you can change this by marking a property as final.        -->
 
 <configuration>
@@ -94,6 +94,31 @@
     </property>
 
     <!-- /geomesa.batchwriter -->
+
+    <property>
+        <name>geomesa.mapreduce.splits.max</name>
+        <value></value>
+        <description>Set the absolute number of splits instead of basing it on the number of tablet servers.
+            Setting this value overrides geomesa.mapreduce.splits.tserver.max.
+
+            Making this value final without setting a value greater than zero may cause unexpected issues.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.mapreduce.splits.tserver.max</name>
+        <value></value>
+        <description>Set the max number of splits per tablet server when configuring a mapper. By default this value is
+            calculated using Accumulo's AbstractInputFormat.getSplits method which creates a split for each range. In
+            some scenarios this may create an undesirably large number of splits.
+
+            This value is overwritten by geomesa.mapreduce.splits.max if it is set.
+
+            Making this value final without setting a value greater than zero may cause unexpected issues.
+        </description>
+        <final>false</final>
+    </property>
 
     <property>
         <name>geomesa.convert.config.urls</name>
@@ -216,4 +241,19 @@
         </description>
         <final>false</final>
     </property>
+
+    <property>
+        <name>geomesa.cassandra.connection.timeout.millis</name>
+        <value>30000</value>
+        <description>This property controls the connection timeout for a Cassandra session</description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.cassandra.read.timeout.millis</name>
+        <value>30000</value>
+        <description>This property controls the read timeout for a Cassandra session</description>
+        <final>false</final>
+    </property>
+
 </configuration>
