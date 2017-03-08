@@ -8,7 +8,8 @@ source distribution.
 
 .. _Apache HBase: https://hbase.apache.org/
 
-To get started with the HBase Data Store, try the :doc:`/tutorials/geomesa-quickstart-hbase` tutorial.
+To get started with the HBase Data Store, try the :doc:`/tutorials/geomesa-quickstart-hbase` tutorial or the
+:doc:`/tutorials/geomesa-hbase-s3-on-aws` tutorial for using HBase backed by S3 instead of HDFS.
 
 .. toctree::
     :maxdepth: 1
