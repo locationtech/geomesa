@@ -91,8 +91,8 @@
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
         <accumulo.version.recommended>1.7.2</accumulo.version.recommended>
-        <hadoop.version.recommended>2.6.4</hadoop.version.recommended>
-        <zookeeper.version.recommended>3.4.6</zookeeper.version.recommended>
+        <hadoop.version.recommended>2.7.3</hadoop.version.recommended>
+        <zookeeper.version.recommended>3.4.9</zookeeper.version.recommended>
 
         <!-- Minimum installation versions -->
         <!-- These are the oldest versions supported -->
