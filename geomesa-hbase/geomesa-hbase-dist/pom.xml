@@ -32,34 +32,48 @@
             <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
         </dependency>
 
+        <!-- GeoServer Plugins -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-gs-plugin_${scala.binary.version}</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
+            <!-- Don't bring any any transitives of dist tar.gz files -->
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    
         <!-- tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-tools_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- spark support -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-spark-runtime_${scala.binary.version}</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <scope>compile</scope>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>hbase</id>
-            <dependencies>
-                <!-- GeoServer Plugins -->
-                <dependency>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-hbase-gs-plugin_${scala.binary.version}</artifactId>
-                    <classifier>install</classifier>
-                    <version>${project.version}</version>
-                    <type>tar.gz</type>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
     <build>
         <plugins>

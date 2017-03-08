@@ -11,6 +11,7 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>true</useTransitiveFiltering>
+            <useStrictFiltering>true</useStrictFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-bigtable-gs-plugin*</exclude>
             </excludes>
@@ -23,6 +24,17 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-bigtable-gs-plugin*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/spark</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-hbase-spark*</include>
+                <include>org.locationtech.geomesa:geomesa-spark*</include>
             </includes>
         </dependencySet>
     </dependencySets>

@@ -87,7 +87,7 @@ you may instead call the ``withIndexes`` methods:
         .stringType("name")
         .date("dtg")
         .geometry("geom", default = true)
-        .withIndexes(List("records", "z3", "attr_idx"))
+        .withIndexes(List("records", "z3", "attr"))
         .build("mySft")
 
 .. _configuring_z_shards:

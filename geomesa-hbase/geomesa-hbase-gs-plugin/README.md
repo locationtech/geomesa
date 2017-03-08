@@ -1,6 +1,6 @@
 # GeoMesa HBase GeoServer Plugin
 
-The HBase GeoServer plugin is a shaded JAR that contains HBase 1.1.5. To change HBase versions,
+The HBase GeoServer plugin is a shaded JAR that contains HBase 1.2.3. To change HBase versions,
 you would need to update `pom.xml` and rebuild this module.
 
 ### Build Instructions
