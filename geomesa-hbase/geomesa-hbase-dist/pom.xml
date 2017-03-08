@@ -39,8 +39,15 @@
             <classifier>install</classifier>
             <version>${project.version}</version>
             <type>tar.gz</type>
+            <!-- Don't bring any any transitives of dist tar.gz files -->
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
+    
         <!-- tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

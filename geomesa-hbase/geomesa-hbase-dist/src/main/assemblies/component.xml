@@ -10,8 +10,10 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>true</useTransitiveFiltering>
+            <useStrictFiltering>true</useStrictFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-hbase-spark-runtime*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with HBase 1.2.3 which provides guava 12 -->
             </excludes>
         </dependencySet>
@@ -21,6 +23,7 @@
             <fileMode>0755</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</include>
             </includes>
@@ -32,9 +35,9 @@
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-hbase-spark*</include>
-                <include>org.locationtech.geomesa:geomesa-spark*</include>
             </includes>
         </dependencySet>
 

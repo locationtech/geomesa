@@ -36,7 +36,7 @@ Setting up HBase in standalone mode (optional)
 
 (Skip this section if you have an existing HBase 1.1.x installation.)
 
-Download the HBase 1.1.5 binary distribution from
+Download the HBase 1.2.3 binary distribution from
 http://www.apache.org/dyn/closer.cgi/hbase/
 
 Follow the chapter in the HBase Manual for running a standalone instance
@@ -131,7 +131,7 @@ To see how the data is stored in HBase, use the HBase shell.
 
 .. code-block:: bash
 
-    $ /path/to/hbase-1.1.5/bin/hbase shell
+    $ /path/to/hbase-1.2.3/bin/hbase shell
 
 The type information is in the ``geomesa`` table (or whatever name you
 specified on the command line):
