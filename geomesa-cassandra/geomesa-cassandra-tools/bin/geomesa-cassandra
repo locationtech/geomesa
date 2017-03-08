@@ -20,10 +20,10 @@ fi
 # include geomesa first so that the correct log4j.properties is picked up
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
 
-# Add user defined directories to the classpath
+# Prepend user defined directories to the classpath using java classpath syntax
+# We preprend so that they take precedence when explicitly defined by the user
 if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
-  EXTRA_JARS="$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
-  GEOMESA_CP="${GEOMESA_CP}:${EXTRA_JARS}"
+  GEOMESA_CP="${GEOMESA_EXTRA_CLASSPATHS}:${GEOMESA_CP}"
 fi
 
 CASSANDRA_CP="$(findJars $CASSANDRA_HOME/lib true true)"

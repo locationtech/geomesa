@@ -136,4 +136,20 @@ object ClassPathUtils extends LazyLogging {
   def cleanClassPathURL(url: String): String =
     URLDecoder.decode(url, "UTF-8").replace("file:", "").replace("!", "")
 
+  def loadClassPathFromEnv(prop: String): Seq[File] = {
+    val files = sys.env.get(prop).toSeq.flatMap(_.split(':').toSeq).flatMap { entry =>
+      if (entry.endsWith("/*")) {
+        new File(entry.dropRight(2)).listFiles(jarFileFilter)
+      } else {
+        val f = new File(entry)
+        if (f.isDirectory) {
+          Option(f.listFiles).toSeq.flatten
+        } else {
+          Seq(f)
+        }
+      }
+    }
+    logger.debug(s"Loaded env classpath '$prop': ${files.map(_.getAbsolutePath).mkString(":")}")
+    files
+  }
 }

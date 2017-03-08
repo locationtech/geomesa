@@ -29,16 +29,18 @@ object ConfigLoader extends LazyLogging {
   }
 
   def loadConfig(path: String): Map[String, (String, Boolean)] = {
-    logger.debug(s"Loading config from: $path")
     val input = getClass.getClassLoader.getResourceAsStream(path)
     val config: Map[String, (String, Boolean)] =
       if (input == null) {
         Map.empty
       } else {
         try {
+          logger.debug(s"Loading config: $path")
           loadConfig(input, path)
         } catch {
-          case NonFatal(e) => logger.warn(s"Error reading config file at: $path", e); Map.empty
+          case NonFatal(e) =>
+            logger.warn(s"Error reading config file at: $path", e)
+            Map.empty
         }
       }
     logger.trace(s"Loaded ${config.mkString(",")}")
