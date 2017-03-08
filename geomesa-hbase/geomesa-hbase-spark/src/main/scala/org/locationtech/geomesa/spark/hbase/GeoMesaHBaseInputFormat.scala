@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.collections.map.CaseInsensitiveMap
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.{Mutation, Result}
+import org.apache.hadoop.hbase.client.Result
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
 import org.apache.hadoop.io.Text
@@ -21,9 +21,8 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
+import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -39,7 +38,7 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
   val delegate = new MultiTableInputFormat
 
   var sft: SimpleFeatureType = _
-  var table: GeoMesaFeatureIndex[HBaseDataStore, HBaseFeature, Mutation] = _
+  var table: HBaseFeatureIndex = _
 
   private def init(conf: Configuration) = if (sft == null) {
     import scala.collection.JavaConversions._
@@ -48,12 +47,11 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     val tableName = GeoMesaConfigurator.getTable(conf)
     if (sft == null || sft.getTypeName != featureType) {
       val params = new CaseInsensitiveMap(GeoMesaConfigurator.getDataStoreInParams(conf))
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asInstanceOf[java.util.Map[_, _]]).asInstanceOf[HBaseDataStore]
       sft = ds.getSchema(featureType)
       table = HBaseFeatureIndex.indices(sft, IndexMode.Read)
         .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
         .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
-
     }
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
@@ -74,13 +72,11 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext): RecordReader[Text, SimpleFeature] = {
     init(context.getConfiguration)
     val rr = delegate.createRecordReader(split, context)
-
     val transformSchema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
     val q = GeoMesaConfigurator.getFilter(context.getConfiguration).map { f => ECQL.toFilter(f) }
-    new HBaseGeoMesaRecordReader(sft, table.asInstanceOf[HBaseFeatureIndex], rr, true, q, transformSchema)
+    new HBaseGeoMesaRecordReader(sft, table, rr, true, q, transformSchema)
   }
 }
-
 
 class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
                                table: HBaseFeatureIndex,
