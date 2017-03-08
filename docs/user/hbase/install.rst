@@ -97,7 +97,7 @@ directory, and build the module using the ``hbase`` Maven profile:
     $ mvn clean install -Phbase
 
 After building, extract ``target/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
-``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.1.5
+``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.2.3
 bundled. If you require a different version, modify the ``pom.xml`` and rebuild following
 the instructions above.
 
@@ -105,12 +105,12 @@ This distribution does not include the Hadoop or Zookeeper JARs; the following J
 should be copied from the ``lib`` directory of your HBase or Hadoop installations into
 GeoServer's ``WEB-INF/lib`` directory:
 
- * hadoop-annotations-2.5.1.jar
- * hadoop-auth-2.5.1.jar
- * hadoop-common-2.5.1.jar
- * hadoop-mapreduce-client-core-2.5.1.jar
- * hadoop-yarn-api-2.5.1.jar
- * hadoop-yarn-common-2.5.1.jar
+ * hadoop-annotations-2.7.3.jar
+ * hadoop-auth-2.7.3.jar
+ * hadoop-common-2.7.3.jar
+ * hadoop-mapreduce-client-core-2.7.3.jar
+ * hadoop-yarn-api-2.7.3.jar
+ * hadoop-yarn-common-2.7.3.jar
  * zookeeper-3.4.6.jar
  * commons-configuration-1.6.jar
 

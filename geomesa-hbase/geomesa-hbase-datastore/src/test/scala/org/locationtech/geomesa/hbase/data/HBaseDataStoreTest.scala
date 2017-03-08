@@ -19,8 +19,6 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.Params._
-import org.locationtech.geomesa.hbase.index.HBaseZ3Index
-import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -36,7 +34,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
   sequential
 
   val cluster = new HBaseTestingUtility()
-  var connection: Connection = null
+  var connection: Connection = _
 
   step {
     logger.info("Starting embedded hbase")

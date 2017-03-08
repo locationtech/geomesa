@@ -11,7 +11,6 @@ package org.locationtech.geomesa.jobs.mapreduce
 import java.io.IOException
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat
@@ -21,6 +20,7 @@ import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -80,15 +80,15 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
     (params: Map[String, String], indices: Option[Seq[String]], context: TaskAttemptContext)
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  val ds = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
+  val ds: GeoMesaDataStore[DS, F, W] = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
 
   val sftCache    = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
   val writerCache = scala.collection.mutable.Map.empty[String, GeoMesaFeatureWriter[_, _, _, _]]
 
-  val written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
-  val failed  = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
+  val written: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
+  val failed: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
 
-  override def write(key: Text, value: SimpleFeature) = {
+  override def write(key: Text, value: SimpleFeature): Unit = {
     val sftName = value.getFeatureType.getTypeName
     // TODO we shouldn't serialize the sft with each feature
     // ensure that the type has been created if we haven't seen it before
@@ -125,8 +125,8 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
     }
   }
 
-  override def close(context: TaskAttemptContext) = {
-    writerCache.values.foreach(IOUtils.closeQuietly)
+  override def close(context: TaskAttemptContext): Unit = {
+    writerCache.values.foreach(v => CloseQuietly(v))
     ds.dispose()
   }
 }
