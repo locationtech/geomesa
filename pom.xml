@@ -2184,6 +2184,10 @@
                         <artifactId>jasper-compiler</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>tomcat</groupId>
+                        <artifactId>jasper-runtime</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>org.mortbay.jetty</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
