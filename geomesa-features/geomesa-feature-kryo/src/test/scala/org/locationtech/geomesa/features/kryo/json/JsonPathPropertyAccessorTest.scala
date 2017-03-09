@@ -63,6 +63,7 @@ class JsonPathPropertyAccessorTest extends Specification {
       sf.setAttribute(1, """{ "foo" : "baz" }""")
       property.evaluate(sf) mustEqual "baz"
     }
+
     "access json values in kryo serialized simple features" in {
       val property = ff.property("$.json.foo")
       val serializer = new KryoFeatureSerializer(sft)
@@ -72,6 +73,19 @@ class JsonPathPropertyAccessorTest extends Specification {
       sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo" : "baz" }""", null, null, null))))
       property.evaluate(sf) mustEqual "baz"
     }
+
+
+    "access json values with spaces in kryo serialized simple features" in {
+      val property = ff.property("$.json.['foo path']")
+      val serializer = new KryoFeatureSerializer(sft)
+      val sf = serializer.getReusableFeature
+      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo path" : "bar" }""", null, null, null))))
+      property.evaluate(sf) mustEqual "bar"
+      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo path" : "baz" }""", null, null, null))))
+      property.evaluate(sf) mustEqual "baz"
+    }
+
+
     "accept json path in ECQL" in {
       val expression = ECQL.toFilter(""""$.json.foo" = 'bar'""")
       val sf = new ScalaSimpleFeature("", sft)
