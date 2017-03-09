@@ -41,3 +41,24 @@ and ``SimpleFeatureConverter`` interfaces and register them in
 ``META-INF/services`` appropriately. See
 ``org.locationtech.geomesa.convert.avro.Avro2SimpleFeatureConverter``
 for an example.
+
+Adding Functions to the Geomesa Classpath
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After creating a JAR file with your transformation function and factory
+you can add these to the ``GEOMESA_EXTRA_CLASSPATHS`` environmental variable
+in order to expose them to the command line tools and distributed (mapreduce)
+ingest jobs.
+
+A example of ingest with a transforms on the classpath is below:
+
+.. code-block:: bash
+
+    GEOMESA_EXTRA_CLASSPATHS="/tmp/custom-transformer-1.0.0.jar" bin/geomesa ingest -u <user-name>
+    -p <password> -s <sft-name> -C <converter-name> -c geomesa.catalog hdfs://localhost:9000/data/example.csv
+
+You can also verify the classpath is properly configured with the tools:
+
+.. code-block:: bash
+
+    GEOMESA_EXTRA_CLASSPATHS="/tmp/custom-transformer-1.0.0.jar" bin/geomesa classpath

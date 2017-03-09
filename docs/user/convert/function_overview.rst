@@ -77,12 +77,9 @@ Functions defined using scripting languages
 You can define functions using scripting languages that support JSR-223.
 This is currently tested with JavaScript only as it is natively
 supported in all JREs via the Nashorn extension. To define a JavaScript
-function for use in the converter framework, either put the file in
-``geomesa-convert-scripts`` on the classpath or set the system property
-``geomesa.convert.scripts.path`` to be a comma-separated list of paths
-to load functions from. Then, any function you define in a file in one
-of those paths will be available in a convert definition with a
-namespace prefix. For instance, if you have defined a function such as
+function for use in the converter framework, create a file with the
+``.js`` extension and the function definition as the contents of the file.
+For instance, if you have defined a function such as
 
 .. code-block:: javascript
 
@@ -92,6 +89,62 @@ namespace prefix. For instance, if you have defined a function such as
 
 you can reference that function in a transform expression as
 ``js:hello($2)``
+
+Installing Custom Scripts
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Custom scripting functions are made available to GeoMesa comamnd line tools or
+distributed (mapreduce) ingest via including them on the classpath or
+setting a system property.
+
+For local usage, geomesa defines the system property ``geomesa.convert.scripts.path``
+to be a colon-separated list of script files and/or directories containing scripts.
+This system property can be set when using the command line tools by setting the
+``CUSTOM_JAVA_OPTS`` environmental variable:
+
+.. code-block:: javascript
+
+    CUSTOM_JAVA_OPTS="/path/to/script.js:/path/to/script-dir/"
+
+A more resilient method of including custom scripts is to package them as a JAR or ZIP
+file and add it to the ``GEOMESA_EXTRA_CLASSPATHS`` environmental variable. If using
+maven you can simply package them in a folder under ``src/main/resources/geomesa-convert-scripts/``
+which will create a folder in your jar file named ``geomesa-convert-scripts`` with
+the scripts inside. You can manually create a jar with this folder as well. An easier way
+is often to package them as a zip archive with a folder similary named ``geomesa-convert-scripts``
+inside the archive containing the scripts:
+
+.. code-block:: bash
+
+    $ unzip -l /tmp/scripts.zip
+    Archive:  /tmp/scripts.zip
+      Length      Date    Time    Name
+    ---------  ---------- -----   ----
+            0  2017-03-09 11:33   geomesa-convert-scripts/
+           42  2017-03-09 11:33   geomesa-convert-scripts/my-script.js
+    ---------                     -------
+           42                     2 files
+
+For either zip or jar files add them to the extra classpaths in your environment to
+make them available for the tools or mapreduce ingest:
+
+.. code-block:: bash
+
+    GEOMESA_EXTRA_CLASSPATHS="/path/to/my-scripts.jar:/tmp/scripts.zip"
+
+A example of ingest with a scripts on the classpath is below:
+
+.. code-block:: bash
+
+    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa ingest -u <user-name>
+    -p <password> -s <sft-name> -C <converter-name> -c geomesa.catalog hdfs://localhost:9000/data/example.csv
+
+You can also verify the classpath is properly configured with the tools:
+
+.. code-block:: bash
+
+    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa classpath
+
 
 CQL Functions
 ~~~~~~~~~~~~~
