@@ -1,5 +1,5 @@
-Apache Spark Analysis
-=====================
+GeoMesa Spark: Basic Analysis
+=============================
 
 This tutorial will show you how to:
 
@@ -39,55 +39,45 @@ Prerequisites
 
 You will also need:
 
--  a `Spark <http://spark.apache.org/>`__ 2.0.0 or later distribution (see below)
+-  a `Spark <http://spark.apache.org/>`__ 2.0.0 or later distribution
 -  an Accumulo user that has appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client
 
-Spark Distribution
-------------------
 
-Spark does not provide a Scala 2.11 (required for GeoMesa) distribution directly. Instead, you have to
-build Spark from source. You can follow the instructions `here <http://spark.apache.org/docs/latest/building-spark.html>`__,
-with Scala 2.11 details `here <http://spark.apache.org/docs/latest/building-spark.html#building-for-scala-211>`__.
-
-.. warning::
-
-    Ensure that you are using Spark 2.0.0 or later
-
-GeoMesa works best with Spark running on Yarn - as such, you need to have an available Hadoop with Yarn
-installation alongside your Spark distribution. We will use ``spark-submit`` to run our jobs on the cluster.
+The tutorial example below presumes that Spark is installed and configured, and
+that a cluster with Hadoop and Yarn is running. We will use ``spark-submit`` to run
+our jobs on the cluster.
 
 Set Up Tutorial Code
 --------------------
 
-Clone the geomesa project and build it, if you haven't already:
+Clone the geomesa-tutorials project, and go into the ``geomesa-examples-spark`` directory:
 
-.. code-block:: bash
+    $ git clone https://github.com/ccri/geomesa-tutorials.git
+    $ cd geomesa-tutorials/geomesa-examples-spark
 
-    $ git clone https://github.com/locationtech/geomesa.git
-    $ cd geomesa
-    $ mvn clean install
+.. note::
 
-This is needed to install the GeoMesa JAR files in your local Maven
-repository. For more information see the :doc:`/developer/index`.
-
-The code in this tutorial is written in
-`Scala <http://scala-lang.org/>`__, as is much of GeoMesa itself.
+    The code in this tutorial is written in `Scala <http://scala-lang.org/>`__.
 
 Count Events by Day of Year
 ---------------------------
 
 You will need to have ingested some
-`GDELT <http://www.gdeltproject.org/>`__ data, as described in :doc:`geomesa-examples-gdelt` or :ref:`gdelt_converter`.
-We have an example analysis in the class
-``geomesa-accumulo/geomesa-accumulo-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``.
+`GDELT <http://www.gdeltproject.org/>`__ data into Accumulo with GeoMesa, as described in :doc:`geomesa-examples-gdelt` or :ref:`gdelt_converter`.
 
-The code goes as follows.
+The ``com.example.geomesa.spark.CountByDay`` class in the ``src/main/scala`` directory
+is a self-contained example that may be submitted to Spark as an example of analysis.
+The libraries used are described in the :doc:`/user/spark/index` chapter of the
+GeoMesa manual. We describe this example code below.
 
-First, we get a handle to a GeoMesa data store and construct a CQL query
-for our bounding box.
+Example Code
+^^^^^^^^^^^^
+
+First, we set our connection parameters-- you will need to modify these settings
+to match the configuration of your cluster:
 
 .. code-block:: scala
 
@@ -97,19 +87,64 @@ for our bounding box.
       "user"       -> "user",
       "password"   -> "*****",
       "auths"      -> "USER,ADMIN",
-      "tableName"  -> "geomesa_catalog")
+      "tableName"  -> "geomesa.catalog")
 
-    // Define a ECQL query here 
-    def filter: String = ???
-    val ds = DataStoreFinder.getDataStore(params)
-    val q = new Query("gdelt", ECQL.toFilter(filter))
-
-Next, initialize an ``RDD[SimpleFeature]`` using ``GeoMesaSpark``.
+We also define an ECQL filter used to select a subset of GDELT data from
+the GeoMesa Accumulo data store. The value of ``during`` should also be edited
+to match the range of GDELT data that you have ingested.
 
 .. code-block:: scala
 
-    val sc = new SparkContext(GeoMesaSpark.init(new SparkConf(true), ds))
-    val queryRDD = GeoMesaSpark.rdd(new Configuration, sc, params, q, None)
+    // Define a GeoTools Filter here
+    val typeName = "gdelt"
+    val geom     = "geom"
+    val date     = "dtg"
+
+    val bbox   = "-80, 35, -79, 36"
+    val during = "2014-01-01T00:00:00.000Z/2014-01-31T12:00:00.000Z"
+
+    val filter = s"bbox($geom, $bbox) AND $date during $during"
+
+Within the ``main()`` method for the class, we create an ``AccumuloDataStore``:
+
+.. code-block:: scala
+
+    // Get a handle to the data store
+    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+
+and create the GeoTools ``Filter`` from the ECQL:
+
+.. code-block:: scala
+
+    // Construct a CQL query to filter by bounding box
+    val q = new Query(typeName, ECQL.toFilter(filter))
+
+We set up Spark:
+
+.. code-block:: scala
+
+    // Configure Spark
+    val conf = new SparkConf().setAppName("testSpark")
+    val sc = SparkContext.getOrCreate(conf)
+
+The ``GeoMesaSpark`` object provided by the **geomesa-spark-core** module
+uses the SPI to find an implementation of the ``SpatialRDDProvider`` interface.
+In this case, this will be an instance of ``AccumuloSpatialRDDProvider`` from
+the **geomesa-accumulo-spark** module, which will connect to Accumulo with
+the parameters provided. (For more information on this interface, see
+:doc:`/user/spark/core` in the GeoMesa manual.)
+
+.. code-block:: scala
+
+    // Get the appropriate spatial RDD provider
+    val spatialRDDProvider = GeoMesaSpark(params)
+
+Next, initialize an ``RDD[SimpleFeature]`` using this provider:
+
+.. code-block:: scala
+
+    // Get an RDD[SimpleFeature] from the spatial RDD provider
+    val rdd = spatialRDDProvider.rdd(new Configuration, sc, params, q)
 
 Finally, we construct our computation which consists of extracting the
 ``SQLDATE`` from each ``SimpleFeature`` and truncating it to the day
@@ -135,32 +170,37 @@ group.
 Run the Tutorial Code
 ^^^^^^^^^^^^^^^^^^^^^
 
-Edit the file ``geomesa-accumulo/geomesa-accumulo-computer/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``
-so that the parameter map points to your cloud instance. Ensure that the ``filter`` covers
-a valid range of your GDELT data.
+If you have not already done so, modify the ``CountByDay.scala`` class so that
+the parameter map points to your cloud instance, and ensure that the ``filter``
+covers a valid range of your GDELT data.
 
-Re-build the GeoMesa Spark jar to pick up the changes:
-
-.. code-block:: bash
-
-    $ mvn clean install -pl geomesa-compute
-
-Now, we can submit the job to our Yarn cluster using ``spark-submit``:
+Build (or rebuild) the JAR. This example JAR is shaded and will contain all of
+JARs needed to run the appropriate analysis in Spark.
 
 .. code-block:: bash
 
-    $ /path/to/spark/bin/spark-submit --master yarn-client                  \
-        --num-executors 40 --executor-cores 4 --deploy-mode client          \
-        --class org.locationtech.geomesa.compute.spark.analytics.CountByDay \
-        geomesa-compute/target/geomesa-compute-<version>-shaded.jar
+    $ mvn clean install
 
+We can submit the job to our Yarn cluster using ``spark-submit``:
+
+.. code-block:: bash
+
+    $ /path/to/spark/bin/spark-submit --master yarn \
+      --class com.example.geomesa.spark.CountByDay \
+      target/geomesa-examples-spark-$VERSION.jar
+
+.. note::
+
+    Note that ``$VERSION`` is the geomesa-tutorials version, not the GeoMesa version.
+
+Alternatively, you may run the Spark job locally by setting ``--master 'local[*]``.
 You should see a lot of Spark logging, and then the counts:
 
 .. code-block:: bash
 
-    (20140126,3)
-    (20140127,33)
-    (20140128,34)
+    (20140117,57)
+    (20140120,38)
+    (20140113,407)
     ...
 
 Parallel Computation of Spatial Event Densities
@@ -182,7 +222,7 @@ the bounding box.
     val f = ff.bbox("geom", -180, -90, 180, 90, "EPSG:4326")
     val q = new Query("gdelt", f)
 
-    val queryRDD = GeoMesaSpark.rdd(new Configuration, sc, params, q, None)
+    val queryRDD = spatialRDDProvider.rdd(new Configuration, sc, params, q, None)
 
 Project (in the relational sense) the ``SimpleFeature`` to a 2-tuple of
 ``(GeoHash, 1)``.

@@ -16,7 +16,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.11</artifactId>
     <packaging>pom</packaging>
-    <version>1.3.1-SNAPSHOT</version>
+    <version>1.3.2-SNAPSHOT</version>
 
     <modules>
         <module>geomesa-accumulo</module>
@@ -51,15 +51,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.13.release.version>1.3.0</geomesa.13.release.version>
+        <geomesa.13.release.version>1.3.1</geomesa.13.release.version>
         <geomesa.12.release.version>1.2.7.2</geomesa.12.release.version>
-        <geomesa.devel.version>1.3.1-SNAPSHOT</geomesa.devel.version>
+        <geomesa.devel.version>1.3.2-SNAPSHOT</geomesa.devel.version>
 
         <!-- this must remain outside of version specific scala profiles for sbt/ivy -->
         <scala.binary.version>2.11</scala.binary.version>
 
         <scala.xml.version>1.0.5</scala.xml.version>
-        <scala.parsers.version>1.0.4</scala.parsers.version>
+        <scala.parsers.version>1.0.5</scala.parsers.version>
 
         <geoserver.version>2.9.1</geoserver.version>
         <gt.version>15.1</gt.version>
@@ -91,8 +91,8 @@
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
         <accumulo.version.recommended>1.7.2</accumulo.version.recommended>
-        <hadoop.version.recommended>2.6.4</hadoop.version.recommended>
-        <zookeeper.version.recommended>3.4.6</zookeeper.version.recommended>
+        <hadoop.version.recommended>2.7.3</hadoop.version.recommended>
+        <zookeeper.version.recommended>3.4.9</zookeeper.version.recommended>
 
         <!-- Minimum installation versions -->
         <!-- These are the oldest versions supported -->
@@ -1935,6 +1935,21 @@
                 <version>1.4.01</version>
             </dependency>
             <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>2.2.7</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-core</artifactId>
+                <version>2.2.11</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>2.2.11</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>2.7.1</version>
@@ -2075,6 +2090,42 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-annotations</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-auth</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-mapreduce-client-core</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-yarn-api</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-yarn-common</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
@@ -2106,15 +2157,66 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-protocol</artifactId>
+                <version>${hbase.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-common</artifactId>
                 <version>${hbase.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.hbase</groupId>
-                <artifactId>hbase-protocol</artifactId>
+                <artifactId>hbase-annotations</artifactId>
                 <version>${hbase.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-server</artifactId>
+                <version>${hbase.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>tomcat</groupId>
+                        <artifactId>jasper-compiler</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>tomcat</groupId>
+                        <artifactId>jasper-runtime</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.mortbay.jetty</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-procedure</artifactId>
+                <version>${hbase.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-hadoop-compat</artifactId>
+                <version>${hbase.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-hadoop2-compat</artifactId>
+                <version>${hbase.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-common</artifactId>
+                <version>${hbase.version}</version>
+                <classifier>tests</classifier>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.datastax.cassandra</groupId>
@@ -2374,7 +2476,7 @@
                     <artifactId>maven-enforcer-plugin</artifactId>
                     <version>1.3.1</version>
                 </plugin>
-               <plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>3.0.0</version>
