@@ -29,34 +29,27 @@ QueryHints.SAMPLING        Float                              any float
 QueryHints.SAMPLE_BY       String - attribute name (optional) any string
 ========================== ================================== ====================
 
-Java
-^^^^
+.. tabs::
 
-.. code-block:: java
+    .. code-tab:: java
 
-    import org.locationtech.geomesa.index.conf.QueryHints;
+        import org.locationtech.geomesa.index.conf.QueryHints;
 
-    // returns 10% of features, threaded by 'track' attribute
-    query.getHints().put(QueryHints.SAMPLING(), new Float(0.1));
-    query.getHints().put(QueryHints.SAMPLE_BY(), "track");
+         // returns 10% of features, threaded by 'track' attribute
+        query.getHints().put(QueryHints.SAMPLING(), new Float(0.1));
+        query.getHints().put(QueryHints.SAMPLE_BY(), "track");
 
-Scala
-^^^^^
+    .. code-tab:: scala
 
-.. code-block:: scala
+        import org.locationtech.geomesa.index.conf.QueryHints
 
-    import org.locationtech.geomesa.index.conf.QueryHints
+        // returns 10% of features, threaded by 'track' attribute
+        query.getHints.put(QueryHints.SAMPLING, 0.1f)
+        query.getHints().put(QueryHints.SAMPLE_BY, "track");
 
-    // returns 10% of features, threaded by 'track' attribute
-    query.getHints.put(QueryHints.SAMPLING, 0.1f)
-    query.getHints().put(QueryHints.SAMPLE_BY, "track");
+    .. tab:: GeoServer
 
-GeoServer
-^^^^^^^^^
-
-.. code-block:: none
-
-    ...&viewparams=SAMPLING:0.1
+        ``...&viewparams=SAMPLING:0.1``
 
 Density Query
 -------------
@@ -78,31 +71,30 @@ QueryHints.DENSITY_WIDTH  Integer                 use WPS
 QueryHints.DENSITY_HEIGHT Integer                 use WPS
 ========================= ======================= ==============================
 
-Scala
-^^^^^
+.. tabs::
 
-.. code-block:: scala
+    .. code-tab:: scala
 
-    import org.geotools.data.Transaction
-    import org.geotools.geometry.jts.ReferencedEnvelope.ReferencedEnvelope
-    import org.geotools.referencing.CRS
-    import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
-    import org.locationtech.geomesa.index.conf.QueryHints
+        import org.geotools.data.Transaction
+        import org.geotools.geometry.jts.ReferencedEnvelope.ReferencedEnvelope
+        import org.geotools.referencing.CRS
+        import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
+        import org.locationtech.geomesa.index.conf.QueryHints
 
-    val bounds = new ReferencedEnvelope(-120.0, -110.0, 45.0, 55.0, CRS.decode("EPSG:4326"))
-    query.getHints.put(QueryHints.DENSITY_BBOX, bounds)
-    query.getHints.put(QueryHints.DENSITY_WIDTH, 500)
-    query.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
+        val bounds = new ReferencedEnvelope(-120.0, -110.0, 45.0, 55.0, CRS.decode("EPSG:4326"))
+        query.getHints.put(QueryHints.DENSITY_BBOX, bounds)
+        query.getHints.put(QueryHints.DENSITY_WIDTH, 500)
+        query.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
 
-    val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
+        val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
 
-    val decode = KryoLazyDensityIterator.decodeResult(bounds, 500, 500)
+        val decode = KryoLazyDensityIterator.decodeResult(bounds, 500, 500)
 
-    while (reader.hasNext) {
-        val pts = decode(reader.next())
-        while (pts.hasNext) {
-            val (x, y, weight) = pts.next()
-            // do something with the cell
+        while (reader.hasNext) {
+            val pts = decode(reader.next())
+            while (pts.hasNext) {
+                val (x, y, weight) = pts.next()
+                // do something with the cell
+            }
         }
-    }
-    reader.close()
+        reader.close()

@@ -35,6 +35,7 @@ from recommonmark.parser import CommonMarkParser
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
+    'sphinx_tabs.tabs'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GeoMesa'
-copyright = u'2013-2016 Commonwealth Computer Research, Inc'
+copyright = u'2013-2017 Commonwealth Computer Research, Inc'
 author = u''
 
 # The version info for the project you're documenting, acts as replacement for

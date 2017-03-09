@@ -319,3 +319,21 @@ div.admonition.warning, div.admonition.note {
 .rst-content .toc-backref {
   color: #bbb;
 }
+
+.sphinx-tabs .sphinx-menu {
+  background-color: #333;
+}
+
+/* these are very specific (a.item.docutils) to override !importants in the tabs CSS */
+.sphinx-tabs .sphinx-menu a.item.docutils {
+  font-weight: bold !important;
+  color: #e6a150 !important;
+}
+
+.sphinx-tabs .sphinx-menu a.item.docutils.active {
+  background-color: #555 !important;
+}
+
+.sphinx-tabs .sphinx-tab {
+  background-color: #555 !important;
+}
