@@ -1,8 +1,8 @@
 Spark Core
 ----------
 
-``geomesa-spark-core`` is used to work directly with ``RDD``\ s of features
-from GeoMesa.
+**geomesa-spark-core** is used to work directly with ``RDD``\ s of features
+from GeoMesa and other geospatial data stores.
 
 Example
 ^^^^^^^
@@ -23,8 +23,6 @@ against a GeoMesa data store:
 
     // set SparkContext
     val conf = new SparkConf().setMaster("local[*]").setAppName("testSpark")
-    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
     val sc = SparkContext.getOrCreate(conf)
 
     // create RDD with a geospatial query using GeoMesa functions
@@ -38,25 +36,86 @@ against a GeoMesa data store:
     //    ScalaSimpleFeature:4, ScalaSimpleFeature:5, ScalaSimpleFeature:6,
     //    ScalaSimpleFeature:7, ScalaSimpleFeature:9)
 
-Usage
-^^^^^
+Configuration
+^^^^^^^^^^^^^
 
-To use this module, Spark must be configured to register the
-``GeoMesaSparkKryoRegistor`` class, which provides objects to serialize and
-deserialize features for each feature type, as shown in the Scala code below:
-
-.. code-block:: scala
-
-    val conf = new SparkConf().setMaster("local[*]").setAppName("testSpark")
-    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
-    val sc = SparkContext.getOrCreate(conf)
-
-``geomesa-spark-core`` also provides an API for accessing geospatial data
+**geomesa-spark-core** provides an API for accessing geospatial data
 in Spark, by defining an interface called ``SpatialRDDProvider``. Different
 implementations of this interface connect to GeoMesa Accumulo, generic
 GeoTools-based ``DataStore``\ s, or data files in formats readable by the GeoMesa
-converter library. ``GeoMesaSpark`` loads a ``SpatialRDDProvider``
+converter library. These different providers are described in more detail
+in :ref:`spark_core_usage` below.
+
+To use these libraries in Spark, the shaded JAR built by the
+**geomesa-accumulo-spark-runtime** module (``geomesa-accumulo/geomesa-accumulo-spark-runtime``
+in the source distribution) contains all of the dependencies needed to run
+the :ref:`accumulo_rdd_provider`. This shaded JAR can be passed (for example)
+to the ``spark-submit`` command via the ``--jars`` option:
+
+.. code-block:: bash
+
+    --jars file://path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar
+
+or passed to Spark via the appropriate mechanism in notebook servers such as
+Jupyter (see :doc:`jupyter`) or Zeppelin.
+
+This shaded JAR should also provide the dependencies needed for the
+:ref:`converter_rdd_provider` and :ref:`geotools_rdd_provider`, so these JARs
+may simply be added to ``--jars`` as well (though in the latter
+case additional JARs may be needed to implement the GeoTools data store accessed).
+
+.. _spark_sf_serialization:
+
+Simple Feature Serialization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To serialize ``RDD``\ s of ``SimpleFeature``\ s between nodes of a cluster, Spark
+must be configured with a Kryo serialization registrator provided in
+**geomesa-spark-core**.
+
+.. note::
+
+    Configuring Kryo serialization is not needed when running Spark in ``local``
+    mode, as jobs will be executed within a single JVM.
+
+Add these two entries to ``$SPARK_HOME/conf/spark-defaults.conf``
+(or pass them as ``--conf`` arguments to ``spark-submit``):
+
+.. code::
+
+    spark.serializer        org.apache.spark.serializer.KryoSerializer
+    spark.kryo.registrator  org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
+
+.. note::
+
+    Alternatively, these may be set in the ``SparkConf`` object used to create the
+    ``SparkContext``:
+
+    .. code-block:: scala
+
+        conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+
+    When using Spark in a notebook server, this will require disabling the automatic
+    creation of a ``SparkContext``.
+
+After setting the configuration options, RDDs created by the GeoMesa
+``SpatialRDDProvider`` implementations will be properly registered with the
+serializer provider.
+
+.. _spark_core_usage:
+
+Usage
+^^^^^
+
+The main point of entry for the functionality provided by **geomesa-spark-core** is the
+``GeoMesaSpark`` object:
+
+.. code-block:: scala
+
+    val spatialRDDProvider = GeoMesaSpark(params)
+
+``GeoMesaSpark`` loads a ``SpatialRDDProvider``
 implementation via SPI when the appropriate JAR is included on the classpath.
 The implementation returned by ``GeoMesaSpark`` is chosen based on the
 parameters passed as an argument, as shown in the Scala code below:

@@ -143,7 +143,7 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType
   override protected def rangeExact(row: Array[Byte]): Seq[RowRange] =
     rowToColumns(sfts.get, row).map { case RowValue(col, v) => RowRange(col, v, v) }
 
-  override protected def rowAndValue(result: Row): RowAndValue = {
+  override def rowAndValue(result: Row): RowAndValue = {
     val values = columns.map(c => RowValue(c, result.get(c.i, c.jType).asInstanceOf[AnyRef]))
     val sf = result.getBytes("sf")
 
