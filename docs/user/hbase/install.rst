@@ -90,8 +90,8 @@ Installing GeoMesa HBase in GeoServer
 The HBase GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
 ``$GEOMESA_HBASE_HOME/dist/gs-plugins/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.2.3
-bundled. If you require a different version, modify the ``pom.xml`` and build the geomesa hbase plugin project from
-scratch with maven.
+bundled. If you require a different version, modify the ``pom.xml`` and build the GeoMesa HBase plugin project from
+scratch with Maven.
 
 This distribution does not include the Hadoop or Zookeeper JARs; the following JARs
 should be copied from the ``lib`` directory of your HBase or Hadoop installations into
@@ -108,7 +108,7 @@ GeoServer's ``WEB-INF/lib`` directory:
 
 (Note the versions may vary depending on your installation.)
 
-You can use the bundled ``$GEOMESA_HBASE_HOME/bin/install-hadoop.sh`` script to install these jars.
+You can use the bundled ``$GEOMESA_HBASE_HOME/bin/install-hadoop.sh`` script to install these JARs.
 
 The HBase data store requires the configuration file ``hbase-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
