@@ -24,6 +24,8 @@ class BinConversionProcessTest extends TestWithDataStore {
 
   import scala.collection.JavaConversions._
 
+  sequential
+
   override val spec = "name:String,track:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326,geom2:Point:srid=4326"
 
   val process = new BinConversionProcess
