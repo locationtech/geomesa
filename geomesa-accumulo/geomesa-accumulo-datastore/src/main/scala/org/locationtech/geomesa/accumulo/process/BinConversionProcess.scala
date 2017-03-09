@@ -132,7 +132,7 @@ class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
     logger.debug(s"Visiting source type: ${source.getClass.getName}")
 
     query.getHints.put(QueryHints.BIN_TRACK, options.trackIdField.getOrElse("id"))
-    options.geomField.foreach { case GeometryAttribute(g, _) => query.getHints.put(QueryHints.BIN_TRACK, g) }
+    options.geomField.foreach { case GeometryAttribute(g, _) => query.getHints.put(QueryHints.BIN_GEOM, g) }
     options.dtgField.foreach(query.getHints.put(QueryHints.BIN_DTG, _))
     options.labelField.foreach(query.getHints.put(QueryHints.BIN_LABEL, _))
 
