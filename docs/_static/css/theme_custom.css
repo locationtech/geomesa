@@ -319,3 +319,10 @@ div.admonition.warning, div.admonition.note {
 .rst-content .toc-backref {
   color: #bbb;
 }
+
+.rst-content .highlighted{
+  background: #c9781d !important;
+  display:inline-block;
+  font-weight:bold;
+  padding:0 2px !important;
+}
