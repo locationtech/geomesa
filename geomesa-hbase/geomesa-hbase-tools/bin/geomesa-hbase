@@ -37,10 +37,12 @@ fi
 # include geomesa first so that the correct log4j.properties is picked up
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):${HBASE_CONF_DIR}:${HADOOP_CONF_DIR}"
 
-# Add user defined directories to the classpath
+# Prepend user defined directories to the classpath using java classpath syntax
+# We preprend so that they take precedence when explicitly defined by the user
 if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
-  GEOMESA_CP="${GEOMESA_CP}:$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
+  GEOMESA_CP="${GEOMESA_EXTRA_CLASSPATHS}:${GEOMESA_CP}"
 fi
+
 HBASE_CP="$(findJars $HBASE_LIB true true)"
 
 # Get the hadoop jars, ignoring jars with names containing slf4j and test

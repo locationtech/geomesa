@@ -22,7 +22,7 @@ function setGeoLog() {
 }
 
 function findJars() {
-  # findJars [path] [bool: exclude test and slf2j jars] [bool: do not descend into sub directories]
+  # findJars [path] [bool: exclude test and slf4j jars] [bool: do not descend into sub directories]
   home="$1"
   CP=""
   if [[ -n "$home" && -d "$home" ]]; then

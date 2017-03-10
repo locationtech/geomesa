@@ -10,9 +10,12 @@ package org.locationtech.geomesa.convert.scripting
 
 import java.io.File
 import java.net.URI
+import java.nio.file.FileSystems
+import java.util.Collections
 import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
 
 import com.google.common.io.Files
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.locationtech.geomesa.convert.Transformers.EvaluationContext
@@ -23,48 +26,31 @@ import scala.collection.JavaConversions._
 
 /**
   * Provides TransformerFunctions that execute javax.scripts compatible functions defined
-  * 'classpath:geomesa-convert-scripts'.  Scripting languages are determined by the extension
-  * of the file.  For instance, 'name.js' will be interpreted as a javascript file.
+  * on the classpath or in external directories.  Scripting languages are determined by
+  * the extension of the file.  For instance, 'name.js' will be interpreted as a javascript file.
   */
-class ScriptingFunctionFactory extends TransformerFunctionFactory {
+class ScriptingFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
-  val SCRIPT_PATH = "geomesa-convert-scripts/"
+  import ScriptingFunctionFactory._
 
   lazy val functions = init()
 
   private def init() = {
-    val loader = Thread.currentThread().getContextClassLoader
-    val scriptfiles = getScriptsFromEnvVar ++ getScriptsFromClasspath(loader)
+    val curClassLoader = Thread.currentThread().getContextClassLoader
+    val scriptURIs = loadScriptsFromEnvironment ++ loadScripts(curClassLoader)
 
+    logger.debug(s"Script URIs found: ${scriptURIs.map(_.toString).mkString(",")}")
     val mgr = new ScriptEngineManager()
-    scriptfiles
-      .map { f => (f, Files.getFileExtension(f.getPath)) }
-      .groupBy { case (_, ext) => ext }
+    scriptURIs
+      .map { f =>
+        // Always use the scheme specific part for URIs
+        val ext = Files.getFileExtension(f.getSchemeSpecificPart)
+        (f, ext)
+      }.groupBy { case (_, ext) => ext }
       .flatMap { case (ext, files) =>
         val engine = Option(mgr.getEngineByExtension(ext))
-        engine.map { e => evaluateScriptsForEngine(loader, files, e, ext) }.getOrElse(Seq())
+        engine.map { e => evaluateScriptsForEngine(curClassLoader, files, e, ext) }.getOrElse(Seq())
       }.toList
-  }
-
-  def getScriptsFromClasspath(loader: ClassLoader): Seq[URI] = {
-    Option(loader.getResourceAsStream(SCRIPT_PATH)).map { scripts =>
-      IOUtils
-        .readLines(scripts, "UTF-8")
-        .map { s => loader.getResource(s"$SCRIPT_PATH/$s").toURI }
-    }.getOrElse(Seq.empty[URI])
-  }
-
-  def getScriptsFromEnvVar: Seq[URI] = {
-    val v = SystemProperty("geomesa.convert.scripts.path").get
-    if (v == null) Seq.empty[URI]
-    else {
-      v.split(",")
-        .map { d => new File(d) }
-        .filter { f => f.exists() && f.isDirectory }
-        .flatMap { f =>
-          FileUtils.listFiles(f, TrueFileFilter.TRUE, TrueFileFilter.TRUE).map(_.toURI)
-        }
-    }
   }
 
   private def evaluateScriptsForEngine(loader: ClassLoader, files: Seq[(URI, String)], e: ScriptEngine, ext: String) = {
@@ -74,11 +60,66 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory {
     }
   }
 
+  // TODO try with no catch and logging...evaluate whats happening here
   def evalScriptFile(loader: ClassLoader, e: ScriptEngine, f: URI): AnyRef =
     try {
       val lines = IOUtils.toString(f, "UTF-8")
       e.eval(lines)
     }
+}
+
+object ScriptingFunctionFactory extends LazyLogging {
+  final val ConvertScriptsPathProperty = "geomesa.convert.scripts.path"
+  final val ConvertScriptsClassPath    = "geomesa-convert-scripts"
+
+  /**
+    * <p>Load scripts from the environment using the property "geomesa.convert.scripts.path"
+    * Entries are colon (:) separated. Entries can be files or directories. Directories will
+    * be recursively searched for script files. The extension of script files defines what
+    * kind of script they are (e.g. js = javascript)</p>
+    */
+  def loadScriptsFromEnvironment: Seq[URI] = {
+    val v = SystemProperty(ConvertScriptsPathProperty).get
+    if (v == null) Seq.empty[URI]
+    else {
+      v.split(":")
+        .map { d => new File(d) }
+        .filter { f => f.exists() && f.canRead && (if (f.isDirectory) f.canExecute else true) }
+        .flatMap { f =>
+          if (f.isDirectory) {
+            FileUtils.listFiles(f, TrueFileFilter.TRUE, TrueFileFilter.TRUE).map(_.toURI)
+          } else {
+            Seq(f.toURI)
+          }
+        }
+    }
+  }
+
+  /**
+    * Load scripts from the resource geomesa-convert-scripts from a classloader. To use this
+    * create a folder in the jar named "geomesa-convert-scripts" and place script files
+    * within that directory.
+    *
+    * @param loader
+    * @return
+    */
+  def loadScripts(loader: ClassLoader): Seq[URI] = {
+    Option(loader.getResources(ConvertScriptsClassPath + "/")).toSeq.flatten.flatMap { url =>
+      val uri = url.toURI
+      uri.getScheme match {
+        case "jar" =>
+          val fs = FileSystems.newFileSystem(uri, Collections.emptyMap[String, AnyRef](), loader)
+          val p = fs.getPath(ConvertScriptsClassPath + "/")
+          val uris = java.nio.file.Files.walk(p).iterator().toSeq
+          val files = uris.filterNot(java.nio.file.Files.isDirectory(_)).map(_.toUri)
+          logger.debug(s"Loaded scripts ${files.mkString(",")} from jar ${uri.toString}")
+          files
+        case "file" =>
+          IOUtils.readLines(url.openStream(), "UTF-8")
+            .map { s => loader.getResource(s"$ConvertScriptsClassPath/$s").toURI }
+      }
+    }
+  }
 }
 
 class ScriptTransformerFn(ext: String, name: String, engine: Invocable) extends TransformerFn {

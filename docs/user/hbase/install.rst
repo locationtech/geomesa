@@ -61,7 +61,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HBASE_HOM
 
     ``geomesa-hbase`` will read the ``$HBASE_HOME`` and ``$HADOOP_HOME`` environment variables to load the
     appropriate JAR files for Hadoop and HBase. In addition, ``geomesa-hbase`` will pull any
-    additional jars from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable into the class path.
+    additional entries from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable.
     Use the ``geomesa classpath`` command in order to see what JARs are being used.
 
 Due to licensing restrictions, dependencies for shape file support must be separately installed.

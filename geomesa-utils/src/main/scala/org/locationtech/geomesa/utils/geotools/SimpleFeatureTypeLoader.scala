@@ -70,7 +70,11 @@ object ConfigSftParsing {
 }
 
 class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
-  override def loadTypes(): JList[SimpleFeatureType] = parseConf(ConfigFactory.load())
+  override def loadTypes(): JList[SimpleFeatureType] = {
+    val sfts = parseConf(ConfigFactory.load())
+    logger.debug(s"Loading SFTs from classpath ${sfts.map(_.getTypeName).mkString(", ")}")
+    sfts
+  }
 }
 
 class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
