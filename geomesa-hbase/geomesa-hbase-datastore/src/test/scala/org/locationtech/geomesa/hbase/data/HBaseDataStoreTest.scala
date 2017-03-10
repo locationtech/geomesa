@@ -164,6 +164,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
   }
 
   def testQuery(ds: HBaseDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
+    println(s"Running Filter: $filter.");
     val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
     val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)

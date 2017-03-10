@@ -12,11 +12,17 @@ import java.util.concurrent.{ConcurrentLinkedQueue, CountDownLatch, Executors, L
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.filter.Filter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.JavaConversions._
 
-class BatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)
+class BatchScan(connection: Connection,
+                tableName: TableName,
+                ranges: Seq[Scan],
+                threads: Int,
+                buffer: Int,
+                remoteFilters: Seq[Filter] = Nil)
     extends CloseableIterator[Result] {
 
   import BatchScan.Sentinel
@@ -68,6 +74,7 @@ class BatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan],
       try {
         var range = inQueue.poll
         while (range != null && !Thread.currentThread().isInterrupted) {
+          remoteFilters.foreach { filter => range.setFilter(filter) }
           val scan = table.getScanner(range)
           try {
             scan.iterator.foreach(outQueue.put)

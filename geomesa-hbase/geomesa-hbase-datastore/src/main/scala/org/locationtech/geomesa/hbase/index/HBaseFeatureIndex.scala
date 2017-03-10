@@ -104,7 +104,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
-      val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
+      val toFeatures = resultsToFeatures(sft, None, hints.getTransform)
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], ecql, toFeatures)
       } else {
@@ -115,7 +115,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
         val scans = ranges.asInstanceOf[Seq[Scan]]
         val minScans = if (ds.config.queryThreads == 1) { 1 } else { ds.config.queryThreads * scansPerThread }
         if (scans.length >= minScans) {
-          ScanPlan(filter, table, scans, ecql, toFeatures)
+          ScanPlan(sft, filter, table, scans, ecql, toFeatures)
         } else {
           // split up the scans so that we get some parallelism
           val multiplier = math.ceil(minScans.toDouble / scans.length).toInt
@@ -123,7 +123,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
             val splits = IndexAdapter.splitRange(scan.getStartRow, scan.getStopRow, multiplier)
             splits.map { case (start, stop) => new Scan(scan).setStartRow(start).setStopRow(stop) }
           }
-          ScanPlan(filter, table, splitScans, ecql, toFeatures)
+          ScanPlan(sft, filter, table, splitScans, ecql, toFeatures)
         }
       }
     }
