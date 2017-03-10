@@ -111,7 +111,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
-      val toFeatures = resultsToFeatures(sft, None, hints.getTransform)
+      val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], toFeatures)
       } else {
