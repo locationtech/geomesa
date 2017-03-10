@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.index.utils
 
 import java.util.concurrent._
-
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-
 import scala.collection.JavaConversions._
 
 abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, buffer: Int)
