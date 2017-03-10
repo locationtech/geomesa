@@ -11,6 +11,7 @@ Getting Started
     geomesa-quickstart-kafka
     geomesa-quickstart-hbase
     geodocker-geomesa-spark-on-aws
+    geomesa-hbase-s3-on-aws
 
 Data In/Out
 -----------
