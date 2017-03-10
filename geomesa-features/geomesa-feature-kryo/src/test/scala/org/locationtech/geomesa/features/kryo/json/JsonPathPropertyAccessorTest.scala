@@ -45,13 +45,19 @@ class JsonPathPropertyAccessorTest extends Specification {
 
     "access json values in simple features with spaces in the json path" in {
       val property = ff.property("""$.json.['foo path']""")
-
-      val foo = JsonPathParser.parse("""$.json.['foo path']""")
-
       val sf = new ScalaSimpleFeature("", sft)
       sf.setAttribute(0, """{ "foo path" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
       sf.setAttribute(0, """{ "foo path" : "baz" }""")
+      property.evaluate(sf) mustEqual "baz"
+    }
+
+    "access nested json values in simple features with a json path" in {
+      val property = ff.property("""$.json.foo.bar""")
+      val sf = new ScalaSimpleFeature("", sft)
+      sf.setAttribute(0, """{ "foo" : { "bar" : 0 } }""")
+      property.evaluate(sf) mustEqual 0
+      sf.setAttribute(0, """{ "foo" : { "bar" : "baz" } }""")
       property.evaluate(sf) mustEqual "baz"
     }
 
