@@ -65,7 +65,7 @@ case class ScanPlan(sft: SimpleFeatureType,
     val remoteFilters = filter.filter.map { filter =>
       new JSimpleFeatureFilter(sft, filter)
     }.toSeq
-    val results = new BatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
+    val results = new BatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
     SelfClosingIterator(entriesToFeatures(results), results.close)
   }
 }
