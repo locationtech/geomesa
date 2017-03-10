@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>geomesa-hbase_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
@@ -21,8 +22,8 @@
             <version>${project.version}</version>
         </dependency>
 
-       <!-- force 12.0.1 for hbase -->
-       <dependency>
+        <!-- force 12.0.1 for hbase -->
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>12.0.1</version>
@@ -94,6 +95,35 @@
             <scope>provided</scope>
         </dependency>
 
+
+        <!-- test dependencies -->
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
+            <classifier>tests</classifier>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-testing-util</artifactId>
+            <version>${hbase.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
     </dependencies>
 
     <build>
@@ -134,7 +164,8 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.clearspring.analytics</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shaded.com.clearspring.analytics</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.clearspring.analytics
+                                    </shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
@@ -142,7 +173,8 @@
                                 </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons.codec</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.commons.codec</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.commons.codec
+                                    </shadedPattern>
                                 </relocation>
                                 <!-- shade thrift because spark depends on 0.9.2 and accumulo 1.8 depends on 0.9.3 -->
                                 <relocation>
@@ -151,7 +183,8 @@
                                 </relocation>
                             </relocations>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                         </configuration>
                     </execution>
