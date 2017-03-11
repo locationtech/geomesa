@@ -25,19 +25,48 @@ object BinaryOutputEncoder extends LazyLogging {
 
   import org.locationtech.geomesa.filter.function.AxisOrder._
   import org.locationtech.geomesa.utils.geotools.Conversions._
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  case class ValuesToEncode(lat: Float, lon: Float, dtg: Long, track: Int, label: Option[Long])
+  sealed trait GeometrySelector
 
-  case class EncodingOptions(dtgField: String,
+  case class GeometryAttribute(geom: String, axisOrder: AxisOrder = LatLon) extends GeometrySelector
+  case class LatLonAttributes(lat: String, lon: String) extends GeometrySelector
+
+  case class ValuesToEncode(lat: Float, lon: Float, dtg: Long, track: Int, label: Long)
+
+  case class EncodingOptions(geomField: Option[GeometrySelector],
+                             dtgField: Option[String],
                              trackIdField: Option[String],
-                             labelField: Option[String] = None,
-                             latLon: Option[(String, String)] = None,
-                             axisOrder: AxisOrder = LatLon)
+                             labelField: Option[String] = None)
 
   val CollectionEncodingOptions = Collections.synchronizedMap(new java.util.HashMap[String, EncodingOptions])
 
   implicit val ordering = new Ordering[ValuesToEncode]() {
-    override def compare(x: ValuesToEncode, y: ValuesToEncode) = x.dtg.compareTo(y.dtg)
+    override def compare(x: ValuesToEncode, y: ValuesToEncode): Int = x.dtg.compareTo(y.dtg)
+  }
+
+  /**
+    * Encodes features individually
+    *
+    * @param options fields, etc to encode
+    */
+  def encodeFeatures(sft: SimpleFeatureType, options: EncodingOptions): (SimpleFeature) => Array[Byte] = {
+    // encodes the values in either 16 or 24 bytes
+    val encode: (ValuesToEncode) => Array[Byte] = options.labelField match {
+      case Some(_) => (v) => {
+        val toEncode = ExtendedValues(v.lat, v.lon, v.dtg, v.track, v.label)
+        Convert2ViewerFunction.encodeToByteArray(toEncode)
+      }
+      case None => (v) => {
+        val toEncode = BasicValues(v.lat, v.lon, v.dtg, v.track)
+        Convert2ViewerFunction.encodeToByteArray(toEncode)
+      }
+    }
+
+    toValues(sft, options) match {
+      case Right(toValue) => (sf) => encode(toValue(sf))
+      case Left(toValue)  => (sf) => toValue(sf).flatMap(encode(_)).toArray
+    }
   }
 
   /**
@@ -54,108 +83,15 @@ object BinaryOutputEncoder extends LazyLogging {
       options: EncodingOptions,
       sort: Boolean = false): Unit = {
 
-    val sft = fc.getSchema
-    val isPoint = sft.getGeometryDescriptor.getType.getBinding == classOf[Point]
-    val isLineString = !isPoint && sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
-
-    // validate our input data
-    validateDateAttribute(options.dtgField, sft, isLineString)
-    validateLabels(options.trackIdField, options.labelField, sft)
-    validateLatLong(options.latLon, sft)
-
-    val sysTime = System.currentTimeMillis
-    val dtgIndex = sft.indexOf(options.dtgField)
-
-    // get date function based
-    val getDtg: (SimpleFeature) => Long = (f) => {
-      val date = f.getAttribute(dtgIndex).asInstanceOf[Date]
-      if (date == null) sysTime else date.getTime
-    }
-    // for line strings, we need an array of dates corresponding to the points in the line
-    val getLineDtg: (SimpleFeature) => Array[Long] = (f) => {
-      val dates = f.getAttribute(dtgIndex).asInstanceOf[java.util.List[Date]]
-      if (dates == null) Array.empty else dates.map(_.getTime).toArray
-    }
-
-    // get lat/lon as floats
-    val getLatLon: (SimpleFeature) => (Float, Float) =
-      options.latLon.map { case (lat, lon) =>
-        // if requested, export arbitrary fields as lat/lon
-        val latIndex = sft.indexOf(lat)
-        val lonIndex = sft.indexOf(lon)
-        val binding = sft.getType(latIndex).getBinding
-        if (binding == classOf[java.lang.Float]) {
-          (f: SimpleFeature) =>
-            (f.getAttribute(latIndex).asInstanceOf[Float], f.getAttribute(lonIndex).asInstanceOf[Float])
-        } else if (binding == classOf[java.lang.Double]) {
-          (f: SimpleFeature) =>
-            (f.getAttribute(latIndex).asInstanceOf[Double].toFloat, f.getAttribute(lonIndex).asInstanceOf[Double].toFloat)
-        } else {
-          (f: SimpleFeature) =>
-            (f.getAttribute(latIndex).toString.toFloat, f.getAttribute(lonIndex).toString.toFloat)
-        }
-      }.getOrElse {
-        // default is to use the geometry
-        // depending on srs requested and wfs versions, axis order can be flipped
-        options.axisOrder match {
-          case LatLon =>
-            if (isPoint) {
-              (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Point])
-            } else {
-              (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint)
-            }
-          case LonLat =>
-            if (isPoint) {
-              (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Point]).swap
-            } else {
-              (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint).swap  
-            }
-        }
-      }
-    // for linestrings, we return each point - use an array so we get constant-time lookup
-    // depending on srs requested and wfs versions, axis order can be flipped
-    val getLineLatLon: (SimpleFeature) => Array[(Float, Float)] = options.axisOrder match {
-      case LatLon => (f) => {
-        val geom = f.getDefaultGeometry.asInstanceOf[LineString]
-        val points = (0 until geom.getNumPoints).map(geom.getPointN)
-        points.map(pointToXY).toArray
-      }
-      case LonLat => (f) => {
-        val geom = f.getDefaultGeometry.asInstanceOf[LineString]
-        val points = (0 until geom.getNumPoints).map(geom.getPointN)
-        points.map(pointToXY(_).swap).toArray
-      }
-    }
-
-    // gets the track id from a feature
-    val getTrackId: (SimpleFeature) => Int = options.trackIdField match {
-      case Some(trackId) if trackId == "id" =>
-        (f) => f.getID.hashCode
-
-      case Some(trackId) =>
-        val trackIndex  = sft.indexOf(trackId)
-        (f) => {
-          val track = f.getAttribute(trackIndex)
-          if (track == null) { 0 } else { track.hashCode }
-        }
-
-      case None =>
-        (_) => 0
-    }
-
-    // gets the label from a feature
-    val getLabel: (SimpleFeature) => Option[Long] = options.labelField match {
-      case Some(label) =>
-        val labelIndex = sft.indexOf(label)
-        (f) => Option(f.getAttribute(labelIndex).asInstanceOf[Long])
-
-      case None => (_) => None
+    val iter = toValues(fc.getSchema, options) match {
+      case Right(toValue) => fc.features.map(toValue)
+      case Left(toValue)  => fc.features.flatMap(toValue)
     }
 
     // encodes the values in either 16 or 24 bytes
     val encode: (ValuesToEncode) => Unit = options.labelField match {
-      case Some(label) => (v) => {
-        val toEncode = ExtendedValues(v.lat, v.lon, v.dtg, v.track, v.label.getOrElse(-1))
+      case Some(_) => (v) => {
+        val toEncode = ExtendedValues(v.lat, v.lon, v.dtg, v.track, v.label)
         Convert2ViewerFunction.encode(toEncode, output)
       }
       case None => (v) => {
@@ -164,9 +100,120 @@ object BinaryOutputEncoder extends LazyLogging {
       }
     }
 
-    val iter = if (isLineString) {
+    if (sort) {
+      iter.toList.sorted.foreach(encode)
+    } else {
+      iter.foreach(encode)
+    }
+    // Feature collection has already been closed by SelfClosingIterator
+  }
+
+  private def toValues(sft: SimpleFeatureType, options: EncodingOptions):
+      Either[(SimpleFeature) => Seq[ValuesToEncode], (SimpleFeature) => ValuesToEncode] = {
+
+    val geomField = options.geomField.getOrElse(GeometryAttribute(sft.getGeometryDescriptor.getLocalName))
+    val dtgField = options.dtgField.orElse(sft.getDtgField).orNull
+
+    val (isPoint, isLineString) = geomField match {
+      case _: LatLonAttributes        => (true, false)
+      case GeometryAttribute(geom, _) =>
+        val binding = Option(sft.getDescriptor(geom)).map(_.getType.getBinding).orNull
+        (binding == classOf[Point], binding == classOf[LineString])
+    }
+
+    // validate our input data
+    validateGeometryAttribute(sft, geomField)
+    validateDateAttribute(sft, isLineString, dtgField)
+    validateLabels(sft, options.trackIdField, options.labelField)
+
+    val dtgIndex = sft.indexOf(dtgField)
+
+    // get date function
+    val getDtg: (SimpleFeature) => Long = (f) => {
+      val date = f.getAttribute(dtgIndex).asInstanceOf[Date]
+      if (date == null) { 0L } else { date.getTime }
+    }
+    // for line strings, we need an array of dates corresponding to the points in the line
+    val getLineDtg: (SimpleFeature) => Array[Long] = (f) => {
+      val dates = f.getAttribute(dtgIndex).asInstanceOf[java.util.List[Date]]
+      if (dates == null) { Array.empty } else { dates.map(_.getTime).toArray }
+    }
+
+    // get lat/lon as floats
+    val getLatLon: (SimpleFeature) => (Float, Float) = geomField match {
+      case LatLonAttributes(lat, lon) =>
+        // if requested, export arbitrary fields as lat/lon
+        val latIndex = sft.indexOf(lat)
+        val lonIndex = sft.indexOf(lon)
+        val binding  = sft.getType(latIndex).getBinding
+        if (binding == classOf[java.lang.Float]) {
+          (f) => (f.getAttribute(latIndex).asInstanceOf[Float], f.getAttribute(lonIndex).asInstanceOf[Float])
+        } else if (binding == classOf[java.lang.Double]) {
+          (f) => (f.getAttribute(latIndex).asInstanceOf[Double].toFloat, f.getAttribute(lonIndex).asInstanceOf[Double].toFloat)
+        } else {
+          (f) => (f.getAttribute(latIndex).toString.toFloat, f.getAttribute(lonIndex).toString.toFloat)
+        }
+
+      case GeometryAttribute(geom, axisOrder) =>
+        val geomIndex = sft.indexOf(geom)
+        // depending on srs requested and wfs versions, axis order can be flipped
+        (axisOrder, isPoint) match {
+          case (LatLon, true)  => (f) => pointToXY(f.getAttribute(geomIndex).asInstanceOf[Point])
+          case (LatLon, false) => (f) => pointToXY(f.getAttribute(geomIndex).asInstanceOf[Geometry].safeCentroid())
+          case (LonLat, true)  => (f) => pointToXY(f.getAttribute(geomIndex).asInstanceOf[Point]).swap
+          case (LonLat, false) => (f) => pointToXY(f.getAttribute(geomIndex).asInstanceOf[Geometry].safeCentroid()).swap
+        }
+    }
+
+    // for linestrings, we return each point - use an array so we get constant-time lookup
+    // depending on srs requested and wfs versions, axis order can be flipped
+    lazy val getLineLatLon: (SimpleFeature) => Array[(Float, Float)] = geomField match {
+      case GeometryAttribute(geom, LatLon) =>
+        val geomIndex = sft.indexOf(geom)
+        (f) => {
+          val geom = f.getAttribute(geomIndex).asInstanceOf[LineString]
+          val points = (0 until geom.getNumPoints).map(geom.getPointN)
+          points.map(pointToXY).toArray
+        }
+
+      case GeometryAttribute(geom, LonLat) =>
+        val geomIndex = sft.indexOf(geom)
+        (f) => {
+          val geom = f.getAttribute(geomIndex).asInstanceOf[LineString]
+          val points = (0 until geom.getNumPoints).map(geom.getPointN)
+          points.map(pointToXY(_).swap).toArray
+        }
+    }
+
+    // gets the track id from a feature
+    val getTrackId: (SimpleFeature) => Int = options.trackIdField match {
+      case None => (f) => f.getID.hashCode
+
+      case Some(trackId) if trackId == "id" => (f) => f.getID.hashCode
+
+      case Some(trackId) =>
+        val trackIndex  = sft.indexOf(trackId)
+        (f) => {
+          val track = f.getAttribute(trackIndex)
+          if (track == null) { 0 } else { track.hashCode }
+        }
+    }
+
+    // gets the label from a feature
+    val getLabel: (SimpleFeature) => Long = options.labelField match {
+      case Some(label) =>
+        val labelIndex = sft.indexOf(label)
+        (f) => {
+          val label = f.getAttribute(labelIndex)
+          if (label == null) { 0L } else { Convert2ViewerFunction.convertToLabel(label.toString) }
+        }
+
+      case None => (_) => 0L
+    }
+
+    if (isLineString) {
       // expand the line string into individual points to encode
-      fc.features().flatMap { sf =>
+      Left({ sf =>
         val points = getLineLatLon(sf)
         val dates = getLineDtg(sf)
         if (points.length != dates.length) {
@@ -180,27 +227,32 @@ object BinaryOutputEncoder extends LazyLogging {
             ValuesToEncode(lat, lon, dates(i), trackId, label)
           }
         }
-      }
+      })
     } else {
-      fc.features().map { sf =>
+      Right({ sf =>
         val (lat, lon) = getLatLon(sf)
         val dtg = getDtg(sf)
         val trackId = getTrackId(sf)
         val label = getLabel(sf)
         ValuesToEncode(lat, lon, dtg, trackId, label)
-      }
+      })
     }
-    if (sort) {
-      iter.toList.sorted.foreach(encode)
-    } else {
-      iter.foreach(encode)
-    }
-    // Feature collection has already been closed by SelfClosingIterator
   }
 
   private def pointToXY(p: Point) = (p.getX.toFloat, p.getY.toFloat)
 
-  private def validateDateAttribute(dtgField: String, sft: SimpleFeatureType, isLineString: Boolean) = {
+  private def validateGeometryAttribute(sft: SimpleFeatureType, selector: GeometrySelector) = {
+    val ok = selector match {
+      case LatLonAttributes(lat, lon) => sft.indexOf(lat) != -1 && sft.indexOf(lon) != -1
+      case GeometryAttribute(geom, _) => sft.indexOf(geom) != -1
+    }
+
+    if (!ok) {
+      throw new RuntimeException(s"Invalid geometry fields $selector requested for feature type $sft")
+    }
+  }
+
+  private def validateDateAttribute(sft: SimpleFeatureType, isLineString: Boolean, dtgField: String) = {
     val sftAttributes = SimpleFeatureSpecParser.parse(SimpleFeatureTypes.encodeType(sft)).attributes
     val dateAttribute = sftAttributes.find(_.name == dtgField)
     val ok = dateAttribute.exists { spec =>
@@ -210,17 +262,16 @@ object BinaryOutputEncoder extends LazyLogging {
         spec.clazz == classOf[Date]
       }
     }
-    if (!ok) throw new RuntimeException(s"Invalid date field $dtgField requested for feature type $sft")
+    if (!ok) {
+      throw new RuntimeException(s"Invalid date field $dtgField requested for feature type $sft")
+    }
   }
 
-  private def validateLatLong(latLon: Option[(String, String)], sft: SimpleFeatureType) = {
-    val ok = latLon.forall { case (lat, lon) => Seq(lat, lon).forall(sft.indexOf(_) != -1) }
-    if (!ok) throw new RuntimeException(s"Invalid lat/lon fields ${latLon.get} requested for feature type $sft")
-  }
-
-  private def validateLabels(trackId: Option[String], label: Option[String], sft: SimpleFeatureType) = {
+  private def validateLabels(sft: SimpleFeatureType, trackId: Option[String], label: Option[String]) = {
     val ok = Seq(trackId, label).flatten.forall(attr => attr == "id" || sft.indexOf(attr) != -1)
-    if (!ok) throw new RuntimeException(s"Invalid fields $trackId and/or $label requested for feature type $sft")
+    if (!ok) {
+      throw new RuntimeException(s"Invalid fields $trackId and/or $label requested for feature type $sft")
+    }
   }
 }
 

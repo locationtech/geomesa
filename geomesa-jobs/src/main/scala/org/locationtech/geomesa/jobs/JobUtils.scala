@@ -24,7 +24,10 @@ object JobUtils extends LazyLogging {
    * @param libJars jar prefixes to load
    */
   def setLibJars(conf: Configuration, libJars: Seq[String], searchPath: Iterator[() => Seq[File]]): Unit = {
-    val paths = ClassPathUtils.findJars(libJars, searchPath).map(f => "file:///" + f.getAbsolutePath)
+    val extra = ClassPathUtils.loadClassPathFromEnv("GEOMESA_EXTRA_CLASSPATHS")
+    val found = ClassPathUtils.findJars(libJars, searchPath)
+    // always prepend GEOMESA_EXTRA_CLASSPATHS first
+    val paths = (extra ++ found).map(f => "file://" + f.getAbsolutePath)
     // tmpjars is the hadoop config that corresponds to libjars
     conf.setStrings("tmpjars", paths: _*)
     logger.debug(s"Job will use the following libjars=${paths.mkString("\n", "\n", "")}")

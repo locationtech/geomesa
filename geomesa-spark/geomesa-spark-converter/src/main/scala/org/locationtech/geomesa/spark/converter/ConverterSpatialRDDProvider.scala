@@ -23,6 +23,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.{ConverterConfigLoader, SimpleFeatureConverters}
 import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat
+import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.geomesa.spark.SpatialRDDProvider
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypeLoader}
 import org.locationtech.geomesa.utils.io.CloseQuietly
@@ -53,7 +54,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
   override def rdd(conf: Configuration,
                    sc: SparkContext,
                    params: Map[String, String],
-                   query: Query): RDD[SimpleFeature] = {
+                   query: Query): SpatialRDD = {
     val (sft, converterConf) = computeSftConfig(params, query)
 
     ConverterInputFormat.setConverterConfig(conf, converterConf)
@@ -73,7 +74,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     }
 
     val rdd = sc.newAPIHadoopRDD(conf, classOf[ConverterInputFormat], classOf[LongWritable], classOf[SimpleFeature])
-    rdd.map(_._2)
+    SpatialRDD(rdd.map(_._2), sft)
   }
 
   // TODO:  Move the logic here and in the next function to utils (aka somewhere more general)

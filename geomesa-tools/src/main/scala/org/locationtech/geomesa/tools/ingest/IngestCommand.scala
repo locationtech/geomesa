@@ -13,7 +13,6 @@ import java.net.URL
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
@@ -36,7 +35,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     ensureSameFs(IngestCommand.RemotePrefixes)
 
     if (params.fmt == Shp) {
-      // If someone is ingesting file from hdfs or S3, we add the Hadoop URL Factories to the JVM.
+      // If someone is ingesting file from hdfs, S3, or wasb we add the Hadoop URL Factories to the JVM.
       if (params.files.exists(IngestCommand.isDistributedUrl)) {
         import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
         val factory = new FsUrlStreamHandlerFactory
@@ -63,6 +62,14 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
         Command.user.info("No schema or converter defined - will attempt to detect schema from input files")
         new AutoIngest(params.featureName, connection, params.files, params.fmt, libjarsFile, libjarsPaths, params.threads)
       } else {
+        // validate arguments
+        if (params.config == null) {
+          throw new ParameterException("Converter Config argument is required")
+        }
+        if (params.spec == null) {
+          throw new ParameterException("SimpleFeatureType specification argument is required")
+        }
+
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
         val converterConfig = CLArgResolver.getConfig(params.config)
         new ConverterIngest(sft, connection, converterConfig, params.files, libjarsFile, libjarsPaths, params.threads)
@@ -93,7 +100,7 @@ trait IngestParams extends CatalogParam
 
 object IngestCommand {
   // If you change this, update the regex in GeneralShapefileIngest for URLs
-  private val RemotePrefixes = Seq("hdfs", "s3n", "s3a")
+  private val RemotePrefixes = Seq("hdfs", "s3n", "s3a", "wasb", "wasbs")
 
   def isDistributedUrl(url: String): Boolean = RemotePrefixes.exists(url.startsWith)
 }

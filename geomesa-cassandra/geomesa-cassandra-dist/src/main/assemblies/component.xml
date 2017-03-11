@@ -73,6 +73,9 @@
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
+            <excludes>
+                <exclude>log4j.properties</exclude>
+            </excludes>
         </fileSet>
         <fileSet>
             <directory>./</directory>

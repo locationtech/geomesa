@@ -1,81 +1,69 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.hbase.utils
+package org.locationtech.geomesa.index.utils
 
-import java.util.concurrent.{ConcurrentLinkedQueue, CountDownLatch, Executors, LinkedBlockingQueue}
+import java.util.concurrent._
 
-import org.apache.hadoop.hbase.TableName
-import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.Filter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.JavaConversions._
 
-class BatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan], threads: Int, buffer: Int, remoteFilters: Seq[Filter] = Nil)
-    extends CloseableIterator[Result] {
-
-  import BatchScan.Sentinel
+abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, buffer: Int)
+    extends CloseableIterator[R] {
 
   require(threads > 0, "Thread count must be greater than 0")
 
-  private val table = connection.getTable(tableName)
-
   private val inQueue = new ConcurrentLinkedQueue(ranges)
-  private val outQueue = new LinkedBlockingQueue[Result](buffer)
+  private val outQueue = new LinkedBlockingQueue[R](buffer)
 
   private val pool = Executors.newFixedThreadPool(threads + 1)
   private val latch = new CountDownLatch(threads)
+
+  private val sentinel: R = singletonSentinel
+  private var retrieved: R = _
 
   (0 until threads).foreach(_ => pool.submit(new SingleThreadScan()))
   pool.submit(new Terminator)
   pool.shutdown()
 
-  private var retrieved: Result = null
+  protected def scan(range: T, out: BlockingQueue[R])
+  protected def singletonSentinel: R
 
   override def hasNext: Boolean = {
     if (retrieved != null) {
       true
     } else {
       retrieved = outQueue.take
-      if (!retrieved.eq(Sentinel)) {
+      if (!retrieved.eq(sentinel)) {
         true
       } else {
-        outQueue.put(Sentinel) // re-queue in case hasNext is called again
-        retrieved = null
+        outQueue.put(sentinel) // re-queue in case hasNext is called again
+        retrieved = null.asInstanceOf[R]
         false
       }
     }
   }
 
-  override def next(): Result = {
+  override def next(): R = {
     val n = retrieved
-    retrieved = null
+    retrieved = null.asInstanceOf[R]
     n
   }
 
-  override def close(): Unit = {
-    pool.shutdownNow()
-    table.close()
-  }
+  override def close(): Unit = pool.shutdownNow()
 
   private class SingleThreadScan extends Runnable {
     override def run(): Unit = {
       try {
         var range = inQueue.poll
         while (range != null && !Thread.currentThread().isInterrupted) {
-          remoteFilters.foreach { filter => range.setFilter(filter) }
-          val scan = table.getScanner(range)
-          try {
-            scan.iterator.foreach(outQueue.put)
-          } finally {
-            scan.close()
-          }
+          scan(range, outQueue)
           range = inQueue.poll
         }
       } finally {
@@ -89,12 +77,8 @@ class BatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan],
       try {
         latch.await()
       } finally {
-        outQueue.put(Sentinel)
+        outQueue.put(sentinel)
       }
     }
   }
-}
-
-object BatchScan {
-  private val Sentinel = new Result
 }

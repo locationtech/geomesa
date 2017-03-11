@@ -33,10 +33,12 @@ object GeoMesaConfigurator {
   private val dsOutSubstring = dsOutParams.length
 
   private val filterKey        = s"$prefix.filter"
-  private val sftKey           = s"$prefix.sft"
+  private val sftNameKey       = s"$prefix.sft"
+  private val sftKey           = s"$prefix.sft.schema"
   private val tableKey         = s"$prefix.table"
   private val transformsKey    = s"$prefix.transforms.schema"
   private val transformNameKey = s"$prefix.transforms.name"
+  private val indexInKey       = s"$prefix.in.indices"
   private val sftKeyOut        = s"$prefix.out.sft"
   private val indicesOutKey    = s"$prefix.out.indices"
   private val desiredSplits    = s"$prefix.mapreduce.split.count.strongHint"
@@ -63,20 +65,37 @@ object GeoMesaConfigurator {
 
   // set/get the feature type name
   def setFeatureType(conf: Configuration, featureType: String): Unit =
-    conf.set(sftKey, featureType)
+    conf.set(sftNameKey, featureType)
   def getFeatureType(job: Job): String = getFeatureType(job.getConfiguration)
-  def getFeatureType(conf: Configuration): String = conf.get(sftKey)
+  def getFeatureType(conf: Configuration): String = conf.get(sftNameKey)
+
+  // set/get the feature type
+  def setSchema(conf: Configuration, sft: SimpleFeatureType): Unit = {
+    conf.set(sftNameKey, sft.getTypeName)
+    conf.set(sftKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+  }
+  def getSchema(job: Job): SimpleFeatureType = getSchema(job.getConfiguration)
+  def getSchema(conf: Configuration): SimpleFeatureType = {
+    val typeName = conf.get(sftNameKey)
+    val schema = conf.get(sftKey)
+    SimpleFeatureTypes.createType(typeName, schema)
+  }
 
   // set/get the feature type name
   def setFeatureTypeOut(conf: Configuration, featureType: String): Unit =
     conf.set(sftKeyOut, featureType)
-  def getFeatureTypeOut(job: Job): String = getFeatureType(job.getConfiguration)
+  def getFeatureTypeOut(job: Job): String = getFeatureTypeOut(job.getConfiguration)
   def getFeatureTypeOut(conf: Configuration): String = conf.get(sftKeyOut)
 
   def setTable(conf: Configuration, featureType: String): Unit =
     conf.set(tableKey, featureType)
   def getTable(job: Job): String = getTable(job.getConfiguration)
   def getTable(conf: Configuration): String = conf.get(tableKey)
+
+  def setIndexIn(conf: Configuration, index: GeoMesaFeatureIndex[_, _, _]): Unit =
+    conf.set(indexInKey, index.identifier)
+  def getIndexIn(job: Job): String = getIndexIn(job.getConfiguration)
+  def getIndexIn(conf: Configuration): String = conf.get(indexInKey)
 
   def setIndicesOut(conf: Configuration, indices: Seq[GeoMesaFeatureIndex[_, _, _]]): Unit =
     conf.set(indicesOutKey, indices.map(_.identifier).mkString(","))
@@ -117,5 +136,4 @@ object GeoMesaConfigurator {
   }
 
   val serializationString: String = s"$writableSerialization,$simpleFeatureSerialization"
-
 }

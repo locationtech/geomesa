@@ -61,9 +61,8 @@
 # Java Environment Variables
 # ==================================================================
 
-# Add directory to classpath
-# Add a colon separated list of directories to the GEOMESA_CP (class path variable).
-# Note this will exclude any slf4j files.
+# Prepend user defined classpaths to the GEOMESA_CP (class path variable)
+# Follows the standard Java classpaths syntax
 #
 # setvar GEOMESA_EXTRA_CLASSPATHS /some/dir/:/another/dir/
 

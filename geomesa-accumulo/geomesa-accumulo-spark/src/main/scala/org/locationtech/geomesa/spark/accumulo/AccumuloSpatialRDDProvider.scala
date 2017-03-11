@@ -26,7 +26,8 @@ import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, EmptyPlan}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
-import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
+import org.locationtech.geomesa.jobs.mapreduce._
+import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.geomesa.spark.SpatialRDDProvider
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -41,13 +42,15 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
     AccumuloDataStoreFactory.canProcess(params)
 
-  def rdd(conf: Configuration,
-          sc: SparkContext,
-          dsParams: Map[String, String],
-          query: Query): RDD[SimpleFeature] = {
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-    val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
-    val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
+  override def rdd(conf: Configuration,
+                   sc: SparkContext,
+                   params: Map[String, String],
+                   query: Query): SpatialRDD = {
+    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+    val username = AccumuloDataStoreParams.userParam.lookUp(params).toString
+    val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(params).toString.getBytes)
+
+    lazy val transform = query.getHints.getTransformSchema
 
     def queryPlanToRDD(sft: SimpleFeatureType, qp: AccumuloQueryPlan, conf: Configuration) = {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
@@ -56,10 +59,8 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
         val instance = ds.connector.getInstance().getInstanceName
         val zookeepers = ds.connector.getInstance().getZooKeepers
 
-        val transform = query.getHints.getTransformSchema
-
         ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, username, password)
-        if (Try(dsParams("useMock").toBoolean).getOrElse(false)){
+        if (Try(params("useMock").toBoolean).getOrElse(false)){
           ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat], conf, instance)
         } else {
           ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, instance, zookeepers)
@@ -77,7 +78,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
         InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setTable(conf, qp.table)
-        GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
+        GeoMesaConfigurator.setDataStoreInParams(conf, params)
         GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
 
         // set the secondary filter if it exists and is  not Filter.INCLUDE
@@ -88,7 +89,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
         transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
         // Configure Auths from DS
-        val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
+        val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(params).asInstanceOf[String])
         auths.foreach { a =>
           val authorizations = new Authorizations(a.split(","): _*)
           InputConfigurator.setScanAuthorizations(classOf[AccumuloInputFormat], conf, authorizations)
@@ -108,10 +109,11 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
       // can return a union of the RDDs because the query planner *should*
       // be rewriting ORs to make them logically disjoint
       // e.g. "A OR B OR C" -> "A OR (B NOT A) OR ((C NOT A) NOT B)"
-      if (qps.length == 1)
-        queryPlanToRDD(sft, qps.head, conf) // no union needed for single query plan
-      else
-        sc.union(qps.map(queryPlanToRDD(sft, _, new Configuration(conf))))
+      val sfrdd = if (qps.length == 1)
+          queryPlanToRDD(sft, qps.head, conf) // no union needed for single query plan
+        else
+          sc.union(qps.map(queryPlanToRDD(sft, _, new Configuration(conf))))
+      SpatialRDD(sfrdd, transform.getOrElse(sft))
     } finally {
       if (ds != null) {
         ds.dispose()
@@ -124,21 +126,21 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
     * The type must exist in the data store, and all of the features in the RDD must be of this type.
     *
     * @param rdd
-    * @param writeDataStoreParams
-    * @param writeTypeName
+    * @param params
+    * @param typeName
     */
-  def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
-    val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
+  def save(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
+    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
     try {
-      require(ds.getSchema(writeTypeName) != null,
+      require(ds.getSchema(typeName) != null,
         "Feature type must exist before calling save.  Call createSchema on the DataStore first.")
     } finally {
       ds.dispose()
     }
 
     rdd.foreachPartition { iter =>
-      val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
-      val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val featureWriter = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
       try {
         iter.foreach { rawFeature =>
           FeatureUtils.copyToWriter(featureWriter, rawFeature, overrideFid = true)

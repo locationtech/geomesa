@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-hbase_2.11</artifactId>
-        <version>1.3.1-SNAPSHOT</version>
+        <version>1.3.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -60,7 +60,7 @@
                         <argument>-classpath</argument>
                         <!-- automatically creates the classpath using all project dependencies,
                              also adding the project build directory -->
-                        <classpath/>
+                        <classpath />
                         <argument>org.locationtech.geomesa.bigtable.tools.BigtableRunner</argument>
                         <argument>help</argument>
                         <argument>--autocomplete-function</argument>

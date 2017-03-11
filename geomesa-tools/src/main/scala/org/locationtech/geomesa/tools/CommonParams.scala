@@ -42,6 +42,21 @@ trait OptionalTypeNameParam extends TypeNameParam {
   var featureName: String = null
 }
 
+trait PasswordParams {
+  @Parameter(names = Array("-p", "--password"), description = "Connection password")
+  var password: String = null
+}
+
+trait RequiredCredentialsParams extends PasswordParams {
+  @Parameter(names = Array("-u", "--user"), description = "Connection user name", required = true)
+  var user: String = null
+}
+
+trait OptionalCredentialsParams extends PasswordParams {
+  @Parameter(names = Array("-u", "--user"), description = "Connection user name")
+  var user: String = null
+}
+
 trait FeatureSpecParam {
   def spec: String
 }

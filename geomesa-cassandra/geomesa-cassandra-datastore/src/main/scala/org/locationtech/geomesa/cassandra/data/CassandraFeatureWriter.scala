@@ -1,5 +1,6 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2017 IBM
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -8,73 +9,48 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import java.nio.ByteBuffer
-import java.util.UUID
-
-import com.datastax.driver.core._
-import org.geotools.data.{FeatureWriter => FW}
-import org.joda.time.DateTime
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.text.WKBUtils
+import com.datastax.driver.core.querybuilder._
+import org.locationtech.geomesa.cassandra._
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
-trait CassandraFeatureWriter extends FW[SimpleFeatureType, SimpleFeature] {
-  import CassandraDataStore._
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+class CassandraAppendFeatureWriter(sft: SimpleFeatureType,
+                                   ds: CassandraDataStore,
+                                   indices: Option[Seq[CassandraFeatureIndexType]])
+      extends CassandraFeatureWriterType(sft, ds, indices) with CassandraAppendFeatureWriterType with CassandraFeatureWriter
 
-  import scala.collection.JavaConversions._
+class CassandraModifyFeatureWriter(sft: SimpleFeatureType,
+                                   ds: CassandraDataStore,
+                                   indices: Option[Seq[CassandraFeatureIndexType]],
+                                   val filter: Filter)
+    extends CassandraFeatureWriterType(sft, ds, indices) with CassandraModifyFeatureWriterType with CassandraFeatureWriter
 
-  def sft: SimpleFeatureType
-  def session: Session
+trait CassandraFeatureWriter extends CassandraFeatureWriterType {
+  private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
-  val cols = sft.getAttributeDescriptors.map { ad => ad.getLocalName }
-  val serializers = sft.getAttributeDescriptors.map { ad => FieldSerializer(ad) }
-  val geomField = sft.getGeomField
-  val geomIdx   = sft.getGeomIndex
-  val dtgField  = sft.getDtgField.get
-  val dtgIdx    = sft.getDtgIndex.get
-  val insert = session.prepare(s"INSERT INTO ${sft.getTypeName} (pkz, z31, fid, ${cols.mkString(",")}) values (${Seq.fill(3+cols.length)("?").mkString(",")})")
+  override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[String] = tables
 
-  private var curFeature: SimpleFeature = new ScalaSimpleFeature(UUID.randomUUID().toString, sft)
-
-  override def next(): SimpleFeature = {
-    curFeature = new ScalaSimpleFeature(UUID.randomUUID().toString, sft)
-    curFeature
+  override protected def executeWrite(table: String, writes: Seq[Seq[RowValue]]): Unit = {
+    writes.foreach { values =>
+      val insert = s"INSERT INTO $table (${values.map(_.column.name).mkString(", ")}) " +
+          s"values (${values.map(_ => "?").mkString(", ")})"
+      ds.session.execute(insert, values.map(_.value): _*)
+    }
   }
 
-  override def remove(): Unit = ???
-
-  override def write(): Unit = {
-    import org.locationtech.geomesa.utils.geotools.Conversions._
-
-    val geom = curFeature.point
-    val geo = ByteBuffer.wrap(WKBUtils.write(geom))
-    val x = geom.getX
-    val y = geom.getY
-    val dtg = new DateTime(curFeature.getAttribute(dtgIdx).asInstanceOf[java.util.Date])
-    val weeks = CassandraPrimaryKey.epochWeeks(dtg)
-
-    val secondsInWeek = CassandraPrimaryKey.secondsInCurrentWeek(dtg)
-    val pk = CassandraPrimaryKey(dtg, x, y)
-    val z3 = CassandraPrimaryKey.SFC3D.index(x, y, secondsInWeek)
-    val z31 = z3.z
-
-    val bindings = Array(Int.box(pk.idx), Long.box(z31): java.lang.Long, curFeature.getID) ++
-      curFeature.getAttributes.zip(serializers).map { case (o, ser) => ser.serialize(o) }
-    session.execute(insert.bind(bindings: _*))
-    curFeature = null
+  override protected def executeRemove(tname: String, removes: Seq[Seq[RowValue]]): Unit = {
+    removes.foreach { values =>
+      val delete = QueryBuilder.delete.all.from(tname)
+      values.foreach { value =>
+        if (value.value != null) {
+          delete.where(QueryBuilder.eq(value.column.name, value.value))
+        }
+      }
+      ds.session.execute(delete)
+    }
   }
 
-  override def getFeatureType: SimpleFeatureType = sft
-
-  override def close(): Unit = {}
-}
-
-class AppendFW(val sft: SimpleFeatureType, val session: Session) extends CassandraFeatureWriter {
-  def hasNext = false
-}
-
-// TODO: need to implement update functionality
-class UpdateFW(val sft: SimpleFeatureType, val session: Session) extends CassandraFeatureWriter {
-  override def hasNext: Boolean = true
+  override def wrapFeature(feature: SimpleFeature): CassandraFeature = new CassandraFeature(feature, serializer)
 }
