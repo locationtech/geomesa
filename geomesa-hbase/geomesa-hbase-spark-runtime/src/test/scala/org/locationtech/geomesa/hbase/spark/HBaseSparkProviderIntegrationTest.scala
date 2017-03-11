@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class HBaseSparkProviderTest extends Specification with LazyLogging {
+class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
 
   // START HBASE INSTANCE MANUALLY
   lazy val sftName: String = "chicago"
