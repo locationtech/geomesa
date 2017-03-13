@@ -34,6 +34,7 @@ class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
   "sql data tests" should {
     sequential
 
+    skipped("integration")
     lazy val dsParams = Map(BigTableNameParam.getName -> "test_sft")
     var dsf = new HBaseDataStoreFactory()
     lazy val ds = dsf.createDataStore(dsParams)
