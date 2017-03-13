@@ -17,8 +17,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
-import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.{SimpleFeature}
+import org.opengis.feature.simple.SimpleFeature
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
@@ -46,9 +45,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
-                        columnFamily: Array[Byte],
-                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature],
-                        reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]])
+                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 
 }
 
@@ -119,7 +116,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, cf, toFeatures, reduce) = scanConfig(sft, filter, hints, ecql, dedupe)
+      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe)
 
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
@@ -170,19 +167,17 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     * @param dedupe scan may have duplicate results or not
     * @return
     */
-
   protected def scanConfig(sft: SimpleFeatureType,
                            filter: HBaseFilterStrategyType,
                            hints: Hints,
                            ecql: Option[Filter],
                            dedupe: Boolean): ScanConfig = {
 
-    import HBaseFeatureIndex.{DataColumnFamily}
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
       val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
-      ScanConfig(Nil, DataColumnFamily, toFeatures, None)
+      ScanConfig(Nil, toFeatures)
 
   }
 }
