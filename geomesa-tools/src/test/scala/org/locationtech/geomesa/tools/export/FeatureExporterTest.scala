@@ -13,15 +13,18 @@ import java.util.Date
 import java.util.zip.Deflater
 
 import org.geotools.data.Query
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
+import org.locationtech.geomesa.tools.export.ExportCommand.ExportAttributes
 import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter, ShapefileExporter}
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -31,7 +34,7 @@ class FeatureExporterTest extends Specification {
 
   sequential
 
-  def getSftAndFeatures(sftName: String, numFeatures: Int = 1) = {
+  def getSftAndFeatures(sftName: String, numFeatures: Int = 1): (SimpleFeatureType, SimpleFeatureCollection) = {
     val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Point:srid=4326,dtg:Date")
 
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
@@ -52,15 +55,29 @@ class FeatureExporterTest extends Specification {
     "should properly export to CSV" >> {
       val query = new Query(sftName, Filter.INCLUDE)
       val writer = new StringWriter()
-      val export = new DelimitedExporter(writer, DataFormats.Csv)
+      val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
       export.export(features)
       export.close()
 
       val result = writer.toString.split("\r\n")
+      result must haveLength(2)
       val (header, data) = (result(0), result(1))
 
       header mustEqual "id,name:String,*geom:Point:srid=4326,dtg:Date"
       data mustEqual "fid-1,myname,POINT (45 49),1970-01-01T00:00:00.000Z"
+    }
+
+    "should properly export to CSV with options" >> {
+      val query = new Query(sftName, Filter.INCLUDE)
+      val writer = new StringWriter()
+      val attributes = Some(ExportAttributes(Seq("name", "dtg"), fid = false))
+      val export = new DelimitedExporter(writer, DataFormats.Csv, attributes, false)
+      export.export(features)
+      export.close()
+
+      val result = writer.toString.split("\r\n")
+      result must haveLength(1)
+      result(0) mustEqual "myname,1970-01-01T00:00:00.000Z"
     }
   }
 
