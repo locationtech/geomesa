@@ -140,7 +140,8 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
   }
 
   def testQuery(ds: HBaseDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
-    val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+    val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+    val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
     val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
@@ -151,6 +152,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
       }
     }
+    ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
   }
 
   step {
