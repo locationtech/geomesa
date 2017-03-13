@@ -119,7 +119,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, cf, toFeatures, reduce) = scanConfig(sft, filter, hints, ecql, dedupe)
+      val ScanConfig(hbaseFilters, cf, toFeatures, reduce) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
 
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
@@ -175,13 +175,15 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                            filter: HBaseFilterStrategyType,
                            hints: Hints,
                            ecql: Option[Filter],
-                           dedupe: Boolean): ScanConfig = {
+                           dedupe: Boolean,
+                           remote: Boolean): ScanConfig = {
 
     import HBaseFeatureIndex.{DataColumnFamily}
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
+      var toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
+      if (remote) {toFeatures = resultsToFeatures(sft, ecql, None)}
       ScanConfig(Nil, DataColumnFamily, toFeatures, None)
 
   }
