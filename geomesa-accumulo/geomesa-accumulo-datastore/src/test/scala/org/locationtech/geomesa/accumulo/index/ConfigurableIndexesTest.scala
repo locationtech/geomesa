@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -108,6 +109,14 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must haveSize(11)
       results.map(_.getID) must containTheSameElementsAs((0 until 11).map(i => s"f-$i"))
+    }
+
+    "throw an exception if the indices are not valid" >> {
+      val schema = "*geom:LineString:srid=4326;geomesa.indices.enabled="
+      forall(Seq("z2", "xz3", "z3", "attr", "xz2,xz3", "foo")) { enabled =>
+        ds.createSchema(SimpleFeatureTypes.createType(sft.getTypeName + "_fail", s"$schema'$enabled'")) must
+          throwAn[IllegalArgumentException]
+      }
     }
   }
 }
