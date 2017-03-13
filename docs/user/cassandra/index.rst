@@ -14,4 +14,5 @@ source distribution.
     install
     usage
     geoserver
+    heatmaps
     runtime_config

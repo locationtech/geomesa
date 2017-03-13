@@ -320,6 +320,13 @@ div.admonition.warning, div.admonition.note {
   color: #bbb;
 }
 
+.rst-content .highlighted{
+  background: #c9781d !important;
+  display:inline-block;
+  font-weight:bold;
+  padding:0 2px !important;
+}
+
 .sphinx-tabs .sphinx-menu {
   background-color: #333;
 }
