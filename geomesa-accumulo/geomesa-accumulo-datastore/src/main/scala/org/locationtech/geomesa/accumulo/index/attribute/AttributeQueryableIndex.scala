@@ -138,6 +138,24 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
           joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
         }
       }
+    } else if (hints.isDensityQuery) {
+      lazy val indexSft = IndexValueEncoder.getIndexSft(sft)
+      if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
+        val iter = KryoLazyDensityIterator.configure(sft, this, filter.secondary, hints, hasDupes)
+        val iters = visibilityIter(sft) :+ iter
+        val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+      } else if (hints.getDensityWeight.forall(indexSft.indexOf(_) != -1) &&
+            filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
+        // check to see if we can execute against the index values
+        val iter = KryoLazyDensityIterator.configure(indexSft, this, filter.secondary, hints, hasDupes)
+        val iters = visibilityIter(indexSft) :+ iter
+        val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+      } else {
+        // have to do a join against the record table
+        joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
+      }
     } else if (hints.isStatsIteratorQuery) {
       val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
@@ -206,6 +224,8 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     }
     val recordIter = if (hints.isStatsIteratorQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
+    } else if (hints.isDensityQuery) {
+      Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else {
       KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
     }
@@ -218,6 +238,8 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     val kvsToFeatures = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
       BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, ds.getFeatureEncoding(sft))
+    } else if (hints.isDensityQuery) {
+      KryoLazyDensityIterator.kvsToFeatures()
     } else if (hints.isStatsIteratorQuery) {
       KryoLazyStatsIterator.kvsToFeatures(sft)
     } else {

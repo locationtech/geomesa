@@ -91,7 +91,7 @@ object Z2DensityIterator {
                 filter: Option[Filter],
                 hints: Hints,
                 priority: Int = KryoLazyDensityIterator.DEFAULT_PRIORITY): IteratorSetting = {
-    val is = KryoLazyDensityIterator.configure(sft, Z2Index, filter, hints, priority)
+    val is = KryoLazyDensityIterator.configure(sft, Z2Index, filter, hints, deduplicate = false, priority)
     is.setIteratorClass(classOf[Z2DensityIterator].getName)
     is.addOption(TableSharingKey, sft.isTableSharing.toString)
     is
