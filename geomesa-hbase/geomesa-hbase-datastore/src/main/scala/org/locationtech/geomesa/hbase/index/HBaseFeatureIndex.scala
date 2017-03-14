@@ -182,8 +182,8 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      var toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
-      if (remote) {toFeatures = resultsToFeatures(sft, ecql, None)}
+      val transform = if (remote) { None } else { hints.getTransform }
+      val toFeatures = resultsToFeatures(sft, ecql, transform)
       ScanConfig(Nil, DataColumnFamily, toFeatures, None)
 
   }
