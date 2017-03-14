@@ -132,9 +132,9 @@ private class JsonPathParser extends Parser {
 
   def Attribute: Rule1[PathAttribute] = rule { "." ~ oneOrMore(Character) ~> PathAttribute ~ !"()" }
 
-  def BracketedAttribute: Rule1[BracketedPathAttribute] = rule { ".['" ~ oneOrMore(CharacterWithSpace) ~> BracketedPathAttribute ~ !"()" ~ "']" }
+  def BracketedAttribute: Rule1[BracketedPathAttribute] = rule { ".['" ~ oneOrMore(CharacterWithDelimiter) ~> BracketedPathAttribute ~ !"()" ~ "']" }
 
-  def BracketedAttribute2: Rule1[BracketedPathAttribute] = rule { ".[" ~ oneOrMore(CharacterWithSpace) ~> BracketedPathAttribute ~ !"()" ~ "]" }
+  def BracketedAttribute2: Rule1[BracketedPathAttribute] = rule { ".[" ~ oneOrMore(CharacterWithDelimiter) ~> BracketedPathAttribute ~ !"()" ~ "]" }
 
   def Function: Rule1[PathFunction] = rule {
     "." ~ ("min" | "max" | "avg" | "length") ~> ((f) => PathFunction(JsonPathFunction.withName(f))) ~ "()"
@@ -144,7 +144,7 @@ private class JsonPathParser extends Parser {
 
   def Character: Rule0 = rule { EscapedChar | NormalChar }
 
-  def CharacterWithSpace: Rule0 = rule { Character | " " }
+  def CharacterWithDelimiter: Rule0 = rule { Character | " " | "." }
 
   def EscapedChar: Rule0 = rule { "\\" ~ (anyOf("\"\\/bfnrt ") | Unicode) }
 
