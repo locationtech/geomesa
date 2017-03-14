@@ -27,17 +27,17 @@ class JsonAttrFunction extends FunctionExpressionImpl(
     // some mojo to ensure our property accessor is picked up -
     // our accumulo iterators are not generally available in the system classloader
     // instead, we can set the context classloader (as that will be checked if set)
-//    val contextClassLoader = Thread.currentThread.getContextClassLoader
-//    if (contextClassLoader != null) {
-//      logger.warn(s"Bypassing context classloader $contextClassLoader for PropertyAccessor loading")
-//    }
-//    Thread.currentThread.setContextClassLoader(classOf[JsonAttrFunction].getClassLoader)
+    val contextClassLoader = Thread.currentThread.getContextClassLoader
+    if (contextClassLoader != null) {
+      logger.warn(s"Bypassing context classloader $contextClassLoader for PropertyAccessor loading")
+    }
+    Thread.currentThread.setContextClassLoader(classOf[JsonAttrFunction].getClassLoader)
     val accessor = try {
       import scala.collection.JavaConversions._
       PropertyAccessors.findPropertyAccessors(sf, path, null, null).find(_.canHandle(sf, path, classOf[AnyRef]))
     } finally {
       // reset the classloader after loading the accessors
-//      Thread.currentThread.setContextClassLoader(contextClassLoader)
+      Thread.currentThread.setContextClassLoader(contextClassLoader)
     }
     accessor match {
       case Some(a) => a.get(sf, path, classOf[AnyRef])

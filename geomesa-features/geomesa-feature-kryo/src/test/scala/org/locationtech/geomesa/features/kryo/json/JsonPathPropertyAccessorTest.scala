@@ -101,21 +101,6 @@ class JsonPathPropertyAccessorTest extends Specification {
       expression.evaluate(sf) must beFalse
     }
 
-    "accept json path with spaces in ECQL" in {
-      val expression = ECQL.toFilter("""jsonattr('$.json.[foo path]') = 'bar'""")
-
-//      val path = ff.property("$.json.['foo path']")
-//      val expression = ff.equals(path, ff.literal("bar"))
-
-      val sf = new ScalaSimpleFeature("", sft)
-      sf.setAttribute(0, """{ "foo path" : "bar" }""")
-      expression.evaluate(sf) must beTrue
-      sf.setAttribute(0, """{ "foo path" : "baz" }""")
-      expression.evaluate(sf) must beFalse
-    }
-
-
-
     "return null for invalid paths" in {
       val sf0 = {
         val sf = new ScalaSimpleFeature("", sft)
