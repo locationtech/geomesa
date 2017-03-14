@@ -178,6 +178,18 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
         // have to do a join against the record table
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
       }
+    } else if (hints.isDensityQuery) {
+      // check to see if we can execute against the index values
+      if (hints.getDensityWeight.forall(indexSft.indexOf(_) != -1) &&
+          filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
+        val iter = KryoLazyDensityIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
+        val iters = visibilityIter(indexSft) :+ iter
+        val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
+        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, hasDuplicates = false)
+      } else {
+        // have to do a join against the record table
+        joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
+      }
     } else if (hints.isStatsIteratorQuery) {
       // check to see if we can execute against the index values
       if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
@@ -243,6 +255,8 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
     }
     val recordIter = if (hints.isStatsIteratorQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
+    } else if (hints.isDensityQuery) {
+      Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else {
       KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
     }
@@ -257,6 +271,8 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
     } else if (hints.isStatsIteratorQuery) {
       (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_)))
+    } else if (hints.isDensityQuery) {
+      (KryoLazyDensityIterator.kvsToFeatures(), None)
     } else {
       (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
     }
