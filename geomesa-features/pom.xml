@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>geomesa-feature-arrow</module>
         <module>geomesa-feature-avro</module>
         <module>geomesa-feature-kryo</module>
         <module>geomesa-feature-nio</module>
