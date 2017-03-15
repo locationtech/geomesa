@@ -13,6 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Mutation, Range}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
@@ -180,10 +181,33 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       }
     } else if (hints.isDensityQuery) {
       // check to see if we can execute against the index values
-      if (hints.getDensityWeight.forall(indexSft.indexOf(_) != -1) &&
-          filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
-        val iter = KryoLazyDensityIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
-        val iters = visibilityIter(indexSft) :+ iter
+      val weightIsAttribute = hints.getDensityWeight.exists(_ == attribute)
+      if (filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _)) &&
+          (weightIsAttribute || hints.getDensityWeight.forall(indexSft.indexOf(_) != -1))) {
+        val visIter = visibilityIter(indexSft)
+        val iters = if (weightIsAttribute) {
+          // create a transform sft with the attribute added
+          val transform = {
+            val builder = new SimpleFeatureTypeBuilder()
+            builder.setNamespaceURI(null: String)
+            builder.setName(indexSft.getTypeName + "--attr")
+            builder.setAttributes(indexSft.getAttributeDescriptors)
+            builder.add(sft.getDescriptor(attribute))
+            if (indexSft.getGeometryDescriptor != null) {
+              builder.setDefaultGeometry(indexSft.getGeometryDescriptor.getLocalName)
+            }
+            builder.setCRS(indexSft.getCoordinateReferenceSystem)
+            val tmp = builder.buildFeatureType()
+            tmp.getUserData.putAll(indexSft.getUserData)
+            tmp
+          }
+          // priority needs to be between vis iter (21) and density iter (25)
+          val keyValueIter = KryoAttributeKeyValueIterator.configure(this, transform, attribute, 23)
+          val densityIter = KryoLazyDensityIterator.configure(transform, this, filter.secondary, hints, dedupe)
+          visIter :+ keyValueIter :+ densityIter
+        } else {
+          visIter :+ KryoLazyDensityIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
+        }
         val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, hasDuplicates = false)
       } else {
