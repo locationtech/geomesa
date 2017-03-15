@@ -278,6 +278,19 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       results must containTheSameElementsAs(Seq((40.025,58.5375,3.0)))
     }
 
+    "support density queries against index values with weight" in {
+      val query = new Query(sftName, ECQL.toFilter("count>=2"))
+      val envelope = new ReferencedEnvelope(30, 60, 30, 60, CRS_EPSG_4326)
+      query.getHints.put(DENSITY_BBOX_KEY, envelope)
+      query.getHints.put(HEIGHT_KEY, 600)
+      query.getHints.put(WIDTH_KEY, 400)
+      query.getHints.put(DENSITY_WEIGHT, "count")
+      forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
+      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val results = runQuery(query).flatMap(decode).toList
+      results must containTheSameElementsAs(Seq((40.025,58.5375,9.0)))
+    }
+
     "support density queries against join attributes" in {
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       val envelope = new ReferencedEnvelope(30, 60, 30, 60, CRS_EPSG_4326)
