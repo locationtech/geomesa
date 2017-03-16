@@ -2451,6 +2451,10 @@
                             <validHeader>build/copyright/ccri-2016.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
+                            <validHeader>build/copyright/dstl-copyright.txt</validHeader>
+                            <validHeader>build/copyright/dstl-copyright-2017.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-copyright.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-copyright-2017.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>2017</year>
@@ -2469,12 +2473,6 @@
                             <include>src/test/java/**</include>
                             <include>src/test/scala/**</include>
                         </includes>
-                        <validHeaders>
-                            <validHeader>build/dstl-copyright.txt</validHeader>
-                            <validHeader>build/dstl-copyright-2017.txt</validHeader>
-                            <validHeader>build/ccri-dstl-copyright.txt</validHeader>
-                            <validHeader>build/ccri-dstl-copyright-2017.txt</validHeader>
-                        </validHeaders>
                     </configuration>
                 </plugin>
                 <plugin>
