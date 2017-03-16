@@ -15,33 +15,35 @@ import org.apache.arrow.vector.complex.writer.Float8Writer;
 
 public class PointWriter implements GeometryWriter<Point> {
 
-  private final NullableMapVector.Mutator mutator;
   private final NullableMapWriter writer;
   private final Float8Writer xWriter;
   private final Float8Writer yWriter;
 
-  public PointWriter(NullableMapVector vector) {
-    this.mutator = vector.getMutator();
-    this.writer = new NullableMapWriter(vector);
+  public PointWriter(NullableMapWriter writer) {
+    this.writer = writer;
     this.xWriter = writer.float8("x");
     this.yWriter = writer.float8("y");
   }
 
   @Override
-  public void set(int i, Point geom) {
-    if (geom == null) {
-      mutator.setNull(i);
-    } else {
-      mutator.setIndexDefined(i);
-      writer.setPosition(i);
+  public void set(Point geom) {
+    if (geom != null) {
+      writer.start();
       xWriter.writeFloat8(geom.getX());
       yWriter.writeFloat8(geom.getY());
+      writer.end();
     }
   }
 
   @Override
+  public void set(int i, Point geom) {
+    writer.setPosition(i);
+    set(geom);
+  }
+
+  @Override
   public void setValueCount(int count) {
-    mutator.setValueCount(count);
+    writer.setValueCount(count);
   }
 
   @Override

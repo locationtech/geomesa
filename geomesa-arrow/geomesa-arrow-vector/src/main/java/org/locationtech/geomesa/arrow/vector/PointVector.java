@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.NullableFloat8Vector;
 import org.apache.arrow.vector.complex.NullableMapVector;
+import org.apache.arrow.vector.complex.impl.NullableMapWriter;
 import org.apache.arrow.vector.types.Types.MinorType;
 import org.locationtech.geomesa.arrow.vector.reader.PointReader;
 import org.locationtech.geomesa.arrow.vector.writer.PointWriter;
@@ -30,7 +31,7 @@ public class PointVector implements GeometryVector<Point> {
     this.vector = vector;
     vector.addOrGet("x", MinorType.FLOAT8, NullableFloat8Vector.class, null);
     vector.addOrGet("y", MinorType.FLOAT8, NullableFloat8Vector.class, null);
-    this.writer = new PointWriter(vector);
+    this.writer = new PointWriter(new NullableMapWriter(vector));
     this.reader = new PointReader(vector);
   }
 

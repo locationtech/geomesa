@@ -6,20 +6,20 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ******************************************************************************/
 
-package org.locationtech.geomesa.features.arrow
+package org.locationtech.geomesa.arrow.io
 
 import java.io.{Closeable, Flushable, OutputStream}
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicLong
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
-import org.apache.arrow.vector.{IntVector, NullableVarCharVector, SmallIntVector, TinyIntVector}
+import org.apache.arrow.vector.NullableVarCharVector
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.complex.impl.ComplexWriterImpl
 import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
 import org.apache.arrow.vector.stream.ArrowStreamWriter
-import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding, Field}
+import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

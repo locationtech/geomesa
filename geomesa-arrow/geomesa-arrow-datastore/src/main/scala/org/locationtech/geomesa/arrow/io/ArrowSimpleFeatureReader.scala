@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ******************************************************************************/
 
-package org.locationtech.geomesa.features.arrow
+package org.locationtech.geomesa.arrow.io
 
 import java.io.{Closeable, InputStream}
 

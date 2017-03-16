@@ -11,6 +11,7 @@ package org.locationtech.geomesa.arrow.vector.writer;
 import com.vividsolutions.jts.geom.Geometry;
 
 public interface GeometryWriter<T extends Geometry> extends AutoCloseable {
+  public void set(T geom);
   public void set(int i, T geom);
   public void setValueCount(int count);
 }
