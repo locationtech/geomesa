@@ -6,27 +6,16 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ******************************************************************************/
 
-package org.locationtech.geomesa.features.arrow
+package org.locationtech.geomesa.arrow.vector.reader;
 
-import java.io.{Closeable, Flushable, OutputStream}
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
 
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+public interface GeometryReader<T extends Geometry> extends AutoCloseable {
 
-class ArrowSimpleFeatureWriter(sft: SimpleFeatureType, os: OutputStream) extends Closeable with Flushable {
+  static final GeometryFactory factory = new GeometryFactory();
 
-  def start(dictionaries: Map[String, Map[Any, Int]] = Map.empty): Unit = {
-
-  }
-
-  def add(feature: SimpleFeature): Unit = {
-
-  }
-
-  override def flush(): Unit = {
-
-  }
-
-  override def close(): Unit = {
-
-  }
+  public T get(int i);
+  public int getValueCount();
+  public int getNullCount();
 }

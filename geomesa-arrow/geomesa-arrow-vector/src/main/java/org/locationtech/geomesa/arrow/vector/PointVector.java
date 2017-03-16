@@ -8,83 +8,51 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.NullableFloat8Vector;
 import org.apache.arrow.vector.complex.NullableMapVector;
-import org.apache.arrow.vector.complex.impl.NullableMapWriter;
-import org.apache.arrow.vector.complex.writer.Float8Writer;
 import org.apache.arrow.vector.types.Types.MinorType;
+import org.locationtech.geomesa.arrow.vector.reader.PointReader;
+import org.locationtech.geomesa.arrow.vector.writer.PointWriter;
 
-public class PointVector implements AutoCloseable {
-
-  private static final GeometryFactory factory = new GeometryFactory();
+public class PointVector implements GeometryVector<Point> {
 
   private final NullableMapVector vector;
-  private final NullableMapWriter writer;
-
-  private final NullableFloat8Vector xVector;
-  private final NullableFloat8Vector yVector;
-  private final Float8Writer xWriter;
-  private final Float8Writer yWriter;
-
-  public static PointVector wrap(NullableMapVector vector) {
-    return new PointVector(vector);
-  }
+  private final PointWriter writer;
+  private final PointReader reader;
 
   public PointVector(String name, BufferAllocator allocator) {
     this(new NullableMapVector(name, allocator, null, null));
-    vector.allocateNew();
   }
 
-  private PointVector(NullableMapVector vector) {
+  public PointVector(NullableMapVector vector) {
     this.vector = vector;
-    this.xVector = vector.addOrGet("x", MinorType.FLOAT8, NullableFloat8Vector.class, null);
-    this.yVector = vector.addOrGet("y", MinorType.FLOAT8, NullableFloat8Vector.class, null);
-    this.writer = new NullableMapWriter(vector);
-    this.xWriter = writer.float8("x");
-    this.yWriter = writer.float8("y");
+    vector.addOrGet("x", MinorType.FLOAT8, NullableFloat8Vector.class, null);
+    vector.addOrGet("y", MinorType.FLOAT8, NullableFloat8Vector.class, null);
+    this.writer = new PointWriter(vector);
+    this.reader = new PointReader(vector);
   }
 
-  public void set(int i, Point p) {
-    if (p == null) {
-      vector.getMutator().setNull(i);
-    } else {
-      vector.getMutator().setIndexDefined(i);
-      writer.setPosition(i);
-      xWriter.writeFloat8(p.getX());
-      yWriter.writeFloat8(p.getY());
-    }
+  @Override
+  public PointWriter getWriter() {
+    return writer;
   }
 
-  public Point get(int i) {
-    if (vector.getAccessor().isNull(i)) {
-      return null;
-    } else {
-      double x = xVector.getAccessor().getObject(i);
-      double y = yVector.getAccessor().getObject(i);
-      return factory.createPoint(new Coordinate(x, y));
-    }
+  @Override
+  public PointReader getReader() {
+    return reader;
   }
 
-  public void setValueCount(int count) {
-    vector.getMutator().setValueCount(count);
-  }
-
-  public int getValueCount() {
-    return vector.getAccessor().getValueCount();
-  }
-
-  public FieldVector getVector() {
+  @Override
+  public NullableMapVector getVector() {
     return vector;
   }
 
   @Override
   public void close() throws Exception {
     writer.close();
+    reader.close();
     vector.close();
   }
 }
