@@ -29,41 +29,45 @@ class FastPropertyName(name: String)
   override def getNamespaceContext: NamespaceSupport = null
 
   override def evaluate(obj: AnyRef): AnyRef = {
-    val sf = try {
-      obj.asInstanceOf[SimpleFeature]
-    } catch {
-      case e: Exception => throw new IllegalArgumentException("Only simple features are supported", e)
-    }
-    if (getProperty == null) {
-      val nsIndex = name.indexOf(':')
-      val localName = if (nsIndex == -1) name else name.substring(nsIndex + 1)
-      val index = sf.getFeatureType.indexOf(localName)
-      if (index != -1) {
-        getProperty = (sf) => sf.getAttribute(index)
-      } else {
-        // some mojo to ensure our property accessor is picked up -
-        // our accumulo iterators are not generally available in the system classloader
-        // instead, we can set the context classloader (as that will be checked if set)
-        val contextClassLoader = Thread.currentThread.getContextClassLoader
-        if (contextClassLoader != null) {
-          logger.warn(s"Bypassing context classloader $contextClassLoader for PropertyAccessor loading")
-        }
-        Thread.currentThread.setContextClassLoader(classOf[FastPropertyName].getClassLoader)
-        val accessor = try {
-          import scala.collection.JavaConversions._
-          PropertyAccessors.findPropertyAccessors(sf, name, null, null).find(_.canHandle(sf, name, classOf[AnyRef]))
-        } finally {
-          // reset the classloader after loading the accessors
-          Thread.currentThread.setContextClassLoader(contextClassLoader)
-        }
-        accessor match {
-          case Some(a) => getProperty = (sf) => a.get(sf, name, classOf[AnyRef])
-          case None    => throw new RuntimeException(s"Can't handle property '$name' for feature type " +
+    if (name.startsWith("$.")){ // json path escape
+      name
+    } else {
+      val sf = try {
+        obj.asInstanceOf[SimpleFeature]
+      } catch {
+        case e: Exception => throw new IllegalArgumentException("Only simple features are supported", e)
+      }
+      if (getProperty == null) {
+        val nsIndex = name.indexOf(':')
+        val localName = if (nsIndex == -1) name else name.substring(nsIndex + 1)
+        val index = sf.getFeatureType.indexOf(localName)
+        if (index != -1) {
+          getProperty = (sf) => sf.getAttribute(index)
+        } else {
+          // some mojo to ensure our property accessor is picked up -
+          // our accumulo iterators are not generally available in the system classloader
+          // instead, we can set the context classloader (as that will be checked if set)
+          val contextClassLoader = Thread.currentThread.getContextClassLoader
+          if (contextClassLoader != null) {
+            logger.warn(s"Bypassing context classloader $contextClassLoader for PropertyAccessor loading")
+          }
+          Thread.currentThread.setContextClassLoader(classOf[FastPropertyName].getClassLoader)
+          val accessor = try {
+            import scala.collection.JavaConversions._
+            PropertyAccessors.findPropertyAccessors(sf, name, null, null).find(_.canHandle(sf, name, classOf[AnyRef]))
+          } finally {
+            // reset the classloader after loading the accessors
+            Thread.currentThread.setContextClassLoader(contextClassLoader)
+          }
+          accessor match {
+            case Some(a) => getProperty = (sf) => a.get(sf, name, classOf[AnyRef])
+            case None => throw new RuntimeException(s"Can't handle property '$name' for feature type " +
               s"${sf.getFeatureType.getTypeName} ${SimpleFeatureTypes.encodeType(sf.getFeatureType)}")
+          }
         }
       }
+      getProperty(sf)
     }
-    getProperty(sf)
   }
 
   override def evaluate[T](obj: AnyRef, target: Class[T]): T = Converters.convert(evaluate(obj), target)
