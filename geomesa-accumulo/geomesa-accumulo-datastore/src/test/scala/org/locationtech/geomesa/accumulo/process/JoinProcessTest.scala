@@ -51,7 +51,7 @@ class JoinProcessTest extends Specification with TestWithMultipleSfts {
       val fc2 = ds.getFeatureSource(sft2.getTypeName).getFeatures()
 
       val process = new JoinProcess
-      val results = process.execute(fc1, fc2, "track", null, null, false, null, null, null, null)
+      val results = process.execute(fc1, fc2, "track", null, null, null)
 
       val features = SelfClosingIterator(results).toList
       features must haveLength(10)

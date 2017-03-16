@@ -78,34 +78,6 @@
         <wps:LiteralData>detail.geom</wps:LiteralData>
       </wps:Data>
     </wps:Input>-->
-    <!-- optional BIN parameters -->
-    <!-- note: BIN output requires the geomesa-ext wfs geoserver jar -->
-    <!-- Enable BIN output by setting 'bins' true and setting the ResponseForm mimeType to 'application/vnd.binary-viewer'-->
-    <!-- if not specified, date and trackId will try to use sensible defaults -->
-    <!--<wps:Input>
-      <ows:Identifier>bins</ows:Identifier>
-      <wps:Data>
-        <wps:LiteralData>true</wps:LiteralData>
-      </wps:Data>
-    </wps:Input>
-    <wps:Input>
-      <ows:Identifier>binDtg</ows:Identifier>
-      <wps:Data>
-        <wps:LiteralData>some.qualified.attribute</wps:LiteralData>
-      </wps:Data>
-    </wps:Input>
-    <wps:Input>
-      <ows:Identifier>binTrackId</ows:Identifier>
-      <wps:Data>
-        <wps:LiteralData>some.qualified.attribute</wps:LiteralData>
-      </wps:Data>
-    </wps:Input>
-    <wps:Input>
-      <ows:Identifier>binLabel</ows:Identifier>
-      <wps:Data>
-        <wps:LiteralData>some.qualified.attribute</wps:LiteralData>
-      </wps:Data>
-    </wps:Input>-->
   </wps:DataInputs>
   <wps:ResponseForm>
     <wps:RawDataOutput mimeType="application/json">

@@ -24,15 +24,25 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
 
   import HBaseDataStoreFactory.Params._
 
+  // TODO: investigate multiple HBase connections per jvm
+  private lazy val globalConnection = {
+    val ret = ConnectionFactory.createConnection(HBaseConfiguration.create())
+    Runtime.getRuntime.addShutdownHook(new Thread() {
+      override def run(): Unit = {
+        ret.close()
+      }
+    })
+    ret
+  }
+
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]) = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
     import GeoMesaDataStoreFactory.RichParam
 
-    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse {
-      ConnectionFactory.createConnection(HBaseConfiguration.create())
-    }
+    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
+
     val catalog = BigTableNameParam.lookup[String](params)
 
     val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
@@ -58,7 +68,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
     Array(BigTableNameParam, QueryThreadsParam, QueryTimeoutParam, GenerateStatsParam,
       AuditQueriesParam, LooseBBoxParam, CachingParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]) = params.containsKey(BigTableNameParam.key)
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = HBaseDataStoreFactory.canProcess(params)
 
   override def isAvailable = true
 
@@ -88,4 +98,7 @@ object HBaseDataStoreFactory {
                                   queryTimeout: Option[Long],
                                   looseBBox: Boolean,
                                   caching: Boolean) extends GeoMesaDataStoreConfig
+
+  def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+    params.containsKey(Params.BigTableNameParam.key)
 }

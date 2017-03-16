@@ -6,25 +6,24 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-
 package org.locationtech.geomesa.cassandra.tools
 
 import com.beust.jcommander.Parameters
-import org.locationtech.geomesa.cassandra.data.{CassandraDataStore, CassandraDataStoreParams}
+import org.locationtech.geomesa.cassandra.data.{CassandraDataStore, CassandraDataStoreFactory}
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand}
 
 
 trait CassandraDataStoreCommand extends DataStoreCommand[CassandraDataStore] {
 
-  override val params = new CassandraDataStoreParams
+  override def params: CassandraConnectionParams with CatalogParam
 
-  override def connection: Map[String, String] =
-    Map(
-      CassandraDataStoreParams.CATALOG.getName -> params.catalog,
-      CassandraDataStoreParams.KEYSPACE.getName -> params.keySpace,
-      CassandraDataStoreParams.NAMESPACE.getName -> params.nameSpace,
-      CassandraDataStoreParams.CONTACT_POINT.getName -> params.contactPoint
-      )
+  override def connection: Map[String, String] = Map(
+    CassandraDataStoreFactory.Params.CatalogParam.getName      -> params.catalog,
+    CassandraDataStoreFactory.Params.KeySpaceParam.getName     -> params.keySpace,
+    CassandraDataStoreFactory.Params.ContactPointParam.getName -> params.contactPoint,
+    CassandraDataStoreFactory.Params.UserNameParam.getName     -> params.user,
+    CassandraDataStoreFactory.Params.PasswordParam.getName     -> params.password
+  )
 }
 
 @Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")

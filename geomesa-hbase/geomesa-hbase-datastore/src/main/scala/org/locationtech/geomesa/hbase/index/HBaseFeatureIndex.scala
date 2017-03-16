@@ -15,9 +15,10 @@ import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.index.api.FilterStrategy
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -29,6 +30,11 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
   override val CurrentIndices: Seq[HBaseFeatureIndex] =
     Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex)
+
+  override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[HBaseFeatureIndex] =
+    super.indices(sft, mode).asInstanceOf[Seq[HBaseFeatureIndex]]
+  override def index(identifier: String): HBaseFeatureIndex =
+    super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 
   val DataColumnFamily = Bytes.toBytes("d")
   val DataColumnFamilyDescriptor = new HColumnDescriptor(DataColumnFamily)
@@ -136,7 +142,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
   override protected def rangeExact(row: Array[Byte]): Query =
     new Get(row).addColumn(DataColumnFamily, DataColumnQualifier)
 
-  override protected def rowAndValue(result: Result): RowAndValue = {
+  override def rowAndValue(result: Result): RowAndValue = {
     val cell = result.rawCells()(0)
     RowAndValue(cell.getRowArray, cell.getRowOffset, cell.getRowLength,
       cell.getValueArray, cell.getValueOffset, cell.getValueLength)

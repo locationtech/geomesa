@@ -11,13 +11,13 @@ converting and ingesting data, and much more.
 
 - http://www.geomesa.org/
 
-Contributor License Agreement
+Eclipse Contributor Agreement
 -----------------------------
 
-Before your contribution can be accepted by the project, you need to create and 
-electronically sign the Eclipse Foundation Contributor License Agreement (CLA).
+Before your contribution can be accepted by the project, you need to create an Eclipse Foundation 
+account and electronically sign the Eclipse Contributor Agreement (ECA).
 
-- http://www.eclipse.org/legal/CLA.php
+- http://www.eclipse.org/legal/ECA.php 
 
 Developer Resources
 -------------------

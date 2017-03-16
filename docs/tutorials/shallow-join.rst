@@ -1,5 +1,5 @@
-Aggregating and Visualizing Data
-================================
+GeoMesa Spark: Aggregating and Visualizing Data
+===============================================
 
 This tutorial will show you how to:
 
@@ -57,15 +57,29 @@ You will also need:
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
 -  a `Jupyter Notebook <https://github.com/jupyter/notebook>`__ server with the `Apache Toree <https://toree.incubator.apache.org/>`__ Scala kernel installed
 
+Set Up Tutorial Code
+--------------------
+
+Clone the geomesa-tutorials project, and go into the ``geomesa-examples-spark`` directory:
+
+    $ git clone https://github.com/geomesa/geomesa-tutorials.git
+    $ cd geomesa-tutorials/geomesa-examples-spark
+
+.. note::
+
+    The code in this tutorial is written in `Scala <http://scala-lang.org/>`__.
 
 Create RDDs
 -----------
+
+The code described below is found in the ``com.example.geomesa.spark.ShallowJoin`` class
+in the ``src/main/scala`` directory.
 
 First, set up the parameters and initialize each of the desired data stores.
 
 .. code-block:: scala
 
-    val gdeltParams = Map(
+    val gdeltDsParams = Map(
       "instanceId" -> "instance",
       "zookeepers" -> "zoo1,zoo2,zoo3",
       "user"       -> "user",
@@ -73,7 +87,7 @@ First, set up the parameters and initialize each of the desired data stores.
       "auths"      -> "USER,ADMIN",
       "tableName"  -> "geomesa_catalog")
 
-    val countriesParams = Map(
+    val countriesDsParams = Map(
       "instanceId" -> "instance",
       "zookeepers" -> "zoo1,zoo2,zoo3",
       "user"       -> "user",
@@ -81,25 +95,27 @@ First, set up the parameters and initialize each of the desired data stores.
       "auths"      -> "USER,ADMIN",
       "tableName"  -> "countries_catalog")
 
-    val gdeltDs = DataStoreFinder.getDataStore(gdeltParams)
-    val countriesDs = DataStoreFinder.getDataStore(countriesParams)
+    val gdeltDs = DataStoreFinder.getDataStore(gdeltDsParams)
+    val countriesDs = DataStoreFinder.getDataStore(countriesDsParams)
 
 
-Next, initialize a Spark context from the Simple Feature Types of the data stores.
+Next, initialize a ``SparkContext`` and get the ``SpatialRDDProvider`` for
+each data store:
 
 .. code-block:: scala
 
-    val types = gdeltDs.getTypeNames.map(ds.getSchema) ++ countriesDs.getTypeNames.map(ds.getSchema)
-    val sc = new SparkContext(GeoMesaSpark.init(new SparkConf(true), types)
+    val conf = new SparkConf().setAppName("testSpark")
+    val sc = SparkContext.getOrCreate(conf)
 
+    val rddProviderCountries = GeoMesaSpark(countriesDsParams)
+    val rddProviderGdelt     = GeoMesaSpark(gdeltDsParams)
 
 Now we can initialize RDDs for each of the two sources.
 
 .. code-block:: scala
 
-    val gdeltRDD = GeoMesaSpark.rdd(new Configuration, sc, gdeltParams, Query("gdelt"), None)
-    val countriesRDD = GeoMesaSpark.rdd(new Configuration, sc, countriesParams, Query("countries"), None)
-
+    val countriesRdd: RDD[SimpleFeature] = rddProviderCountries.rdd(new Configuration(), sc, countriesDsParams, new Query("states"))
+    val gdeltRdd: RDD[SimpleFeature] = rddProviderGdelt.rdd(new Configuration(), sc, gdeltDsParams, new Query("gdelt"))
 
 Grouping by polygons
 --------------------
@@ -306,8 +322,8 @@ At this point, we have created a new Simple Feature Type representing aggregated
 this type. The above code can all be compiled and submitted as a Spark job, but if placed into a Jupyter Notebook, the
 RDD can be kept in memory and even quickly tweaked while continuously updating visualizations.
 
-With a Jupyter notebook server running with the Apache Toree kernel, create a notebook with the above code. The next
-section highlights how to create visualizations with the aggregated data.
+With a Jupyter notebook server running with the Apache Toree kernel (see :doc:`/user/spark/jupyter`), create a notebook
+with the above code. The next section highlights how to create visualizations with the aggregated data.
 
 While there are many ways to visualize data from an RDD, here we choose to demonstrate the use of Leaflet, a JavaScript
 library for creating interactive maps, for easy integration of the map image with Jupyter Notebook. To use, either

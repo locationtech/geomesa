@@ -136,4 +136,35 @@ object ClassPathUtils extends LazyLogging {
   def cleanClassPathURL(url: String): String =
     URLDecoder.decode(url, "UTF-8").replace("file:", "").replace("!", "")
 
+  /**
+    * <p>Load files (jars, resources, configuration, etc) from a classpath defined by an environmental
+    * variable following these rules:
+    * <ul>
+    *   <li>Entries are colon (:) separated</li>
+    *   <li>If the entry ends with "&#47;*", treat it as a directory, and list jars in that
+    *   directory...no recursion</li>
+    *   <li>If the entry is a file then add it</li>
+    *   <li>If the entry is a directory list all files (jars and files) in the directory</li>
+    * </ul>
+    * </p>
+    *
+    * @param prop - environmental variable
+    * @return a list of files found in the classpath
+    */
+  def loadClassPathFromEnv(prop: String): Seq[File] = {
+    val files = sys.env.get(prop).toSeq.flatMap(_.split(':').toSeq).flatMap { entry =>
+      if (entry.endsWith("/*")) {
+        new File(entry.dropRight(2)).listFiles(jarFileFilter)
+      } else {
+        val f = new File(entry)
+        if (f.isDirectory) {
+          Option(f.listFiles).toSeq.flatten
+        } else {
+          Seq(f)
+        }
+      }
+    }
+    logger.debug(s"Loaded env classpath '$prop': ${files.map(_.getAbsolutePath).mkString(":")}")
+    files
+  }
 }

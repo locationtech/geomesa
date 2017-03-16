@@ -27,7 +27,7 @@ function help() {
   echo "  -t    Login using an existing Kerberos token, else will prompt for password"
   echo "  -g    Path of the GeoMesa distributed runtime JAR, with or without raster support."
   echo "  -d    Directory to create namespace in, default: /accumulo/classpath"
-  echo "  -h    HDFS URI e.g. hdfs://localhost:54310"
+  echo "  -h    HDFS URI e.g. hdfs://localhost:9000"
   echo ""
   exit 0
 }

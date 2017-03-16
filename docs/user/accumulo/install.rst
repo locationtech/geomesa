@@ -174,9 +174,14 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
     ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
     appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
     installing the tools on the Accumulo master server, as you may also need various configuration
-    files from Hadoop/Accumulo in order to run certain commands. In addition ``geomesa`` will pull any
-    additional jars from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable into the class path.
-    Use the ``geomesa classpath`` command in order to see what JARs are being used.
+    files from Hadoop/Accumulo in order to run certain commands.
+
+    GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
+    ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
+    classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
+    files using a colon (``:``) as a delimiter. These entries will also be added the the mapreduce libjars variable.
+    Use the ``geomesa classpath`` command to print the final classpath that will be used when executing geomesa
+    commands.
 
     If you are running the tools on a system without
     Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script

@@ -155,9 +155,11 @@ class GeoMesaFeatureCollection(private [geotools] val source: GeoMesaFeatureSour
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] =
     source.ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
 
-  override def getCount = source.getCount(query)
+  override def getBounds: ReferencedEnvelope = source.getBounds(query)
 
-  override def getBounds = source.getBounds(query)
+  override def getCount: Int = source.getCount(query)
+
+  override def size: Int = getCount
 }
 
 object GeoMesaFeatureCollection {

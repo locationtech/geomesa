@@ -35,9 +35,9 @@ trait MaxFeaturesParam {
 trait DataExportParams extends OptionalCqlFilterParam with MaxFeaturesParam {
   @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
     "(comma-separated)...Comma-separated expressions with each in the format " +
-    "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
-    "filter_function_expression is an expression of filter function applied to attributes, literals " +
-    "and filter functions, i.e. can be nested")
+    "attribute[=filter_function_expression]|derived-attribute=filter_function_expression|'id'. " +
+    "'id' will export the feature ID, filter_function_expression is an expression of filter function applied " +
+      "to attributes, literals and filter functions, i.e. can be nested")
   var attributes: java.util.List[String] = null
 }
 

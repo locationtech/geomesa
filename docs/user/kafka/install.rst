@@ -92,8 +92,8 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_KAFKA_HOM
 
 .. note::
 
-    ``geomesa-kafka`` will read the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable to load any
-    additional jars into the classpath. Use the ``geomesa-kafka classpath`` command in order to see what
+    ``geomesa-kafka`` will read the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable to include any
+    additional jars or directories in the classpath. Use the ``geomesa-kafka classpath`` command in order to see what
     JARs are being used.
 
 Test the command that invokes the GeoMesa Tools:

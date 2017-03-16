@@ -84,7 +84,6 @@ trait Runner extends LazyLogging {
       case None => usage(jc)
       case Some(command) =>
         val out = new java.lang.StringBuilder()
-//        out.append(s"Usage: ${Runner.this.name} $name [command options]\n")
         command.usage(out)
         out.toString
     }

@@ -42,6 +42,24 @@ trait OptionalTypeNameParam extends TypeNameParam {
   var featureName: String = null
 }
 
+trait PasswordParams {
+  @Parameter(names = Array("-p", "--password"), description = "Connection password (will prompt if not supplied and not using Kerberos)")
+  var password: String = null
+
+  @Parameter(names = Array("--keytab"), description = "Path to Kerberos keytab file")
+  var keytab: String = null
+}
+
+trait RequiredCredentialsParams extends PasswordParams {
+  @Parameter(names = Array("-u", "--user"), description = "Connection user name", required = true)
+  var user: String = null
+}
+
+trait OptionalCredentialsParams extends PasswordParams {
+  @Parameter(names = Array("-u", "--user"), description = "Connection user name")
+  var user: String = null
+}
+
 trait FeatureSpecParam {
   def spec: String
 }

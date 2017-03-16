@@ -178,7 +178,6 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
       // update the filter to remove namespaces, handle null property names, and tweak topological filters
       query.setFilter(query.getFilter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }
-    query
 
     // set transformations in the query
     QueryPlanner.setQueryTransforms(query, sft)
