@@ -21,6 +21,7 @@
     <modules>
         <module>geomesa-accumulo</module>
         <module>geomesa-archetypes</module>
+        <module>geomesa-arrow</module>
         <module>geomesa-blobstore</module>
         <module>geomesa-cassandra</module>
         <module>geomesa-convert</module>
