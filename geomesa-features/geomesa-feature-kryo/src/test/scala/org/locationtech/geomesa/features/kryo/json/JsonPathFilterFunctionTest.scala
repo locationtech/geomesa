@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features.kryo.json
 
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -18,7 +16,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JsonAttrFunctionTest extends Specification {
+class JsonPathFilterFunctionTest extends Specification {
 
   val json =
     """
@@ -49,51 +47,51 @@ class JsonAttrFunctionTest extends Specification {
 
   "Json Attr Function" should {
     "extract root attribute from json" in {
-      ECQL.toFilter("jsonattr('$.json.foo') = 'bar'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.foo') = 'bar'").evaluate(sf) must beTrue
     }
 
     "extract root attribute with period from json" in {
-      ECQL.toFilter("jsonattr('$.json.[foo.foo]') = 'bar'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[foo.foo]') = 'bar'").evaluate(sf) must beTrue
     }
 
     "extract root attribute with space from json" in {
-      ECQL.toFilter("jsonattr('$.json.[foo foo]') = 'bar'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[foo foo]') = 'bar'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json" in {
-      ECQL.toFilter("jsonattr('$.json.bar.boo') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.bar.boo') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with period in sub attribute name" in {
-      ECQL.toFilter("jsonattr('$.json.bar.[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.bar.[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with space in sub attribute name" in {
-      ECQL.toFilter("jsonattr('$.json.bar.[boo boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.bar.[boo boo]') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with period in attribute name" in {
-      ECQL.toFilter("jsonattr('$.json.[bar.bar].boo') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[bar.bar].boo') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with period in attribute and sub attribute name" in {
-      ECQL.toFilter("jsonattr('$.json.[bar.bar].[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[bar.bar].[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with period in attribute and space in sub attribute name" in {
-      ECQL.toFilter("jsonattr('$.json.[bar.bar].[boo boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[bar.bar].[boo boo]') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with space in attribute name" in {
-      ECQL.toFilter("jsonattr('$.json.[bar bar].boo') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[bar bar].boo') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with space in attribute and period in sub attribute name" in {
-      ECQL.toFilter("jsonattr('$.json.[bar bar].[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[bar bar].[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with space in attribute and space in sub attribute name" in {
-      ECQL.toFilter("jsonattr('$.json.[bar bar].[boo boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[bar bar].[boo boo]') = 'hiss'").evaluate(sf) must beTrue
     }
   }
 }

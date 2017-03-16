@@ -173,7 +173,7 @@ object KryoJsonSerialization extends LazyLogging {
       while (paths.hasNext && matches.nonEmpty) {
         paths.next match {
           case PathAttribute(name: String)    => matches = matchPathAttribute(in, matches, Some(name))
-          case BracketedPathAttribute(name: String) => matches = matchPathAttribute(in ,matches, Some(name))
+          case BracketedPathAttribute(name: String) => matches = matchPathAttribute(in, matches, Some(name))
           case PathAttributeWildCard          => matches = matchPathAttribute(in, matches, None)
           case PathIndex(index: Int)          => matches = matchPathIndex(in, matches, Some(Seq(index)))
           case PathIndices(indices: Seq[Int]) => matches = matchPathIndex(in, matches, Some(indices))
