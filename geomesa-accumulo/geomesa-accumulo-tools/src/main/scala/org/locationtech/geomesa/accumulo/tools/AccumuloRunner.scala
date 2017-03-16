@@ -89,8 +89,6 @@ object AccumuloRunner extends Runner {
 
     val params = Option(command.params)
 
-    // TODO: handle OptionalCredentialsParams
-
     // Error if both password and keytab supplied
     params.collect {
       case p: RequiredCredentialsParams if (p.password != null && p.keytab != null)
@@ -101,14 +99,6 @@ object AccumuloRunner extends Runner {
     params.collect {
       case p: RequiredCredentialsParams if (p.password == null && p.keytab == null) => p
     }.foreach(_.password = Prompt.readPassword())
-
-    // Error if both password and keytab specified
-
-
-//    params.collect {
-   //   case p: RequiredCredentialsParams if p.password == null => p
-   //   case p: OptionalCredentialsParams if p.password == null && p.user != null => p
-    //}.foreach(_.password = Prompt.readPassword())
 
     params.collect { case p: InstanceNameParams => p }.foreach { p =>
 

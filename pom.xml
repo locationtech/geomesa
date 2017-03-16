@@ -2277,7 +2277,6 @@
                             <include>**/*Test.java</include>
                         </includes>
                         <argLine>${maven.test.jvmargs}</argLine>
-
                     </configuration>
                 </plugin>
                 <plugin>
@@ -2339,6 +2338,12 @@
                             <include>src/test/java/**</include>
                             <include>src/test/scala/**</include>
                         </includes>
+                        <validHeaders>
+                            <validHeader>build/dstl-copyright.txt</validHeader>
+                            <validHeader>build/dstl-copyright-2017.txt</validHeader>
+                            <validHeader>build/ccri-dstl-copyright.txt</validHeader>
+                            <validHeader>build/ccri-dstl-copyright-2017.txt</validHeader>
+                        </validHeaders>
                     </configuration>
                 </plugin>
                 <plugin>

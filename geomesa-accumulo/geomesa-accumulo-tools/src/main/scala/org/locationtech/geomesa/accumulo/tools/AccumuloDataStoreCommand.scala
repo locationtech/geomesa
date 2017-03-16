@@ -39,7 +39,8 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
     if (parsedParams.get(AccumuloDataStoreParams.mockParam.getName).exists(_.toBoolean)) {
       val ret = mockDefaults ++ parsedParams // anything passed in will override defaults
       // MockAccumulo sets the root password to blank so we must use it if user is root, providing not using keytab instead
-      if (ret(AccumuloDataStoreParams.userParam.getName) == "root" && !(ret contains AccumuloDataStoreParams.keytabPathParam.getName)) {
+      if (ret(AccumuloDataStoreParams.userParam.getName) == "root" &&
+        !(ret contains AccumuloDataStoreParams.keytabPathParam.getName)) {
         ret.updated(AccumuloDataStoreParams.passwordParam.getName, "")
       } else {
         ret

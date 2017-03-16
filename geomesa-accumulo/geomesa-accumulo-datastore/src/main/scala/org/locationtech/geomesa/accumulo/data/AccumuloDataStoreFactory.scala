@@ -11,15 +11,15 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.io.Serializable
-import java.lang.reflect.InvocationTargetException
 import java.util.{Collections, Map => JMap}
 
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
-import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
+import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
+import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
@@ -94,27 +94,20 @@ object AccumuloDataStoreFactory {
     val password = passwordParam.lookup[String](params)
     val keytabPath = keytabPathParam.lookup[String](params)
 
-    var usingKerberos = false
-
-    // Build authenticaton token according to how we are authenticating
-    val authToken : AuthenticationToken = if (password != null ) {
+    // Build authentication token according to how we are authenticating
+    val authToken : AuthenticationToken = if (password != null && keytabPath == null) {
       new PasswordToken(password.getBytes("UTF-8"))
-    } else if (keytabPath != null && !useMock) {
-      usingKerberos = true
-      // Get ctor for principal, keytab path and replace current user
-      val ctor = Class.forName("org.apache.accumulo.core.client.security.tokens.KerberosToken")
-        .getConstructor(classOf[String], classOf[java.io.File], classOf[Boolean])
-      try {
-        (ctor.newInstance(user, new java.io.File(keytabPath), java.lang.Boolean.TRUE)).asInstanceOf[AuthenticationToken]
-      } catch {
-        // Remove reflection exception wrapper
-        case ite: InvocationTargetException => throw ite.getCause
+    } else if (password == null && keytabPath != null) {
+      if(!useMock) {
+        // This API is only in Accumulo >=1.7, but canProcess should ensure this isn't actually invoked on earlier
+        new KerberosToken(user, new java.io.File(keytabPath), true)
+      } else {
+        // Mock doesn't support Kerberos, so give it a pretend PasswordTOken
+        new PasswordToken("".getBytes("UTF-8"))
       }
     } else {
-      // Will get here only if using mock kerberos thanks to parameter validation.
-      // MockInstance doesn't seem to support Kerberos, so make up a password
-      // Blank password is for the root user
-      new PasswordToken("".getBytes("UTF-8"))
+      // Should never reach here thanks to canProcess
+      throw new IllegalArgumentException("Neither or both of password & keytabPath are set")
     }
 
     if (useMock) {
@@ -132,14 +125,13 @@ object AccumuloDataStoreFactory {
         new ClientConfiguration().withInstance(instance).withZkHosts(zookeepers)
       }
 
-      if (usingKerberos) {
-        // Use reflection to enable SASL. This shouldn't be required if Accumulo client.conf is set appropriately,
-        // but it doesn't seem to work for me
-        val conf = new org.apache.accumulo.core.client.ClientConfiguration()
-        val withSasl = conf.getClass().getMethod("withSasl", classOf[Boolean])
-        new ZooKeeperInstance(withSasl.invoke(clientConfiguration, java.lang.Boolean.TRUE).asInstanceOf[ClientConfiguration]).getConnector(user, authToken)
-      } else {
+      if (authToken.isInstanceOf[PasswordToken]) {
+        // Using password authentication
         new ZooKeeperInstance(clientConfiguration).getConnector(user, authToken)
+      } else {
+        // Otherwise must be using Kerberos authentication, in which case we explicitly enable SASL.
+        // This shouldn't be required if Accumulo client.conf is set appropriately, but it doesn't seem to work.
+        new ZooKeeperInstance(clientConfiguration.withSasl((true))).getConnector(user, authToken)
       }
     }
   }
@@ -218,33 +210,26 @@ object AccumuloDataStoreFactory {
   }
 
   // Kerberos is only available in Accumulo >= 1.7.
-  // Probe for whether part of the API is available
   // Note: doesn't confirm whether correctly configured for Kerberos e.g. core-site.xml on CLASSPATH
   def isKerberosAvailable() = {
-    try {
-      val conf = new org.apache.accumulo.core.client.ClientConfiguration()
-      val withSasl = conf.getClass().getMethod("withSasl", classOf[Boolean])
-      true
-    }
-    catch {
-      case nsme: NoSuchMethodException => false
-    }
+    AccumuloVersion.accumuloVersion != AccumuloVersion.V15 && AccumuloVersion.accumuloVersion != AccumuloVersion.V16
   }
 
   def canProcess(params: JMap[String,Serializable]): Boolean = {
 
-    val instanceIdOrConnection = params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
-
-    // Is valid password set?
+    // Determine which parameters are set. Those which are required according to the parameter definition will throw an
+    // exception on lookup, so need the extra containsKey check.
+    val hasConnection = connParam.lookup[String](params) != null
+    val hasInstanceId = params.containsKey(instanceIdParam.key) && instanceIdParam.lookup[String](params) != null
+    val hasZookeepers = params.containsKey(zookeepersParam.key) && zookeepersParam.lookup[String](params) != null
+    val hasUser = params.containsKey(userParam.key) && userParam.lookup[String](params) != null
     val hasPassword = params.containsKey(passwordParam.key) && passwordParam.lookup[String](params) != null
-
-    // Is valid keytabPath set?
     val hasKeytabPath = params.containsKey(keytabPathParam.key) && keytabPathParam.lookup[String](params) != null
 
-    instanceIdOrConnection && (
-        (!hasPassword && !hasKeytabPath) || // neither set - included for backwards compatibility, if connector provided
-        (hasPassword && !hasKeytabPath) ||  // only password set, all ok
-        ((!hasPassword && hasKeytabPath) && isKerberosAvailable())) // if keytab set, Kerberos must be available
+    val passwordAuth = hasInstanceId && hasZookeepers && hasUser && hasPassword && !hasKeytabPath
+    val kerberosAuth = hasInstanceId && hasZookeepers && hasUser && !hasPassword && hasKeytabPath && isKerberosAvailable()
+
+    hasConnection || passwordAuth || kerberosAuth
   }
 }
 

@@ -145,12 +145,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.kerby</groupId>
-            <artifactId>kerb-simplekdc</artifactId>
-            <version>1.0.0-RC2</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
