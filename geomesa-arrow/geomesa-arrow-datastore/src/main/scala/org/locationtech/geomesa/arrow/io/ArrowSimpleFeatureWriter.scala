@@ -28,57 +28,57 @@ class ArrowSimpleFeatureWriter(os: OutputStream, sft: SimpleFeatureType, diction
 
   import scala.collection.JavaConversions._
 
-  dictionaryValues.keys.foreach { attribute =>
-    if (sft.getDescriptor(attribute).getType.getBinding != classOf[String]) {
-      throw new NotImplementedError("Dictionaries only supported for string types")
-    }
-  }
-
-  private val allocator = new RootAllocator(Long.MaxValue)
-  private val dictionaries = dictionaryValues.mapValues(ArrowSimpleFeatureWriter.createDictionary(_, allocator))
-
-  private val root = {
-    val vector = new NullableMapVector("features", allocator, null, null)
-    sft.getAttributeDescriptors.foreach { d =>
-      val dictionary = dictionaries.get(d.getLocalName).map(_.getEncoding).orNull
-
-      vector.addOrGet(d.getLocalName, dictionary)
-    }
-
-    vector.allocateNew()
-
-    val writer = new ComplexWriterImpl("attributes", vector)
-    val rootWriter = writer.rootAsMap()
-
-    val idWriter = ArrowAttributeWriter("id", Seq(ObjectType.STRING), rootWriter, allocator)
-    val attributeWriters = sft.getAttributeDescriptors.map(ad => ArrowAttributeWriter(ad, rootWriter, allocator)).toArray
-
-
-  }
-  private val provider = new MapDictionaryProvider()
-  private val writer = new ArrowStreamWriter(root, provider, os)
-
-  def start(): Unit = {
-
-  }
-
-  def add(feature: SimpleFeature): Unit = {
-
-    var i = 0
-    features.foreach { feature =>
-      idWriter(i, feature.getID)
-      var j = 0
-      while (j < attributeWriters.length) {
-        val attribute = feature.getAttribute(j)
-        if (attribute != null) {
-          attributeWriters(j).apply(i, attribute)
-        }
-        j += 1
-      }
-      i += 1
-    }
-    writer.setValueCount(i)
-  }
+//  dictionaryValues.keys.foreach { attribute =>
+//    if (sft.getDescriptor(attribute).getType.getBinding != classOf[String]) {
+//      throw new NotImplementedError("Dictionaries only supported for string types")
+//    }
+//  }
+//
+//  private val allocator = new RootAllocator(Long.MaxValue)
+//  private val dictionaries = dictionaryValues.mapValues(ArrowSimpleFeatureWriter.createDictionary(_, allocator))
+//
+//  private val root = {
+//    val vector = new NullableMapVector("features", allocator, null, null)
+//    sft.getAttributeDescriptors.foreach { d =>
+//      val dictionary = dictionaries.get(d.getLocalName).map(_.getEncoding).orNull
+//
+//      vector.addOrGet(d.getLocalName, dictionary)
+//    }
+//
+//    vector.allocateNew()
+//
+//    val writer = new ComplexWriterImpl("attributes", vector)
+//    val rootWriter = writer.rootAsMap()
+//
+//    val idWriter = ArrowAttributeWriter("id", Seq(ObjectType.STRING), rootWriter, allocator)
+//    val attributeWriters = sft.getAttributeDescriptors.map(ad => ArrowAttributeWriter(ad, rootWriter, allocator)).toArray
+//
+//
+//  }
+//  private val provider = new MapDictionaryProvider()
+//  private val writer = new ArrowStreamWriter(root, provider, os)
+//
+//  def start(): Unit = {
+//
+//  }
+//
+//  def add(feature: SimpleFeature): Unit = {
+//
+//    var i = 0
+//    features.foreach { feature =>
+//      idWriter(i, feature.getID)
+//      var j = 0
+//      while (j < attributeWriters.length) {
+//        val attribute = feature.getAttribute(j)
+//        if (attribute != null) {
+//          attributeWriters(j).apply(i, attribute)
+//        }
+//        j += 1
+//      }
+//      i += 1
+//    }
+//    writer.setValueCount(i)
+//  }
 
   override def flush(): Unit = {
 

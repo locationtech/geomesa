@@ -8,32 +8,40 @@
 
 package org.locationtech.geomesa.arrow.vector
 
+import java.io.Closeable
+
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
-import org.apache.arrow.vector.complex.impl.{ComplexWriterImpl, NullableMapWriter}
-import org.locationtech.geomesa.arrow.feature.ArrowAttributeWriter
+import org.apache.arrow.vector.complex.impl.NullableMapWriter
+import org.locationtech.geomesa.arrow.feature.{ArrowAttributeReader, ArrowAttributeWriter}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class SimpleFeatureVector(sft: SimpleFeatureType, allocator: BufferAllocator) {
+class SimpleFeatureVector(val sft: SimpleFeatureType, allocator: BufferAllocator) extends Closeable {
 
   import scala.collection.JavaConversions._
 
-  private val vector = new NullableMapVector("features", allocator, null, null)
+  // TODO user data
+
+  val vector = new NullableMapVector("features", allocator, null, null)
   vector.allocateNew()
 
-  private val writer = new Writer(this)
-  private val reader = new Reader(this)
+  // note: writer creates the map child vectors based on the sft, and should be instantiated before the reader
+  val writer = new Writer(this)
+  val reader = new Reader(this)
 
-  def getVector: NullableMapVector = vector
-  def getWriter: Writer = writer
-  def getReader: Reader = reader
+  override def close(): Unit = {
+    vector.close()
+    writer.arrowWriter.close()
+  }
 
   class Writer(vector: SimpleFeatureVector) {
-
-    private val arrowWriter = new NullableMapWriter(vector.vector)
+    private [SimpleFeatureVector] val arrowWriter = new NullableMapWriter(vector.vector)
     private val idWriter = ArrowAttributeWriter("id", Seq(ObjectType.STRING), classOf[String], arrowWriter, allocator)
-    private val attributeWriters = sft.getAttributeDescriptors.map(ad => ArrowAttributeWriter(ad, arrowWriter, allocator)).toArray
+    private [SimpleFeatureVector] val attributeWriters = sft.getAttributeDescriptors.map { ad =>
+      ArrowAttributeWriter(ad, arrowWriter, allocator)
+    }.toArray
 
     def write(i: Int, feature: SimpleFeature): Unit = {
       arrowWriter.setPosition(i)
@@ -51,13 +59,17 @@ class SimpleFeatureVector(sft: SimpleFeatureType, allocator: BufferAllocator) {
   }
 
   class Reader(vector: SimpleFeatureVector) {
+    private val idReader = ArrowAttributeReader("id", Seq(ObjectType.STRING), classOf[String], vector.vector)
+    private val attributeReaders = sft.getAttributeDescriptors.map { ad =>
+      ArrowAttributeReader(ad, vector.vector)
+    }.toArray
 
-  }
-}
+    def read(i: Int): SimpleFeature = {
+      val id = idReader(i).asInstanceOf[String]
+      val attributes = attributeReaders.map(_.apply(i))
+      new ScalaSimpleFeature(id, vector.sft, attributes)
+    }
 
-object SimpleFeatureVector {
-  def apply(sft: SimpleFeatureType, allocator: BufferAllocator): SimpleFeatureVector = {
-    val vector: NullableMapVector = null
-    val writer: NullableMapWriter = null
+    def getValueCount: Int = vector.vector.getAccessor.getValueCount
   }
 }

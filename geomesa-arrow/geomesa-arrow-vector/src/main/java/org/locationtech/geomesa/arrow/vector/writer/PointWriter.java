@@ -9,24 +9,24 @@
 package org.locationtech.geomesa.arrow.vector.writer;
 
 import com.vividsolutions.jts.geom.Point;
-import org.apache.arrow.vector.complex.NullableMapVector;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
+import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
 import org.apache.arrow.vector.complex.writer.Float8Writer;
 
 public class PointWriter implements GeometryWriter<Point> {
 
-  private final NullableMapWriter writer;
+  private final MapWriter writer;
   private final Float8Writer xWriter;
   private final Float8Writer yWriter;
 
-  public PointWriter(NullableMapWriter writer) {
+  public PointWriter(MapWriter writer) {
     this.writer = writer;
     this.xWriter = writer.float8("x");
     this.yWriter = writer.float8("y");
   }
 
   @Override
-  public void set(Point geom) {
+  public void write(Point geom) {
     if (geom != null) {
       writer.start();
       xWriter.writeFloat8(geom.getX());
@@ -36,14 +36,18 @@ public class PointWriter implements GeometryWriter<Point> {
   }
 
   @Override
-  public void set(int i, Point geom) {
+  public void write(int i, Point geom) {
     writer.setPosition(i);
-    set(geom);
+    write(geom);
   }
 
   @Override
   public void setValueCount(int count) {
-    writer.setValueCount(count);
+    if (writer instanceof NullableMapWriter) {
+      ((NullableMapWriter) writer).setValueCount(count);
+    } else {
+      throw new RuntimeException("Not nullable writer: " + writer);
+    }
   }
 
   @Override

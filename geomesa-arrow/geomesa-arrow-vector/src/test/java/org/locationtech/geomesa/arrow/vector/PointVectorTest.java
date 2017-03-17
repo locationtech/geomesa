@@ -24,17 +24,17 @@ public class PointVectorTest {
 
     try(RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
         PointVector vector = new PointVector("points", allocator)) {
-      vector.getWriter().set(0, (Point) wktReader.read("POINT (0 20)"));
-      vector.getWriter().set(1, (Point) wktReader.read("POINT (10 20)"));
-      vector.getWriter().set(3, (Point) wktReader.read("POINT (30 20)"));
+      vector.getWriter().write(0, (Point) wktReader.read("POINT (0 20)"));
+      vector.getWriter().write(1, (Point) wktReader.read("POINT (10 20)"));
+      vector.getWriter().write(3, (Point) wktReader.read("POINT (30 20)"));
       vector.getWriter().setValueCount(4);
 
       Assert.assertEquals(4, vector.getReader().getValueCount());
       Assert.assertEquals(1, vector.getReader().getNullCount());
-      Assert.assertEquals("POINT (0 20)", wktWriter.write(vector.getReader().get(0)));
-      Assert.assertEquals("POINT (10 20)", wktWriter.write(vector.getReader().get(1)));
-      Assert.assertEquals("POINT (30 20)", wktWriter.write(vector.getReader().get(3)));
-      Assert.assertNull(vector.getReader().get(2));
+      Assert.assertEquals("POINT (0 20)", wktWriter.write(vector.getReader().read(0)));
+      Assert.assertEquals("POINT (10 20)", wktWriter.write(vector.getReader().read(1)));
+      Assert.assertEquals("POINT (30 20)", wktWriter.write(vector.getReader().read(3)));
+      Assert.assertNull(vector.getReader().read(2));
     }
   }
 

@@ -15,19 +15,19 @@ import org.apache.arrow.vector.complex.NullableMapVector;
 
 public class PointReader implements GeometryReader<Point> {
 
-  private final NullableMapVector vector;
+  private final NullableMapVector.Accessor accessor;
   private final NullableFloat8Vector.Accessor xAccessor;
   private final NullableFloat8Vector.Accessor yAccessor;
 
   public PointReader(NullableMapVector vector) {
-    this.vector = vector;
+    this.accessor = vector.getAccessor();
     this.xAccessor = (NullableFloat8Vector.Accessor) vector.getChild("x").getAccessor();
     this.yAccessor = (NullableFloat8Vector.Accessor) vector.getChild("y").getAccessor();
   }
 
   @Override
-  public Point get(int i) {
-    if (vector.getAccessor().isNull(i)) {
+  public Point read(int i) {
+    if (accessor.isNull(i)) {
       return null;
     } else {
       double x = xAccessor.getObject(i);
@@ -38,12 +38,12 @@ public class PointReader implements GeometryReader<Point> {
 
   @Override
   public int getValueCount() {
-    return vector.getAccessor().getValueCount();
+    return accessor.getValueCount();
   }
 
   @Override
   public int getNullCount() {
-    return vector.getAccessor().getNullCount();
+    return accessor.getNullCount();
   }
 
   @Override

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.arrow.feature
 
+import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
@@ -22,8 +23,9 @@ import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.`type`.AttributeDescriptor
 
-trait ArrowAttributeWriter {
+trait ArrowAttributeWriter extends Closeable {
   def apply(value: AnyRef): Unit
+  override def close(): Unit = {}
 }
 
 object ArrowAttributeWriter {
@@ -43,8 +45,8 @@ object ArrowAttributeWriter {
             writer: NullableMapWriter,
             allocator: BufferAllocator): ArrowAttributeWriter = {
     bindings.head match {
-      case ObjectType.STRING   => new ArrowVarCharWriter(writer.varChar(name), allocator)
-      case ObjectType.GEOMETRY => new ArrowGeometryWriter(writer.map(name).asInstanceOf[NullableMapWriter], classBinding)
+      case ObjectType.STRING   => new ArrowStringWriter(writer.varChar(name), allocator)
+      case ObjectType.GEOMETRY => new ArrowGeometryWriter(writer.map(name), classBinding)
       case ObjectType.INT      => new ArrowIntWriter(writer.integer(name))
       case ObjectType.LONG     => new ArrowLongWriter(writer.bigInt(name))
       case ObjectType.FLOAT    => new ArrowFloatWriter(writer.float4(name))
@@ -54,13 +56,13 @@ object ArrowAttributeWriter {
       case ObjectType.LIST     => new ArrowListWriter(writer.list(name), bindings(1), allocator)
       case ObjectType.MAP      => new ArrowMapWriter(writer.map(name), bindings(1), bindings(2), allocator)
       case ObjectType.BYTES    => new ArrowByteWriter(writer.varBinary(name), allocator)
-      case ObjectType.JSON     => new ArrowVarCharWriter(writer.varChar(name), allocator)
-      case ObjectType.UUID     => new ArrowVarCharWriter(writer.varChar(name), allocator)
+      case ObjectType.JSON     => new ArrowStringWriter(writer.varChar(name), allocator)
+      case ObjectType.UUID     => new ArrowStringWriter(writer.varChar(name), allocator)
       case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
     }
   }
 
-  class ArrowGeometryWriter(writer: NullableMapWriter, binding: Class[_]) extends ArrowAttributeWriter {
+  class ArrowGeometryWriter(writer: MapWriter, binding: Class[_]) extends ArrowAttributeWriter {
     private val delegate: GeometryWriter[Geometry] = if (binding == classOf[Point]) {
       new PointWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
     } else if (classOf[Geometry].isAssignableFrom(binding)) {
@@ -69,15 +71,17 @@ object ArrowAttributeWriter {
       throw new IllegalArgumentException(s"Expected geometry type, got $binding")
     }
 
-    override def apply(value: AnyRef): Unit = delegate.set(value.asInstanceOf[Geometry])
+    override def apply(value: AnyRef): Unit = delegate.write(value.asInstanceOf[Geometry])
+    override def close(): Unit = delegate.close()
   }
 
-  class ArrowVarCharWriter(writer: VarCharWriter, allocator: BufferAllocator) extends ArrowAttributeWriter {
+  class ArrowStringWriter(writer: VarCharWriter, allocator: BufferAllocator) extends ArrowAttributeWriter {
     override def apply(value: AnyRef): Unit = {
       val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
       val buffer = allocator.buffer(bytes.length)
       buffer.setBytes(0, bytes)
       writer.writeVarChar(0, bytes.length, buffer)
+      buffer.close()
     }
   }
 
@@ -147,9 +151,11 @@ object ArrowAttributeWriter {
       val buffer = allocator.buffer(bytes.length)
       buffer.setBytes(0, bytes)
       writer.writeVarBinary(0, bytes.length, buffer)
+      buffer.close()
     }
   }
 
+  // TODO close allocated buffers
   private def toListWriter(writer: ListWriter, binding: ObjectType, allocator: BufferAllocator): (AnyRef) => Unit = {
     if (binding == ObjectType.STRING || binding == ObjectType.JSON || binding == ObjectType.UUID) {
       (value: AnyRef) => {
