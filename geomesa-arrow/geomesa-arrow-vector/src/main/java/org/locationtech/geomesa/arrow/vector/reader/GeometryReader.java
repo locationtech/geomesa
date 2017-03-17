@@ -15,7 +15,7 @@ public interface GeometryReader<T extends Geometry> extends AutoCloseable {
 
   static final GeometryFactory factory = new GeometryFactory();
 
-  public T read(int i);
+  public T get(int i);
   public int getValueCount();
   public int getNullCount();
 }

@@ -19,20 +19,20 @@ import org.specs2.runner.JUnitRunner
 class SimpleFeatureVectorTest extends Specification {
 
   "SimpleFeatureVector" should {
-    "read and write values" >> {
+    "set and get values" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
       val features = (0 until 10).map { i =>
         ScalaSimpleFeature.create(sft, s"0$i", s"name0$i", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
       }
       val allocator = new RootAllocator(Long.MaxValue)
       try {
-        val vector = new SimpleFeatureVector(sft, allocator)
+        val vector = SimpleFeatureVector.create(sft, allocator)
         try {
-          features.zipWithIndex.foreach { case (f, i) => vector.writer.write(i, f) }
+          features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
           vector.writer.setValueCount(features.length)
           vector.reader.getValueCount mustEqual features.length
           forall(0 until 10) { i =>
-            vector.reader.read(i) mustEqual features(i)
+            vector.reader.get(i) mustEqual features(i)
           }
         } finally {
           vector.close()

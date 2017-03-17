@@ -26,7 +26,7 @@ public class PointReader implements GeometryReader<Point> {
   }
 
   @Override
-  public Point read(int i) {
+  public Point get(int i) {
     if (accessor.isNull(i)) {
       return null;
     } else {

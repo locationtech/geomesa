@@ -61,7 +61,7 @@ object ArrowAttributeReader {
       throw new IllegalArgumentException(s"Expected geometry type, got $binding")
     }
 
-    override def apply(i: Int): AnyRef = delegate.read(i)
+    override def apply(i: Int): AnyRef = delegate.get(i)
   }
 
   class ArrowStringReader(accessor: NullableVarCharVector#Accessor) extends ArrowAttributeReader {

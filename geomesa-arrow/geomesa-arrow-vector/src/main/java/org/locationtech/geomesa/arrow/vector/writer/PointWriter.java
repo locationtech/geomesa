@@ -26,7 +26,7 @@ public class PointWriter implements GeometryWriter<Point> {
   }
 
   @Override
-  public void write(Point geom) {
+  public void set(Point geom) {
     if (geom != null) {
       writer.start();
       xWriter.writeFloat8(geom.getX());
@@ -36,9 +36,9 @@ public class PointWriter implements GeometryWriter<Point> {
   }
 
   @Override
-  public void write(int i, Point geom) {
+  public void set(int i, Point geom) {
     writer.setPosition(i);
-    write(geom);
+    set(geom);
   }
 
   @Override

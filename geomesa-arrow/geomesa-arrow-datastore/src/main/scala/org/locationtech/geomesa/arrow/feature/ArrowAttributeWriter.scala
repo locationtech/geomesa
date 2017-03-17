@@ -71,7 +71,7 @@ object ArrowAttributeWriter {
       throw new IllegalArgumentException(s"Expected geometry type, got $binding")
     }
 
-    override def apply(value: AnyRef): Unit = delegate.write(value.asInstanceOf[Geometry])
+    override def apply(value: AnyRef): Unit = delegate.set(value.asInstanceOf[Geometry])
     override def close(): Unit = delegate.close()
   }
 
