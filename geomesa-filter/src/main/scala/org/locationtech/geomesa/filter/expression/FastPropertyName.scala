@@ -18,8 +18,8 @@ import org.xml.sax.helpers.NamespaceSupport
 /**
  * Implementation of property name that looks up the value by index
  */
-class FastPropertyName(name: String)
-    extends PropertyName with org.opengis.filter.expression.Expression with LazyLogging {
+class FastPropertyName(name: String) extends PropertyName with org.opengis.filter.expression.Expression
+  with SimpleFeaturePropertyAccessor with LazyLogging {
 
   private var getProperty: (SimpleFeature) => AnyRef = null
 
@@ -40,7 +40,7 @@ class FastPropertyName(name: String)
       if (index != -1) {
         getProperty = (sf) => sf.getAttribute(index)
       } else {
-        SimpleFeaturePropertyAccessor.getAccessor[FastPropertyName](sf, name) match {
+        getAccessor(sf, name) match {
           case Some(a) => getProperty = (sf) => a.get(sf, name, classOf[AnyRef])
           case None    => throw new RuntimeException(s"Can't handle property '$name' for feature type " +
               s"${sf.getFeatureType.getTypeName} ${SimpleFeatureTypes.encodeType(sf.getFeatureType)}")
