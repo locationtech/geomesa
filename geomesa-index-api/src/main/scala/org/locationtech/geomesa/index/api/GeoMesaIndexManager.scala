@@ -50,12 +50,27 @@ trait GeoMesaIndexManager[O <: GeoMesaDataStore[O, F, W], F <: WrappedFeature, W
   def setIndices(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     // remove the enabled indices after fetch so we don't persist them
-    val enabled = Option(sft.getUserData.remove(SimpleFeatureTypes.Configs.ENABLED_INDICES))
-    val indices: Seq[GeoMesaFeatureIndex[O, F, W]] = enabled match {
-      case None => CurrentIndices
-      case Some(e) => e.toString.split(",").map(_.trim).flatMap(n => CurrentIndices.find(_.name.equalsIgnoreCase(n)))
+    val enabled = Option(sft.getUserData.remove(SimpleFeatureTypes.Configs.ENABLED_INDICES)).filter(_.toString.length > 0)
+    val indices: Seq[(String, Int, IndexMode)] = enabled match {
+      case None => CurrentIndices.collect { case i if i.supports(sft) => (i.name, i.version, IndexMode.ReadWrite) }
+      case Some(e) =>
+        e.toString.split(",").map(_.trim).map { name =>
+          val index = CurrentIndices.find(_.name.equalsIgnoreCase(name)).getOrElse {
+            throw new IllegalArgumentException(s"Configured index '$name' does not exist")
+          }
+          if (index.supports(sft)) {
+            (index.name, index.version, IndexMode.ReadWrite)
+          } else {
+            throw new IllegalArgumentException(s"Configured index '$name' does not support the " +
+                s"schema ${SimpleFeatureTypes.encodeType(sft)}")
+          }
+        }
+
     }
-    val supported = indices.collect { case i if i.supports(sft) => (i.name, i.version, IndexMode.ReadWrite) }
-    sft.setIndices(supported)
+    if (indices.isEmpty) {
+      throw new IllegalArgumentException("There are no available indices that support the schema " +
+          s"${SimpleFeatureTypes.encodeType(sft)}")
+    }
+    sft.setIndices(indices)
   }
 }
