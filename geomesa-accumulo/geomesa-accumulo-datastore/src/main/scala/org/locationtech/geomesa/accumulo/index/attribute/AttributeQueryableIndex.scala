@@ -15,6 +15,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFilterStrategy
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
@@ -138,6 +139,46 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
           joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
         }
       }
+    } else if (hints.isDensityQuery) {
+      lazy val indexSft = IndexValueEncoder.getIndexSft(sft)
+      val weightIsAttribute = hints.getDensityWeight.exists(_ == attribute)
+      if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
+        val iter = KryoLazyDensityIterator.configure(sft, this, filter.secondary, hints, hasDupes)
+        val iters = visibilityIter(sft) :+ iter
+        val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+      } else if (filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _)) &&
+          (weightIsAttribute || hints.getDensityWeight.forall(indexSft.indexOf(_) != -1))) {
+        // we can execute against the index values
+        val visIter = visibilityIter(indexSft)
+        val iters = if (weightIsAttribute) {
+          // create a transform sft with the attribute added
+          val transform = {
+            val builder = new SimpleFeatureTypeBuilder()
+            builder.setNamespaceURI(null: String)
+            builder.setName(indexSft.getTypeName + "--attr")
+            builder.setAttributes(indexSft.getAttributeDescriptors)
+            builder.add(sft.getDescriptor(attribute))
+            if (indexSft.getGeometryDescriptor != null) {
+              builder.setDefaultGeometry(indexSft.getGeometryDescriptor.getLocalName)
+            }
+            builder.setCRS(indexSft.getCoordinateReferenceSystem)
+            builder.buildFeatureType()
+          }
+          transform.getUserData.putAll(indexSft.getUserData)
+          // priority needs to be between vis iter (21) and density iter (25)
+          val keyValueIter = KryoAttributeKeyValueIterator.configure(this, transform, attribute, 23)
+          val densityIter = KryoLazyDensityIterator.configure(transform, this, filter.secondary, hints, hasDupes)
+          visIter :+ keyValueIter :+ densityIter
+        } else {
+          visIter :+ KryoLazyDensityIterator.configure(indexSft, this, filter.secondary, hints, hasDupes)
+        }
+        val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+      } else {
+        // have to do a join against the record table
+        joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
+      }
     } else if (hints.isStatsIteratorQuery) {
       val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
@@ -206,6 +247,8 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     }
     val recordIter = if (hints.isStatsIteratorQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
+    } else if (hints.isDensityQuery) {
+      Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else {
       KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
     }
@@ -218,6 +261,8 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     val kvsToFeatures = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
       BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, ds.getFeatureEncoding(sft))
+    } else if (hints.isDensityQuery) {
+      KryoLazyDensityIterator.kvsToFeatures()
     } else if (hints.isStatsIteratorQuery) {
       KryoLazyStatsIterator.kvsToFeatures(sft)
     } else {

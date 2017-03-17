@@ -119,6 +119,7 @@ object DensityIterator extends LazyLogging {
     val is = new IteratorSetting(priority, "density-iter", classOf[DensityIterator])
     Strategy.configureFeatureEncoding(is, serializationType)
     is.addOption(DEFAULT_SCHEMA_NAME, schema)
-    KryoLazyDensityIterator.configure(is, sft, index, filter, envelope, gridWidth, gridHeight, weightAttribute)
+    KryoLazyDensityIterator.configure(is, sft, index, filter, deduplicate = false,
+      envelope, gridWidth, gridHeight, weightAttribute)
   }
 }

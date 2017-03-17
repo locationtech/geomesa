@@ -61,7 +61,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
 
     IteratorClassLoader.initClassLoader(getClass)
 
-    this.source = src.deepCopy(env)
+    this.source = src
     val options = jOptions.asScala
 
     val spec = options(SFT_OPT)

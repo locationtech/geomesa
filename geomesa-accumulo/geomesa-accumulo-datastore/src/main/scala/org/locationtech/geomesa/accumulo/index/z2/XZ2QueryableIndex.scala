@@ -73,7 +73,7 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndex
         }
       (iters, BinAggregatingIterator.kvsToFeatures(), cf, false)
     } else if (hints.isDensityQuery) {
-      val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints)
+      val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints, deduplicate = false)
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), AccumuloWritableIndex.FullColumnFamily, false)
     } else if (hints.isStatsIteratorQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, deduplicate = false)
