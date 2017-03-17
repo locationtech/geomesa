@@ -172,6 +172,20 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       featuresEmpty.map(_.getID) mustEqual Seq("fid-1")
     }
 
+    "handle out-of-world bboxes" >> {
+      val sft = createNewSchema("name:String,*geom:Point:srid=4326", None)
+      val typeName = sft.getTypeName
+      val feature = ScalaSimpleFeature.create(sft, "1", "name1", "POINT (-100.236523 23)")
+      addFeature(sft, feature)
+      // example from geoserver open-layers preview
+      val ecql = "BBOX(geom, 254.17968736588955,16.52343763411045,264.02343736588955,26.36718763411045) OR " +
+          "BBOX(geom, -105.82031263411045,16.52343763411045,-95.97656263411045,26.36718763411045)"
+      val fs = ds.getFeatureSource(typeName)
+      val result = SelfClosingIterator(fs.getFeatures(new Query(typeName, ECQL.toFilter(ecql))).features).toList
+      result must haveLength(1)
+      result.head mustEqual feature
+    }
+
     "process an OR query correctly obeying inclusion-exclusion principle" >> {
       val sft = createNewSchema("name:String,geom:Point:srid=4326,dtg:Date")
 
@@ -610,18 +624,18 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
           }
         }
       }
-    }
 
-    "be able to run explainQuery" in {
-      val filter = ECQL.toFilter("INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))")
-      val query = new Query(defaultSft.getTypeName, filter)
+      "be able to run explainQuery" in {
+        val filter = ECQL.toFilter("INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))")
+        val query = new Query(defaultSft.getTypeName, filter)
 
-      val out = new ExplainString()
-      ds.getQueryPlan(query, explainer = out)
+        val out = new ExplainString()
+        ds.getQueryPlan(query, explainer = out)
 
-      val explanation = out.toString()
-      explanation must not be null
-      explanation.trim must not(beEmpty)
+        val explanation = out.toString()
+        explanation must not be null
+        explanation.trim must not(beEmpty)
+      }
     }
   }
 }
