@@ -62,6 +62,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
     lazy val dsParams = Map[String, String](
       zookeepersParam.key -> "dummy",
       instanceIdParam.key -> "dummy",
+      zookeepersParam.key -> "dummy",
       userParam.key -> "user",
       passwordParam.key -> "pass",
       tableNameParam.key -> TEST_TABLE_NAME,
@@ -170,6 +171,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       val secondDsParams = Map[String, String](
         zookeepersParam.key -> "dummy",
         instanceIdParam.key -> "dummy",
+        zookeepersParam.key -> "dummy",
         userParam.key -> "user",
         passwordParam.key -> "pass",
         tableNameParam.key -> "SECOND_TABLE",

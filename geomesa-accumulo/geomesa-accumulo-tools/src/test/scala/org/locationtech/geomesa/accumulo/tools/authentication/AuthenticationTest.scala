@@ -39,7 +39,7 @@ class AuthenticationTest extends Specification {
 
     "fail without user" >> {
       val authArgs = Array("")
-      val args = cmd ++ authArgs ++ Array("--mock", "--catalog", "z", "--converter", converter, "-s", sft, dataFile.getPath)
+      val args = cmd ++ authArgs ++ Array("--instance", "instance", "--zookeepers", "zoo", "--mock", "--catalog", "z", "--converter", converter, "-s", sft, dataFile.getPath)
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand] must throwA[com.beust.jcommander.ParameterException]
       ok
     }
@@ -49,7 +49,7 @@ class AuthenticationTest extends Specification {
     "work with user and password" >> {
 
       val authArgs = Array("--user", "root", "--password", "secret")
-      val args = cmd ++ authArgs ++ Array("--mock", "--catalog", "userandpassword", "--converter", converter, "-s", sft, dataFile.getPath)
+      val args = cmd ++ authArgs ++ Array("--instance", "instance", "--zookeepers", "zoo", "--mock", "--catalog", "userandpassword", "--converter", converter, "-s", sft, dataFile.getPath)
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
       command.execute()
@@ -62,7 +62,7 @@ class AuthenticationTest extends Specification {
     "work with user and keytab" >> {
 
       val authArgs = Array("--user", "root", "--keytab", "/path/to/some/file")
-      val args = cmd ++ authArgs ++ Array("--mock", "--catalog", "userandkeytab", "--converter", converter, "-s", sft, dataFile.getPath)
+      val args = cmd ++ authArgs ++ Array("--instance", "instance", "--zookeepers", "zoo", "--mock", "--catalog", "userandkeytab", "--converter", converter, "-s", sft, dataFile.getPath)
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
       command.execute()
@@ -74,7 +74,7 @@ class AuthenticationTest extends Specification {
 
 
     "fail with user and password and keytab" >> {
-      val authArgs = Array("--user", "user", "--password", "secret", "--keytab", "/path/to/some/file")
+      val authArgs = Array("--instance", "instance", "--zookeepers", "zoo", "--user", "user", "--password", "secret", "--keytab", "/path/to/some/file")
       val args = cmd ++ authArgs ++ Array("--mock", "--catalog", "z", "--converter", converter, "-s", sft, dataFile.getPath)
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand] must throwA[com.beust.jcommander.ParameterException]
       ok
