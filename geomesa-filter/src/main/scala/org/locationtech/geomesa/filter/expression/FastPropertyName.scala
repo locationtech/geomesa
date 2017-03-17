@@ -9,9 +9,8 @@
 package org.locationtech.geomesa.filter.expression
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.filter.expression.PropertyAccessors
 import org.geotools.util.Converters
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{SimpleFeaturePropertyAccessor, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.expression.{ExpressionVisitor, PropertyName}
 import org.xml.sax.helpers.NamespaceSupport
@@ -41,25 +40,10 @@ class FastPropertyName(name: String)
       if (index != -1) {
         getProperty = (sf) => sf.getAttribute(index)
       } else {
-        // some mojo to ensure our property accessor is picked up -
-        // our accumulo iterators are not generally available in the system classloader
-        // instead, we can set the context classloader (as that will be checked if set)
-        val contextClassLoader = Thread.currentThread.getContextClassLoader
-        if (contextClassLoader != null) {
-          logger.warn(s"Bypassing context classloader $contextClassLoader for PropertyAccessor loading")
-        }
-        Thread.currentThread.setContextClassLoader(classOf[FastPropertyName].getClassLoader)
-        val accessor = try {
-          import scala.collection.JavaConversions._
-          PropertyAccessors.findPropertyAccessors(sf, name, null, null).find(_.canHandle(sf, name, classOf[AnyRef]))
-        } finally {
-          // reset the classloader after loading the accessors
-          Thread.currentThread.setContextClassLoader(contextClassLoader)
-        }
-        accessor match {
+        SimpleFeaturePropertyAccessor.getAccessor[FastPropertyName](sf, name) match {
           case Some(a) => getProperty = (sf) => a.get(sf, name, classOf[AnyRef])
           case None    => throw new RuntimeException(s"Can't handle property '$name' for feature type " +
-            s"${sf.getFeatureType.getTypeName} ${SimpleFeatureTypes.encodeType(sf.getFeatureType)}")
+              s"${sf.getFeatureType.getTypeName} ${SimpleFeatureTypes.encodeType(sf.getFeatureType)}")
         }
       }
     }

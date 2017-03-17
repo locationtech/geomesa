@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -106,7 +106,7 @@ private class JsonPathParser extends Parser {
   rule { "$" ~ zeroOrMore(Element) ~ optional(Function) ~~> ((e, f) => e ++ f.toSeq) ~ EOI }
 
   def Element: Rule1[PathElement] = rule {
-    Attribute | BracketedAttribute | BracketedAttribute2 | ArrayIndex | ArrayIndices | ArrayIndexRange | AttributeWildCard | IndexWildCard | DeepScan
+    Attribute | BracketedAttribute | ArrayIndex | ArrayIndices | ArrayIndexRange | AttributeWildCard | IndexWildCard | DeepScan
   }
 
   def IndexWildCard: Rule1[PathElement] = rule { "[*]" ~ push(PathIndexWildCard) }
@@ -115,7 +115,7 @@ private class JsonPathParser extends Parser {
 
   // we have to push the deep scan directly onto the stack as there is no forward matching and
   // it's ridiculous trying to combine Rule1's and Rule2's
-  def DeepScan: Rule1[PathElement] = rule { "." ~ toRunAction(pushDeepScan) ~ (Attribute | BracketedAttribute | BracketedAttribute2 | AttributeWildCard) }
+  def DeepScan: Rule1[PathElement] = rule { "." ~ toRunAction(pushDeepScan) ~ (Attribute | BracketedAttribute | AttributeWildCard) }
 
   // note: this assumes that we are inside a zeroOrMore, which is currently the case
   // the zeroOrMore will have pushed a single list onto the value stack - we append our value to that
@@ -133,8 +133,6 @@ private class JsonPathParser extends Parser {
   def Attribute: Rule1[PathAttribute] = rule { "." ~ oneOrMore(Character) ~> PathAttribute ~ !"()" }
 
   def BracketedAttribute: Rule1[BracketedPathAttribute] = rule { ".['" ~ oneOrMore(CharacterWithDelimiter) ~> BracketedPathAttribute ~ !"()" ~ "']" }
-
-  def BracketedAttribute2: Rule1[BracketedPathAttribute] = rule { ".[" ~ oneOrMore(CharacterWithDelimiter) ~> BracketedPathAttribute ~ !"()" ~ "]" }
 
   def Function: Rule1[PathFunction] = rule {
     "." ~ ("min" | "max" | "avg" | "length") ~> ((f) => PathFunction(JsonPathFunction.withName(f))) ~ "()"

@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -80,7 +80,6 @@ class JsonPathPropertyAccessorTest extends Specification {
       property.evaluate(sf) mustEqual "baz"
     }
 
-
     "access json values with spaces in kryo serialized simple features" in {
       val property = ff.property("$.json.['foo path']")
       val serializer = new KryoFeatureSerializer(sft)
@@ -90,7 +89,6 @@ class JsonPathPropertyAccessorTest extends Specification {
       sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo path" : "baz" }""", null, null, null))))
       property.evaluate(sf) mustEqual "baz"
     }
-
 
     "accept json path in ECQL" in {
       val expression = ECQL.toFilter(""""$.json.foo" = 'bar'""")

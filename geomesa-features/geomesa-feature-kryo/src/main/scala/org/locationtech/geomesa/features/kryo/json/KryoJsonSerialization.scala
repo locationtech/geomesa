@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -172,14 +172,14 @@ object KryoJsonSerialization extends LazyLogging {
       val paths = path.iterator
       while (paths.hasNext && matches.nonEmpty) {
         paths.next match {
-          case PathAttribute(name: String)    => matches = matchPathAttribute(in, matches, Some(name))
+          case PathAttribute(name: String)          => matches = matchPathAttribute(in, matches, Some(name))
           case BracketedPathAttribute(name: String) => matches = matchPathAttribute(in, matches, Some(name))
-          case PathAttributeWildCard          => matches = matchPathAttribute(in, matches, None)
-          case PathIndex(index: Int)          => matches = matchPathIndex(in, matches, Some(Seq(index)))
-          case PathIndices(indices: Seq[Int]) => matches = matchPathIndex(in, matches, Some(indices))
-          case PathIndexWildCard              => matches = matchPathIndex(in, matches, None)
-          case PathDeepScan                   => matches = matchDeep(in, matches)
-          case PathFunction(f)                => function = Some(f) // only 1 trailing function allowed by parser spec
+          case PathAttributeWildCard                => matches = matchPathAttribute(in, matches, None)
+          case PathIndex(index: Int)                => matches = matchPathIndex(in, matches, Some(Seq(index)))
+          case PathIndices(indices: Seq[Int])       => matches = matchPathIndex(in, matches, Some(indices))
+          case PathIndexWildCard                    => matches = matchPathIndex(in, matches, None)
+          case PathDeepScan                         => matches = matchDeep(in, matches)
+          case PathFunction(f)                      => function = Some(f) // only 1 trailing function allowed by parser spec
         }
       }
 

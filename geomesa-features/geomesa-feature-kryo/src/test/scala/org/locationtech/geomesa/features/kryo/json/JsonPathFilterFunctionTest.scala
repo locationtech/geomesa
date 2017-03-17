@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -51,11 +51,11 @@ class JsonPathFilterFunctionTest extends Specification {
     }
 
     "extract root attribute with period from json" in {
-      ECQL.toFilter("jsonPath('$.json.[foo.foo]') = 'bar'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[''foo.foo'']') = 'bar'").evaluate(sf) must beTrue
     }
 
     "extract root attribute with space from json" in {
-      ECQL.toFilter("jsonPath('$.json.[foo foo]') = 'bar'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[''foo foo'']') = 'bar'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json" in {
@@ -63,35 +63,35 @@ class JsonPathFilterFunctionTest extends Specification {
     }
 
     "extract sub attribute from json with period in sub attribute name" in {
-      ECQL.toFilter("jsonPath('$.json.bar.[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.bar.[''boo.boo'']') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with space in sub attribute name" in {
-      ECQL.toFilter("jsonPath('$.json.bar.[boo boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.bar.[''boo boo'']') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with period in attribute name" in {
-      ECQL.toFilter("jsonPath('$.json.[bar.bar].boo') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[''bar.bar''].boo') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with period in attribute and sub attribute name" in {
-      ECQL.toFilter("jsonPath('$.json.[bar.bar].[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[''bar.bar''].[''boo.boo'']') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with period in attribute and space in sub attribute name" in {
-      ECQL.toFilter("jsonPath('$.json.[bar.bar].[boo boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[''bar.bar''].[''boo boo'']') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with space in attribute name" in {
-      ECQL.toFilter("jsonPath('$.json.[bar bar].boo') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[''bar bar''].boo') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with space in attribute and period in sub attribute name" in {
-      ECQL.toFilter("jsonPath('$.json.[bar bar].[boo.boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[''bar bar''].[''boo.boo'']') = 'hiss'").evaluate(sf) must beTrue
     }
 
     "extract sub attribute from json with space in attribute and space in sub attribute name" in {
-      ECQL.toFilter("jsonPath('$.json.[bar bar].[boo boo]') = 'hiss'").evaluate(sf) must beTrue
+      ECQL.toFilter("jsonPath('$.json.[''bar bar''].[''boo boo'']') = 'hiss'").evaluate(sf) must beTrue
     }
   }
 }
