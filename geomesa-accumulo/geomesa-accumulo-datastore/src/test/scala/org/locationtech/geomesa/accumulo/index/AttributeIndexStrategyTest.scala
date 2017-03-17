@@ -14,11 +14,12 @@ import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
-import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
+import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, KryoLazyDensityIterator}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
@@ -26,6 +27,7 @@ import org.locationtech.geomesa.index.api.{FilterSplitter, FilterStrategy}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -312,6 +314,56 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
+    }
+
+    "support density queries against index values" in {
+      val query = new Query(sftName, ECQL.toFilter("count>=2"))
+      val envelope = new ReferencedEnvelope(30, 60, 30, 60, CRS_EPSG_4326)
+      query.getHints.put(DENSITY_BBOX, envelope)
+      query.getHints.put(DENSITY_HEIGHT, 600)
+      query.getHints.put(DENSITY_WIDTH, 400)
+      forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
+      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val results = runQuery(query).flatMap(decode).toList
+      results must containTheSameElementsAs(Seq((41.325,58.5375,1.0), (42.025,58.5375,1.0), (40.675,58.5375,1.0)))
+    }
+
+    "support density queries against index values with weight" in {
+      val query = new Query(sftName, ECQL.toFilter("count>=2"))
+      val envelope = new ReferencedEnvelope(30, 60, 30, 60, CRS_EPSG_4326)
+      query.getHints.put(DENSITY_BBOX, envelope)
+      query.getHints.put(DENSITY_HEIGHT, 600)
+      query.getHints.put(DENSITY_WIDTH, 400)
+      query.getHints.put(DENSITY_WEIGHT, "count")
+      forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
+      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val results = runQuery(query).flatMap(decode).toList
+      results must containTheSameElementsAs(Seq((41.325,58.5375,3.0), (42.025,58.5375,4.0), (40.675,58.5375,2.0)))
+    }
+
+    "support density queries against join attributes" in {
+      val query = new Query(sftName, ECQL.toFilter("count>=2"))
+      val envelope = new ReferencedEnvelope(30, 60, 30, 60, CRS_EPSG_4326)
+      query.getHints.put(DENSITY_BBOX, envelope)
+      query.getHints.put(DENSITY_HEIGHT, 600)
+      query.getHints.put(DENSITY_WIDTH, 400)
+      query.getHints.put(DENSITY_WEIGHT, "age")
+      forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
+      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val results = runQuery(query).flatMap(decode).toList
+      results must containTheSameElementsAs(Seq((40.675,58.5375,21.0), (41.325,58.5375,30.0), (42.025,58.5375,0.0)))
+    }
+
+    "support density queries against full values" in {
+      val query = new Query(sftName, ECQL.toFilter("name = 'bill' OR name = 'charles'"))
+      val envelope = new ReferencedEnvelope(30, 60, 30, 60, CRS_EPSG_4326)
+      query.getHints.put(DENSITY_BBOX, envelope)
+      query.getHints.put(DENSITY_HEIGHT, 600)
+      query.getHints.put(DENSITY_WIDTH, 400)
+      forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
+      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val results = runQuery(query).flatMap(decode).toList
+      results must containTheSameElementsAs(Seq((40.675,58.5375,1.0), (42.025,58.5375,1.0)))
     }
   }
 
