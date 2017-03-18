@@ -32,8 +32,9 @@ _COMPILE_JVM_OPTS="-Xmx2g -XX:ReservedCodeCacheSize=256m"
 ## Arg3 - Checkable Binary
 install_app() {
   local remote_tarball="$1/$2"
-  local local_tarball="${_DIR}/$2"
-  local binary="$3"
+  local local_tarball="$HOME/$2"
+  local binary="$HOME/$3"
+ 
 
   echo "In install app: remote $remote_tarball local: $local_tarball bin: $binary"
 
@@ -59,6 +60,7 @@ install_app() {
       echo -n "ERROR: Cannot download $2 with cURL or wget; " && \
       echo "please install manually and try again." && \
       exit 2
+    echo "cd ${_DIR} && tar -xzf $2"
     cd "${_DIR}" && tar -xzf "$2"
     rm -rf "$local_tarball"
   fi
@@ -79,7 +81,7 @@ install_mvn() {
 # Install zinc under the build/ folder
 install_zinc() {
   local ZINC_VERSION="0.3.11"
-  zinc_path="$HOME/zinc/zinc-${ZINC_VERSION}/bin/zinc"
+  zinc_path="zinc/zinc-${ZINC_VERSION}/bin/zinc"
 
   echo "In install ZINC zinc_path is $zinc_path" 
   #local zinc_path="zinc-${ZINC_VERSION}/bin/zinc"
@@ -88,7 +90,7 @@ install_zinc() {
     "http://downloads.typesafe.com/zinc/${ZINC_VERSION}" \
     "zinc-${ZINC_VERSION}.tgz" \
     "${zinc_path}"
-  ZINC_BIN="${zinc_path}"
+  ZINC_BIN="$HOME/${zinc_path}"
 }
 
 # Setup healthy defaults for the Zinc port if none were provided from
