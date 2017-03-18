@@ -32,7 +32,7 @@ _COMPILE_JVM_OPTS="-Xmx2g -XX:ReservedCodeCacheSize=256m"
 ## Arg3 - Checkable Binary
 install_app() {
   local remote_tarball="$1/$2"
-  local local_tarball="$HOME/$2"
+  local local_tarball="$HOME/zinc/$2"
   local binary="$HOME/$3"
  
 
