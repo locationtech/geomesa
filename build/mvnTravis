@@ -84,7 +84,7 @@ install_zinc() {
     "http://downloads.typesafe.com/zinc/${ZINC_VERSION}" \
     "zinc-${ZINC_VERSION}.tgz" \
     "${zinc_path}"
-  ZINC_BIN="${_DIR}/${zinc_path}"
+  ZINC_BIN="${zinc_path}"
 }
 
 # Setup healthy defaults for the Zinc port if none were provided from
