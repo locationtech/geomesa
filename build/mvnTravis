@@ -50,6 +50,7 @@ install_app() {
     # download application
     [ ! -f "${local_tarball}" ] && [ $(command -v curl) ] && \
       echo "exec: curl ${curl_opts} ${remote_tarball}" 1>&2 && \
+      cd $HOME
       curl ${curl_opts} "${remote_tarball}" > "${local_tarball}"
     # if the file still doesn't exist, lets try `wget` and cross our fingers
     [ ! -f "${local_tarball}" ] && [ $(command -v wget) ] && \
@@ -61,7 +62,8 @@ install_app() {
       echo "please install manually and try again." && \
       exit 2
     echo "cd ${_DIR} && tar -xzf $2"
-    cd "${_DIR}" && tar -xzf "$2"
+    #cd "${_DIR}" &&  
+    tar -xzf "$2"
     rm -rf "$local_tarball"
   fi
 }
