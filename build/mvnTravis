@@ -35,6 +35,8 @@ install_app() {
   local local_tarball="${_DIR}/$2"
   local binary="${_DIR}/$3"
 
+  echo "In install app: remote $remote_tarball local: $local_tarball bin: $binary"
+
   # setup `curl` and `wget` silent options if we're running on Jenkins
   local curl_opts="-L"
   local wget_opts=""
@@ -78,6 +80,8 @@ install_mvn() {
 install_zinc() {
   local ZINC_VERSION="0.3.11"
   zinc_path="$HOME/zinc/zinc-${ZINC_VERSION}/bin/zinc"
+
+  echo "In install ZINC zinc_path is $zinc_path" 
   #local zinc_path="zinc-${ZINC_VERSION}/bin/zinc"
   [ ! -f "${zinc_path}" ] && ZINC_INSTALL_FLAG=1
   install_app \
