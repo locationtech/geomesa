@@ -15,8 +15,13 @@ PING_LOOP_PID=$!
 
 # build using the maven executable, not the zinc maven compiler (which uses too much memory)
 #mvn clean license:check install -Phbase,travis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
+
 # -pl ! SKIP all the modules which bundle jars!
-mvn clean license:check install -pl '!geomesa-archetypes/geomesa-archetypes-gs-plugin,!geomesa-kafka/geomesa-kafka-gs-plugin,!geomesa-kafka/geomesa-kafka-dist,!geomesa-blobstore/geomesa-blobstore-gs-plugin,!geomesa-stream/geomesa-stream-gs-plugin,!geomesa-cassandra/geomesa-cassandra-dist,!geomesa-cassandra/geomesa-cassandra-gs-plugin,!geomesa-accumulo/geomesa-accumulo-distributed-runtime,!geomesa-accumulo/geomesa-accumulo-gs-plugin,!geomesa-accumulo/geomesa-accumulo-dist,!geomesa-accumulo/geomesa-accumulo-stats-gs-plugin,!geomesa-geojson/geomesa-geojson-gs-plugin,!geomesa-hbase/geomesa-hbase-gs-plugin,!geomesa-hbase/geomesa-hbase-dist' -Ptravis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
+./build/mvnTravis clean license:check install -pl '!geomesa-archetypes/geomesa-archetypes-gs-plugin,!geomesa-kafka/geomesa-kafka-gs-plugin,!geomesa-kafka/geomesa-kafka-dist,!geomesa-blobstore/geomesa-blobstore-gs-plugin,!geomesa-stream/geomesa-stream-gs-plugin,!geomesa-cassandra/geomesa-cassandra-dist,!geomesa-cassandra/geomesa-cassandra-gs-plugin,!geomesa-accumulo/geomesa-accumulo-distributed-runtime,!geomesa-accumulo/geomesa-accumulo-gs-plugin,!geomesa-accumulo/geomesa-accumulo-dist,!geomesa-accumulo/geomesa-accumulo-stats-gs-plugin,!geomesa-geojson/geomesa-geojson-gs-plugin,!geomesa-hbase/geomesa-hbase-gs-plugin,!geomesa-hbase/geomesa-hbase-dist' -Ptravis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
+
+# Also try:
+#./build/mvn clean license:check install -Phbase,travis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
+
 RESULT=${PIPESTATUS[0]} # capture the status of the maven build
 
 # dump out the end of the build log, to show success or errors

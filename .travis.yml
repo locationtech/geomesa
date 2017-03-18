@@ -9,6 +9,7 @@ before_cache:
 cache:
   directories:
   - $HOME/.m2
+  - $HOME/zinc
 
 jdk:
   - oraclejdk8
