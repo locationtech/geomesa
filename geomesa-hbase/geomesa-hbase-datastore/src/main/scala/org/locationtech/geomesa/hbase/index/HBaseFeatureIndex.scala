@@ -16,6 +16,7 @@ import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
@@ -175,8 +176,10 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
-      ScanConfig(Nil, toFeatures)
-
+      val toFeatures = resultsToFeatures(sft, None, hints.getTransform)
+      val remoteFilters = filter.filter.map { filter =>
+        new JSimpleFeatureFilter(sft, filter)
+      }.toSeq
+      ScanConfig(remoteFilters, toFeatures)
   }
 }
