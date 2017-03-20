@@ -8,23 +8,23 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.io.{Closeable, FileInputStream}
+import java.io.{Closeable, FileInputStream, InputStream}
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
-import org.apache.arrow.vector.file.ArrowFileReader
+import org.apache.arrow.vector.stream.ArrowStreamReader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class SimpleFeatureArrowFileReader(is: FileInputStream, allocator: BufferAllocator) extends Closeable {
+class SimpleFeatureArrowFileReader(is: InputStream, allocator: BufferAllocator) extends Closeable {
 
-  private val reader = new ArrowFileReader(is.getChannel, allocator)
-  reader.loadNextBatch() // load batch first to get any dictionaries
-
+  private val reader = new ArrowStreamReader(is, allocator)
+  reader.loadNextBatch()
   private val root = reader.getVectorSchemaRoot
   require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
-
   private val vector = SimpleFeatureVector.wrap(root.getFieldVectors.get(0).asInstanceOf[NullableMapVector], allocator)
+
+  def getSchema: SimpleFeatureType = vector.sft
 
   def read(decodeDictionaries: Boolean = true): Iterator[SimpleFeature] = {
     new Iterator[SimpleFeature] {
