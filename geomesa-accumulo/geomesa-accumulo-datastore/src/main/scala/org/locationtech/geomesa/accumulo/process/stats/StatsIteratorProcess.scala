@@ -44,6 +44,7 @@ class StatsIteratorProcess extends LazyLogging {
 
                  @DescribeParameter(
                    name = "encode",
+                   min = 0,
                    description = "Return the values encoded or as json")
                  encode: Boolean = false
 
