@@ -15,7 +15,7 @@ import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.{SimpleFeature}
+import org.opengis.feature.simple.SimpleFeature
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
