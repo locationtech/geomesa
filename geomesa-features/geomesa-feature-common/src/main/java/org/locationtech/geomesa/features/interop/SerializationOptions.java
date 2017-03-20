@@ -15,4 +15,8 @@ public class SerializationOptions {
     public static scala.collection.immutable.Set<SerializationOption$.Value> withUserData() {
         return SerializationOption.SerializationOptions$.MODULE$.withUserData();
     }
+
+    public static scala.collection.immutable.Set<SerializationOption$.Value> withoutId() {
+        return SerializationOption.SerializationOptions$.MODULE$.withoutId();
+    }
 }

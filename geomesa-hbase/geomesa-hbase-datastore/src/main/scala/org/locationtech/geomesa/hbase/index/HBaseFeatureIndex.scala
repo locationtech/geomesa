@@ -6,16 +6,18 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
+
 package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.KeyOnlyFilter
+import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HBaseFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
+import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
+import org.opengis.feature.simple.SimpleFeature
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
@@ -41,6 +43,10 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
   val DataColumnQualifier = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
+
+  case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
+                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
+
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
@@ -103,17 +109,17 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: HBaseDataStore,
-                                  filter: FilterStrategy[HBaseDataStore, HBaseFeature, Mutation],
+                                  filter: HBaseFilterStrategyType,
                                   hints: Hints,
                                   ranges: Seq[Query],
                                   ecql: Option[Filter]): HBaseQueryPlanType = {
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
-      val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
+      val dedupe = hasDuplicates(sft, filter.primary)
+      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe)
+
       if (ranges.head.isInstanceOf[Get]) {
-        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], toFeatures)
+        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
       } else {
         // we want to ensure some parallelism in our batch scanning
         // as not all scans will take the same amount of time, we want to have multiple per-thread
@@ -122,7 +128,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
         val scans = ranges.asInstanceOf[Seq[Scan]]
         val minScans = if (ds.config.queryThreads == 1) { 1 } else { ds.config.queryThreads * scansPerThread }
         if (scans.length >= minScans) {
-          ScanPlan(filter, table, scans, toFeatures)
+          ScanPlan(filter, table, scans, hbaseFilters, toFeatures)
         } else {
           // split up the scans so that we get some parallelism
           val multiplier = math.ceil(minScans.toDouble / scans.length).toInt
@@ -130,7 +136,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
             val splits = IndexAdapter.splitRange(scan.getStartRow, scan.getStopRow, multiplier)
             splits.map { case (start, stop) => new Scan(scan).setStartRow(start).setStopRow(stop) }
           }
-          ScanPlan(filter, table, splitScans, toFeatures)
+          ScanPlan(filter, table, splitScans, hbaseFilters, toFeatures)
         }
       }
     }
@@ -146,5 +152,32 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     val cell = result.rawCells()(0)
     RowAndValue(cell.getRowArray, cell.getRowOffset, cell.getRowLength,
       cell.getValueArray, cell.getValueOffset, cell.getValueLength)
+  }
+
+  protected def hasDuplicates(sft: SimpleFeatureType, filter: Option[Filter]): Boolean = false
+
+
+  /**
+    * Sets up everything needed to execute the scan - iterators, column families, deserialization, etc
+    *
+    * @param sft    simple feature type
+    * @param filter hbase filter strategy type
+    * @param hints  query hints
+    * @param ecql   secondary filter being applied, if any
+    * @param dedupe scan may have duplicate results or not
+    * @return
+    */
+  protected def scanConfig(sft: SimpleFeatureType,
+                           filter: HBaseFilterStrategyType,
+                           hints: Hints,
+                           ecql: Option[Filter],
+                           dedupe: Boolean): ScanConfig = {
+
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+    /** This function is used to implement custom client filters for HBase **/
+      val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
+      ScanConfig(Nil, toFeatures)
+
   }
 }
