@@ -10,11 +10,12 @@ package org.locationtech.geomesa.hbase.data
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
+import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
@@ -52,12 +53,16 @@ case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
-case class ScanPlan(filter: HBaseFilterStrategyType,
+case class ScanPlan(sft: SimpleFeatureType,
+                    filter: HBaseFilterStrategyType,
                     table: TableName,
                     ranges: Seq[Scan],
                     resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
+    val remoteFilters = filter.filter.map { filter =>
+      new JSimpleFeatureFilter(sft, filter)
+    }.toSeq
+    val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
     SelfClosingIterator(resultsToFeatures(results), results.close)
   }
 }
