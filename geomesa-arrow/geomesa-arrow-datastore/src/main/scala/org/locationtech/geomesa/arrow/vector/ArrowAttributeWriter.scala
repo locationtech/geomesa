@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ******************************************************************************/
 
-package org.locationtech.geomesa.arrow.feature
+package org.locationtech.geomesa.arrow.vector
 
 import java.io.Closeable
 import java.nio.charset.StandardCharsets

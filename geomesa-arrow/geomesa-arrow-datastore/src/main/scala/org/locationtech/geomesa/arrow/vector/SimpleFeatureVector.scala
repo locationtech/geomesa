@@ -16,7 +16,7 @@ import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.complex.impl.NullableMapWriter
 import org.apache.arrow.vector.types.FloatingPointPrecision
 import org.apache.arrow.vector.types.pojo.ArrowType
-import org.locationtech.geomesa.arrow.feature.{ArrowAttributeReader, ArrowAttributeWriter}
+import org.locationtech.geomesa.arrow.feature.ArrowAttributeWriter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
