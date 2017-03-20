@@ -41,6 +41,7 @@ class SimpleFeatureArrowFileTest extends Specification {
         } finally {
           writer.close()
         }
+
         val reader = new SimpleFeatureArrowFileReader(new FileInputStream(file), allocator)
         try {
           val features = reader.read().toSeq

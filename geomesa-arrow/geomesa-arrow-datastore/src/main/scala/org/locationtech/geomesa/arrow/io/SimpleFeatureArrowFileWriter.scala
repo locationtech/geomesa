@@ -60,6 +60,7 @@ class SimpleFeatureArrowFileWriter(sft: SimpleFeatureType, os: OutputStream, all
   override def flush(): Unit = {
     if (index > 0) {
       vector.writer.setValueCount(index)
+      root.setRowCount(index)
       writer.writeBatch()
       // TODO is there a better way to reset the buffer?
       vector.underlying.clear()

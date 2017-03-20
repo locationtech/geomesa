@@ -86,7 +86,7 @@ object SimpleFeatureVector {
 
   def wrap(vector: NullableMapVector, allocator: BufferAllocator): SimpleFeatureVector = {
     import scala.collection.JavaConversions._
-    val attributes = vector.getField.getChildren.map { field =>
+    val attributes = vector.getField.getChildren.flatMap { field =>
       lazy val geometry = GeometryVector.typeOf(field)
       val binding = field.getType match {
         case t: ArrowType.Utf8   => "String"
@@ -100,7 +100,11 @@ object SimpleFeatureVector {
         case t: ArrowType.Struct if geometry == classOf[Point] => "Point:srid=4326"
         case _ => throw new IllegalArgumentException(s"Unexpected field type for field $field")
       }
-      s"${field.getName}:$binding"
+      if (binding == "String" && field.getName == "id") {
+        None
+      } else {
+        Some(s"${field.getName}:$binding")
+      }
     }
     // TODO user data
     val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))
