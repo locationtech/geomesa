@@ -73,6 +73,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType, os: OutputStream,
     flush()
     writer.end()
     writer.close()
+    root.close()
   }
 }
 

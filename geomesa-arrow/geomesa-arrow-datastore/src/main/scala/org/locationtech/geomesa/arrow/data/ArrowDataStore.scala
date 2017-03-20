@@ -17,6 +17,7 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
+import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -92,4 +93,6 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
 
   override def getFeatureReader: FeatureReader[SimpleFeatureType, SimpleFeature] =
     getFeatureReader(new Query(getSchema.getTypeName), Transaction.AUTO_COMMIT)
+
+  override def dispose(): Unit = CloseQuietly(allocator)
 }

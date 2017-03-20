@@ -40,7 +40,7 @@ class SimpleFeatureArrowFileTest extends Specification {
         if (!file.delete()) {
           file.deleteOnExit()
         }
-//        allocator.close()
+        allocator.close()
       }
     }
     "write and read values" >> {
@@ -75,8 +75,7 @@ class SimpleFeatureArrowFileTest extends Specification {
         if (!file.delete()) {
           file.deleteOnExit()
         }
-        // TODO fix allocators
-//        allocator.close()
+        allocator.close()
       }
     }
   }
