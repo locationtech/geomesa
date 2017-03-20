@@ -18,6 +18,10 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+<<<<<<< HEAD
+=======
+import org.locationtech.geomesa.features.SerializationOption
+>>>>>>> 8996fff3e1b243fd9a4c458831118c7eec1d67cd
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
