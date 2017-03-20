@@ -122,6 +122,10 @@
             <destName>README-convert.md</destName>
             <outputDirectory>docs</outputDirectory>
         </file>
+        <file>
+            <source>../../geomesa-tools/target/geomesa-tools_${scala.binary.version}-${project.version}-data.jar</source>
+            <outputDirectory>dist/sfts-converters</outputDirectory>
+        </file>
         <!-- geomesa-site.xml.template -->
         <file>
             <source>../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
