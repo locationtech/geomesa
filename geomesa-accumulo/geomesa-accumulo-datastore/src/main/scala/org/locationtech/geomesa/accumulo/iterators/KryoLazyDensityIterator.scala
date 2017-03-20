@@ -158,25 +158,27 @@ object KryoLazyDensityIterator extends LazyLogging {
                 index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
                 hints: Hints,
+                deduplicate: Boolean,
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
     val weight = hints.getDensityWeight
     val is = new IteratorSetting(priority, "density-iter", classOf[KryoLazyDensityIterator])
-    configure(is, sft, index, filter, envelope, width, height, weight)
+    configure(is, sft, index, filter, deduplicate, envelope, width, height, weight)
   }
 
   protected[iterators] def configure(is: IteratorSetting,
                                      sft: SimpleFeatureType,
                                      index: AccumuloFeatureIndexType,
                                      filter: Option[Filter],
+                                     deduplicate: Boolean,
                                      envelope: Envelope,
                                      gridWidth: Int,
                                      gridHeight: Int,
                                      weightAttribute: Option[String]): IteratorSetting = {
     // we never need to dedupe densities - either we don't have dupes or we weight based on the duplicates
-    KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate = false, None)
+    KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     is.addOption(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.addOption(GRID_OPT, s"$gridWidth,$gridHeight")
     weightAttribute.foreach(is.addOption(WEIGHT_OPT, _))

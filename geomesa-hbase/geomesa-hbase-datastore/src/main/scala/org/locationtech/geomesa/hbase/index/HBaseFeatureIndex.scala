@@ -170,7 +170,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     * @param dedupe scan may have duplicate results or not
     * @return
     */
-
   protected def scanConfig(sft: SimpleFeatureType,
                            filter: HBaseFilterStrategyType,
                            hints: Hints,

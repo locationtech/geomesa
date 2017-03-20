@@ -13,6 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Mutation, Range}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
@@ -178,6 +179,41 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
         // have to do a join against the record table
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
       }
+    } else if (hints.isDensityQuery) {
+      // check to see if we can execute against the index values
+      val weightIsAttribute = hints.getDensityWeight.exists(_ == attribute)
+      if (filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _)) &&
+          (weightIsAttribute || hints.getDensityWeight.forall(indexSft.indexOf(_) != -1))) {
+        val visIter = visibilityIter(indexSft)
+        val iters = if (weightIsAttribute) {
+          // create a transform sft with the attribute added
+          val transform = {
+            val builder = new SimpleFeatureTypeBuilder()
+            builder.setNamespaceURI(null: String)
+            builder.setName(indexSft.getTypeName + "--attr")
+            builder.setAttributes(indexSft.getAttributeDescriptors)
+            builder.add(sft.getDescriptor(attribute))
+            if (indexSft.getGeometryDescriptor != null) {
+              builder.setDefaultGeometry(indexSft.getGeometryDescriptor.getLocalName)
+            }
+            builder.setCRS(indexSft.getCoordinateReferenceSystem)
+            val tmp = builder.buildFeatureType()
+            tmp.getUserData.putAll(indexSft.getUserData)
+            tmp
+          }
+          // priority needs to be between vis iter (21) and density iter (25)
+          val keyValueIter = KryoAttributeKeyValueIterator.configure(this, transform, attribute, 23)
+          val densityIter = KryoLazyDensityIterator.configure(transform, this, filter.secondary, hints, dedupe)
+          visIter :+ keyValueIter :+ densityIter
+        } else {
+          visIter :+ KryoLazyDensityIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
+        }
+        val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
+        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, hasDuplicates = false)
+      } else {
+        // have to do a join against the record table
+        joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
+      }
     } else if (hints.isStatsIteratorQuery) {
       // check to see if we can execute against the index values
       if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
@@ -243,6 +279,8 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
     }
     val recordIter = if (hints.isStatsIteratorQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
+    } else if (hints.isDensityQuery) {
+      Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else {
       KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
     }
@@ -257,6 +295,8 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
     } else if (hints.isStatsIteratorQuery) {
       (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_)))
+    } else if (hints.isDensityQuery) {
+      (KryoLazyDensityIterator.kvsToFeatures(), None)
     } else {
       (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
     }

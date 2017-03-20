@@ -65,7 +65,7 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
-      val export = new DelimitedExporter(writer, DataFormats.Csv)
+      val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
       export.export(features)
       export.close()
 
@@ -81,7 +81,7 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
-      val export = new DelimitedExporter(writer, DataFormats.Csv)
+      val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
       export.export(features)
       export.close()
 
@@ -97,7 +97,7 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
-      val export = new DelimitedExporter(writer, DataFormats.Csv)
+      val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
       export.export(features)
       export.close()
 
@@ -113,7 +113,7 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
-      val export = new DelimitedExporter(writer, DataFormats.Csv)
+      val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
       export.export(features)
       export.close()
 

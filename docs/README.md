@@ -12,13 +12,15 @@ Installing Sphinx and its dependencies in a Python ``virtualenv``:
     $ source bin/activate
     $ pip install sphinx
     $ pip install recommonmark      # needed to parse Markdown files
-    $ pip install sphinx_rtd_theme  # HTML theme 
+    $ pip install sphinx_rtd_theme  # HTML theme (https://github.com/rtfd/sphinx_rtd_theme)
+    $ pip install sphinx_tabs       # HTML tabs (https://github.com/djungelorm/sphinx-tabs)
 
 Alternatively use ``sudo`` with the ``pip`` command to install the packages in the system Python distribution.
 
     $ sudo pip install sphinx
     $ sudo pip install recommonmark
-    $ sudo pip install sphinx_rtd_theme 
+    $ sudo pip install sphinx_rtd_theme
+    $ sudo pip install sphinx_tabs
 
 Optional:  if you want to build the PDF version of the manual, install LaTeX:
 

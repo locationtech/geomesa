@@ -5,7 +5,6 @@ bin/geomesa-cassandra ingest \
     --contact-point 127.0.0.1:9042 \
     --key-space mykeyspace \
     --catalog mycatalog \
-    --name-space mynamespace \
-    --converter example_csv \
-    --spec example_csv \
+    --converter example-csv \
+    --spec example-csv \
     examples/ingest/csv/example.csv
