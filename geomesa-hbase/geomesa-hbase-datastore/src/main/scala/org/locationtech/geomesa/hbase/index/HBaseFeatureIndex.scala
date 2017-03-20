@@ -15,7 +15,7 @@ import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
+import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode

@@ -1,33 +1,50 @@
+/***********************************************************************
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ *************************************************************************/
+
 package org.locationtech.geomesa.hbase.filters;
 
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.exceptions.DeserializationException;
+import org.apache.hadoop.hbase.exceptions.IllegalArgumentIOException;
 import org.apache.hadoop.hbase.filter.FilterBase;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
+import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.locationtech.geomesa.features.interop.SerializationOptions;
 
 import java.io.IOException;
 
 public class JSimpleFeatureFilter extends FilterBase {
-    String sftString;
-    SimpleFeatureType sft;
-    KryoFeatureSerializer serializer;
+    private String sftString;
+    private SimpleFeatureType sft;
+    private KryoFeatureSerializer serializer;
 
-    org.opengis.filter.Filter filter;
-    String filterString;
+    private org.opengis.filter.Filter filter;
+    private String filterString;
 
     public JSimpleFeatureFilter(String sftString, String filterString) {
         this.sftString = sftString;
-        configureSFT();
+        sft = SimpleFeatureTypes.createType("", sftString);
+        serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId());
+
         this.filterString = filterString;
-        configureFilter();
+        if (filterString != null && filterString != "") {
+            try {
+                this.filter = ECQL.toFilter(this.filterString);
+            } catch (CQLException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
     }
 
     public JSimpleFeatureFilter(SimpleFeatureType sft, org.opengis.filter.Filter filter) {
@@ -37,30 +54,17 @@ public class JSimpleFeatureFilter extends FilterBase {
         this.filterString = ECQL.toCQL(filter);
     }
 
-    private void configureSFT() {
-        sft = SimpleFeatureTypes.createType("QuickStart", sftString);
-        serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId());
-    }
-
-    private void configureFilter() {
-        if (filterString != null && filterString != "") {
-            try {
-                this.filter = ECQL.toFilter(this.filterString);
-            } catch (CQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
     @Override
     public ReturnCode filterKeyValue(Cell v) throws IOException {
-        byte[] encodedSF = CellUtil.cloneValue(v);
-        SimpleFeature sf = serializer.deserialize(encodedSF);
-        if (filter == null || filter.evaluate(sf)) {
-            // Accept if we have no filter or if the filter passes
+        if (filter == null) {
             return ReturnCode.INCLUDE;
         } else {
-            return ReturnCode.SKIP;
+            SimpleFeature sf = serializer.deserialize(v.getValueArray(), v.getValueOffset(), v.getValueLength());
+            if (filter.evaluate(sf)) {
+                return ReturnCode.INCLUDE;
+            } else {
+                return ReturnCode.SKIP;
+            }
         }
     }
 
@@ -85,8 +89,11 @@ public class JSimpleFeatureFilter extends FilterBase {
     }
 
     private int getLen(String s) {
-        if (s != null) return s.length();
-        else           return 0;
+        if (s != null) {
+            return s.length();
+        } else {
+            return 0;
+        }
     }
 
     public static org.apache.hadoop.hbase.filter.Filter parseFrom(final byte [] pbBytes) throws DeserializationException {
