@@ -126,7 +126,7 @@ object KryoLazyStatsIterator extends LazyLogging {
     }
     decodedStats.close()
 
-    val stats = if (hints.containsKey(ENCODE_STATS)) encodeStat(sum, sft) else sum.toJson
+    val stats = if (hints.containsKey(ENCODE_STATS) && hints.get(ENCODE_STATS).asInstanceOf[Boolean]) encodeStat(sum, sft) else sum.toJson
     Iterator(new ScalaSimpleFeature("stat", StatsSft, Array(stats, GeometryUtils.zeroPoint)))
   }
 }
