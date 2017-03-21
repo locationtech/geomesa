@@ -22,7 +22,8 @@ class SimpleFeatureArrowFileReader(is: InputStream, allocator: BufferAllocator) 
   reader.loadNextBatch()
   private val root = reader.getVectorSchemaRoot
   require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
-  private val vector = SimpleFeatureVector.wrap(root.getFieldVectors.get(0).asInstanceOf[NullableMapVector], allocator)
+  // TODO dictionaries
+  private val vector = SimpleFeatureVector.wrap(root.getFieldVectors.get(0).asInstanceOf[NullableMapVector], Map.empty, allocator)
 
   def getSchema: SimpleFeatureType = vector.sft
 

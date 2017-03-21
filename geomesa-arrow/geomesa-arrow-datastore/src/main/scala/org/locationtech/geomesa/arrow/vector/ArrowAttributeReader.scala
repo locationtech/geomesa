@@ -25,30 +25,81 @@ trait ArrowAttributeReader {
 
 object ArrowAttributeReader {
 
-  def apply(descriptor: AttributeDescriptor, vector: NullableMapVector): ArrowAttributeReader = {
+  import scala.collection.JavaConversions._
+
+  def apply(descriptor: AttributeDescriptor,
+            vector: NullableMapVector,
+            dictionary: Option[ArrowDictionary]): ArrowAttributeReader = {
     val classBinding = descriptor.getType.getBinding
     val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-    apply(descriptor.getLocalName, bindings.+:(objectType), classBinding, vector)
+    apply(descriptor.getLocalName, bindings.+:(objectType), classBinding, vector, dictionary)
   }
 
-  def apply(name: String, bindings: Seq[ObjectType], classBinding: Class[_], vector: NullableMapVector): ArrowAttributeReader = {
+  def apply(name: String,
+            bindings: Seq[ObjectType],
+            classBinding: Class[_],
+            vector: NullableMapVector,
+            dictionary: Option[ArrowDictionary]): ArrowAttributeReader = {
     val child = vector.getChild(name)
     val accessor = child.getAccessor
-    bindings.head match {
-      case ObjectType.STRING   => new ArrowStringReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
-      case ObjectType.GEOMETRY => new ArrowGeometryReader(child.asInstanceOf[NullableMapVector], classBinding)
-      case ObjectType.INT      => new ArrowIntReader(accessor.asInstanceOf[NullableIntVector#Accessor])
-      case ObjectType.LONG     => new ArrowLongReader(accessor.asInstanceOf[NullableBigIntVector#Accessor])
-      case ObjectType.FLOAT    => new ArrowFloatReader(accessor.asInstanceOf[NullableFloat4Vector#Accessor])
-      case ObjectType.DOUBLE   => new ArrowDoubleReader(accessor.asInstanceOf[NullableFloat8Vector#Accessor])
-      case ObjectType.BOOLEAN  => new ArrowBooleanReader(accessor.asInstanceOf[NullableBitVector#Accessor])
-      case ObjectType.DATE     => new ArrowDateReader(accessor.asInstanceOf[NullableDateVector#Accessor])
-      case ObjectType.LIST     => new ArrowListReader(accessor.asInstanceOf[ListVector#Accessor], bindings(1))
-      case ObjectType.MAP      => new ArrowMapReader(accessor.asInstanceOf[NullableMapVector#Accessor], bindings(1), bindings(2))
-      case ObjectType.BYTES    => new ArrowByteReader(accessor.asInstanceOf[NullableVarBinaryVector#Accessor])
-      case ObjectType.JSON     => new ArrowStringReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
-      case ObjectType.UUID     => new ArrowUuidReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
-      case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
+    dictionary match {
+      case None =>
+        bindings.head match {
+          case ObjectType.STRING   => new ArrowStringReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
+          case ObjectType.GEOMETRY => new ArrowGeometryReader(child.asInstanceOf[NullableMapVector], classBinding)
+          case ObjectType.INT      => new ArrowIntReader(accessor.asInstanceOf[NullableIntVector#Accessor])
+          case ObjectType.LONG     => new ArrowLongReader(accessor.asInstanceOf[NullableBigIntVector#Accessor])
+          case ObjectType.FLOAT    => new ArrowFloatReader(accessor.asInstanceOf[NullableFloat4Vector#Accessor])
+          case ObjectType.DOUBLE   => new ArrowDoubleReader(accessor.asInstanceOf[NullableFloat8Vector#Accessor])
+          case ObjectType.BOOLEAN  => new ArrowBooleanReader(accessor.asInstanceOf[NullableBitVector#Accessor])
+          case ObjectType.DATE     => new ArrowDateReader(accessor.asInstanceOf[NullableDateVector#Accessor])
+          case ObjectType.LIST     => new ArrowListReader(accessor.asInstanceOf[ListVector#Accessor], bindings(1))
+          case ObjectType.MAP      => new ArrowMapReader(accessor.asInstanceOf[NullableMapVector#Accessor], bindings(1), bindings(2))
+          case ObjectType.BYTES    => new ArrowByteReader(accessor.asInstanceOf[NullableVarBinaryVector#Accessor])
+          case ObjectType.JSON     => new ArrowStringReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
+          case ObjectType.UUID     => new ArrowUuidReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
+          case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
+        }
+
+      case Some(dict) =>
+        bindings.head match {
+          case ObjectType.STRING =>
+            accessor match {
+              case a: NullableTinyIntVector#Accessor  => new ArrowDictionaryByteReader(a, dict.values.inverse())
+              case a: NullableSmallIntVector#Accessor => new ArrowDictionaryShortReader(a, dict.values.inverse())
+              case a: NullableIntVector#Accessor      => new ArrowDictionaryIntReader(a, dict.values.inverse())
+              case _ => throw new IllegalArgumentException(s"Unexpected dictionary vector accessor: $accessor")
+            }
+
+          case _ => throw new IllegalArgumentException(s"Dictionary only supported for string type: ${bindings.head}")
+        }
+    }
+  }
+
+  class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor, dictionary: scala.collection.Map[Int, _])
+      extends ArrowAttributeReader {
+    override def apply(i: Int): AnyRef = {
+      if (accessor.isNull(i)) { null } else {
+        dictionary(accessor.get(i).toInt).asInstanceOf[AnyRef]
+      }
+    }
+  }
+
+  class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor, dictionary: scala.collection.Map[Int, _])
+      extends ArrowAttributeReader {
+    override def apply(i: Int): AnyRef = {
+      if (accessor.isNull(i)) { null } else {
+        dictionary(accessor.get(i).toInt).asInstanceOf[AnyRef]
+      }
+    }
+  }
+
+  class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor, dictionary: scala.collection.Map[Int, _])
+      extends ArrowAttributeReader {
+    override def apply(i: Int): AnyRef = {
+      if (accessor.isNull(i)) { null } else {
+        dictionary(accessor.get(i)).asInstanceOf[AnyRef]
+      }
     }
   }
 

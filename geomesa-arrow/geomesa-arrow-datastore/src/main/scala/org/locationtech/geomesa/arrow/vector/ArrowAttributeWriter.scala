@@ -14,9 +14,13 @@ import java.util.Date
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.complex.impl.NullableMapWriter
 import org.apache.arrow.vector.complex.writer.BaseWriter.{ListWriter, MapWriter}
 import org.apache.arrow.vector.complex.writer._
+import org.apache.arrow.vector.types.Types.MinorType
+import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
+import org.apache.arrow.vector.{NullableIntVector, NullableSmallIntVector, NullableTinyIntVector}
 import org.locationtech.geomesa.arrow.vector.writer.{GeometryWriter, PointWriter}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
@@ -32,33 +36,83 @@ object ArrowAttributeWriter {
 
   import scala.collection.JavaConversions._
 
-  def apply(descriptor: AttributeDescriptor, writer: NullableMapWriter, allocator: BufferAllocator): ArrowAttributeWriter = {
+  def apply(descriptor: AttributeDescriptor,
+            vector: NullableMapVector,
+            writer: NullableMapWriter,
+            dictionary: Option[ArrowDictionary],
+            allocator: BufferAllocator): ArrowAttributeWriter = {
     val name = descriptor.getLocalName
     val classBinding = descriptor.getType.getBinding
     val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-    apply(name, bindings.+:(objectType), classBinding, writer, allocator)
+    apply(name, bindings.+:(objectType), classBinding, vector, writer, dictionary, allocator)
   }
 
   def apply(name: String,
             bindings: Seq[ObjectType],
             classBinding: Class[_],
+            vector: NullableMapVector,
             writer: NullableMapWriter,
+            dictionary: Option[ArrowDictionary],
             allocator: BufferAllocator): ArrowAttributeWriter = {
-    bindings.head match {
-      case ObjectType.STRING   => new ArrowStringWriter(writer.varChar(name), allocator)
-      case ObjectType.GEOMETRY => new ArrowGeometryWriter(writer.map(name), classBinding)
-      case ObjectType.INT      => new ArrowIntWriter(writer.integer(name))
-      case ObjectType.LONG     => new ArrowLongWriter(writer.bigInt(name))
-      case ObjectType.FLOAT    => new ArrowFloatWriter(writer.float4(name))
-      case ObjectType.DOUBLE   => new ArrowDoubleWriter(writer.float8(name))
-      case ObjectType.BOOLEAN  => new ArrowBooleanWriter(writer.bit(name))
-      case ObjectType.DATE     => new ArrowDateWriter(writer.date(name))
-      case ObjectType.LIST     => new ArrowListWriter(writer.list(name), bindings(1), allocator)
-      case ObjectType.MAP      => new ArrowMapWriter(writer.map(name), bindings(1), bindings(2), allocator)
-      case ObjectType.BYTES    => new ArrowByteWriter(writer.varBinary(name), allocator)
-      case ObjectType.JSON     => new ArrowStringWriter(writer.varChar(name), allocator)
-      case ObjectType.UUID     => new ArrowStringWriter(writer.varChar(name), allocator)
-      case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
+    dictionary match {
+      case None =>
+        bindings.head match {
+          case ObjectType.STRING   => new ArrowStringWriter(writer.varChar(name), allocator)
+          case ObjectType.GEOMETRY => new ArrowGeometryWriter(writer.map(name), classBinding)
+          case ObjectType.INT      => new ArrowIntWriter(writer.integer(name))
+          case ObjectType.LONG     => new ArrowLongWriter(writer.bigInt(name))
+          case ObjectType.FLOAT    => new ArrowFloatWriter(writer.float4(name))
+          case ObjectType.DOUBLE   => new ArrowDoubleWriter(writer.float8(name))
+          case ObjectType.BOOLEAN  => new ArrowBooleanWriter(writer.bit(name))
+          case ObjectType.DATE     => new ArrowDateWriter(writer.date(name))
+          case ObjectType.LIST     => new ArrowListWriter(writer.list(name), bindings(1), allocator)
+          case ObjectType.MAP      => new ArrowMapWriter(writer.map(name), bindings(1), bindings(2), allocator)
+          case ObjectType.BYTES    => new ArrowBytesWriter(writer.varBinary(name), allocator)
+          case ObjectType.JSON     => new ArrowStringWriter(writer.varChar(name), allocator)
+          case ObjectType.UUID     => new ArrowStringWriter(writer.varChar(name), allocator)
+          case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
+        }
+
+      case Some(dict) =>
+        bindings.head match {
+          case ObjectType.STRING =>
+            if (dict.values.size() < Byte.MaxValue) {
+              val encoding = new DictionaryEncoding(dict.id, false, new ArrowType.Int(8, true))
+              vector.addOrGet(name, MinorType.TINYINT, classOf[NullableTinyIntVector], encoding)
+              new ArrowDictionaryByteWriter(writer.tinyInt(name), dict.values)
+            } else if (dict.values.size() < Short.MaxValue) {
+              val encoding = new DictionaryEncoding(dict.id, false, new ArrowType.Int(16, true))
+              vector.addOrGet(name, MinorType.SMALLINT, classOf[NullableSmallIntVector], encoding)
+              new ArrowDictionaryShortWriter(writer.smallInt(name), dict.values)
+            } else {
+              val encoding = new DictionaryEncoding(dict.id, false, new ArrowType.Int(32, true))
+              vector.addOrGet(name, MinorType.INT, classOf[NullableIntVector], encoding)
+              new ArrowDictionaryIntWriter(writer.integer(name), dict.values)
+            }
+
+          case _ => throw new IllegalArgumentException(s"Dictionary only supported for string type: ${bindings.head}")
+        }
+    }
+  }
+
+  class ArrowDictionaryByteWriter(writer: TinyIntWriter, dictionary: scala.collection.Map[AnyRef, Int])
+      extends ArrowAttributeWriter {
+    override def apply(value: AnyRef): Unit = {
+      writer.writeTinyInt(dictionary(value).toByte)
+    }
+  }
+
+  class ArrowDictionaryShortWriter(writer: SmallIntWriter, dictionary: scala.collection.Map[AnyRef, Int])
+      extends ArrowAttributeWriter {
+    override def apply(value: AnyRef): Unit = {
+      writer.writeSmallInt(dictionary(value).toShort)
+    }
+  }
+
+  class ArrowDictionaryIntWriter(writer: IntWriter, dictionary: scala.collection.Map[AnyRef, Int])
+      extends ArrowAttributeWriter {
+    override def apply(value: AnyRef): Unit = {
+      writer.writeInt(dictionary(value))
     }
   }
 
@@ -145,7 +199,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowByteWriter(writer: VarBinaryWriter, allocator: BufferAllocator) extends ArrowAttributeWriter {
+  class ArrowBytesWriter(writer: VarBinaryWriter, allocator: BufferAllocator) extends ArrowAttributeWriter {
     override def apply(value: AnyRef): Unit = {
       val bytes = value.asInstanceOf[Array[Byte]]
       val buffer = allocator.buffer(bytes.length)
