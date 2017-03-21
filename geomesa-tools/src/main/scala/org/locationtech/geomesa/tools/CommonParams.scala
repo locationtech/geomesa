@@ -43,9 +43,11 @@ trait OptionalTypeNameParam extends TypeNameParam {
 }
 
 trait PasswordParams {
-  @Parameter(names = Array("-p", "--password"), description = "Connection password (will prompt if not supplied and not using Kerberos)")
+  @Parameter(names = Array("-p", "--password"), description = "Connection password")
   var password: String = null
+}
 
+trait KerberosParams {
   @Parameter(names = Array("--keytab"), description = "Path to Kerberos keytab file")
   var keytab: String = null
 }

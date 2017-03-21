@@ -88,13 +88,13 @@ object AccumuloRunner extends Runner {
 
     // Error if both password and keytab supplied
     params.collect {
-      case p: RequiredCredentialsParams if (p.password != null && p.keytab != null)
+      case p: AccumuloConnectionParams if (p.password != null && p.keytab != null)
         => throw new com.beust.jcommander.ParameterException("Cannot specify both password and keytab")
     }
 
     // If password not supplied, and not using keytab, prompt for it
     params.collect {
-      case p: RequiredCredentialsParams if (p.password == null && p.keytab == null) => p
+      case p: AccumuloConnectionParams if (p.password == null && p.keytab == null) => p
     }.foreach(_.password = Prompt.readPassword())
 
     params.collect { case p: InstanceNameParams => p }.foreach { p =>
