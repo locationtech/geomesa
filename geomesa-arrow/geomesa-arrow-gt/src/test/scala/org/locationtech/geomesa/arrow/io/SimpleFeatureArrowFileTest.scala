@@ -25,10 +25,10 @@ class SimpleFeatureArrowFileTest extends Specification {
     "write and read just a schema" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
       val file = Files.createTempFile("gm-arrow-0", "io").toFile
-      val allocator = new RootAllocator(Long.MaxValue)
+      implicit val allocator = new RootAllocator(Long.MaxValue)
       try {
-        new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file), allocator).close()
-        val reader = new SimpleFeatureArrowFileReader(new FileInputStream(file), allocator)
+        new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file)).close()
+        val reader = new SimpleFeatureArrowFileReader(new FileInputStream(file))
         reader.getSchema mustEqual sft
         try {
           val features = reader.read().toSeq
@@ -52,9 +52,9 @@ class SimpleFeatureArrowFileTest extends Specification {
         ScalaSimpleFeature.create(sft, s"$i", s"name$i", s"2017-03-15T00:$i:00.000Z", s"POINT (4${i -10} 5${i -10})")
       }
       val file = Files.createTempFile("gm-arrow-1", "io").toFile
-      val allocator = new RootAllocator(Long.MaxValue)
+      implicit val allocator = new RootAllocator(Long.MaxValue)
       try {
-        val writer = new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file), allocator)
+        val writer = new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file))
         try {
           features0.foreach(writer.add)
           writer.flush()
@@ -63,7 +63,7 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.close()
         }
 
-        val reader = new SimpleFeatureArrowFileReader(new FileInputStream(file), allocator)
+        val reader = new SimpleFeatureArrowFileReader(new FileInputStream(file))
         try {
           val features = reader.read().toSeq
           features must haveLength(20)

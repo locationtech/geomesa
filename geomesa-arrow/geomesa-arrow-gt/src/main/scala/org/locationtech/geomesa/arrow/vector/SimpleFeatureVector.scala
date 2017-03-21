@@ -23,8 +23,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class SimpleFeatureVector private (val sft: SimpleFeatureType,
                                    val underlying: NullableMapVector,
-                                   val dictionaries: Map[String, ArrowDictionary],
-                                   allocator: BufferAllocator) extends Closeable {
+                                   val dictionaries: Map[String, ArrowDictionary])
+                                  (implicit allocator: BufferAllocator) extends Closeable {
 
   import scala.collection.JavaConversions._
 
@@ -80,16 +80,16 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
 object SimpleFeatureVector {
 
   def create(sft: SimpleFeatureType,
-             dictionaries: Map[String, ArrowDictionary],
-             allocator: BufferAllocator): SimpleFeatureVector = {
+             dictionaries: Map[String, ArrowDictionary])
+            (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
     underlying.allocateNew()
-    new SimpleFeatureVector(sft, underlying, dictionaries, allocator)
+    new SimpleFeatureVector(sft, underlying, dictionaries)
   }
 
   def wrap(vector: NullableMapVector,
-           dictionaries: Map[String, ArrowDictionary],
-           allocator: BufferAllocator): SimpleFeatureVector = {
+           dictionaries: Map[String, ArrowDictionary])
+          (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     import scala.collection.JavaConversions._
     val attributes = vector.getField.getChildren.flatMap { field =>
       lazy val geometry = GeometryVector.typeOf(field)
@@ -113,6 +113,6 @@ object SimpleFeatureVector {
     }
     // TODO user data
     val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))
-    new SimpleFeatureVector(sft, vector, dictionaries, allocator)
+    new SimpleFeatureVector(sft, vector, dictionaries)
   }
 }

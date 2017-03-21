@@ -29,7 +29,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * @param os output stream
   * @param allocator allocator
   */
-class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType, os: OutputStream, allocator: BufferAllocator)
+class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType, os: OutputStream)(implicit allocator: BufferAllocator)
     extends Closeable with Flushable {
 
   import scala.collection.JavaConversions._
@@ -45,7 +45,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType, os: OutputStream,
   //  private val allocator = new RootAllocator(Long.MaxValue)
   //  private val dictionaries = dictionaryValues.mapValues(ArrowSimpleFeatureWriter.createDictionary(_, allocator))
 
-  private val vector = SimpleFeatureVector.create(sft, Map.empty, allocator)
+  private val vector = SimpleFeatureVector.create(sft, Map.empty)
   private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
   private val provider = new MapDictionaryProvider()
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))

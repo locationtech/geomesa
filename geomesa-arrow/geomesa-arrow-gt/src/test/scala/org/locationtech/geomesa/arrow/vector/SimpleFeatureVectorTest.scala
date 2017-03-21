@@ -27,9 +27,9 @@ class SimpleFeatureVectorTest extends Specification {
       val features = (0 until 10).map { i =>
         ScalaSimpleFeature.create(sft, s"0$i", s"name0$i", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
       }
-      val allocator = new RootAllocator(Long.MaxValue)
+      implicit val allocator = new RootAllocator(Long.MaxValue)
       try {
-        val vector = SimpleFeatureVector.create(sft, Map.empty, allocator)
+        val vector = SimpleFeatureVector.create(sft, Map.empty)
         try {
           features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
           vector.writer.setValueCount(features.length)
@@ -49,11 +49,11 @@ class SimpleFeatureVectorTest extends Specification {
       val features = (0 until 10).map { i =>
         ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
       }
-      val allocator = new RootAllocator(Long.MaxValue)
+      implicit val allocator = new RootAllocator(Long.MaxValue)
       try {
         val dictionaryMap = ImmutableBiMap.builder[AnyRef, Int].putAll(Map("name00" -> 0, "name01" -> 1)).build()
         val dictionary = new ArrowDictionary(dictionaryMap)
-        val vector = SimpleFeatureVector.create(sft, Map("name" -> dictionary), allocator)
+        val vector = SimpleFeatureVector.create(sft, Map("name" -> dictionary))
         try {
           features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
           vector.writer.setValueCount(features.length)

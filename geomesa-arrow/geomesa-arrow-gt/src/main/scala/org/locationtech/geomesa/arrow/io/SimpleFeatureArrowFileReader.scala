@@ -16,14 +16,14 @@ import org.apache.arrow.vector.stream.ArrowStreamReader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class SimpleFeatureArrowFileReader(is: InputStream, allocator: BufferAllocator) extends Closeable {
+class SimpleFeatureArrowFileReader(is: InputStream)(implicit allocator: BufferAllocator) extends Closeable {
 
   private val reader = new ArrowStreamReader(is, allocator)
   reader.loadNextBatch()
   private val root = reader.getVectorSchemaRoot
   require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
   // TODO dictionaries
-  private val vector = SimpleFeatureVector.wrap(root.getFieldVectors.get(0).asInstanceOf[NullableMapVector], Map.empty, allocator)
+  private val vector = SimpleFeatureVector.wrap(root.getFieldVectors.get(0).asInstanceOf[NullableMapVector], Map.empty)
 
   def getSchema: SimpleFeatureType = vector.sft
 
