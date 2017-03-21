@@ -74,7 +74,7 @@ public class JSimpleFeatureFilter extends FilterBase {
     // TODO: Add static method to compute byte array from SFT and Filter.
     @Override
     public byte[] toByteArray() throws IOException {
-      return Bytes.add(getLengthArray(sftString), getLengthArray(filterString));
+        return Bytes.add(getLengthArray(sftString), getLengthArray(filterString));
     }
 
     private byte[] getLengthArray(String s) {
