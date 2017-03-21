@@ -8,18 +8,21 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>GeoMesa Arrow DataStore</name>
-    <artifactId>geomesa-arrow-datastore_2.11</artifactId>
+    <name>GeoMesa Arrow GeoTools Abstractions</name>
+    <artifactId>geomesa-arrow-gt_2.11</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-arrow-vector</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-arrow-gt_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-feature-kryo_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

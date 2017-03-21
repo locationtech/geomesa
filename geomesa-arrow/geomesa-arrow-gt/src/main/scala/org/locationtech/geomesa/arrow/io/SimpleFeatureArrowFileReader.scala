@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.io.{Closeable, FileInputStream, InputStream}
+import java.io.{Closeable, InputStream}
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
