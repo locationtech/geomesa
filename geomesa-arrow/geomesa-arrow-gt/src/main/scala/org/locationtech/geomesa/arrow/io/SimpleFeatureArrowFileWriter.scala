@@ -14,12 +14,12 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicLong
 
 import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector._
 import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
 import org.apache.arrow.vector.stream.ArrowStreamWriter
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
-import org.apache.arrow.vector.{NullableVarCharVector, VectorSchemaRoot}
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -29,28 +29,35 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * @param os output stream
   * @param allocator allocator
   */
-class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType, os: OutputStream)(implicit allocator: BufferAllocator)
-    extends Closeable with Flushable {
+class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
+                                   os: OutputStream,
+                                   dictionaries: Map[String, ArrowDictionary] = Map.empty)
+                                  (implicit allocator: BufferAllocator) extends Closeable with Flushable {
 
   import scala.collection.JavaConversions._
 
-  // TODO dictionaries
-
-  //  dictionaryValues.keys.foreach { attribute =>
-  //    if (sft.getDescriptor(attribute).getType.getBinding != classOf[String]) {
-  //      throw new NotImplementedError("Dictionaries only supported for string types")
-  //    }
-  //  }
-  //
-  //  private val allocator = new RootAllocator(Long.MaxValue)
-  //  private val dictionaries = dictionaryValues.mapValues(ArrowSimpleFeatureWriter.createDictionary(_, allocator))
-
-  private val vector = SimpleFeatureVector.create(sft, Map.empty)
-  private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
   private val provider = new MapDictionaryProvider()
+
+  // make sure we load dictionaries before instantiating the vector
+  dictionaries.values.foreach { dictionary =>
+    val vector = new NullableVarCharVector(s"dictionary-${dictionary.id}", allocator, null)
+    val mutator = vector.getMutator
+    var i = 0
+    dictionary.values.foreach { value =>
+      mutator.set(i, value.toString.getBytes(StandardCharsets.UTF_8))
+      i += 1
+    }
+    mutator.setValueCount(i)
+    provider.put(new Dictionary(vector, dictionary.encoding))
+  }
+
+  private val vector = SimpleFeatureVector.create(sft, dictionaries)
+  private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
 
   private var index = 0
+
+  def start(): Unit = writer.start()
 
   def add(sf: SimpleFeature): Unit = {
     vector.writer.set(index, sf)
@@ -62,9 +69,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType, os: OutputStream)
       vector.writer.setValueCount(index)
       root.setRowCount(index)
       writer.writeBatch()
-      // TODO is there a better way to reset the buffer?
-      vector.underlying.clear()
-      vector.underlying.allocateNewSafe()
+      vector.reset()
       index = 0
     }
   }

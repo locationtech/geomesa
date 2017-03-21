@@ -76,18 +76,16 @@ object ArrowAttributeWriter {
       case Some(dict) =>
         bindings.head match {
           case ObjectType.STRING =>
-            if (dict.values.size() < Byte.MaxValue) {
-              val encoding = new DictionaryEncoding(dict.id, false, new ArrowType.Int(8, true))
+            val encoding = dict.encoding
+            if (encoding.getIndexType.getBitWidth == 8) {
               vector.addOrGet(name, MinorType.TINYINT, classOf[NullableTinyIntVector], encoding)
-              new ArrowDictionaryByteWriter(writer.tinyInt(name), dict.values)
-            } else if (dict.values.size() < Short.MaxValue) {
-              val encoding = new DictionaryEncoding(dict.id, false, new ArrowType.Int(16, true))
+              new ArrowDictionaryByteWriter(writer.tinyInt(name), dict)
+            } else if (encoding.getIndexType.getBitWidth == 16) {
               vector.addOrGet(name, MinorType.SMALLINT, classOf[NullableSmallIntVector], encoding)
-              new ArrowDictionaryShortWriter(writer.smallInt(name), dict.values)
+              new ArrowDictionaryShortWriter(writer.smallInt(name), dict)
             } else {
-              val encoding = new DictionaryEncoding(dict.id, false, new ArrowType.Int(32, true))
               vector.addOrGet(name, MinorType.INT, classOf[NullableIntVector], encoding)
-              new ArrowDictionaryIntWriter(writer.integer(name), dict.values)
+              new ArrowDictionaryIntWriter(writer.integer(name), dict)
             }
 
           case _ => throw new IllegalArgumentException(s"Dictionary only supported for string type: ${bindings.head}")
@@ -95,24 +93,24 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowDictionaryByteWriter(writer: TinyIntWriter, dictionary: scala.collection.Map[AnyRef, Int])
+  class ArrowDictionaryByteWriter(writer: TinyIntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
     override def apply(value: AnyRef): Unit = {
-      writer.writeTinyInt(dictionary(value).toByte)
+      writer.writeTinyInt(dictionary.index(value).toByte)
     }
   }
 
-  class ArrowDictionaryShortWriter(writer: SmallIntWriter, dictionary: scala.collection.Map[AnyRef, Int])
+  class ArrowDictionaryShortWriter(writer: SmallIntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
     override def apply(value: AnyRef): Unit = {
-      writer.writeSmallInt(dictionary(value).toShort)
+      writer.writeSmallInt(dictionary.index(value).toShort)
     }
   }
 
-  class ArrowDictionaryIntWriter(writer: IntWriter, dictionary: scala.collection.Map[AnyRef, Int])
+  class ArrowDictionaryIntWriter(writer: IntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
     override def apply(value: AnyRef): Unit = {
-      writer.writeInt(dictionary(value))
+      writer.writeInt(dictionary.index(value))
     }
   }
 

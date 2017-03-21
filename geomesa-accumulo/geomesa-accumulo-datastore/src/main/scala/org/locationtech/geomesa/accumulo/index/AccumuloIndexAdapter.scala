@@ -17,6 +17,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -104,6 +105,13 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
     } else if (hints.isBinQuery) {
       val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, BinAggregatingIterator.kvsToFeatures(), None)
+    } else if (hints.isArrowQuery) {
+      val dictionaries: Map[String, ArrowDictionary] = hints.getArrowDictionaryFields.map { name =>
+        name -> null // TODO dictionaries
+      }.toMap
+      val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
+      val reduce = Some(ArrowBatchIterator.reduceFeatures(sft, dictionaries))
+      ScanConfig(Seq(iter), FullColumnFamily, ArrowBatchIterator.kvsToFeatures(), reduce)
     } else if (hints.isDensityQuery) {
       val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, KryoLazyDensityIterator.kvsToFeatures(), None)

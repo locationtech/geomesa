@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.arrow.vector
 
-import com.google.common.collect.ImmutableBiMap
 import org.apache.arrow.memory.RootAllocator
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -18,8 +17,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureVectorTest extends Specification {
-
-  import scala.collection.JavaConversions._
 
   "SimpleFeatureVector" should {
     "set and get values" >> {
@@ -51,8 +48,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
       implicit val allocator = new RootAllocator(Long.MaxValue)
       try {
-        val dictionaryMap = ImmutableBiMap.builder[AnyRef, Int].putAll(Map("name00" -> 0, "name01" -> 1)).build()
-        val dictionary = new ArrowDictionary(dictionaryMap)
+        val dictionary = new ArrowDictionary(Seq("name00", "name01"))
         val vector = SimpleFeatureVector.create(sft, Map("name" -> dictionary))
         try {
           features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }

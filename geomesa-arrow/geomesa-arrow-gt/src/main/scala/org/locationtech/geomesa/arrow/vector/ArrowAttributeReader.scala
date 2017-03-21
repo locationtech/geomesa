@@ -65,9 +65,9 @@ object ArrowAttributeReader {
         bindings.head match {
           case ObjectType.STRING =>
             accessor match {
-              case a: NullableTinyIntVector#Accessor  => new ArrowDictionaryByteReader(a, dict.values.inverse())
-              case a: NullableSmallIntVector#Accessor => new ArrowDictionaryShortReader(a, dict.values.inverse())
-              case a: NullableIntVector#Accessor      => new ArrowDictionaryIntReader(a, dict.values.inverse())
+              case a: NullableTinyIntVector#Accessor  => new ArrowDictionaryByteReader(a, dict)
+              case a: NullableSmallIntVector#Accessor => new ArrowDictionaryShortReader(a, dict)
+              case a: NullableIntVector#Accessor      => new ArrowDictionaryIntReader(a, dict)
               case _ => throw new IllegalArgumentException(s"Unexpected dictionary vector accessor: $accessor")
             }
 
@@ -76,29 +76,29 @@ object ArrowAttributeReader {
     }
   }
 
-  class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor, dictionary: scala.collection.Map[Int, _])
+  class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor, dictionary: ArrowDictionary)
       extends ArrowAttributeReader {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
-        dictionary(accessor.get(i).toInt).asInstanceOf[AnyRef]
+        dictionary.lookup(accessor.get(i))
       }
     }
   }
 
-  class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor, dictionary: scala.collection.Map[Int, _])
+  class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor, dictionary: ArrowDictionary)
       extends ArrowAttributeReader {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
-        dictionary(accessor.get(i).toInt).asInstanceOf[AnyRef]
+        dictionary.lookup(accessor.get(i))
       }
     }
   }
 
-  class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor, dictionary: scala.collection.Map[Int, _])
+  class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor, dictionary: ArrowDictionary)
       extends ArrowAttributeReader {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
-        dictionary(accessor.get(i)).asInstanceOf[AnyRef]
+        dictionary.lookup(accessor.get(i))
       }
     }
   }

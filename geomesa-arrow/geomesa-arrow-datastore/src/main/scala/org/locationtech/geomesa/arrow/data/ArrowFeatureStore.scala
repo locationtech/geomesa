@@ -28,7 +28,7 @@ class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry
   override def getCountInternal(query: Query): Int = -1
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val reader = new SimpleFeatureArrowFileReader(ds.url.openStream(), ds.allocator)
+    val reader = new SimpleFeatureArrowFileReader(ds.url.openStream())(ds.allocator)
     val features = reader.read()
 
     new FeatureReader[SimpleFeatureType, SimpleFeature] {
@@ -60,7 +60,7 @@ class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, 
 
     val sft = delegate.ds.getSchema
     val os = delegate.ds.createOutputStream()
-    val writer = new SimpleFeatureArrowFileWriter(sft, os, delegate.ds.allocator)
+    val writer = new SimpleFeatureArrowFileWriter(sft, os)(delegate.ds.allocator)
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
       private var feature: ScalaSimpleFeature = _

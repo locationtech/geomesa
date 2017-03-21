@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
 
 class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
 
-  private [data] val allocator = new RootAllocator(Long.MaxValue)
+  private [data] implicit val allocator = new RootAllocator(Long.MaxValue)
 
   // TODO check writable?
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = new ArrowFeatureStore(entry)
@@ -40,7 +40,7 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
     val os = createOutputStream()
     try {
       // just write the schema/metadata
-      new SimpleFeatureArrowFileWriter(sft, os, allocator).close()
+      new SimpleFeatureArrowFileWriter(sft, os, Map.empty).close()
     } finally {
       os.close()
     }
@@ -53,7 +53,7 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
     var reader: SimpleFeatureArrowFileReader = null
     try {
       val is = url.openStream()
-      reader = new SimpleFeatureArrowFileReader(is, allocator)
+      reader = new SimpleFeatureArrowFileReader(is)
       reader.getSchema
     } catch {
       // TODO handle normal errors vs actual errors

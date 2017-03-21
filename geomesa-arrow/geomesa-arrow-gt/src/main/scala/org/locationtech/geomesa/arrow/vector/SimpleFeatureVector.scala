@@ -34,6 +34,12 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
   val writer = new Writer(this)
   val reader = new Reader(this)
 
+  def reset(): Unit = {
+    // TODO is there a better way to reset the buffer?
+    underlying.clear()
+    underlying.allocateNewSafe()
+  }
+
   override def close(): Unit = {
     underlying.close()
     writer.arrowWriter.close()

@@ -16,6 +16,8 @@ import java.util.Collections
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, FileDataStore, FileDataStoreFactorySpi, Parameter}
 
+import scala.util.Try
+
 class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
   import ArrowDataStoreFactory._
 
@@ -40,7 +42,7 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
-    Option(UrlParam.lookUp(params).asInstanceOf[URL]).exists(canProcess)
+    Try(Option(UrlParam.lookUp(params).asInstanceOf[URL]).exists(canProcess)).getOrElse(false)
 
   override def getParametersInfo: Array[Param] = Array(UrlParam)
 

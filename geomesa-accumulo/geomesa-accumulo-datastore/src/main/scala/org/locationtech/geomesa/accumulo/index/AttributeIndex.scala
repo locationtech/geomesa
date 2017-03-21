@@ -164,7 +164,7 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       val kvsToFeatures = entriesToFeatures(sft, transform.map(_._2).getOrElse(schema))
       BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, dedupe)
     }
-
+// TODO arrow queries
     if (hints.isBinQuery) {
       // check to see if we can execute against the index values
       if (indexSft.indexOf(hints.getBinTrackIdField) != -1 &&

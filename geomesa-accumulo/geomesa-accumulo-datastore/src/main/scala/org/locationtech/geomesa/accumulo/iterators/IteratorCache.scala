@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.concurrent.ConcurrentHashMap
 
+import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -22,6 +23,8 @@ import org.opengis.filter.Filter
   * Cache for expensive objects used in iterators
   */
 object IteratorCache {
+
+  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   // thread safe objects can use a concurrent hashmap
   private val sftCache = new ConcurrentHashMap[String, SimpleFeatureType]()
