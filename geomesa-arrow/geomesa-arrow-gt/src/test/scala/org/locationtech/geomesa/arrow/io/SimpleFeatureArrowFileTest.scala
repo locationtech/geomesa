@@ -8,75 +8,86 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.io.{FileInputStream, FileOutputStream}
+import java.io.{File, FileInputStream, FileOutputStream}
 import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
 
 import org.apache.arrow.memory.RootAllocator
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureArrowFileTest extends Specification {
 
+  implicit val allocator = new RootAllocator(Long.MaxValue)
+
+  val fileCount = new AtomicInteger(0)
+
+  val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
+
+  val features0 = (0 until 10).map { i =>
+    ScalaSimpleFeature.create(sft, s"0$i", s"name0$i", s"foo${i % 2}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
+  }
+  val features1 = (10 until 20).map { i =>
+    ScalaSimpleFeature.create(sft, s"$i", s"name$i", s"foo${i % 3}", s"2017-03-15T00:$i:00.000Z", s"POINT (4${i -10} 5${i -10})")
+  }
+
   "SimpleFeatureArrowFiles" should {
     "write and read just a schema" >> {
-      val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
-      val file = Files.createTempFile("gm-arrow-0", "io").toFile
-      implicit val allocator = new RootAllocator(Long.MaxValue)
-      try {
+      withTestFile { file =>
         new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file)).close()
-        val reader = new SimpleFeatureArrowFileReader(new FileInputStream(file))
-        reader.getSchema mustEqual sft
-        try {
-          val features = reader.read().toSeq
-          features must beEmpty
-        } finally {
-          reader.close()
+        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
+          reader.getSchema mustEqual sft
+          reader.read().toSeq must beEmpty
         }
-      } finally {
-        if (!file.delete()) {
-          file.deleteOnExit()
-        }
-        allocator.close()
       }
     }
     "write and read values" >> {
-      val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
-      val features0 = (0 until 10).map { i =>
-        ScalaSimpleFeature.create(sft, s"0$i", s"name0$i", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
-      }
-      val features1 = (10 until 20).map { i =>
-        ScalaSimpleFeature.create(sft, s"$i", s"name$i", s"2017-03-15T00:$i:00.000Z", s"POINT (4${i -10} 5${i -10})")
-      }
-      val file = Files.createTempFile("gm-arrow-1", "io").toFile
-      implicit val allocator = new RootAllocator(Long.MaxValue)
-      try {
-        val writer = new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file))
-        try {
+      withTestFile { file =>
+        WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file))) { writer =>
           features0.foreach(writer.add)
           writer.flush()
           features1.foreach(writer.add)
-        } finally {
-          writer.close()
         }
-
-        val reader = new SimpleFeatureArrowFileReader(new FileInputStream(file))
-        try {
+        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
           val features = reader.read().toSeq
           features must haveLength(20)
           features must containTheSameElementsAs(features0 ++ features1)
-        } finally {
-          reader.close()
         }
-      } finally {
-        if (!file.delete()) {
-          file.deleteOnExit()
-        }
-        allocator.close()
       }
     }
+    "write and read dictionary encoded values" >> {
+      val dictionaries = Map("foo" -> new ArrowDictionary(Seq("foo0", "foo1", "foo2")))
+      withTestFile { file =>
+        WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file), dictionaries)) { writer =>
+          features0.foreach(writer.add)
+          writer.flush()
+          features1.foreach(writer.add)
+        }
+        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
+          val features = reader.read().toSeq
+          features must haveLength(20)
+          features must containTheSameElementsAs(features0 ++ features1)
+        }
+      }
+    }
+  }
+
+  def withTestFile[T](fn: (File) => T): T = {
+    val file = Files.createTempFile(s"gm-arrow-file-test-${fileCount.getAndIncrement()}-", "arrow").toFile
+    try { fn(file) } finally {
+      if (!file.delete()) {
+        file.deleteOnExit()
+      }
+    }
+  }
+
+  step {
+    allocator.close()
   }
 }

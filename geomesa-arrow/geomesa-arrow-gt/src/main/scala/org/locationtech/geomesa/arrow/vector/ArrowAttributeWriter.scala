@@ -19,7 +19,6 @@ import org.apache.arrow.vector.complex.impl.NullableMapWriter
 import org.apache.arrow.vector.complex.writer.BaseWriter.{ListWriter, MapWriter}
 import org.apache.arrow.vector.complex.writer._
 import org.apache.arrow.vector.types.Types.MinorType
-import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
 import org.apache.arrow.vector.{NullableIntVector, NullableSmallIntVector, NullableTinyIntVector}
 import org.locationtech.geomesa.arrow.vector.writer.{GeometryWriter, PointWriter}
 import org.locationtech.geomesa.features.serialization.ObjectType
@@ -95,23 +94,17 @@ object ArrowAttributeWriter {
 
   class ArrowDictionaryByteWriter(writer: TinyIntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = {
-      writer.writeTinyInt(dictionary.index(value).toByte)
-    }
+    override def apply(value: AnyRef): Unit = writer.writeTinyInt(dictionary.index(value).toByte)
   }
 
   class ArrowDictionaryShortWriter(writer: SmallIntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = {
-      writer.writeSmallInt(dictionary.index(value).toShort)
-    }
+    override def apply(value: AnyRef): Unit = writer.writeSmallInt(dictionary.index(value).toShort)
   }
 
   class ArrowDictionaryIntWriter(writer: IntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = {
-      writer.writeInt(dictionary.index(value))
-    }
+    override def apply(value: AnyRef): Unit = writer.writeInt(dictionary.index(value))
   }
 
   class ArrowGeometryWriter(writer: MapWriter, binding: Class[_]) extends ArrowAttributeWriter {

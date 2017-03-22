@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
 import com.google.common.collect.ImmutableBiMap
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
 
-case class ArrowDictionary(values: Seq[AnyRef], id: Long = ArrowDictionary.nextId) {
+class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.nextId) {
 
   lazy private val (map, inverse) = {
     val builder = ImmutableBiMap.builder[AnyRef, Int]
@@ -29,13 +29,13 @@ case class ArrowDictionary(values: Seq[AnyRef], id: Long = ArrowDictionary.nextI
 
   lazy val encoding: DictionaryEncoding = {
     // TODO smaller encoding
-//    if (values.length < Byte.MaxValue) {
-//      new DictionaryEncoding(id, false, new ArrowType.Int(8, true))
-//    } else if (values.length < Short.MaxValue) {
-//      new DictionaryEncoding(id, false, new ArrowType.Int(16, true))
-//    } else {
+    if (values.length < Byte.MaxValue) {
+      new DictionaryEncoding(id, false, new ArrowType.Int(8, true))
+    } else if (values.length < Short.MaxValue) {
+      new DictionaryEncoding(id, false, new ArrowType.Int(16, true))
+    } else {
       new DictionaryEncoding(id, false, new ArrowType.Int(32, true))
-//    }
+    }
   }
 
   def index(value: AnyRef): Int = map.get(value)

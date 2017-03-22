@@ -163,7 +163,7 @@ object ArrowBatchIterator {
   private def decodeDictionaries(encoded: String): Map[String, ArrowDictionary] = {
     encoded.split(s"$Tab$Tab").map { e =>
       val values = e.split(Tab)
-      values.head -> ArrowDictionary(values.tail)
+      values.head -> new ArrowDictionary(values.tail)
     }.toMap
   }
 }

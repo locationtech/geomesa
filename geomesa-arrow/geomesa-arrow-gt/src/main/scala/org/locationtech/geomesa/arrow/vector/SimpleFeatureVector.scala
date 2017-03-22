@@ -102,8 +102,9 @@ object SimpleFeatureVector {
       // filter out feature id from attributes
       if (name == "id") {
         None
-      } else if (dictionaries.containsKey(name)) {
-        Some(s"$name:String") // currently dictionary encoding is only for string types
+      } else if (field.getDictionary != null) {
+        // currently dictionary encoding is only for string types
+        Some(s"$name:String")
       } else {
         lazy val geometry = GeometryVector.typeOf(field)
         val binding = field.getType match {

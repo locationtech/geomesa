@@ -58,17 +58,8 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
 
       def in = new ByteArrayInputStream(out.toByteArray)
 
-      WithClose(new SimpleFeatureArrowFileReader(in, decodeDictionaries = true)) { reader =>
+      WithClose(new SimpleFeatureArrowFileReader(in)) { reader =>
         reader.read().toSeq must containTheSameElementsAs(features)
-      }
-      WithClose(new SimpleFeatureArrowFileReader(in, decodeDictionaries = false)) { reader =>
-        val encoded = features.map { f =>
-          val attributes = f.getAttributes.toArray
-          attributes(0) = if (f.getAttribute(0) == "name0") Int.box(1) else Int.box(0)
-          // set the values directly so the dictionary doesn't get converted to a string
-          new ScalaSimpleFeature(f.getID, sft, attributes)
-        }
-        reader.read().toSeq must containTheSameElementsAs(encoded)
       }
     }
   }
