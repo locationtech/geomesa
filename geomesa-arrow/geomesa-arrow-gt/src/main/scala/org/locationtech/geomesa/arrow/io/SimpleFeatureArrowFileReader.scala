@@ -9,25 +9,47 @@
 package org.locationtech.geomesa.arrow.io
 
 import java.io.{Closeable, InputStream}
+import java.nio.charset.StandardCharsets
 
 import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.NullableVarCharVector
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.stream.ArrowStreamReader
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class SimpleFeatureArrowFileReader(is: InputStream)(implicit allocator: BufferAllocator) extends Closeable {
+import scala.collection.mutable.ArrayBuffer
+
+class SimpleFeatureArrowFileReader(is: InputStream, decodeDictionaries: Boolean = true)(implicit allocator: BufferAllocator)
+    extends Closeable {
 
   private val reader = new ArrowStreamReader(is, allocator)
-  reader.loadNextBatch()
+  reader.loadNextBatch() // load the first batch so we get any dictionaries
   private val root = reader.getVectorSchemaRoot
   require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
-  // TODO dictionaries
-  private val vector = SimpleFeatureVector.wrap(root.getFieldVectors.get(0).asInstanceOf[NullableMapVector], Map.empty)
+  private val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
+
+  val dictionaries: Map[String, ArrowDictionary] = if (!decodeDictionaries) { Map.empty } else {
+    import scala.collection.JavaConversions._
+    underlying.getField.getChildren.flatMap { field =>
+      Option(field.getDictionary).map { encoding =>
+        val accessor = reader.lookup(encoding.getId).getVector.asInstanceOf[NullableVarCharVector].getAccessor
+        val values = ArrayBuffer.empty[String]
+        var i = 0
+        while (i < accessor.getValueCount) {
+          values.append(new String(accessor.get(i), StandardCharsets.UTF_8))
+          i += 1
+        }
+        field.getName -> new ArrowDictionary(values, encoding.getId)
+      }
+    }.toMap
+  }
+
+  private val vector = SimpleFeatureVector.wrap(underlying, dictionaries)
 
   def getSchema: SimpleFeatureType = vector.sft
 
-  def read(decodeDictionaries: Boolean = true): Iterator[SimpleFeature] = {
+  def read(): Iterator[SimpleFeature] = {
     new Iterator[SimpleFeature] {
       private var done = false
       private var index = 0

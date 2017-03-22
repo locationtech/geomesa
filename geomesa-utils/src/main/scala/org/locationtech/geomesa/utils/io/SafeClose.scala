@@ -44,6 +44,9 @@ object CloseQuietly extends SafeClose {
   }
 }
 
+object WithClose {
+  def apply[T <: Any { def close(): Unit }, V](c: T)(fn: (T) => V): V = try { fn(c) } finally { c.close() }
+}
 
 /**
   * Flushes and logs any exceptions

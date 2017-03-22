@@ -37,10 +37,10 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
   import scala.collection.JavaConversions._
 
   private val provider = new MapDictionaryProvider()
-
   // make sure we load dictionaries before instantiating the vector
-  dictionaries.values.foreach { dictionary =>
+  private val dictionaryVectors = dictionaries.values.map { dictionary =>
     val vector = new NullableVarCharVector(s"dictionary-${dictionary.id}", allocator, null)
+    vector.allocateNew()
     val mutator = vector.getMutator
     var i = 0
     dictionary.values.foreach { value =>
@@ -49,6 +49,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
     }
     mutator.setValueCount(i)
     provider.put(new Dictionary(vector, dictionary.encoding))
+    vector
   }
 
   private val vector = SimpleFeatureVector.create(sft, dictionaries)
@@ -79,6 +80,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
     writer.end()
     writer.close()
     root.close()
+    dictionaryVectors.foreach(_.close())
   }
 }
 

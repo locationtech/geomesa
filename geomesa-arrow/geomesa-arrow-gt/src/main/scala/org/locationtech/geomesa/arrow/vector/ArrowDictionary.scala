@@ -28,13 +28,14 @@ case class ArrowDictionary(values: Seq[AnyRef], id: Long = ArrowDictionary.nextI
   }
 
   lazy val encoding: DictionaryEncoding = {
-    if (values.length < Byte.MaxValue) {
-      new DictionaryEncoding(id, false, new ArrowType.Int(8, true))
-    } else if (values.length < Short.MaxValue) {
-      new DictionaryEncoding(id, false, new ArrowType.Int(16, true))
-    } else {
+    // TODO smaller encoding
+//    if (values.length < Byte.MaxValue) {
+//      new DictionaryEncoding(id, false, new ArrowType.Int(8, true))
+//    } else if (values.length < Short.MaxValue) {
+//      new DictionaryEncoding(id, false, new ArrowType.Int(16, true))
+//    } else {
       new DictionaryEncoding(id, false, new ArrowType.Int(32, true))
-    }
+//    }
   }
 
   def index(value: AnyRef): Int = map.get(value)
@@ -43,8 +44,8 @@ case class ArrowDictionary(values: Seq[AnyRef], id: Long = ArrowDictionary.nextI
 }
 
 object ArrowDictionary {
-  private val r = new SecureRandom
-  private val ids = new AtomicLong(r.nextLong)
+  private val values = new SecureRandom().longs(0, Long.MaxValue).iterator()
+  private val ids = new AtomicLong(values.next)
 
-  def nextId: Long = ids.getAndSet(r.nextLong)
+  def nextId: Long = ids.getAndSet(values.next)
 }

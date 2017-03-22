@@ -98,23 +98,27 @@ object SimpleFeatureVector {
           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     import scala.collection.JavaConversions._
     val attributes = vector.getField.getChildren.flatMap { field =>
-      lazy val geometry = GeometryVector.typeOf(field)
-      val binding = field.getType match {
-        case t: ArrowType.Utf8   => "String" // TODO json, uuid
-        case t: ArrowType.Binary => "Bytes"
-        case t: ArrowType.Bool   => "Boolean"
-        case t: ArrowType.Date   => "Date"
-        case t: ArrowType.Int if t.getBitWidth == 32 => "Int"
-        case t: ArrowType.Int if t.getBitWidth == 64 => "Long"
-        case t: ArrowType.FloatingPoint if t.getPrecision == FloatingPointPrecision.SINGLE => "Float"
-        case t: ArrowType.FloatingPoint if t.getPrecision == FloatingPointPrecision.DOUBLE => "Double"
-        case t: ArrowType.Struct if geometry == classOf[Point] => "Point:srid=4326"
-        case _ => throw new IllegalArgumentException(s"Unexpected field type for field $field")
-      }
-      if (binding == "String" && field.getName == "id") { // filter out feature id from attributes
+      val name = field.getName
+      // filter out feature id from attributes
+      if (name == "id") {
         None
+      } else if (dictionaries.containsKey(name)) {
+        Some(s"$name:String") // currently dictionary encoding is only for string types
       } else {
-        Some(s"${field.getName}:$binding")
+        lazy val geometry = GeometryVector.typeOf(field)
+        val binding = field.getType match {
+          case t: ArrowType.Utf8   => "String" // TODO json, uuid
+          case t: ArrowType.Binary => "Bytes"
+          case t: ArrowType.Bool   => "Boolean"
+          case t: ArrowType.Date   => "Date"
+          case t: ArrowType.Int if t.getBitWidth == 32 => "Int"
+          case t: ArrowType.Int if t.getBitWidth == 64 => "Long"
+          case t: ArrowType.FloatingPoint if t.getPrecision == FloatingPointPrecision.SINGLE => "Float"
+          case t: ArrowType.FloatingPoint if t.getPrecision == FloatingPointPrecision.DOUBLE => "Double"
+          case t: ArrowType.Struct if geometry == classOf[Point] => "Point:srid=4326"
+          case _ => throw new IllegalArgumentException(s"Unexpected field type for field $field")
+        }
+        Some(s"$name:$binding")
       }
     }
     // TODO user data

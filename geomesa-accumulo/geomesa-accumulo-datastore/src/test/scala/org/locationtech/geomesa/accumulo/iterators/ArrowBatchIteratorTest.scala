@@ -17,8 +17,8 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.ExplainPrintln
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
@@ -26,6 +26,8 @@ import org.specs2.runner.JUnitRunner
 class ArrowBatchIteratorTest extends TestWithDataStore {
 
   override val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
+
+  implicit val allocator = new RootAllocator(Long.MaxValue)
 
   val features = (0 until 10).map { i =>
     ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"2017-02-03T00:0$i:00.000Z", s"POINT(40 6$i)")
@@ -42,13 +44,36 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       val in = new ByteArrayInputStream(out.toByteArray)
       implicit val allocator = new RootAllocator(Long.MaxValue)
-      val reader = new SimpleFeatureArrowFileReader(in)
-      try {
+      WithClose(new SimpleFeatureArrowFileReader(in)) { reader =>
         reader.read().toSeq must containTheSameElementsAs(features)
-      } finally {
-        reader.close()
-        allocator.close()
       }
     }
+    "return arrow dictionary encoded data" in {
+      val query = new Query(sft.getTypeName, Filter.INCLUDE)
+      query.getHints.put(QueryHints.ARROW_ENCODE, true)
+      query.getHints.put(QueryHints.ARROW_DICTIONARY, "name")
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      val out = new ByteArrayOutputStream
+      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+
+      def in = new ByteArrayInputStream(out.toByteArray)
+
+      WithClose(new SimpleFeatureArrowFileReader(in, decodeDictionaries = true)) { reader =>
+        reader.read().toSeq must containTheSameElementsAs(features)
+      }
+      WithClose(new SimpleFeatureArrowFileReader(in, decodeDictionaries = false)) { reader =>
+        val encoded = features.map { f =>
+          val attributes = f.getAttributes.toArray
+          attributes(0) = if (f.getAttribute(0) == "name0") Int.box(1) else Int.box(0)
+          // set the values directly so the dictionary doesn't get converted to a string
+          new ScalaSimpleFeature(f.getID, sft, attributes)
+        }
+        reader.read().toSeq must containTheSameElementsAs(encoded)
+      }
+    }
+  }
+
+  step {
+    allocator.close()
   }
 }
