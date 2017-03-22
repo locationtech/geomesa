@@ -6,9 +6,10 @@ to Kafka (by a separate GeoMesa Kafka producer). The store supports two types of
 ``SimpleFeatureSource``'s: *live* and *replay*. A Kafka Consumer Feature
 Source operating in *live* mode continually pulls data from the end of
 the message queue (e.g. latest time) and always represents the latest
-state of the simple features. A Kafka Consumer Feature Source operating
-in *replay* mode will pull data from a specified time interval in the
-past and can provide features as they existed at any point in time
+state of the simple features; ``autoOffsetReset`` can be set to ``smallest``
+to read from the beginning of the the message queue. A Kafka Consumer Feature
+Source operating in *replay* mode will pull data from a specified time interval
+in the past and can provide features as they existed at any point in time
 within that interval.
 
 First, create the data store. For example:
@@ -29,6 +30,9 @@ First, create the data store. For example:
 
     // optional
     params.put("zkPath", zkPath);
+
+    // optional - can be set to "smallest" to read from the beginning of the message queue
+    params.put("autoOffsetReset", "largest");
 
     // create the data store
     KafkaDataStoreFactory factory = new KafkaDataStoreFactory();

@@ -96,8 +96,12 @@ object KafkaConsumerFeatureSourceFactory {
       Option(KafkaDataStoreFactoryParams.COLLECT_QUERY_STAT.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
 
+    val autoOffsetReset: String = {
+      Option(KafkaDataStoreFactoryParams.AUTO_OFFSET_RESET.lookUp(params).asInstanceOf[String]).getOrElse("largest")
+    }
+
     (entry: ContentEntry, query: Query, schemaManager: KafkaDataStoreSchemaManager) => {
-      val kf = new KafkaConsumerFactory(brokers, zk)
+      val kf = new KafkaConsumerFactory(brokers, zk, autoOffsetReset)
       val fc = schemaManager.getFeatureConfig(entry.getTypeName)
 
       fc.replayConfig match {
