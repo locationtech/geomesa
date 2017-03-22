@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.process
 
 import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -49,6 +50,12 @@ class ArrowConversionProcessTest extends TestWithDataStore {
     "encode a generic feature collection with dictionary values" in {
       val bytes = process.execute(listCollection, Seq("name")).toList
       bytes must haveLength(1)
+      ok
+    }
+
+    "encode an empty accumulo feature collection" in {
+      val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,21,20,21)")), null).toList
+      bytes.length must beLessThan(10)
       ok
     }
 
