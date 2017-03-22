@@ -51,7 +51,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
     "return arrow dictionary encoded data" in {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
-      query.getHints.put(QueryHints.ARROW_DICTIONARY, "name")
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
