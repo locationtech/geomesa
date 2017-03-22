@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.convert
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.avro.{AvroSimpleFeatureConverterFactory, AvroSimpleFeatureConverter}
-import org.locationtech.geomesa.convert.fixedwidth.{FixedWidthConverterFactory, FixedWidthConverter}
-import org.locationtech.geomesa.convert.json.{JsonSimpleFeatureConverterFactory, JsonSimpleFeatureConverter}
-import org.locationtech.geomesa.convert.text.{DelimitedTextConverterFactory, DelimitedTextConverter}
-import org.locationtech.geomesa.convert.xml.{XMLConverterFactory, XMLConverter}
+import org.locationtech.geomesa.convert.avro.{AvroSimpleFeatureConverter, AvroSimpleFeatureConverterFactory}
+import org.locationtech.geomesa.convert.fixedwidth.{FixedWidthConverter, FixedWidthConverterFactory}
+import org.locationtech.geomesa.convert.json.{JsonSimpleFeatureConverter, JsonSimpleFeatureConverterFactory}
+import org.locationtech.geomesa.convert.text.{DelimitedTextConverter, DelimitedTextConverterFactory}
+import org.locationtech.geomesa.convert.xml.{XMLConverter, XMLConverterFactory}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

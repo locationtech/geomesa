@@ -680,3 +680,37 @@ expressions must be enclosed in double quotes.
     filter.evaluate(sf); // returns false
     sf.getAttribute("\"$.json.foo\""); // returns "baz"
     sf.getAttribute("\"$.json.bar\""); // returns null
+
+JSONPath CQL Filter Function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+JSON attributes can contain periods and spaces. In order to query these attributes through an ECQL filter
+use the jsonPath CQL filter function. This passes the path to an internal interpreter function that understands
+how to handle these attribute names.
+
+.. code-block:: java
+
+    Filter filter = ECQL.toFilter("jsonPath('$.json.foo') = 'bar'")
+    SimpleFeature sf = ...
+    sf.setAttribute("json", "{ \"foo\" : \"bar\" }");
+    filter.evaluate(sf); // returns true
+
+To handle periods and spaces in attribute names, enclose the attribute in the standard bracket notation. However,
+since the path is being passed to the jsonPath function as a string literal parameter, the single quotes need to be
+escaped with an additional single quote.
+
+.. code-block:: java
+
+    Filter filter = ECQL.toFilter("jsonPath('$.json.[''foo.bar'']') = 'bar'")
+    SimpleFeature sf = ...
+    sf.setAttribute("json", "{ \"foo.bar\" : \"bar\" }");
+    filter.evaluate(sf); // returns true
+
+Similarly for spaces:
+
+.. code-block:: java
+
+    Filter filter = ECQL.toFilter("jsonPath('$.json.[''foo bar'']') = 'bar'")
+    SimpleFeature sf = ...
+    sf.setAttribute("json", "{ \"foo bar\" : \"bar\" }");
+    filter.evaluate(sf); // returns true

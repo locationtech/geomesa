@@ -108,7 +108,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
       case l ~ "," ~ r => Or(l, r)
     }
     def notPred     = ("not" ~ OPEN_PAREN) ~> pred <~ CLOSE_PAREN ^^ {
-      case pred => Not(pred)
+      pred => Not(pred)
     }
     def logicPred = andPred | orPred | notPred
     def pred: Parser[Predicate] = binaryPred | logicPred
@@ -550,10 +550,15 @@ trait MapListParsing {
   }
 }
 
-class BasicListFunction extends TransformerFunctionFactory {
-  override def functions = Seq(listFn)
+class CollectionFunctionFactory extends TransformerFunctionFactory {
   import scala.collection.JavaConverters._
+
+  override def functions = Seq(listFn, mapValueFunction)
+
   val listFn = TransformerFn("list") { args => args.toList.asJava }
+  val mapValueFunction = TransformerFn("mapValue") {
+    args => args(0).asInstanceOf[java.util.Map[Any, Any]].get(args(1))
+  }
 }
 
 class StringMapListFunctionFactory extends TransformerFunctionFactory with MapListParsing {

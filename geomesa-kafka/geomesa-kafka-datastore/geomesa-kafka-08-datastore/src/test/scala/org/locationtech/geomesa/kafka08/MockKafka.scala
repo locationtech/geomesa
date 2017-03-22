@@ -84,7 +84,7 @@ object MockMessage {
 }
 
 class MockKafkaConsumerFactory(val mk: MockKafka)
-  extends KafkaConsumerFactory("mock-broker:9092", "mock-zoo") {
+  extends KafkaConsumerFactory("mock-broker:9092", "mock-zoo", "largest") {
 
   import KafkaConsumerFactory._
 

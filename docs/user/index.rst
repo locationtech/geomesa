@@ -23,6 +23,7 @@ User Manual
    geojson
    metrics
    native_api
+   nifi
    process
    spark/index
    stream
