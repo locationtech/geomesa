@@ -15,6 +15,17 @@
             </includes>
         </dependencySet>
         <dependencySet>
+            <outputDirectory>dist/converters</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
             <outputDirectory>lib</outputDirectory>
             <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
@@ -116,10 +127,6 @@
             <source>../../../geomesa-process/README.md</source>
             <destName>README-process.md</destName>
             <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../../geomesa-tools/target/geomesa-tools_${scala.binary.version}-${project.version}-data.jar</source>
-            <outputDirectory>dist/converters</outputDirectory>
         </file>
         <!-- geomesa-site.xml.template -->
         <file>
