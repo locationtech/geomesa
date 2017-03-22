@@ -99,6 +99,11 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-accumulo-tools_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
+            <classifier>data</classifier>
+        </dependency>
 
         <!-- additional deps to manage in for deploying to lib dir-->
         <dependency>
@@ -115,7 +120,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-all_2.11</artifactId>
+            <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.clearspring.analytics</groupId>
