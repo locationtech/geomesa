@@ -16,7 +16,7 @@ import org.apache.arrow.vector.NullableVarCharVector
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.stream.ArrowStreamReader
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -46,35 +46,33 @@ class SimpleFeatureArrowFileReader(is: InputStream)(implicit allocator: BufferAl
 
   private val vector = SimpleFeatureVector.wrap(underlying, dictionaries)
 
-  def getSchema: SimpleFeatureType = vector.sft
+  val sft = vector.sft
 
-  def read(): Iterator[SimpleFeature] = {
-    new Iterator[SimpleFeature] {
-      private var done = false
-      private var index = 0
+  val features = new Iterator[SimpleFeature] {
+    private var done = false
+    private var index = 0
 
-      override def hasNext: Boolean = {
-        if (done) {
+    override def hasNext: Boolean = {
+      if (done) {
+        false
+      } else if (index < root.getRowCount) {
+        true
+      } else {
+        index = 0
+        reader.loadNextBatch()
+        if (root.getRowCount == 0) {
+          done = true
           false
-        } else if (index < root.getRowCount) {
-          true
         } else {
-          index = 0
-          reader.loadNextBatch()
-          if (root.getRowCount == 0) {
-            done = true
-            false
-          } else {
-            true
-          }
+          true
         }
       }
+    }
 
-      override def next(): SimpleFeature = {
-        val sf = vector.reader.get(index)
-        index += 1
-        sf
-      }
+    override def next(): SimpleFeature = {
+      val sf = vector.reader.get(index)
+      index += 1
+      sf
     }
   }
 

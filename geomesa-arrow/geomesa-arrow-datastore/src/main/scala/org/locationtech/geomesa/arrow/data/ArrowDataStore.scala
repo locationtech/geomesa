@@ -11,13 +11,11 @@ package org.locationtech.geomesa.arrow.data
 import java.io.{FileOutputStream, IOException, OutputStream}
 import java.net.URL
 
-import org.apache.arrow.memory.RootAllocator
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
-import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -26,7 +24,7 @@ import scala.util.control.NonFatal
 
 class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
 
-  private [data] implicit val allocator = new RootAllocator(Long.MaxValue)
+  import org.locationtech.geomesa.arrow.allocator
 
   // TODO check writable?
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = new ArrowFeatureStore(entry)
@@ -54,7 +52,7 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
     try {
       val is = url.openStream()
       reader = new SimpleFeatureArrowFileReader(is)
-      reader.getSchema
+      reader.sft
     } catch {
       // TODO handle normal errors vs actual errors
       case e: Exception => null
@@ -93,6 +91,4 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
 
   override def getFeatureReader: FeatureReader[SimpleFeatureType, SimpleFeature] =
     getFeatureReader(new Query(getSchema.getTypeName), Transaction.AUTO_COMMIT)
-
-  override def dispose(): Unit = CloseQuietly(allocator)
 }

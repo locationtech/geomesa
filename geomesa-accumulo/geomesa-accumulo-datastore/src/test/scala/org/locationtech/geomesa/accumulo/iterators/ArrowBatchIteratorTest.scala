@@ -45,7 +45,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
       val in = new ByteArrayInputStream(out.toByteArray)
       implicit val allocator = new RootAllocator(Long.MaxValue)
       WithClose(new SimpleFeatureArrowFileReader(in)) { reader =>
-        reader.read().toSeq must containTheSameElementsAs(features)
+        reader.features.toSeq must containTheSameElementsAs(features)
       }
     }
     "return arrow dictionary encoded data" in {
@@ -59,7 +59,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
       def in = new ByteArrayInputStream(out.toByteArray)
 
       WithClose(new SimpleFeatureArrowFileReader(in)) { reader =>
-        reader.read().toSeq must containTheSameElementsAs(features)
+        reader.features.toSeq must containTheSameElementsAs(features)
       }
     }
   }

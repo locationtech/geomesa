@@ -13,7 +13,6 @@ import java.util.Map.Entry
 
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.arrow.memory.RootAllocator
 import org.apache.arrow.vector.file.WriteChannel
 import org.apache.arrow.vector.stream.MessageSerializer
 import org.apache.arrow.vector.{VectorSchemaRoot, VectorUnloader}
@@ -43,7 +42,7 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
 
 class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, ArrowDictionary]) {
 
-  import IteratorCache.allocator
+  import org.locationtech.geomesa.arrow.allocator
 
   import scala.collection.JavaConversions._
 
@@ -135,17 +134,13 @@ object ArrowBatchIterator {
   }
 
   private def fileMetadata(sft: SimpleFeatureType, dictionaries: Map[String, ArrowDictionary]): Array[Byte] = {
-    implicit val allocator = new RootAllocator(Long.MaxValue)
-    try {
-      val out = new ByteArrayOutputStream
-      val writer = new SimpleFeatureArrowFileWriter(sft, out, dictionaries)
-      writer.start()
-      val bytes = out.toByteArray // copy bytes before closing so we just get the header metadata
-      writer.close()
-      bytes
-    } finally {
-      allocator.close()
-    }
+    import org.locationtech.geomesa.arrow.allocator
+    val out = new ByteArrayOutputStream
+    val writer = new SimpleFeatureArrowFileWriter(sft, out, dictionaries)
+    writer.start()
+    val bytes = out.toByteArray // copy bytes before closing so we just get the header metadata
+    writer.close()
+    bytes
   }
 
   private def encodeDictionaries(dictionaries: Map[String, ArrowDictionary]): String = {

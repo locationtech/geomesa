@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.process
 import java.io.{ByteArrayOutputStream, Closeable}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.arrow.memory.RootAllocator
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
@@ -70,14 +69,16 @@ class ArrowConversionProcess extends VectorProcess with LazyLogging {
 class ArrowVisitor(sft: SimpleFeatureType, encodedAttributes: Seq[String])
     extends FeatureCalc with Closeable with LazyLogging {
 
+  import org.locationtech.geomesa.arrow.allocator
+
   import scala.collection.JavaConversions._
 
   // for collecting results manually
   private val manualResults = scala.collection.mutable.Queue.empty[Array[Byte]]
   private val manualBytes = new ByteArrayOutputStream()
-  private lazy implicit val allocator = new RootAllocator(Long.MaxValue)
   private lazy val manualWriter = new SimpleFeatureArrowFileWriter(sft, manualBytes)
   private var manualVisit = 0L
+  private var distributedVisit = false
 
   private var result = new Iterator[Array[Byte]] {
     override def next(): Array[Byte] = manualResults.dequeue()
@@ -119,12 +120,12 @@ class ArrowVisitor(sft: SimpleFeatureType, encodedAttributes: Seq[String])
 
     val features = SelfClosingIterator(source.getFeatures(query))
     result = result ++ features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
+    distributedVisit = true
   }
 
   override def close(): Unit = {
-    if (manualVisit > 0) {
+    if (manualVisit > 0 || !distributedVisit) {
       unloadManualResults(true)
-      allocator.close()
     }
   }
 }

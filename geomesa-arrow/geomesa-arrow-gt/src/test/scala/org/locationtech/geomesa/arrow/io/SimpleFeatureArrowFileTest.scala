@@ -42,8 +42,8 @@ class SimpleFeatureArrowFileTest extends Specification {
       withTestFile { file =>
         new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file)).close()
         WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          reader.getSchema mustEqual sft
-          reader.read().toSeq must beEmpty
+          reader.sft mustEqual sft
+          reader.features.toSeq must beEmpty
         }
       }
     }
@@ -55,7 +55,7 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          val features = reader.read().toSeq
+          val features = reader.features.toSeq
           features must haveLength(20)
           features must containTheSameElementsAs(features0 ++ features1)
         }
@@ -70,7 +70,7 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          val features = reader.read().toSeq
+          val features = reader.features.toSeq
           features must haveLength(20)
           features must containTheSameElementsAs(features0 ++ features1)
         }

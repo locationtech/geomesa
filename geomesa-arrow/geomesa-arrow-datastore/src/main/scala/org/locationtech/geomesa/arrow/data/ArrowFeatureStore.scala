@@ -19,6 +19,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry, Query.ALL) {
 
+  import org.locationtech.geomesa.arrow.allocator
+
   private [data] val ds = entry.getDataStore.asInstanceOf[ArrowDataStore]
 
   override def buildFeatureType(): SimpleFeatureType = ds.getSchema()
@@ -28,13 +30,13 @@ class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry
   override def getCountInternal(query: Query): Int = -1
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val reader = new SimpleFeatureArrowFileReader(ds.url.openStream())(ds.allocator)
-    val features = reader.read()
+    val reader = new SimpleFeatureArrowFileReader(ds.url.openStream())
+    val features = reader.features
 
     new FeatureReader[SimpleFeatureType, SimpleFeature] {
-      override def getFeatureType: SimpleFeatureType = reader.getSchema
+      override def getFeatureType: SimpleFeatureType = reader.sft
       override def hasNext: Boolean = features.hasNext
-      override def next(): SimpleFeature = features.next
+      override def next(): SimpleFeature = features.next()
       override def close(): Unit = reader.close()
     }
   }
@@ -50,6 +52,8 @@ class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry
 
 class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL) {
 
+  import org.locationtech.geomesa.arrow.allocator
+
   private val delegate = new ArrowFeatureSource(entry)
 
   private val featureIds = new AtomicLong(0)
@@ -60,7 +64,7 @@ class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, 
 
     val sft = delegate.ds.getSchema
     val os = delegate.ds.createOutputStream()
-    val writer = new SimpleFeatureArrowFileWriter(sft, os)(delegate.ds.allocator)
+    val writer = new SimpleFeatureArrowFileWriter(sft, os)
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
       private var feature: ScalaSimpleFeature = _
