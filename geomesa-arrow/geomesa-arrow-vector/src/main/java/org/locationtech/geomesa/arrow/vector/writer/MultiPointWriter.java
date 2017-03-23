@@ -8,44 +8,34 @@
 
 package org.locationtech.geomesa.arrow.vector.writer;
 
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.ListWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
 
-public class MultiLineStringWriter implements GeometryWriter<MultiLineString> {
+public class MultiPointWriter implements GeometryWriter<MultiPoint> {
 
   private final MapWriter writer;
   private final ListWriter xWriter;
   private final ListWriter yWriter;
 
-  public MultiLineStringWriter(MapWriter writer, String xField, String yField) {
+  public MultiPointWriter(MapWriter writer, String xField, String yField) {
     this.writer = writer;
     this.xWriter = writer.list(xField);
     this.yWriter = writer.list(yField);
   }
 
   @Override
-  public void set(MultiLineString geom) {
+  public void set(MultiPoint geom) {
     if (geom != null) {
       writer.start();
       xWriter.startList();
       yWriter.startList();
-      for (int i = 0; i < geom.getNumGeometries(); i++) {
-        LineString linestring = (LineString) geom.getGeometryN(i);
-        ListWriter xInner = xWriter.list();
-        ListWriter yInner = yWriter.list();
-        xInner.startList();
-        yInner.startList();
-        for (int j = 0; j < linestring.getNumPoints(); j++) {
-          Point p = linestring.getPointN(j);
-          xInner.float8().writeFloat8(p.getX());
-          yInner.float8().writeFloat8(p.getY());
-        }
-        xInner.endList();
-        yInner.endList();
+      for (int i = 0; i < geom.getNumPoints(); i++) {
+        Point p = (Point) geom.getGeometryN(i);
+        xWriter.float8().writeFloat8(p.getX());
+        yWriter.float8().writeFloat8(p.getY());
       }
       xWriter.endList();
       yWriter.endList();
@@ -54,7 +44,7 @@ public class MultiLineStringWriter implements GeometryWriter<MultiLineString> {
   }
 
   @Override
-  public void set(int i, MultiLineString geom) {
+  public void set(int i, MultiPoint geom) {
     writer.setPosition(i);
     set(geom);
   }

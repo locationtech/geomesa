@@ -13,6 +13,7 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.io.WKTWriter;
 import org.apache.arrow.memory.RootAllocator;
+import org.apache.arrow.vector.types.pojo.Field;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,6 +26,8 @@ public class LineStringVectorTest {
 
     try(RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
         LineStringVector vector = new LineStringVector("lines", allocator)) {
+      Field field = vector.getVector().getField();
+
       vector.getWriter().set(0, (LineString) wktReader.read("LINESTRING (30 10, 10 30, 40 40)"));
       vector.getWriter().set(1, (LineString) wktReader.read("LINESTRING (40 10, 10 30)"));
       vector.getWriter().set(3, (LineString) wktReader.read("LINESTRING (30 10, 10 30, 40 45)"));
@@ -36,6 +39,10 @@ public class LineStringVectorTest {
       Assert.assertEquals("LINESTRING (40 10, 10 30)", wktWriter.write(vector.getReader().get(1)));
       Assert.assertEquals("LINESTRING (30 10, 10 30, 40 45)", wktWriter.write(vector.getReader().get(3)));
       Assert.assertNull(vector.getReader().get(2));
+
+      // ensure field was created correctly up front
+      Assert.assertEquals(field, vector.getVector().getField());
+      Assert.assertEquals(field.getChildren(), LineStringVector.fields);
     }
   }
 

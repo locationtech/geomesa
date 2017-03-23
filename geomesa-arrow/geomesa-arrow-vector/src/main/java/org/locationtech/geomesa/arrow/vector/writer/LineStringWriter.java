@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.arrow.vector.writer;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
@@ -20,10 +21,10 @@ public class LineStringWriter implements GeometryWriter<LineString> {
   private final ListWriter xWriter;
   private final ListWriter yWriter;
 
-  public LineStringWriter(MapWriter writer) {
+  public LineStringWriter(MapWriter writer, String xField, String yField) {
     this.writer = writer;
-    this.xWriter = writer.list("x");
-    this.yWriter = writer.list("y");
+    this.xWriter = writer.list(xField);
+    this.yWriter = writer.list(yField);
   }
 
   @Override
@@ -33,9 +34,9 @@ public class LineStringWriter implements GeometryWriter<LineString> {
       xWriter.startList();
       yWriter.startList();
       for (int i = 0; i < geom.getNumPoints(); i++) {
-        Point p = geom.getPointN(i);
-        xWriter.float8().writeFloat8(p.getX());
-        yWriter.float8().writeFloat8(p.getY());
+        Coordinate p = geom.getCoordinateN(i);
+        xWriter.float8().writeFloat8(p.x);
+        yWriter.float8().writeFloat8(p.y);
       }
       xWriter.endList();
       yWriter.endList();

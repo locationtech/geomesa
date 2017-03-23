@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
 import org.apache.arrow.vector.complex.writer.Float8Writer;
+import org.locationtech.geomesa.arrow.vector.PointVector;
 
 public class PointWriter implements GeometryWriter<Point> {
 
@@ -19,10 +20,10 @@ public class PointWriter implements GeometryWriter<Point> {
   private final Float8Writer xWriter;
   private final Float8Writer yWriter;
 
-  public PointWriter(MapWriter writer) {
+  public PointWriter(MapWriter writer, String xField, String yField) {
     this.writer = writer;
-    this.xWriter = writer.float8("x");
-    this.yWriter = writer.float8("y");
+    this.xWriter = writer.float8(xField);
+    this.yWriter = writer.float8(yField);
   }
 
   @Override

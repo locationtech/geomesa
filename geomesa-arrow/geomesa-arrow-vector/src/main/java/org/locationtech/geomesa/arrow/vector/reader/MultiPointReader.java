@@ -9,19 +9,19 @@
 package org.locationtech.geomesa.arrow.vector.reader;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiPoint;
 import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.complex.NullableMapVector;
 
 import java.util.List;
 
-public class LineStringReader implements GeometryReader<LineString> {
+public class MultiPointReader implements GeometryReader<MultiPoint> {
 
   private final NullableMapVector.Accessor accessor;
   private final ListVector.Accessor xAccessor;
   private final ListVector.Accessor yAccessor;
 
-  public LineStringReader(NullableMapVector vector, String xField, String yField) {
+  public MultiPointReader(NullableMapVector vector, String xField, String yField) {
     this.accessor = vector.getAccessor();
     this.xAccessor = (ListVector.Accessor) vector.getChild(xField).getAccessor();
     this.yAccessor = (ListVector.Accessor) vector.getChild(yField).getAccessor();
@@ -29,20 +29,20 @@ public class LineStringReader implements GeometryReader<LineString> {
 
   @Override
   @SuppressWarnings("unchecked")
-  public LineString get(int index) {
-    if (accessor.isNull(index)) {
+  public MultiPoint get(int i) {
+    if (accessor.isNull(i)) {
       return null;
     } else {
-      List<Double> x = (List<Double>) xAccessor.getObject(index);
-      List<Double> y = (List<Double>) yAccessor.getObject(index);
-      if (x.size() != y.size()) {
-        throw new IllegalArgumentException("Invalid point vectors: x: " + x.size() + " y: " + y.size());
+      List<Double> xs = (List<Double>) xAccessor.getObject(i);
+      List<Double> ys = (List<Double>) yAccessor.getObject(i);
+      if (xs.size() != ys.size()) {
+        throw new IllegalArgumentException("Invalid point vectors: x: " + xs.size() + " y: " + ys.size());
       }
-      Coordinate[] coordinates = new Coordinate[x.size()];
-      for (int i = 0; i < coordinates.length; i++) {
-        coordinates[i] = new Coordinate(x.get(i), y.get(i));
+      Coordinate[] coordinates = new Coordinate[xs.size()];
+      for (int j = 0; j < coordinates.length; j++) {
+        coordinates[j] = new Coordinate(xs.get(j), ys.get(j));
       }
-      return factory.createLineString(coordinates);
+      return factory.createMultiPoint(coordinates);
     }
   }
 

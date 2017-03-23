@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.io.WKTWriter;
 import org.apache.arrow.memory.RootAllocator;
+import org.apache.arrow.vector.types.pojo.Field;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,6 +25,8 @@ public class PointVectorTest {
 
     try(RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
         PointVector vector = new PointVector("points", allocator)) {
+      Field field = vector.getVector().getField();
+
       vector.getWriter().set(0, (Point) wktReader.read("POINT (0 20)"));
       vector.getWriter().set(1, (Point) wktReader.read("POINT (10 20)"));
       vector.getWriter().set(3, (Point) wktReader.read("POINT (30 20)"));
@@ -35,6 +38,10 @@ public class PointVectorTest {
       Assert.assertEquals("POINT (10 20)", wktWriter.write(vector.getReader().get(1)));
       Assert.assertEquals("POINT (30 20)", wktWriter.write(vector.getReader().get(3)));
       Assert.assertNull(vector.getReader().get(2));
+
+      // ensure field was created correctly up front
+      Assert.assertEquals(field, vector.getVector().getField());
+      Assert.assertEquals(field.getChildren(), PointVector.fields);
     }
   }
 

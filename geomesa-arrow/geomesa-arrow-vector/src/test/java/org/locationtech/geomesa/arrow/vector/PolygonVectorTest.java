@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
-import com.vividsolutions.jts.geom.MultiLineString;
-import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.io.WKTWriter;
 import org.apache.arrow.memory.RootAllocator;
@@ -17,35 +16,35 @@ import org.apache.arrow.vector.types.pojo.Field;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class MultiLineStringVectorTest {
+public class PolygonVectorTest {
 
   @Test
   public void testSetGet() throws Exception {
     WKTReader wktReader = new WKTReader();
     WKTWriter wktWriter = new WKTWriter();
 
-    String mls0 = "MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))";
-    String mls1 = "MULTILINESTRING ((10 10, 20 30, 10 40), (30 40, 30 30, 40 20, 20 10))";
-    String mls2 = "MULTILINESTRING ((10 10, 20 40, 10 40))";
+    String p0 = "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))";
+    String p1 = "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))";
+    String p2 = "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30), (19 36, 23 38, 22 34, 19 36))";
     try(RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
-        MultiLineStringVector vector = new MultiLineStringVector("lines", allocator)) {
+        PolygonVector vector = new PolygonVector("polys", allocator)) {
       Field field = vector.getVector().getField();
 
-      vector.getWriter().set(0, (MultiLineString) wktReader.read(mls0));
-      vector.getWriter().set(1, (MultiLineString) wktReader.read(mls1));
-      vector.getWriter().set(3, (MultiLineString) wktReader.read(mls2));
+      vector.getWriter().set(0, (Polygon) wktReader.read(p0));
+      vector.getWriter().set(1, (Polygon) wktReader.read(p1));
+      vector.getWriter().set(3, (Polygon) wktReader.read(p2));
       vector.getWriter().setValueCount(4);
 
       Assert.assertEquals(4, vector.getReader().getValueCount());
       Assert.assertEquals(1, vector.getReader().getNullCount());
-      Assert.assertEquals(mls0, wktWriter.write(vector.getReader().get(0)));
-      Assert.assertEquals(mls1, wktWriter.write(vector.getReader().get(1)));
-      Assert.assertEquals(mls2, wktWriter.write(vector.getReader().get(3)));
+      Assert.assertEquals(p0, wktWriter.write(vector.getReader().get(0)));
+      Assert.assertEquals(p1, wktWriter.write(vector.getReader().get(1)));
+      Assert.assertEquals(p2, wktWriter.write(vector.getReader().get(3)));
       Assert.assertNull(vector.getReader().get(2));
 
       // ensure field was created correctly up front
       Assert.assertEquals(field, vector.getVector().getField());
-      Assert.assertEquals(field.getChildren(), MultiLineStringVector.fields);
+      Assert.assertEquals(field.getChildren(), PolygonVector.fields);
     }
   }
 

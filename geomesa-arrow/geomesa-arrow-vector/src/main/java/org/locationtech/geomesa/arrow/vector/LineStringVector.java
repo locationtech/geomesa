@@ -14,10 +14,26 @@ import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.complex.NullableMapVector;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
 import org.apache.arrow.vector.types.Types.MinorType;
+import org.apache.arrow.vector.types.pojo.ArrowType;
+import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.reader.LineStringReader;
 import org.locationtech.geomesa.arrow.vector.writer.LineStringWriter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class LineStringVector implements GeometryVector<LineString> {
+
+  private static final String X_FIELD = "x";
+  private static final String Y_FIELD = "y";
+
+  static final List<Field> fields =
+    Collections.unmodifiableList(new ArrayList<>(Arrays.asList(
+      new Field(X_FIELD, true, ArrowType.List.INSTANCE, ArrowHelper.DOUBLE_FIELD),
+      new Field(Y_FIELD, true, ArrowType.List.INSTANCE, ArrowHelper.DOUBLE_FIELD)
+    )));
 
   private final NullableMapVector vector;
   private final LineStringWriter writer;
@@ -30,10 +46,12 @@ public class LineStringVector implements GeometryVector<LineString> {
 
   public LineStringVector(NullableMapVector vector) {
     this.vector = vector;
-    vector.addOrGet("x", MinorType.LIST, ListVector.class, null);
-    vector.addOrGet("y", MinorType.LIST, ListVector.class, null);
-    this.writer = new LineStringWriter(new NullableMapWriter(vector));
-    this.reader = new LineStringReader(vector);
+    // create the fields we will write to up front
+    // they will be automatically created at write, but we want the field pre-defined
+    vector.addOrGet(X_FIELD, MinorType.LIST, ListVector.class, null).addOrGetVector(MinorType.FLOAT8, null);
+    vector.addOrGet(Y_FIELD, MinorType.LIST, ListVector.class, null).addOrGetVector(MinorType.FLOAT8, null);
+    this.writer = new LineStringWriter(new NullableMapWriter(vector), X_FIELD, Y_FIELD);
+    this.reader = new LineStringReader(vector, X_FIELD, Y_FIELD);
   }
 
   @Override

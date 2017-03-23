@@ -13,11 +13,28 @@ import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.NullableFloat8Vector;
 import org.apache.arrow.vector.complex.NullableMapVector;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
+import org.apache.arrow.vector.types.FloatingPointPrecision;
 import org.apache.arrow.vector.types.Types.MinorType;
+import org.apache.arrow.vector.types.pojo.ArrowType;
+import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.reader.PointReader;
 import org.locationtech.geomesa.arrow.vector.writer.PointWriter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class PointVector implements GeometryVector<Point> {
+
+  private static final String X_FIELD = "x";
+  private static final String Y_FIELD = "y";
+
+  static final List<Field> fields =
+    Collections.unmodifiableList(new ArrayList<>(Arrays.asList(
+      new Field(X_FIELD, true, ArrowHelper.DOUBLE_TYPE, null),
+      new Field(Y_FIELD, true, ArrowHelper.DOUBLE_TYPE, null)
+    )));
 
   private final NullableMapVector vector;
   private final PointWriter writer;
@@ -30,10 +47,12 @@ public class PointVector implements GeometryVector<Point> {
 
   public PointVector(NullableMapVector vector) {
     this.vector = vector;
-    vector.addOrGet("x", MinorType.FLOAT8, NullableFloat8Vector.class, null);
-    vector.addOrGet("y", MinorType.FLOAT8, NullableFloat8Vector.class, null);
-    this.writer = new PointWriter(new NullableMapWriter(vector));
-    this.reader = new PointReader(vector);
+    // create the fields we will write to up front
+    // they will be automatically created at write, but we want the field pre-defined
+    vector.addOrGet(X_FIELD, MinorType.FLOAT8, NullableFloat8Vector.class, null);
+    vector.addOrGet(Y_FIELD, MinorType.FLOAT8, NullableFloat8Vector.class, null);
+    this.writer = new PointWriter(new NullableMapWriter(vector), X_FIELD, Y_FIELD);
+    this.reader = new PointReader(vector, X_FIELD, Y_FIELD);
   }
 
   @Override

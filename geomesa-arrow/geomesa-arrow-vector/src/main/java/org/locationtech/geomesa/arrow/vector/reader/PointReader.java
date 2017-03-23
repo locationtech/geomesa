@@ -19,10 +19,10 @@ public class PointReader implements GeometryReader<Point> {
   private final NullableFloat8Vector.Accessor xAccessor;
   private final NullableFloat8Vector.Accessor yAccessor;
 
-  public PointReader(NullableMapVector vector) {
+  public PointReader(NullableMapVector vector, String xField, String yField) {
     this.accessor = vector.getAccessor();
-    this.xAccessor = (NullableFloat8Vector.Accessor) vector.getChild("x").getAccessor();
-    this.yAccessor = (NullableFloat8Vector.Accessor) vector.getChild("y").getAccessor();
+    this.xAccessor = (NullableFloat8Vector.Accessor) vector.getChild(xField).getAccessor();
+    this.yAccessor = (NullableFloat8Vector.Accessor) vector.getChild(yField).getAccessor();
   }
 
   @Override
