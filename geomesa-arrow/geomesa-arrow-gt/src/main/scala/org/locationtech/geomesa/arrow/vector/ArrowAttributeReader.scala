@@ -11,10 +11,16 @@ package org.locationtech.geomesa.arrow.vector
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import com.vividsolutions.jts.geom._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{ListVector, NullableMapVector}
-import org.locationtech.geomesa.arrow.vector.reader.{GeometryReader, PointReader}
+import org.locationtech.geomesa.arrow.vector.GeometryVector.{GeometryReader, GeometryWriter}
+import org.locationtech.geomesa.arrow.vector.LineStringVector.{LineStringReader, LineStringWriter}
+import org.locationtech.geomesa.arrow.vector.MultiLineStringVector.{MultiLineStringReader, MultiLineStringWriter}
+import org.locationtech.geomesa.arrow.vector.MultiPointVector.{MultiPointReader, MultiPointWriter}
+import org.locationtech.geomesa.arrow.vector.MultiPolygonVector.MultiPolygonReader
+import org.locationtech.geomesa.arrow.vector.PointVector.PointReader
+import org.locationtech.geomesa.arrow.vector.PolygonVector.{PolygonReader, PolygonWriter}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -24,8 +30,6 @@ trait ArrowAttributeReader {
 }
 
 object ArrowAttributeReader {
-
-  import scala.collection.JavaConversions._
 
   def apply(descriptor: AttributeDescriptor,
             vector: NullableMapVector,
@@ -106,8 +110,18 @@ object ArrowAttributeReader {
   class ArrowGeometryReader(vector: NullableMapVector, binding: Class[_]) extends ArrowAttributeReader {
     private val delegate: GeometryReader[Geometry] = if (binding == classOf[Point]) {
       new PointReader(vector).asInstanceOf[GeometryReader[Geometry]]
+    } else if (binding == classOf[LineString]) {
+      new LineStringReader(vector).asInstanceOf[GeometryReader[Geometry]]
+    } else if (binding == classOf[Polygon]) {
+      new PolygonReader(vector).asInstanceOf[GeometryReader[Geometry]]
+    } else if (binding == classOf[MultiLineString]) {
+      new MultiLineStringReader(vector).asInstanceOf[GeometryReader[Geometry]]
+    } else if (binding == classOf[MultiPolygon]) {
+      new MultiPolygonReader(vector).asInstanceOf[GeometryReader[Geometry]]
+    } else if (binding == classOf[MultiPoint]) {
+      new MultiPointReader(vector).asInstanceOf[GeometryReader[Geometry]]
     } else if (classOf[Geometry].isAssignableFrom(binding)) {
-      throw new NotImplementedError("Currently only supports points")
+      throw new NotImplementedError(s"Geometry type $binding is not supported")
     } else {
       throw new IllegalArgumentException(s"Expected geometry type, got $binding")
     }

@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ******************************************************************************/
 
-package org.locationtech.geomesa.arrow.vector;
+package org.locationtech.geomesa.arrow.vector.util;
 
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
 import org.apache.arrow.vector.types.FloatingPointPrecision;
@@ -20,13 +20,16 @@ import java.util.List;
 
 public class ArrowHelper {
 
-  static ArrowType DOUBLE_TYPE = new ArrowType.FloatingPoint(FloatingPointPrecision.DOUBLE);
-
-  static List<Field> DOUBLE_FIELD =
-      Collections.singletonList(new Field(BaseRepeatedValueVector.DATA_VECTOR_NAME, true, DOUBLE_TYPE, null));
-
-  static List<Field> NESTED_DOUBLE_FIELD =
-      Collections.singletonList(new Field(BaseRepeatedValueVector.DATA_VECTOR_NAME, true, ArrowType.List.INSTANCE, DOUBLE_FIELD));
-
   private ArrowHelper() {}
+
+  public static ArrowType DOUBLE_TYPE = new ArrowType.FloatingPoint(FloatingPointPrecision.DOUBLE);
+
+  public static List<Field> DOUBLE_FIELD = Collections.singletonList(
+      new Field(BaseRepeatedValueVector.DATA_VECTOR_NAME, true, DOUBLE_TYPE, null));
+
+  public static List<Field> DOUBLE_DOUBLE_FIELD = Collections.singletonList(
+      new Field(BaseRepeatedValueVector.DATA_VECTOR_NAME, true, ArrowType.List.INSTANCE, DOUBLE_FIELD));
+
+  public static List<Field> TRIPLE_DOUBLE_FIELD = Collections.singletonList(
+      new Field(BaseRepeatedValueVector.DATA_VECTOR_NAME, true, ArrowType.List.INSTANCE, DOUBLE_DOUBLE_FIELD));
 }

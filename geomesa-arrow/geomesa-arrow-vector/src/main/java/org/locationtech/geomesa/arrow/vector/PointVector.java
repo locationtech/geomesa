@@ -8,17 +8,19 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.NullableFloat8Vector;
 import org.apache.arrow.vector.complex.NullableMapVector;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
-import org.apache.arrow.vector.types.FloatingPointPrecision;
+import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
+import org.apache.arrow.vector.complex.writer.Float8Writer;
 import org.apache.arrow.vector.types.Types.MinorType;
-import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
-import org.locationtech.geomesa.arrow.vector.reader.PointReader;
-import org.locationtech.geomesa.arrow.vector.writer.PointWriter;
+import org.locationtech.geomesa.arrow.vector.util.ArrowHelper;
+import org.locationtech.geomesa.arrow.vector.util.BaseGeometryReader;
+import org.locationtech.geomesa.arrow.vector.util.BaseGeometryWriter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,8 +53,8 @@ public class PointVector implements GeometryVector<Point> {
     // they will be automatically created at write, but we want the field pre-defined
     vector.addOrGet(X_FIELD, MinorType.FLOAT8, NullableFloat8Vector.class, null);
     vector.addOrGet(Y_FIELD, MinorType.FLOAT8, NullableFloat8Vector.class, null);
-    this.writer = new PointWriter(new NullableMapWriter(vector), X_FIELD, Y_FIELD);
-    this.reader = new PointReader(vector, X_FIELD, Y_FIELD);
+    this.writer = new PointWriter(new NullableMapWriter(vector));
+    this.reader = new PointReader(vector);
   }
 
   @Override
@@ -75,5 +77,42 @@ public class PointVector implements GeometryVector<Point> {
     writer.close();
     reader.close();
     vector.close();
+  }
+
+  public static class PointWriter extends BaseGeometryWriter<Point> implements GeometryWriter<Point> {
+
+    private final Float8Writer xWriter;
+    private final Float8Writer yWriter;
+
+    public PointWriter(MapWriter writer) {
+      super(writer);
+      this.xWriter = writer.float8(X_FIELD);
+      this.yWriter = writer.float8(Y_FIELD);
+    }
+
+    @Override
+    protected void writeGeometry(Point geom) {
+      xWriter.writeFloat8(geom.getX());
+      yWriter.writeFloat8(geom.getY());
+    }
+  }
+
+  public static class PointReader extends BaseGeometryReader<Point> implements GeometryReader<Point> {
+
+    private final NullableFloat8Vector.Accessor xAccessor;
+    private final NullableFloat8Vector.Accessor yAccessor;
+
+    public PointReader(NullableMapVector vector) {
+      super(vector);
+      this.xAccessor = (NullableFloat8Vector.Accessor) vector.getChild(X_FIELD).getAccessor();
+      this.yAccessor = (NullableFloat8Vector.Accessor) vector.getChild(Y_FIELD).getAccessor();
+    }
+
+    @Override
+    protected Point readGeometry(int index) {
+      double x = xAccessor.getObject(index);
+      double y = yAccessor.getObject(index);
+      return factory.createPoint(new Coordinate(x, y));
+    }
   }
 }

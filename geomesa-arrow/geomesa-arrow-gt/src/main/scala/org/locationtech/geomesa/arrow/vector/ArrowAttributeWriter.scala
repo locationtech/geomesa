@@ -12,7 +12,7 @@ import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import com.vividsolutions.jts.geom._
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.complex.impl.NullableMapWriter
@@ -20,7 +20,13 @@ import org.apache.arrow.vector.complex.writer.BaseWriter.{ListWriter, MapWriter}
 import org.apache.arrow.vector.complex.writer._
 import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.{NullableIntVector, NullableSmallIntVector, NullableTinyIntVector}
-import org.locationtech.geomesa.arrow.vector.writer.{GeometryWriter, PointWriter}
+import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryWriter
+import org.locationtech.geomesa.arrow.vector.LineStringVector.LineStringWriter
+import org.locationtech.geomesa.arrow.vector.MultiLineStringVector.MultiLineStringWriter
+import org.locationtech.geomesa.arrow.vector.MultiPointVector.MultiPointWriter
+import org.locationtech.geomesa.arrow.vector.MultiPolygonVector.MultiPolygonWriter
+import org.locationtech.geomesa.arrow.vector.PointVector.PointWriter
+import org.locationtech.geomesa.arrow.vector.PolygonVector.PolygonWriter
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -110,8 +116,18 @@ object ArrowAttributeWriter {
   class ArrowGeometryWriter(writer: MapWriter, binding: Class[_]) extends ArrowAttributeWriter {
     private val delegate: GeometryWriter[Geometry] = if (binding == classOf[Point]) {
       new PointWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+    } else if (binding == classOf[LineString]) {
+      new LineStringWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+    } else if (binding == classOf[Polygon]) {
+      new PolygonWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+    } else if (binding == classOf[MultiLineString]) {
+      new MultiLineStringWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+    } else if (binding == classOf[MultiPolygon]) {
+      new MultiPolygonWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+    } else if (binding == classOf[MultiPoint]) {
+      new MultiPointWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
     } else if (classOf[Geometry].isAssignableFrom(binding)) {
-      throw new NotImplementedError("Currently only supports points")
+      throw new NotImplementedError(s"Geometry type $binding is not supported")
     } else {
       throw new IllegalArgumentException(s"Expected geometry type, got $binding")
     }

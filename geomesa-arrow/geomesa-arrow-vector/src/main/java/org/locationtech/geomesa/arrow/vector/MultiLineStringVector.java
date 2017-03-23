@@ -8,17 +8,22 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.complex.NullableMapVector;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
+import org.apache.arrow.vector.complex.writer.BaseWriter.ListWriter;
+import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
 import org.apache.arrow.vector.types.Types.MinorType;
 import org.apache.arrow.vector.types.pojo.ArrowType;
-import org.apache.arrow.vector.types.pojo.ArrowType.Struct;
 import org.apache.arrow.vector.types.pojo.Field;
-import org.locationtech.geomesa.arrow.vector.reader.MultiLineStringReader;
-import org.locationtech.geomesa.arrow.vector.writer.MultiLineStringWriter;
+import org.locationtech.geomesa.arrow.vector.util.ArrowHelper;
+import org.locationtech.geomesa.arrow.vector.util.BaseGeometryReader;
+import org.locationtech.geomesa.arrow.vector.util.BaseGeometryWriter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,8 +37,8 @@ public class MultiLineStringVector implements GeometryVector<MultiLineString> {
 
   static final List<Field> fields =
     Collections.unmodifiableList(new ArrayList<>(Arrays.asList(
-      new Field(X_FIELD, true, ArrowType.List.INSTANCE, ArrowHelper.NESTED_DOUBLE_FIELD),
-      new Field(Y_FIELD, true, ArrowType.List.INSTANCE, ArrowHelper.NESTED_DOUBLE_FIELD)
+      new Field(X_FIELD, true, ArrowType.List.INSTANCE, ArrowHelper.DOUBLE_DOUBLE_FIELD),
+      new Field(Y_FIELD, true, ArrowType.List.INSTANCE, ArrowHelper.DOUBLE_DOUBLE_FIELD)
     )));
 
   private final NullableMapVector vector;
@@ -51,8 +56,8 @@ public class MultiLineStringVector implements GeometryVector<MultiLineString> {
     // they will be automatically created at write, but we want the field pre-defined
     ((ListVector) vector.addOrGet(X_FIELD, MinorType.LIST, ListVector.class, null).addOrGetVector(MinorType.LIST, null).getVector()).addOrGetVector(MinorType.FLOAT8, null);
     ((ListVector) vector.addOrGet(Y_FIELD, MinorType.LIST, ListVector.class, null).addOrGetVector(MinorType.LIST, null).getVector()).addOrGetVector(MinorType.FLOAT8, null);
-    this.writer = new MultiLineStringWriter(new NullableMapWriter(vector), X_FIELD, Y_FIELD);
-    this.reader = new MultiLineStringReader(vector, X_FIELD, Y_FIELD);
+    this.writer = new MultiLineStringWriter(new NullableMapWriter(vector));
+    this.reader = new MultiLineStringReader(vector);
   }
 
   @Override
@@ -75,5 +80,71 @@ public class MultiLineStringVector implements GeometryVector<MultiLineString> {
     writer.close();
     reader.close();
     vector.close();
+  }
+
+  public static class MultiLineStringWriter extends BaseGeometryWriter<MultiLineString>
+      implements GeometryWriter<MultiLineString> {
+
+    private final ListWriter xWriter;
+    private final ListWriter yWriter;
+
+    public MultiLineStringWriter(MapWriter writer) {
+      super(writer);
+      this.xWriter = writer.list(X_FIELD);
+      this.yWriter = writer.list(Y_FIELD);
+    }
+
+    @Override
+    protected void writeGeometry(MultiLineString geom) {
+      xWriter.startList();
+      yWriter.startList();
+      for (int i = 0; i < geom.getNumGeometries(); i++) {
+        LineString linestring = (LineString) geom.getGeometryN(i);
+        ListWriter xInner = xWriter.list();
+        ListWriter yInner = yWriter.list();
+        xInner.startList();
+        yInner.startList();
+        for (int j = 0; j < linestring.getNumPoints(); j++) {
+          Point p = linestring.getPointN(j);
+          xInner.float8().writeFloat8(p.getX());
+          yInner.float8().writeFloat8(p.getY());
+        }
+        xInner.endList();
+        yInner.endList();
+      }
+      xWriter.endList();
+      yWriter.endList();
+    }
+  }
+
+  public static class MultiLineStringReader extends BaseGeometryReader<MultiLineString>
+      implements GeometryReader<MultiLineString> {
+
+    private final ListVector.Accessor xAccessor;
+    private final ListVector.Accessor yAccessor;
+
+    public MultiLineStringReader(NullableMapVector vector) {
+      super(vector);
+      this.xAccessor = (ListVector.Accessor) vector.getChild(X_FIELD).getAccessor();
+      this.yAccessor = (ListVector.Accessor) vector.getChild(Y_FIELD).getAccessor();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected MultiLineString readGeometry(int index) {
+      List<List<Double>> xx = (List<List<Double>>) xAccessor.getObject(index);
+      List<List<Double>> yy = (List<List<Double>>) yAccessor.getObject(index);
+      LineString[] linestrings = new LineString[xx.size()];
+      for (int i = 0; i < linestrings.length; i++) {
+        List<Double> x = xx.get(i);
+        List<Double> y = yy.get(i);
+        Coordinate[] coordinates = new Coordinate[x.size()];
+        for (int j = 0; j < coordinates.length; j++) {
+          coordinates[j] = new Coordinate(x.get(j), y.get(j));
+        }
+        linestrings[i] = factory.createLineString(coordinates);
+      }
+      return factory.createMultiLineString(linestrings);
+    }
   }
 }

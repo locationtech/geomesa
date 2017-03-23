@@ -6,46 +6,34 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ******************************************************************************/
 
-package org.locationtech.geomesa.arrow.vector.writer;
+package org.locationtech.geomesa.arrow.vector.util;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
-import org.apache.arrow.vector.complex.writer.BaseWriter.ListWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
+import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryWriter;
 
-public class LineStringWriter implements GeometryWriter<LineString> {
+public abstract class BaseGeometryWriter<T extends Geometry> implements GeometryWriter<T> {
 
   private final MapWriter writer;
-  private final ListWriter xWriter;
-  private final ListWriter yWriter;
 
-  public LineStringWriter(MapWriter writer, String xField, String yField) {
+  public BaseGeometryWriter(MapWriter writer) {
     this.writer = writer;
-    this.xWriter = writer.list(xField);
-    this.yWriter = writer.list(yField);
   }
 
+  protected abstract void writeGeometry(T geom);
+
   @Override
-  public void set(LineString geom) {
+  public void set(T geom) {
     if (geom != null) {
       writer.start();
-      xWriter.startList();
-      yWriter.startList();
-      for (int i = 0; i < geom.getNumPoints(); i++) {
-        Coordinate p = geom.getCoordinateN(i);
-        xWriter.float8().writeFloat8(p.x);
-        yWriter.float8().writeFloat8(p.y);
-      }
-      xWriter.endList();
-      yWriter.endList();
+      writeGeometry(geom);
       writer.end();
     }
   }
 
   @Override
-  public void set(int i, LineString geom) {
+  public void set(int i, T geom) {
     writer.setPosition(i);
     set(geom);
   }

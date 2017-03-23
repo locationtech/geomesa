@@ -16,19 +16,17 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import org.apache.arrow.vector.complex.NullableMapVector;
 import org.apache.arrow.vector.types.pojo.Field;
-import org.locationtech.geomesa.arrow.vector.reader.GeometryReader;
-import org.locationtech.geomesa.arrow.vector.writer.GeometryWriter;
 
 import java.util.List;
 
 public interface GeometryVector<T extends Geometry> extends AutoCloseable {
 
-  public GeometryWriter<T> getWriter();
-  public GeometryReader<T> getReader();
-  public NullableMapVector getVector();
+  GeometryWriter<T> getWriter();
+  GeometryReader<T> getReader();
+  NullableMapVector getVector();
 
   @SuppressWarnings("unchecked")
-  public static <U extends Geometry> Class<U> typeOf(Field field) {
+  static <U extends Geometry> Class<U> typeOf(Field field) {
     List<Field> children = field.getChildren();
     if (PointVector.fields.equals(children)) {
       return (Class<U>) Point.class;
@@ -43,5 +41,17 @@ public interface GeometryVector<T extends Geometry> extends AutoCloseable {
     } else {
       return null;
     }
+  }
+
+  interface GeometryWriter<T extends Geometry> extends AutoCloseable {
+    void set(T geom);
+    void set(int i, T geom);
+    void setValueCount(int count);
+  }
+
+  interface GeometryReader<T extends Geometry> extends AutoCloseable {
+    T get(int i);
+    int getValueCount();
+    int getNullCount();
   }
 }
