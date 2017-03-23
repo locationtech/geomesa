@@ -25,6 +25,7 @@ public class PointVector implements GeometryVector<Point> {
 
   public PointVector(String name, BufferAllocator allocator) {
     this(new NullableMapVector(name, allocator, null, null));
+    this.vector.allocateNew();
   }
 
   public PointVector(NullableMapVector vector) {
