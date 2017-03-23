@@ -110,17 +110,7 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
       val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, BinAggregatingIterator.kvsToFeatures(), None)
     } else if (hints.isArrowQuery) {
-      val dictionaryFields = hints.getArrowDictionaryFields
-      val dictionaries: Map[String, ArrowDictionary] = if (dictionaryFields.isEmpty) { Map.empty } else {
-        // TODO validate fields are strings
-        // run a live stats query to get the dictionary values
-        val stats = Stat.SeqStat(dictionaryFields.map(Stat.Enumeration))
-        val enumerations = ds.stats.runStats[EnumerationStat[String]](sft, stats, filter.filter.getOrElse(Filter.INCLUDE))
-        enumerations.map { e =>
-          val name = sft.getDescriptor(e.attribute).getLocalName
-          name -> new ArrowDictionary(e.values.toSeq)
-        }.toMap
-      }
+      val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, hints.getArrowDictionaryFields, filter.filter)
       val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
       val reduce = Some(ArrowBatchIterator.reduceFeatures(sft, dictionaries))
       ScanConfig(Seq(iter), FullColumnFamily, ArrowBatchIterator.kvsToFeatures(), reduce)

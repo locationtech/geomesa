@@ -164,7 +164,7 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       val kvsToFeatures = entriesToFeatures(sft, transform.map(_._2).getOrElse(schema))
       BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, dedupe)
     }
-// TODO arrow queries
+
     if (hints.isBinQuery) {
       // check to see if we can execute against the index values
       if (indexSft.indexOf(hints.getBinTrackIdField) != -1 &&
@@ -175,6 +175,32 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
         val iters = visibilityIter(indexSft) :+ iter
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, dedupe)
+      } else {
+        // have to do a join against the record table
+        joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
+      }
+    } else if (hints.isArrowQuery) {
+      // check to see if we can execute against the index values
+      lazy val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, hints.getArrowDictionaryFields, filter.filter)
+      lazy val kvsToFeatures = ArrowBatchIterator.kvsToFeatures()
+      if (IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform)) {
+        val iter = ArrowBatchIterator.configure(indexSft, this, filter.secondary, dictionaries, hints, dedupe)
+        val iters = visibilityIter(indexSft) :+ iter
+        val reduce = Some(ArrowBatchIterator.reduceFeatures(indexSft, dictionaries)(_))
+        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
+      } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
+        // we can use the index PLUS the value
+        val transformSft = hints.getTransformSchema.getOrElse {
+          throw new IllegalStateException("Must have a transform for attribute key plus value scan")
+        }
+        // make sure we set table sharing - required for the iterator
+        transformSft.setTableSharing(sft.isTableSharing)
+        // the key-value iter needs to run before the arrow iter so that the attribute is available to encode
+        val iter = ArrowBatchIterator.configure(transformSft, this, filter.secondary, dictionaries, hints, dedupe)
+        val keyValueIter = KryoAttributeKeyValueIterator.configure(this, transformSft, attribute, 23)
+        val iters = visibilityIter(transformSft) :+ iter :+ keyValueIter
+        val reduce = Some(ArrowBatchIterator.reduceFeatures(transformSft, dictionaries)(_))
+        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
       } else {
         // have to do a join against the record table
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
@@ -273,11 +299,15 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
     // the scan against the attribute table
     val attributeScan = attributePlan(indexSft, stFilter, None)
 
+    lazy val arrowDictionaries = ArrowBatchIterator.createDictionaries(ds, sft, hints.getArrowDictionaryFields, filter.filter)
+
     // apply any secondary filters or transforms against the record table
     val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
       throw new RuntimeException("Record index does not exist for join query")
     }
-    val recordIter = if (hints.isStatsIteratorQuery) {
+    val recordIter = if (hints.isArrowQuery) {
+      Seq(ArrowBatchIterator.configure(sft, recordIndex, ecqlFilter, arrowDictionaries, hints, deduplicate = false))
+    } else if (hints.isStatsIteratorQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else if (hints.isDensityQuery) {
       Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
@@ -293,6 +323,8 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
     val (kvsToFeatures, reduce) = if (hints.isBinQuery) {
       // aggregating iterator wouldn't be very effective since each range is a single row
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
+    } else if (hints.isArrowQuery) {
+      (ArrowBatchIterator.kvsToFeatures(), Some(ArrowBatchIterator.reduceFeatures(sft, arrowDictionaries)(_)))
     } else if (hints.isStatsIteratorQuery) {
       (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_)))
     } else if (hints.isDensityQuery) {

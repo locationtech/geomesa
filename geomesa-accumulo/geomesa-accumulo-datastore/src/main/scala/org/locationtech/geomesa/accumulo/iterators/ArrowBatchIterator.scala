@@ -19,11 +19,13 @@ import org.apache.arrow.vector.{VectorSchemaRoot, VectorUnloader}
 import org.apache.commons.lang3.StringEscapeUtils
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -98,6 +100,22 @@ object ArrowBatchIterator {
     hints.getSampling.foreach(SamplingIterator.configure(is, sft, _))
     is.addOption(DictionaryKey, encodeDictionaries(dictionaries))
     is
+  }
+
+  def createDictionaries(ds: AccumuloDataStore,
+                         sft: SimpleFeatureType,
+                         fields: Seq[String],
+                         filter: Option[Filter]): Map[String, ArrowDictionary] = {
+    if (fields.isEmpty) { Map.empty } else {
+      // TODO validate fields are strings
+      // run a live stats query to get the dictionary values
+      val stats = Stat.SeqStat(fields.map(Stat.Enumeration))
+      val enumerations = ds.stats.runStats[EnumerationStat[String]](sft, stats, filter.getOrElse(Filter.INCLUDE))
+      enumerations.map { e =>
+        val name = sft.getDescriptor(e.attribute).getLocalName
+        name -> new ArrowDictionary(e.values.toSeq)
+      }.toMap
+    }
   }
 
   /**
