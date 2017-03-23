@@ -177,7 +177,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     /** This function is used to implement custom client filters for HBase **/
       val toFeatures = resultsToFeatures(sft, None, hints.getTransform)
-      val remoteFilters = filter.filter.map { filter =>
+      val remoteFilters = ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
       }.toSeq
       ScanConfig(remoteFilters, toFeatures)
