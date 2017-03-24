@@ -89,7 +89,11 @@ public class KryoLazyDensityFilter extends FilterBase {
     public KryoLazyDensityFilter(String sftString, Map<String, Object> options) {
         this.sftString = sftString;
         configureSFT();
+        if (options == null) {
+            return;
+        }
         this.options = options;
+
         this.weightIndex = (Integer) options.getOrDefault(WEIGHT_INDEX, -2);
         this.geomIndex = (Integer) options.getOrDefault(GEOM_INDEX, -1);
         Envelope envelope = (Envelope) options.getOrDefault(ENVELOPE_OPT, null);
@@ -221,7 +225,7 @@ public class KryoLazyDensityFilter extends FilterBase {
                 Expression expression = ECQL.toExpression((String) options.get(WEIGHT_OPT));
                 returnVal = getWeightFromExpression(expression, sf);
             } catch (Exception e) {
-                System.out.println("Exception");
+                logger.error(Throwables.getStackTraceAsString(e));
             }
         } else if (sft.getDescriptor(weightIndex).getType().getBinding() == Double.class) {
             returnVal = getWeightFromDouble(weightIndex, sf);
@@ -367,7 +371,7 @@ public class KryoLazyDensityFilter extends FilterBase {
         return new KryoLazyDensityFilter(sftString, options);
     }
 
-    public  Tuple2<Double, Double> decodeKey(Tuple2<Integer, Integer> key){
+    public Tuple2<Double, Double> decodeKey(Tuple2<Integer, Integer> key){
         double x = gridSnap.x(key._1);
         double y = gridSnap.y(key._2);
         return new Tuple2(x, y);

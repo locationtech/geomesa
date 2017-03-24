@@ -143,7 +143,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       val result : List[DensityPair] = client.kryoLazyDensityFilter(table1, arr).asScala.toList
 
       for (pairs <- result)
-        println(pairs.toString)
+        logger.info(pairs.toString)
 
       true mustEqual (true)
     }
