@@ -65,6 +65,16 @@ class KryoJsonSerializationTest extends Specification {
       val recovered = KryoJsonSerialization.deserializeAndRender(new Input(bytes))
       recovered mustEqual json.replaceAll(" ", "")
     }
+    "correctly de/serialize large json requiring buffer resizing" in {
+      val out = new Output(128, -1)
+      val string = "a" * 128
+      val json = s"""{ "foo" : "${string}" }"""
+      KryoJsonSerialization.serialize(out, json)
+      val bytes = out.toBytes
+      bytes must not(beEmpty)
+      val recovered = KryoJsonSerialization.deserializeAndRender(new Input(bytes))
+      recovered mustEqual json.replaceAll(" ", "")
+    }
     "correctly de/serialize geojson" in {
       val out = new Output(768)
       val jsons = geoms.map { geom =>
