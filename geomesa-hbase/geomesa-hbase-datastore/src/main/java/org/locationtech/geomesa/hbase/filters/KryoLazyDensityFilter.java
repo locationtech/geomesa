@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.hbase.filters;
 
+import com.google.common.base.Throwables;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Point;
@@ -29,6 +30,8 @@ import org.locationtech.geomesa.utils.geotools.GridSnap;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.AbstractMap;
@@ -42,41 +45,39 @@ import scala.Tuple2;
 
 public class KryoLazyDensityFilter extends FilterBase {
 
-    private static String sftString;
-    private static SimpleFeatureType sft;
-    private static KryoFeatureSerializer serializer;
-    private static Hints hints;
+    private String sftString;
+    private SimpleFeatureType sft;
+    private KryoFeatureSerializer serializer;
+    private Hints hints;
 
     private SimpleFeatureType outputsft = SimpleFeatureTypes.createType("result", "mapkey:string,weight:java.lang.Double");
     private KryoFeatureSerializer output_serializer = new KryoFeatureSerializer(outputsft, SerializationOptions.withoutId());
 
-    private static String ENVELOPE_OPT = "envelope";
-    private static String GRID_WIDTH_OPT = "grid_width";
-    private static String GRID_HEIGHT_OPT = "grid_height";
-    private static String WEIGHT_OPT = "weight";
+    private final String ENVELOPE_OPT = "envelope";
+    private final String GRID_WIDTH_OPT = "grid_width";
+    private final String GRID_HEIGHT_OPT = "grid_height";
+    private final String WEIGHT_OPT = "weight";
+    private final String GEOM_INDEX = "geom_index";
+    private final String WEIGHT_INDEX = "weight_index";
 
-    private static int weightIndex = -2;
-    private static int geomIndex = -1;
+    private int weightIndex = -2;
+    private int geomIndex = -1;
 
-    private static GridSnap gridSnap = null;
-    private static Map<String, Object> options = new HashMap<>();
+    private GridSnap gridSnap = null;
+    private Map<String, Object> options = new HashMap<>();
 
-    public static void configure(String sftString, Hints hints){
-        KryoLazyDensityFilter.sftString = sftString;
+    private final static Logger logger = LoggerFactory.getLogger(KryoLazyDensityFilter.class);
+
+    public void configure(String sftString, Hints hints){
+        this.sftString = sftString;
         configureSFT();
         configureOptions(hints);
     }
 
-    public static void configure(SimpleFeatureType sft, Hints hints) {
-        KryoLazyDensityFilter.sft = sft;
-        KryoLazyDensityFilter.sftString = SimpleFeatureTypes.encodeType(sft, true);
+    public void configure(SimpleFeatureType sft, Hints hints) {
+        this.sft = sft;
+        this.sftString = SimpleFeatureTypes.encodeType(sft, true);
         configureOptions(hints);
-    }
-    /*
-    TO be used in the coprocessor, default constructor.
-     */
-    public KryoLazyDensityFilter(){
-
     }
 
     public KryoLazyDensityFilter(String sftString, Hints hints) {
@@ -85,15 +86,35 @@ public class KryoLazyDensityFilter extends FilterBase {
         configureOptions(hints);
     }
 
+    public KryoLazyDensityFilter(String sftString, Map<String, Object> options) {
+        this.sftString = sftString;
+        configureSFT();
+        this.options = options;
+        this.weightIndex = (Integer) options.getOrDefault(WEIGHT_INDEX, -2);
+        this.geomIndex = (Integer) options.getOrDefault(GEOM_INDEX, -1);
+        Envelope envelope = (Envelope) options.getOrDefault(ENVELOPE_OPT, null);
+
+        if(envelope != null){
+            int width = (Integer) options.get(GRID_WIDTH_OPT);
+            int height = (Integer) options.get(GRID_HEIGHT_OPT);
+            this.gridSnap = new GridSnap(envelope, width, height);
+        }
+    }
+
     public KryoLazyDensityFilter(SimpleFeatureType sft, Hints hints) {
         this.sft = sft;
         this.sftString = SimpleFeatureTypes.encodeType(sft, true);
         configureOptions(hints);
     }
 
-    private static void configureOptions(Hints hints) {
+    private void configureOptions(Hints hints) {
         geomIndex = getGeomIndex();
-        if (hints == null) return;
+        options.put(GEOM_INDEX, geomIndex);
+
+        if (hints == null) {
+            return;
+        }
+
         Envelope envelope = getDensityEnvelope(hints);
         int width = getDensityWidth(hints);
         int height = getDensityHeight(hints);
@@ -105,14 +126,15 @@ public class KryoLazyDensityFilter extends FilterBase {
         gridSnap = new GridSnap(envelope, width, height);
         int index = sft.indexOf((String) options.get(WEIGHT_OPT));
         weightIndex = index;
+        options.put(WEIGHT_INDEX, weightIndex);
     }
 
-    private static void configureSFT() {
+    private void configureSFT() {
         sft = SimpleFeatureTypes.createType("densitySft", sftString);
         serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId());
     }
 
-    private static String getGeomField() {
+    private String getGeomField() {
         GeometryDescriptor gd = sft.getGeometryDescriptor();
         if (gd == null) {
             return null;
@@ -121,26 +143,26 @@ public class KryoLazyDensityFilter extends FilterBase {
         }
     }
 
-    private static int getGeomIndex() {
+    private int getGeomIndex() {
         return sft.indexOf(getGeomField());
     }
 
-    private static Envelope getDensityEnvelope(Hints hints) {
+    private Envelope getDensityEnvelope(Hints hints) {
         Envelope e = (Envelope) hints.get(QueryHints.DENSITY_BBOX());
         return e;
     }
 
-    private static int getDensityWidth(Hints hints) {
+    private int getDensityWidth(Hints hints) {
         int width = (int) hints.get(QueryHints.DENSITY_WIDTH());
         return width;
     }
 
-    private static int getDensityHeight(Hints hints) {
+    private int getDensityHeight(Hints hints) {
         int height = (int) hints.get(QueryHints.DENSITY_HEIGHT());
         return height;
     }
 
-    private static String getDensityWeight(Hints hints) {
+    private String getDensityWeight(Hints hints) {
         String weight = (String) hints.get(QueryHints.DENSITY_WEIGHT());
         return weight;
     }
@@ -251,17 +273,14 @@ public class KryoLazyDensityFilter extends FilterBase {
     }
 
     @Override
-    public ReturnCode filterKeyValue(Cell v) throws IOException {
-        byte[] encodedSF = CellUtil.cloneValue(v);
-        SimpleFeature sf = serializer.deserialize(encodedSF);
+    public ReturnCode filterKeyValue(Cell cell) throws IOException {
         return ReturnCode.INCLUDE;
     }
 
     @Override
-    public Cell transformCell(Cell v) throws IOException {
-        byte[] row = CellUtil.cloneRow(v);
-        byte[] encodedSF = CellUtil.cloneValue(v);
-        SimpleFeature sf_old = serializer.deserialize(encodedSF);
+    public Cell transformCell(Cell cell) throws IOException {
+        byte[] row = CellUtil.cloneRow(cell);
+        SimpleFeature sf_old = serializer.deserialize(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
         Map.Entry<Tuple2<Integer, Integer>, Double> out;
         if (isPoints()) {
             out = writePoint(sf_old, weightFn(sf_old));
@@ -272,39 +291,38 @@ public class KryoLazyDensityFilter extends FilterBase {
         sf.setAttribute(0, serializeParameters(out.getKey()));
         sf.setAttribute(1, out.getValue());
         byte[] arr = output_serializer.serialize(sf);
-        Cell cell = CellUtil.createCell(row, arr);
-        return cell;
+        Cell newCell = CellUtil.createCell(row, arr);
+        return newCell;
     }
 
     // TODO: Add static method to compute byte array from SFT and Filter.
     @Override
     public byte[] toByteArray() throws IOException {
-//        System.out.println("Serializing JLazyDensityFiler!");
-        return Bytes.add(getLengthArray(sftString), convertToBytes(hints));
+        return Bytes.add(getLengthArray(sftString), serializeHashMap(options));
     }
 
-    private byte[] convertToBytes(Object object) throws IOException {
-        if (object == null) {
-            return Bytes.toBytes(0);
-        }
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutput out = new ObjectOutputStream(bos)) {
-            out.writeObject(object);
-            byte[] arr = bos.toByteArray();
-            return Bytes.add(Bytes.toBytes(arr.length), arr);
-        }
+    private byte[] serializeHashMap(Map<String, Object> map) throws IOException{
+        ByteArrayOutputStream fis = new ByteArrayOutputStream();
+        ObjectOutputStream ois = new ObjectOutputStream(fis);
+        ois.writeObject(map);
+        byte[] output = fis.toByteArray();
+        ois.close();
+        fis.close();
+        return Bytes.add(Bytes.toBytes(output.length), output);
     }
 
-    private static Object convertFromBytes(byte[] bytes) {
-        if (bytes.length == 0) {
-            return null;
+    private static Map<String, Object> deserializeHashMap(byte[] bytes){
+        try {
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(bytes);
+            ObjectInputStream in = new ObjectInputStream(byteIn);
+            Map<String, Object> map = (Map<String, Object>) in.readObject();
+            return map;
+        } catch(ClassNotFoundException cnfe){
+            logger.error(Throwables.getStackTraceAsString(cnfe));
+        } catch(IOException ie){
+            logger.error(Throwables.getStackTraceAsString(ie));
         }
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-             ObjectInput in = new ObjectInputStream(bis)) {
-            return in.readObject();
-        } catch (Exception e) {
-            return null;
-        }
+        return null;
     }
 
     public Object deserializeParameters(String s) throws IOException,
@@ -340,15 +358,13 @@ public class KryoLazyDensityFilter extends FilterBase {
     }
 
     public static org.apache.hadoop.hbase.filter.Filter parseFrom(final byte[] pbBytes) throws DeserializationException {
-        System.out.println("Creating JdensityFilter with parseFrom!");
-
         int sftLen = Bytes.readAsInt(pbBytes, 0, 4);
         String sftString = new String(Bytes.copy(pbBytes, 4, sftLen));
 
         int hintsLen = Bytes.readAsInt(pbBytes, sftLen + 4, 4);
-        Hints hints = (Hints) convertFromBytes(Bytes.copy(pbBytes, sftLen + 8, hintsLen));
+        Map<String, Object> options = (Map<String, Object>) deserializeHashMap(Bytes.copy(pbBytes, sftLen + 8, hintsLen));
 
-        return new KryoLazyDensityFilter(sftString, hints);
+        return new KryoLazyDensityFilter(sftString, options);
     }
 
     public  Tuple2<Double, Double> decodeKey(Tuple2<Integer, Integer> key){

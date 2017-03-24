@@ -135,11 +135,12 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
       q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
 
-      KryoLazyDensityFilter.configure(TEST_FAMILY, q.getHints)
+      var filter = new KryoLazyDensityFilter(TEST_FAMILY, q.getHints);
+      var arr = filter.toByteArray
       val table1 = connection.getTable(table)
 
       val client = new FilterAggregatingClient()
-      val result : List[DensityPair] = client.kryoLazyDensityFilter(table1).asScala.toList
+      val result : List[DensityPair] = client.kryoLazyDensityFilter(table1, arr).asScala.toList
 
       for (pairs <- result)
         println(pairs.toString)
