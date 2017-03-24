@@ -20,6 +20,7 @@ import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -45,12 +46,14 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
-                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
+                        columnFamily: Array[Byte],
+                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature],
+                        reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]])
 
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
-    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
+  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
@@ -116,7 +119,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe)
+      val ScanConfig(hbaseFilters, cf, toFeatures, reduce) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
 
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
@@ -171,12 +174,15 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                            filter: HBaseFilterStrategyType,
                            hints: Hints,
                            ecql: Option[Filter],
-                           dedupe: Boolean): ScanConfig = {
+                           dedupe: Boolean,
+                           remote: Boolean): ScanConfig = {
 
+    import HBaseFeatureIndex.{DataColumnFamily}
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      val toFeatures = resultsToFeatures(sft, None, hints.getTransform)
+      val transform = if (remote) { None } else { hints.getTransform }
+      val toFeatures = resultsToFeatures(sft, None, transform)
       val remoteFilters = ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
       }.toSeq
