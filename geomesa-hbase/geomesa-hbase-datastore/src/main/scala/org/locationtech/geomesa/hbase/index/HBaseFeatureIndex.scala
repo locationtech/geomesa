@@ -46,9 +46,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
-                        columnFamily: Array[Byte],
-                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature],
-                        reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]])
+                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 
 }
 
@@ -119,7 +117,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, cf, toFeatures, reduce) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
+      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
 
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
@@ -182,10 +180,11 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     /** This function is used to implement custom client filters for HBase **/
       val transform = if (remote) { None } else { hints.getTransform }
-      val toFeatures = resultsToFeatures(sft, None, transform)
-      val remoteFilters = ecql.map { filter =>
+      val feature = if (remote) { None } else { sft }
+      val toFeatures = resultsToFeatures(feature, None, transform)
+      val remoteFilters = if (remote) { ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
-      }.toSeq
+      }.toSeq } else { Nil }
       ScanConfig(remoteFilters, toFeatures)
   }
 }
