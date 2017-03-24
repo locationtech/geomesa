@@ -28,7 +28,6 @@
                 <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</include>
             </includes>
         </dependencySet>
-
         <dependencySet>
             <outputDirectory>dist/spark</outputDirectory>
             <directoryMode>0755</directoryMode>
@@ -40,7 +39,17 @@
                 <include>org.locationtech.geomesa:geomesa-hbase-spark*</include>
             </includes>
         </dependencySet>
-
+        <dependencySet>
+            <outputDirectory>dist/converters</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
+            </includes>
+        </dependencySet>
     </dependencySets>
 
     <fileSets>

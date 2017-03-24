@@ -25,7 +25,14 @@ class ScriptingFunctionFactoryTest extends Specification {
 
   val srctestresourcesdir = new File(ClassLoader.getSystemResource("geomesa-convert-scripts/hello.js").toURI)
   val parent = srctestresourcesdir.getParentFile.getParentFile.getParentFile.getParent
-  val path = s"$parent/src/test/static,$parent/src/test/static2"
+
+  val staticPaths = Seq(
+    s"$parent/src/test/static", // directory
+    s"$parent/src/test/static2", // directory that doesn't exist
+    s"$parent/src/test/static3/whatsup.js", // file that exists
+    s"$parent/src/test/static3/random.js" // file  that doesnt exists
+  )
+  val path = staticPaths.mkString(":")
   System.setProperty("geomesa.convert.scripts.path", path)
 
   "ScriptingFunctionFactory " should {
@@ -62,6 +69,7 @@ class ScriptingFunctionFactoryTest extends Specification {
           |     { name = "oneup",    transform = "$1::string" },
           |     { name = "phrase",   transform = "js:hello($2)" },
           |     { name = "gbye",     transform = "js:gbye($2)" },
+          |     { name = "whatsup",  transform = "js:whatsup($2)" },
           |     { name = "lat",      transform = "$3::double" },
           |     { name = "lon",      transform = "$4::double" },
           |     { name = "lit",      transform = "'hello'" },
@@ -82,6 +90,7 @@ class ScriptingFunctionFactoryTest extends Specification {
             |    { name = "oneup",    type = "String", index = false },
             |    { name = "phrase",   type = "String", index = false },
             |    { name = "gbye",     type = "String", index = false },
+            |    { name = "whatsup",  type = "String", index = false },
             |    { name = "lineNr",   type = "Int",    index = false },
             |    { name = "fn",       type = "String", index = false },
             |    { name = "lat",      type = "Double", index = false },
@@ -101,6 +110,7 @@ class ScriptingFunctionFactoryTest extends Specification {
         res.size must be equalTo 2
         res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello: hello"
         res(0).getAttribute("gbye").asInstanceOf[String] must be equalTo "goodbye: hello"
+        res(0).getAttribute("whatsup").asInstanceOf[String] must be equalTo "whatsup: hello"
         res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello: world"
       }
 

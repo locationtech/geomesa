@@ -31,7 +31,13 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
     if (newChildren.exists(includeEquivalent)) {
       Filter.INCLUDE
     } else {
-      getFactory(data).or(newChildren)
+      val notExcludes = newChildren.filterNot(_ == Filter.EXCLUDE)
+      // EXCLUDE OR foo == foo
+      if (notExcludes.isEmpty) {
+        Filter.EXCLUDE
+      } else {
+        getFactory(data).or(notExcludes)
+      }
     }
   }
 
@@ -45,6 +51,9 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
         Filter.INCLUDE
       } else if (newChildren.length == 1) {
         newChildren.head
+      } else if (newChildren.exists(_ == Filter.EXCLUDE)) {
+        // EXCLUDE AND foo == EXCLUDE
+        Filter.EXCLUDE
       } else {
         getFactory(data).and(newChildren)
       }

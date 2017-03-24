@@ -22,8 +22,10 @@ import scala.language.implicitConversions
 
 /** @param brokers a comma separated list of broker host names and ports
   * @param zookeepers the zookeeper connection string
+  * @param autoOffsetReset what offset to reset to when there is no initial offset in ZooKeeper 
+  * ("largest" or "smallest")
   */
-class KafkaConsumerFactory(brokers: String, zookeepers: String) {
+class KafkaConsumerFactory(brokers: String, zookeepers: String, autoOffsetReset: String) {
 
   import KafkaConsumerFactory._
 
@@ -37,6 +39,7 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String) {
     props.put("zookeeper.session.timeout.ms", "2000")
     props.put("zookeeper.sync.time.ms", "1000")
     props.put("auto.commit.interval.ms", "1000")
+    props.put("auto.offset.reset", autoOffsetReset)
 
     props
   }

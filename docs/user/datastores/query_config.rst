@@ -49,30 +49,24 @@ Key                   Type        GeoServer Conversion
 QueryHints.LOOSE_BBOX ``Boolean`` ``true`` or ``false``
 ===================== =========== =====================
 
-Java
-^^^^
 
-.. code-block:: java
+.. tabs::
 
-    import org.locationtech.geomesa.index.conf.QueryHints;
+    .. code-tab:: java
 
-    query.getHints().put(QueryHints.LOOSE_BBOX(), Boolean.FALSE);
+        import org.locationtech.geomesa.index.conf.QueryHints;
 
-Scala
-^^^^^
+        query.getHints().put(QueryHints.LOOSE_BBOX(), Boolean.FALSE);
 
-.. code-block:: scala
+    .. code-tab:: scala
 
-    import org.locationtech.geomesa.index.conf.QueryHints
+        import org.locationtech.geomesa.index.conf.QueryHints
 
-    query.getHints.put(QueryHints.LOOSE_BBOX, false)
+        query.getHints.put(QueryHints.LOOSE_BBOX, false)
 
-GeoServer
-^^^^^^^^^
+    .. tab:: GeoServer
 
-.. code-block:: none
-
-    ...&viewparams=LOOSE_BBOX:false;
+        ``...&viewparams=LOOSE_BBOX:false``
 
 Exact Counts
 ------------
@@ -87,30 +81,23 @@ Key                    Type        GeoServer Conversion
 QueryHints.EXACT_COUNT ``Boolean`` ``true`` or ``false``
 ====================== =========== =====================
 
-Java
-^^^^
+.. tabs::
 
-.. code-block:: java
+    .. code-tab:: java
 
-    import org.locationtech.geomesa.index.conf.QueryHints;
+        import org.locationtech.geomesa.index.conf.QueryHints;
 
-    query.getHints().put(QueryHints.EXACT_COUNT(), Boolean.TRUE);
+        query.getHints().put(QueryHints.EXACT_COUNT(), Boolean.TRUE);
 
-Scala
-^^^^^
+    .. code-tab:: scala
 
-.. code-block:: scala
+        import org.locationtech.geomesa.index.conf.QueryHints
 
-    import org.locationtech.geomesa.index.conf.QueryHints
+        query.getHints.put(QueryHints.EXACT_COUNT, true)
 
-    query.getHints.put(QueryHints.EXACT_COUNT, true)
+    .. tab:: GeoServer
 
-GeoServer
-^^^^^^^^^
-
-.. code-block:: none
-
-    ...&viewparams=EXACT_COUNT:true;
+        ``...&viewparams=EXACT_COUNT:true``
 
 Query Index
 -----------
@@ -126,32 +113,25 @@ Key                    Type                    GeoServer Conversion
 QueryHints.QUERY_INDEX ``GeoMesaFeatureIndex`` index name, or name:version
 ====================== ======================= ===========================
 
-Java
-^^^^
+.. tabs::
 
-.. code-block:: java
+    .. code-tab:: java
 
-    import org.locationtech.geomesa.accumulo.index.z2.Z2Index$;
-    import org.locationtech.geomesa.index.conf.QueryHints;
+        import org.locationtech.geomesa.accumulo.index.z2.Z2Index$;
+        import org.locationtech.geomesa.index.conf.QueryHints;
 
-    query.getHints().put(QueryHints.QUERY_INDEX(), Z2Index$.MODULE$);
+        query.getHints().put(QueryHints.QUERY_INDEX(), Z2Index$.MODULE$);
 
-Scala
-^^^^^
+    .. code-tab:: scala
 
-.. code-block:: scala
+        import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+        import org.locationtech.geomesa.index.conf.QueryHints
 
-    import org.locationtech.geomesa.accumulo.index.z2.Z2Index
-    import org.locationtech.geomesa.index.conf.QueryHints
+        query.getHints.put(QueryHints.QUERY_INDEX, Z2Index)
 
-    query.getHints.put(QueryHints.QUERY_INDEX, Z2Index)
+    .. tab:: GeoServer
 
-GeoServer
-^^^^^^^^^
-
-.. code-block:: none
-
-    ...&viewparams=QUERY_INDEX:z2;
+        ``...&viewparams=QUERY_INDEX:z2``
 
 Query Planning
 --------------
@@ -166,29 +146,23 @@ Key                        Type               GeoServer Conversion
 QueryHints.COST_EVALUATION ``CostEvaluation`` ``stats`` or ``index``
 ========================== ================== ======================
 
-Java
-^^^^
 
-.. code-block:: java
+.. tabs::
 
-    import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation;
-    import org.locationtech.geomesa.index.conf.QueryHints;
+    .. code-tab:: java
 
-    query.getHints().put(QueryHints.COST_EVALUATION(), CostEvaluation.Index());
+        import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation;
+        import org.locationtech.geomesa.index.conf.QueryHints;
 
-Scala
-^^^^^
+        query.getHints().put(QueryHints.COST_EVALUATION(), CostEvaluation.Index());
 
-.. code-block:: scala
+    .. code-tab:: scala
 
-    import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
-    import org.locationtech.geomesa.index.conf.QueryHints
+        import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
+        import org.locationtech.geomesa.index.conf.QueryHints
 
-    query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
+        query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
 
-GeoServer
-^^^^^^^^^
+    .. tab:: GeoServer
 
-.. code-block:: none
-
-    ...&viewparams=COST_EVALUATION:index;
+        ``...&viewparams=COST_EVALUATION:index``

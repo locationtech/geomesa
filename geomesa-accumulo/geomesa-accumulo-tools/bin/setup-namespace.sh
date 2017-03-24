@@ -25,7 +25,7 @@ function help() {
   echo "  -p    Accumulo password for the provided username"
   echo "  -g    Path of the GeoMesa distributed runtime JAR, with or without raster support."
   echo "  -d    Directory to create namespace in, default: /accumulo/classpath"
-  echo "  -h    HDFS URI e.g. hdfs://localhost:54310"
+  echo "  -h    HDFS URI e.g. hdfs://localhost:9000"
   echo ""
   exit 0
 }

@@ -31,7 +31,7 @@ class ConvertCommand extends Command with LazyLogging {
   override val name = "convert"
   override val params = new ConvertParameters
 
-  override def execute() = {
+  override def execute(): Unit = {
 
     import ConvertCommand.{convertFile, getConverter, getExporter}
 
@@ -79,7 +79,7 @@ object ConvertCommand extends LazyLogging {
     val writer: Writer = ExportCommand.getWriter(params)
 
     outFmt match {
-      case Csv | Tsv      => new DelimitedExporter(writer, outFmt, !params.noHeader)
+      case Csv | Tsv      => new DelimitedExporter(writer, outFmt, None, !params.noHeader)
       case Shp            =>
         Seq(ShapefileExporter.modifySchema(sft))
         new ShapefileExporter(ExportCommand.checkShpFile(params))

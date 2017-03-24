@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version="0.6" generator="Osmosis 0.40.1">
+  <node id="350151" version="5" timestamp="2015-10-28T21:17:49Z" uid="6367" user="mackerski" changeset="34937016" lat="54.1790829" lon="-6.3341538"/>
+  <node id="350152" version="3" timestamp="2015-10-28T21:17:49Z" uid="6367" user="mackerski" changeset="34937016" lat="54.179083" lon="-6.3339244"/>
+  <node id="350153" version="5" timestamp="2015-10-28T21:17:49Z" uid="6367" user="mackerski" changeset="34937016" lat="54.179379" lon="-6.3316723"/>
+  <node id="350154" version="4" timestamp="2015-10-28T21:17:49Z" uid="6367" user="mackerski" changeset="34937016" lat="54.1794726" lon="-6.3314593"/>
+  <way id="1789239" version="2" timestamp="2010-10-28T18:06:37Z" uid="6367" user="mackerski" changeset="6210955">
+    <nd ref="350151"/>
+    <nd ref="350152"/>
+    <nd ref="350153"/>
+    <nd ref="350154"/>
+    <tag k="name" v="Church Avenue"/>
+    <tag k="highway" v="residential"/>
+  </way>
+  <relation id="6193304" version="1" timestamp="2016-05-05T23:56:01Z" uid="457966" user="KDDA" changeset="39132424">
+    <member type="way" ref="1789239" role="outer"/>
+    <tag k="admin_level" v="10"/>
+    <tag k="boundary" v="administrative"/>
+    <tag k="locality" v="townland"/>
+    <tag k="name" v="Drumkeen"/>
+    <tag k="place" v="locality"/>
+    <tag k="type" v="boundary"/>
+  </relation>
+</osm>

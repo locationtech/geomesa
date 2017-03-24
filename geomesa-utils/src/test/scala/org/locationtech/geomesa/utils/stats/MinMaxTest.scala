@@ -170,6 +170,15 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }
+
+      "negatives" >> {
+        val minMax3 = newStat[java.lang.Integer]("intAttr", observe = false)
+
+        features3.foreach { minMax3.observe }
+
+        minMax3.bounds mustEqual (-100, -1)
+        minMax3.cardinality must beCloseTo(100L, 5)
+      }
     }
 
     "work with longs" >> {
@@ -234,6 +243,15 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
+      }
+
+      "negatives" >> {
+        val minMax3 = newStat[java.lang.Integer]("longAttr", observe = false)
+
+        features3.foreach { minMax3.observe }
+
+        minMax3.bounds mustEqual (-100L, -1L)
+        minMax3.cardinality must beCloseTo(100L, 5)
       }
     }
 
@@ -300,6 +318,15 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }
+
+      "negatives" >> {
+        val minMax3 = newStat[java.lang.Integer]("floatAttr", observe = false)
+
+        features3.foreach { minMax3.observe }
+
+        minMax3.bounds mustEqual (-100f, -1f)
+        minMax3.cardinality must beCloseTo(100L, 5)
+      }
     }
 
     "work with doubles" >> {
@@ -364,6 +391,15 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
+      }
+
+      "negatives" >> {
+        val minMax3 = newStat[java.lang.Integer]("doubleAttr", observe = false)
+
+        features3.foreach { minMax3.observe }
+
+        minMax3.bounds mustEqual (-100d, -1d)
+        minMax3.cardinality must beCloseTo(100L, 5)
       }
     }
 

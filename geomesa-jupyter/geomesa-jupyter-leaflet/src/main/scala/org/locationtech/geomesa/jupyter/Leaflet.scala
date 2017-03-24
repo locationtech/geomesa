@@ -136,7 +136,7 @@ object L {
     }
 
     def propToJson(ad: AttributeDescriptor, a: Object) =
-      if(a!= null) s""""${ad.getLocalName}": '${StringEscapeUtils.escapeJson(a.toString)}'"""
+      if(a!= null) s""""${ad.getLocalName}": "${StringEscapeUtils.escapeJson(a.toString)}""""
       else s""""${ad.getLocalName}": ''"""
   }
 

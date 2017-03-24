@@ -167,12 +167,12 @@ object MinMax {
   }
 
   implicit object MinMaxFloat extends ComparableMinMax[java.lang.Float] {
-    override val min: java.lang.Float = java.lang.Float.MIN_VALUE
+    override val min: java.lang.Float = 0f - java.lang.Float.MAX_VALUE
     override val max: java.lang.Float = java.lang.Float.MAX_VALUE
   }
 
   implicit object MinMaxDouble extends ComparableMinMax[java.lang.Double] {
-    override val min: java.lang.Double = java.lang.Double.MIN_VALUE
+    override val min: java.lang.Double = 0d - java.lang.Double.MAX_VALUE
     override val max: java.lang.Double = java.lang.Double.MAX_VALUE
   }
 

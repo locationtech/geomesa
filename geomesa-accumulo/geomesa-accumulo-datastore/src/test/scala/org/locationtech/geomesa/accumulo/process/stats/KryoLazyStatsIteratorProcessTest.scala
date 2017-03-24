@@ -138,5 +138,13 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       rh.bounds mustEqual (0, 149)
       (0 until 5).map(rh.count).sum mustEqual 150
     }
+
+    "return stats encoded as json" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr)", false)
+      val sf = results.features().next
+
+      val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
+      sf.getAttribute(0) mustEqual expectedOutput
+    }
   }
 }
