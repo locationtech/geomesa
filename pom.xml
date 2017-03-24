@@ -21,6 +21,7 @@
     <modules>
         <module>geomesa-accumulo</module>
         <module>geomesa-archetypes</module>
+        <module>geomesa-arrow</module>
         <module>geomesa-blobstore</module>
         <module>geomesa-cassandra</module>
         <module>geomesa-convert</module>
@@ -87,6 +88,7 @@
         <kafka.08.version>0.8.2.1</kafka.08.version>
         <kafka.09.version>0.9.0.1</kafka.09.version>
         <kafka.10.version>0.10.0.1</kafka.10.version>
+        <arrow.version>0.2.1-SNAPSHOT</arrow.version>
 
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
@@ -1479,6 +1481,21 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-arrow-vector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-arrow-gt_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-arrow-datastore_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -2009,6 +2026,11 @@
                 <groupId>com.typesafe</groupId>
                 <artifactId>config</artifactId>
                 <version>1.2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-vector</artifactId>
+                <version>${arrow.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.scalatra</groupId>

@@ -44,6 +44,17 @@ object CloseQuietly extends SafeClose {
   }
 }
 
+/**
+  * Similar to java's try-with-resources, allows for using an object then closing in a finally block
+  */
+object WithClose {
+  // defined for up to 3 variables, implement more methods if needed
+  def apply[T <: Any { def close(): Unit }, V](c: T)(fn: (T) => V): V = try { fn(c) } finally { c.close() }
+  def apply[T <: Any { def close(): Unit }, V](c0: T, c1: T)(fn: Tuple2[T, T] => V): V =
+    try { try { fn(c0, c1) } finally { c0.close() } } finally { c1.close() }
+  def apply[T <: Any { def close(): Unit }, V](c0: T, c1: T, c2: T)(fn: Tuple3[T, T, T] => V): V =
+    try { try { try { fn(c0, c1, c2) } finally { c0.close() } } finally { c1.close() } } finally { c2.close() }
+}
 
 /**
   * Flushes and logs any exceptions
