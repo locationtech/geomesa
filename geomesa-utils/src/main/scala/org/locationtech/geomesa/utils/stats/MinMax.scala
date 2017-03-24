@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.stats
 import java.util.Date
 
 import com.clearspring.analytics.stream.cardinality.HyperLogLog
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.opengis.feature.simple.SimpleFeature
@@ -25,7 +26,8 @@ import scala.reflect.ClassTag
  * @tparam T the type of the attribute the stat is targeting (needs to be comparable)
  */
 class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLog)
-                        (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) extends Stat {
+                        (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
+    extends Stat with LazyLogging {
 
   override type S = MinMax[T]
 
@@ -56,9 +58,13 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
   override def observe(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute).asInstanceOf[T]
     if (value != null) {
-      minValue = defaults.min(value, minValue)
-      maxValue = defaults.max(value, maxValue)
-      hpp.offer(value)
+      try {
+        minValue = defaults.min(value, minValue)
+        maxValue = defaults.max(value, maxValue)
+        hpp.offer(value)
+      } catch {
+        case e: Exception => logger.warn(s"Error observing value '$value': ${e.toString}")
+      }
     }
   }
 
