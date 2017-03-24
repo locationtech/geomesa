@@ -179,7 +179,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      val transform = if (remote) { None } else { hints.getTransform }
+      val transform = hints.getTransform // will eventually be used to support remote transforms 
       val feature = if (remote) { None } else { sft }
       val toFeatures = resultsToFeatures(feature, None, transform)
       val remoteFilters = if (remote) { ecql.map { filter =>
