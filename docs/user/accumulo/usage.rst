@@ -32,7 +32,8 @@ Parameter            Description
 instanceId *         The instance ID of the Accumulo installation
 zookeepers *         A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3" or "localhost:2181")
 user *               Accumulo username
-password *           Accumulo password
+password             Accumulo password
+keytabPath           Path to a Kerberos keytab file containing an entry for the specified user
 tableName *          The name of the GeoMesa catalog table
 auths                Comma-delimited superset of authorizations that will be used for queries via Accumulo.
 visibilities         Accumulo visibilities to apply to all written data
@@ -44,4 +45,5 @@ collectStats         Toggle collection of statistics
 caching              Toggle caching of results
 ==================== =======================================================================================
 
-The required parameters are marked with an asterisk.
+The required parameters are marked with an asterisk. One (but not both) of ``password`` and ``keytabPath`` must be
+provided.

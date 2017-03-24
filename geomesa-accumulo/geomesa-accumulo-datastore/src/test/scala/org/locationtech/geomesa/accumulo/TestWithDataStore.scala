@@ -51,6 +51,7 @@ trait TestWithDataStore extends Specification {
   )
 
   lazy val mockInstanceId = "mycloud"
+  lazy val mockZookeepers = "myzoo"
   lazy val mockUser = "user"
   lazy val mockPassword = "password"
   // assign some default authorizations to this mock user

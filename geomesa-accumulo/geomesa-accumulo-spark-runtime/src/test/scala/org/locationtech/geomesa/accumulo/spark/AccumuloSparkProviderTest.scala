@@ -47,6 +47,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
       df = spark.read
         .format("geomesa")
         .option("instanceId", mockInstanceId)
+        .option("zookeepers", mockZookeepers)
         .option("user", mockUser)
         .option("password", mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
@@ -78,6 +79,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
       val subset = sc.sql("select case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
         .option("instanceId", mockInstanceId)
+        .option("zookeepers", mockZookeepers)
         .option("user", mockUser)
         .option("password", mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
@@ -93,6 +95,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
       val subset = sc.sql("select __fid__,case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
         .option("instanceId", mockInstanceId)
+        .option("zookeepers", mockZookeepers)
         .option("user", mockUser)
         .option("password", mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })

@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 #
 # Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# Portions Crown Copyright (c) 2017 Dstl
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
@@ -23,6 +24,7 @@ function help() {
   echo ""
   echo "Optional:"
   echo "  -p    Accumulo password for the provided username"
+  echo "  -t    Login using an existing Kerberos token, else will prompt for password"
   echo "  -g    Path of the GeoMesa distributed runtime JAR, with or without raster support."
   echo "  -d    Directory to create namespace in, default: /accumulo/classpath"
   echo "  -h    HDFS URI e.g. hdfs://localhost:9000"
@@ -30,13 +32,16 @@ function help() {
   exit 0
 }
 
-while getopts ":u:p:n:g:h:d:help" opt; do
+while getopts ":u:p:tn:g:h:d:help" opt; do
   case $opt in
     u)
       ACCUMULO_USER=$OPTARG
       ;;
     p)
       ACCUMULO_PASSWORD=$OPTARG
+      ;;
+    t)
+      USING_TOKEN=1
       ;;
     n)
       ACCUMULO_NAMESPACE=$OPTARG
@@ -108,7 +113,7 @@ else
     ERROR=1
 fi
 
-if [[ -z "$ERROR" && -z "$ACCUMULO_PASSWORD" ]]; then
+if [[ -z "$ERROR" && -z "$ACCUMULO_PASSWORD" && -z "$USING_TOKEN" ]]; then
     read -s -p "Enter Accumulo password for user $ACCUMULO_USER: " ACCUMULO_PASSWORD
     echo
 fi
@@ -124,11 +129,16 @@ hadoop fs -copyFromLocal -f "$GEOMESA_JAR" "${NAMESPACE_DIR}/${ACCUMULO_NAMESPAC
 
 if hadoop fs -ls "${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/geomesa*.jar" > /dev/null 2>&1
 then
+    if [[ -z "$USING_TOKEN" ]]; then
+        ACCUMULO_SHELL_CMD="accumulo shell -u $ACCUMULO_USER -p $ACCUMULO_PASSWORD"
+    else
+        ACCUMULO_SHELL_CMD="accumulo shell -u $ACCUMULO_USER"
+    fi
     echo -e "createnamespace ${ACCUMULO_NAMESPACE}\n" \
       "grant NameSpace.CREATE_TABLE -ns ${ACCUMULO_NAMESPACE} -u $ACCUMULO_USER\n" \
       "config -s general.vfs.context.classpath.${ACCUMULO_NAMESPACE}=${HDFS_URI}${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/.*.jar\n" \
       "config -ns ${ACCUMULO_NAMESPACE} -s table.classpath.context=${ACCUMULO_NAMESPACE}\n" \
-      | accumulo shell -u $ACCUMULO_USER -p $ACCUMULO_PASSWORD
+      | ${ACCUMULO_SHELL_CMD}
 
     if [[ $? -eq 1 ]]; then
         echo "Error encountered executing Accumulo shell commands, check above output for errors."

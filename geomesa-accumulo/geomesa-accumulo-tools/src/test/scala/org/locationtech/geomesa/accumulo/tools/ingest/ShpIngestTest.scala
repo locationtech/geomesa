@@ -66,7 +66,7 @@ class ShpIngestTest extends Specification {
     writer.flush()
     writer.close()
 
-    val args = Array[String]("ingest", "--mock", "--instance", "mycloud", "--user", "myuser",
+    val args = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
       "--password", "mypassword", "--catalog", "testshpingestcatalog", shpFile.getAbsolutePath)
 
     "should properly ingest a shapefile" >> {
