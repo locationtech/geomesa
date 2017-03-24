@@ -210,7 +210,7 @@ object KryoJsonSerialization extends LazyLogging {
   // write a document without a name - used for the outer-most object which doesn't have a key
   private def writeDocument(out: Output, value: JObject): Unit = {
     val start = out.position()
-    out.writeInt(0) // Write int out to prevent oob exceptions so we can resize the buffer at an appropriate time.
+    out.writeInt(0) // skip 4 bytes so we have space to go back and write total length
     value.obj.foreach { case (name, elem) =>
       elem match {
         case v: JString  => writeString(out, name, v)
