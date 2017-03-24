@@ -10,7 +10,6 @@ package org.locationtech.geomesa.arrow.vector
 
 import java.io.Closeable
 
-import com.vividsolutions.jts.geom.Point
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.complex.impl.NullableMapWriter
