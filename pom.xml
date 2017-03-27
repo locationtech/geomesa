@@ -2398,8 +2398,10 @@
                     <configuration>
 
                   <parallel>classes</parallel>
-                  <useUnlimitedThreads>true</useUnlimitedThreads>
+                  <useUnlimitedThreads>false</useUnlimitedThreads>
+<!--
                   <threadCount>80</threadCount>
+-->
                   <perCoreThreadCount>true</perCoreThreadCount>
 
 
