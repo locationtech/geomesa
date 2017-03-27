@@ -2399,9 +2399,7 @@
 
                   <parallel>classes</parallel>
                   <useUnlimitedThreads>false</useUnlimitedThreads>
-<!--
-                  <threadCount>80</threadCount>
--->
+                  <threadCount>10</threadCount>
                   <perCoreThreadCount>true</perCoreThreadCount>
 
 
