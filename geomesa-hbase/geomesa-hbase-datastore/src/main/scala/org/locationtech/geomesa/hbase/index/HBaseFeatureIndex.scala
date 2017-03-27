@@ -46,7 +46,8 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
-                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
+                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature],
+                        ecql: Option[Filter])
 
 }
 
@@ -180,11 +181,11 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     /** This function is used to implement custom client filters for HBase **/
       val transform = hints.getTransform // will eventually be used to support remote transforms 
-      val feature = if (remote) { None } else { sft }
+      val feature = sft // will eventually be used to support remote transforms 
       val toFeatures = resultsToFeatures(feature, None, transform)
       val remoteFilters = if (remote) { ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
       }.toSeq } else { Nil }
-      ScanConfig(remoteFilters, toFeatures)
+      ScanConfig(remoteFilters, toFeatures, ecql)
   }
 }
