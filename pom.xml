@@ -2398,6 +2398,7 @@
                     <configuration>
 
                   <parallel>classes</parallel>
+                  <threadCount>10</threadCount>
 <!--
                   <useUnlimitedThreads>false</useUnlimitedThreads>
                   <threadCount>10</threadCount>
