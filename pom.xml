@@ -255,7 +255,7 @@
             <properties>
                 <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500 -Dgeomesa.scan.ranges.batch=2000 -DcassandraReadTimeout=1800000</maven.test.jvmargs>
                 <test.fork.count>1</test.fork.count>
-                <test.fork.reuse>true</test.fork.reuse>
+                <test.fork.reuse>false</test.fork.reuse>
             </properties>
         </profile>
 
@@ -2398,10 +2398,11 @@
                     <configuration>
 
                   <parallel>classes</parallel>
+<!--
                   <useUnlimitedThreads>false</useUnlimitedThreads>
                   <threadCount>10</threadCount>
                   <perCoreThreadCount>true</perCoreThreadCount>
-
+-->
 
                         <forkCount>${test.fork.count}</forkCount>
                         <reuseForks>${test.fork.reuse}</reuseForks>
