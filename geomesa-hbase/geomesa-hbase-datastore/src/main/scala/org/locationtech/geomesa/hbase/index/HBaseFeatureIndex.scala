@@ -186,6 +186,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val remoteFilters = if (remote) { ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
       }.toSeq } else { Nil }
-      ScanConfig(remoteFilters, toFeatures, ecql)
+      ScanConfig(remoteFilters, toFeatures)
   }
 }
