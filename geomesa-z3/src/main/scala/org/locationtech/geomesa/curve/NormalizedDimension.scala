@@ -18,12 +18,8 @@ trait NormalizedDimension {
     math.ceil((x - min) / (max - min) * precision).toInt
   }
 
-  def denormalize(x: Int): Double = {
-    if (x == 0)
-      min
-    else
-      (x - 0.5d) * (max - min) / precision + min
-  }
+  def denormalize(x: Int): Double =
+    if (x == 0) min else (x - 0.5d) * (max - min) / precision + min
 }
 
 case class NormalizedLat(precision: Long) extends NormalizedDimension {
