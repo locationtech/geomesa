@@ -45,6 +45,9 @@ object QueryHints {
   val BIN_SORT         = new ClassKey(classOf[java.lang.Boolean])
   val BIN_BATCH_SIZE   = new ClassKey(classOf[java.lang.Integer])
 
+  val ARROW_ENCODE            = new ClassKey(classOf[java.lang.Boolean])
+  val ARROW_DICTIONARY_FIELDS = new ClassKey(classOf[java.lang.String])
+
   // internal hints that shouldn't be set directly by users
   object Internal {
     val RETURN_SFT       = new ClassKey(classOf[SimpleFeatureType])
@@ -79,6 +82,9 @@ object QueryHints {
       for { w <- Option(hints.get(DENSITY_WIDTH).asInstanceOf[Int])
             h <- Option(hints.get(DENSITY_HEIGHT).asInstanceOf[Int]) } yield (w, h)
     def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
+    def isArrowQuery: Boolean = Option(hints.get(ARROW_ENCODE).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
+    def getArrowDictionaryFields: Seq[String] =
+      Option(hints.get(ARROW_DICTIONARY_FIELDS).asInstanceOf[String]).toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
     def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsIteratorQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
     def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)

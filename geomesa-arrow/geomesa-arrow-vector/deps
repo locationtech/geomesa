@@ -1,0 +1,42 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building GeoMesa Arrow Vectors 1.3.2-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ geomesa-arrow-vector_2.11 ---
+[INFO] org.locationtech.geomesa:geomesa-arrow-vector_2.11:jar:1.3.2-SNAPSHOT
+[INFO] +- org.apache.arrow:arrow-vector:jar:0.2.1-SNAPSHOT:compile
+[INFO] |  +- org.apache.arrow:arrow-format:jar:0.2.1-SNAPSHOT:compile
+[INFO] |  |  \- com.vlkan:flatbuffers:jar:1.2.0-3f79e055:compile
+[INFO] |  +- org.apache.arrow:arrow-memory:jar:0.2.1-SNAPSHOT:compile
+[INFO] |  |  \- com.google.code.findbugs:jsr305:jar:1.3.9:provided
+[INFO] |  +- joda-time:joda-time:jar:2.3:compile
+[INFO] |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.7.1:compile
+[INFO] |  +- com.fasterxml.jackson.core:jackson-databind:jar:2.7.1:compile
+[INFO] |  |  \- com.fasterxml.jackson.core:jackson-core:jar:2.7.1:compile
+[INFO] |  +- com.carrotsearch:hppc:jar:0.7.1:compile
+[INFO] |  +- org.apache.commons:commons-lang3:jar:3.3.2:compile
+[INFO] |  +- commons-codec:commons-codec:jar:1.9:compile
+[INFO] |  +- io.netty:netty-handler:jar:4.0.41.Final:compile
+[INFO] |  |  +- io.netty:netty-buffer:jar:4.0.41.Final:compile
+[INFO] |  |  |  \- io.netty:netty-common:jar:4.0.41.Final:compile
+[INFO] |  |  +- io.netty:netty-transport:jar:4.0.41.Final:compile
+[INFO] |  |  \- io.netty:netty-codec:jar:4.0.41.Final:compile
+[INFO] |  +- com.google.guava:guava:jar:17.0:compile
+[INFO] |  +- org.slf4j:slf4j-api:jar:1.7.5:compile
+[INFO] |  +- org.slf4j:jul-to-slf4j:jar:1.7.6:compile
+[INFO] |  \- org.slf4j:jcl-over-slf4j:jar:1.7.6:compile
+[INFO] +- com.vividsolutions:jts:jar:1.13:compile
+[INFO] +- junit:junit:jar:4.12:test
+[INFO] |  \- org.hamcrest:hamcrest-core:jar:1.3:test
+[INFO] +- org.slf4j:slf4j-log4j12:jar:1.7.5:test
+[INFO] |  \- log4j:log4j:jar:1.2.17:test
+[INFO] \- org.scala-lang:scala-library:jar:2.11.7:compile
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 1.067 s
+[INFO] Finished at: 2017-03-16T17:46:46+00:00
+[INFO] Final Memory: 34M/1963M
+[INFO] ------------------------------------------------------------------------

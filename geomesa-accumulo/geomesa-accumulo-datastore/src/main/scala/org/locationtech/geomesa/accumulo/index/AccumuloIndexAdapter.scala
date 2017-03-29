@@ -17,10 +17,12 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.VisibilityLevel
+import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -68,7 +70,7 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
       val table = getTableName(sft.getTypeName, ds)
       val numThreads = queryThreads(ds)
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(iters, cf, eToF, reduce) = scanConfig(sft, hints, ecql, dedupe)
+      val ScanConfig(iters, cf, eToF, reduce) = scanConfig(sft, ds, filter, hints, ecql, dedupe)
       BatchScanPlan(filter, table, ranges, iters, Seq(cf), eToF, reduce, numThreads, dedupe)
     }
   }
@@ -81,12 +83,15 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
     * Sets up everything needed to execute the scan - iterators, column families, deserialization, etc
     *
     * @param sft simple feature type
+    * @param ds data store
     * @param hints query hints
     * @param ecql secondary filter being applied, if any
     * @param dedupe scan may have duplicate results or not
     * @return
     */
   protected def scanConfig(sft: SimpleFeatureType,
+                           ds: AccumuloDataStore,
+                           filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
                            hints: Hints,
                            ecql: Option[Filter],
                            dedupe: Boolean): ScanConfig = {
@@ -104,6 +109,11 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
     } else if (hints.isBinQuery) {
       val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, BinAggregatingIterator.kvsToFeatures(), None)
+    } else if (hints.isArrowQuery) {
+      val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, hints.getArrowDictionaryFields, filter.filter)
+      val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
+      val reduce = Some(ArrowBatchIterator.reduceFeatures(sft, dictionaries))
+      ScanConfig(Seq(iter), FullColumnFamily, ArrowBatchIterator.kvsToFeatures(), reduce)
     } else if (hints.isDensityQuery) {
       val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, KryoLazyDensityIterator.kvsToFeatures(), None)
