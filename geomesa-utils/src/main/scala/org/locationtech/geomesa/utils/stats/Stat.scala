@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.utils.stats
 
+import java.lang.reflect.Type
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date
 
+import com.google.gson._
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.lang.StringEscapeUtils
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -111,6 +113,34 @@ trait Stat {
  * (see tests for more use cases)
  */
 object Stat {
+
+  val DoubleSerializer = new JsonSerializer[jDouble]() {
+    def serialize(d: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = d match {
+      /* NaN check, use null to mirror existing behavior for missing/invalid values */
+      case d if jDouble.isNaN(d) => JsonNull.INSTANCE
+      case d if d == jDouble.NEGATIVE_INFINITY => new JsonPrimitive("Infinity")
+      case d if d == jDouble.POSITIVE_INFINITY => new JsonPrimitive("+Infinity")
+      case _ => new JsonPrimitive(d)
+    }
+  }
+
+  val FloatSerializer = new JsonSerializer[jFloat]() {
+    def serialize(f: jFloat, t: Type, jsc: JsonSerializationContext): JsonElement = f match {
+      /* NaN check, use null to mirror existing behavior for missing/invalid values */
+      case f if jFloat.isNaN(f) => JsonNull.INSTANCE
+      case f if f == jFloat.NEGATIVE_INFINITY => new JsonPrimitive("Infinity")
+      case f if f == jFloat.POSITIVE_INFINITY => new JsonPrimitive("+Infinity")
+      case _ => new JsonPrimitive(f)
+    }
+  }
+
+  val JSON: Gson = new GsonBuilder()
+    .setPrettyPrinting()
+    .registerTypeAdapter(classOf[Double], DoubleSerializer)
+    .registerTypeAdapter(classOf[jDouble], DoubleSerializer)
+    .registerTypeAdapter(classOf[Float], FloatSerializer)
+    .registerTypeAdapter(classOf[jFloat], FloatSerializer)
+    .create()
 
   def apply(sft: SimpleFeatureType, s: String) = StatParser.parse(sft, s)
 
@@ -220,6 +250,14 @@ object Stat {
     * @return
     */
   def SeqStat(stats: Seq[String]): String = stats.mkString(";")
+
+  /**
+    * String that will be parsed into a multi variate descriptive stat
+    *
+    * @param attributes attribute name to evaluate
+    * @return
+    */
+  def DescriptiveStats(attributes: Seq[String]): String = s"Stats(${attributes.map(safeString).mkString(",")})"
 
   /**
     * Combines a sequence of stats. This will not modify any of the inputs.

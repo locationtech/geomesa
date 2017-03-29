@@ -82,6 +82,21 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       forall(0 until 5)(rh.count(_) mustEqual 30)
     }
 
+    "work with the Stats stat" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "Stats(attr)", encode = true)
+      val sf = results.features().next
+
+      val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[DescriptiveStats]
+//      rh.length mustEqual 5
+//      forall(0 until 5)(rh.count(_) mustEqual 30)
+      rh.min(0) mustEqual 0
+      rh.count mustEqual 150
+      rh.mean(0) must beCloseTo(149.0, 0.1)
+      rh.ssdev(0) must beCloseTo(86.46, 0.5)
+      rh.sskew(0) must beCloseTo(0, 0.2)
+      rh.skurt(0) must beCloseTo(1.8, 0.5)
+    }
+
     "work with multiple stats at once" in {
       val results = statsIteratorProcess.execute(fs.getFeatures(query),
         "MinMax(attr);IteratorStackCount();Enumeration(an_id);Histogram(an_id,5,10,14)", encode = true)
