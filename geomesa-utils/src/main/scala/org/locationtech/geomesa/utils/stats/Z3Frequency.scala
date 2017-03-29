@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.stats
 import java.util.Date
 
 import com.clearspring.analytics.stream.frequency.{CountMinSketch, RichCountMinSketch}
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
@@ -31,7 +32,7 @@ class Z3Frequency(val geomIndex: Int,
                   val period: TimePeriod,
                   val precision: Int,
                   val eps: Double = 0.005,
-                  val confidence: Double = 0.95) extends Stat {
+                  val confidence: Double = 0.95) extends Stat with LazyLogging {
 
   override type S = Z3Frequency
 
@@ -96,8 +97,12 @@ class Z3Frequency(val geomIndex: Int,
     val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry]
     val dtg  = sf.getAttribute(dtgIndex).asInstanceOf[Date]
     if (geom != null && dtg != null) {
-      val (bin, z3) = toKey(geom, dtg)
-      sketches.getOrElseUpdate(bin, newSketch).add(z3, 1L)
+      try {
+        val (bin, z3) = toKey(geom, dtg)
+        sketches.getOrElseUpdate(bin, newSketch).add(z3, 1L)
+      } catch {
+        case e: Exception => logger.warn(s"Error observing geom '$geom' and date '$dtg': ${e.toString}")
+      }
     }
   }
 
