@@ -68,7 +68,7 @@ GeoMesa artifacts are published to the [LocationTech Maven repository](https://r
   </repository>
   <repository>
     <id>boundlessgeo</id>
-    <url>http://repo.boundlessgeo.com/main</url>
+    <url>https://repo.boundlessgeo.com/main</url>
   </repository>
   <repository>
     <id>osgeo</id>
@@ -115,7 +115,7 @@ Similarly, integration with `sbt` is straightforward:
 // Add necessary resolvers
 resolvers ++= Seq(
   "locationtech-releases" at "https://repo.locationtech.org/content/groups/releases",
-  "boundlessgeo" at "http://repo.boundlessgeo.com/main",
+  "boundlessgeo" at "https://repo.boundlessgeo.com/main",
   "osgeo" at "http://download.osgeo.org/webdav/geotools",
   "conjars.org" at "http://conjars.org/repo"
 )
