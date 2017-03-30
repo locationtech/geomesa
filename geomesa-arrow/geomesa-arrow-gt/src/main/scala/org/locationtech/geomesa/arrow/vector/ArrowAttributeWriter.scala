@@ -14,10 +14,9 @@ import java.util.Date
 
 import com.vividsolutions.jts.geom._
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.complex.NullableMapVector
-import org.apache.arrow.vector.complex.impl.NullableMapWriter
 import org.apache.arrow.vector.complex.writer.BaseWriter.{ListWriter, MapWriter}
 import org.apache.arrow.vector.complex.writer._
+import org.apache.arrow.vector.complex.{FixedSizeListVector, NullableMapVector}
 import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.{NullableIntVector, NullableSmallIntVector, NullableTinyIntVector}
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryWriter
@@ -29,11 +28,13 @@ import org.locationtech.geomesa.arrow.vector.PointVector.PointWriter
 import org.locationtech.geomesa.arrow.vector.PolygonVector.PolygonWriter
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.simple.SimpleFeatureType
 
 trait ArrowAttributeWriter extends Closeable {
-  def apply(value: AnyRef): Unit
+  def apply(i: Int, value: AnyRef): Unit
+  def setValueCount(count: Int): Unit = {}
   override def close(): Unit = {}
 }
 
@@ -41,40 +42,41 @@ object ArrowAttributeWriter {
 
   import scala.collection.JavaConversions._
 
-  def apply(descriptor: AttributeDescriptor,
+  def apply(sft: SimpleFeatureType,
             vector: NullableMapVector,
-            writer: NullableMapWriter,
-            dictionary: Option[ArrowDictionary],
-            allocator: BufferAllocator): ArrowAttributeWriter = {
-    val name = descriptor.getLocalName
-    val classBinding = descriptor.getType.getBinding
-    val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-    apply(name, bindings.+:(objectType), classBinding, vector, writer, dictionary, allocator)
+            dictionaries: Map[String, ArrowDictionary])
+           (implicit allocator: BufferAllocator): Seq[ArrowAttributeWriter] = {
+
+    sft.getAttributeDescriptors.map { descriptor =>
+      val name = SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
+      val classBinding = descriptor.getType.getBinding
+      val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
+      apply(name, bindings.+:(objectType), classBinding, vector, dictionaries.get(descriptor.getLocalName))
+    }
   }
 
   def apply(name: String,
             bindings: Seq[ObjectType],
             classBinding: Class[_],
             vector: NullableMapVector,
-            writer: NullableMapWriter,
-            dictionary: Option[ArrowDictionary],
-            allocator: BufferAllocator): ArrowAttributeWriter = {
+            dictionary: Option[ArrowDictionary])
+           (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
     dictionary match {
       case None =>
         bindings.head match {
-          case ObjectType.STRING   => new ArrowStringWriter(writer.varChar(name), allocator)
-          case ObjectType.GEOMETRY => new ArrowGeometryWriter(writer.map(name), classBinding)
-          case ObjectType.INT      => new ArrowIntWriter(writer.integer(name))
-          case ObjectType.LONG     => new ArrowLongWriter(writer.bigInt(name))
-          case ObjectType.FLOAT    => new ArrowFloatWriter(writer.float4(name))
-          case ObjectType.DOUBLE   => new ArrowDoubleWriter(writer.float8(name))
-          case ObjectType.BOOLEAN  => new ArrowBooleanWriter(writer.bit(name))
-          case ObjectType.DATE     => new ArrowDateWriter(writer.date(name))
-          case ObjectType.LIST     => new ArrowListWriter(writer.list(name), bindings(1), allocator)
-          case ObjectType.MAP      => new ArrowMapWriter(writer.map(name), bindings(1), bindings(2), allocator)
-          case ObjectType.BYTES    => new ArrowBytesWriter(writer.varBinary(name), allocator)
-          case ObjectType.JSON     => new ArrowStringWriter(writer.varChar(name), allocator)
-          case ObjectType.UUID     => new ArrowStringWriter(writer.varChar(name), allocator)
+          case ObjectType.STRING   => new ArrowStringWriter(vector.getWriter.varChar(name), allocator)
+          case ObjectType.GEOMETRY => new ArrowGeometryWriter(vector, name, classBinding)
+          case ObjectType.INT      => new ArrowIntWriter(vector.getWriter.integer(name))
+          case ObjectType.LONG     => new ArrowLongWriter(vector.getWriter.bigInt(name))
+          case ObjectType.FLOAT    => new ArrowFloatWriter(vector.getWriter.float4(name))
+          case ObjectType.DOUBLE   => new ArrowDoubleWriter(vector.getWriter.float8(name))
+          case ObjectType.BOOLEAN  => new ArrowBooleanWriter(vector.getWriter.bit(name))
+          case ObjectType.DATE     => new ArrowDateWriter(vector.getWriter.date(name))
+          case ObjectType.LIST     => new ArrowListWriter(vector.getWriter.list(name), bindings(1), allocator)
+          case ObjectType.MAP      => new ArrowMapWriter(vector.getWriter.map(name), bindings(1), bindings(2), allocator)
+          case ObjectType.BYTES    => new ArrowBytesWriter(vector.getWriter.varBinary(name), allocator)
+          case ObjectType.JSON     => new ArrowStringWriter(vector.getWriter.varChar(name), allocator)
+          case ObjectType.UUID     => new ArrowStringWriter(vector.getWriter.varChar(name), allocator)
           case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
         }
 
@@ -84,13 +86,13 @@ object ArrowAttributeWriter {
             val encoding = dict.encoding
             if (encoding.getIndexType.getBitWidth == 8) {
               vector.addOrGet(name, MinorType.TINYINT, classOf[NullableTinyIntVector], encoding)
-              new ArrowDictionaryByteWriter(writer.tinyInt(name), dict)
+              new ArrowDictionaryByteWriter(vector.getWriter.tinyInt(name), dict)
             } else if (encoding.getIndexType.getBitWidth == 16) {
               vector.addOrGet(name, MinorType.SMALLINT, classOf[NullableSmallIntVector], encoding)
-              new ArrowDictionaryShortWriter(writer.smallInt(name), dict)
+              new ArrowDictionaryShortWriter(vector.getWriter.smallInt(name), dict)
             } else {
               vector.addOrGet(name, MinorType.INT, classOf[NullableIntVector], encoding)
-              new ArrowDictionaryIntWriter(writer.integer(name), dict)
+              new ArrowDictionaryIntWriter(vector.getWriter.integer(name), dict)
             }
 
           case _ => throw new IllegalArgumentException(s"Dictionary only supported for string type: ${bindings.head}")
@@ -100,52 +102,59 @@ object ArrowAttributeWriter {
 
   class ArrowDictionaryByteWriter(writer: TinyIntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeTinyInt(dictionary.index(value).toByte)
     }
   }
 
   class ArrowDictionaryShortWriter(writer: SmallIntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeSmallInt(dictionary.index(value).toShort)
     }
   }
 
   class ArrowDictionaryIntWriter(writer: IntWriter, dictionary: ArrowDictionary)
       extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeInt(dictionary.index(value))
     }
   }
 
-  class ArrowGeometryWriter(writer: MapWriter, binding: Class[_]) extends ArrowAttributeWriter {
+  class ArrowGeometryWriter(vector: NullableMapVector, name: String, binding: Class[_]) extends ArrowAttributeWriter {
     private val delegate: GeometryWriter[Geometry] = if (binding == classOf[Point]) {
-      new PointWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+      // because we don't have a writer method, initialize the child vectors ourselves
+      val child = Option(vector.getChild(name)).getOrElse {
+        val added = vector.addOrGet(name, MinorType.TUPLE_2, classOf[FixedSizeListVector], null)
+        added.initializeChildrenFromFields(PointVector.fields)
+        added
+      }
+      new PointWriter(child.asInstanceOf[FixedSizeListVector]).asInstanceOf[GeometryWriter[Geometry]]
     } else if (binding == classOf[LineString]) {
-      new LineStringWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+      new LineStringWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
     } else if (binding == classOf[Polygon]) {
-      new PolygonWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+      new PolygonWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
     } else if (binding == classOf[MultiLineString]) {
-      new MultiLineStringWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+      new MultiLineStringWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
     } else if (binding == classOf[MultiPolygon]) {
-      new MultiPolygonWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+      new MultiPolygonWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
     } else if (binding == classOf[MultiPoint]) {
-      new MultiPointWriter(writer).asInstanceOf[GeometryWriter[Geometry]]
+      new MultiPointWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
     } else if (classOf[Geometry].isAssignableFrom(binding)) {
       throw new NotImplementedError(s"Geometry type $binding is not supported")
     } else {
       throw new IllegalArgumentException(s"Expected geometry type, got $binding")
     }
 
-    override def apply(value: AnyRef): Unit = if (value != null) {
-      delegate.set(value.asInstanceOf[Geometry])
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
+      delegate.set(i, value.asInstanceOf[Geometry])
     }
+    override def setValueCount(count: Int): Unit = {delegate.setValueCount(count)}
     override def close(): Unit = delegate.close()
   }
 
   class ArrowStringWriter(writer: VarCharWriter, allocator: BufferAllocator) extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
       val buffer = allocator.buffer(bytes.length)
       buffer.setBytes(0, bytes)
@@ -155,37 +164,37 @@ object ArrowAttributeWriter {
   }
 
   class ArrowIntWriter(writer: IntWriter) extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeInt(value.asInstanceOf[Int])
     }
   }
 
   class ArrowLongWriter(writer: BigIntWriter) extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeBigInt(value.asInstanceOf[Long])
     }
   }
 
   class ArrowFloatWriter(writer: Float4Writer) extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeFloat4(value.asInstanceOf[Float])
     }
   }
 
   class ArrowDoubleWriter(writer: Float8Writer) extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeFloat8(value.asInstanceOf[Double])
     }
   }
 
   class ArrowBooleanWriter(writer: BitWriter) extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeBit(if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
     }
   }
 
   class ArrowDateWriter(writer: DateWriter) extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.writeDate(value.asInstanceOf[Date].getTime)
     }
   }
@@ -193,7 +202,7 @@ object ArrowAttributeWriter {
   class ArrowListWriter(writer: ListWriter, binding: ObjectType, allocator: BufferAllocator)
       extends ArrowAttributeWriter {
     val subWriter = toListWriter(writer, binding, allocator)
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.startList()
       value.asInstanceOf[java.util.List[AnyRef]].foreach(subWriter)
       writer.endList()
@@ -204,7 +213,7 @@ object ArrowAttributeWriter {
       extends ArrowAttributeWriter {
     val keyWriter   = toMapWriter(writer, "k", keyBinding, allocator)
     val valueWriter = toMapWriter(writer, "v", valueBinding, allocator)
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.start()
       value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].foreach { case (k, v) =>
         keyWriter(k)
@@ -215,7 +224,7 @@ object ArrowAttributeWriter {
   }
 
   class ArrowBytesWriter(writer: VarBinaryWriter, allocator: BufferAllocator) extends ArrowAttributeWriter {
-    override def apply(value: AnyRef): Unit = if (value != null) {
+    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       val bytes = value.asInstanceOf[Array[Byte]]
       val buffer = allocator.buffer(bytes.length)
       buffer.setBytes(0, bytes)

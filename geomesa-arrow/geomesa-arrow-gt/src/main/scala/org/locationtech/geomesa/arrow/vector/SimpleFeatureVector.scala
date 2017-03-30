@@ -12,10 +12,8 @@ import java.io.Closeable
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
-import org.apache.arrow.vector.complex.impl.NullableMapWriter
-import org.apache.arrow.vector.types.FloatingPointPrecision
-import org.apache.arrow.vector.types.pojo.ArrowType
-import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.arrow.vector.GeometryVector.PointEncoding
+import org.locationtech.geomesa.features.arrow.ArrowSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -33,8 +31,6 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
                                    val underlying: NullableMapVector,
                                    val dictionaries: Map[String, ArrowDictionary])
                                   (implicit allocator: BufferAllocator) extends Closeable {
-
-  import scala.collection.JavaConversions._
 
   // TODO user data
 
@@ -57,39 +53,33 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
   }
 
   class Writer(vector: SimpleFeatureVector) {
-    private [SimpleFeatureVector] val arrowWriter = new NullableMapWriter(vector.underlying)
-    private val idWriter =
-      ArrowAttributeWriter("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, arrowWriter, None, allocator)
-    private [SimpleFeatureVector] val attributeWriters = sft.getAttributeDescriptors.map { ad =>
-      ArrowAttributeWriter(ad, vector.underlying, arrowWriter, dictionaries.get(ad.getLocalName), allocator)
-    }.toArray
+    private [SimpleFeatureVector] val arrowWriter = vector.underlying.getWriter
+    private val idWriter = ArrowAttributeWriter("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, None)
+    private val attributeWriters = ArrowAttributeWriter(sft, vector.underlying, dictionaries).toArray
 
     def set(index: Int, feature: SimpleFeature): Unit = {
       arrowWriter.setPosition(index)
       arrowWriter.start()
-      idWriter.apply(feature.getID)
+      idWriter.apply(index, feature.getID)
       var i = 0
       while (i < attributeWriters.length) {
-        attributeWriters(i).apply(feature.getAttribute(i))
+        attributeWriters(i).apply(index, feature.getAttribute(i))
         i += 1
       }
       arrowWriter.end()
     }
 
-    def setValueCount(count: Int): Unit = arrowWriter.setValueCount(count)
+    def setValueCount(count: Int): Unit = {
+      arrowWriter.setValueCount(count)
+      attributeWriters.foreach(_.setValueCount(count))
+    }
   }
 
   class Reader(vector: SimpleFeatureVector) {
     private val idReader = ArrowAttributeReader("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, None)
-    private val attributeReaders = sft.getAttributeDescriptors.map { ad =>
-      ArrowAttributeReader(ad, vector.underlying, dictionaries.get(ad.getLocalName))
-    }.toArray
+    private val attributeReaders = ArrowAttributeReader(sft, vector.underlying, dictionaries).toArray
 
-    def get(index: Int): SimpleFeature = {
-      val id = idReader(index).asInstanceOf[String]
-      val attributes = attributeReaders.map(_.apply(index))
-      new ScalaSimpleFeature(id, vector.sft, attributes)
-    }
+    def get(index: Int): SimpleFeature = new ArrowSimpleFeature(sft, idReader, attributeReaders, index)
 
     def getValueCount: Int = vector.underlying.getAccessor.getValueCount
   }
@@ -107,7 +97,8 @@ object SimpleFeatureVector {
     * @return
     */
   def create(sft: SimpleFeatureType,
-             dictionaries: Map[String, ArrowDictionary])
+             dictionaries: Map[String, ArrowDictionary],
+             pointEncoding: PointEncoding = PointEncoding.PARALLEL)
             (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
     underlying.allocateNew()
@@ -127,30 +118,9 @@ object SimpleFeatureVector {
            dictionaries: Map[String, ArrowDictionary])
           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     import scala.collection.JavaConversions._
-    val attributes = vector.getField.getChildren.flatMap { field =>
-      val name = field.getName
+    val attributes = vector.getField.getChildren.collect {
       // filter out feature id from attributes
-      if (name == "id") {
-        None
-      } else if (field.getDictionary != null) {
-        // currently dictionary encoding is only for string types
-        Some(s"$name:String")
-      } else {
-        lazy val geometry = GeometryVector.typeOf(field)
-        val binding = field.getType match {
-          case t: ArrowType.Utf8   => "String" // TODO json, uuid
-          case t: ArrowType.Binary => "Bytes"
-          case t: ArrowType.Bool   => "Boolean"
-          case t: ArrowType.Date   => "Date"
-          case t: ArrowType.Int if t.getBitWidth == 32 => "Int"
-          case t: ArrowType.Int if t.getBitWidth == 64 => "Long"
-          case t: ArrowType.FloatingPoint if t.getPrecision == FloatingPointPrecision.SINGLE => "Float"
-          case t: ArrowType.FloatingPoint if t.getPrecision == FloatingPointPrecision.DOUBLE => "Double"
-          case t: ArrowType.Struct if geometry != null => s"${geometry.getSimpleName}:srid=4326" // TODO default
-          case _ => throw new IllegalArgumentException(s"Unexpected field type for field $field")
-        }
-        Some(s"$name:$binding")
-      }
+      case field if field.getName != "id" => field.getName
     }
     // TODO user data
     val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))

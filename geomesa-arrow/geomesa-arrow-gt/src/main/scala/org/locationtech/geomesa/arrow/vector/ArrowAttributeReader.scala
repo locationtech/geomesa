@@ -13,17 +13,18 @@ import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom._
 import org.apache.arrow.vector._
-import org.apache.arrow.vector.complex.{ListVector, NullableMapVector}
-import org.locationtech.geomesa.arrow.vector.GeometryVector.{GeometryReader, GeometryWriter}
-import org.locationtech.geomesa.arrow.vector.LineStringVector.{LineStringReader, LineStringWriter}
-import org.locationtech.geomesa.arrow.vector.MultiLineStringVector.{MultiLineStringReader, MultiLineStringWriter}
-import org.locationtech.geomesa.arrow.vector.MultiPointVector.{MultiPointReader, MultiPointWriter}
+import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, NullableMapVector}
+import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryReader
+import org.locationtech.geomesa.arrow.vector.LineStringVector.LineStringReader
+import org.locationtech.geomesa.arrow.vector.MultiLineStringVector.MultiLineStringReader
+import org.locationtech.geomesa.arrow.vector.MultiPointVector.MultiPointReader
 import org.locationtech.geomesa.arrow.vector.MultiPolygonVector.MultiPolygonReader
 import org.locationtech.geomesa.arrow.vector.PointVector.PointReader
-import org.locationtech.geomesa.arrow.vector.PolygonVector.{PolygonReader, PolygonWriter}
+import org.locationtech.geomesa.arrow.vector.PolygonVector.PolygonReader
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 
 trait ArrowAttributeReader {
   def apply(i: Int): AnyRef
@@ -31,12 +32,16 @@ trait ArrowAttributeReader {
 
 object ArrowAttributeReader {
 
-  def apply(descriptor: AttributeDescriptor,
+  def apply(sft: SimpleFeatureType,
             vector: NullableMapVector,
-            dictionary: Option[ArrowDictionary]): ArrowAttributeReader = {
-    val classBinding = descriptor.getType.getBinding
-    val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-    apply(descriptor.getLocalName, bindings.+:(objectType), classBinding, vector, dictionary)
+            dictionaries: Map[String, ArrowDictionary]): Seq[ArrowAttributeReader] = {
+    import scala.collection.JavaConversions._
+    sft.getAttributeDescriptors.map { descriptor =>
+      val name = SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
+      val classBinding = descriptor.getType.getBinding
+      val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
+      apply(name, bindings.+:(objectType), classBinding, vector, dictionaries.get(descriptor.getLocalName))
+    }
   }
 
   def apply(name: String,
@@ -50,7 +55,7 @@ object ArrowAttributeReader {
       case None =>
         bindings.head match {
           case ObjectType.STRING   => new ArrowStringReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
-          case ObjectType.GEOMETRY => new ArrowGeometryReader(child.asInstanceOf[NullableMapVector], classBinding)
+          case ObjectType.GEOMETRY => new ArrowGeometryReader(child, classBinding)
           case ObjectType.INT      => new ArrowIntReader(accessor.asInstanceOf[NullableIntVector#Accessor])
           case ObjectType.LONG     => new ArrowLongReader(accessor.asInstanceOf[NullableBigIntVector#Accessor])
           case ObjectType.FLOAT    => new ArrowFloatReader(accessor.asInstanceOf[NullableFloat4Vector#Accessor])
@@ -107,19 +112,19 @@ object ArrowAttributeReader {
     }
   }
 
-  class ArrowGeometryReader(vector: NullableMapVector, binding: Class[_]) extends ArrowAttributeReader {
+  class ArrowGeometryReader(vector: FieldVector, binding: Class[_]) extends ArrowAttributeReader {
     private val delegate: GeometryReader[Geometry] = if (binding == classOf[Point]) {
-      new PointReader(vector).asInstanceOf[GeometryReader[Geometry]]
+      new PointReader(vector.asInstanceOf[FixedSizeListVector]).asInstanceOf[GeometryReader[Geometry]]
     } else if (binding == classOf[LineString]) {
-      new LineStringReader(vector).asInstanceOf[GeometryReader[Geometry]]
+      new LineStringReader(vector.asInstanceOf[NullableMapVector]).asInstanceOf[GeometryReader[Geometry]]
     } else if (binding == classOf[Polygon]) {
-      new PolygonReader(vector).asInstanceOf[GeometryReader[Geometry]]
+      new PolygonReader(vector.asInstanceOf[NullableMapVector]).asInstanceOf[GeometryReader[Geometry]]
     } else if (binding == classOf[MultiLineString]) {
-      new MultiLineStringReader(vector).asInstanceOf[GeometryReader[Geometry]]
+      new MultiLineStringReader(vector.asInstanceOf[NullableMapVector]).asInstanceOf[GeometryReader[Geometry]]
     } else if (binding == classOf[MultiPolygon]) {
-      new MultiPolygonReader(vector).asInstanceOf[GeometryReader[Geometry]]
+      new MultiPolygonReader(vector.asInstanceOf[NullableMapVector]).asInstanceOf[GeometryReader[Geometry]]
     } else if (binding == classOf[MultiPoint]) {
-      new MultiPointReader(vector).asInstanceOf[GeometryReader[Geometry]]
+      new MultiPointReader(vector.asInstanceOf[NullableMapVector]).asInstanceOf[GeometryReader[Geometry]]
     } else if (classOf[Geometry].isAssignableFrom(binding)) {
       throw new NotImplementedError(s"Geometry type $binding is not supported")
     } else {

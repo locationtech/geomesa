@@ -123,7 +123,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
       val serializer = new KryoFeatureSerializer(transformSchema, options)
       val sf = new ScalaSimpleFeature("", transformSchema)
       () => {
-        sf.getIdentifier.setID(getID)
+        sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getID)
         var i = 0
         while (i < tdefs.size) {
           sf.setAttribute(i, tdefs(i).expression.evaluate(this))

@@ -30,7 +30,7 @@ class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry
   override def getCountInternal(query: Query): Int = -1
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val reader = new SimpleFeatureArrowFileReader(ds.url.openStream())
+    val reader = new SimpleFeatureArrowFileReader(ds.url.openStream(), query.getFilter)
     val features = reader.features
 
     new FeatureReader[SimpleFeatureType, SimpleFeature] {
@@ -41,8 +41,9 @@ class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry
     }
   }
 
+  override def canFilter: Boolean = true
+
   override def canReproject: Boolean = false
-  override def canFilter: Boolean = false
   override def canLimit: Boolean = false
   override def canSort: Boolean = false
   override def canRetype: Boolean = false

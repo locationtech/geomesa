@@ -6,65 +6,70 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ******************************************************************************/
 
-package org.locationtech.geomesa.features
+package org.locationtech.geomesa.features.arrow
 
 import java.util.{Collection => jCollection, List => jList, Map => jMap}
 
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.process.vector.TransformProcess
+import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
 /**
-  * Simple feature implementation that wraps another feature type and applies a transform/projection
+  * Simple feature backed by an arrow vector. Attributes are lazily evaluated - this allows filters to only
+  * examine the relevant arrow vectors for optimized reads.
   *
-  * @param transformSchema transformed feature type
-  * @param attributes attribute evaluations, in order
+  * @param sft simple feature type
+  * @param idReader id reader
+  * @param attributeReaders attribute readers
+  * @param index index of the feature in the arrow vector
   */
-class TransformSimpleFeature(transformSchema: SimpleFeatureType,
-                             attributes: Array[(SimpleFeature) => AnyRef],
-                             private var underlying: SimpleFeature = null) extends SimpleFeature {
+class ArrowSimpleFeature(sft: SimpleFeatureType,
+                         idReader: ArrowAttributeReader,
+                         attributeReaders: Array[ArrowAttributeReader],
+                         index: Int) extends SimpleFeature {
 
   import scala.collection.JavaConversions._
 
-  private lazy val geomIndex = transformSchema.indexOf(transformSchema.getGeometryDescriptor.getLocalName)
+  private lazy val id = idReader.apply(index).asInstanceOf[String]
+  private val attributes = attributeReaders.map(a => new ArrowSimpleFeature.Lazy(a.apply(index)))
 
-  def setFeature(sf: SimpleFeature): Unit = underlying = sf
+  private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
 
-  override def getAttribute(index: Int): AnyRef = attributes(index).apply(underlying)
+  override def getAttribute(i: Int): AnyRef = attributes(i).value
 
-  override def getIdentifier: FeatureId = underlying.getIdentifier
-  override def getID: String = underlying.getID
+  override def getIdentifier: FeatureId = new FeatureIdImpl(id)
+  override def getID: String = id
 
-  override def getUserData: jMap[AnyRef, AnyRef] = underlying.getUserData
+  override def getUserData: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
 
-  override def getType: SimpleFeatureType = transformSchema
-  override def getFeatureType: SimpleFeatureType = transformSchema
-  override def getName: Name = transformSchema.getName
+  override def getType: SimpleFeatureType = sft
+  override def getFeatureType: SimpleFeatureType = sft
+  override def getName: Name = sft.getName
 
   override def getAttribute(name: Name): AnyRef = getAttribute(name.getLocalPart)
   override def getAttribute(name: String): Object = {
-    val index = transformSchema.indexOf(name)
+    val index = sft.indexOf(name)
     if (index == -1) null else getAttribute(index)
   }
 
   override def getDefaultGeometry: AnyRef = getAttribute(geomIndex)
-  override def getAttributeCount: Int = transformSchema.getAttributeCount
+  override def getAttributeCount: Int = sft.getAttributeCount
 
   override def getBounds: BoundingBox = getDefaultGeometry match {
-    case g: Geometry => new ReferencedEnvelope(g.getEnvelopeInternal, transformSchema.getCoordinateReferenceSystem)
-    case _           => new ReferencedEnvelope(transformSchema.getCoordinateReferenceSystem)
+    case g: Geometry => new ReferencedEnvelope(g.getEnvelopeInternal, sft.getCoordinateReferenceSystem)
+    case _           => new ReferencedEnvelope(sft.getCoordinateReferenceSystem)
   }
 
   override def getAttributes: jList[AnyRef] = {
-    val attributes = new java.util.ArrayList[AnyRef](transformSchema.getAttributeCount)
+    val attributes = new java.util.ArrayList[AnyRef](sft.getAttributeCount)
     var i = 0
-    while (i < transformSchema.getAttributeCount) {
+    while (i < sft.getAttributeCount) {
       attributes.add(getAttribute(i))
       i += 1
     }
@@ -93,28 +98,18 @@ class TransformSimpleFeature(transformSchema: SimpleFeatureType,
   override def isNillable = true
   override def validate() = throw new NotImplementedError
 
-  override def toString = s"TransformSimpleFeature:$getID"
+  override def toString = s"ArrowSimpleFeature:$getID:${getAttributes.mkString("|")}"
+
+  override def hashCode: Int = getID.hashCode()
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case other: SimpleFeature =>
+      getID == other.getID && getName == other.getName && getAttributes == other.getAttributes
+    case _ => false
+  }
 }
 
-object TransformSimpleFeature {
+object ArrowSimpleFeature {
 
-  import scala.collection.JavaConversions._
-
-  def apply(sft: SimpleFeatureType, transformSchema: SimpleFeatureType, transforms: String): TransformSimpleFeature = {
-    val a = attributes(sft, transformSchema, transforms)
-    new TransformSimpleFeature(transformSchema, a)
-  }
-
-  def attributes(sft: SimpleFeatureType,
-                 transformSchema: SimpleFeatureType,
-                 transforms: String): Array[(SimpleFeature) => AnyRef] = {
-    TransformProcess.toDefinition(transforms).map(attribute(sft, _)).toArray
-  }
-
-  private def attribute(sft: SimpleFeatureType, d: TransformProcess.Definition): (SimpleFeature) => AnyRef = {
-    d.expression match {
-      case p: PropertyName => val i = sft.indexOf(p.getPropertyName); (sf) => sf.getAttribute(i)
-      case e: Expression   => (sf) => e.evaluate(sf)
-    }
-  }
+  class Lazy[T](v: => T) { lazy val value = v }
 }

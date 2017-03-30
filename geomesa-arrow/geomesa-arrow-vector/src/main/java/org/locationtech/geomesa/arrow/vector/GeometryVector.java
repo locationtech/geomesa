@@ -12,9 +12,11 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPoint;
+import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
-import org.apache.arrow.vector.complex.NullableMapVector;
+import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 
 import java.util.List;
@@ -24,11 +26,11 @@ import java.util.List;
  *
  * @param <T> geometry type
  */
-public interface GeometryVector<T extends Geometry> extends AutoCloseable {
+public interface GeometryVector<T extends Geometry, V extends FieldVector> extends AutoCloseable {
 
   GeometryWriter<T> getWriter();
   GeometryReader<T> getReader();
-  NullableMapVector getVector();
+  V getVector();
 
   @SuppressWarnings("unchecked")
   static <U extends Geometry> Class<U> typeOf(Field field) {
@@ -41,8 +43,13 @@ public interface GeometryVector<T extends Geometry> extends AutoCloseable {
       return (Class<U>) Polygon.class;
     } else if (MultiLineStringVector.fields.equals(children)) {
       return (Class<U>) MultiLineString.class;
+    } else if (MultiPolygonVector.fields.equals(children)) {
+      return (Class<U>) MultiPolygon.class;
     } else if (MultiPointVector.fields.equals(children)) {
       return (Class<U>) MultiPoint.class;
+    } else if (children == null && new ArrowType.Int(64, true).equals(field.getType())) {
+      // TODO differentiate?
+      return (Class<U>) Point.class;
     } else {
       return null;
     }
@@ -58,5 +65,10 @@ public interface GeometryVector<T extends Geometry> extends AutoCloseable {
     T get(int i);
     int getValueCount();
     int getNullCount();
+  }
+
+  static enum PointEncoding {
+    PARALLEL, // 2 vectors of doubles
+    SINGLE_64 // a single vector of 2 floats encoded as a single longs
   }
 }

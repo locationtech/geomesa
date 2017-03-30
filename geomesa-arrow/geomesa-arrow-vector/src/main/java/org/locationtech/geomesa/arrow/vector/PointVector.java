@@ -9,52 +9,37 @@
 package org.locationtech.geomesa.arrow.vector;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.NullableFloat8Vector;
-import org.apache.arrow.vector.complex.NullableMapVector;
-import org.apache.arrow.vector.complex.impl.NullableMapWriter;
-import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
-import org.apache.arrow.vector.complex.writer.Float8Writer;
-import org.apache.arrow.vector.types.Types.MinorType;
+import org.apache.arrow.vector.complex.FixedSizeListVector;
+import org.apache.arrow.vector.complex.impl.UnionFixedSizeListReader;
+import org.apache.arrow.vector.complex.impl.UnionListWriter;
+import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.util.ArrowHelper;
-import org.locationtech.geomesa.arrow.vector.util.BaseGeometryReader;
-import org.locationtech.geomesa.arrow.vector.util.BaseGeometryWriter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-public class PointVector implements GeometryVector<Point> {
+public class PointVector implements GeometryVector<Point, FixedSizeListVector> {
 
-  private static final String X_FIELD = "x";
-  private static final String Y_FIELD = "y";
+  // fields created by this vector
+  static final List<Field> fields = ArrowHelper.XY_FIELD;
 
-  // fields created by this vector - should be unique, used for identifying geometry type from a schema
-  static final List<Field> fields =
-    Collections.unmodifiableList(new ArrayList<>(Arrays.asList(
-      new Field(X_FIELD, true, ArrowHelper.DOUBLE_TYPE, null),
-      new Field(Y_FIELD, true, ArrowHelper.DOUBLE_TYPE, null)
-    )));
-
-  private final NullableMapVector vector;
+  private final FixedSizeListVector vector;
   private final PointWriter writer;
   private final PointReader reader;
 
   public PointVector(String name, BufferAllocator allocator) {
-    this(new NullableMapVector(name, allocator, null, null));
+    this(new FixedSizeListVector(name, allocator, 2, null));
     this.vector.allocateNew();
   }
 
-  public PointVector(NullableMapVector vector) {
+  public PointVector(FixedSizeListVector vector) {
     this.vector = vector;
     // create the fields we will write to up front
-    // these should match the the 'fields' variable
-    vector.addOrGet(X_FIELD, MinorType.FLOAT8, NullableFloat8Vector.class, null);
-    vector.addOrGet(Y_FIELD, MinorType.FLOAT8, NullableFloat8Vector.class, null);
-    this.writer = new PointWriter(new NullableMapWriter(vector));
+    vector.initializeChildrenFromFields(fields);
+    this.writer = new PointWriter(vector);
     this.reader = new PointReader(vector);
   }
 
@@ -69,7 +54,7 @@ public class PointVector implements GeometryVector<Point> {
   }
 
   @Override
-  public NullableMapVector getVector() {
+  public FixedSizeListVector getVector() {
     return vector;
   }
 
@@ -80,40 +65,80 @@ public class PointVector implements GeometryVector<Point> {
     vector.close();
   }
 
-  public static class PointWriter extends BaseGeometryWriter<Point> {
+  public static class PointWriter implements GeometryWriter<Point> {
 
-    private final Float8Writer xWriter;
-    private final Float8Writer yWriter;
+    private final UnionListWriter writer;
 
-    public PointWriter(MapWriter writer) {
-      super(writer);
-      this.xWriter = writer.float8(X_FIELD);
-      this.yWriter = writer.float8(Y_FIELD);
+    public PointWriter(FixedSizeListVector vector) {
+      this.writer = vector.getWriter();
     }
 
     @Override
-    protected void writeGeometry(Point geom) {
-      xWriter.writeFloat8(geom.getX());
-      yWriter.writeFloat8(geom.getY());
+    public void set(Point geom) {
+      if (geom != null) {
+        writer.startList();
+        writer.writeFloat4((float) geom.getY());
+        writer.writeFloat4((float) geom.getX());
+        writer.endList();
+      }
+    }
+
+    @Override
+    public void set(int i, Point geom) {
+      writer.setPosition(i);
+      set(geom);
+    }
+
+    @Override
+    public void setValueCount(int count) {
+      writer.setValueCount(count);
+    }
+
+    @Override
+    public void close() throws Exception {
+      writer.close();
     }
   }
 
-  public static class PointReader extends BaseGeometryReader<Point> {
+  public static class PointReader implements GeometryReader<Point> {
 
-    private final NullableFloat8Vector.Accessor xAccessor;
-    private final NullableFloat8Vector.Accessor yAccessor;
+    private static final GeometryFactory factory = new GeometryFactory();
 
-    public PointReader(NullableMapVector vector) {
-      super(vector);
-      this.xAccessor = (NullableFloat8Vector.Accessor) vector.getChild(X_FIELD).getAccessor();
-      this.yAccessor = (NullableFloat8Vector.Accessor) vector.getChild(Y_FIELD).getAccessor();
+    private final UnionFixedSizeListReader reader;
+    private final FieldReader subReader;
+    private final FixedSizeListVector.Accessor accessor;
+
+    public PointReader(FixedSizeListVector vector) {
+      this.reader = vector.getReader();
+      this.subReader = reader.reader();
+      this.accessor = vector.getAccessor();
     }
 
     @Override
-    protected Point readGeometry(int index) {
-      double x = xAccessor.getObject(index);
-      double y = yAccessor.getObject(index);
-      return factory.createPoint(new Coordinate(x, y));
+    public Point get(int index) {
+      reader.setPosition(index);
+      if (reader.isSet()) {
+        reader.next();
+        float y = subReader.readFloat();
+        reader.next();
+        float x = subReader.readFloat();
+        return factory.createPoint(new Coordinate(x, y));
+      } else {
+        return null;
+      }
     }
+
+    @Override
+    public int getValueCount() {
+      return accessor.getValueCount();
+    }
+
+    @Override
+    public int getNullCount() {
+      return accessor.getNullCount();
+    }
+
+    @Override
+    public void close() throws Exception {}
   }
 }

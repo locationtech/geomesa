@@ -16,18 +16,26 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.util.Try
 import scala.util.control.NonFatal
 
 class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
 
   import org.locationtech.geomesa.arrow.allocator
 
-  // TODO check writable?
-  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = new ArrowFeatureStore(entry)
+  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
+    val writable = Try(createOutputStream()).map(_.close()).isSuccess
+    if (writable) {
+      new ArrowFeatureStore(entry)
+    } else {
+      new ArrowFeatureSource(entry)
+    }
+  }
 
   override def createTypeNames(): java.util.List[Name] = {
     import scala.collection.JavaConversions._
@@ -48,18 +56,11 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
 
   override def getSchema: SimpleFeatureType = {
     // TODO cache?
-    var reader: SimpleFeatureArrowFileReader = null
     try {
-      val is = url.openStream()
-      reader = new SimpleFeatureArrowFileReader(is)
-      reader.sft
+      WithClose(new SimpleFeatureArrowFileReader(url.openStream()))(_.sft)
     } catch {
       // TODO handle normal errors vs actual errors
       case e: Exception => null
-    } finally {
-      if (reader != null) {
-        reader.close()
-      }
     }
   }
 

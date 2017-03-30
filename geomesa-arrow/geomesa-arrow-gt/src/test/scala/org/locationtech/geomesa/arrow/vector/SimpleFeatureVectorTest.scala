@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.vector
 
 import org.apache.arrow.memory.RootAllocator
+import org.apache.arrow.vector.complex.FixedSizeListVector
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -33,6 +34,16 @@ class SimpleFeatureVectorTest extends Specification {
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
         forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+      }
+    }
+    "wrap values" >> {
+      WithClose(SimpleFeatureVector.create(sft, Map.empty)) { vector =>
+        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
+        }
       }
     }
     "set and get dictionary encoded values" >> {

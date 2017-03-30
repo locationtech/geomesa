@@ -13,6 +13,7 @@ import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.apache.arrow.memory.RootAllocator
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -47,7 +48,7 @@ class SimpleFeatureArrowFileTest extends Specification {
         }
       }
     }
-    "write and read values" >> {
+    "write and read and filter values" >> {
       withTestFile { file =>
         WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file))) { writer =>
           features0.foreach(writer.add)
@@ -55,9 +56,18 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          val features = reader.features.toSeq
+          // copy the features so that the attributes are evaluated before the batch is reloaded
+          val features = reader.features.map(ScalaSimpleFeature.create(sft, _)).toSeq
           features must haveLength(20)
           features must containTheSameElementsAs(features0 ++ features1)
+        }
+        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file), ECQL.toFilter("foo = 'foo1'"))) { reader =>
+          // copy the features so that the attributes are evaluated before the batch is reloaded
+          val features = reader.features.map(ScalaSimpleFeature.create(sft, _)).toSeq
+          features must haveLength(9)
+          features must containTheSameElementsAs(
+            Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
+          )
         }
       }
     }
@@ -70,7 +80,8 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          val features = reader.features.toSeq
+          // copy the features so that the attributes are evaluated before the batch is reloaded
+          val features = reader.features.map(ScalaSimpleFeature.create(sft, _)).toSeq
           features must haveLength(20)
           features must containTheSameElementsAs(features0 ++ features1)
         }

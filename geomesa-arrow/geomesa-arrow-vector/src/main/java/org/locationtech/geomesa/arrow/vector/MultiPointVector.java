@@ -17,7 +17,6 @@ import org.apache.arrow.vector.complex.NullableMapVector;
 import org.apache.arrow.vector.complex.impl.NullableMapWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.ListWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
-import org.apache.arrow.vector.types.Types.MinorType;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.util.ArrowHelper;
@@ -29,7 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class MultiPointVector implements GeometryVector<MultiPoint> {
+public class MultiPointVector implements GeometryVector<MultiPoint, NullableMapVector> {
 
   private static final String X_FIELD = "xx";
   private static final String Y_FIELD = "yy";
@@ -53,9 +52,7 @@ public class MultiPointVector implements GeometryVector<MultiPoint> {
   public MultiPointVector(NullableMapVector vector) {
     this.vector = vector;
     // create the fields we will write to up front
-    // these should match the the 'fields' variable
-    vector.addOrGet(X_FIELD, MinorType.LIST, ListVector.class, null).addOrGetVector(MinorType.FLOAT8, null);
-    vector.addOrGet(Y_FIELD, MinorType.LIST, ListVector.class, null).addOrGetVector(MinorType.FLOAT8, null);
+    vector.initializeChildrenFromFields(fields);
     this.writer = new MultiPointWriter(new NullableMapWriter(vector));
     this.reader = new MultiPointReader(vector);
   }
