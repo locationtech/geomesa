@@ -20,6 +20,7 @@ import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -50,7 +51,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
-    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
+  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
@@ -116,7 +117,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe)
+      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
 
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
@@ -171,15 +172,20 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                            filter: HBaseFilterStrategyType,
                            hints: Hints,
                            ecql: Option[Filter],
-                           dedupe: Boolean): ScanConfig = {
+                           dedupe: Boolean,
+                           remote: Boolean): ScanConfig = {
 
+    import HBaseFeatureIndex.{DataColumnFamily}
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      val toFeatures = resultsToFeatures(sft, None, hints.getTransform)
-      val remoteFilters = ecql.map { filter =>
+      val transform = hints.getTransform // will eventually be used to support remote transforms 
+      val feature = sft // will eventually be used to support remote transforms 
+      val query = if (remote) { None } else { ecql }
+      val toFeatures = resultsToFeatures(feature, query, transform)
+      val remoteFilters = if (remote) { ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
-      }.toSeq
+      }.toSeq } else { Nil }
       ScanConfig(remoteFilters, toFeatures)
   }
 }
