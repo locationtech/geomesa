@@ -37,7 +37,7 @@ class ArrowDataStoreTest extends Specification {
 
       val file = Files.createTempFile("gm-arrow-ds", ".arrow").toUri.toURL
       try {
-        val ds = DataStoreFinder.getDataStore(Map("url" -> file))
+        val ds = DataStoreFinder.getDataStore(Map("url" -> file)).asInstanceOf[ArrowDataStore]
         ds must not(beNull)
 
         ds.createSchema(sft)

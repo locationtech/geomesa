@@ -122,37 +122,36 @@ object ArrowAttributeWriter {
 
   class ArrowGeometryWriter(vector: NullableMapVector, name: String, binding: Class[_], precision: GeometryPrecision)
       extends ArrowAttributeWriter {
-    import org.locationtech.geomesa.arrow.allocator
     private val delegate: GeometryWriter[Geometry] = {
       val untyped = if (binding == classOf[Point]) {
         precision match {
-          case GeometryPrecision.Float  => new PointFloatVector(name, allocator).getWriter;
-          case GeometryPrecision.Double => new PointVector(name, allocator).getWriter;
+          case GeometryPrecision.Float  => new PointFloatVector(name, vector).getWriter;
+          case GeometryPrecision.Double => new PointVector(name, vector).getWriter;
         }
       } else if (binding == classOf[LineString]) {
         precision match {
-          case GeometryPrecision.Float  => new LineStringFloatVector(name, allocator).getWriter;
-          case GeometryPrecision.Double => new LineStringVector(name, allocator).getWriter;
+          case GeometryPrecision.Float  => new LineStringFloatVector(name, vector).getWriter;
+          case GeometryPrecision.Double => new LineStringVector(name, vector).getWriter;
         }
       } else if (binding == classOf[Polygon]) {
         precision match {
-          case GeometryPrecision.Float  => new PolygonFloatVector(name, allocator).getWriter;
-          case GeometryPrecision.Double => new PolygonVector(name, allocator).getWriter;
+          case GeometryPrecision.Float  => new PolygonFloatVector(name, vector).getWriter;
+          case GeometryPrecision.Double => new PolygonVector(name, vector).getWriter;
         }
       } else if (binding == classOf[MultiLineString]) {
         precision match {
-          case GeometryPrecision.Float  => new MultiLineStringFloatVector(name, allocator).getWriter;
-          case GeometryPrecision.Double => new MultiLineStringVector(name, allocator).getWriter;
+          case GeometryPrecision.Float  => new MultiLineStringFloatVector(name, vector).getWriter;
+          case GeometryPrecision.Double => new MultiLineStringVector(name, vector).getWriter;
         }
       } else if (binding == classOf[MultiPolygon]) {
         precision match {
-          case GeometryPrecision.Float  => new MultiPolygonFloatVector(name, allocator).getWriter;
-          case GeometryPrecision.Double => new MultiPolygonVector(name, allocator).getWriter;
+          case GeometryPrecision.Float  => new MultiPolygonFloatVector(name, vector).getWriter;
+          case GeometryPrecision.Double => new MultiPolygonVector(name, vector).getWriter;
         }
       } else if (binding == classOf[MultiPoint]) {
         precision match {
-          case GeometryPrecision.Float  => new MultiPointFloatVector(name, allocator).getWriter;
-          case GeometryPrecision.Double => new MultiPointVector(name, allocator).getWriter;
+          case GeometryPrecision.Float  => new MultiPointFloatVector(name, vector).getWriter;
+          case GeometryPrecision.Double => new MultiPointVector(name, vector).getWriter;
         }
       } else if (classOf[Geometry].isAssignableFrom(binding)) {
         throw new NotImplementedError(s"Geometry type $binding is not supported")
