@@ -11,9 +11,9 @@ package org.locationtech.geomesa.features.arrow
 import java.util.{Collection => jCollection, List => jList, Map => jMap}
 
 import com.vividsolutions.jts.geom.Geometry
-import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
+import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -22,7 +22,8 @@ import org.opengis.geometry.BoundingBox
 
 /**
   * Simple feature backed by an arrow vector. Attributes are lazily evaluated - this allows filters to only
-  * examine the relevant arrow vectors for optimized reads.
+  * examine the relevant arrow vectors for optimized reads, but also means that they are tied to the underlying
+  * vectors
   *
   * @param sft simple feature type
   * @param idReader id reader
@@ -37,14 +38,25 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
   import scala.collection.JavaConversions._
 
   private lazy val id = idReader.apply(index).asInstanceOf[String]
+  // in order to try to leverage the columnar memory layout, only read the attributes when requested
+  // this way filtering through a single attribute for a bunch of features will hit a contiguous chunk of memory
   private val attributes = attributeReaders.map(a => new ArrowSimpleFeature.Lazy(a.apply(index)))
 
   private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
 
   override def getAttribute(i: Int): AnyRef = attributes(i).value
 
-  override def getIdentifier: FeatureId = new FeatureIdImpl(id)
+  /**
+    * Load values from the underlying vector, which removes the dependency on it
+    */
+  def load(): Unit = {
+    // just reference the lazy vals so that they are evaluated
+    id
+    attributes.foreach(_.value)
+  }
+
   override def getID: String = id
+  override def getIdentifier: FeatureId = new ImmutableFeatureId(id)
 
   override def getUserData: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
 
@@ -110,6 +122,5 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
 }
 
 object ArrowSimpleFeature {
-
   class Lazy[T](v: => T) { lazy val value = v }
 }

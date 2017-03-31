@@ -49,6 +49,8 @@ class ScalaSimpleFeature(initialId: String,
       new java.util.HashMap[AnyRef, AnyRef](initialUserData)
     }
 
+  def setId(id: String): Unit = featureId.setID(id)
+
   override def getFeatureType: SimpleFeatureType = sft
   override def getType: SimpleFeatureType = sft
   override def getIdentifier: FeatureId = featureId

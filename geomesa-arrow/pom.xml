@@ -15,6 +15,5 @@
     <modules>
         <module>geomesa-arrow-datastore</module>
         <module>geomesa-arrow-gt</module>
-        <module>geomesa-arrow-vector</module>
     </modules>
 </project>

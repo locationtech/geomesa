@@ -14,18 +14,15 @@ import java.util.Date
 
 import com.vividsolutions.jts.geom._
 import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.complex.writer.BaseWriter.{ListWriter, MapWriter}
 import org.apache.arrow.vector.complex.writer._
-import org.apache.arrow.vector.complex.{FixedSizeListVector, NullableMapVector}
 import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.{NullableIntVector, NullableSmallIntVector, NullableTinyIntVector}
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryWriter
-import org.locationtech.geomesa.arrow.vector.LineStringVector.LineStringWriter
-import org.locationtech.geomesa.arrow.vector.MultiLineStringVector.MultiLineStringWriter
-import org.locationtech.geomesa.arrow.vector.MultiPointVector.MultiPointWriter
-import org.locationtech.geomesa.arrow.vector.MultiPolygonVector.MultiPolygonWriter
-import org.locationtech.geomesa.arrow.vector.PointVector.PointWriter
-import org.locationtech.geomesa.arrow.vector.PolygonVector.PolygonWriter
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.floats._
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -44,14 +41,15 @@ object ArrowAttributeWriter {
 
   def apply(sft: SimpleFeatureType,
             vector: NullableMapVector,
-            dictionaries: Map[String, ArrowDictionary])
+            dictionaries: Map[String, ArrowDictionary],
+            precision: GeometryPrecision = GeometryPrecision.Double)
            (implicit allocator: BufferAllocator): Seq[ArrowAttributeWriter] = {
-
     sft.getAttributeDescriptors.map { descriptor =>
       val name = SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
       val classBinding = descriptor.getType.getBinding
       val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-      apply(name, bindings.+:(objectType), classBinding, vector, dictionaries.get(descriptor.getLocalName))
+      val dictionary = dictionaries.get(name).orElse(dictionaries.get(descriptor.getLocalName))
+      apply(name, bindings.+:(objectType), classBinding, vector, dictionary, precision)
     }
   }
 
@@ -59,13 +57,14 @@ object ArrowAttributeWriter {
             bindings: Seq[ObjectType],
             classBinding: Class[_],
             vector: NullableMapVector,
-            dictionary: Option[ArrowDictionary])
+            dictionary: Option[ArrowDictionary],
+            precision: GeometryPrecision)
            (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
     dictionary match {
       case None =>
         bindings.head match {
           case ObjectType.STRING   => new ArrowStringWriter(vector.getWriter.varChar(name), allocator)
-          case ObjectType.GEOMETRY => new ArrowGeometryWriter(vector, name, classBinding)
+          case ObjectType.GEOMETRY => new ArrowGeometryWriter(vector, name, classBinding, precision)
           case ObjectType.INT      => new ArrowIntWriter(vector.getWriter.integer(name))
           case ObjectType.LONG     => new ArrowLongWriter(vector.getWriter.bigInt(name))
           case ObjectType.FLOAT    => new ArrowFloatWriter(vector.getWriter.float4(name))
@@ -121,35 +120,52 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowGeometryWriter(vector: NullableMapVector, name: String, binding: Class[_]) extends ArrowAttributeWriter {
-    private val delegate: GeometryWriter[Geometry] = if (binding == classOf[Point]) {
-      // because we don't have a writer method, initialize the child vectors ourselves
-      val child = Option(vector.getChild(name)).getOrElse {
-        val added = vector.addOrGet(name, MinorType.TUPLE_2, classOf[FixedSizeListVector], null)
-        added.initializeChildrenFromFields(PointVector.fields)
-        added
+  class ArrowGeometryWriter(vector: NullableMapVector, name: String, binding: Class[_], precision: GeometryPrecision)
+      extends ArrowAttributeWriter {
+    import org.locationtech.geomesa.arrow.allocator
+    private val delegate: GeometryWriter[Geometry] = {
+      val untyped = if (binding == classOf[Point]) {
+        precision match {
+          case GeometryPrecision.Float  => new PointFloatVector(name, allocator).getWriter;
+          case GeometryPrecision.Double => new PointVector(name, allocator).getWriter;
+        }
+      } else if (binding == classOf[LineString]) {
+        precision match {
+          case GeometryPrecision.Float  => new LineStringFloatVector(name, allocator).getWriter;
+          case GeometryPrecision.Double => new LineStringVector(name, allocator).getWriter;
+        }
+      } else if (binding == classOf[Polygon]) {
+        precision match {
+          case GeometryPrecision.Float  => new PolygonFloatVector(name, allocator).getWriter;
+          case GeometryPrecision.Double => new PolygonVector(name, allocator).getWriter;
+        }
+      } else if (binding == classOf[MultiLineString]) {
+        precision match {
+          case GeometryPrecision.Float  => new MultiLineStringFloatVector(name, allocator).getWriter;
+          case GeometryPrecision.Double => new MultiLineStringVector(name, allocator).getWriter;
+        }
+      } else if (binding == classOf[MultiPolygon]) {
+        precision match {
+          case GeometryPrecision.Float  => new MultiPolygonFloatVector(name, allocator).getWriter;
+          case GeometryPrecision.Double => new MultiPolygonVector(name, allocator).getWriter;
+        }
+      } else if (binding == classOf[MultiPoint]) {
+        precision match {
+          case GeometryPrecision.Float  => new MultiPointFloatVector(name, allocator).getWriter;
+          case GeometryPrecision.Double => new MultiPointVector(name, allocator).getWriter;
+        }
+      } else if (classOf[Geometry].isAssignableFrom(binding)) {
+        throw new NotImplementedError(s"Geometry type $binding is not supported")
+      } else {
+        throw new IllegalArgumentException(s"Expected geometry type, got $binding")
       }
-      new PointWriter(child.asInstanceOf[FixedSizeListVector]).asInstanceOf[GeometryWriter[Geometry]]
-    } else if (binding == classOf[LineString]) {
-      new LineStringWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
-    } else if (binding == classOf[Polygon]) {
-      new PolygonWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
-    } else if (binding == classOf[MultiLineString]) {
-      new MultiLineStringWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
-    } else if (binding == classOf[MultiPolygon]) {
-      new MultiPolygonWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
-    } else if (binding == classOf[MultiPoint]) {
-      new MultiPointWriter(vector.getWriter.map(name)).asInstanceOf[GeometryWriter[Geometry]]
-    } else if (classOf[Geometry].isAssignableFrom(binding)) {
-      throw new NotImplementedError(s"Geometry type $binding is not supported")
-    } else {
-      throw new IllegalArgumentException(s"Expected geometry type, got $binding")
+      untyped.asInstanceOf[GeometryWriter[Geometry]]
     }
 
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       delegate.set(i, value.asInstanceOf[Geometry])
     }
-    override def setValueCount(count: Int): Unit = {delegate.setValueCount(count)}
+    override def setValueCount(count: Int): Unit = delegate.setValueCount(count)
     override def close(): Unit = delegate.close()
   }
 

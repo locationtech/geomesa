@@ -1481,8 +1481,8 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-arrow-vector</artifactId>
-                <version>${project.version}</version>
+                <artifactId>arrow-geometry</artifactId>
+                <version>${arrow.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>

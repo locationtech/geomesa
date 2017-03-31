@@ -16,6 +16,7 @@ import org.apache.arrow.vector.NullableVarCharVector
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.stream.ArrowStreamReader
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
+import org.locationtech.geomesa.features.arrow.ArrowSimpleFeature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
@@ -63,7 +64,7 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
   // so may not be valid once another batch is loaded
   val features = new Iterator[SimpleFeature] {
     private var done = false
-    private var batch: Iterator[SimpleFeature] = filterBatch().iterator
+    private var batch: Iterator[ArrowSimpleFeature] = filterBatch().iterator
 
     override def hasNext: Boolean = {
       if (done) {
@@ -82,7 +83,11 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
       }
     }
 
-    override def next(): SimpleFeature = batch.next()
+    override def next(): SimpleFeature = {
+      val n = batch.next()
+      n.load() // load values into memory so that they don't get lost when the next batch is loaded
+      n
+    }
   }
 
   /**
@@ -91,7 +96,7 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
     *
     * @return
     */
-  private def filterBatch(): Seq[SimpleFeature] = {
+  private def filterBatch(): Seq[ArrowSimpleFeature] = {
     if (filter == Filter.INCLUDE) {
       (0 until root.getRowCount).map(vector.reader.get)
     } else {

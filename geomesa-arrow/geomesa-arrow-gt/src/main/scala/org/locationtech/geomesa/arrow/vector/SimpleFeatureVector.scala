@@ -12,7 +12,8 @@ import java.io.Closeable
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
-import org.locationtech.geomesa.arrow.vector.GeometryVector.PointEncoding
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
 import org.locationtech.geomesa.features.arrow.ArrowSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -29,7 +30,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   */
 class SimpleFeatureVector private (val sft: SimpleFeatureType,
                                    val underlying: NullableMapVector,
-                                   val dictionaries: Map[String, ArrowDictionary])
+                                   val dictionaries: Map[String, ArrowDictionary],
+                                   val precision: GeometryPrecision = GeometryPrecision.Double)
                                   (implicit allocator: BufferAllocator) extends Closeable {
 
   // TODO user data
@@ -54,8 +56,8 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
 
   class Writer(vector: SimpleFeatureVector) {
     private [SimpleFeatureVector] val arrowWriter = vector.underlying.getWriter
-    private val idWriter = ArrowAttributeWriter("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, None)
-    private val attributeWriters = ArrowAttributeWriter(sft, vector.underlying, dictionaries).toArray
+    private val idWriter = ArrowAttributeWriter("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, None, null)
+    private val attributeWriters = ArrowAttributeWriter(sft, vector.underlying, dictionaries, precision).toArray
 
     def set(index: Int, feature: SimpleFeature): Unit = {
       arrowWriter.setPosition(index)
@@ -76,16 +78,21 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
   }
 
   class Reader(vector: SimpleFeatureVector) {
-    private val idReader = ArrowAttributeReader("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, None)
-    private val attributeReaders = ArrowAttributeReader(sft, vector.underlying, dictionaries).toArray
+    private val idReader = ArrowAttributeReader("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, None, null)
+    private val attributeReaders = ArrowAttributeReader(sft, vector.underlying, dictionaries, precision).toArray
 
-    def get(index: Int): SimpleFeature = new ArrowSimpleFeature(sft, idReader, attributeReaders, index)
+    def get(index: Int): ArrowSimpleFeature = new ArrowSimpleFeature(sft, idReader, attributeReaders, index)
 
     def getValueCount: Int = vector.underlying.getAccessor.getValueCount
   }
 }
 
 object SimpleFeatureVector {
+
+  object GeometryPrecision extends Enumeration {
+    type GeometryPrecision = Value
+    val Float, Double = Value
+  }
 
   /**
     * Create a new simple feature vector
@@ -97,8 +104,7 @@ object SimpleFeatureVector {
     * @return
     */
   def create(sft: SimpleFeatureType,
-             dictionaries: Map[String, ArrowDictionary],
-             pointEncoding: PointEncoding = PointEncoding.PARALLEL)
+             dictionaries: Map[String, ArrowDictionary])
             (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
     underlying.allocateNew()

@@ -56,14 +56,12 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          // copy the features so that the attributes are evaluated before the batch is reloaded
-          val features = reader.features.map(ScalaSimpleFeature.create(sft, _)).toSeq
+          val features = reader.features.toSeq
           features must haveLength(20)
           features must containTheSameElementsAs(features0 ++ features1)
         }
         WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file), ECQL.toFilter("foo = 'foo1'"))) { reader =>
-          // copy the features so that the attributes are evaluated before the batch is reloaded
-          val features = reader.features.map(ScalaSimpleFeature.create(sft, _)).toSeq
+          val features = reader.features.toSeq
           features must haveLength(9)
           features must containTheSameElementsAs(
             Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
@@ -72,7 +70,7 @@ class SimpleFeatureArrowFileTest extends Specification {
       }
     }
     "write and read dictionary encoded values" >> {
-      val dictionaries = Map("foo" -> new ArrowDictionary(Seq("foo0", "foo1", "foo2")))
+      val dictionaries = Map("foo:String" -> new ArrowDictionary(Seq("foo0", "foo1", "foo2")))
       withTestFile { file =>
         WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file), dictionaries)) { writer =>
           features0.foreach(writer.add)
@@ -80,8 +78,7 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          // copy the features so that the attributes are evaluated before the batch is reloaded
-          val features = reader.features.map(ScalaSimpleFeature.create(sft, _)).toSeq
+          val features = reader.features.toSeq
           features must haveLength(20)
           features must containTheSameElementsAs(features0 ++ features1)
         }

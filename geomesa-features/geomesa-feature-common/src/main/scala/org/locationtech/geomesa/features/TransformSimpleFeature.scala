@@ -30,8 +30,6 @@ class TransformSimpleFeature(transformSchema: SimpleFeatureType,
                              attributes: Array[(SimpleFeature) => AnyRef],
                              private var underlying: SimpleFeature = null) extends SimpleFeature {
 
-  import scala.collection.JavaConversions._
-
   private lazy val geomIndex = transformSchema.indexOf(transformSchema.getGeometryDescriptor.getLocalName)
 
   def setFeature(sf: SimpleFeature): Unit = underlying = sf

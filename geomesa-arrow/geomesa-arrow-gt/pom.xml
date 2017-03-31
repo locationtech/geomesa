@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-arrow-vector</artifactId>
+            <artifactId>arrow-geometry</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
