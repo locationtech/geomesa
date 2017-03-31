@@ -2655,7 +2655,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <failOnError>true</failOnError>
+                            <failsOnError>true</failsOnError>
                             <checkstyleRules>
                                 <module name="Checker">
                                     <module name="NewlineAtEndOfFile"/>
