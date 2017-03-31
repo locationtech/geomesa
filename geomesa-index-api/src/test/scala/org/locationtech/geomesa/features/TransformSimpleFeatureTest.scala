@@ -12,6 +12,7 @@ import org.geotools.data.Query
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -40,8 +41,8 @@ class TransformSimpleFeatureTest extends Specification {
       transform.getID mustEqual "0"
       transform.getAttribute("name") mustEqual "name1"
       transform.getAttribute(0) mustEqual "name1"
-      transform.getAttribute("geom").toString mustEqual "POINT(45 55)"
-      transform.getAttribute(1).toString mustEqual "POINT(45 55)"
+      transform.getAttribute("geom") mustEqual WKTUtils.read("POINT(45 55)")
+      transform.getAttribute(1) mustEqual WKTUtils.read("POINT(45 55)")
     }
     "correctly project transform functions" in {
       val transform = transformFeature(Array("name", "geom", "derived=strConcat('hello',name)"))
@@ -52,8 +53,8 @@ class TransformSimpleFeatureTest extends Specification {
       transform.getID mustEqual "0"
       transform.getAttribute("name") mustEqual "name1"
       transform.getAttribute(0) mustEqual "name1"
-      transform.getAttribute("geom").toString mustEqual "POINT(45 55)"
-      transform.getAttribute(1).toString mustEqual "POINT(45 55)"
+      transform.getAttribute("geom") mustEqual WKTUtils.read("POINT(45 55)")
+      transform.getAttribute(1) mustEqual WKTUtils.read("POINT(45 55)")
       transform.getAttribute("derived") mustEqual "helloname1"
       transform.getAttribute(2) mustEqual "helloname1"
     }
