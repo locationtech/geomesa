@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.arrow.data
 
-import java.io.{FileOutputStream, IOException, OutputStream}
+import java.io.{FileOutputStream, IOException, InputStream, OutputStream}
 import java.net.URL
 
 import org.geotools.data._
@@ -43,12 +43,11 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
   }
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
-    val os = createOutputStream()
-    try {
-      // just write the schema/metadata
-      new SimpleFeatureArrowFileWriter(sft, os, Map.empty).close()
-    } finally {
-      os.close()
+    WithClose(createOutputStream(false)) { os =>
+      WithClose(new SimpleFeatureArrowFileWriter(sft, os, Map.empty)) { writer =>
+        // just write the schema/metadata
+        writer.start()
+      }
     }
   }
 
@@ -57,23 +56,24 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
   override def getSchema: SimpleFeatureType = {
     // TODO cache?
     try {
-      WithClose(new SimpleFeatureArrowFileReader(url.openStream()))(_.sft)
+      WithClose(new SimpleFeatureArrowFileReader(createInputStream()))(_.sft)
     } catch {
       // TODO handle normal errors vs actual errors
       case e: Exception => null
     }
   }
 
-  private [data] def createOutputStream(): OutputStream = {
-    try {
-      url.openConnection().getOutputStream
-    } catch {
-      case NonFatal(e) =>
-        val file = DataUtilities.urlToFile(url)
-        if (file == null) {
-          throw new IOException(s"URL is not writable: $url", e)
-        }
-        new FileOutputStream(file)
+  private [data] def createInputStream(): InputStream = url.openStream()
+
+  private [data] def createOutputStream(append: Boolean = true): OutputStream = {
+    Option(DataUtilities.urlToFile(url)).map(new FileOutputStream(_, append)).getOrElse {
+      try {
+        val connection = url.openConnection()
+        connection.setDoOutput(true)
+        connection.getOutputStream
+      } catch {
+        case NonFatal(e) => throw new IOException(s"URL is not writable: $url", e)
+      }
     }
   }
 

@@ -30,7 +30,7 @@ class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry
   override def getCountInternal(query: Query): Int = -1
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val reader = new SimpleFeatureArrowFileReader(ds.url.openStream(), query.getFilter)
+    val reader = new SimpleFeatureArrowFileReader(ds.createInputStream(), query.getFilter)
     val features = reader.features
 
     new FeatureReader[SimpleFeatureType, SimpleFeature] {
@@ -64,7 +64,7 @@ class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, 
     require((flags | WRITER_ADD) == WRITER_ADD, "Only append supported")
 
     val sft = delegate.ds.getSchema
-    val os = delegate.ds.createOutputStream()
+    val os = delegate.ds.createOutputStream(false) // TODO append instead of overwrite?
     val writer = new SimpleFeatureArrowFileWriter(sft, os)
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
