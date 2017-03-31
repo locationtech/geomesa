@@ -173,7 +173,7 @@ class CassandraDataStoreTest extends Specification {
           .date("dtg")
           .point("geom", default = true)
           .withIndexes(List("z3"))
-          .build("testdelete")
+          .build(typeName)
 
       ds.createSchema(inputsft)
 
