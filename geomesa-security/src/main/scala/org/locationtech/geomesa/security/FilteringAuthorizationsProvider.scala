@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.security
 
-import org.apache.accumulo.core.security.Authorizations
+import java.util
 
 import scala.collection.JavaConversions._
 
@@ -20,17 +20,14 @@ class FilteringAuthorizationsProvider (val wrappedProvider: AuthorizationsProvid
 
   var filter: Option[Array[String]] = None
 
-  override def getAuthorizations: Authorizations =
+  override def getAuthorizations: util.List[String] =
     filter match {
       case None => wrappedProvider.getAuthorizations
-      case Some(_) =>  {
-        val filtered = wrappedProvider.getAuthorizations.getAuthorizations.map(new String(_)).intersect(filter.get)
-        new Authorizations(filtered:_*)
-      }
+      case Some(_) => wrappedProvider.getAuthorizations.map(new String(_)).intersect(filter.get)
     }
 
   override def configure(params: java.util.Map[String, java.io.Serializable]) {
-    val authString = authsParam.lookUp(params).asInstanceOf[String]
+    val authString = AuthsParam.lookUp(params).asInstanceOf[String]
     if (authString != null && !authString.isEmpty)
       filter = Option(authString.split(","))
 

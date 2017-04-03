@@ -22,7 +22,6 @@ To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-qu
    usage
    geoserver
    visibilities
-   authorizations
    data_management
    analytic_queries
    jobs

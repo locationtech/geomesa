@@ -17,7 +17,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-accumulo-raster_2.11</artifactId>
-    <name>GeoMesa Raster</name>
+    <name>GeoMesa Accumulo Raster</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

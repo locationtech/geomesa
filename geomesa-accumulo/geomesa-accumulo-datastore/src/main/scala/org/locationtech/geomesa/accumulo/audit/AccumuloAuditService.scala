@@ -10,14 +10,14 @@ package org.locationtech.geomesa.accumulo.audit
 
 import org.apache.accumulo.core.client.Connector
 import org.joda.time.Interval
+import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.index.audit.QueryEvent
-import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit._
 
 import scala.reflect.ClassTag
 
 class AccumuloAuditService(connector: Connector,
-                           authProvider: AuthorizationsProvider,
+                           authProvider: AccumuloAuthsProvider,
                            val table: String,
                            write: Boolean) extends AuditWriter with AuditReader with AuditLogger {
 

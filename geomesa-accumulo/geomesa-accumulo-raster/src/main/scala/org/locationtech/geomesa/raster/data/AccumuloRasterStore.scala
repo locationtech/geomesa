@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.raster.data
 
+import java.awt.image.BufferedImage
 import java.io.{Closeable, Serializable}
 import java.util.Map.Entry
 import java.util.concurrent.TimeUnit
@@ -22,11 +23,11 @@ import org.apache.accumulo.core.security.TablePermission
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
+import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.BBOXCombiner._
 import org.locationtech.geomesa.raster.util.RasterUtils
-import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, Timings, TimingsImpl}
@@ -34,13 +35,13 @@ import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, Timin
 import scala.collection.JavaConversions._
 
 class AccumuloRasterStore(val connector: Connector,
-                  val tableName: String,
-                  val authorizationsProvider: AuthorizationsProvider,
-                  val writeVisibilities: String,
-                  writeMemoryConfig: Option[String] = None,
-                  writeThreadsConfig: Option[Int] = None,
-                  queryThreadsConfig: Option[Int] = None,
-                  collectStats: Boolean = false) extends Closeable with MethodProfiling with LazyLogging {
+                          val tableName: String,
+                          val authorizationsProvider: AccumuloAuthsProvider,
+                          val writeVisibilities: String,
+                          writeMemoryConfig: Option[String] = None,
+                          writeThreadsConfig: Option[Int] = None,
+                          queryThreadsConfig: Option[Int] = None,
+                          collectStats: Boolean = false) extends Closeable with MethodProfiling with LazyLogging {
 
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
   val writeThreads = writeThreadsConfig.getOrElse(10)
@@ -65,7 +66,7 @@ class AccumuloRasterStore(val connector: Connector,
    * @param params
    * @return Buffered
    */
-  def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
+  def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage = {
     implicit val timings = if (collectStats) new TimingsImpl else NoOpTimings
     val rasters = getRasters(query)
     val (image, numRasters) = profile("mosaic") {
@@ -76,7 +77,7 @@ class AccumuloRasterStore(val connector: Connector,
 
   def getRasters(rasterQuery: RasterQuery)(implicit timings: Timings): Iterator[Raster] = {
     profile("scanning") {
-      val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
+      val batchScanner = connector.createBatchScanner(tableName, getAuths, numQThreads)
       val plan = AccumuloRasterQueryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
       plan match {
         case Some(qp) =>
@@ -91,7 +92,7 @@ class AccumuloRasterStore(val connector: Connector,
 
   def getBounds: BoundingBox = {
     ensureBoundsTableExists()
-    val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, authorizationsProvider.getAuthorizations)
+    val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths)
     scanner.setRange(new Range(getBoundsRowID))
     val resultingBounds = SelfClosingIterator(scanner.iterator, scanner.close)
     if (resultingBounds.isEmpty) {
@@ -142,7 +143,7 @@ class AccumuloRasterStore(val connector: Connector,
     }
   }
 
-  def metaScanner = () => {
+  def metaScanner: () => SelfClosingIterator[Entry[Key, Value]] = () => {
     ensureBoundsTableExists()
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths)
     scanner.setRange(new Range(getBoundsRowID))
@@ -187,7 +188,7 @@ class AccumuloRasterStore(val connector: Connector,
     mutation
   }
 
-  def putRasters(rasters: Seq[Raster]) = rasters.foreach(putRaster)
+  def putRasters(rasters: Seq[Raster]): Unit = rasters.foreach(putRaster)
 
   def putRaster(raster: Raster) {
     writeMutations(tableName, createMutation(raster))
@@ -201,12 +202,12 @@ class AccumuloRasterStore(val connector: Connector,
     writer.close()
   }
 
-  def createTableStructure() = {
+  def createTableStructure(): Unit = {
     ensureTableExists(tableName)
     ensureBoundsTableExists()
   }
 
-  def ensureBoundsTableExists() = {
+  def ensureBoundsTableExists(): Unit = {
     createTable(GEOMESA_RASTER_BOUNDS_TABLE)
     if (!tableOps.listIterators(GEOMESA_RASTER_BOUNDS_TABLE).containsKey("GEOMESA_BBOX_COMBINER")) {
       val bboxcombinercfg =  AccumuloRasterBoundsPlanner.getBoundsScannerCfg(tableName)
