@@ -44,7 +44,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
 
-    val remote = RemoteParam.lookupOpt[String](params).map(_.toBoolean).getOrElse(false)
+    val remote = RemoteParam.lookupOpt[String](params).getOrElse("false").toBoolean
     logger.info(s"Using ${if (remote) "remote" else "local" } filtering")
 
     val catalog = BigTableNameParam.lookup[String](params)
