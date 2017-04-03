@@ -44,7 +44,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
 
-    val remote = RemoteParam.lookupOpt[Boolean](params).getOrElse(false)
+    val remote = RemoteParam.lookupOpt[String](params).map(_.toBoolean).getOrElse(false)
     logger.info(s"Using ${if (remote) "remote" else "local" } filtering")
 
     val catalog = BigTableNameParam.lookup[String](params)
@@ -87,7 +87,7 @@ object HBaseDataStoreFactory {
   object Params {
     val BigTableNameParam  = new Param("bigtable.table.name", classOf[String], "Table name", true)
     val ConnectionParam    = new Param("connection", classOf[Connection], "Connection", false)
-    val RemoteParam        = new Param("remote.filtering", classOf[Boolean], "Remote filtering", false)
+    val RemoteParam        = new Param("remote.filtering", classOf[String], "Remote filtering", false)
     val LooseBBoxParam     = GeoMesaDataStoreFactory.LooseBBoxParam
     val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
     val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
