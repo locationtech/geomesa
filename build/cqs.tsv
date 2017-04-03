@@ -200,12 +200,7 @@ org.json4s:json4s-native_2.11	3.2.10	compile
 org.locationtech.sfcurve:sfcurve-api_2.11	0.2.0	compile
 org.locationtech.sfcurve:sfcurve-zorder_2.11	0.2.0	compile
 org.locationtech.spatial4j:spatial4j	0.6	compile
-org.mortbay.jetty:jetty	6.1.26	compile
-org.mortbay.jetty:jetty-sslengine	6.1.26	compile
 org.mortbay.jetty:jetty-util	6.1.26	compile
-org.mortbay.jetty:jsp-2.1	6.1.14	compile
-org.mortbay.jetty:jsp-api-2.1	6.1.14	compile
-org.mortbay.jetty:servlet-api-2.5	6.1.14	compile
 org.objenesis:objenesis	1.0	compile
 org.parboiled:parboiled-core	1.1.7	compile
 org.parboiled:parboiled-scala_2.11	1.1.7	compile
@@ -262,5 +257,6 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	15.1	test
 org.jruby:jruby	9.0.4.0	test
+org.mortbay.jetty:jetty	6.1.26	test
 org.scalatra:scalatra-specs2_2.11	2.3.0	test
 org.specs2:specs2_2.11	2.3.13	test

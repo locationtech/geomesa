@@ -14,7 +14,7 @@ import java.util.zip.{Deflater, GZIPOutputStream}
 import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.geotools.data.Query
+import org.geotools.data.{DataStore, Query}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -109,7 +109,7 @@ object ExportCommand extends LazyLogging {
     }
   }
 
-  def getAttributes(ds: GeoMesaDataStore[_, _, _], fmt: DataFormat, params: BaseExportParams): Option[ExportAttributes] = {
+  def getAttributes(ds: DataStore, fmt: DataFormat, params: BaseExportParams): Option[ExportAttributes] = {
     import scala.collection.JavaConversions._
 
     lazy val sft = ds.getSchema(params.featureName)

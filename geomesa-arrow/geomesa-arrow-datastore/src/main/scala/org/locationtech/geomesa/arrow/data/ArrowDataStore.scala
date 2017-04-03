@@ -16,6 +16,8 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoOpMetadata, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -24,9 +26,13 @@ import org.opengis.filter.Filter
 import scala.util.Try
 import scala.util.control.NonFatal
 
-class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
+class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore
+    with HasGeoMesaMetadata[String] with HasGeoMesaStats {
 
   import org.locationtech.geomesa.arrow.allocator
+
+  override val metadata: GeoMesaMetadata[String] = new NoOpMetadata()
+  override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
     val writable = Try(createOutputStream()).map(_.close()).isSuccess
@@ -55,11 +61,14 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore {
 
   override def getSchema: SimpleFeatureType = {
     // TODO cache?
-    try {
-      WithClose(new SimpleFeatureArrowFileReader(createInputStream()))(_.sft)
-    } catch {
-      // TODO handle normal errors vs actual errors
-      case e: Exception => null
+    WithClose(createInputStream()) { is =>
+      if (is.available() < 1) { null } else {
+        try {
+          WithClose(new SimpleFeatureArrowFileReader(is))(_.sft)
+        } catch {
+          case e: Exception => throw new IOException("Error reading schema", e)
+      }
+      }
     }
   }
 
