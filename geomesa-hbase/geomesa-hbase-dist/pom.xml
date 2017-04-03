@@ -32,6 +32,12 @@
             <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
         </dependency>
 
+        <!-- distributed runtime -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-distributed-runtime_${scala.binary.version}</artifactId>
+        </dependency>
+
         <!-- GeoServer Plugins -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
