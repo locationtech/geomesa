@@ -32,4 +32,9 @@ trait StatTestHelper {
     val a = Array(f"abc$i%03d", i, i, i, i, s"POINT(${i -20} ${i / 2 - 20})", f"2012-01-02T${i%24}%02d:00:00.000Z")
     SimpleFeatureBuilder.build(sft, a.asInstanceOf[Array[AnyRef]], i.toString)
   }
+
+  val features3 = (-100 until 0).toArray.map { i =>
+    val a = Array(f"abc$i%+03d", i, i, i, i, s"POINT($i $i)", f"2012-01-02T${Math.abs(i)%24}%02d:00:00.000Z")
+    SimpleFeatureBuilder.build(sft, a.asInstanceOf[Array[AnyRef]], i.toString)
+  }
 }

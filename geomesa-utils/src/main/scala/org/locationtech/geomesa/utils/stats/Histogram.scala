@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -29,7 +30,8 @@ import scala.reflect.ClassTag
  * @tparam T a comparable type which must have a StatHelperFunctions type class
  */
 class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
-                  (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) extends Stat {
+                  (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
+    extends Stat with LazyLogging {
 
   override type S = Histogram[T]
 
@@ -64,12 +66,16 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   override def observe(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute)
     if (value != null) {
-      val i = bins.indexOf(value.asInstanceOf[T])
-      if (i == -1) {
-        bins = Histogram.expandBins(value.asInstanceOf[T], bins)
-        bins.add(value.asInstanceOf[T])
-      } else {
-        bins.counts(i) += 1
+      try {
+        val i = bins.indexOf(value.asInstanceOf[T])
+        if (i == -1) {
+          bins = Histogram.expandBins(value.asInstanceOf[T], bins)
+          bins.add(value.asInstanceOf[T])
+        } else {
+          bins.counts(i) += 1
+        }
+      } catch {
+        case e: Exception => logger.warn(s"Error observing value '$value': ${e.toString}")
       }
     }
   }
@@ -77,12 +83,16 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   override def unobserve(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute)
     if (value != null) {
-      val i = bins.indexOf(value.asInstanceOf[T])
-      if (i == -1) {
-        bins = Histogram.expandBins(value.asInstanceOf[T], bins)
-        bins.add(value.asInstanceOf[T], -1)
-      } else {
-        bins.counts(i) -= 1
+      try {
+        val i = bins.indexOf(value.asInstanceOf[T])
+        if (i == -1) {
+          bins = Histogram.expandBins(value.asInstanceOf[T], bins)
+          bins.add(value.asInstanceOf[T], -1)
+        } else {
+          bins.counts(i) -= 1
+        }
+      } catch {
+        case e: Exception => logger.warn(s"Error un-observing value '$value': ${e.toString}")
       }
     }
   }

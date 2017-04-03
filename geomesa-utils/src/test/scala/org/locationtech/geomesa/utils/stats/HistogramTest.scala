@@ -708,6 +708,19 @@ class HistogramTest extends Specification with StatTestHelper {
         forall((0 until 25) ++ Seq(26, 28, 29))(stat2.count(_) mustEqual 0)
       }
 
+      "merge high-precision points" >> {
+        val fromBounds =
+          (WKTUtils.read("POINT (-91.7467224461 40.6750300641)"), WKTUtils.read("POINT (-91.723442566 40.691904323)"))
+        val toBounds =
+          (WKTUtils.read("POINT (-91.7467224461 40.6750300641)"), WKTUtils.read("POINT (-91.7186474559 40.6933565934)"))
+
+        val from = new BinnedGeometryArray(10000, fromBounds)
+        val to = new BinnedGeometryArray(10000, toBounds)
+        (0 until 10000).foreach(i => from.counts(i) = 1)
+
+        Histogram.copyInto(to, from) must not(throwAn[Exception])
+      }
+
       "clear" >> {
         val stat = geomStat(32, "POINT(-180 -90)", "POINT(180 90)")
         stat.clear()

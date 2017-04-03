@@ -162,10 +162,16 @@ The ingest command currently supports three formats: CSV, TSV, and SHP.
 The ``ingest`` command has the following required flags:
 
 -  ``-u`` or ``--user``: the Accumulo user
--  ``-p`` or ``--password``: the Accumulo password (will prompt if
-   omitted)
 -  ``-c`` or ``--catalog``: the name of the GeoMesa catalog table
 -  ``-f`` or ``--feature-name``: the name of the feature to ingest
+
+One (not both) of the following flags must also be specified:
+
+-  ``-p`` or ``--password``: the Accumulo password
+-  ``--keytab``: path to a Kerberos keytab file
+
+If ``-p`` (or ``--password``) and ``--keytab`` are both omitted, then password authentication is assumed and the user
+is prompted for a password.
 
 If ``$ACCUMULO_HOME`` does not contain the configuration of the Accumulo
 instance you wish to connect to, you also must specify the connection
