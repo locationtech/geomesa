@@ -10,6 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import java.io.Serializable
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.geotools.data.DataAccessFactory.Param
@@ -20,7 +21,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 
 
-class HBaseDataStoreFactory extends DataStoreFactorySpi {
+class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import HBaseDataStoreFactory.Params._
 
@@ -44,6 +45,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
     val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
 
     val remote = RemoteParam.lookupOpt[Boolean](params).getOrElse(false)
+    logger.info(s"Using ${if (remote) "remote" else "local" } filtering")
 
     val catalog = BigTableNameParam.lookup[String](params)
 

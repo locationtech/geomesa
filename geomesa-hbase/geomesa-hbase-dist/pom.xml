@@ -84,6 +84,13 @@
             <artifactId>slf4j-log4j12</artifactId>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-opengis</artifactId>
+        </dependency>
+
+
     </dependencies>
 
     <build>

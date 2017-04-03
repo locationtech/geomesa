@@ -19,5 +19,8 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
   override def params: CatalogParam
 
   override def connection: Map[String, String] =
-    Map(HBaseDataStoreFactory.Params.BigTableNameParam.getName -> params.catalog)
+    Map(
+      HBaseDataStoreFactory.Params.BigTableNameParam.getName -> params.catalog,
+      HBaseDataStoreFactory.Params.RemoteParam.getName -> "true"
+    )
 }
