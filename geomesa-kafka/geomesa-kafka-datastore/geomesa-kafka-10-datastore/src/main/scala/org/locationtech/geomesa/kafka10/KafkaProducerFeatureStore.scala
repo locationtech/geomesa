@@ -110,7 +110,7 @@ class KafkaFeatureWriterAppend(sft: SimpleFeatureType, producer: KafkaProducer[A
   override def hasNext: Boolean = false
 
   override def next(): SimpleFeature = {
-    reuse.getIdentifier.setID(nextId)
+    reuse.setId(nextId)
     reuse.getUserData.clear()
     var i = 0
     while (i < reuse.values.length) {
