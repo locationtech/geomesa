@@ -10,6 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import java.io.Serializable
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.geotools.data.DataAccessFactory.Param
@@ -18,9 +19,10 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreC
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 
 
-class HBaseDataStoreFactory extends DataStoreFactorySpi {
+class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import HBaseDataStoreFactory.Params._
 
@@ -43,7 +45,9 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
 
     val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
 
-    val remote = RemoteParam.lookupOpt[Boolean](params).getOrElse(false)
+    val remote = RemoteParam.lookupOpt[Boolean](params)
+      .getOrElse(GeoMesaSystemProperties.SystemProperty("geomesa.hbase.remote.filtering", "false").get.toBoolean)
+    logger.info(s"Using ${if (remote) "remote" else "local" } filtering")
 
     val catalog = BigTableNameParam.lookup[String](params)
 
@@ -85,7 +89,7 @@ object HBaseDataStoreFactory {
   object Params {
     val BigTableNameParam  = new Param("bigtable.table.name", classOf[String], "Table name", true)
     val ConnectionParam    = new Param("connection", classOf[Connection], "Connection", false)
-    val RemoteParam        = new Param("remote.filtering", classOf[Boolean], "Remote filtering", false)
+    val RemoteParam        = new Param("remote.filtering", classOf[java.lang.Boolean], "Remote filtering", false)
     val LooseBBoxParam     = GeoMesaDataStoreFactory.LooseBBoxParam
     val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
     val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
