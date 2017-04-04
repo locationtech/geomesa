@@ -16,6 +16,7 @@ about GeoMesa data stores is described here:
     logging
     reserved_words
     security
+    authorizations
 
 Specific back-end implementations are described in the following chapters:
 

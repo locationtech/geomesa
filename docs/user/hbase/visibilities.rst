@@ -75,4 +75,4 @@ Known Issues
 
 HBase currently does not provide a method of retrieving Cell Visibility Labels from existing data stored within HBase.
 Therefore, deleting data as a non-superuser with per-feature visibility levels cannot be guaranteed as it can be in
-the AccumuloDataStore. See
+the AccumuloDataStore.
