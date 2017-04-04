@@ -10,6 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import java.io.Serializable
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
@@ -23,11 +24,12 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaD
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 
 import scala.collection.JavaConversions._
 
 
-class HBaseDataStoreFactory extends DataStoreFactorySpi {
+class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import HBaseDataStoreParams._
 
@@ -51,7 +53,9 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
     // TODO HBase Connections don't seem to be Serializable...deal with it
     val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
 
-    val remote = RemoteParam.lookupOpt[Boolean](params).getOrElse(false)
+    val remote = RemoteParam.lookupOpt[Boolean](params)
+      .getOrElse(GeoMesaSystemProperties.SystemProperty("geomesa.hbase.remote.filtering", "false").get.toBoolean)
+    logger.info(s"Using ${if (remote) "remote" else "local" } filtering")
 
     val catalog = BigTableNameParam.lookup[String](params)
 
