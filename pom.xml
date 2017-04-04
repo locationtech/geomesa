@@ -2051,20 +2051,21 @@
                      </exclusion>
                 </exclusions>
             </dependency>
+            <!-- version used by spark - also compatible with arrow (which defaults to 2.7.1) -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>2.7.1</version>
+                <version>2.6.5</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>2.7.1</version>
+                <version>2.6.5</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>2.7.1</version>
+                <version>2.6.5</version>
             </dependency>
             <dependency>
                 <groupId>org.scalatra</groupId>
