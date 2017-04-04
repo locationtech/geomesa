@@ -111,7 +111,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
   def setId(id: String): Unit = this.id = id
 
-  def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
+  def setTransforms(transforms: String, transformSchema: SimpleFeatureType): Unit = {
     this.transforms = transforms
     this.transformSchema = transformSchema
 
