@@ -18,6 +18,7 @@ import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.complex.writer.BaseWriter.{ListWriter, MapWriter}
 import org.apache.arrow.vector.complex.writer._
 import org.apache.arrow.vector.types.Types.MinorType
+import org.apache.arrow.vector.types.pojo.FieldType
 import org.apache.arrow.vector.{NullableIntVector, NullableSmallIntVector, NullableTinyIntVector}
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
@@ -84,13 +85,13 @@ object ArrowAttributeWriter {
           case ObjectType.STRING =>
             val encoding = dict.encoding
             if (encoding.getIndexType.getBitWidth == 8) {
-              vector.addOrGet(name, MinorType.TINYINT, classOf[NullableTinyIntVector], encoding)
+              vector.addOrGet(name, new FieldType(true, MinorType.TINYINT.getType, encoding), classOf[NullableTinyIntVector])
               new ArrowDictionaryByteWriter(vector.getWriter.tinyInt(name), dict)
             } else if (encoding.getIndexType.getBitWidth == 16) {
-              vector.addOrGet(name, MinorType.SMALLINT, classOf[NullableSmallIntVector], encoding)
+              vector.addOrGet(name, new FieldType(true, MinorType.SMALLINT.getType, encoding), classOf[NullableSmallIntVector])
               new ArrowDictionaryShortWriter(vector.getWriter.smallInt(name), dict)
             } else {
-              vector.addOrGet(name, MinorType.INT, classOf[NullableIntVector], encoding)
+              vector.addOrGet(name, new FieldType(true, MinorType.INT.getType, encoding), classOf[NullableIntVector])
               new ArrowDictionaryIntWriter(vector.getWriter.integer(name), dict)
             }
 

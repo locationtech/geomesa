@@ -17,6 +17,7 @@ import org.apache.arrow.vector._
 import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
 import org.apache.arrow.vector.stream.ArrowStreamWriter
+import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -42,7 +43,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
   // convert the dictionary values into arrow vectors
   // make sure we load dictionaries before instantiating the vector
   private val dictionaryVectors = dictionaries.values.map { dictionary =>
-    val vector = new NullableVarCharVector(s"dictionary-${dictionary.id}", allocator, null)
+    val vector = new NullableVarCharVector(s"dictionary-${dictionary.id}", new FieldType(true, ArrowType.Utf8.INSTANCE, null), allocator)
     vector.allocateNew()
     val mutator = vector.getMutator
     var i = 0
