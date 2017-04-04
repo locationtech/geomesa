@@ -19,6 +19,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreC
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 
 
 class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
@@ -44,7 +45,8 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
 
-    val remote = RemoteParam.lookupWithDefault[Boolean](params)
+    val remote = RemoteParam.lookupOpt[Boolean](params)
+      .getOrElse(GeoMesaSystemProperties.SystemProperty("geomesa.hbase.remote.filtering", "false").get.toBoolean)
     logger.info(s"Using ${if (remote) "remote" else "local" } filtering")
 
     val catalog = BigTableNameParam.lookup[String](params)

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.hbase.tools
 
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreFactory}
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand}
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 
 /**
  * Abstract class for commands that have a pre-existing catalog
@@ -19,11 +18,6 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
 
   override def params: CatalogParam
 
-  override def connection: Map[String, String] = {
-    val remote = GeoMesaSystemProperties.SystemProperty("geomesa.hbase.remote.filtering", "false").get.toBoolean
-    Map(
-      HBaseDataStoreFactory.Params.BigTableNameParam.getName -> params.catalog,
-      HBaseDataStoreFactory.Params.RemoteParam.getName       -> remote.toString
-    )
-  }
+  override def connection: Map[String, String] =
+    Map(HBaseDataStoreFactory.Params.BigTableNameParam.getName -> params.catalog)
 }
