@@ -10,6 +10,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.client._
+import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
@@ -17,13 +18,13 @@ import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
+import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -60,8 +61,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   // some convenience operations
 
   def auths: Authorizations = config.authProvider.getAuthorizations
-
-  val tableOps = connector.tableOperations()
+  val tableOps: TableOperations = connector.tableOperations()
 
   override def delete(): Unit = {
     // note: don't delete the query audit table
@@ -282,7 +282,7 @@ object AccumuloDataStore {
 case class AccumuloDataStoreConfig(catalog: String,
                                    defaultVisibilities: String,
                                    generateStats: Boolean,
-                                   authProvider: AuthorizationsProvider,
+                                   authProvider: AccumuloAuthsProvider,
                                    audit: Option[(AuditWriter with AuditReader, AuditProvider, String)],
                                    queryTimeout: Option[Long],
                                    looseBBox: Boolean,

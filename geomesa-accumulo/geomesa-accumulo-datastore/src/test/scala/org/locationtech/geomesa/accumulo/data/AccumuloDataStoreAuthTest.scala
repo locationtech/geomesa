@@ -18,6 +18,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -49,10 +50,10 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
 
   val threadedAuths = new ThreadLocal[Authorizations]
 
-  val authProvider = new AuthorizationsProvider {
-    override def getAuthorizations: Authorizations = threadedAuths.get
+  val authProvider = new AccumuloAuthsProvider(new AuthorizationsProvider {
+    override def getAuthorizations: java.util.List[String] = threadedAuths.get.getAuthorizations.map(new String(_))
     override def configure(params: util.Map[String, Serializable]): Unit = {}
-  }
+  })
 
   "AccumuloDataStore" should {
     "provide ability to configure authorizations" >> {
@@ -63,8 +64,8 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
           "tableName" -> sftName,
           "auths"     -> "user")).asInstanceOf[AccumuloDataStore]
         ds must not beNull;
-        ds.config.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
-        ds.config.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
+        ds.config.authProvider.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
+        ds.config.authProvider.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
         ds.config.authProvider.getAuthorizations mustEqual new Authorizations("user")
       }
 
@@ -75,8 +76,8 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
           "tableName" -> sftName,
           "auths"     -> "user,admin,test")).asInstanceOf[AccumuloDataStore]
         ds must not beNull;
-        ds.config.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
-        ds.config.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
+        ds.config.authProvider.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
+        ds.config.authProvider.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
         ds.config.authProvider.getAuthorizations mustEqual new Authorizations("user", "admin", "test")
       }
 
@@ -108,8 +109,8 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
           "tableName" -> sftName,
           "auths"     -> "")).asInstanceOf[AccumuloDataStore]
         ds must not beNull;
-        ds.config.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
-        ds.config.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
+        ds.config.authProvider.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
+        ds.config.authProvider.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
         ds.config.authProvider.getAuthorizations mustEqual MockUserAuthorizations
       }
 
@@ -120,8 +121,8 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
           "auths"     -> "",
           "forceEmptyAuths" -> java.lang.Boolean.TRUE)).asInstanceOf[AccumuloDataStore]
         ds must not beNull;
-        ds.config.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
-        ds.config.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
+        ds.config.authProvider.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
+        ds.config.authProvider.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
         ds.config.authProvider.getAuthorizations mustEqual EmptyUserAuthorizations
       }
 
@@ -131,7 +132,7 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
           "connector"    -> connector,
           "tableName"    -> sftName,
           "auths"        -> "user,admin",
-          "authProvider" -> authProvider)).asInstanceOf[AccumuloDataStore]
+          "authProvider" -> authProvider.authProvider)).asInstanceOf[AccumuloDataStore]
         ds should not be null
 
         val user  = Seq("IN('0')", "name = '0'", "bbox(geom, 44, 49.1, 46, 50.1)", "bbox(geom, 44, 49.1, 46, 50.1) AND dtg DURING 2016-01-01T00:59:30.000Z/2016-01-01T01:00:30.000Z")

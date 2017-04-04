@@ -8,18 +8,26 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.index.api.WrappedFeature
 import org.opengis.feature.simple.SimpleFeature
 
-class HBaseFeature(val feature: SimpleFeature, serializer: SimpleFeatureSerializer) extends WrappedFeature {
+class HBaseFeature(val feature: SimpleFeature,
+                   serializer: SimpleFeatureSerializer,
+                   defaultVisibility: Option[String] = None) extends WrappedFeature {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
+  import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
-  lazy val fullValue = new RowValue(DataColumnFamily, DataColumnQualifier, serializer.serialize(feature))
+  lazy val fullValue = new RowValue(DataColumnFamily, DataColumnQualifier, visibility, serializer.serialize(feature))
+
+  private lazy val visibility =
+    feature.userData[String](FEATURE_VISIBILITY).orElse(defaultVisibility).map(new CellVisibility(_))
 }
 
-class RowValue(val cf: Array[Byte], val cq: Array[Byte], toValue: => Array[Byte]) {
+class RowValue(val cf: Array[Byte], val cq: Array[Byte], val vis: Option[CellVisibility], toValue: => Array[Byte]) {
   lazy val value: Array[Byte] = toValue
 }

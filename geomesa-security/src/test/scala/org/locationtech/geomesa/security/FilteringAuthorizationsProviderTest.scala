@@ -11,7 +11,6 @@ package org.locationtech.geomesa.security
 import java.io.Serializable
 import java.util
 
-import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -25,7 +24,7 @@ class FilteringAuthorizationsProviderTest extends Specification {
 
   val wrapped = new AuthorizationsProvider {
     override def configure(params: util.Map[String, Serializable]): Unit = { }
-    override def getAuthorizations: Authorizations = new Authorizations("user", "admin", "test")
+    override def getAuthorizations: java.util.List[String] = util.Arrays.asList("user", "admin", "test")
   }
 
   "FilteringAuthorizationsProvider" should {
@@ -35,10 +34,8 @@ class FilteringAuthorizationsProviderTest extends Specification {
       val auths = filter.getAuthorizations
 
       auths should not be null
-      auths.getAuthorizations.length mustEqual 1
-
-      val strings = auths.getAuthorizations.map(new String(_))
-      strings.contains("admin") must beTrue
+      auths.length mustEqual 1
+      auths.contains("admin") must beTrue
     }
 
     "filter multiple authorizations" in {
@@ -47,11 +44,10 @@ class FilteringAuthorizationsProviderTest extends Specification {
       val auths = filter.getAuthorizations
 
       auths should not be null
-      auths.getAuthorizations.length mustEqual 2
+      auths.length mustEqual 2
 
-      val strings = auths.getAuthorizations.map(new String(_))
-      strings.contains("user") must beTrue
-      strings.contains("test") must beTrue
+      auths.contains("user") must beTrue
+      auths.contains("test") must beTrue
     }
 
     "not filter if no filter is specified" in {
@@ -59,12 +55,11 @@ class FilteringAuthorizationsProviderTest extends Specification {
       filter.configure(Map[String, Serializable]())
       val auths = filter.getAuthorizations
       auths should not be null
-      auths.getAuthorizations.length mustEqual 3
+      auths.length mustEqual 3
 
-      val strings = auths.getAuthorizations.map(new String(_))
-      strings.contains("user") must beTrue
-      strings.contains("admin") must beTrue
-      strings.contains("test") must beTrue
+      auths.contains("user") must beTrue
+      auths.contains("admin") must beTrue
+      auths.contains("test") must beTrue
     }
   }
 }
