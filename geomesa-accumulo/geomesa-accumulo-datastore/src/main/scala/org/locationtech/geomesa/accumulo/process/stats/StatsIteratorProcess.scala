@@ -18,6 +18,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
@@ -46,9 +47,15 @@ class StatsIteratorProcess extends LazyLogging {
                    name = "encode",
                    min = 0,
                    description = "Return the values encoded or as json")
-                 encode: Boolean = false
+                 encode: Boolean = false,
 
-  ): SimpleFeatureCollection = {
+                 @DescribeParameter(
+                   name = "properties",
+                   min = 0,
+                   description = "The properties / transforms to apply before gathering stats")
+                 properties: java.util.List[String] = null
+
+             ): SimpleFeatureCollection = {
 
     logger.debug("Attempting Geomesa stats iterator process on type " + features.getClass.getName)
 
@@ -56,17 +63,21 @@ class StatsIteratorProcess extends LazyLogging {
       logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
-    val visitor = new StatsVisitor(features, statString, encode)
+    val visitor = new StatsVisitor(features, statString, encode, properties)
     features.accepts(visitor, new NullProgressListener)
     visitor.getResult.asInstanceOf[StatsIteratorResult].results
   }
 }
 
-class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode: Boolean)
+class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode: Boolean, properties: java.util.List[String] = null)
     extends FeatureCalc with LazyLogging {
 
   val origSft = features.getSchema
-  val stat: Stat = Stat(origSft, statString)
+
+  //lazy val transformSft = QueryPlanner.queryToTransformSFT(query, origSft)
+
+  lazy val stat: Stat = Stat(origSft, statString)
+
   val returnSft = KryoLazyStatsIterator.StatsSft
   val manualVisitResults: DefaultFeatureCollection = new DefaultFeatureCollection(null, returnSft)
   var resultCalc: StatsIteratorResult = null
@@ -74,6 +85,8 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
   //  Called for non AccumuloFeatureCollections
   def visit(feature: Feature): Unit = {
     val sf = feature.asInstanceOf[SimpleFeature]
+
+    // TODO Apply any transforms manually.
     stat.observe(sf)
   }
 
@@ -92,6 +105,11 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
 
   def query(source: SimpleFeatureSource, query: Query) = {
     logger.debug("Running Geomesa stats iterator process on source type " + source.getClass.getName)
+
+    if (properties != null) {
+      // Configure transforms
+      query.setPropertyNames(properties)
+    }
     query.getHints.put(QueryHints.STATS_STRING, statString)
     query.getHints.put(QueryHints.ENCODE_STATS, new java.lang.Boolean(encode))
     source.getFeatures(query)

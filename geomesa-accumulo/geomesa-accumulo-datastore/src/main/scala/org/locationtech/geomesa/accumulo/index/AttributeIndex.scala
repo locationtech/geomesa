@@ -215,6 +215,8 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
       }
     } else if (hints.isStatsIteratorQuery) {
+      // TODO Wire up transforms!
+
       // check to see if we can execute against the index values
       if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
           filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {

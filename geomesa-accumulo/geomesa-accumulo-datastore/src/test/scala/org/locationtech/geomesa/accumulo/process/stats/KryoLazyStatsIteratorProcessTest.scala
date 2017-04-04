@@ -21,6 +21,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConversions._
+
 @RunWith(classOf[JUnitRunner])
 class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataStore {
 
@@ -144,6 +146,15 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val sf = results.features().next
 
       val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
+      sf.getAttribute(0) mustEqual expectedOutput
+    }
+
+    "return transforms stats encoded as json" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, Seq("attr1=attr+5"))
+      val sf = results.features().next
+
+      // NB: Doubles <=> Ints:(
+      val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
       sf.getAttribute(0) mustEqual expectedOutput
     }
   }

@@ -88,6 +88,7 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
     }
   }
 
+  // TODO: Set stats here?
   override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
     val query = new Query(sft.getTypeName, filter)
     query.getHints.put(QueryHints.STATS_STRING, stats)
