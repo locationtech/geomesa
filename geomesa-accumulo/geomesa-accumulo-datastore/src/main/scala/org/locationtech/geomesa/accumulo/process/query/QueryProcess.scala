@@ -43,7 +43,7 @@ class QueryProcess extends LazyLogging {
                @DescribeParameter(
                  name = "properties",
                  min = 0,
-                 description = "The filter to apply to the features collection")
+                 description = "The lists of properties and transform definitions to apply")
                properties: java.util.List[String] = null
              ): SimpleFeatureCollection = {
 
@@ -70,6 +70,7 @@ class QueryVisitor(features: SimpleFeatureCollection,
 
   // Called for non AccumuloFeactureCollections
   def visit(feature: Feature): Unit = {
+    // TODO:  GEOMESA-1755 Add any necessary transform support to the QueryProcess
     val sf = feature.asInstanceOf[SimpleFeature]
     if(filter.evaluate(sf)) {
       manualVisitResults.add(sf)
@@ -87,6 +88,9 @@ class QueryVisitor(features: SimpleFeatureCollection,
     val combinedFilter = ff.and(query.getFilter, filter)
     query.setFilter(combinedFilter)
     if (properties != null) {
+      if (query.getProperties != Query.ALL_PROPERTIES) {
+        logger.warn(s"Overriding inner query's properties (${query.getProperties}) with properties / transforms $properties.")
+      }
       query.setPropertyNames(properties)
     }
     source.getFeatures(query)
