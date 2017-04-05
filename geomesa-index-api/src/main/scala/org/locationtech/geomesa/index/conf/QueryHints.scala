@@ -47,6 +47,7 @@ object QueryHints {
 
   val ARROW_ENCODE            = new ClassKey(classOf[java.lang.Boolean])
   val ARROW_DICTIONARY_FIELDS = new ClassKey(classOf[java.lang.String])
+  val ARROW_BATCH_SIZE = new ClassKey(classOf[java.lang.Integer])
 
   // internal hints that shouldn't be set directly by users
   object Internal {
@@ -85,6 +86,7 @@ object QueryHints {
     def isArrowQuery: Boolean = Option(hints.get(ARROW_ENCODE).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
     def getArrowDictionaryFields: Seq[String] =
       Option(hints.get(ARROW_DICTIONARY_FIELDS).asInstanceOf[String]).toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
+    def getArrowBatchSize: Option[Int] = Option(hints.get(BIN_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue)
     def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsIteratorQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
     def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)

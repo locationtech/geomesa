@@ -32,11 +32,16 @@ import org.opengis.filter.Filter
 
 class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate] with SamplingIterator {
 
-  import ArrowBatchIterator.{DictionaryKey, decodeDictionaries}
+  import ArrowBatchIterator.{BatchSizeKey, DictionaryKey, decodeDictionaries}
 
   var aggregate: (SimpleFeature, ArrowBatchAggregate) => Unit = _
+  var underBatchSize: (ArrowBatchAggregate) => Boolean = _
 
   override def init(options: Map[String, String]): ArrowBatchAggregate = {
+    underBatchSize = options.get(BatchSizeKey).map(_.toInt) match {
+      case None    => (_) => true
+      case Some(i) => (a) => a.size < i
+    }
     val dictionaries = decodeDictionaries(options(DictionaryKey))
     val sampling = sample(options)
     val transformSchema = options.get(TRANSFORM_SCHEMA_OPT).map(IteratorCache.sft).orNull
@@ -57,6 +62,8 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
       new ArrowBatchAggregate(transformSchema, dictionaries)
     }
   }
+
+  override def notFull(result: ArrowBatchAggregate): Boolean = underBatchSize(result)
 
   override def aggregateResult(sf: SimpleFeature, result: ArrowBatchAggregate): Unit = aggregate(sf, result)
 
@@ -83,6 +90,8 @@ class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, Arro
 
   def isEmpty: Boolean = index == 0
 
+  def size: Int = index
+
   def clear(): Unit = {
     vector.reset()
     index = 0
@@ -104,6 +113,7 @@ object ArrowBatchIterator {
   // need to be lazy to avoid class loading issues before init is called
   lazy val ArrowSft = SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")
 
+  private val BatchSizeKey  = "grp"
   private val DictionaryKey = "dict"
   private val Tab = '\t'
 
@@ -119,6 +129,7 @@ object ArrowBatchIterator {
     val is = new IteratorSetting(priority, "arrow-iter", classOf[ArrowBatchIterator])
     KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     hints.getSampling.foreach(SamplingIterator.configure(is, sft, _))
+    hints.getArrowBatchSize.foreach(i => is.addOption(BatchSizeKey, i.toString))
     is.addOption(DictionaryKey, encodeDictionaries(dictionaries))
     hints.getTransform.foreach { case (tdef, tsft) =>
       is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
