@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.utils.io
 
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.io.SafeClose.AnyCloseable
+import org.locationtech.geomesa.utils.io.SafeFlush.AnyFlushable
 
 import scala.util.control.NonFatal
 
@@ -16,21 +18,18 @@ import scala.util.control.NonFatal
   * Closes anything with a 'close' method without throwing an exception
   */
 trait SafeClose {
-  def apply(c: Any { def close(): Unit }): Option[Throwable]
+  def apply(c: AnyCloseable): Option[Throwable]
 }
 
-/**
-  * Flushes anything with a 'flush' method without throwing an exception
-  */
-trait SafeFlush {
-  def apply(c: Any { def flush(): Unit }): Option[Throwable]
+object SafeClose {
+  type AnyCloseable = Any { def close(): Unit }
 }
 
 /**
   * Closes and logs any exceptions
   */
 object CloseWithLogging extends SafeClose with LazyLogging {
-  override def apply(c: Any { def close(): Unit }): Option[Throwable] = try { c.close(); None } catch {
+  override def apply(c: AnyCloseable): Option[Throwable] = try { c.close(); None } catch {
     case NonFatal(e) => logger.warn(s"Error calling close on '$c': ", e); Some(e)
   }
 }
@@ -39,17 +38,39 @@ object CloseWithLogging extends SafeClose with LazyLogging {
   * Closes and catches any exceptions
   */
 object CloseQuietly extends SafeClose {
-  override def apply(c: Any { def close(): Unit }): Option[Throwable] = try { c.close(); None } catch {
+  override def apply(c: AnyCloseable): Option[Throwable] = try { c.close(); None } catch {
     case NonFatal(e) => Some(e)
   }
 }
 
+/**
+  * Similar to java's try-with-resources, allows for using an object then closing in a finally block
+  */
+object WithClose {
+  // defined for up to 3 variables, implement more methods if needed
+  def apply[A <: AnyCloseable, B](a: A)(fn: (A) => B): B = try { fn(a) } finally { a.close() }
+  def apply[A <: AnyCloseable, B <: AnyCloseable, C](a: A, b: B)(fn: (A, B) => C): C =
+    try { try { fn(a, b) } finally { a.close() } } finally { b.close() }
+  def apply[A <: AnyCloseable, B <: AnyCloseable, C <: AnyCloseable, D](a: A, b: B, c: C)(fn: (A, B, C) => D): D =
+    try { try { try { fn(a, b, c) } finally { a.close() } } finally { b.close() } } finally { c.close() }
+}
+
+/**
+  * Flushes anything with a 'flush' method without throwing an exception
+  */
+trait SafeFlush {
+  def apply(c: AnyFlushable): Option[Throwable]
+}
+
+object SafeFlush {
+  type AnyFlushable = Any { def flush(): Unit }
+}
 
 /**
   * Flushes and logs any exceptions
   */
 object FlushWithLogging extends SafeFlush with LazyLogging {
-  override def apply(c: Any { def flush(): Unit }): Option[Throwable] = try { c.flush(); None } catch {
+  override def apply(c: AnyFlushable): Option[Throwable] = try { c.flush(); None } catch {
     case NonFatal(e) => logger.warn(s"Error calling flush on '$c': ", e); Some(e)
   }
 }
@@ -58,7 +79,7 @@ object FlushWithLogging extends SafeFlush with LazyLogging {
   * Flushes and catches any exceptions
   */
 object FlushQuietly extends SafeFlush {
-  override def apply(c: Any { def flush(): Unit }): Option[Throwable] = try { c.flush(); None } catch {
+  override def apply(c: AnyFlushable): Option[Throwable] = try { c.flush(); None } catch {
     case NonFatal(e) => Some(e)
   }
 }
