@@ -71,13 +71,13 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
 
-    reusableSf = if (index.serializedWithId) {
+    if (index.serializedWithId) {
       getId = (_) => reusableSf.getID
-      IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
     } else {
       val getIdFromRow = index.getIdFromRow(sft)
       getId = (row) => getIdFromRow(row.getBytes, 0, row.getLength)
-      IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
     }
 
     import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator._
