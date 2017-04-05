@@ -18,7 +18,6 @@ import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanTy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeature
-import org.slf4j.LoggerFactory
 
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
@@ -96,11 +95,9 @@ case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
                                        remoteFilters: Seq[HBaseFilter] = Nil,
                                        resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
 
-  val logger = LoggerFactory.getLogger(classOf[MultiRowRangeFilterScanPlan])
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
 
-    logger.trace("Setting up multipe range scans")
     val rowRanges = Lists.newArrayList[RowRange]()
     ranges.foreach { r =>
       rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
@@ -128,7 +125,6 @@ case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
     }
     // Apply Visibilities
     groupedScans.foreach(ds.applySecurity)
-    logger.trace("Starting scan")
     val results = new HBaseBatchScan(ds.connection, table, groupedScans, ds.config.queryThreads, 100000, Nil)
     SelfClosingIterator(resultsToFeatures(results), results.close)
   }
