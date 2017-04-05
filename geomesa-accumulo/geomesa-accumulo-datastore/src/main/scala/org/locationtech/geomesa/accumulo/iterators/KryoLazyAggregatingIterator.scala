@@ -16,9 +16,11 @@ import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -49,7 +51,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   private var currentRange: aRange = _
 
   private var reusableSf: KryoBufferSimpleFeature = _
-  private var reusableTransformSf: KryoBufferSimpleFeature = _
+  private var reusableTransformSf: TransformSimpleFeature = _
   private var getId: (Text) => String = _
   var hasTransform: Boolean = _
 
@@ -83,14 +85,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     val transform = Option(jOptions.get(TRANSFORM_DEFINITIONS_OPT))
     val transformSchema = Option(jOptions.get(TRANSFORM_SCHEMA_OPT))
     for { t <- transform; ts <- transformSchema } {
-      reusableSf.setTransforms(t, IteratorCache.sft(ts))
-
-      reusableTransformSf = if (index.serializedWithId) {
-        IteratorCache.serializer(ts, SerializationOptions.none).getReusableFeature
-      } else {
-        IteratorCache.serializer(ts, SerializationOptions.withoutId).getReusableFeature
-      }
-
+      reusableTransformSf = TransformSimpleFeature(IteratorCache.sft(spec), IteratorCache.sft(ts), t)
     }
     hasTransform = transform.isDefined
 
@@ -138,7 +133,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
 
         val sfToObserve =
           if (hasTransform) {
-            reusableTransformSf.setBuffer(sf.asInstanceOf[KryoBufferSimpleFeature].transform())
+            reusableTransformSf.setFeature(sf)
             reusableTransformSf
           } else {
             sf
