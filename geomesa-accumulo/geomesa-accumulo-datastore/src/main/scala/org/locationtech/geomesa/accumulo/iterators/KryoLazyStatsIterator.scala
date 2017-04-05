@@ -125,9 +125,8 @@ object KryoLazyStatsIterator extends LazyLogging {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val transform = hints.getTransform
     val serializer = transform match {
-      case Some((tdef, tsft)) =>
-        StatSerializer(tsft)
-      case None =>  StatSerializer(sft)
+      case Some((tdef, tsft)) => StatSerializer(tsft)
+      case None               => StatSerializer(sft)
     }
 
     val decodedStats = features.map { f =>

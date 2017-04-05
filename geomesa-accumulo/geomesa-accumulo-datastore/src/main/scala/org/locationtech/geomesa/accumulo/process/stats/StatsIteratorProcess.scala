@@ -75,8 +75,8 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
   import scala.collection.JavaConversions._
   val origSft = features.getSchema
 
-  lazy val transformSFT = QueryPlanner.queryToTransformSFT(origSft, properties)
-  lazy val transformSF: TransformSimpleFeature = TransformSimpleFeature(origSft, transformSFT, properties.mkString(","))
+  lazy val (transforms, transformSFT) = QueryPlanner.buildTransformSFT(origSft, properties)
+  lazy val transformSF: TransformSimpleFeature = TransformSimpleFeature(origSft, transformSFT, transforms)
 
   lazy val statSft = if (properties == null) {
     origSft
