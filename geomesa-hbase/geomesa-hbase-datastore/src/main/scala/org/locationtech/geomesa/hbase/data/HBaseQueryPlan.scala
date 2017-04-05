@@ -114,7 +114,6 @@ case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
     val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
 
     val groupedScans = groupedRanges.map { localRanges =>
-
       val mrrf = new MultiRowRangeFilter(localRanges)
       val filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, mrrf)
       remoteFilters.foreach { f => filterList.addFilter(f) }
@@ -127,6 +126,8 @@ case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
       s.setCacheBlocks(true)
       s
     }
+    // Apply Visibilities
+    groupedScans.foreach(ds.applySecurity)
     logger.trace("Starting scan")
     val results = new HBaseBatchScan(ds.connection, table, groupedScans, ds.config.queryThreads, 100000, Nil)
     SelfClosingIterator(resultsToFeatures(results), results.close)
