@@ -30,7 +30,7 @@ It is not necessary to restart Zeppelin.
 Data Plotting
 -------------
 
-Zeppelin provides built-in tools for visualizing quantitative data, which can be invoked by prepending "%table\n" to tab-separated output (see the `Zeppelin table display system`_). For example, the following method may be used to print a ``DataFrame`` via this display system:
+Zeppelin provides built-in tools for visualizing quantitative data, which can be invoked by prepending "%table\\n" to tab-separated output (see the `Zeppelin table display system`_). For example, the following method may be used to print a ``DataFrame`` via this display system:
 
 .. code-block:: scala
 
