@@ -13,7 +13,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.Query
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.filter.{FunctionExpressionImpl, MathExpressionImpl}
 import org.geotools.filter.expression.PropertyAccessors
 import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.process.vector.TransformProcess
@@ -240,6 +240,37 @@ object QueryPlanner extends LazyLogging {
     }
   }
 
+  def queryToTransformSFT(query: Query, sft: SimpleFeatureType): SimpleFeatureType = {
+    import scala.collection.JavaConversions._
+    val properties = query.getPropertyNames
+    query.setProperties(Query.ALL_PROPERTIES)
+
+    if (properties != null && properties.nonEmpty &&
+      properties.toSeq != sft.getAttributeDescriptors.map(_.getLocalName)) {
+      val (transformProps, regularProps) = properties.partition(_.contains('='))
+      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
+      val allTransforms = convertedRegularProps ++ transformProps
+      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
+      val geomTransform = {
+        val allGeoms = sft.getAttributeDescriptors.collect {
+          case d if classOf[Geometry].isAssignableFrom(d.getType.getBinding) => d.getLocalName
+        }
+        val geomMatches = for (t <- allTransforms.iterator; g <- allGeoms) yield { t.matches(s"$g\\s*=.*") }
+        if (geomMatches.contains(true)) { Nil } else {
+          Option(sft.getGeometryDescriptor).map(_.getLocalName).map(geom => s"$geom=$geom").toSeq
+        }
+      }
+      val transforms = (allTransforms ++ geomTransform).mkString(";")
+      val transformDefs = TransformProcess.toDefinition(transforms)
+      val derivedSchema = computeSchema(sft, transformDefs.asScala)
+
+      derivedSchema
+    } else {
+      sft
+    }
+
+  }
+
   private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
     import scala.collection.JavaConversions._
     val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
@@ -275,6 +306,12 @@ object QueryPlanner extends LazyLogging {
           } else {
             ab.buildDescriptor(name, ab.buildType())
           }
+        // Do math ops always return doubles?
+        case a: MathExpressionImpl =>
+          val ab = new AttributeTypeBuilder().binding(classOf[java.lang.Double])
+          ab.buildDescriptor(name, ab.buildType())
+
+        //TODO Add other classes here?
       }
     }
 
