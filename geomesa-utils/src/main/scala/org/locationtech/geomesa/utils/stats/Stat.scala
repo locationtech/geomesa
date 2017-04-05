@@ -253,7 +253,7 @@ object Stat {
     val toString: (Any) => String = if (classOf[Geometry].isAssignableFrom(clas)) {
       (v) => WKTUtils.write(v.asInstanceOf[Geometry])
     } else if (clas == classOf[Date]) {
-      (v) => GeoToolsDateFormat.print(v.asInstanceOf[Date].getTime)
+      (v) => GeoToolsDateFormat.format(v.asInstanceOf[Date].toInstant)
     } else {
       (v) => v.toString
     }
@@ -287,7 +287,7 @@ object Stat {
     } else if (classOf[Geometry].isAssignableFrom(clas)) {
       (s) => if (s == "null") null.asInstanceOf[T] else WKTUtils.read(s).asInstanceOf[T]
     } else if (clas == classOf[Date]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else GeoToolsDateFormat.parseDateTime(s).toDate.asInstanceOf[T]
+      (s) => if (s == "null") null.asInstanceOf[T] else java.util.Date.from(java.time.LocalDateTime.parse(s, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)).asInstanceOf[T]
     } else {
       throw new RuntimeException(s"Unexpected class binding for stat attribute: $clas")
     }

@@ -17,6 +17,26 @@ and untar it somewhere convenient:
     $ ls
     bin/  conf/  docs/  examples/  lib/  LICENSE.txt  logs/
 
+.. _hbase_deploy_distributed_runtime:
+
+Deploying the GeoMesa HBase distributed runtime jar
+---------------------------------------------------
+
+GeoMesa uses an HBase custom filter to improve processing of CQL queries.  In order to use the custom filter, you must
+deploy the distributed runtime jar to the HBase to the directory specified by the HBase configuration variable called
+``hbase.dynamic.jars.dir``.  This is set to ``${hbase.rootdir}/lib`` by default.  Copy the distribute runtime jar to
+this directory as follows:
+
+.. code-block:: bash
+
+    $ hadoop fs -cp ${GEOMESA_HOME}/dist/geomesa-hbase-distributed-runtime-$VERSION.jar ${hbase.dynamic.jars.dir}/
+
+If running on top of Amazon S3, you will need to use the ``aws s3`` command line tool.
+
+.. code-block:: bash
+
+    $ aws s3 cp ${GEOMESA_HOME}/dist/geomesa-hbase-distributed-runtime-$VERSION.jar s3://${hbase.dynamic.jars.dir}/
+
 .. _hbase_install_source:
 
 Building from Source

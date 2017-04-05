@@ -28,7 +28,7 @@ class Z3FrequencyTest extends Specification with StatTestHelper {
 
   def createStat(observe: Boolean = true): Z3Frequency = createStat(25, observe)
 
-  def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
+  def toDate(string: String) = java.util.Date.from(java.time.LocalDateTime.parse(string, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
   def toGeom(string: String) = WKTUtils.read(string)
 
   "FrequencyZ3 stat" should {

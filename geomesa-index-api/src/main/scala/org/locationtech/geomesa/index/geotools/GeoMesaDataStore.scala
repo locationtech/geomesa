@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.geotools
 
 import java.io.IOException
 import java.nio.charset.StandardCharsets
+import java.time.{Instant, ZoneOffset}
 import java.util.concurrent.atomic.AtomicLong
 import java.util.{List => jList}
 
@@ -17,7 +18,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
-import org.joda.time.DateTimeUtils
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
@@ -511,7 +511,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
     // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
     val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-    val statDateValue     = GeoToolsDateFormat.print(DateTimeUtils.currentTimeMillis())
+    val statDateValue     = GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
 
     // store each metadata in the associated key
     val metadataMap = Map(

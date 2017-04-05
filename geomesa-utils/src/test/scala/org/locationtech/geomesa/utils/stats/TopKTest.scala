@@ -204,7 +204,7 @@ class TopKTest extends Specification {
 
     "work with dates" >> {
 
-      def toDate(year: Int) = GeoToolsDateFormat.parseDateTime(f"2$year%03d-01-01T00:00:00.000Z").toDate
+      def toDate(year: Int) = java.util.Date.from(java.time.LocalDateTime.parse(f"2$year%03d-01-01T00:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
 
       "correctly calculate values"  >> {
         val stat = dateStat
