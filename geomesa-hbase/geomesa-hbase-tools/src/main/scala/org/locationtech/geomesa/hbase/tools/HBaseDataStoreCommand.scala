@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.hbase.tools
 
-import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreFactory}
+import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreParams}
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand}
 
 /**
@@ -19,5 +19,5 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
   override def params: CatalogParam
 
   override def connection: Map[String, String] =
-    Map(HBaseDataStoreFactory.Params.BigTableNameParam.getName -> params.catalog)
+    Map(HBaseDataStoreParams.BigTableNameParam.getName -> params.catalog)
 }

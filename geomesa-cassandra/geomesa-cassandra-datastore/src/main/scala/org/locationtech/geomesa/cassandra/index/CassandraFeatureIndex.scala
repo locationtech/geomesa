@@ -61,7 +61,7 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType
       val create = s"CREATE TABLE $tableName (${columns.map(c => s"${c.name} ${c.cType}").mkString(", ")}, sf blob, " +
           s"PRIMARY KEY (${partitions.map(_.name).mkString("(", ", ", ")")}" +
           s"${if (pks.nonEmpty) { pks.map(_.name).mkString(", ", ", ", "")} else { "" }}))"
-      logger.debug(create)
+      logger.info(create)
       ds.session.execute(create)
     }
   }
@@ -71,7 +71,9 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType
       throw new NotImplementedError() // TODO
     } else {
       val tableName = getTableName(sft.getTypeName, ds)
-      ds.session.execute(s"drop table $tableName")
+      val delete = s"drop table if exists $tableName"
+      logger.info(delete)
+      ds.session.execute(delete)
     }
   }
 

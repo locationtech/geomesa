@@ -1,5 +1,6 @@
 /***********************************************************************
 * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Portions Crown Copyright (c) 2017 Dstl
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -85,9 +86,15 @@ object AccumuloRunner extends Runner {
 
     val params = Option(command.params)
 
+    // Error if both password and keytab supplied
     params.collect {
-      case p: RequiredCredentialsParams if p.password == null => p
-      case p: OptionalCredentialsParams if p.password == null && p.user != null => p
+      case p: AccumuloConnectionParams if (p.password != null && p.keytab != null)
+        => throw new com.beust.jcommander.ParameterException("Cannot specify both password and keytab")
+    }
+
+    // If password not supplied, and not using keytab, prompt for it
+    params.collect {
+      case p: AccumuloConnectionParams if (p.password == null && p.keytab == null) => p
     }.foreach(_.password = Prompt.readPassword())
 
     params.collect { case p: InstanceNameParams => p }.foreach { p =>

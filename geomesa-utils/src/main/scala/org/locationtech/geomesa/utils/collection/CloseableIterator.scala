@@ -134,8 +134,13 @@ private [collection] final class ConcatCloseableIterator[+A](queue: scala.collec
     queue.clear()
   }
 
-  override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] =
-    new ConcatCloseableIterator(queue.+:(() => current).:+(() => CloseableIterator(that.toIterator)))
+  override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] = {
+    lazy val applied = that match {
+      case c: CloseableIterator[B] => c
+      case c => CloseableIterator(c.toIterator)
+    }
+    new ConcatCloseableIterator(queue.+:(() => current).:+(() => applied))
+  }
 }
 
 // By 'self-closing', we mean that the iterator will automatically call close once it is completely exhausted.

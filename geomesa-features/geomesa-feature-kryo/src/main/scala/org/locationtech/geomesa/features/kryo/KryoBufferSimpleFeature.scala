@@ -18,6 +18,7 @@ import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption._
 import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -41,13 +42,13 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   private var startOfOffsets: Int = -1
   private var missingAttributes: Boolean = false
   private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
-  private var userData: jMap[AnyRef, AnyRef] = null
+  private var userData: jMap[AnyRef, AnyRef] = _
   private var userDataOffset: Int = -1
 
   private var id: String = ""
 
-  private var transforms: String = null
-  private var transformSchema: SimpleFeatureType = null
+  private var transforms: String = _
+  private var transformSchema: SimpleFeatureType = _
   private var binaryTransform: () => Array[Byte] = input.getBuffer
   private var reserializeTransform: () => Array[Byte] = input.getBuffer
 
@@ -123,7 +124,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
       val serializer = new KryoFeatureSerializer(transformSchema, options)
       val sf = new ScalaSimpleFeature("", transformSchema)
       () => {
-        sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getID)
+        sf.setId(getID)
         var i = 0
         while (i < tdefs.size) {
           sf.setAttribute(i, tdefs(i).expression.evaluate(this))
@@ -210,7 +211,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   override def getFeatureType: SimpleFeatureType = sft
   override def getName: Name = sft.getName
 
-  override def getIdentifier: FeatureId = new FeatureIdImpl(getID)
+  override def getIdentifier: FeatureId = new ImmutableFeatureId(getID)
   override def getID: String = {
     if (options.withoutId) { id } else {
       input.setPosition(5)

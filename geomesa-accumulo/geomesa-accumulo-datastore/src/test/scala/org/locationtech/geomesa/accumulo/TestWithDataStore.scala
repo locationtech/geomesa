@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo
 
-import org.apache.accumulo.core.client.Scanner
+import org.apache.accumulo.core.client.{Connector, Scanner}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Key
@@ -41,20 +41,24 @@ trait TestWithDataStore extends Specification {
   def tableSharing: Boolean = true
 
   // we use class name to prevent spillage between unit tests in the mock connector
-  lazy val sftName = getClass.getSimpleName
+  lazy val sftName: String = getClass.getSimpleName
 
   val EmptyUserAuthorizations = new Authorizations()
+  val EmptyUserAuthSeq = Seq.empty[String]
 
   val MockUserAuthorizationsString = "A,B,C"
   val MockUserAuthorizations = new Authorizations(
     MockUserAuthorizationsString.split(",").map(_.getBytes()).toList.asJava
   )
+  val MockUserAuthSeq = Seq("A", "B", "C")
+
 
   lazy val mockInstanceId = "mycloud"
+  lazy val mockZookeepers = "myzoo"
   lazy val mockUser = "user"
   lazy val mockPassword = "password"
   // assign some default authorizations to this mock user
-  lazy val connector = {
+  lazy val connector: Connector = {
     val mockInstance = new MockInstance(mockInstanceId)
     val mockConnector = mockInstance.getConnector(mockUser, new PasswordToken(mockPassword))
     mockConnector.securityOperations().changeUserAuthorizations(mockUser, MockUserAuthorizations)

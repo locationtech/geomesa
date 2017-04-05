@@ -15,7 +15,7 @@ import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
@@ -35,6 +35,7 @@ object HBaseQueryPlan {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
     explainer(s"Table: ${Option(plan.table).orNull}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
+    explainer(s"Remote Filters (${plan.remoteFilters.size}):", plan.remoteFilters.map(_.toString))
     explainer.popLevel()
   }
 
@@ -61,6 +62,7 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
                     remoteFilters: Seq[HBaseFilter] = Nil,
                     resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    ranges.foreach(ds.applySecurity)
     val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
     SelfClosingIterator(resultsToFeatures(results), results.close)
   }
@@ -75,7 +77,10 @@ case class GetPlan(filter: HBaseFilterStrategyType,
     import scala.collection.JavaConversions._
     val filterList = new FilterList()
     remoteFilters.foreach { filter => filterList.addFilter(filter) }
-    ranges.foreach { range => range.setFilter(filterList) }
+    ranges.foreach { range =>
+      range.setFilter(filterList)
+      ds.applySecurity(range)
+    }
     val get = ds.connection.getTable(table)
     SelfClosingIterator(resultsToFeatures(get.get(ranges).iterator), get.close)
   }

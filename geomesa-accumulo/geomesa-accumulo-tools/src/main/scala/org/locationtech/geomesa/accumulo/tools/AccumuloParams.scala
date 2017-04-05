@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.tools
 
 import com.beust.jcommander.Parameter
-import org.locationtech.geomesa.tools.{CatalogParam, RequiredCredentialsParams}
+import org.locationtech.geomesa.tools.{CatalogParam, KerberosParams, RequiredCredentialsParams}
 
 /**
   * Shared Accumulo-specific command line parameters
@@ -25,7 +25,7 @@ trait InstanceNameParams extends OptionalZookeepersParam {
   var mock: Boolean = false
 }
 
-trait AccumuloConnectionParams extends InstanceNameParams with RequiredCredentialsParams {
+trait AccumuloConnectionParams extends InstanceNameParams with RequiredCredentialsParams with KerberosParams {
   @Parameter(names = Array("--auths"), description = "Accumulo authorizations")
   var auths: String = null
 

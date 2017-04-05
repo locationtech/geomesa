@@ -32,6 +32,12 @@
             <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
         </dependency>
 
+        <!-- distributed runtime -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-distributed-runtime_${scala.binary.version}</artifactId>
+        </dependency>
+
         <!-- GeoServer Plugins -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -78,6 +84,12 @@
             <artifactId>slf4j-log4j12</artifactId>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-opengis</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

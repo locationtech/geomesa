@@ -58,8 +58,8 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
 
   implicit val formats: Formats = DefaultFormats
 
-  val dsParams = Map("instanceId" -> "GeoMesaDataStoreServletTest", "user" -> "root", "password" -> "",
-    "tableName" -> "GeoMesaDataStoreServlet", "useMock" -> "true")
+  val dsParams = Map("instanceId" -> "GeoMesaDataStoreServletTest", "zookeepers" -> "zoo", "user" -> "root",
+    "password" -> "", "tableName" -> "GeoMesaDataStoreServlet", "useMock" -> "true")
 
   val jsonParams =
     dsParams.filterKeys(_ != "password").map { case (k, v) => s""""$k":"$v"""" } ++ Seq(""""password":"***"""")

@@ -379,6 +379,7 @@
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-compiler</artifactId>
                 <version>${scala.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
@@ -1531,6 +1532,11 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-hbase-distributed-runtime_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-bigtable-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1733,6 +1739,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-security_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-security_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2523,6 +2534,10 @@
                             <validHeader>build/copyright/ccri-2016.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
+                            <validHeader>build/copyright/dstl-copyright.txt</validHeader>
+                            <validHeader>build/copyright/dstl-copyright-2017.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-copyright.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-copyright-2017.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>2017</year>

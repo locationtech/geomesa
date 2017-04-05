@@ -9,10 +9,10 @@
 
 package org.locationtech.geomesa.hbase.index
 
+import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HBaseFilter}
 import org.apache.hadoop.hbase.util.Bytes
-import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
@@ -50,7 +50,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
-    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
+  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
@@ -77,14 +77,19 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     if (shared) {
       val table = ds.connection.getTable(TableName.valueOf(getTableName(sft.getTypeName, ds)))
       try {
-        val scan = table.getScanner(new Scan().setRowPrefixFilter(sft.getTableSharingBytes).setFilter(new KeyOnlyFilter))
+        val scan = new Scan()
+          .setRowPrefixFilter(sft.getTableSharingBytes)
+          .setFilter(new KeyOnlyFilter)
+        ds.applySecurity(scan)
+        val scanner = table.getScanner(scan)
         try {
-          scan.iterator.grouped(10000).foreach { result =>
+          scanner.iterator.grouped(10000).foreach { result =>
+            // TODO set delete visibilities
             val deletes = result.map(r => new Delete(r.getRow))
             table.delete(deletes)
           }
         } finally {
-          scan.close()
+          scanner.close()
         }
       } finally {
         table.close()
@@ -101,11 +106,17 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     }
   }
 
-  override protected def createInsert(row: Array[Byte], feature: HBaseFeature): Mutation =
-    new Put(row).addImmutable(feature.fullValue.cf, feature.fullValue.cq, feature.fullValue.value)
+  override protected def createInsert(row: Array[Byte], feature: HBaseFeature): Mutation = {
+    val put = new Put(row).addImmutable(feature.fullValue.cf, feature.fullValue.cq, feature.fullValue.value)
+    feature.fullValue.vis.foreach(put.setCellVisibility)
+    put
+  }
 
-  override protected def createDelete(row: Array[Byte], feature: HBaseFeature): Mutation =
-    new Delete(row).addFamily(feature.fullValue.cf)
+  override protected def createDelete(row: Array[Byte], feature: HBaseFeature): Mutation = {
+    val del = new Delete(row).addFamily(feature.fullValue.cf)
+    feature.fullValue.vis.foreach(del.setCellVisibility)
+    del
+  }
 
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: HBaseDataStore,
@@ -116,7 +127,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe)
+      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
 
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
@@ -171,15 +182,20 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                            filter: HBaseFilterStrategyType,
                            hints: Hints,
                            ecql: Option[Filter],
-                           dedupe: Boolean): ScanConfig = {
+                           dedupe: Boolean,
+                           remote: Boolean): ScanConfig = {
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      val toFeatures = resultsToFeatures(sft, None, hints.getTransform)
-      val remoteFilters = ecql.map { filter =>
+      val transform = hints.getTransform // will eventually be used to support remote transforms 
+      val feature = sft // will eventually be used to support remote transforms 
+      val query = if (remote) { None } else { ecql }
+      val toFeatures = resultsToFeatures(feature, query, transform)
+      val remoteFilters = if (remote) { ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
-      }.toSeq
+      }.toSeq } else { Nil }
       ScanConfig(remoteFilters, toFeatures)
   }
+
 }
