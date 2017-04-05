@@ -18,6 +18,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats._
@@ -68,7 +69,7 @@ object KryoLazyStatsIterator extends LazyLogging {
     KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     is.addOption(STATS_STRING_KEY, hints.get(STATS_STRING).asInstanceOf[String])
 
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
 
     val transform = hints.getTransform
     transform.foreach { case (tdef, tsft) =>
@@ -122,7 +123,6 @@ object KryoLazyStatsIterator extends LazyLogging {
    */
   def reduceFeatures(sft: SimpleFeatureType, hints: Hints)
                     (features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val transform = hints.getTransform
     val serializer = transform match {
       case Some((tdef, tsft)) => StatSerializer(tsft)

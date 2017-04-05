@@ -35,8 +35,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.PropertyName
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
  * Plans and executes queries against geomesa
@@ -250,7 +250,6 @@ object QueryPlanner extends LazyLogging {
   }
 
   private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
-    import scala.collection.JavaConversions._
     val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
       val name = definition.name
       val cql  = definition.expression
@@ -288,8 +287,7 @@ object QueryPlanner extends LazyLogging {
         case a: MathExpressionImpl =>
           val ab = new AttributeTypeBuilder().binding(classOf[java.lang.Double])
           ab.buildDescriptor(name, ab.buildType())
-
-        //TODO Add other classes here?
+        // TODO: Add support for LiteralExpressionImpl and/or ClassificationFunction?
       }
     }
 
