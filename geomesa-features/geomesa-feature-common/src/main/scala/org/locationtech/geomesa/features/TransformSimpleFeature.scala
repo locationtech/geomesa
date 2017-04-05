@@ -11,9 +11,14 @@ package org.locationtech.geomesa.features
 import java.util.{Collection => jCollection, List => jList, Map => jMap}
 
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.feature.AttributeTypeBuilder
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.filter.{FunctionExpressionImpl, MathExpressionImpl}
+import org.geotools.filter.expression.PropertyAccessors
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
-import org.opengis.feature.`type`.Name
+import org.geotools.process.vector.TransformProcess.Definition
+import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.expression.{Expression, PropertyName}
@@ -97,16 +102,114 @@ class TransformSimpleFeature(transformSchema: SimpleFeatureType,
 object TransformSimpleFeature {
 
   import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   def apply(sft: SimpleFeatureType, transformSchema: SimpleFeatureType, transforms: String): TransformSimpleFeature = {
     val a = attributes(sft, transformSchema, transforms)
     new TransformSimpleFeature(transformSchema, a)
   }
 
+  def apply(sft: SimpleFeatureType, properties: Seq[String]): TransformSimpleFeature = {
+
+    val (transformSft, transforms) = queryToTransformSFT(sft, properties)
+
+    TransformSimpleFeature(sft, transformSft, transforms)
+  }
+
   def attributes(sft: SimpleFeatureType,
                  transformSchema: SimpleFeatureType,
                  transforms: String): Array[(SimpleFeature) => AnyRef] = {
     TransformProcess.toDefinition(transforms).map(attribute(sft, _)).toArray
+  }
+
+  def queryToTransformSFT(sft: SimpleFeatureType, properties: Seq[String]): (SimpleFeatureType, String) = {
+    import scala.collection.JavaConversions._
+
+    if (properties != null && properties.nonEmpty &&
+      properties != sft.getAttributeDescriptors.map(_.getLocalName)) {
+      val (transformProps, regularProps) = properties.partition(_.contains('='))
+      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
+      val allTransforms = convertedRegularProps ++ transformProps
+      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
+      val geomTransform = {
+        val allGeoms = sft.getAttributeDescriptors.collect {
+          case d if classOf[Geometry].isAssignableFrom(d.getType.getBinding) => d.getLocalName
+        }
+        val geomMatches = for (t <- allTransforms.iterator; g <- allGeoms) yield { t.matches(s"$g\\s*=.*") }
+        if (geomMatches.contains(true)) { Nil } else {
+          Option(sft.getGeometryDescriptor).map(_.getLocalName).map(geom => s"$geom=$geom").toSeq
+        }
+      }
+      val transforms = (allTransforms ++ geomTransform).mkString(";")
+      val transformDefs = TransformProcess.toDefinition(transforms)
+      val derivedSchema = computeSchema(sft, transformDefs.asScala)
+
+      (derivedSchema, transforms)
+    } else {
+      (sft, "")
+    }
+
+  }
+
+  private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
+    import scala.collection.JavaConversions._
+    val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
+      val name = definition.name
+      val cql  = definition.expression
+      cql match {
+        case p: PropertyName =>
+          val prop = p.getPropertyName
+          if (origSFT.getAttributeDescriptors.exists(_.getLocalName == prop)) {
+            val origAttr = origSFT.getDescriptor(prop)
+            val ab = new AttributeTypeBuilder()
+            ab.init(origAttr)
+            val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
+              ab.buildDescriptor(name, ab.buildGeometryType())
+            } else {
+              ab.buildDescriptor(name, ab.buildType())
+            }
+            descriptor.getUserData.putAll(origAttr.getUserData)
+            descriptor
+          } else if (PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature("", origSFT), prop, null, null).nonEmpty) {
+            // note: we return String as we have to use a concrete type, but the json might return anything
+            val ab = new AttributeTypeBuilder().binding(classOf[String])
+            ab.buildDescriptor(name, ab.buildType())
+          } else {
+            throw new IllegalArgumentException(s"Attribute '$prop' does not exist in SFT '${origSFT.getTypeName}'.")
+          }
+
+        case f: FunctionExpressionImpl  =>
+          val clazz = f.getFunctionName.getReturn.getType
+          val ab = new AttributeTypeBuilder().binding(clazz)
+          if (classOf[Geometry].isAssignableFrom(clazz)) {
+            ab.buildDescriptor(name, ab.buildGeometryType())
+          } else {
+            ab.buildDescriptor(name, ab.buildType())
+          }
+        // Do math ops always return doubles?
+        case a: MathExpressionImpl =>
+          val ab = new AttributeTypeBuilder().binding(classOf[java.lang.Double])
+          ab.buildDescriptor(name, ab.buildType())
+
+        //TODO Add other classes here?
+      }
+    }
+
+    val geomAttributes = descriptors.filter(_.isInstanceOf[GeometryDescriptor]).map(_.getLocalName)
+    val sftBuilder = new SimpleFeatureTypeBuilder()
+    sftBuilder.setName(origSFT.getName)
+    sftBuilder.addAll(descriptors.toArray)
+    if (geomAttributes.nonEmpty) {
+      val defaultGeom = if (geomAttributes.size == 1) { geomAttributes.head } else {
+        // try to find a geom with the same name as the original default geom
+        val origDefaultGeom = origSFT.getGeometryDescriptor.getLocalName
+        geomAttributes.find(_ == origDefaultGeom).getOrElse(geomAttributes.head)
+      }
+      sftBuilder.setDefaultGeometry(defaultGeom)
+    }
+    val schema = sftBuilder.buildFeatureType()
+    schema.getUserData.putAll(origSFT.getUserData)
+    schema
   }
 
   private def attribute(sft: SimpleFeatureType, d: TransformProcess.Definition): (SimpleFeature) => AnyRef = {

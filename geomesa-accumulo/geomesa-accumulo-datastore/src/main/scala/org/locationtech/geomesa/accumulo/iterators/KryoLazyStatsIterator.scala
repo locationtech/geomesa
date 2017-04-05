@@ -16,6 +16,7 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.commons.codec.binary.Base64
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
@@ -36,8 +37,10 @@ class KryoLazyStatsIterator extends KryoLazyAggregatingIterator[Stat] {
 
   override def init(options: Map[String, String]): Stat = {
     sft = IteratorCache.sft(options(KryoLazyAggregatingIterator.SFT_OPT))
-    serializer = StatSerializer(sft)
-    Stat(sft, options(STATS_STRING_KEY))
+    val transformSchema = options.get(TRANSFORM_SCHEMA_OPT).map(IteratorCache.sft).getOrElse(sft)
+    serializer = StatSerializer(transformSchema)
+
+    Stat(transformSchema, options(STATS_STRING_KEY))
   }
 
   override def aggregateResult(sf: SimpleFeature, result: Stat): Unit = result.observe(sf)
@@ -64,6 +67,15 @@ object KryoLazyStatsIterator extends LazyLogging {
     val is = new IteratorSetting(priority, "stats-iter", classOf[KryoLazyStatsIterator])
     KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     is.addOption(STATS_STRING_KEY, hints.get(STATS_STRING).asInstanceOf[String])
+
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+    val transform = hints.getTransform
+    transform.foreach { case (tdef, tsft) =>
+      is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
+      is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
+    }
+
     is
   }
 
@@ -110,7 +122,13 @@ object KryoLazyStatsIterator extends LazyLogging {
    */
   def reduceFeatures(sft: SimpleFeatureType, hints: Hints)
                     (features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-    val serializer = StatSerializer(sft)
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+    val transform = hints.getTransform
+    val serializer = transform match {
+      case Some((tdef, tsft)) =>
+        StatSerializer(tsft)
+      case None =>  StatSerializer(sft)
+    }
 
     val decodedStats = features.map { f =>
       serializer.deserialize(Base64.decodeBase64(f.getAttribute(0).toString))

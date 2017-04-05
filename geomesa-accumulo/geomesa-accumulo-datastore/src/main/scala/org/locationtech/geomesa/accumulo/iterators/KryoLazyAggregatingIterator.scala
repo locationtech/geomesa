@@ -49,7 +49,9 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   private var currentRange: aRange = _
 
   private var reusableSf: KryoBufferSimpleFeature = _
+  private var reusableTransformSf: KryoBufferSimpleFeature = _
   private var getId: (Text) => String = _
+  var hasTransform: Boolean = _
 
   // server-side deduplication - not 100% effective, but we can't dedupe client side as we don't send ids
   private val idsSeen = scala.collection.mutable.HashSet.empty[String]
@@ -63,18 +65,36 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
 
     val spec = options(SFT_OPT)
     sft = IteratorCache.sft(spec)
+
     index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
 
-    if (index.serializedWithId) {
+    reusableSf = if (index.serializedWithId) {
       getId = (_) => reusableSf.getID
-      reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
+      IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
     } else {
       val getIdFromRow = index.getIdFromRow(sft)
       getId = (row) => getIdFromRow(row.getBytes, 0, row.getLength)
-      reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
+      IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
     }
+
+    import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator._
+    val transform = Option(jOptions.get(TRANSFORM_DEFINITIONS_OPT))
+    val transformSchema = Option(jOptions.get(TRANSFORM_SCHEMA_OPT))
+    for { t <- transform; ts <- transformSchema } {
+      reusableSf.setTransforms(t, IteratorCache.sft(ts))
+
+      reusableTransformSf = if (index.serializedWithId) {
+        IteratorCache.serializer(ts, SerializationOptions.none).getReusableFeature
+      } else {
+        IteratorCache.serializer(ts, SerializationOptions.withoutId).getReusableFeature
+      }
+
+    }
+    hasTransform = transform.isDefined
+
+
     val filt = options.get(CQL_OPT).map(IteratorCache.filter(spec, _)).orNull
     val dedupe = options.get(DUPE_OPT).exists(_.toBoolean)
     maxIdsToTrack = options.get(MAX_DUPE_OPT).map(_.toInt).getOrElse(99999)
@@ -115,7 +135,16 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
       val sf = decode(source.getTopValue.get())
       if (validate(sf)) {
         topKey = source.getTopKey
-        aggregateResult(sf, result) // write the record to our aggregated results
+
+        val sfToObserve =
+          if (hasTransform) {
+            reusableTransformSf.setBuffer(sf.asInstanceOf[KryoBufferSimpleFeature].transform())
+            reusableTransformSf
+          } else {
+            sf
+          }
+
+        aggregateResult(sfToObserve, result) // write the record to our aggregated results
       }
       source.next() // Advance the source iterator
     }
