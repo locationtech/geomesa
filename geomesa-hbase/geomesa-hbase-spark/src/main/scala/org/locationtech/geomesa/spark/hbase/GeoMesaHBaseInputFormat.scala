@@ -16,6 +16,7 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
+import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.process.vector.TransformProcess
@@ -42,6 +43,10 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
     HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
+    conf.set("hadoop.security.authentication", "Kerberos")
+    UserGroupInformation.setConfiguration(conf)
+    UserGroupInformation.loginUserFromKeytab("hbase/devbox.t-mobile.at", "/etc/security/keytabs/hbase.service.keytab")
+
     conf.set(TableInputFormat.INPUT_TABLE, GeoMesaConfigurator.getTable(conf))
   }
 
