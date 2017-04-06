@@ -8,18 +8,14 @@
 
 package org.locationtech.geomesa.hbase.filters;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.exceptions.DeserializationException;
 import org.apache.hadoop.hbase.filter.FilterBase;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature;
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer;
+import org.locationtech.geomesa.index.iterators.IteratorCache;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
@@ -29,71 +25,56 @@ import java.io.IOException;
 
 public class JSimpleFeatureFilter extends FilterBase {
     private String sftString;
-    private SimpleFeatureType sft;
+    protected SimpleFeatureType sft;
 
-    private org.opengis.filter.Filter filter;
+    protected org.opengis.filter.Filter filter;
     private String filterString;
-    private KryoBufferSimpleFeature reusable;
-
-    private static Logger log = LoggerFactory.getLogger(JSimpleFeatureFilter.class);
-
-    private static LoadingCache<String, SimpleFeatureType> sfts =
-            CacheBuilder.newBuilder().build(new CacheLoader<String, SimpleFeatureType>() {
-                @Override
-                public SimpleFeatureType load(String s) throws Exception {
-                    log.debug("Caching a new SFT: {}", s);
-                    return SimpleFeatureTypes.createType("", s);
-                }
-            });
-
-    private static LoadingCache<SimpleFeatureType, KryoFeatureSerializer> serializers =
-            CacheBuilder.newBuilder().build(new CacheLoader<SimpleFeatureType, KryoFeatureSerializer>() {
-                @Override
-                public KryoFeatureSerializer load(SimpleFeatureType key) throws Exception {
-                    return new KryoFeatureSerializer(key, SerializationOptions.withoutId());
-                }
-            });
-
 
     public JSimpleFeatureFilter(String sftString, String filterString) throws Exception {
-        log.debug("Instantiating new JSimpleFeatureFilter, sftString = {}, filterString = {}", sftString, filterString);
         this.sftString = sftString;
-        sft = sfts.getUnchecked(sftString);
-
         this.filterString = filterString;
-        if (filterString != null && filterString != "") {
-            try {
-                this.filter = ECQL.toFilter(this.filterString);
-            } catch (CQLException e) {
-                throw new IllegalArgumentException(e);
-            }
+    }
+
+    private static abstract class AbstractFilter extends FilterBase {
+        protected SimpleFeatureType sft;
+        protected org.opengis.filter.Filter filter;
+        static Logger log = LoggerFactory.getLogger(JSimpleFeatureFilter.class);
+
+        AbstractFilter(String sftString, String filterString) {
+            log.debug("Instantiating new JSimpleFeatureFilter, sftString = {}, filterString = {}", sftString, filterString);
+            sft = IteratorCache.sft(sftString);
+            this.filter = IteratorCache.filter(sftString, filterString);
         }
-        reusable = serializers.get(sft).getReusableFeature();
+
+
+        @Override
+        public Cell transformCell(Cell v) throws IOException {
+            return v;
+        }
     }
 
-    public JSimpleFeatureFilter(SimpleFeatureType sft, org.opengis.filter.Filter filter) {
-        this.sft = sft;
-        this.filter = filter;
-        this.sftString = SimpleFeatureTypes.encodeType(sft, true);
-        this.filterString = ECQL.toCQL(filter);
-    }
+    private static class IncludeFilter extends AbstractFilter {
+        IncludeFilter(String sftString, String filter) {
+            super(sftString, filter);
+        }
 
-    @Override
-    public ReturnCode filterKeyValue(Cell v) throws IOException {
-        if (filter == null) {
+        @Override
+        public ReturnCode filterKeyValue(Cell v) throws IOException {
             return ReturnCode.INCLUDE;
-        } else {
+        }
+    }
+
+    private static class CQLFilter extends AbstractFilter {
+        KryoBufferSimpleFeature reusable;
+        CQLFilter(String sftString, String filter) {
+            super(sftString, filter);
+            reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
+        }
+
+        @Override
+        public ReturnCode filterKeyValue(Cell v) throws IOException {
             try {
                 log.trace("cell = {}", v);
-                byte[] valueBytes = v.getValueArray();
-                int valueOffset = v.getValueOffset();
-                int valueLength = v.getValueLength();
-                log.trace("valueBytes.length = {}, valueOffset = {}, valueLength = {}, column = {}",
-                        valueBytes.length,
-                        valueOffset,
-                        valueLength,
-                        Bytes.toString(v.getFamilyArray(), v.getFamilyOffset(), v.getFamilyLength())
-                );
                 reusable.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
                 log.trace("Evaluating filter against SimpleFeature");
                 if (filter.evaluate(reusable)) {
@@ -108,9 +89,16 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
+    public JSimpleFeatureFilter(SimpleFeatureType sft, org.opengis.filter.Filter filter) {
+        this.sft = sft;
+        this.filter = filter;
+        this.sftString = SimpleFeatureTypes.encodeType(sft, true);
+        this.filterString = ECQL.toCQL(filter);
+    }
+
     @Override
-    public Cell transformCell(Cell v) throws IOException {
-        return v;
+    public ReturnCode filterKeyValue(Cell v) throws IOException {
+        return ReturnCode.INCLUDE;
     }
 
     // TODO: Add static method to compute byte array from SFT and Filter.
@@ -144,7 +132,11 @@ public class JSimpleFeatureFilter extends FilterBase {
         String filterString = new String(Bytes.copy(pbBytes, sftLen + 8, filterLen));
 
         try {
-            return new JSimpleFeatureFilter(sftString, filterString);
+            if("".equals(filterString)) {
+                return new IncludeFilter(sftString, filterString);
+            } else {
+                return new CQLFilter(sftString, filterString);
+            }
         } catch (Exception e) {
             throw new DeserializationException(e);
         }
