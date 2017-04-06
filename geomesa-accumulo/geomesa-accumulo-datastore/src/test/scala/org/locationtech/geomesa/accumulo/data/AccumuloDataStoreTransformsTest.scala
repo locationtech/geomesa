@@ -12,7 +12,9 @@ import java.util.Date
 
 import com.vividsolutions.jts.geom.Point
 import org.geotools.data._
-import org.geotools.factory.CommonFactoryFinder
+import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
@@ -35,6 +37,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
   val spec  = "name:String,dtg:Date,*geom:Point:srid=4326"
   val spec2 = "name:String,attr:String,dtg:Date,*geom:Point:srid=4326"
+  val spec3 = "name:String,dtg:Date,*geom:Point:srid=4326,men:Integer,women:Integer,children:Integer"
 
   val name = "myname"
   val date = Converters.convert("2012-01-01T00:00:00.000Z", classOf[Date])
@@ -46,6 +49,8 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
     Seq(new ScalaSimpleFeature("fid-1", sft, Array(name, date, geom)))
   def createFeature2(sft: SimpleFeatureType, attr: String) =
     Seq(new ScalaSimpleFeature("fid-1", sft, Array(name, attr, date, geom)))
+  def createFeature3(sft: SimpleFeatureType) =
+    Seq(new ScalaSimpleFeature("fid-1", sft, Array(name, date, geom, new Integer(1680), new Integer(434), new Integer(112))))
 
   "AccumuloDataStore" should {
 
@@ -93,7 +98,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val results = features.toList
 
         "return exactly one result" >> {
-          results.size  must equalTo(1)
+          results.size must equalTo(1)
         }
         "with correct fields" >> {
           results.head.getID mustEqual "fid-1"
@@ -175,7 +180,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
     "transform index value data correctly" in {
       val sft = createNewSchema("trackId:String:index-value=true,label:String:index-value=true," +
-          "extraValue:String,score:Double:index-value=true,dtg:Date,geom:Point:srid=4326")
+        "extraValue:String,score:Double:index-value=true,dtg:Date,geom:Point:srid=4326")
       val sftName = sft.getTypeName
 
       val baseDate = Converters.convert("2014-01-01T00:00:00.000Z", classOf[Date]).getTime
@@ -202,7 +207,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
           features(i).getID mustEqual s"f$i"
           features(i).getAttributeCount mustEqual 3
           features(i).getAttribute("label") mustEqual s"label$i"
-          features(i).getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseDate + i * 60 *60 * 1000
+          features(i).getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseDate + i * 60 * 60 * 1000
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
@@ -216,7 +221,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         (0 until 5).foreach { i =>
           features(i).getID mustEqual s"f$i"
           features(i).getAttributeCount mustEqual 2
-          features(i).getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseDate + i * 60 *60 * 1000
+          features(i).getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseDate + i * 60 * 60 * 1000
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
@@ -234,7 +239,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
           features(i).getAttribute("label") mustEqual s"label$i"
           features(i).getAttribute("trackId") mustEqual s"trk$i"
           features(i).getAttribute("score") mustEqual i.toDouble
-          features(i).getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseDate + i * 60 *60 * 1000
+          features(i).getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseDate + i * 60 * 60 * 1000
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
@@ -290,6 +295,39 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         features.map(_.getAttribute("geom3")) must containTheSameElementsAs(reference.map(_.getAttribute("geom")))
         features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
       }.pendingUntilFixed("Can't detect transform types")
+    }
+
+    "do basic arithmetic" >> {
+      val sft = createNewSchema(spec3)
+      val sftName = sft.getTypeName
+
+      val features = createFeature3(sft)
+      val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
+      features.foreach { f =>
+        f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        featureCollection.add(f)
+      }
+
+      ds.getFeatureSource(sft.getTypeName).addFeatures(featureCollection)
+
+      "with derived values" >> {
+        val query = new Query(sftName, Filter.INCLUDE,
+          Array("name", "geom", "total=men+women+children"))
+
+        // Let's read out what we wrote.
+        val results: SimpleFeatureCollection = ds.getFeatureSource(sftName).getFeatures(query)
+
+        "with the correct schema" >> {
+          val schema = SimpleFeatureTypes.encodeType(results.getSchema)
+          schema mustEqual "name:String,*geom:Point:srid=4326,total:Double"
+        }
+        "with the correct results" >> {
+          val features = results.features
+          features.hasNext must beTrue
+          val f = features.next()
+          DataUtilities.encodeFeature(f) mustEqual "fid-1=myname|POINT (45 49)|2226.0"
+        }
+      }
     }
   }
 }
