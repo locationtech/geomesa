@@ -37,31 +37,31 @@ class DescriptiveStatsTest extends Specification with StatTestHelper {
         |    833.25
         |  \],
         |  "population_standard_deviation": \[
-        |    28.86607004772212
+        |    28.866070[0-9]+
         |  \],
         |  "population_skewness": \[
         |    0.0
         |  \],
         |  "population_kurtosis": \[
-        |    1.7997599759975997
+        |    1.799759[0-9]+
         |  \],
         |  "population_excess_kurtosis": \[
-        |    -1.2002400240024003
+        |    -1.200240[0-9]+
         |  \],
         |  "sample_variance": \[
-        |    841.6666666666666
+        |    841.666666[0-9]+
         |  \],
         |  "sample_standard_deviation": \[
-        |    29.011491975882016
+        |    29.011491[0-9]+
         |  \],
         |  "sample_skewness": \[
         |    0.0
         |  \],
         |  "sample_kurtosis": \[
-        |    1.8897479747974797
+        |    1.889747[0-9]+
         |  \],
         |  "sample_excess_kurtosis": \[
-        |    -1.1102520252025203
+        |    -1.110252[0-9]+
         |  \],
         |  "population_covariance": \[
         |    833.25
@@ -70,7 +70,7 @@ class DescriptiveStatsTest extends Specification with StatTestHelper {
         |    1.0
         |  \],
         |  "sample_covariance": \[
-        |    841.6666666666666
+        |    841.666666[0-9]+
         |  \],
         |  "sample_correlation": \[
         |    1.0

@@ -103,7 +103,7 @@ private class StatParser extends BasicParser {
   }
 
   private def stats: Rule1[Stat] = rule {
-    "Stats(" ~ string ~ ")" ~~> { attributes =>
+    "DescriptiveStats(" ~ string ~ ")" ~~> { attributes =>
       val indices = attributes.split(",").map(getIndex)
       new DescriptiveStats(indices)
     }

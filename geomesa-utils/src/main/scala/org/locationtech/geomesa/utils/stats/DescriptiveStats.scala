@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.ejml.data.DenseMatrix64F
-import org.ejml.ops.CommonOps
 import org.ejml.simple.SimpleMatrix
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
 import org.opengis.feature.simple.SimpleFeature
@@ -63,40 +61,58 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
 
   def count: Long = _count
 
-  def min: Array[Double] = (if (isEmpty) _max else _min).getMatrix.data.clone()
-  def max: Array[Double] = (if (isEmpty) _min else _max).getMatrix.data.clone()
-  def bounds: Array[(Double, Double)] = min.zip(max)
+  def minimum: Array[Double] = (if (isEmpty) _max else _min).getMatrix.data.clone()
+
+  def maximum: Array[Double] = (if (isEmpty) _min else _max).getMatrix.data.clone()
+
+  def bounds: Array[(Double, Double)] = minimum.zip(maximum)
 
   def sum: Array[Double] = _sum.getMatrix.data.clone()
 
   def mean: Array[Double] = requireCount(1) { _mean }
 
-  def m2: Array[Double] = requireCount(1) { _m2n / _count }
-  def m3: Array[Double] = requireCount(1) { _m3n / _count }
-  def m4: Array[Double] = requireCount(1) { _m4n / _count }
+  def centralMoment2: Array[Double] = requireCount(1) { _m2n / _count }
 
-  def pvar: Array[Double] = requireCount(1) { _m2n / _count }
-  def psdev: Array[Double] = requireCount(1) { (_m2n / _count) ** 0.5 }
-  def pskew: Array[Double] = requireCount(1) { Math.sqrt(_count) * _m3n / (_m2n ** 1.5)  }
-  def pkurt: Array[Double] = requireCount(1) { _m4n * _count / (_m2n ** 2.0) }
-  def pekurt: Array[Double] = pkurt.map(_ -3.0 )
+  def centralMoment3: Array[Double] = requireCount(1) { _m3n / _count }
 
-  def svar: Array[Double] = requireCount(2) { _m2n / (_count - 1) }
-  def ssdev: Array[Double] = requireCount(2) { (_m2n / (_count - 1)) ** 0.5 }
-  def sskew: Array[Double] = requireCount(3) { _m3n * (_count * Math.sqrt(_count - 1) / (_count - 2)) / (_m2n ** 1.5) }
-  def skurt: Array[Double] = requireCount(4) {
+  def centralMoment4: Array[Double] = requireCount(1) { _m4n / _count }
+
+  def populationVariance: Array[Double] = requireCount(1) { _m2n / _count }
+
+  def populationStandardDeviation: Array[Double] = requireCount(1) { (_m2n / _count) ** 0.5 }
+
+  def populationSkewness: Array[Double] = requireCount(1) { Math.sqrt(_count) * _m3n / (_m2n ** 1.5)  }
+
+  def populationKurtosis: Array[Double] = requireCount(1) { _m4n * _count / (_m2n ** 2.0) }
+
+  def populationExcessKurtosis: Array[Double] = populationKurtosis.map(_ - 3.0 )
+
+  def sampleVariance: Array[Double] = requireCount(2) { _m2n / (_count - 1) }
+
+  def sampleStandardDeviation: Array[Double] = requireCount(2) { (_m2n / (_count - 1)) ** 0.5 }
+
+  def sampleSkewness: Array[Double] = requireCount(3) {
+    _m3n * (_count * Math.sqrt(_count - 1) / (_count - 2)) / (_m2n ** 1.5)
+  }
+
+  def sampleKurtosis: Array[Double] = requireCount(4) {
     _m4n * (count * (_count + 1) * (_count - 1) / (_count - 2) / (_count - 3)) / (_m2n ** 2.0)
   }
-  def sekurt: Array[Double] = skurt.map(_ -3.0 )
+
+  def sampleExcessKurtosis: Array[Double] = sampleKurtosis.map(_ - 3.0 )
   
-  def c2: Array[Double] = requireCount(2, size_squared) { _c2 }
+  def coMoment2: Array[Double] = requireCount(2, size_squared) { _c2 }
 
-  def pcov: Array[Double] = requireCount(2, size_squared) { _c2 / _count}
-  def pcor: Array[Double] = requireCount(2, size_squared) {
-    val mn2_sqrt = _m2n ** 0.5; (_c2 / (mn2_sqrt |*| mn2_sqrt.T)).diag(1.0) }
+  def populationCovariance: Array[Double] = requireCount(2, size_squared) { _c2 / _count }
 
-  def scov: Array[Double] = requireCount(2, size_squared) { _c2 / (_count -1 ) }
-  def scor: Array[Double] = pcor /* population and sample calculations are equal w/ df term cancellation */
+  def populationCorrelation: Array[Double] = requireCount(2, size_squared) {
+    val mn2_sqrt = _m2n ** 0.5; (_c2 / (mn2_sqrt |*| mn2_sqrt.T)).diag(1.0)
+  }
+
+  def sampleCovariance: Array[Double] = requireCount(2, size_squared) { _c2 / (_count -1 ) }
+
+  /* population and sample calculations are equal w/ df term cancellation */
+  def sampleCorrelation: Array[Double] = populationCorrelation
 
   private def requireCount(count: Int, length: Int = size)(op: => SimpleMatrix):Array[Double] =
     if (_count < count) Array.fill(length)(Double.NaN) else op.getMatrix.data.clone()
@@ -107,12 +123,10 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
   def observe(values: Array[Number]): Unit = {
     if (values.forall(_ != null)) {
       val values_d = values.map(_.doubleValue)
-      if (values_d.forall(v => v == v)) {
+      if (values_d.forall(v => v == v /* == is fast NaN check */)) {
         val values_v = new SimpleMatrix(size, 1, true, values_d: _*)
 
         if (_count > 0) {
-
-          updateMinMax(_min, _max, values_v)
 
           _sum += values_v
 
@@ -131,7 +145,35 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
           _m3n += A * (B * delta * (n - 2d) - _m2n * 3d)
           _m2n += delta * B
 
-          _c2 += (delta |*| delta.T * (n_i * r))
+
+          /* optimize original code (below) by special handling of diagonal and reflection about it
+           * _c2 += (delta |*| delta.T * (n_i * r))
+           */
+          val coef = n_i * r
+          var ri = 0
+          while (ri < size) {
+            _c2.set(ri, ri, _m2n.get(ri)) // c2 diagonal is equal to m2n
+            val rd = delta.get(ri)
+            var ci = ri + 1  // traverse upper diagonal
+            while (ci < size) {
+              val c2 = _c2.get(ri, ci) + rd * delta.get(ci) * coef
+              _c2.set(ri, ci, c2) // set upper diagonal
+              _c2.set(ci, ri, c2) // set lower diagonal
+              ci += 1
+            }
+            ri += 1
+          } // c2 update
+
+          var i = 0
+          while (i < size) {
+            val v = values_v.get(i)
+            if (v > _max.get(i)) {
+              _max.set(i, v)
+            } else if (v < _min.get(i)) { // 'else if' optimization due to how min/max set when _count == 1 (below)
+              _min.set(i, v)
+            }
+            i += 1
+          } // min/max update
 
         } else {
           _count = 1
@@ -193,14 +235,40 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
       _m2n += that._m2n +
         n_product * delta * A
 
-      _c2 += (that._c2 + (delta |*| delta.T) * (n_product * n_i))
+      /* optimize original code (below) by special handling of diagonal and reflection about it
+       * _c2 += (that._c2 + (delta |*| delta.T) * (n_product * n_i))
+       */
+      val coef = n_product * n_i
+      var ri = 0
+      while (ri < size) {
+        _c2.set(ri, ri, _m2n.get(ri)) // c2 diagonal is equal to m2n
+        val rd = delta.get(ri)
+        var ci = ri + 1
+        while (ci < size) {
+          val c2 = _c2.get(ri, ci) + that._c2.get(ri,ci) + rd * delta.get(ci) * coef
+          _c2.set(ri, ci, c2)
+          _c2.set(ci, ri, c2) // set other side of diagonal
+          ci += 1
+        }
+        ri += 1
+      } // c2 update
 
       _mean += n2 * A
 
       _sum += that._sum
 
-      _min.min(that._min)
-      _max.max(that._max)
+      var i = 0
+      while (i < size) {
+        val min = that._min.get(i)
+        val max = that._max.get(i)
+        if (min < _min.get(i)) {
+          _min.set(i, min)
+        }
+        if (max > _max.get(i)) {
+          _max.set(i, max)
+        }
+        i += 1
+      }  // min/max update
 
       _count += that._count
     }
@@ -216,7 +284,6 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
         _max.isIdentical(that._max, 1e-9) &&
         _sum.isIdentical(that._sum, 1e-9) &&
         _mean.isIdentical(that._mean, 1e-9) &&
-        _sum.isIdentical(that._sum, 1e-9) &&
         _m2n.isIdentical(that._m2n, 1e-9) &&
         _m3n.isIdentical(that._m3n, 1e-9) &&
         _m4n.isIdentical(that._m4n, 1e-9) &&
@@ -229,130 +296,24 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
       Map("count" -> 0)
     } else {
       ListMap("count" -> count,
-        "minimum" -> min,
-        "maximum" -> max,
+        "minimum" -> minimum,
+        "maximum" -> maximum,
         "mean" -> mean,
-        "population_variance" -> pvar,
-        "population_standard_deviation" -> psdev,
-        "population_skewness" -> pskew,
-        "population_kurtosis" -> pkurt,
-        "population_excess_kurtosis" -> pekurt,
-        "sample_variance" -> svar,
-        "sample_standard_deviation" -> ssdev,
-        "sample_skewness" -> sskew,
-        "sample_kurtosis" -> skurt,
-        "sample_excess_kurtosis" -> sekurt,
-        "population_covariance" -> pcov,
-        "population_correlation" -> pcor,
-        "sample_covariance" -> scov,
-        "sample_correlation" -> scor)
+        "population_variance" -> populationVariance,
+        "population_standard_deviation" -> populationStandardDeviation,
+        "population_skewness" -> populationSkewness,
+        "population_kurtosis" -> populationKurtosis,
+        "population_excess_kurtosis" -> populationExcessKurtosis,
+        "sample_variance" -> sampleVariance,
+        "sample_standard_deviation" -> sampleStandardDeviation,
+        "sample_skewness" -> sampleSkewness,
+        "sample_kurtosis" -> sampleKurtosis,
+        "sample_excess_kurtosis" -> sampleExcessKurtosis,
+        "population_covariance" -> populationCovariance,
+        "population_correlation" -> populationCorrelation,
+        "sample_covariance" -> sampleCovariance,
+        "sample_correlation" -> sampleCorrelation)
     }
     Stat.JSON.toJson(map.asJava)
-  }
-}
-
-object SimpleMatrixUtils {
-
-  implicit def toDenseMatrix64F(sm: SimpleMatrix): DenseMatrix64F = sm.getMatrix
-
-  implicit class SimpleMatrixOps(a: SimpleMatrix) {
-
-    def +(b: Double): SimpleMatrix = a.plus(b)
-    def +(b: SimpleMatrix): SimpleMatrix = a.plus(b)
-
-    def +=(b: Double): Unit = CommonOps.add(a, b, a)
-    def +=(b: SimpleMatrix): Unit = CommonOps.add(a, b, a)
-
-    def -(b: Double): SimpleMatrix = a.minus(b)
-    def -(b: SimpleMatrix): SimpleMatrix = a.minus(b)
-
-    def -=(b: Double): Unit = CommonOps.subtract(a, b, a)
-    def -=(b: SimpleMatrix): Unit = CommonOps.subtract(a, b, a)
-
-    def *(b: Double): SimpleMatrix = a.scale(b)
-    def *(b: SimpleMatrix): SimpleMatrix = a.elementMult(b)
-
-    def *=(b: Double): Unit = CommonOps.scale(b, a, a)
-    def *=(b: SimpleMatrix): Unit = CommonOps.elementMult(a, b, a)
-
-    def /(b: Double): SimpleMatrix = a.divide(b)
-    def /(b: SimpleMatrix): SimpleMatrix = a.elementDiv(b)
-
-    def /=(b: Double): Unit = CommonOps.divide(a, b, a)
-    def /=(b: SimpleMatrix): Unit = CommonOps.elementDiv(a, b, a)
-
-    def **(b: Double): SimpleMatrix = a.elementPower(b)
-    def **=(b: Double): Unit = CommonOps.elementPower(a, b, a)
-
-    def diag(v: Double): SimpleMatrix = {
-      val m = new SimpleMatrix(a)
-      (0 until Math.min(m.getNumRows, m.getNumCols)).foreach(i => m.set(i, i, v))
-      m
-    }
-
-    def |*|(b: SimpleMatrix): SimpleMatrix = a.mult(b)
-
-    def T: SimpleMatrix = a.transpose
-
-    def min(values: SimpleMatrix): Unit = {
-      val n = values.getNumElements
-      var i = 0
-      while (i < n) {
-        val v = values.get(i)
-        val min = a.get(i)
-        if (v < min) {
-          a.set(i, v)
-        }
-        i += 1
-      }
-    }
-    def max(values: SimpleMatrix): Unit = {
-      val n = values.getNumElements
-      var i = 0
-      while (i < n) {
-        val v = values.get(i)
-        val max = a.get(i)
-        if (v > max) {
-          a.set(i, v)
-        }
-        i += 1
-      }
-    }
-  }
-
-  implicit class DoubleOps(a: Double) {
-    def +(b: SimpleMatrix): SimpleMatrix = b.plus(a)
-    def -(b: SimpleMatrix): SimpleMatrix = {
-      val c = new SimpleMatrix(b.getNumRows, b.getNumCols)
-      CommonOps.subtract(a, b, c)
-      c
-    }
-    def *(b: SimpleMatrix): SimpleMatrix = b.scale(a)
-    def /(b: SimpleMatrix): SimpleMatrix = {
-      val c = new SimpleMatrix(b.getNumRows, b.getNumCols)
-      CommonOps.divide(a, b, c)
-      c
-    }
-    def **(b: SimpleMatrix): SimpleMatrix = {
-      val c = new SimpleMatrix(b.getNumRows, b.getNumCols)
-      CommonOps.elementPower(a, b, c)
-      c
-    }
-  }
-
-  def updateMinMax(mins: SimpleMatrix, maxs: SimpleMatrix, values: SimpleMatrix): Unit = {
-    val n = values.getNumElements
-    var i = 0
-    while (i < n) {
-      val v = values.get(i)
-      val min = mins.get(i)
-      val max = maxs.get(i)
-      if (v < min) {
-        mins.set(i, v)
-      } else if (v > max) {
-        maxs.set(i, v)
-      }
-      i += 1
-    }
   }
 }

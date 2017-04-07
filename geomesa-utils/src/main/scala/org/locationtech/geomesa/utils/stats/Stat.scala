@@ -257,7 +257,7 @@ object Stat {
     * @param attributes attribute name to evaluate
     * @return
     */
-  def DescriptiveStats(attributes: Seq[String]): String = s"Stats(${attributes.map(safeString).mkString(",")})"
+  def DescriptiveStats(attributes: Seq[String]): String = s"DescriptiveStats(${attributes.map(safeString).mkString(",")})"
 
   /**
     * Combines a sequence of stats. This will not modify any of the inputs.

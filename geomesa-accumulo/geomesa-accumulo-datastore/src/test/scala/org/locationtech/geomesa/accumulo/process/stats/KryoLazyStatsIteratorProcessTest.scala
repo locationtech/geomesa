@@ -82,19 +82,28 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       forall(0 until 5)(rh.count(_) mustEqual 30)
     }
 
-    "work with the Stats stat" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "Stats(attr)", encode = true)
+    "work with the DescriptiveStats stat" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "DescriptiveStats(attr)", encode = true)
       val sf = results.features().next
 
       val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[DescriptiveStats]
-//      rh.length mustEqual 5
-//      forall(0 until 5)(rh.count(_) mustEqual 30)
-      rh.min(0) mustEqual 0
       rh.count mustEqual 150
-      rh.mean(0) must beCloseTo(149.0, 0.1)
-      rh.ssdev(0) must beCloseTo(86.46, 0.5)
-      rh.sskew(0) must beCloseTo(0, 0.2)
-      rh.skurt(0) must beCloseTo(1.8, 0.5)
+      rh.bounds(0) mustEqual (0, 298)
+      rh.mean(0) must beCloseTo(149.0, 1e-9)
+      rh.populationVariance(0) must beCloseTo(7499.666666666667, 1e-9)
+      rh.populationStandardDeviation(0) must beCloseTo(86.60061585616275, 1e-9)
+      rh.populationSkewness(0) must beCloseTo(0.0, 1e-9)
+      rh.populationKurtosis(0) must beCloseTo(1.7998933285923824, 1e-9)
+      rh.populationExcessKurtosis(0) must beCloseTo(-1.2001066714076176, 1e-9)
+      rh.sampleVariance(0) must beCloseTo(7550.0, 1e-9)
+      rh.sampleStandardDeviation(0) must beCloseTo(86.89073598491383, 1e-9)
+      rh.sampleSkewness(0) must beCloseTo(0.0, 1e-9)
+      rh.sampleKurtosis(0) must beCloseTo(1.859889772878795, 1e-9)
+      rh.sampleExcessKurtosis(0) must beCloseTo(-1.140110227121205, 1e-9)
+      rh.populationCovariance(0) must beCloseTo(7499.666666666667, 1e-9)
+      rh.populationCorrelation(0) must beCloseTo(1.0, 1e-9)
+      rh.sampleCovariance(0) must beCloseTo(7550.0, 1e-9)
+      rh.sampleCorrelation(0) must beCloseTo(1.0, 1e-9)
     }
 
     "work with multiple stats at once" in {

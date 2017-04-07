@@ -98,7 +98,7 @@ object KryoStatSerializer {
       case s: Z3Frequency         => output.writeByte(Z3FrequencyByte);     writeZ3Frequency(output, sft, s)
       case s: IteratorStackCount  => output.writeByte(IteratorStackByte);   writeIteratorStackCount(output, s)
       case s: SeqStat             => output.writeByte(SeqStatByte);         writeSeqStat(output, sft, s)
-      case s: DescriptiveStats => output.writeByte(DescriptiveStatByte);   writeDescriptiveStats(output, sft, s)
+      case s: DescriptiveStats    => output.writeByte(DescriptiveStatByte); writeDescriptiveStats(output, sft, s)
     }
   }
 
@@ -125,14 +125,17 @@ object KryoStatSerializer {
     val size = stat.size
     output.writeInt(size, true)
     stat.attributes.foreach(output.writeInt(_, true))
-    for(v <- stat._min.getMatrix.data) output.writeDouble(v)
-    for(v <- stat._max.getMatrix.data) output.writeDouble(v)
-    for(v <- stat._sum.getMatrix.data) output.writeDouble(v)
-    for(v <- stat._mean.getMatrix.data) output.writeDouble(v)
-    for(v <- stat._m2n.getMatrix.data) output.writeDouble(v)
-    for(v <- stat._m3n.getMatrix.data) output.writeDouble(v)
-    for(v <- stat._m4n.getMatrix.data) output.writeDouble(v)
-    for(v <- stat._c2.getMatrix.data) output.writeDouble(v)
+    
+    def writeArray(array: Array[Double]) = for(v <- array) output.writeDouble(v)
+    writeArray(stat._min.getMatrix.data)
+    writeArray(stat._max.getMatrix.data)
+    writeArray(stat._sum.getMatrix.data)
+    writeArray(stat._mean.getMatrix.data)
+    writeArray(stat._m2n.getMatrix.data)
+    writeArray(stat._m3n.getMatrix.data)
+    writeArray(stat._m4n.getMatrix.data)
+    writeArray(stat._c2.getMatrix.data)
+
     output.writeLong(stat._count, true)
   }
 
@@ -146,15 +149,18 @@ object KryoStatSerializer {
       new DescriptiveStats(attributes)
     }
 
-    stats._min.getMatrix.setData((for(_ <- 0 until size) yield input.readDouble).toArray)
-    stats._max.getMatrix.setData((for(_ <- 0 until size) yield input.readDouble).toArray)
-    stats._sum.getMatrix.setData((for(_ <- 0 until size) yield input.readDouble).toArray)
-    stats._mean.getMatrix.setData((for(_ <- 0 until size) yield input.readDouble).toArray)
-    stats._m2n.getMatrix.setData((for(_ <- 0 until size) yield input.readDouble).toArray)
-    stats._m3n.getMatrix.setData((for(_ <- 0 until size) yield input.readDouble).toArray)
-    stats._m4n.getMatrix.setData((for(_ <- 0 until size) yield input.readDouble).toArray)
-    stats._c2.getMatrix.setData((for(_ <- 0 until size * size) yield input.readDouble).toArray)
+    def readArray(array: Array[Double]) = for(i <- array.indices) array(i) = input.readDouble
+    readArray(stats._min.getMatrix.data)
+    readArray(stats._max.getMatrix.data)
+    readArray(stats._sum.getMatrix.data)
+    readArray(stats._mean.getMatrix.data)
+    readArray(stats._m2n.getMatrix.data)
+    readArray(stats._m3n.getMatrix.data)
+    readArray(stats._m4n.getMatrix.data)
+    readArray(stats._c2.getMatrix.data)
+    
     stats._count = input.readLong(true)
+    
     stats
   }
 
