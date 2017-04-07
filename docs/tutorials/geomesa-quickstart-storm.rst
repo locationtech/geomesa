@@ -1,7 +1,8 @@
 GeoMesa Storm Quick Start
 =========================
 
-Apache Storm is "a free and open source distributed realtime computation system."
+Apache Storm is "a free and open source distributed realtime computation
+system."
 
 You can leverage Storm to analyze and ingest data into GeoMesa in near
 real time. In this tutorial, we will:
@@ -16,21 +17,22 @@ Prerequisites
 
 You will need access to:
 
--  an instance of Accumulo |accumulo_version|
--  an Accumulo user with create-table and write permissions
--  an installation of Kafka |kafka_version|
--  an installation of Storm 0.9+
--  an instance of GeoServer |geoserver_version| with the GeoMesa Accumulo plugin
+-  an instance of Accumulo |accumulo_version|,
+-  an Accumulo user with create-table and write permissions,
+-  an installation of Kafka |kafka_version|,
+-  an installation of Storm 0.9+, and
+-  an instance of GeoServer |geoserver_version| with the GeoMesa Accumulo plugin.
    installed
 
 In order to install the GeoMesa Accumulo GeoServer plugin, see :ref:`install_accumulo_geoserver`.
 
 You will also need:
 
--  The `xz <http://tukaani.org/xz/>`__ data compression tool
--  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org>`__ |maven_version|
--  a `git <http://git-scm.com/>`__ client
+-  The `xz <http://tukaani.org/xz/>`__ data compression tool,
+-  `Java JDK
+   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
+-  `Apache Maven <http://maven.apache.org>`__ |maven_version|, and
+-  a `git <http://git-scm.com/>`__ client.
 
 Download and Build the Tutorial
 -------------------------------
@@ -44,15 +46,14 @@ Pick a reasonable directory on your machine, and run:
 
 .. note::
 
-    You may need to download a particular release of the tutorials project
-    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
+    You may need to download a particular release of the
+    tutorials project to target a particular GeoMesa release.
 
 To build, run
 
 .. code-block:: bash
 
     $ mvn clean install -pl geomesa-quickstart-storm
-
 
 .. note::
 
@@ -70,8 +71,8 @@ Obtaining OSM Data
 
 In this demonstration, we will use the ``simple-gps-points`` OSM data
 that contains only the location of an observation. Download the
-`OSM <http://planet.openstreetmap.org/>`__ data `here <http://planet.openstreetmap.org/gps/simple-gps-points-120312
-.txt.xz>`__.
+`OSM <http://planet.openstreetmap.org/>`__ data
+`here <http://planet.openstreetmap.org/gps/simple-gps-points-120312.txt.xz>`__.
 
 .. note::
 
@@ -259,7 +260,9 @@ GeoServer, then browse to the following URL:
     http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=geomesa:OSM&styles=OSMPoint&bbox=-87.63,41.88,-87.61,41.9&width=1400&height=600&srs=EPSG:4326&format=application/openlayers
 
 .. figure:: _static/geomesa-quickstart-storm/ChicagoPoint.png
-   :alt: "Showing all OSM events in Chicago before Mar 12, 2012"
+   :alt: Showing all OSM events in Chicago before Mar 12, 2012
+
+   Showing all OSM events in Chicago before Mar 12, 2012
 
 Heatmaps
 --------
@@ -281,7 +284,9 @@ GeoServer, then browse to the following URL:
     http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=geomesa:OSM&styles=heatmap&bbox=-87.63,41.88,-87.61,41.9&width=1400&height=600&srs=EPSG:4326&format=application/openlayers
 
 .. figure:: _static/geomesa-quickstart-storm/ChicagoDensity.png
-   :alt: "Showing heatmap of OSM events in Chicago before Mar 12, 2012"
+   :alt: Showing heatmap of OSM events in Chicago before Mar 12, 2012
+
+   Showing heatmap of OSM events in Chicago before Mar 12, 2012
 
 Conclusion
 ----------
