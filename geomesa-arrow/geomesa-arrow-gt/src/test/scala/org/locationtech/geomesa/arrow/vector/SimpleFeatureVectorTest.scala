@@ -8,8 +8,11 @@
 
 package org.locationtech.geomesa.arrow.vector
 
+import java.util.Date
+
 import org.apache.arrow.memory.RootAllocator
 import org.apache.arrow.vector.complex.FixedSizeListVector
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -34,12 +37,7 @@ class SimpleFeatureVectorTest extends Specification {
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
         forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
-      }
-    }
-    "wrap values" >> {
-      WithClose(SimpleFeatureVector.create(sft, Map.empty)) { vector =>
-        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
-        vector.writer.setValueCount(features.length)
+        // check wrapping
         WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
           wrapped.reader.getValueCount mustEqual features.length
           forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
@@ -53,14 +51,30 @@ class SimpleFeatureVectorTest extends Specification {
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
         forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, dictionary)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
+        }
       }
     }
-    "wrap underlying dictionary encoded vectors" >> {
-      val dictionary = Map("name" -> new ArrowDictionary(Seq("name00", "name01")))
-      WithClose(SimpleFeatureVector.create(sft, dictionary)) { vector =>
+    "set and get lists and maps" >> {
+      import scala.collection.JavaConverters._
+      val sft = SimpleFeatureTypes.createType("test",
+        "name:String,tags:Map[String,String],dates:List[Date],*geom:Point:srid=4326")
+      val features = (0 until 10).map { i =>
+        val dates = Seq(s"2017-03-15T00:0$i:00.000Z", s"2017-03-15T00:0$i:10.000Z", s"2017-03-15T00:0$i:20.000Z")
+            .map(Converters.convert(_, classOf[Date])).asJava
+        val tags = Map(s"a$i" -> s"av$i", s"b$i" -> s"bv$i").asJava
+        ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", tags, dates, s"POINT (4$i 5$i)")
+      }
+      WithClose(SimpleFeatureVector.create(sft, Map.empty)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
-        WithClose(SimpleFeatureVector.wrap(vector.underlying, dictionary)) { wrapped =>
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
           wrapped.reader.getValueCount mustEqual features.length
           forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
         }

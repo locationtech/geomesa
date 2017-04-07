@@ -14,6 +14,7 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, NullableMapVector}
+import org.joda.time.DateTime
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryReader
 import org.locationtech.geomesa.arrow.vector.LineStringVector.LineStringDoubleReader
 import org.locationtech.geomesa.arrow.vector.MultiLineStringVector.MultiLineStringDoubleReader
@@ -32,6 +33,7 @@ import org.locationtech.geomesa.arrow.vector.floats.PolygonFloatVector.PolygonFl
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait ArrowAttributeReader {
@@ -201,14 +203,28 @@ object ArrowAttributeReader {
   }
 
   class ArrowListReader(accessor: ListVector#Accessor, binding: ObjectType) extends ArrowAttributeReader {
-    // TODO need to translate list objects into appropriate types for dates and strings
-    override def apply(i: Int): AnyRef = accessor.getObject(i)
+    import scala.collection.JavaConverters._
+    private val convert: (AnyRef) => AnyRef = arrowConversion(binding)
+    override def apply(i: Int): AnyRef =
+      accessor.getObject(i).asInstanceOf[java.util.List[AnyRef]].asScala.map(convert).asJava
   }
 
   class ArrowMapReader(accessor: NullableMapVector#Accessor, keyBinding: ObjectType, valueBinding: ObjectType)
       extends ArrowAttributeReader {
-    // TODO pretty sure this is going to be wrong
-    override def apply(i: Int): AnyRef = accessor.getObject(i)
+    private val convertKey: (AnyRef) => AnyRef = arrowConversion(keyBinding)
+    private val convertValue: (AnyRef) => AnyRef = arrowConversion(valueBinding)
+    override def apply(i: Int): AnyRef = {
+      val map    = accessor.getObject(i).asInstanceOf[java.util.Map[AnyRef, AnyRef]]
+      val keys   = map.get("k").asInstanceOf[java.util.List[AnyRef]]
+      val values = map.get("v").asInstanceOf[java.util.List[AnyRef]]
+      val result = new java.util.HashMap[AnyRef, AnyRef]
+      var j = 0
+      while (j < keys.size) {
+        result.put(convertKey(keys.get(j)), convertValue(values.get(j)))
+        j += 1
+      }
+      result
+    }
   }
 
   class ArrowByteReader(accessor: NullableVarBinaryVector#Accessor) extends ArrowAttributeReader {
@@ -224,4 +240,12 @@ object ArrowAttributeReader {
     }
   }
 
+  private def arrowConversion(binding: ObjectType): (AnyRef)=> AnyRef = binding match {
+    case ObjectType.STRING   => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
+    case ObjectType.GEOMETRY => (v) => WKTUtils.read(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
+    case ObjectType.DATE     => (v) => v.asInstanceOf[DateTime].toDate
+    case ObjectType.JSON     => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
+    case ObjectType.UUID     => (v) => UUID.fromString(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
+    case _                   => (v) => v
+  }
 }

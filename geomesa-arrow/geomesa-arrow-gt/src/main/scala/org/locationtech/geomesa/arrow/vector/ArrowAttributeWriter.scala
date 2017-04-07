@@ -227,14 +227,20 @@ object ArrowAttributeWriter {
 
   class ArrowMapWriter(writer: MapWriter, keyBinding: ObjectType, valueBinding: ObjectType, allocator: BufferAllocator)
       extends ArrowAttributeWriter {
-    val keyWriter   = toMapWriter(writer, "k", keyBinding, allocator)
-    val valueWriter = toMapWriter(writer, "v", valueBinding, allocator)
+    val keyList   = writer.list("k")
+    val valueList = writer.list("v")
+    val keyWriter   = toListWriter(keyList, keyBinding, allocator)
+    val valueWriter = toListWriter(valueList, valueBinding, allocator)
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
       writer.start()
+      keyList.startList()
+      valueList.startList()
       value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].foreach { case (k, v) =>
         keyWriter(k)
         valueWriter(v)
       }
+      keyList.endList()
+      valueList.endList()
       writer.end()
     }
   }
@@ -249,9 +255,6 @@ object ArrowAttributeWriter {
     }
   }
 
-  // TODO maps/lists not fully implemented
-  // TODO close allocated buffers
-
   private def toListWriter(writer: ListWriter, binding: ObjectType, allocator: BufferAllocator): (AnyRef) => Unit = {
     if (binding == ObjectType.STRING || binding == ObjectType.JSON || binding == ObjectType.UUID) {
       (value: AnyRef) => if (value != null) {
@@ -259,6 +262,7 @@ object ArrowAttributeWriter {
         val buffer = allocator.buffer(bytes.length)
         buffer.setBytes(0, bytes)
         writer.varChar().writeVarChar(0, bytes.length, buffer)
+        buffer.close()
       }
     } else if (binding == ObjectType.INT) {
       (value: AnyRef) => if (value != null) {
@@ -290,6 +294,7 @@ object ArrowAttributeWriter {
         val buffer = allocator.buffer(bytes.length)
         buffer.setBytes(0, bytes)
         writer.varChar().writeVarChar(0, bytes.length, buffer)
+        buffer.close()
       }
     } else if (binding == ObjectType.BYTES) {
       (value: AnyRef) => if (value != null) {
@@ -297,66 +302,7 @@ object ArrowAttributeWriter {
         val buffer = allocator.buffer(bytes.length)
         buffer.setBytes(0, bytes)
         writer.varBinary().writeVarBinary(0, bytes.length, buffer)
-      }
-    } else {
-      throw new IllegalArgumentException(s"Unexpected list object type $binding")
-    }
-  }
-
-  private def toMapWriter(writer: MapWriter, key: String, binding: ObjectType, allocator: BufferAllocator): (AnyRef) => Unit = {
-    if (binding == ObjectType.STRING || binding == ObjectType.JSON || binding == ObjectType.UUID) {
-      val subWriter = writer.varChar(key)
-      (value: AnyRef) => if (value != null) {
-        val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
-        val buffer = allocator.buffer(bytes.length)
-        buffer.setBytes(0, bytes)
-        subWriter.writeVarChar(0, bytes.length, buffer)
-      }
-    } else if (binding == ObjectType.INT) {
-      val subWriter = writer.integer(key)
-      (value: AnyRef) => if (value != null) {
-        subWriter.writeInt(value.asInstanceOf[Int])
-      }
-    } else if (binding == ObjectType.LONG) {
-      val subWriter = writer.bigInt(key)
-      (value: AnyRef) => if (value != null) {
-        subWriter.writeBigInt(value.asInstanceOf[Long])
-      }
-    } else if (binding == ObjectType.FLOAT) {
-      val subWriter = writer.float4(key)
-      (value: AnyRef) => if (value != null) {
-        subWriter.writeFloat4(value.asInstanceOf[Float])
-      }
-    } else if (binding == ObjectType.DOUBLE) {
-      val subWriter = writer.float8(key)
-      (value: AnyRef) => if (value != null) {
-        subWriter.writeFloat8(value.asInstanceOf[Double])
-      }
-    } else if (binding == ObjectType.BOOLEAN) {
-      val subWriter = writer.bit(key)
-      (value: AnyRef) => if (value != null) {
-        subWriter.writeBit(if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
-      }
-    } else if (binding == ObjectType.DATE) {
-      val subWriter = writer.date(key)
-      (value: AnyRef) => if (value != null) {
-        subWriter.writeDate(value.asInstanceOf[Date].getTime)
-      }
-    } else if (binding == ObjectType.GEOMETRY) {
-      val subWriter = writer.varChar(key)
-      (value: AnyRef) => if (value != null) {
-        val bytes = WKTUtils.write(value.asInstanceOf[Geometry]).getBytes(StandardCharsets.UTF_8)
-        val buffer = allocator.buffer(bytes.length)
-        buffer.setBytes(0, bytes)
-        subWriter.writeVarChar(0, bytes.length, buffer)
-      }
-    } else if (binding == ObjectType.BYTES) {
-      val subWriter = writer.varBinary(key)
-      (value: AnyRef) => if (value != null) {
-        val bytes = value.asInstanceOf[Array[Byte]]
-        val buffer = allocator.buffer(bytes.length)
-        buffer.setBytes(0, bytes)
-        subWriter.writeVarBinary(0, bytes.length, buffer)
+        buffer.close()
       }
     } else {
       throw new IllegalArgumentException(s"Unexpected list object type $binding")
