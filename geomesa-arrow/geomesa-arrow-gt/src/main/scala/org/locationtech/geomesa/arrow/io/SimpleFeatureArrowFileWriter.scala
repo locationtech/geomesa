@@ -18,6 +18,8 @@ import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
 import org.apache.arrow.vector.stream.ArrowStreamWriter
 import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -34,7 +36,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   */
 class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
                                    os: OutputStream,
-                                   dictionaries: Map[String, ArrowDictionary] = Map.empty)
+                                   dictionaries: Map[String, ArrowDictionary] = Map.empty,
+                                   precision: GeometryPrecision = GeometryPrecision.Double)
                                   (implicit allocator: BufferAllocator) extends Closeable with Flushable {
 
   import scala.collection.JavaConversions._
@@ -56,7 +59,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
     vector
   }
 
-  private val vector = SimpleFeatureVector.create(sft, dictionaries)
+  private val vector = SimpleFeatureVector.create(sft, dictionaries, precision)
   private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
 

@@ -12,12 +12,16 @@ import java.io.Closeable
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
+import org.apache.arrow.vector.types.FloatingPointPrecision
+import org.apache.arrow.vector.types.pojo.ArrowType.{FixedSizeList, FloatingPoint}
+import org.apache.arrow.vector.types.pojo.{ArrowType, Field}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
 import org.locationtech.geomesa.features.arrow.ArrowSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.annotation.tailrec
 
 /**
   * Abstraction for using simple features in Arrow vectors
@@ -31,7 +35,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 class SimpleFeatureVector private (val sft: SimpleFeatureType,
                                    val underlying: NullableMapVector,
                                    val dictionaries: Map[String, ArrowDictionary],
-                                   val precision: GeometryPrecision = GeometryPrecision.Double)
+                                   val precision: GeometryPrecision)
                                   (implicit allocator: BufferAllocator) extends Closeable {
 
   // TODO user data at feature and schema level
@@ -100,11 +104,12 @@ object SimpleFeatureVector {
     * @return
     */
   def create(sft: SimpleFeatureType,
-             dictionaries: Map[String, ArrowDictionary])
+             dictionaries: Map[String, ArrowDictionary],
+             precision: GeometryPrecision = GeometryPrecision.Double)
             (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
     underlying.allocateNew()
-    new SimpleFeatureVector(sft, underlying, dictionaries)
+    new SimpleFeatureVector(sft, underlying, dictionaries, precision)
   }
 
   /**
@@ -125,6 +130,22 @@ object SimpleFeatureVector {
       case field if field.getName != "id" => field.getName
     }
     val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))
-    new SimpleFeatureVector(sft, vector, dictionaries)
+    val geomVector = Option(vector.getChild(SimpleFeatureTypes.encodeDescriptor(sft, sft.getGeometryDescriptor)))
+    val precision = geomVector.map(v => precisionFromField(v.getField)).getOrElse(GeometryPrecision.Double)
+    new SimpleFeatureVector(sft, vector, dictionaries, precision)
+  }
+
+  @tailrec
+  private def precisionFromField(field: Field): GeometryPrecision = {
+    field.getType match {
+      case t: FloatingPoint if t.getPrecision == FloatingPointPrecision.SINGLE => GeometryPrecision.Float
+      case t: FloatingPoint if t.getPrecision == FloatingPointPrecision.DOUBLE => GeometryPrecision.Double
+      case t =>
+        if (!t.isInstanceOf[ArrowType.List] && !t.isInstanceOf[FixedSizeList]) {
+          throw new IllegalArgumentException(s"Unexpected field $field")
+        } else {
+          precisionFromField(field.getChildren.get(0))
+        }
+    }
   }
 }

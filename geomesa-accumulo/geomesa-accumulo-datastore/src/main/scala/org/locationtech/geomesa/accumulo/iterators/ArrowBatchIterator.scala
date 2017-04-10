@@ -23,6 +23,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyAggregatingIterator.SFT_OPT
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator.{TRANSFORM_DEFINITIONS_OPT, TRANSFORM_SCHEMA_OPT}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
@@ -80,7 +81,7 @@ class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, Arro
 
   private var index = 0
 
-  private val vector = SimpleFeatureVector.create(sft, dictionaries)
+  private val vector = SimpleFeatureVector.create(sft, dictionaries, GeometryPrecision.Float)
   private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
   private val unloader = new VectorUnloader(root)
   private val os = new ByteArrayOutputStream()
@@ -201,7 +202,7 @@ object ArrowBatchIterator {
   private def fileMetadata(sft: SimpleFeatureType, dictionaries: Map[String, ArrowDictionary]): Array[Byte] = {
     import org.locationtech.geomesa.arrow.allocator
     val out = new ByteArrayOutputStream
-    val writer = new SimpleFeatureArrowFileWriter(sft, out, dictionaries)
+    val writer = new SimpleFeatureArrowFileWriter(sft, out, dictionaries, GeometryPrecision.Float)
     writer.start()
     val bytes = out.toByteArray // copy bytes before closing so we just get the header metadata
     writer.close()

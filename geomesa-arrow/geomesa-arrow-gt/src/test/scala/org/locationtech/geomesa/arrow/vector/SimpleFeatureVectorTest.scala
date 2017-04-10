@@ -14,6 +14,7 @@ import org.apache.arrow.memory.RootAllocator
 import org.apache.arrow.vector.complex.FixedSizeListVector
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -33,6 +34,19 @@ class SimpleFeatureVectorTest extends Specification {
   "SimpleFeatureVector" should {
     "set and get values" >> {
       WithClose(SimpleFeatureVector.create(sft, Map.empty)) { vector =>
+        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
+        }
+      }
+    }
+    "set and get float precision values" >> {
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, GeometryPrecision.Float)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
