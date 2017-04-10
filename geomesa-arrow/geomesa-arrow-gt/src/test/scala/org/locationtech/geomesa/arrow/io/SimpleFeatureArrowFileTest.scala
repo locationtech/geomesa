@@ -70,7 +70,7 @@ class SimpleFeatureArrowFileTest extends Specification {
       }
     }
     "write and read dictionary encoded values" >> {
-      val dictionaries = Map("foo:String" -> new ArrowDictionary(Seq("foo0", "foo1", "foo2")))
+      val dictionaries = Map("foo:String" -> new ArrowDictionary(Seq("foo0", "foo1", "foo2"))())
       withTestFile { file =>
         WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file), dictionaries)) { writer =>
           features0.foreach(writer.add)

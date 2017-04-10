@@ -35,7 +35,7 @@ import org.opengis.filter.Filter
 
 class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate] with SamplingIterator {
 
-  import ArrowBatchIterator.{BatchSizeKey, DictionaryKey, cache, decodeDictionaries}
+  import ArrowBatchIterator.{BatchSizeKey, DictionaryKey, aggregateCache, decodeDictionaries}
 
   var aggregate: (SimpleFeature, ArrowBatchAggregate) => Unit = _
   var underBatchSize: (ArrowBatchAggregate) => Boolean = _
@@ -53,7 +53,7 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
         case None       => aggregate = (sf, result) => result.add(sf)
         case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { result.add(sf) }
       }
-      cache.getOrElseUpdate(options(SFT_OPT) + encodedDictionaries, new ArrowBatchAggregate(sft, dictionaries))
+      aggregateCache.getOrElseUpdate(options(SFT_OPT) + encodedDictionaries, new ArrowBatchAggregate(sft, dictionaries))
     } else {
       val transforms = TransformSimpleFeature.attributes(sft, transformSchema, options(TRANSFORM_DEFINITIONS_OPT))
       val reusable = new TransformSimpleFeature(transformSchema, transforms)
@@ -61,7 +61,7 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
         case None       => aggregate = (sf, result) => { reusable.setFeature(sf); result.add(reusable) }
         case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { reusable.setFeature(sf); result.add(reusable)  }
       }
-      cache.getOrElseUpdate(options(TRANSFORM_DEFINITIONS_OPT) + encodedDictionaries,
+      aggregateCache.getOrElseUpdate(options(TRANSFORM_DEFINITIONS_OPT) + encodedDictionaries,
         new ArrowBatchAggregate(transformSchema, dictionaries))
     }
   }
@@ -120,7 +120,7 @@ object ArrowBatchIterator {
   private val DictionaryKey = "dict"
   private val Tab = '\t'
 
-  private val cache = new SoftThreadLocalCache[String, ArrowBatchAggregate]
+  private val aggregateCache = new SoftThreadLocalCache[String, ArrowBatchAggregate]
 
   def configure(sft: SimpleFeatureType,
                 index: AccumuloFeatureIndexType,
@@ -154,7 +154,7 @@ object ArrowBatchIterator {
       val stats = Stat.SeqStat(fields.map(Stat.Enumeration))
       val enumerations = ds.stats.runStats[EnumerationStat[String]](sft, stats, filter.getOrElse(Filter.INCLUDE))
       // note: sort values to return same dictionary cache
-      enumerations.map(e => sft.getDescriptor(e.attribute).getLocalName -> new ArrowDictionary(e.values.toSeq.sorted)).toMap
+      enumerations.map(e => sft.getDescriptor(e.attribute).getLocalName -> new ArrowDictionary(e.values.toSeq.sorted)()).toMap
     }
   }
 
@@ -236,7 +236,7 @@ object ArrowBatchIterator {
   private def decodeDictionaries(encoded: String): Map[String, ArrowDictionary] = {
     encoded.split(s"$Tab$Tab").map { e =>
       val values = e.split(Tab)
-      values.head -> new ArrowDictionary(values.tail)
+      values.head -> new ArrowDictionary(values.tail)()
     }.toMap
   }
 }

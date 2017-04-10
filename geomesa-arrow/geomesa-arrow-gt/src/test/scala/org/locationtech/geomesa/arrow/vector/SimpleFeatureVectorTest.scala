@@ -59,7 +59,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get dictionary encoded values" >> {
-      val dictionary = Map("name" -> new ArrowDictionary(Seq("name00", "name01")))
+      val dictionary = Map("name" -> new ArrowDictionary(Seq("name00", "name01"))())
       WithClose(SimpleFeatureVector.create(sft, dictionary)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)

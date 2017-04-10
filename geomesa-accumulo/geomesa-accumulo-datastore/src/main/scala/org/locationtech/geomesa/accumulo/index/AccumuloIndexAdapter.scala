@@ -111,10 +111,15 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
       val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, BinAggregatingIterator.kvsToFeatures(), None)
     } else if (hints.isArrowQuery) {
-      val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, hints.getArrowDictionaryFields, filter.filter)
-      val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
-      val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), dictionaries))
-      ScanConfig(Seq(iter), FullColumnFamily, ArrowBatchIterator.kvsToFeatures(), reduce)
+      if (hints.precomputeArrowDictionaries) {
+        val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, hints.getArrowDictionaryFields, filter.filter)
+        val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
+        val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), dictionaries))
+        ScanConfig(Seq(iter), FullColumnFamily, ArrowBatchIterator.kvsToFeatures(), reduce)
+      } else {
+        val iter = ArrowFileIterator.configure(sft, this, ecql, hints.getArrowDictionaryFields, hints, dedupe)
+        ScanConfig(Seq(iter), FullColumnFamily, ArrowFileIterator.kvsToFeatures(), None)
+      }
     } else if (hints.isDensityQuery) {
       val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, KryoLazyDensityIterator.kvsToFeatures(), None)

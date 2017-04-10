@@ -20,7 +20,8 @@ import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
   * @param values dictionary values. When encoded, values are replaced with their index in the seq
   * @param id dictionary id, must be unique per arrow file
   */
-class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.nextId) {
+class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.nextId)
+                     (val encoding: DictionaryEncoding = ArrowDictionary.createEncoding(id, values)) {
 
   lazy private val (map, inverse) = {
     val builder = ImmutableBiMap.builder[AnyRef, Int]
@@ -31,17 +32,6 @@ class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.ne
     }
     val m = builder.build()
     (m, m.inverse())
-  }
-
-  // use the smallest int type possible to minimize bytes used
-  lazy val encoding: DictionaryEncoding = {
-    if (values.length < Byte.MaxValue) {
-      new DictionaryEncoding(id, false, new ArrowType.Int(8, true))
-    } else if (values.length < Short.MaxValue) {
-      new DictionaryEncoding(id, false, new ArrowType.Int(16, true))
-    } else {
-      new DictionaryEncoding(id, false, new ArrowType.Int(32, true))
-    }
   }
 
   /**
@@ -62,8 +52,20 @@ class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.ne
 }
 
 object ArrowDictionary {
+
   private val values = new SecureRandom().longs(0, Long.MaxValue).iterator()
   private val ids = new AtomicLong(values.next)
 
   def nextId: Long = ids.getAndSet(values.next)
+
+  // use the smallest int type possible to minimize bytes used
+  private def createEncoding(id: Long, values: Seq[Any]): DictionaryEncoding = {
+    if (values.length < Byte.MaxValue) {
+      new DictionaryEncoding(id, false, new ArrowType.Int(8, true))
+    } else if (values.length < Short.MaxValue) {
+      new DictionaryEncoding(id, false, new ArrowType.Int(16, true))
+    } else {
+      new DictionaryEncoding(id, false, new ArrowType.Int(32, true))
+    }
+  }
 }
