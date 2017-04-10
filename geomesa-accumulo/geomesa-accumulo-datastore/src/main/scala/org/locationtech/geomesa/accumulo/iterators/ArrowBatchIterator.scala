@@ -25,7 +25,7 @@ import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterat
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.utils.cache.{SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
@@ -34,7 +34,7 @@ import org.opengis.filter.Filter
 
 class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate] with SamplingIterator {
 
-  import ArrowBatchIterator.{BatchSizeKey, cache, DictionaryKey, decodeDictionaries}
+  import ArrowBatchIterator.{BatchSizeKey, DictionaryKey, cache, decodeDictionaries}
 
   var aggregate: (SimpleFeature, ArrowBatchAggregate) => Unit = _
   var underBatchSize: (ArrowBatchAggregate) => Boolean = _
@@ -190,6 +190,13 @@ object ArrowBatchIterator {
     (iter) => CloseableIterator(Iterator(header)) ++ iter ++ CloseableIterator(Iterator(footer))
   }
 
+  /**
+    * Creates the header for the arrow file, which includes the schema and any dictionaries
+    *
+    * @param sft simple feature type
+    * @param dictionaries dictionaries
+    * @return
+    */
   private def fileMetadata(sft: SimpleFeatureType, dictionaries: Map[String, ArrowDictionary]): Array[Byte] = {
     import org.locationtech.geomesa.arrow.allocator
     val out = new ByteArrayOutputStream
@@ -200,6 +207,12 @@ object ArrowBatchIterator {
     bytes
   }
 
+  /**
+    * Encodes the dictionaries as a string for passing to the iterator config
+    *
+    * @param dictionaries dictionaries
+    * @return
+    */
   private def encodeDictionaries(dictionaries: Map[String, ArrowDictionary]): String = {
     val sb = new StringBuilder()
     dictionaries.foreach { case (name, dictionary) =>
@@ -212,6 +225,12 @@ object ArrowBatchIterator {
     sb.toString
   }
 
+  /**
+    * Decodes an encoded dictionary string from an iterator config
+    *
+    * @param encoded dictionary string
+    * @return
+    */
   private def decodeDictionaries(encoded: String): Map[String, ArrowDictionary] = {
     encoded.split(s"$Tab$Tab").map { e =>
       val values = e.split(Tab)
