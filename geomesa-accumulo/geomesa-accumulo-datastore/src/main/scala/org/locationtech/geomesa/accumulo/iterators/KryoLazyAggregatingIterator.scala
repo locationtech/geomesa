@@ -168,6 +168,7 @@ object KryoLazyAggregatingIterator extends LazyLogging {
   protected[iterators] val MAX_DUPE_OPT = "max-dupes"
   protected[iterators] val INDEX_OPT    = "index"
 
+
   def configure(is: IteratorSetting,
                 sft: SimpleFeatureType,
                 index: AccumuloFeatureIndexType,

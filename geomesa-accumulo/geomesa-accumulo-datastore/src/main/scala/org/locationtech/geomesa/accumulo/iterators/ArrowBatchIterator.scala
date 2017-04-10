@@ -20,10 +20,12 @@ import org.apache.commons.lang3.StringEscapeUtils
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyAggregatingIterator.SFT_OPT
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator.{TRANSFORM_DEFINITIONS_OPT, TRANSFORM_SCHEMA_OPT}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.utils.cache.{SoftThreadLocal, SoftThreadLocalCache}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
@@ -32,7 +34,7 @@ import org.opengis.filter.Filter
 
 class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate] with SamplingIterator {
 
-  import ArrowBatchIterator.{BatchSizeKey, DictionaryKey, decodeDictionaries}
+  import ArrowBatchIterator.{BatchSizeKey, cache, DictionaryKey, decodeDictionaries}
 
   var aggregate: (SimpleFeature, ArrowBatchAggregate) => Unit = _
   var underBatchSize: (ArrowBatchAggregate) => Boolean = _
@@ -42,24 +44,24 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
       case None    => (_) => true
       case Some(i) => (a) => a.size < i
     }
-    val dictionaries = decodeDictionaries(options(DictionaryKey))
-    val sampling = sample(options)
+    val encodedDictionaries = options(DictionaryKey)
+    lazy val dictionaries = decodeDictionaries(encodedDictionaries)
     val transformSchema = options.get(TRANSFORM_SCHEMA_OPT).map(IteratorCache.sft).orNull
     if (transformSchema == null) {
       sample(options) match {
         case None       => aggregate = (sf, result) => result.add(sf)
         case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { result.add(sf) }
       }
-      new ArrowBatchAggregate(sft, dictionaries)
+      cache.getOrElseUpdate(options(SFT_OPT) + encodedDictionaries, new ArrowBatchAggregate(sft, dictionaries))
     } else {
-      // note: add a new feature object each time, as they are cached until encode is called
       val transforms = TransformSimpleFeature.attributes(sft, transformSchema, options(TRANSFORM_DEFINITIONS_OPT))
-      def wrap(sf: SimpleFeature): TransformSimpleFeature = new TransformSimpleFeature(transformSchema, transforms, sf)
+      val reusable = new TransformSimpleFeature(transformSchema, transforms)
       sample(options) match {
-        case None       => aggregate = (sf, result) => result.add(wrap(sf))
-        case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { result.add(wrap(sf)) }
+        case None       => aggregate = (sf, result) => { reusable.setFeature(sf); result.add(reusable) }
+        case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { reusable.setFeature(sf); result.add(reusable)  }
       }
-      new ArrowBatchAggregate(transformSchema, dictionaries)
+      cache.getOrElseUpdate(options(TRANSFORM_DEFINITIONS_OPT) + encodedDictionaries,
+        new ArrowBatchAggregate(transformSchema, dictionaries))
     }
   }
 
@@ -117,6 +119,8 @@ object ArrowBatchIterator {
   private val DictionaryKey = "dict"
   private val Tab = '\t'
 
+  private val cache = new SoftThreadLocalCache[String, ArrowBatchAggregate]
+
   def configure(sft: SimpleFeatureType,
                 index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
@@ -147,7 +151,8 @@ object ArrowBatchIterator {
       // run a live stats query to get the dictionary values
       val stats = Stat.SeqStat(fields.map(Stat.Enumeration))
       val enumerations = ds.stats.runStats[EnumerationStat[String]](sft, stats, filter.getOrElse(Filter.INCLUDE))
-      enumerations.map(e => sft.getDescriptor(e.attribute).getLocalName -> new ArrowDictionary(e.values.toSeq)).toMap
+      // note: sort values to return same dictionary cache
+      enumerations.map(e => sft.getDescriptor(e.attribute).getLocalName -> new ArrowDictionary(e.values.toSeq.sorted)).toMap
     }
   }
 
