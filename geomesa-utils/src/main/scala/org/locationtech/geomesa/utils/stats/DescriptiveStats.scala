@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.ListMap
 import scala.Array._
 
-class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable {
+case class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable {
 
   override type S = DescriptiveStats
 
@@ -24,14 +24,14 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
   private[stats] val size_squared = size * size
 
   private[stats] var _count: Long = _
-  private[stats] val _min: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _max: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _sum: SimpleMatrix = new SimpleMatrix(size, 1)
+  private[stats] val _min: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _max: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _sum: SimpleMatrix  = new SimpleMatrix(size, 1)
   private[stats] val _mean: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m2n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m3n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m4n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _c2: SimpleMatrix = new SimpleMatrix(size, size)
+  private[stats] val _m2n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _m3n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _m4n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _c2: SimpleMatrix   = new SimpleMatrix(size, size)
 
   clear()
 
@@ -315,5 +315,11 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
         "sample_correlation" -> sampleCorrelation)
     }
     Stat.JSON.toJson(map.asJava)
+  }
+
+  override def newcopy: Stat = {
+    val newstat = this.copy()
+    newstat.copyFrom(this)
+    newstat
   }
 }

@@ -27,7 +27,7 @@ import org.opengis.feature.simple.SimpleFeature
   * @param eps (epsilon) with probability at least @see confidence, estimates will be within eps * N
   * @param confidence percent - with probability at least confidence, estimates will be within @see eps * N
   */
-class Z3Frequency(val geomIndex: Int,
+case class Z3Frequency(val geomIndex: Int,
                   val dtgIndex: Int,
                   val period: TimePeriod,
                   val precision: Int,
@@ -145,4 +145,6 @@ class Z3Frequency(val geomIndex: Int,
       case _ => false
     }
   }
+
+  override def newcopy: Stat = this.copy()
 }

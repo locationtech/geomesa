@@ -22,7 +22,7 @@ import scala.reflect.ClassTag
   * @param ct classtag
   * @tparam T attribute type binding
   */
-class TopK[T](val attribute: Int,
+case class TopK[T](val attribute: Int,
               private [stats] var summary: StreamSummary[T] = new StreamSummary[T](TopK.StreamCapacity))(implicit ct: ClassTag[T])
     extends Stat with LazyLogging {
 
@@ -82,6 +82,8 @@ class TopK[T](val attribute: Int,
           s.summary.topK(summary.size).map(c => (c.getItem, c.getCount))
     case _ => false
   }
+
+  override def newcopy: Stat = this.copy()
 }
 
 object TopK {

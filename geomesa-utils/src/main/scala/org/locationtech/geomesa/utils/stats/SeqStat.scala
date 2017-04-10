@@ -15,7 +15,7 @@ import org.opengis.feature.simple.SimpleFeature
  *
  * @param stats a Sequence of individual Stat objects
  */
-class SeqStat(val stats: Seq[Stat]) extends Stat {
+case class SeqStat(val stats: Seq[Stat]) extends Stat {
 
   override type S = SeqStat
 
@@ -38,4 +38,6 @@ class SeqStat(val stats: Seq[Stat]) extends Stat {
     case that: SeqStat => stats == that.stats
     case _ => false
   }
+
+  override def newcopy: Stat = SeqStat(stats.map(_.newcopy))
 }

@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
  * @param attribute attribute index for the attribute the histogram is being made for
  * @tparam T some type T (which is restricted by the stat parser upstream of Histogram instantiation)
  */
-class EnumerationStat[T](val attribute: Int)(implicit ct: ClassTag[T]) extends Stat {
+case class EnumerationStat[T](val attribute: Int)(implicit ct: ClassTag[T]) extends Stat {
 
   override type S = EnumerationStat[T]
 
@@ -74,4 +74,6 @@ class EnumerationStat[T](val attribute: Int)(implicit ct: ClassTag[T]) extends S
     case that: EnumerationStat[_] => attribute == that.attribute && enumeration == that.enumeration
     case _ => false
   }
+
+  override def newcopy: Stat = this.copy()
 }

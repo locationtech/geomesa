@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -102,6 +102,8 @@ trait Stat {
    * Necessary method used by the StatIterator.
    */
   def clear(): Unit
+
+  def newcopy: Stat
 }
 
 /**
@@ -250,6 +252,15 @@ object Stat {
     * @return
     */
   def SeqStat(stats: Seq[String]): String = stats.mkString(";")
+
+  /**
+    * Groups results by attribute and runs stats for each group.
+    *
+    * @param attribute attribute to group stats by
+    * @param groupedStat stat to apply to grouped attributes
+    * @return
+    */
+  def GroupBy(attribute: Int, groupedStat: Stat): String = s"GroupBy($attribute,$groupedStat)"
 
   /**
     * String that will be parsed into a multi variate descriptive stat

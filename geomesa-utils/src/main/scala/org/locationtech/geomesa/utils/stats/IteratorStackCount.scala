@@ -14,7 +14,7 @@ import org.opengis.feature.simple.SimpleFeature
  * The IteratorStackCount keeps track of the number of times Accumulo sets up an iterator stack
  * as a result of a query.
  */
-class IteratorStackCount extends Stat {
+case class IteratorStackCount() extends Stat {
 
   private [stats] var counter: Long = 1
 
@@ -45,4 +45,6 @@ class IteratorStackCount extends Stat {
     case that: IteratorStackCount => counter == that.counter
     case _ => false
   }
+
+  override def newcopy: Stat = IteratorStackCount()
 }

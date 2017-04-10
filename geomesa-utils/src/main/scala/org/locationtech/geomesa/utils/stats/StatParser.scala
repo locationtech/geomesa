@@ -66,8 +66,18 @@ private class StatParser extends BasicParser {
     oneOrMore(singleStat, ";") ~~> { s => if (s.length == 1) s.head else new SeqStat(s) } ~ EOI
   }
 
+  def groupBy: Rule1[Stat] = rule {
+    // TODO: Clean up the DSL here
+    // TODO: Maybe support multiple stats in a groupby.
+    "GroupBy(" ~ string ~ "," ~ singleStat ~ ")" ~~> { (attribute, groupedStats) =>
+      val index = getIndex(attribute)
+      val foo: Stat = groupedStats
+      new GroupBy(index, groupedStats)
+    }
+  }
+
   private def singleStat: Rule1[Stat] = rule {
-    count | minMax | iteratorStack | enumeration | topK | stats | histogram | frequency | z3Histogram | z3Frequency
+    count | minMax | iteratorStack | groupBy | stats | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
   }
 
   private def count: Rule1[Stat] = rule {
@@ -103,7 +113,7 @@ private class StatParser extends BasicParser {
   }
 
   private def stats: Rule1[Stat] = rule {
-    "DescriptiveStats(" ~ string ~ ")" ~~> { attributes =>
+    optional("Descriptive") ~ "Stats(" ~ string ~ ")" ~~> { attributes =>
       val indices = attributes.split(",").map(getIndex)
       new DescriptiveStats(indices)
     }

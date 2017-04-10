@@ -32,6 +32,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
 
   override val spec = "an_id:java.lang.Integer,attr:java.lang.Long,dtg:Date,*geom:Point:srid=4326"
 
+  // TODO Make categorical variable
   addFeatures((0 until 150).toArray.map { i =>
     val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef],
       new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
@@ -80,6 +81,13 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
       rh.length mustEqual 5
       forall(0 until 5)(rh.count(_) mustEqual 30)
+    }
+
+    "work with the GroupBy stat" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "GroupBy(an_id,MinMax(attr))", encode = true)
+      val sf = results.features().next
+      val gb = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[GroupBy[_]]
+      gb.groupedStats.keys.toList.length mustEqual 150
     }
 
     "work with the DescriptiveStats stat" in {

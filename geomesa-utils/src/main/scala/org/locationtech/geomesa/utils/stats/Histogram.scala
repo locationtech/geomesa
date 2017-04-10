@@ -29,7 +29,7 @@ import scala.reflect.ClassTag
  * @param initialEndpoints lower/upper end of histogram
  * @tparam T a comparable type which must have a StatHelperFunctions type class
  */
-class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
+case class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
                   (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
     extends Stat with LazyLogging {
 
@@ -176,6 +176,8 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
           java.util.Arrays.equals(bins.counts, that.bins.counts)
     case _ => false
   }
+
+  override def newcopy: Stat = this.copy()
 }
 
 object Histogram {

@@ -30,7 +30,7 @@ import org.opengis.feature.simple.SimpleFeature
   * @param period time period to use for z index
   * @param length number of bins the histogram has, per period
  */
-class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod, val length: Int)
+case class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod, val length: Int)
     extends Stat with LazyLogging {
 
   import Z3Histogram._
@@ -168,6 +168,8 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
           binMap.forall { case (w, bins) => java.util.Arrays.equals(bins.counts, that.binMap(w).counts) }
     case _ => false
   }
+
+  override def newcopy: Stat = this.copy()
 }
 
 object Z3Histogram {

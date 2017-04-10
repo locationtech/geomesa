@@ -80,6 +80,15 @@ class DescriptiveStatsTest extends Specification with StatTestHelper {
   val JSON_EMPTY="""{"count":0}"""
 
   "Stats stat" should {
+    "work with both names" >> {
+      "DescriptiveStats()" >> {
+        Stat(sft, s"DescriptiveStats(intAttr)") must not(throwAn[Exception])
+      }
+
+      "Stats()" >> {
+        Stat(sft, s"Stats(intAttr)") must not(throwAn[Exception])
+      }
+    }
 
     "work with ints" >> {
       "be empty initiallly" >> {
