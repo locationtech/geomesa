@@ -3,7 +3,7 @@ org.locationtech.geomesa.convert.DateFunctionFactory
 org.locationtech.geomesa.convert.GeometryFunctionFactory
 org.locationtech.geomesa.convert.IdFunctionFactory
 org.locationtech.geomesa.convert.LineNumberFunctionFactory
-org.locationtech.geomesa.convert.BasicListFunction
+org.locationtech.geomesa.convert.CollectionFunctionFactory
 org.locationtech.geomesa.convert.StringMapListFunctionFactory
 org.locationtech.geomesa.convert.CastFunctionFactory
 org.locationtech.geomesa.convert.cql.CqlFunctionFactory

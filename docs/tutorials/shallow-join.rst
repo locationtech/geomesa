@@ -62,7 +62,7 @@ Set Up Tutorial Code
 
 Clone the geomesa-tutorials project, and go into the ``geomesa-examples-spark`` directory:
 
-    $ git clone https://github.com/ccri/geomesa-tutorials.git
+    $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials/geomesa-examples-spark
 
 .. note::

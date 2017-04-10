@@ -60,33 +60,38 @@ Run ``geomesa`` without any arguments to produce the following usage text::
 This usage text lists the available commands. To see help for an individual command,
 run ``geomesa help <command-name>``, which for example will give you something like this::
 
-    $ geomesa help get-names
-    List GeoMesa feature types for a given catalog
-    Usage: get-names [options]
+    $ geomesa help get-type-names
+    Usage: get-type-names [options]
       Options:
         --auths
            Accumulo authorizations
       * -c, --catalog
-           Catalog table name for GeoMesa
+           Catalog table for GeoMesa datastore
         -i, --instance
            Accumulo instance name
+        --keytab
+           Path to Accumulo user Kerberos keytab file
         --mock
            Run everything with a mock accumulo instance instead of a real one
            Default: false
         -p, --password
-           Accumulo password (will prompt if not supplied)
+           Accumulo password (will prompt if not supplied and not using Kerberos)
       * -u, --user
            Accumulo user name
         --visibilities
-           Accumulo scan visibilities
+           Default feature visibilities
         -z, --zookeepers
            Zookeepers (host[:port], comma separated)
 
-The Accumulo username and password is required for each command. Specify the
-username and password in each command by using ``-u`` (or ``--username``) and ``-p`` (or
+
+The Accumulo username and either a password or a path to a Kerberos keytab file is required for each command.
+Specify the username and password in each command by using ``-u`` (or ``--username``) and ``-p`` (or
 ``--password``), respectively. One can also only specify the username on the
 command line using ``-u`` or ``--username`` and type the password in an additional
 prompt, where the password will be hidden from the shell history.
+To use Kerberos authentication instead, use ``--keytab`` with a path to a Kerberos keytab file containing an entry for
+the specified user. Since a keytab file allows authentication without any further constraints, it should be protected
+appropriately.
 
 In nearly all commands below, one can add ``--instance-name``, ``--zookeepers``,
 ``--auths``, and ``--visibilities`` (or in short form ``-i``, ``-z``, ``-a``, and ``-v``) arguments

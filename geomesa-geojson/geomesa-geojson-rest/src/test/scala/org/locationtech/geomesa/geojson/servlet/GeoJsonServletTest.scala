@@ -46,8 +46,8 @@ class GeoJsonServletTest extends MutableScalatraSpec {
 
   "GeoJsonServlet" should {
     "register a datastore" in {
-      val params = Map("instanceId" -> "GeoJsonServletTest", "user" -> "root", "password" -> "",
-        "tableName" -> "GeoJsonServletTest", "useMock" -> "true")
+      val params = Map("instanceId" -> "GeoJsonServletTest", "user" -> "root", "zookeepers" -> "myzoo",
+        "password" -> "", "tableName" -> "GeoJsonServletTest", "useMock" -> "true")
       post("/ds/geojsontest", params) {
         status mustEqual 200
       }

@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -172,13 +172,14 @@ object KryoJsonSerialization extends LazyLogging {
       val paths = path.iterator
       while (paths.hasNext && matches.nonEmpty) {
         paths.next match {
-          case PathAttribute(name: String)    => matches = matchPathAttribute(in, matches, Some(name))
-          case PathAttributeWildCard          => matches = matchPathAttribute(in, matches, None)
-          case PathIndex(index: Int)          => matches = matchPathIndex(in, matches, Some(Seq(index)))
-          case PathIndices(indices: Seq[Int]) => matches = matchPathIndex(in, matches, Some(indices))
-          case PathIndexWildCard              => matches = matchPathIndex(in, matches, None)
-          case PathDeepScan                   => matches = matchDeep(in, matches)
-          case PathFunction(f)                => function = Some(f) // only 1 trailing function allowed by parser spec
+          case PathAttribute(name: String)          => matches = matchPathAttribute(in, matches, Some(name))
+          case BracketedPathAttribute(name: String) => matches = matchPathAttribute(in, matches, Some(name))
+          case PathAttributeWildCard                => matches = matchPathAttribute(in, matches, None)
+          case PathIndex(index: Int)                => matches = matchPathIndex(in, matches, Some(Seq(index)))
+          case PathIndices(indices: Seq[Int])       => matches = matchPathIndex(in, matches, Some(indices))
+          case PathIndexWildCard                    => matches = matchPathIndex(in, matches, None)
+          case PathDeepScan                         => matches = matchDeep(in, matches)
+          case PathFunction(f)                      => function = Some(f) // only 1 trailing function allowed by parser spec
         }
       }
 
@@ -209,7 +210,9 @@ object KryoJsonSerialization extends LazyLogging {
   // write a document without a name - used for the outer-most object which doesn't have a key
   private def writeDocument(out: Output, value: JObject): Unit = {
     val start = out.position()
-    out.setPosition(start + 4) // skip 4 bytes so we have space to go back and write total length
+    // write a placeholder that we will overwrite when we go back to write total length
+    // note: don't just modify position, as that doesn't expand the buffer correctly
+    out.writeInt(0)
     value.obj.foreach { case (name, elem) =>
       elem match {
         case v: JString  => writeString(out, name, v)

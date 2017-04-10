@@ -14,7 +14,8 @@ import java.util.{ServiceLoader, Map => JMap}
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
-import org.locationtech.geomesa.security._
+import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
+import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, _}
 
 import scala.collection.JavaConversions._
 
@@ -77,12 +78,12 @@ object AccumuloStoreHelper {
       masterAuthsStrings.toList
   }
 
-  def getAuthorizationsProvider(params: JMap[String,Serializable], connector: Connector): AuthorizationsProvider = {
+  def getAuthorizationsProvider(params: JMap[String,Serializable], connector: Connector): AccumuloAuthsProvider = {
     val auths = getAuthorizations(params, connector)
     getAuthorizationsProvider(auths, connector)
   }
 
-  def getAuthorizationsProvider(auths: Seq[String], connector: Connector): AuthorizationsProvider = {
+  def getAuthorizationsProvider(auths: Seq[String], connector: Connector): AccumuloAuthsProvider = {
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val authorizationsProvider = new FilteringAuthorizationsProvider ({
       val providers = ServiceLoader.load(classOf[AuthorizationsProvider]).toBuffer
@@ -117,6 +118,6 @@ object AccumuloStoreHelper {
     // we copy the map so as not to modify the original
     val modifiedParams = Map(authsParam.key -> auths.mkString(","))
     authorizationsProvider.configure(modifiedParams)
-    authorizationsProvider
+    new AccumuloAuthsProvider(authorizationsProvider)
   }
 }

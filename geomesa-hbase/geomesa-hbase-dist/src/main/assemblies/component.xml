@@ -13,7 +13,9 @@
             <useStrictFiltering>true</useStrictFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-hbase-spark-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-hbase-spark*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-hbase-distributed-runtime*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with HBase 1.2.3 which provides guava 12 -->
             </excludes>
         </dependencySet>
@@ -28,7 +30,6 @@
                 <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</include>
             </includes>
         </dependencySet>
-
         <dependencySet>
             <outputDirectory>dist/spark</outputDirectory>
             <directoryMode>0755</directoryMode>
@@ -40,7 +41,28 @@
                 <include>org.locationtech.geomesa:geomesa-hbase-spark*</include>
             </includes>
         </dependencySet>
-
+        <dependencySet>
+            <outputDirectory>dist/converters</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/hbase</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-hbase-distributed-runtime*</include>
+            </includes>
+        </dependencySet>
     </dependencySets>
 
     <fileSets>

@@ -65,12 +65,16 @@ object FilterHelper {
       val geomCopy = gf.createGeometry(geom)
       // trim to world boundaries
       val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
-      // add waypoints if needed so that IDL is handled correctly
-      val geomWithWayPoints = if (op.isInstanceOf[BBOX]) addWayPointsToBBOX(trimmedGeom) else trimmedGeom
-      val safeGeometry = tryGetIdlSafeGeom(geomWithWayPoints)
-      // mark it as being visited
-      safeGeometry.setUserData(SafeGeomString)
-      recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped)
+      if (trimmedGeom.isEmpty) {
+        Filter.EXCLUDE
+      } else {
+        // add waypoints if needed so that IDL is handled correctly
+        val geomWithWayPoints = if (op.isInstanceOf[BBOX]) addWayPointsToBBOX(trimmedGeom) else trimmedGeom
+        val safeGeometry = tryGetIdlSafeGeom(geomWithWayPoints)
+        // mark it as being visited
+        safeGeometry.setUserData(SafeGeomString)
+        recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped)
+      }
     }
   }
 

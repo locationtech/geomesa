@@ -45,6 +45,9 @@ expirationPeriod  Long     Feature will be "auto-dropped" (expired) after this d
                            in milliseconds. Leave black or use -1 to not drop features.
 cleanUpCache      Boolean  If true, run a thread to clean up the live feature cache every
                            second if set to true. False by default.
+autoOffsetReset   String   What offset to reset to when there is no initial offset in ZooKeeper 
+                           or if an offset is out of range. Valid values are smallest or 
+                           largest. Default value is largest.
 ================= ======== ====================================================================
 
 The required parameters are marked with an asterisk.

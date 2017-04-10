@@ -287,7 +287,7 @@ object TransformCreator {
     val newSf = new ScalaSimpleFeature("reusable", targetFeatureType)
 
     (feature: SimpleFeature) => {
-      newSf.getIdentifier.setID(feature.getIdentifier.getID)
+      newSf.setId(feature.getIdentifier.getID)
       defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
       encoder.serialize(newSf)
     }

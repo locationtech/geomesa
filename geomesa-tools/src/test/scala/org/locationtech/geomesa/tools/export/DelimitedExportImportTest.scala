@@ -37,7 +37,7 @@ class DelimitedExportImportTest extends Specification {
 
   def export(features: SimpleFeatureCollection, format: DataFormat): String = {
     val writer = new StringWriter()
-    val export = new DelimitedExporter(writer, format)
+    val export = new DelimitedExporter(writer, format, None, true)
     export.export(features)
     export.close()
     writer.toString

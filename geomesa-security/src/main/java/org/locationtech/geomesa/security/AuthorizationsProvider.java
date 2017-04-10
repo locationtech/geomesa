@@ -8,9 +8,8 @@
 
 package org.locationtech.geomesa.security;
 
-import org.apache.accumulo.core.security.Authorizations;
-
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,19 +17,20 @@ import java.util.Map;
  */
 public interface AuthorizationsProvider {
 
-    public static final String AUTH_PROVIDER_SYS_PROPERTY = "geomesa.auth.provider.impl";
+    static final String AUTH_PROVIDER_SYS_PROPERTY = "geomesa.auth.provider.impl";
 
     /**
-     * Gets the authorizations for the current context. This may change over time (e.g. in a multi-user environment), so the result should not be cached.
+     * Gets the authorizations for the current context. This may change over time (e.g. in a multi-user environment),
+     * so the result should not be cached.
      *
      * @return
      */
-    public Authorizations getAuthorizations();
+    List<String> getAuthorizations();
 
     /**
      * Configures this instance with parameters passed into the DataStoreFinder
      *
      * @param params
      */
-    public void configure(Map<String, Serializable> params);
+    void configure(Map<String, Serializable> params);
 }

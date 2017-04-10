@@ -27,6 +27,11 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cassandra-tools_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
+            <classifier>data</classifier>
+        </dependency>
 
         <!-- Cassandra Datastore -->
         <dependency>

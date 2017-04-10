@@ -232,7 +232,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       fc.add(f)
       fc.add(f2)
       val ids = fs.addFeatures(fc)
-      ids.map(_.getID).find(_ != "fid1").foreach(f2.getIdentifier.setID)
+      ids.map(_.getID).find(_ != "fid1").foreach(f2.setId)
 
       fs.getFeatures(Filter.INCLUDE).features().toList must containTheSameElementsAs(List(f, f2))
       fs.getFeatures(ECQL.toFilter("IN('fid1')")).features().toList mustEqual List(f)

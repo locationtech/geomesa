@@ -21,6 +21,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConversions._
+
 @RunWith(classOf[JUnitRunner])
 class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataStore {
 
@@ -137,6 +139,68 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       rh.length mustEqual 5
       rh.bounds mustEqual (0, 149)
       (0 until 5).map(rh.count).sum mustEqual 150
+    }
+
+    "return stats encoded as json" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr)", false)
+      val sf = results.features().next
+
+      val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
+      sf.getAttribute(0) mustEqual expectedOutput
+    }
+
+    "return stats encoded as json with non-Accumulo Feature collections" in {
+      val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
+      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+
+      val results = statsIteratorProcess.execute(features, "MinMax(attr)", false)
+      val sf = results.features().next
+
+      val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
+      sf.getAttribute(0) mustEqual expectedOutput
+    }
+
+    "return stats binary encoded as with Accumulo Feature collections" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr)", true)
+      val sf = results.features().next
+
+      val stat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[Long]]
+      stat.min mustEqual(0)
+      stat.max mustEqual(298)
+    }
+
+
+    "return stats binary encoded as with non-Accumulo Feature collections" in {
+      val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
+      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+
+      val results = statsIteratorProcess.execute(features, "MinMax(attr)", true)
+      val sf = results.features().next
+
+      val stat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[Long]]
+      stat.min mustEqual(0)
+      stat.max mustEqual(298)
+    }
+
+    "return transforms stats encoded as json" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, Seq("attr1=attr+5"))
+      val sf = results.features().next
+
+      // NB: Doubles <=> Ints:(
+      val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
+      sf.getAttribute(0) mustEqual expectedOutput
+    }
+
+    "return transforms stats encoded as json with non AccumuloFeatureCollections" in {
+      val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
+      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+
+      val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, Seq("attr1=attr+5"))
+      val sf = results.features().next
+
+      // NB: Doubles <=> Ints:(
+      val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
+      sf.getAttribute(0) mustEqual expectedOutput
     }
   }
 }

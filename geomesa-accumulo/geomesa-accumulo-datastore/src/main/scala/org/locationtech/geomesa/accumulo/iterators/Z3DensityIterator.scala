@@ -86,7 +86,7 @@ object Z3DensityIterator {
                   filter: Option[Filter],
                   hints: Hints,
                   priority: Int = KryoLazyDensityIterator.DEFAULT_PRIORITY): IteratorSetting = {
-      val is = KryoLazyDensityIterator.configure(sft, index, filter, hints, priority)
+      val is = KryoLazyDensityIterator.configure(sft, index, filter, hints, deduplicate = false, priority)
       is.setIteratorClass(classOf[Z3DensityIterator].getName)
       is
     }

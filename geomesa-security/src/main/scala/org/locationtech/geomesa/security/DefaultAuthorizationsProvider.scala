@@ -8,23 +8,23 @@
 
 package org.locationtech.geomesa.security
 
-import org.apache.accumulo.core.security.Authorizations
+import java.util
 
 /**
  * Default implementation of the AuthorizationsProvider that doesn't provide any authorizations
  */
 class DefaultAuthorizationsProvider extends AuthorizationsProvider {
 
-  var authorizations: Authorizations = new Authorizations
+  var authorizations: util.List[String] = new util.ArrayList[String]()
 
-  override def getAuthorizations: Authorizations = authorizations
+  override def getAuthorizations: util.List[String] = authorizations
 
   override def configure(params: java.util.Map[String, java.io.Serializable]) {
-    val authString = authsParam.lookUp(params).asInstanceOf[String]
+    val authString = AuthsParam.lookUp(params).asInstanceOf[String]
     if (authString == null || authString.isEmpty)
-      authorizations = new Authorizations()
+      authorizations = new util.ArrayList[String]()
     else
-      authorizations = new Authorizations(authString.split(","):_*)
+      authorizations = util.Arrays.asList(authString.split(","): _*)
   }
 
 }

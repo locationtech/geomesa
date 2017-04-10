@@ -6,7 +6,7 @@ Accumulo Visibilities
 GeoMesa support Accumulo visibilities for securing data. Visibilities can be set at the data store,
 feature, or individual attribute levels.
 
-See :ref:`accumulo_authorizations` for details on querying data with visibilities.
+See :ref:`authorizations` for details on querying data with visibilities.
 
 Data Store Level Visibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
