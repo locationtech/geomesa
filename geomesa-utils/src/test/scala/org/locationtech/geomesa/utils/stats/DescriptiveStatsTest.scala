@@ -8,12 +8,15 @@
 
 package org.locationtech.geomesa.utils.stats
 
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class DescriptiveStatsTest extends Specification with StatTestHelper {
 
   def newStat[T <: Number](attribute: String, observe: Boolean = true): DescriptiveStats = {
-    val stat = Stat(sft, s"Stats($attribute)")
+    val stat = Stat(sft, s"DescriptiveStats($attribute)")
     if (observe) {
       features.foreach { stat.observe }
     }
