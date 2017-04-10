@@ -60,7 +60,6 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore
   // FileDataStore methods
 
   override def getSchema: SimpleFeatureType = {
-    // TODO cache?
     WithClose(createInputStream()) { is =>
       if (is.available() < 1) { null } else {
         try {

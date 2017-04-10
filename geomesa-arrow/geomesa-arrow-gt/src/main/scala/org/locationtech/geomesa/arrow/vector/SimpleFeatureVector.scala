@@ -34,7 +34,7 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
                                    val precision: GeometryPrecision = GeometryPrecision.Double)
                                   (implicit allocator: BufferAllocator) extends Closeable {
 
-  // TODO user data
+  // TODO user data at feature and schema level
 
   // note: writer creates the map child vectors based on the sft, and should be instantiated before the reader
   val writer = new Writer(this)
@@ -43,11 +43,7 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
   /**
     * Clear any simple features currently stored in the vector
     */
-  def reset(): Unit = {
-    // TODO is there a better way to reset the buffer?
-    underlying.clear()
-    underlying.allocateNewSafe()
-  }
+  def reset(): Unit = underlying.getMutator.setValueCount(0)
 
   override def close(): Unit = {
     underlying.close()
@@ -128,7 +124,6 @@ object SimpleFeatureVector {
       // filter out feature id from attributes
       case field if field.getName != "id" => field.getName
     }
-    // TODO user data
     val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))
     new SimpleFeatureVector(sft, vector, dictionaries)
   }

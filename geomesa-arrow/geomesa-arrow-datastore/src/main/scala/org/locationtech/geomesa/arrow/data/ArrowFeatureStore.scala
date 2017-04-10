@@ -15,6 +15,7 @@ import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry, Query.ALL) {
@@ -64,10 +65,13 @@ class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, 
     require((flags | WRITER_ADD) == WRITER_ADD, "Only append supported")
 
     val sft = delegate.ds.getSchema
-    val os = delegate.ds.createOutputStream(false) // TODO append instead of overwrite?
+    // TODO suport appending to an existing file
+    val os = delegate.ds.createOutputStream(false)
     val writer = new SimpleFeatureArrowFileWriter(sft, os)
+    val flushCount = SystemProperty("geomesa.arrow.batch.size", "10000").get.toLong
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
+      private var count = 0L
       private var feature: ScalaSimpleFeature = _
 
       override def getFeatureType: SimpleFeatureType = writer.sft
@@ -80,9 +84,12 @@ class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, 
       }
 
       override def write(): Unit = {
-        // TODO flush occasionally?
         writer.add(feature)
         feature = null
+        count += 1
+        if (count % flushCount == 0) {
+          writer.flush()
+        }
       }
 
       override def remove(): Unit = throw new NotImplementedError()
