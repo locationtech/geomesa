@@ -147,7 +147,8 @@ object ArrowBatchIterator {
                          fields: Seq[String],
                          filter: Option[Filter]): Map[String, ArrowDictionary] = {
     if (fields.isEmpty) { Map.empty } else {
-      // TODO validate fields are strings
+      require(fields.forall(sft.getDescriptor(_).getType.getBinding == classOf[String]),
+        "Only string types supported for dictionary encoding")
       // run a live stats query to get the dictionary values
       val stats = Stat.SeqStat(fields.map(Stat.Enumeration))
       val enumerations = ds.stats.runStats[EnumerationStat[String]](sft, stats, filter.getOrElse(Filter.INCLUDE))
