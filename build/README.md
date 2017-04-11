@@ -57,8 +57,8 @@ directory of GeoServer.
 
 ## Maven Integration
 
-GeoMesa artifacts are published to the LocationTech Maven repository. To include GeoMesa in your project,
-add the following repositories to your pom:
+GeoMesa artifacts are published to the [LocationTech Maven repository](https://repo.locationtech.org/content/groups/releases/org/locationtech/geomesa/). To include GeoMesa in your project, add the following repositories to your pom:
+
 
 ```xml
 <repositories>
@@ -71,7 +71,7 @@ add the following repositories to your pom:
   </repository>
   <repository>
     <id>boundlessgeo</id>
-    <url>http://repo.boundlessgeo.com/main</url>
+    <url>https://repo.boundlessgeo.com/main</url>
   </repository>
   <repository>
     <id>osgeo</id>

@@ -101,7 +101,7 @@ and then include the desired `geomesa-*` dependencies:
 ```xml
   <dependency>
     <groupId>org.locationtech.geomesa</groupId>
-    <artifactId>geomesa-spark</artifactId>
+    <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
     <version>1.3.1</version>
   </dependency>
   ...
@@ -122,7 +122,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
-  "org.locationtech.geomesa" %% "geomesa-spark-sql" % "1.3.1",
+  "org.locationtech.geomesa" %% "geomesa-utils" % "1.3.1",
   ...
 )
 ```
