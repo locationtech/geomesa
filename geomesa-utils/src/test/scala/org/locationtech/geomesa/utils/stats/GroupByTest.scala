@@ -214,7 +214,7 @@ class GroupByTest extends Specification with StatTestHelper {
           val groupBy = newStat[Int]("cat1","MinMax(strAttr)")
           val stat = minmaxStat(groupBy)
           stat.bounds mustEqual ("abc000", "abc090")
-          stat.cardinality must beCloseTo(100L, 5)
+          stat.cardinality must beCloseTo(10L, 5)
         }
 
         "serialize to json" >> {
@@ -260,12 +260,12 @@ class GroupByTest extends Specification with StatTestHelper {
           features2.foreach { groupBy2.observe }
           val gS20 = minmaxStat(groupBy2)
           gS20.bounds mustEqual ("abc100", "abc190")
-          gS20.cardinality must beCloseTo(100L, 5)
+          gS20.cardinality must beCloseTo(10L, 5)
 
           groupBy1 += groupBy2
           val gS10 = minmaxStat(groupBy1)
           gS10.bounds mustEqual ("abc000", "abc190")
-          gS10.cardinality must beCloseTo(200L, 5)
+          gS10.cardinality must beCloseTo(20L, 5)
           gS20.bounds mustEqual ("abc100", "abc190")
         }
 

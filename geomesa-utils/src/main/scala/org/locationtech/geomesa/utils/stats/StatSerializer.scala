@@ -140,9 +140,9 @@ object KryoStatSerializer {
     val binding = sft.getDescriptor(attribute).getType.getBinding
     val classTag = ClassTag[Any](binding)
     val stat = if (immutable) {
-      new GroupBy(attribute, null, null)(classTag) with ImmutableStat
+      new GroupBy(attribute, null)(classTag) with ImmutableStat
     } else {
-      new GroupBy(attribute, null, null)(classTag)
+      new GroupBy(attribute, null)(classTag)
     }
 
     var i = 0

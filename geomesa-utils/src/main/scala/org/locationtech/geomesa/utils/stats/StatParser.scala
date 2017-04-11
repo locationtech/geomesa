@@ -63,14 +63,14 @@ private class StatParser extends BasicParser {
 
   // main parsing rule
   def stat: Rule1[Stat] = rule {
-    oneOrMore(singleStat, ";") ~~> { s => if (s.length == 1) s.head else new SeqStat(s) } ~ EOI
+    oneOrMore(singleStat, ";") ~~> { s => if (s.length == 1) s.head() else new SeqStat(s.map(_())) } ~ EOI
   }
 
-  def groupBy: Rule1[Stat] = rule {
+  def groupBy: Rule1[() => Stat] = rule {
     // TODO: Fix the dsl here. GroupBy should accept (string, stat) but oneOrMore doesn't work when nested inside (). The effect of this is GroupBy can't accept SeqStat.
-    "GroupBy(" ~ string ~ "," ~ stringWithParens ~? parses ~ ")" ~~> { (attribute, groupedStats) =>
+    "GroupBy(" ~ string ~ "," ~ singleStat ~ ")" ~~> { (attribute, groupedStats) =>
       val index = getIndex(attribute)
-      GroupBy(index, groupedStats, sft)
+      () => GroupBy(index, groupedStats)
     }
   }
 
@@ -79,54 +79,67 @@ private class StatParser extends BasicParser {
     true
   }
 
-  private def singleStat: Rule1[Stat] = rule {
+  //def statConstructor: Rule1[() => Stat] = ???
+
+//  private def singleStatConstructor: Rule1[() => Stat] = rule {
+//    countCstr // | minMax | iteratorStack | groupBy | stats | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
+//  }
+
+  implicit def construct(cstr: () => Stat): Stat = cstr()
+
+//  implicit def constructRule(cstr: Rule1[() => Stat]): Rule1[() => Stat] = rule {
+//   cstr.matcher.
+//  }
+
+  private def singleStat: Rule1[() => Stat] = rule {
     count | minMax | iteratorStack | groupBy | stats | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
   }
 
-//  private def statString: Rule1[Stat] = rule {
-//     stat ~~~? { statStr: Stat => true }
-//  }
-
-  private def count: Rule1[Stat] = rule {
-    "Count()" ~> { _ => new CountStat() }
+  private def count: Rule1[() => Stat] = rule {
+    "Count()" ~> { _ => () => new CountStat() }
   }
 
-  private def minMax: Rule1[Stat] = rule {
+  private def countCstr: Rule1[() => Stat] = rule {
+    "Count()" ~> { _ => () => new CountStat() }
+  }
+
+
+  private def minMax: Rule1[() => Stat] = rule {
     "MinMax(" ~ string ~ ")" ~~> { attribute =>
       val index = getIndex(attribute)
       val binding = sft.getDescriptor(attribute).getType.getBinding
-      new MinMax[Any](index)(MinMaxDefaults(binding), ClassTag(binding))
+      () => new MinMax[Any](index)(MinMaxDefaults(binding), ClassTag(binding))
     }
   }
 
-  private def iteratorStack: Rule1[Stat] = rule {
-    "IteratorStackCount()" ~> { _ => new IteratorStackCount() }
+  private def iteratorStack: Rule1[() => Stat] = rule {
+    "IteratorStackCount()" ~> { _ => () => new IteratorStackCount() }
   }
 
-  private def enumeration: Rule1[Stat] = rule {
+  private def enumeration: Rule1[() => Stat] = rule {
     "Enumeration(" ~ string ~ ")" ~~> { attribute =>
       val index = getIndex(attribute)
       val binding = sft.getDescriptor(attribute).getType.getBinding
-      new EnumerationStat[Any](index)(ClassTag(binding))
+      () => new EnumerationStat[Any](index)(ClassTag(binding))
     }
   }
 
-  private def topK: Rule1[Stat] = rule {
+  private def topK: Rule1[() => Stat] = rule {
     "TopK(" ~ string ~ ")" ~~> { attribute =>
       val index = getIndex(attribute)
       val binding = sft.getDescriptor(attribute).getType.getBinding
-      new TopK[Any](index)(ClassTag(binding))
+      () => new TopK[Any](index)(ClassTag(binding))
     }
   }
 
-  private def stats: Rule1[Stat] = rule {
+  private def stats: Rule1[() => Stat] = rule {
     "DescriptiveStats(" ~ string ~ ")" ~~> { attributes =>
       val indices = attributes.split(",").map(getIndex)
-      new DescriptiveStats(indices)
+      () => new DescriptiveStats(indices)
     }
   }
 
-  private def histogram: Rule1[Stat] = rule {
+  private def histogram: Rule1[() => Stat] = rule {
     "Histogram(" ~ string ~ "," ~ int ~ "," ~ string ~ "," ~ string ~ ")" ~~> {
       (attribute, numBins, lower, upper) => {
         val index = getIndex(attribute)
@@ -134,32 +147,32 @@ private class StatParser extends BasicParser {
         val destringify = Stat.destringifier(binding)
         val tLower = destringify(lower)
         val tUpper = destringify(upper)
-        new Histogram[Any](index, numBins, (tLower, tUpper))(MinMaxDefaults(binding), ClassTag(binding))
+        () => new Histogram[Any](index, numBins, (tLower, tUpper))(MinMaxDefaults(binding), ClassTag(binding))
       }
     }
   }
 
-  private def frequency: Rule1[Stat] = rule {
+  private def frequency: Rule1[() => Stat] = rule {
     "Frequency(" ~ string ~ "," ~ optional(string ~ "," ~ timePeriod ~ ",") ~ int ~ ")" ~~> {
       (attribute, dtgAndPeriod, precision) => {
         val index = getIndex(attribute)
         val dtgIndex = dtgAndPeriod.map(dap => getIndex(dap._1)).getOrElse(-1)
         val period = dtgAndPeriod.map(_._2).getOrElse(TimePeriod.Week)
         val binding = sft.getDescriptor(attribute).getType.getBinding
-        new Frequency[Any](index, dtgIndex, period, precision)(ClassTag(binding))
+        () => new Frequency[Any](index, dtgIndex, period, precision)(ClassTag(binding))
       }
     }
   }
 
-  private def z3Histogram: Rule1[Stat] = rule {
+  private def z3Histogram: Rule1[() => Stat] = rule {
     "Z3Histogram(" ~ string ~ "," ~ string ~ "," ~ timePeriod ~ "," ~ int ~ ")" ~~> {
-      (geom, dtg, period, length) => new Z3Histogram(getIndex(geom), getIndex(dtg), period, length)
+      (geom, dtg, period, length) => () => new Z3Histogram(getIndex(geom), getIndex(dtg), period, length)
     }
   }
 
-  private def z3Frequency: Rule1[Stat] = rule {
+  private def z3Frequency: Rule1[() => Stat] = rule {
     "Z3Frequency(" ~ string ~ "," ~ string ~ "," ~ timePeriod ~ "," ~ int ~ ")" ~~> {
-      (geom, dtg, period, precision) => new Z3Frequency(getIndex(geom), getIndex(dtg), period, precision)
+      (geom, dtg, period, precision) => () => new Z3Frequency(getIndex(geom), getIndex(dtg), period, precision)
     }
   }
 
