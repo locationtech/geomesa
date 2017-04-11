@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -36,7 +36,7 @@ import scala.reflect.ClassTag
   * @param ct class tag
   * @tparam T type parameter, should match the type binding of the attribute
   */
-case class Frequency[T](val attribute: Int,
+class Frequency[T](val attribute: Int,
                    val dtgIndex: Int,
                    val period: TimePeriod,
                    val precision: Int,
@@ -190,7 +190,11 @@ case class Frequency[T](val attribute: Int,
     }
   }
 
-  override def newcopy: Stat = this.copy()
+  override def newCopy: Stat = {
+    val newFreq = new Frequency[T](attribute, dtgIndex, period, precision, eps, confidence)(ct)
+    newFreq += this
+    newFreq
+  }
 }
 
 object Frequency {

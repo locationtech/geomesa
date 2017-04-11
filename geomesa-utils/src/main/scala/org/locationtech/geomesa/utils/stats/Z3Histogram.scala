@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -30,7 +30,7 @@ import org.opengis.feature.simple.SimpleFeature
   * @param period time period to use for z index
   * @param length number of bins the histogram has, per period
  */
-case class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod, val length: Int)
+class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod, val length: Int)
     extends Stat with LazyLogging {
 
   import Z3Histogram._
@@ -169,7 +169,11 @@ case class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePe
     case _ => false
   }
 
-  override def newcopy: Stat = this.copy()
+  override def newCopy: Stat = {
+    val newHist = new Z3Histogram(geomIndex, dtgIndex, period, length)
+    newHist += this
+    newHist
+  }
 }
 
 object Z3Histogram {

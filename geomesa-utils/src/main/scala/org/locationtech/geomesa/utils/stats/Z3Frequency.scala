@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -27,7 +27,7 @@ import org.opengis.feature.simple.SimpleFeature
   * @param eps (epsilon) with probability at least @see confidence, estimates will be within eps * N
   * @param confidence percent - with probability at least confidence, estimates will be within @see eps * N
   */
-case class Z3Frequency(val geomIndex: Int,
+class Z3Frequency(val geomIndex: Int,
                   val dtgIndex: Int,
                   val period: TimePeriod,
                   val precision: Int,
@@ -146,5 +146,9 @@ case class Z3Frequency(val geomIndex: Int,
     }
   }
 
-  override def newcopy: Stat = this.copy()
+  override def newCopy: Stat = {
+    val newFreq = new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence)
+    newFreq += this
+    newFreq
+  }
 }

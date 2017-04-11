@@ -103,7 +103,13 @@ trait Stat {
    */
   def clear(): Unit
 
-  def newcopy: Stat
+  /**
+   * Creates a new instance of the Stat with an identical state. Used by the GroupBy stat to maintain
+   * copies of a stat for each group.
+   *
+   * @return new instance of the Stat
+   */
+  def newCopy: Stat
 }
 
 /**

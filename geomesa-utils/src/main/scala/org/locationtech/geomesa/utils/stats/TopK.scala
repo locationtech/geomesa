@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -22,7 +22,7 @@ import scala.reflect.ClassTag
   * @param ct classtag
   * @tparam T attribute type binding
   */
-case class TopK[T](val attribute: Int,
+class TopK[T](val attribute: Int,
               private [stats] var summary: StreamSummary[T] = new StreamSummary[T](TopK.StreamCapacity))(implicit ct: ClassTag[T])
     extends Stat with LazyLogging {
 
@@ -83,7 +83,11 @@ case class TopK[T](val attribute: Int,
     case _ => false
   }
 
-  override def newcopy: Stat = this.copy()
+  override def newCopy: Stat = {
+    val newTK = new TopK[T](attribute, summary)(ct)
+    newTK += this
+    newTK
+  }
 }
 
 object TopK {

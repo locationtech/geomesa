@@ -71,8 +71,7 @@ private class StatParser extends BasicParser {
     // TODO: Maybe support multiple stats in a groupby.
     "GroupBy(" ~ string ~ "," ~ singleStat ~ ")" ~~> { (attribute, groupedStats) =>
       val index = getIndex(attribute)
-      val foo: Stat = groupedStats
-      new GroupBy(index, groupedStats)
+      GroupBy(index, groupedStats)
     }
   }
 
@@ -113,7 +112,7 @@ private class StatParser extends BasicParser {
   }
 
   private def stats: Rule1[Stat] = rule {
-    optional("Descriptive") ~ "Stats(" ~ string ~ ")" ~~> { attributes =>
+    "DescriptiveStats(" ~ string ~ ")" ~~> { attributes =>
       val indices = attributes.split(",").map(getIndex)
       new DescriptiveStats(indices)
     }

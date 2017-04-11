@@ -145,9 +145,9 @@ object KryoStatSerializer {
       new GroupBy(attribute, null)(classTag)
     }
 
-    var i = 1
+    var i = 0
 
-    while (i <= keyLength) {
+    while (i < keyLength) {
       val key = reader(input, sft.getDescriptor(attribute).getType.getBinding).apply()
       val groupedStat = read(input, sft, immutable)
       stat.groupedStats.put(key, groupedStat)

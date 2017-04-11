@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -14,7 +14,7 @@ import org.opengis.feature.simple.SimpleFeature
  * The IteratorStackCount keeps track of the number of times Accumulo sets up an iterator stack
  * as a result of a query.
  */
-case class IteratorStackCount() extends Stat {
+class IteratorStackCount() extends Stat {
 
   private [stats] var counter: Long = 1
 
@@ -46,5 +46,9 @@ case class IteratorStackCount() extends Stat {
     case _ => false
   }
 
-  override def newcopy: Stat = IteratorStackCount()
+  override def newCopy: Stat = {
+    val newIter = new IteratorStackCount
+    newIter += this
+    newIter
+  }
 }

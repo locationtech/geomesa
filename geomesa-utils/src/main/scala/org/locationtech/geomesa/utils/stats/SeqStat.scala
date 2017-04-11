@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -15,7 +15,7 @@ import org.opengis.feature.simple.SimpleFeature
  *
  * @param stats a Sequence of individual Stat objects
  */
-case class SeqStat(val stats: Seq[Stat]) extends Stat {
+class SeqStat(val stats: Seq[Stat]) extends Stat {
 
   override type S = SeqStat
 
@@ -39,5 +39,9 @@ case class SeqStat(val stats: Seq[Stat]) extends Stat {
     case _ => false
   }
 
-  override def newcopy: Stat = SeqStat(stats.map(_.newcopy))
+  override def newCopy: Stat = {
+    val newSS = new SeqStat(stats)
+    newSS += this
+    newSS
+  }
 }

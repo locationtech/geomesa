@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -29,7 +29,7 @@ import scala.reflect.ClassTag
  * @param initialEndpoints lower/upper end of histogram
  * @tparam T a comparable type which must have a StatHelperFunctions type class
  */
-case class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
+class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
                   (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
     extends Stat with LazyLogging {
 
@@ -177,7 +177,11 @@ case class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: 
     case _ => false
   }
 
-  override def newcopy: Stat = this.copy()
+  override def newCopy: Stat = {
+    val newHist = new Histogram[T](attribute, initialBins, initialEndpoints)(defaults, ct)
+    newHist += this
+    newHist
+  }
 }
 
 object Histogram {

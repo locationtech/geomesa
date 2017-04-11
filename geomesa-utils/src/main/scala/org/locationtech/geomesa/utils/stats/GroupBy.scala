@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -26,12 +26,7 @@ case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T
     */
   override def observe(sf: SimpleFeature): Unit = {
     val key = sf.getAttribute(attribute).asInstanceOf[T]
-    groupedStats.get(key) match {
-      case Some(groupedStat) => groupedStat.observe(sf)
-      case None              => val newStat = exampleStat.newcopy
-        newStat.observe(sf)
-        groupedStats.update(key, newStat)
-    }
+    groupedStats.getOrElseUpdate(key, exampleStat.newCopy).observe(sf)
   }
 
   /**
@@ -43,7 +38,7 @@ case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T
     */
   override def unobserve(sf: SimpleFeature): Unit = {
     val key = sf.getAttribute(attribute).asInstanceOf[T]
-    groupedStats.get(key) match { case Some(groupedStat) => groupedStat.unobserve(sf) }
+    groupedStats.get(key).foreach( groupedStat => groupedStat.unobserve(sf) )
   }
 
   /**
@@ -55,7 +50,7 @@ case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T
     other.groupedStats.map { case (key, stat) =>
       groupedStats.get(key) match {
         case Some(groupedStat) => groupedStat += stat
-        case None              => groupedStats.put(key, stat)
+        case None              => groupedStats.put(key, stat.newCopy)
       }
     }
   }
@@ -66,7 +61,7 @@ case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T
     * @param other the other stat to add
     */
   override def +(other: GroupBy[T]): GroupBy[T] = {
-    val newGB = new GroupBy[T](attribute, exampleStat.newcopy)
+    val newGB = new GroupBy[T](attribute, exampleStat.newCopy)
     newGB += this
     newGB += other
     newGB
@@ -87,7 +82,7 @@ case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T
     *
     * @return true if stat contains values
     */
-  override def isEmpty: Boolean = groupedStats.isEmpty
+  override def isEmpty: Boolean = groupedStats.values.forall(_.isEmpty)
 
   /**
     * Compares the two stats for equivalence. We don't use standard 'equals' as it gets messy with
@@ -98,7 +93,9 @@ case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T
     */
   override def isEquivalent(other: Stat): Boolean = {
     other match {
-      case other: GroupBy[T] => !groupedStats.map{ case (key, stat) => other.groupedStats.get(key) == stat }.exists(p => p == false)
+      case other: GroupBy[T] => !groupedStats.map{ case (key, stat) =>
+          other.groupedStats.get(key).asInstanceOf[Stat].isEquivalent(stat)
+        }.exists(p => p == false)
       case _ => false
     }
   }
@@ -109,5 +106,9 @@ case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T
     */
   override def clear(): Unit = groupedStats.clear()
 
-  override def newcopy: Stat = GroupBy(attribute, exampleStat.newcopy)
+  override def newCopy: Stat = {
+    val newGB = new GroupBy(attribute, exampleStat.newCopy)
+    newGB += this
+    newGB
+  }
 }

@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
  * @param attribute attribute index for the attribute the histogram is being made for
  * @tparam T some type T (which is restricted by the stat parser upstream of Histogram instantiation)
  */
-case class EnumerationStat[T](val attribute: Int)(implicit ct: ClassTag[T]) extends Stat {
+class EnumerationStat[T](val attribute: Int)(implicit ct: ClassTag[T]) extends Stat {
 
   override type S = EnumerationStat[T]
 
@@ -75,5 +75,9 @@ case class EnumerationStat[T](val attribute: Int)(implicit ct: ClassTag[T]) exte
     case _ => false
   }
 
-  override def newcopy: Stat = this.copy()
+  override def newCopy: Stat = {
+    val newEnum = new EnumerationStat[T](attribute)(ct)
+    newEnum += this
+    newEnum
+  }
 }
