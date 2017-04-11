@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.ListMap
 import scala.Array._
 
-case class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable {
+class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable {
 
   override type S = DescriptiveStats
 
@@ -318,7 +318,7 @@ case class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializ
   }
 
   override def newcopy: Stat = {
-    val newstat = this.copy()
+    val newstat = new DescriptiveStats(attributes)
     newstat.copyFrom(this)
     newstat
   }
