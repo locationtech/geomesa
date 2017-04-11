@@ -10,9 +10,12 @@ package org.locationtech.geomesa.utils.stats
 
 import org.ejml.data.DenseMatrix64F
 import org.ejml.simple.SimpleMatrix
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
 
   implicit class extract(sm: SimpleMatrix) {
