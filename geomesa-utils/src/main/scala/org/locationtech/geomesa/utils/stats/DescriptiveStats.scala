@@ -280,14 +280,14 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
     case that: DescriptiveStats =>
       attributes == that.attributes &&
         _count  == that._count &&
-        _min.isIdentical(that._min, 1e-9) &&
-        _max.isIdentical(that._max, 1e-9) &&
-        _sum.isIdentical(that._sum, 1e-9) &&
-        _mean.isIdentical(that._mean, 1e-9) &&
-        _m2n.isIdentical(that._m2n, 1e-9) &&
-        _m3n.isIdentical(that._m3n, 1e-9) &&
-        _m4n.isIdentical(that._m4n, 1e-9) &&
-        _c2.isIdentical(that._c2, 1e-9)
+        _min.isIdenticalWithinTolerances(that._min, 1e-6, 1e-12) &&
+        _max.isIdenticalWithinTolerances(that._max, 1e-6, 1e-12) &&
+        _sum.isIdenticalWithinTolerances(that._sum, 1e-6, 1e-12) &&
+        _mean.isIdenticalWithinTolerances(that._mean, 1e-6, 1e-12) &&
+        _m2n.isIdenticalWithinTolerances(that._m2n, 1e-6, 1e-12) &&
+        _m3n.isIdenticalWithinTolerances(that._m3n, 1e-6, 1e-12) &&
+        _m4n.isIdenticalWithinTolerances(that._m4n, 1e-6, 1e-12) &&
+        _c2.isIdenticalWithinTolerances(that._c2, 1e-6, 1e-12)
     case _ => false
   }
 

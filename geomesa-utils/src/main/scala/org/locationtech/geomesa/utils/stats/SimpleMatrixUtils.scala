@@ -57,6 +57,49 @@ object SimpleMatrixUtils {
     def |*|(b: SimpleMatrix): SimpleMatrix = a.mult(b)
 
     def T: SimpleMatrix = a.transpose
+
+    def isIdenticalWithinTolerances(b: SimpleMatrix, rel_tol: Double = 1e-9, abs_tol: Double = 1e-15): Boolean = {
+      import java.lang.{Double => jDouble}
+      if (a.numRows != b.numRows || a.numCols != b.numCols) {
+        return false
+      }
+      require(rel_tol >= 0 && abs_tol >=0, "Tolerance must be greater than or equal to zero.")
+      val length = a.getNumElements
+      var i = 0
+
+      while (i < length) {
+        val va = a.get(i)
+        val vb = b.get(i)
+        val va_nan = va != va     /* quick NaN test */
+        val vb_nan = vb != vb     /* quick NaN test */
+        if (va_nan || vb_nan) {   /* if either NaN */
+          if (va_nan != vb_nan) { /* then both should be NaN */
+            return false
+          }
+        } else {
+          val va_inf = jDouble.isInfinite(va)
+          val vb_inf = jDouble.isInfinite(vb)
+          if (va_inf || vb_inf) {
+            if (va != vb) {
+              return false
+            }
+          } else {
+            /* check absolute tolerance, important for low magnitude values (0) */
+            val diff = Math.abs(va - vb)
+            if (diff > abs_tol) {
+              val va_abs = Math.abs(va)
+              val vb_abs = Math.abs(vb)
+              /* check relative tolerance, important for high magnitude values */
+              if (diff > Math.max(va_abs, vb_abs) * rel_tol) {
+                return false
+              }
+            }
+          }
+        }
+        i += 1
+      }
+      true
+    }
   }
 
   implicit class DoubleOps(a: Double) {

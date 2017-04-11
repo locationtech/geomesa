@@ -293,5 +293,152 @@ class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
         row.getNumRows mustEqual 1
       }
     }
+    "isIdenticalRelative" >> {
+      "handle special values" >> {
+        val a = new SimpleMatrix(3, 1)
+        val b = new SimpleMatrix(3, 1)
+
+        a.matrix.setData(Array(1, Double.NaN, 1))
+        b.matrix.setData(Array(1, Double.NaN, 1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beTrue
+
+        a.matrix.setData(Array(1, Double.NaN, 1))
+        b.matrix.setData(Array(1, Double.NaN, -1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+
+        a.matrix.setData(Array(1, Double.NaN, 1))
+        b.matrix.setData(Array(1, 1, 1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+
+        a.matrix.setData(Array(1, Double.NegativeInfinity, 1))
+        b.matrix.setData(Array(1, Double.NegativeInfinity, 1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beTrue
+
+        a.matrix.setData(Array(1, Double.NegativeInfinity, 1))
+        b.matrix.setData(Array(1, Double.NegativeInfinity, -1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+
+        a.matrix.setData(Array(1, Double.NegativeInfinity, 1))
+        b.matrix.setData(Array(1, 1, 1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+
+        a.matrix.setData(Array(1, Double.PositiveInfinity, 1))
+        b.matrix.setData(Array(1, Double.PositiveInfinity, 1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beTrue
+
+        a.matrix.setData(Array(1, Double.PositiveInfinity, 1))
+        b.matrix.setData(Array(1, Double.PositiveInfinity, -1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+
+        a.matrix.setData(Array(1, Double.PositiveInfinity, 1))
+        b.matrix.setData(Array(1, 1, 1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+
+        a.matrix.setData(Array(1, Double.PositiveInfinity, 1))
+        b.matrix.setData(Array(1, Double.NegativeInfinity, 1))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+      }
+      "handle large values" >> {
+        val a = new SimpleMatrix(3, 1)
+        val b = new SimpleMatrix(3, 1)
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beTrue
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7 + 1e-2))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beTrue
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7 - 1e-2))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beTrue
+
+        val ulp = Math.ulp(1e7)
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7 + 1e-2 + ulp))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7 - 1e-2 - ulp))
+        a.isIdenticalWithinTolerances(b, 1e-9) must beFalse
+      }
+      "handle small values (relative tolerance)" >> {
+        val a = new SimpleMatrix(3, 1)
+        val b = new SimpleMatrix(3, 1)
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 1e-9, 0) must beTrue
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7+1e-16, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 1e-9, 0) must beTrue
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7-1e-16, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 1e-9, 0) must beTrue
+
+        val ulp = Math.ulp(1e-7)
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7+1e-16+ulp, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 1e-9, 0) must beFalse
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7-1e-16-ulp, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 1e-9, 0) must beFalse
+      }
+      "handle small values (absolute tolerance)" >> {
+        val a = new SimpleMatrix(3, 1)
+        val b = new SimpleMatrix(3, 1)
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 0, 1e-9) must beTrue
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7+1e-9, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 0, 1e-9) must beTrue
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7-1e-9, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 0, 1e-9) must beTrue
+
+        val ulp = Math.ulp(1e-7)
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7+1e-9+ulp, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 0, 1e-9) must beFalse
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7-1e-9-ulp, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 0, 1e-9) must beFalse
+      }
+      "handle invalid tolerances" >> {
+        val a = new SimpleMatrix(3, 1)
+        val b = new SimpleMatrix(3, 1)
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, -1, 1) must throwA[IllegalArgumentException]
+        a.isIdenticalWithinTolerances(b, 1, -1) must throwA[IllegalArgumentException]
+      }
+      "handle mismatched matrix" >> {
+        val a = new SimpleMatrix(3, 1)
+        val b = new SimpleMatrix(1, 3)
+
+        a.matrix.setData(Array(1e-7, 1, 1e7))
+        b.matrix.setData(Array(1e-7, 1, 1e7))
+        a.isIdenticalWithinTolerances(b, 1, 1) must beFalse
+      }
+      "handle zer0" >> {
+        val a = new SimpleMatrix(3, 1)
+        val b = new SimpleMatrix(3, 1)
+
+        a.matrix.setData(Array(0, 0, 0))
+        b.matrix.setData(Array(0, 0, 0))
+        a.isIdenticalWithinTolerances(b) must beTrue
+        a.isIdenticalWithinTolerances(b, 0, 0) must beTrue
+      }
+    }
   }
 }
