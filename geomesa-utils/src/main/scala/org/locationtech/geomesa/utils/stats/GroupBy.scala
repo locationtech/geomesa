@@ -14,9 +14,14 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 
 case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T]) extends Stat {
+
   override type S = GroupBy[T]
 
-  val groupedStats: mutable.HashMap[T, Stat] = mutable.HashMap[T, Stat]()
+  private [stats] val groupedStats: mutable.HashMap[T, Stat] = mutable.HashMap[T, Stat]()
+
+  def size: Int = groupedStats.size
+  def get(key: T): Option[Stat] = groupedStats.get(key)
+  def getOrElse[U >: Stat](key: T, default: U = null): U = groupedStats.getOrElse(key, default)
 
   /**
     * Compute statistics based upon the given simple feature.

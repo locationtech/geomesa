@@ -31,9 +31,9 @@ class GroupByTest extends Specification with StatTestHelper {
     "work with" >> {
       "nested GroupBy Count() and" >> {
         def groupByStat(groupBy: GroupBy[Int], index: Int = 0): GroupBy[String] =
-          groupBy.groupedStats.getOrElse(index, null).asInstanceOf[GroupBy[String]]
+          groupBy.getOrElse(index).asInstanceOf[GroupBy[String]]
         def countStat(groupBy: GroupBy[String], index: String): CountStat =
-          groupBy.groupedStats.getOrElse(index, null).asInstanceOf[CountStat]
+          groupBy.getOrElse(index).asInstanceOf[CountStat]
         val groupByCountMatcher = """^\[(\{ "\d" : \[(\{ "." : \{ "count": \d \}\},?)+\]\},?)*\]$"""
 
         "be empty initially" >> {
@@ -44,14 +44,14 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "observe correct values" >> {
           val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
-          groupBy.groupedStats.size mustEqual 10
+          groupBy.size mustEqual 10
           val nestedGroupBy = groupByStat(groupBy)
           countStat(nestedGroupBy, "S").counter mustEqual 1L
         }
 
         "unobserve correct values" >> {
           val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
-          groupBy.groupedStats.size mustEqual 10
+          groupBy.size mustEqual 10
           features.take(10).foreach(groupBy.unobserve)
           val nestedGroupBy = groupByStat(groupBy)
           countStat(nestedGroupBy, "S").counter mustEqual 1L
@@ -101,12 +101,12 @@ class GroupByTest extends Specification with StatTestHelper {
 
           features2.foreach { groupBy2.observe }
 
-          groupBy2.groupedStats.size mustEqual 10
+          groupBy2.size mustEqual 10
 
           groupBy += groupBy2
 
-          groupBy.groupedStats.size mustEqual 10
-          groupBy2.groupedStats.size mustEqual 10
+          groupBy.size mustEqual 10
+          groupBy2.size mustEqual 10
         }
 
         "clear" >> {
@@ -115,14 +115,14 @@ class GroupByTest extends Specification with StatTestHelper {
 
           groupBy.clear()
 
-          groupBy.groupedStats.size mustEqual 0L
+          groupBy.size mustEqual 0L
           groupBy.isEmpty must beTrue
         }
       }
 
       "Count Stat and" >> {
         def countStat(groupBy: GroupBy[Int], index: Int = 0): CountStat =
-          groupBy.groupedStats.getOrElse(index, null).asInstanceOf[CountStat]
+          groupBy.getOrElse(index).asInstanceOf[CountStat]
 
         "be empty initially" >> {
           val groupBy = newStat[Int]("cat1","Count()", false)
@@ -132,13 +132,13 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "observe correct values" >> {
           val groupBy = newStat[Int]("cat1", "Count()")
-          groupBy.groupedStats.size mustEqual 10
+          groupBy.size mustEqual 10
           countStat(groupBy).counter mustEqual 10L
         }
 
         "unobserve correct values" >> {
           val groupBy = newStat[Int]("cat1", "Count()")
-          groupBy.groupedStats.size mustEqual 10
+          groupBy.size mustEqual 10
           features.take(10).foreach(groupBy.unobserve)
           countStat(groupBy).counter mustEqual 9L
         }
@@ -181,12 +181,12 @@ class GroupByTest extends Specification with StatTestHelper {
 
           features2.foreach { groupBy2.observe }
 
-          groupBy2.groupedStats.size mustEqual 10
+          groupBy2.size mustEqual 10
 
           groupBy += groupBy2
 
-          groupBy.groupedStats.size mustEqual 10
-          groupBy2.groupedStats.size mustEqual 10
+          groupBy.size mustEqual 10
+          groupBy2.size mustEqual 10
         }
 
         "clear" >> {
@@ -195,14 +195,14 @@ class GroupByTest extends Specification with StatTestHelper {
 
           groupBy.clear()
 
-          groupBy.groupedStats.size mustEqual 0L
+          groupBy.size mustEqual 0L
           groupBy.isEmpty must beTrue
         }
       }
 
       "MinMax Stat and" >> {
         def minmaxStat(groupBy: GroupBy[Int], index: Int = 0): MinMax[String] =
-          groupBy.groupedStats.getOrElse(index, null).asInstanceOf[MinMax[String]]
+          groupBy.getOrElse(index).asInstanceOf[MinMax[String]]
 
         "be empty initially" >> {
           val groupBy = newStat[Int]("cat1","MinMax(strAttr)", false)
@@ -276,14 +276,14 @@ class GroupByTest extends Specification with StatTestHelper {
           groupBy.clear()
 
           groupBy.isEmpty must beTrue
-          groupBy.groupedStats.size mustEqual 0
+          groupBy.size mustEqual 0
         }
       }
 
       "Enumeration Stat and" >> {
         "work with ints" >> {
           def enumerationStat(groupBy: GroupBy[Int], index: Int = 0): EnumerationStat[jInt] =
-            groupBy.groupedStats.getOrElse(index, null).asInstanceOf[EnumerationStat[jInt]]
+            groupBy.getOrElse(index).asInstanceOf[EnumerationStat[jInt]]
 
           "be empty initially" >> {
             val groupBy = newStat[Int]("cat1","Enumeration(intAttr)", false)
@@ -357,7 +357,7 @@ class GroupByTest extends Specification with StatTestHelper {
             groupBy.clear()
 
             groupBy.isEmpty must beTrue
-            groupBy.groupedStats.size mustEqual 0
+            groupBy.size mustEqual 0
           }
         }
       }
@@ -368,9 +368,10 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "work with integers and" >> {
           def histogramStat(groupBy: GroupBy[Int], index: Int = 0): Histogram[Int] =
-            groupBy.groupedStats.getOrElse(index, null).asInstanceOf[Histogram[Int]]
+            groupBy.getOrElse(index).asInstanceOf[Histogram[Int]]
           def intStat(bins: Int, min: Int, max: Int): String =
             histogramStatString("intAttr", bins, min.toString, max.toString)
+
           "be empty initially" >> {
             val groupBy = newStat[Int]("cat1", intStat(20, 0, 199), false)
             groupBy.toJson mustEqual "[]"
