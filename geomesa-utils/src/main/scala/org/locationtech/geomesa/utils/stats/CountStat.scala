@@ -13,7 +13,7 @@ import org.opengis.feature.simple.SimpleFeature
 /**
   * Counts features
   */
-case class CountStat() extends Stat {
+class CountStat extends Stat {
 
   override type S = CountStat
 
@@ -44,5 +44,9 @@ case class CountStat() extends Stat {
     case _ => false
   }
 
-  override def newCopy: Stat = CountStat()
+  override def newCopy: Stat = {
+    val newCount = new CountStat
+    newCount +=  this
+    newCount
+  }
 }

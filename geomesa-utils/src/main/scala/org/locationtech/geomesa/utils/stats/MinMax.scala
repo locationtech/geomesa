@@ -67,7 +67,6 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
         hpp.offer(value)
       } catch {
         case e: Exception => logger.warn(s"Error observing value '$value': ${e.toString}")
-          e.printStackTrace()
       }
     }
   }

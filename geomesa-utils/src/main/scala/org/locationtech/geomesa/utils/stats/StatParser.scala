@@ -23,7 +23,7 @@ object StatParser {
 
   private val Parser = new StatParser()
 
-  private val sfts = new ThreadLocal[SimpleFeatureType]
+  val sfts = new ThreadLocal[SimpleFeatureType]
 
   @throws(classOf[ParsingException])
   def parse(sft: SimpleFeatureType, stat: String, report: Boolean = true): Stat = {
@@ -67,16 +67,19 @@ private class StatParser extends BasicParser {
   }
 
   def groupBy: Rule1[Stat] = rule {
-    // TODO: Clean up the DSL here
-    // TODO: Maybe support multiple stats in a groupby.
-    "GroupBy(" ~ string ~ "," ~ singleStat ~ ")" ~~> { (attribute, groupedStats) =>
+    // TODO: Fix the dsl here. GroupBy should accept (string, stat) but oneOrMore doesn't work when nested inside (). The effect of this is GroupBy can't accept SeqStat.
+    "GroupBy(" ~ string ~ "," ~ statString ~ ")" ~~> { (attribute, groupedStats) =>
       val index = getIndex(attribute)
-      GroupBy(index, groupedStats)
+      GroupBy(index, groupedStats, sfts)
     }
   }
 
   private def singleStat: Rule1[Stat] = rule {
     count | minMax | iteratorStack | groupBy | stats | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
+  }
+
+  private def statString: Rule1[String] = rule {
+     stat ~~~> { statStr: String => }
   }
 
   private def count: Rule1[Stat] = rule {

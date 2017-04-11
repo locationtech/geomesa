@@ -8,12 +8,14 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T]) extends Stat {
+case class GroupBy[T](attribute: Int,
+                      exampleStat: String,
+                      sft: SimpleFeatureType)(implicit ct: ClassTag[T]) extends Stat {
 
   override type S = GroupBy[T]
 
@@ -21,7 +23,7 @@ case class GroupBy[T](attribute: Int, exampleStat: Stat)(implicit ct: ClassTag[T
 
   def size: Int = groupedStats.size
   def get(key: T): Option[Stat] = groupedStats.get(key)
-  def getOrElse[U >: Stat](key: T, default: U = null): U = groupedStats.getOrElse(key, default)
+  def getOrElse[U >: Stat](key: T, default: => U = null): U = groupedStats.getOrElse(key, default)
 
   /**
     * Compute statistics based upon the given simple feature.

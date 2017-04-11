@@ -266,7 +266,7 @@ object Stat {
     * @param groupedStat stat to apply to grouped attributes
     * @return
     */
-  def GroupBy(attribute: Int, groupedStat: Stat): String = s"GroupBy($attribute,$groupedStat)"
+  def GroupBy(attribute: String, groupedStat: Stat): String = s"GroupBy(${safeString(attribute)},$groupedStat)"
 
   /**
     * String that will be parsed into a multi variate descriptive stat
