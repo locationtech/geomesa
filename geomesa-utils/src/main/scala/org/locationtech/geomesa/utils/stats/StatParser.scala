@@ -68,19 +68,24 @@ private class StatParser extends BasicParser {
 
   def groupBy: Rule1[Stat] = rule {
     // TODO: Fix the dsl here. GroupBy should accept (string, stat) but oneOrMore doesn't work when nested inside (). The effect of this is GroupBy can't accept SeqStat.
-    "GroupBy(" ~ string ~ "," ~ statString ~ ")" ~~> { (attribute, groupedStats) =>
+    "GroupBy(" ~ string ~ "," ~ stringWithParens ~? parses ~ ")" ~~> { (attribute, groupedStats) =>
       val index = getIndex(attribute)
-      GroupBy(index, groupedStats, sfts)
+      GroupBy(index, groupedStats, sft)
     }
+  }
+
+  def parses(input: String): Boolean = {
+    StatParser.parse(sft, input, true)
+    true
   }
 
   private def singleStat: Rule1[Stat] = rule {
     count | minMax | iteratorStack | groupBy | stats | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
   }
 
-  private def statString: Rule1[String] = rule {
-     stat ~~~> { statStr: String => }
-  }
+//  private def statString: Rule1[Stat] = rule {
+//     stat ~~~? { statStr: Stat => true }
+//  }
 
   private def count: Rule1[Stat] = rule {
     "Count()" ~> { _ => new CountStat() }

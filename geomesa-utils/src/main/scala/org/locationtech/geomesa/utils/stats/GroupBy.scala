@@ -33,7 +33,13 @@ case class GroupBy[T](attribute: Int,
     */
   override def observe(sf: SimpleFeature): Unit = {
     val key = sf.getAttribute(attribute).asInstanceOf[T]
-    groupedStats.getOrElseUpdate(key, exampleStat.newCopy).observe(sf)
+
+
+    groupedStats.getOrElseUpdate(key, buildNewStat).observe(sf)
+  }
+
+  def buildNewStat = {
+    StatParser.parse(sft, exampleStat)
   }
 
   /**
@@ -68,7 +74,7 @@ case class GroupBy[T](attribute: Int,
     * @param other the other stat to add
     */
   override def +(other: GroupBy[T]): GroupBy[T] = {
-    val newGB = new GroupBy[T](attribute, exampleStat.newCopy)
+    val newGB = new GroupBy[T](attribute, exampleStat, sft)
     newGB += this
     newGB += other
     newGB
@@ -114,7 +120,7 @@ case class GroupBy[T](attribute: Int,
   override def clear(): Unit = groupedStats.clear()
 
   override def newCopy: Stat = {
-    val newGB = new GroupBy(attribute, exampleStat.newCopy)
+    val newGB = new GroupBy(attribute, exampleStat, sft)
     newGB += this
     newGB
   }
