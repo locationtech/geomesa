@@ -158,7 +158,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
 
     "bin dates" >> {
       import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
-      def toDate(hh: Int, mm: Int) = GeoToolsDateFormat.parseDateTime(f"2016-01-01T$hh%02d:$mm%02d:00.000Z").toDate
+      def toDate(hh: Int, mm: Int) = java.util.Date.from(java.time.LocalDateTime.parse(f"2016-01-01T$hh%02d:$mm%02d:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
 
       val array = new BinnedDateArray(10, (toDate(0, 0), toDate(10, 0)))
       forall(0 to 59)(i => array.indexOf(toDate(0, i)) mustEqual 0)
@@ -195,7 +195,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
 
     "not provide date bounds that are out of order" >> {
       import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
-      def toDate(millis: Int) = GeoToolsDateFormat.parseDateTime(f"2016-01-01T00:00:00.00${millis}Z").toDate
+      def toDate(millis: Int) = java.util.Date.from(java.time.LocalDateTime.parse(f"2016-01-01T00:00:00.00${millis}Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
 
       val array = new BinnedDateArray(10, (toDate(0), toDate(5)))
       forall(0 until 10) { i =>

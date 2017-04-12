@@ -76,7 +76,20 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       } else None
 
     // TODO refactor into buildConfig method
-    val config = HBaseDataStoreConfig(
+    val config = buildConfig(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching, authsProvider)
+    new HBaseDataStore(connection, remote, config)
+  }
+
+  // overidden by BigtableFactory
+  def buildConfig(catalog: String,
+                  generateStats: Boolean,
+                  audit: Option[(AuditWriter, AuditProvider, String)],
+                  queryThreads: Int,
+                  queryTimeout: Option[Long],
+                  looseBBox: Boolean,
+                  caching: Boolean,
+                  authsProvider: Option[AuthorizationsProvider]) =
+    HBaseDataStoreConfig(
       catalog,
       generateStats,
       audit,
@@ -84,10 +97,10 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       queryTimeout,
       looseBBox,
       caching,
-      authsProvider)
+      authsProvider,
+      isBigtable = false
+    )
 
-    new HBaseDataStore(connection, remote, config)
-  }
 
   override def getDisplayName: String = HBaseDataStoreFactory.DisplayName
 
@@ -143,7 +156,8 @@ object HBaseDataStoreFactory {
                                   queryTimeout: Option[Long],
                                   looseBBox: Boolean,
                                   caching: Boolean,
-                                  authProvider: Option[AuthorizationsProvider]) extends GeoMesaDataStoreConfig
+                                  authProvider: Option[AuthorizationsProvider],
+                                  isBigtable: Boolean) extends GeoMesaDataStoreConfig
 
   def canProcess(params: java.util.Map[String,Serializable]): Boolean =
     params.containsKey(BigTableNameParam.key)
