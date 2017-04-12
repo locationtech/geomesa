@@ -43,10 +43,4 @@ class CountStat extends Stat {
     case that: CountStat => counter == that.counter
     case _ => false
   }
-
-  override def newCopy: Stat = {
-    val newCount = new CountStat
-    newCount +=  this
-    newCount
-  }
 }

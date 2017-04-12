@@ -74,10 +74,4 @@ class EnumerationStat[T](val attribute: Int)(implicit ct: ClassTag[T]) extends S
     case that: EnumerationStat[_] => attribute == that.attribute && enumeration == that.enumeration
     case _ => false
   }
-
-  override def newCopy: Stat = {
-    val newEnum = new EnumerationStat[T](attribute)(ct)
-    newEnum += this
-    newEnum
-  }
 }

@@ -316,10 +316,4 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
     }
     Stat.JSON.toJson(map.asJava)
   }
-
-  override def newCopy: Stat = {
-    val newstat = new DescriptiveStats(attributes)
-    newstat.copyFrom(this)
-    newstat
-  }
 }

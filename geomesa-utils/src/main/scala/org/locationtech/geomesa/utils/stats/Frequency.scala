@@ -189,12 +189,6 @@ class Frequency[T](val attribute: Int,
       case _ => false
     }
   }
-
-  override def newCopy: Stat = {
-    val newFreq = new Frequency[T](attribute, dtgIndex, period, precision, eps, confidence)(ct)
-    newFreq += this
-    newFreq
-  }
 }
 
 object Frequency {

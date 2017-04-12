@@ -45,10 +45,4 @@ class IteratorStackCount extends Stat {
     case that: IteratorStackCount => counter == that.counter
     case _ => false
   }
-
-  override def newCopy: Stat = {
-    val newIter = new IteratorStackCount
-    newIter += this
-    newIter
-  }
 }

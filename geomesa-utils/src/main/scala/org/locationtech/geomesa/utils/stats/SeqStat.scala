@@ -38,10 +38,4 @@ class SeqStat(val stats: Seq[Stat]) extends Stat {
     case that: SeqStat => stats == that.stats
     case _ => false
   }
-
-  override def newCopy: Stat = {
-    val newSS = new SeqStat(stats)
-    newSS += this
-    newSS
-  }
 }

@@ -145,10 +145,4 @@ class Z3Frequency(val geomIndex: Int,
       case _ => false
     }
   }
-
-  override def newCopy: Stat = {
-    val newFreq = new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence)
-    newFreq += this
-    newFreq
-  }
 }

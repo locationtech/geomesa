@@ -458,6 +458,18 @@ class GroupByTest extends Specification with StatTestHelper {
           }
         }
       }
+
+//      "Seq stat" should {
+//        val statStr = "MinMax(intAttr);IteratorStackCount();Enumeration(longAttr);Histogram(doubleAttr,20,0,200)"
+//
+//        "be empty initiallly" >> {
+//          val groupBy = newStat[Int]("cat1", statStr, false)
+//
+//          groupBy.size mustEqual 0
+//          groupBy.toJson mustEqual "[]"
+//          groupBy.isEmpty must beTrue
+//        }
+//      }
     }
   }
 }

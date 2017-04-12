@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-case class GroupBy[T](attribute: Int,
-                      exampleStat: () => Stat)(implicit ct: ClassTag[T]) extends Stat {
+case class GroupBy[T](attribute: Int, exampleStat: () => Stat)(implicit ct: ClassTag[T]) extends Stat {
 
   override type S = GroupBy[T]
 
@@ -24,6 +23,8 @@ case class GroupBy[T](attribute: Int,
   def get(key: T): Option[Stat] = groupedStats.get(key)
   def getOrElse[U >: Stat](key: T, default: => U = null): U = groupedStats.getOrElse(key, default)
 
+  implicit def construct(cstr: () => Stat): Stat = cstr()
+
   /**
     * Compute statistics based upon the given simple feature.
     * This method will be called for every SimpleFeature a query returns.
@@ -32,13 +33,7 @@ case class GroupBy[T](attribute: Int,
     */
   override def observe(sf: SimpleFeature): Unit = {
     val key = sf.getAttribute(attribute).asInstanceOf[T]
-
-
-    groupedStats.getOrElseUpdate(key, buildNewStat).observe(sf)
-  }
-
-  def buildNewStat = {
-    exampleStat()
+    groupedStats.getOrElseUpdate(key, exampleStat).observe(sf)
   }
 
   /**
@@ -62,7 +57,7 @@ case class GroupBy[T](attribute: Int,
     other.groupedStats.map { case (key, stat) =>
       groupedStats.get(key) match {
         case Some(groupedStat) => groupedStat += stat
-        case None              => groupedStats.put(key, stat.newCopy)
+        case None              => groupedStats.put(key, other.exampleStat)
       }
     }
   }
@@ -117,10 +112,4 @@ case class GroupBy[T](attribute: Int,
     * Necessary method used by the StatIterator.
     */
   override def clear(): Unit = groupedStats.clear()
-
-  override def newCopy: Stat = {
-    val newGB = new GroupBy(attribute, exampleStat)
-    newGB += this
-    newGB
-  }
 }

@@ -176,12 +176,6 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
           java.util.Arrays.equals(bins.counts, that.bins.counts)
     case _ => false
   }
-
-  override def newCopy: Stat = {
-    val newHist = new Histogram[T](attribute, initialBins, initialEndpoints)(defaults, ct)
-    newHist += this
-    newHist
-  }
 }
 
 object Histogram {

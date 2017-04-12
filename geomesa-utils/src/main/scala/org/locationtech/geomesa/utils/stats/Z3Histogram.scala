@@ -168,12 +168,6 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
           binMap.forall { case (w, bins) => java.util.Arrays.equals(bins.counts, that.binMap(w).counts) }
     case _ => false
   }
-
-  override def newCopy: Stat = {
-    val newHist = new Z3Histogram(geomIndex, dtgIndex, period, length)
-    newHist += this
-    newHist
-  }
 }
 
 object Z3Histogram {

@@ -82,12 +82,6 @@ class TopK[T](val attribute: Int,
           s.summary.topK(summary.size).map(c => (c.getItem, c.getCount))
     case _ => false
   }
-
-  override def newCopy: Stat = {
-    val newTK = new TopK[T](attribute, summary)(ct)
-    newTK += this
-    newTK
-  }
 }
 
 object TopK {

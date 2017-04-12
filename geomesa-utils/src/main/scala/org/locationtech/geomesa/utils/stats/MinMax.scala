@@ -122,12 +122,6 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
           maxValue == that.maxValue && cardinality == that.cardinality
     case _ => false
   }
-
-  override def newCopy: Stat = {
-    val newMM = new MinMax[T](attribute, hpp)(defaults, ct)
-    newMM += this
-    newMM
-  }
 }
 
 object MinMax {
