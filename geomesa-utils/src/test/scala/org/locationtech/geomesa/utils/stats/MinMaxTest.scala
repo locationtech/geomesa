@@ -414,8 +414,8 @@ class MinMaxTest extends Specification with StatTestHelper {
       "observe correct values" >> {
         val minMax = newStat[Date]("dtg")
         minMax.bounds mustEqual (
-          GeoToolsDateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate,
-          GeoToolsDateFormat.parseDateTime("2012-01-01T23:00:00.000Z").toDate
+          java.util.Date.from(java.time.LocalDateTime.parse("2012-01-01T00:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)),
+          java.util.Date.from(java.time.LocalDateTime.parse("2012-01-01T23:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
         )
         minMax.cardinality must beCloseTo(24L, 5)
       }
@@ -451,21 +451,21 @@ class MinMaxTest extends Specification with StatTestHelper {
         features2.foreach { minMax2.observe }
 
         minMax2.bounds mustEqual (
-          GeoToolsDateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate,
-          GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+          java.util.Date.from(java.time.LocalDateTime.parse("2012-01-02T00:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)),
+          java.util.Date.from(java.time.LocalDateTime.parse("2012-01-02T23:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
         )
         minMax2.cardinality must beCloseTo(24L, 5)
 
         minMax += minMax2
 
         minMax.bounds mustEqual (
-          GeoToolsDateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate,
-          GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+          java.util.Date.from(java.time.LocalDateTime.parse("2012-01-01T00:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)),
+          java.util.Date.from(java.time.LocalDateTime.parse("2012-01-02T23:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
         )
         minMax.cardinality must beCloseTo(48L, 5)
         minMax2.bounds mustEqual (
-          GeoToolsDateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate,
-          GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+          java.util.Date.from(java.time.LocalDateTime.parse("2012-01-02T00:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)),
+          java.util.Date.from(java.time.LocalDateTime.parse("2012-01-02T23:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
         )
       }
 

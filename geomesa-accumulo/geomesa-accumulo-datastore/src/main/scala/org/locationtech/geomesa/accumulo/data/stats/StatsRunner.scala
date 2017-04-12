@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.accumulo.data.stats
 
 import java.io.Closeable
+import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Callable, Executors, Future, TimeUnit}
 
-import org.joda.time.{DateTime, DateTimeUtils, DateTimeZone}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -56,7 +57,7 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
     * @param delay delay, in minutes before executing
     * @return
     */
-  def submit(sft: SimpleFeatureType, delay: Int = 0): Future[DateTime] = {
+  def submit(sft: SimpleFeatureType, delay: Int = 0): Future[Instant] = {
     val runner = new StatRunner(ds, sft)
     if (delay > 0) {
       es.schedule(runner, delay, TimeUnit.MINUTES)
@@ -77,10 +78,10 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
     // try to get an exclusive lock on the sft - if not, don't wait just move along
     val lockTimeout = Some(1000L)
     // force execution of iterator
-    val minUpdate = sfts.map(new StatRunner(ds, _, lockTimeout).call()).map(_.getMillis).minOption
+    val minUpdate = sfts.map(new StatRunner(ds, _, lockTimeout).call()).map(_.toEpochMilli).minOption
     // wait at least one minute before running again
     val minWait = 60000L
-    val nextRun = minUpdate.map(_ - DateTimeUtils.currentTimeMillis()).filter(_ > minWait).getOrElse(minWait)
+    val nextRun = minUpdate.map(_ - Instant.now(Clock.systemUTC()).toEpochMilli).filter(_ > minWait).getOrElse(minWait)
 
     if (scheduled.get() && !shutdown.get()) {
       es.schedule(this, nextRun, TimeUnit.MILLISECONDS)
@@ -102,7 +103,7 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
   *                    If none, will wait indefinitely
   */
 class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Option[Long] = None)
-    extends Callable[DateTime] with ZookeeperLocking {
+    extends Callable[Instant] with ZookeeperLocking {
 
   override val connector = ds.connector
 
@@ -111,12 +112,12 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     *
     * @return time of the next scheduled update
     */
-  override def call(): DateTime = {
+  override def call(): Instant = {
     // do a quick check on the last time stats were updated
     val updateInterval = getUpdateInterval
-    val unsafeUpdate = getLastUpdate.plusMinutes(updateInterval)
+    val unsafeUpdate = getLastUpdate.plus(updateInterval, ChronoUnit.MINUTES)
 
-    if (unsafeUpdate.isAfterNow) {
+    if (unsafeUpdate.isAfter(Instant.now(Clock.systemUTC()))) {
       unsafeUpdate
     } else {
       // get the lock and re-check, in case stats have been updated by another thread
@@ -125,17 +126,17 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
         case Some(timeout) => acquireDistributedLock(lockKey, timeout)
       }
       lockOption match {
-        case None => DateTime.now(DateTimeZone.UTC).plusMinutes(5) // default to check again in 5 minutes
+        case None => Instant.now(Clock.systemUTC()).plus(5, ChronoUnit.MINUTES) // default to check again in 5 minutes
         case Some(lock) =>
           try {
             // reload next update now that we have the lock
-            val nextUpdate = getLastUpdate.plusMinutes(updateInterval)
-            if (nextUpdate.isAfterNow) {
+            val nextUpdate = getLastUpdate.plus(updateInterval, ChronoUnit.MINUTES)
+            if (nextUpdate.isAfter(Instant.now(Clock.systemUTC()))) {
               nextUpdate
             } else {
               // run the update - this updates the last update time too
               ds.stats.generateStats(sft)
-              DateTime.now(DateTimeZone.UTC).plusMinutes(updateInterval)
+              Instant.now(Clock.systemUTC()).plus(updateInterval, ChronoUnit.MINUTES)
             }
           } finally {
             lock.release()
@@ -149,10 +150,10 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     *
     * @return last update
     */
-  private def getLastUpdate: DateTime = {
+  private def getLastUpdate: Instant = {
     ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, cache = false) match {
-      case Some(dt) => GeoToolsDateFormat.parseDateTime(dt)
-      case None     => new DateTime(0, DateTimeZone.UTC)
+      case Some(dt) => Instant.from(GeoToolsDateFormat.parse(dt))
+      case None     => Instant.ofEpochSecond(0)
     }
   }
 
@@ -161,9 +162,9 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     *
     * @return update interval, in minutes
     */
-  private def getUpdateInterval: Int =
+  private def getUpdateInterval: Long =
     // note: default is 1440 minutes (one day)
-    ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_INTERVAL_KEY).map(_.toInt).getOrElse(1440)
+    ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_INTERVAL_KEY).map(_.toLong).getOrElse(1440)
 
   private def lockKey: String = {
     val ca = GeoMesaFeatureIndex.hexEncodeNonAlphaNumeric(ds.config.catalog)

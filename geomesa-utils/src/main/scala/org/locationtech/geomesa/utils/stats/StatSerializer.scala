@@ -71,52 +71,99 @@ object KryoStatSerializer {
   private [stats] val outputs = new SoftThreadLocal[Output]()
 
   // bytes indicating the type of stat
-  private [stats] val SeqStatByte: Byte       = 0
-  private [stats] val CountByte: Byte         = 1
-  private [stats] val MinMaxByte: Byte        = 2
-  private [stats] val IteratorStackByte: Byte = 3
-  private [stats] val EnumerationByte: Byte   = 4
-  private [stats] val HistogramByte: Byte     = 5
-  private [stats] val FrequencyByteV1: Byte   = 6
-  private [stats] val Z3HistogramByteV1: Byte = 7
-  private [stats] val Z3FrequencyByteV1: Byte = 8
-  private [stats] val TopKByte: Byte          = 9
-  private [stats] val FrequencyByte: Byte     = 10
-  private [stats] val Z3HistogramByte: Byte   = 11
-  private [stats] val Z3FrequencyByte: Byte   = 12
+  private [stats] val SeqStatByte: Byte         = 0
+  private [stats] val CountByte: Byte           = 1
+  private [stats] val MinMaxByte: Byte          = 2
+  private [stats] val IteratorStackByte: Byte   = 3
+  private [stats] val EnumerationByte: Byte     = 4
+  private [stats] val HistogramByte: Byte       = 5
+  private [stats] val FrequencyByteV1: Byte     = 6
+  private [stats] val Z3HistogramByteV1: Byte   = 7
+  private [stats] val Z3FrequencyByteV1: Byte   = 8
+  private [stats] val TopKByte: Byte            = 9
+  private [stats] val FrequencyByte: Byte       = 10
+  private [stats] val Z3HistogramByte: Byte     = 11
+  private [stats] val Z3FrequencyByte: Byte     = 12
+  private [stats] val DescriptiveStatByte: Byte = 13
 
   private [stats] def write(output: Output, sft: SimpleFeatureType, stat: Stat): Unit = {
     stat match {
-      case s: CountStat          => output.writeByte(CountByte);         writeCount(output, s)
-      case s: MinMax[_]          => output.writeByte(MinMaxByte);        writeMinMax(output, sft, s)
-      case s: EnumerationStat[_] => output.writeByte(EnumerationByte);   writeEnumeration(output, sft, s)
-      case s: TopK[_]            => output.writeByte(TopKByte);          writeTopK(output, sft, s)
-      case s: Histogram[_]       => output.writeByte(HistogramByte);     writeHistogram(output, sft, s)
-      case s: Frequency[_]       => output.writeByte(FrequencyByte);     writeFrequency(output, sft, s)
-      case s: Z3Histogram        => output.writeByte(Z3HistogramByte);   writeZ3Histogram(output, sft, s)
-      case s: Z3Frequency        => output.writeByte(Z3FrequencyByte);   writeZ3Frequency(output, sft, s)
-      case s: IteratorStackCount => output.writeByte(IteratorStackByte); writeIteratorStackCount(output, s)
-      case s: SeqStat            => output.writeByte(SeqStatByte);       writeSeqStat(output, sft, s)
+      case s: CountStat           => output.writeByte(CountByte);           writeCount(output, s)
+      case s: MinMax[_]           => output.writeByte(MinMaxByte);          writeMinMax(output, sft, s)
+      case s: EnumerationStat[_]  => output.writeByte(EnumerationByte);     writeEnumeration(output, sft, s)
+      case s: TopK[_]             => output.writeByte(TopKByte);            writeTopK(output, sft, s)
+      case s: Histogram[_]        => output.writeByte(HistogramByte);       writeHistogram(output, sft, s)
+      case s: Frequency[_]        => output.writeByte(FrequencyByte);       writeFrequency(output, sft, s)
+      case s: Z3Histogram         => output.writeByte(Z3HistogramByte);     writeZ3Histogram(output, sft, s)
+      case s: Z3Frequency         => output.writeByte(Z3FrequencyByte);     writeZ3Frequency(output, sft, s)
+      case s: IteratorStackCount  => output.writeByte(IteratorStackByte);   writeIteratorStackCount(output, s)
+      case s: SeqStat             => output.writeByte(SeqStatByte);         writeSeqStat(output, sft, s)
+      case s: DescriptiveStats    => output.writeByte(DescriptiveStatByte); writeDescriptiveStats(output, sft, s)
     }
   }
 
   private [stats] def read(input: Input, sft: SimpleFeatureType, immutable: Boolean): Stat = {
     input.readByte() match {
-      case CountByte         => readCount(input, immutable)
-      case MinMaxByte        => readMinMax(input, sft, immutable)
-      case EnumerationByte   => readEnumeration(input, sft, immutable)
-      case TopKByte          => readTopK(input, sft, immutable)
-      case HistogramByte     => readHistogram(input, sft, immutable)
-      case FrequencyByte     => readFrequency(input, sft, immutable, 2)
-      case Z3HistogramByte   => readZ3Histogram(input, sft, immutable, 2)
-      case Z3FrequencyByte   => readZ3Frequency(input, sft, immutable, 2)
-      case IteratorStackByte => readIteratorStackCount(input, immutable)
-      case SeqStatByte       => readSeqStat(input, sft, immutable)
-      case FrequencyByteV1   => readFrequency(input, sft, immutable, 1)
-      case Z3HistogramByteV1 => readZ3Histogram(input, sft, immutable, 1)
-      case Z3FrequencyByteV1 => readZ3Frequency(input, sft, immutable, 1)
+      case CountByte           => readCount(input, immutable)
+      case MinMaxByte          => readMinMax(input, sft, immutable)
+      case EnumerationByte     => readEnumeration(input, sft, immutable)
+      case TopKByte            => readTopK(input, sft, immutable)
+      case HistogramByte       => readHistogram(input, sft, immutable)
+      case FrequencyByte       => readFrequency(input, sft, immutable, 2)
+      case Z3HistogramByte     => readZ3Histogram(input, sft, immutable, 2)
+      case Z3FrequencyByte     => readZ3Frequency(input, sft, immutable, 2)
+      case IteratorStackByte   => readIteratorStackCount(input, immutable)
+      case SeqStatByte         => readSeqStat(input, sft, immutable)
+      case FrequencyByteV1     => readFrequency(input, sft, immutable, 1)
+      case Z3HistogramByteV1   => readZ3Histogram(input, sft, immutable, 1)
+      case Z3FrequencyByteV1   => readZ3Frequency(input, sft, immutable, 1)
+      case DescriptiveStatByte => readDescriptiveStat(input, sft, immutable)
     }
   }
+
+  private [stats] def writeDescriptiveStats(output: Output, sft: SimpleFeatureType, stat: DescriptiveStats): Unit = {
+    val size = stat.size
+    output.writeInt(size, true)
+    stat.attributes.foreach(output.writeInt(_, true))
+    
+    def writeArray(array: Array[Double]) = for(v <- array) output.writeDouble(v)
+    writeArray(stat._min.getMatrix.data)
+    writeArray(stat._max.getMatrix.data)
+    writeArray(stat._sum.getMatrix.data)
+    writeArray(stat._mean.getMatrix.data)
+    writeArray(stat._m2n.getMatrix.data)
+    writeArray(stat._m3n.getMatrix.data)
+    writeArray(stat._m4n.getMatrix.data)
+    writeArray(stat._c2.getMatrix.data)
+
+    output.writeLong(stat._count, true)
+  }
+
+  private [stats] def readDescriptiveStat(input: Input, sft: SimpleFeatureType, immutable: Boolean): DescriptiveStats = {
+    val size = input.readInt(true)
+    val attributes = for(_ <- 0 until size) yield input.readInt(true)
+
+    val stats = if (immutable) {
+      new DescriptiveStats(attributes) with ImmutableStat
+    } else {
+      new DescriptiveStats(attributes)
+    }
+
+    def readArray(array: Array[Double]) = for(i <- array.indices) array(i) = input.readDouble
+    readArray(stats._min.getMatrix.data)
+    readArray(stats._max.getMatrix.data)
+    readArray(stats._sum.getMatrix.data)
+    readArray(stats._mean.getMatrix.data)
+    readArray(stats._m2n.getMatrix.data)
+    readArray(stats._m3n.getMatrix.data)
+    readArray(stats._m4n.getMatrix.data)
+    readArray(stats._c2.getMatrix.data)
+    
+    stats._count = input.readLong(true)
+    
+    stats
+  }
+
 
   private [stats] def writeSeqStat(output: Output, sft: SimpleFeatureType, stat: SeqStat): Unit =
     stat.stats.foreach(write(output, sft, _))

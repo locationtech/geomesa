@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.utils
 
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+
 import com.vividsolutions.jts.geom.Polygon
 import org.geotools.data.FeatureReader
 import org.geotools.data.collection.DelegateFeatureReader
@@ -15,7 +18,6 @@ import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -30,7 +32,7 @@ package object geotools {
   val EmptyGeometry = WKTUtils.read("POLYGON EMPTY")
 
   // date format with geotools pattern
-  val GeoToolsDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZoneUTC()
+  val GeoToolsDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
 
   type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
   type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]

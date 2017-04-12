@@ -646,7 +646,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
           features(i).getID mustEqual s"f$i"
           features(i).getAttributeCount mustEqual 3
           features(i).getAttribute("label") mustEqual s"label$i"
-          features(i).getAttribute("dtg") mustEqual GeoToolsDateFormat.parseDateTime(s"2014-01-01T0$i:00:00.000Z").toDate
+          features(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
@@ -660,7 +660,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         (0 until 5).foreach { i =>
           features(i).getID mustEqual s"f$i"
           features(i).getAttributeCount mustEqual 2
-          features(i).getAttribute("dtg") mustEqual GeoToolsDateFormat.parseDateTime(s"2014-01-01T0$i:00:00.000Z").toDate
+          features(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
@@ -678,7 +678,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
           features(i).getAttribute("label") mustEqual s"label$i"
           features(i).getAttribute("trackId") mustEqual s"trk$i"
           features(i).getAttribute("score") mustEqual i.toDouble
-          features(i).getAttribute("dtg") mustEqual GeoToolsDateFormat.parseDateTime(s"2014-01-01T0$i:00:00.000Z").toDate
+          features(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success

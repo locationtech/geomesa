@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.index.stats
 
+import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time._
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -134,7 +134,7 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
     writeStat(new SeqStat(stats), sft, merge = false)
 
     // update our last run time
-    val date = GeoToolsDateFormat.print(DateTime.now(DateTimeZone.UTC))
+    val date = GeoToolsDateFormat.format(Instant.now().atZone(ZoneOffset.UTC))
     ds.metadata.insert(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, date)
 
     stats
