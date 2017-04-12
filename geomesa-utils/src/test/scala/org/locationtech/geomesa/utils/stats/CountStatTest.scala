@@ -25,7 +25,7 @@ class CountStatTest extends Specification with StatTestHelper {
 
   "CountStat" should {
 
-    "be empty initially" >> {
+    "be empty initiallly" >> {
       val stat = newStat(observe = false)
       stat.counter mustEqual 0L
       stat.isEmpty must beTrue
@@ -79,7 +79,7 @@ class CountStatTest extends Specification with StatTestHelper {
       unpacked.unobserve(features.head) must throwAn[Exception]
     }
 
-    "combine two stats" >> {
+    "combine two states" >> {
       val stat = newStat()
       val stat2 = newStat(observe = false)
 

@@ -716,7 +716,7 @@ class HistogramTest extends Specification with StatTestHelper {
         (0 until 10000).foreach(i => from.counts(i) = 1)
 
         Histogram.copyInto(to, from) must not(throwAn[Exception])
-      }.pendingUntilFixed
+      }
 
       "clear" >> {
         val stat = geomStat(32, "POINT(-180 -90)", "POINT(180 90)")

@@ -101,7 +101,7 @@ case class GroupBy[T](attribute: Int, exampleStat: String, sft: SimpleFeatureTyp
   override def isEquivalent(other: Stat): Boolean = {
     other match {
       case other: GroupBy[T] => !groupedStats.map{ case (key, stat) =>
-          other.groupedStats.get(key).asInstanceOf[Stat].isEquivalent(stat)
+          other.getOrElse(key).isEquivalent(stat)
         }.exists(p => p == false)
       case _ => false
     }

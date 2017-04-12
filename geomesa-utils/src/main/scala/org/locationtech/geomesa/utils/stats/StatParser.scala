@@ -24,7 +24,7 @@ object StatParser {
 
   private val Parser = new StatParser()
 
-  val sfts = new ThreadLocal[SimpleFeatureType]
+  private val sfts = new ThreadLocal[SimpleFeatureType]
 
   @throws(classOf[ParsingException])
   def parse(sft: SimpleFeatureType, stat: String, report: Boolean = true): Stat = {
