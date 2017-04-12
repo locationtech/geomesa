@@ -24,12 +24,13 @@ class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.ne
                      (val encoding: DictionaryEncoding = ArrowDictionary.createEncoding(id, values)) {
 
   lazy private val (map, inverse) = {
-    val builder = ImmutableBiMap.builder[AnyRef, Int]
+    val builder = ImmutableBiMap.builder[AnyRef, Integer]
     var i = 0
     values.foreach { value =>
       builder.put(value, i)
       i += 1
     }
+    builder.put("[other]", i)
     val m = builder.build()
     (m, m.inverse())
   }
@@ -40,7 +41,14 @@ class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.ne
     * @param value value to encode
     * @return dictionary encoded int
     */
-  def index(value: AnyRef): Int = map.get(value)
+  def index(value: AnyRef): Int = {
+    val result = map.get(value)
+    if (result == null) {
+      values.size // 'other'
+    } else {
+      result.intValue()
+    }
+  }
 
   /**
     * Decode a dictionary int to a value
@@ -60,9 +68,9 @@ object ArrowDictionary {
 
   // use the smallest int type possible to minimize bytes used
   private def createEncoding(id: Long, values: Seq[Any]): DictionaryEncoding = {
-    if (values.length < Byte.MaxValue) {
+    if (values.length < Byte.MaxValue - 1) {
       new DictionaryEncoding(id, false, new ArrowType.Int(8, true))
-    } else if (values.length < Short.MaxValue) {
+    } else if (values.length < Short.MaxValue - 1) {
       new DictionaryEncoding(id, false, new ArrowType.Int(16, true))
     } else {
       new DictionaryEncoding(id, false, new ArrowType.Int(32, true))
