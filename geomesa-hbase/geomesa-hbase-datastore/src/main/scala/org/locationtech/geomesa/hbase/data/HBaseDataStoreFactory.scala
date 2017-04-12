@@ -24,7 +24,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaD
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 
 import scala.collection.JavaConversions._
 
@@ -53,10 +52,6 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     // TODO HBase Connections don't seem to be Serializable...deal with it
     val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
 
-    val remote = RemoteParam.lookupOpt[Boolean](params)
-      .getOrElse(GeoMesaSystemProperties.SystemProperty("geomesa.hbase.remote.filtering", "false").get.toBoolean)
-    logger.info(s"Using ${if (remote) "remote" else "local" } filtering")
-
     val catalog = BigTableNameParam.lookup[String](params)
 
     val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
@@ -77,7 +72,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     // TODO refactor into buildConfig method
     val config = buildConfig(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching, authsProvider)
-    new HBaseDataStore(connection, remote, config)
+    new HBaseDataStore(connection, config)
   }
 
   // overidden by BigtableFactory
@@ -111,7 +106,6 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       BigTableNameParam,
       QueryThreadsParam,
       QueryTimeoutParam,
-      RemoteParam,
       GenerateStatsParam,
       AuditQueriesParam,
       LooseBBoxParam,
@@ -130,7 +124,6 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 object HBaseDataStoreParams {
   val BigTableNameParam    = new Param("bigtable.table.name", classOf[String], "Table name", true)
   val ConnectionParam      = new Param("connection", classOf[Connection], "Connection", false)
-  val RemoteParam          = new Param("remote.filtering", classOf[Boolean], "Remote filtering", false)
   val LooseBBoxParam       = GeoMesaDataStoreFactory.LooseBBoxParam
   val QueryThreadsParam    = GeoMesaDataStoreFactory.QueryThreadsParam
   val GenerateStatsParam   = GeoMesaDataStoreFactory.GenerateStatsParam

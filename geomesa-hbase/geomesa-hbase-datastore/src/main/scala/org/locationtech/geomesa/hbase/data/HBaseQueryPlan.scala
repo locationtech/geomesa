@@ -64,6 +64,7 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
                     ranges: Seq[Scan],
                     remoteFilters: Seq[HBaseFilter] = Nil,
                     resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
+  // TODO: do we need to push down Z3Iterator?
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     ranges.foreach(ds.applySecurity)
     val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
@@ -76,6 +77,7 @@ case class GetPlan(filter: HBaseFilterStrategyType,
                    ranges: Seq[Get],
                    remoteFilters: Seq[HBaseFilter] = Nil,
                    resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
+  // TODO: do we need to push down Z3Iterator?
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
     val filterList = new FilterList()
@@ -110,7 +112,11 @@ case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
     // TODO: align partitions with region boundaries
     val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
 
+    // group scans into batches to achieve some client side parallelism
     val groupedScans = groupedRanges.map { localRanges =>
+      // TODO: FIX
+      // currently, this constructor will call sortAndMerge a second time
+      // this is unnecessary as we have already sorted and merged above
       val mrrf = new MultiRowRangeFilter(localRanges)
       val filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, mrrf)
       remoteFilters.foreach { f => filterList.addFilter(f) }
@@ -123,6 +129,7 @@ case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
       s.setCacheBlocks(true)
       s
     }
+
     // Apply Visibilities
     groupedScans.foreach(ds.applySecurity)
     val results = new HBaseBatchScan(ds.connection, table, groupedScans, ds.config.queryThreads, 100000, Nil)
