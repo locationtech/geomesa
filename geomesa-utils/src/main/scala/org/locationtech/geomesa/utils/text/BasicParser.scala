@@ -12,6 +12,7 @@ import java.util.regex.Pattern
 
 import org.apache.commons.lang.StringEscapeUtils
 import org.parboiled.scala._
+import org.parboiled.scala.rules.Rule1
 
 /**
   * Base class for parboiled parsers that provides methods for string and number matching
@@ -26,16 +27,11 @@ class BasicParser extends Parser {
 
   def char: Rule0 = rule { "a" - "z" | "A" - "Z" | "0" - "9" | "_" }
 
-  def charWithParens: Rule0 = rule { "a" - "z" | "A" - "Z" | "0" - "9" | "_" | "(" | ")" }
+  def statChar: Rule0 = rule { char | "," | "'" | ";" }
 
   def string: Rule1[String] = rule { quotedString | singleQuotedString | unquotedString }
 
   def unquotedString: Rule1[String] = rule { oneOrMore(char) ~> { c => c } }
-
-  def stringWithParens: Rule1[String] = rule { quotedString | singleQuotedString | unquotedString | unquotedStringWithParens }
-
-  def unquotedStringWithParens: Rule1[String] = rule { oneOrMore(charWithParens) ~> { c => c } }
-
 
   def quotedString: Rule1[String] = rule {
     "\"" ~ zeroOrMore((noneOf("""\"""") ~? notControlChar) | escapedChar) ~> StringEscapeUtils.unescapeJava ~ "\""

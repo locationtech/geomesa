@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-case class GroupBy[T](attribute: Int, exampleStat: () => Stat)(implicit ct: ClassTag[T]) extends Stat {
+case class GroupBy[T](attribute: Int, exampleStat: String, sft: SimpleFeatureType)(implicit ct: ClassTag[T]) extends Stat {
 
   override type S = GroupBy[T]
 
@@ -23,7 +23,7 @@ case class GroupBy[T](attribute: Int, exampleStat: () => Stat)(implicit ct: Clas
   def get(key: T): Option[Stat] = groupedStats.get(key)
   def getOrElse[U >: Stat](key: T, default: => U = null): U = groupedStats.getOrElse(key, default)
 
-  implicit def construct(cstr: () => Stat): Stat = cstr()
+  private def buildNewStat: Stat = StatParser.parse(sft, exampleStat)
 
   /**
     * Compute statistics based upon the given simple feature.
@@ -33,7 +33,7 @@ case class GroupBy[T](attribute: Int, exampleStat: () => Stat)(implicit ct: Clas
     */
   override def observe(sf: SimpleFeature): Unit = {
     val key = sf.getAttribute(attribute).asInstanceOf[T]
-    groupedStats.getOrElseUpdate(key, exampleStat).observe(sf)
+    groupedStats.getOrElseUpdate(key, buildNewStat).observe(sf)
   }
 
   /**
@@ -57,7 +57,7 @@ case class GroupBy[T](attribute: Int, exampleStat: () => Stat)(implicit ct: Clas
     other.groupedStats.map { case (key, stat) =>
       groupedStats.get(key) match {
         case Some(groupedStat) => groupedStat += stat
-        case None              => groupedStats.put(key, other.exampleStat)
+        case None              => groupedStats.put(key, buildNewStat)
       }
     }
   }
@@ -68,7 +68,7 @@ case class GroupBy[T](attribute: Int, exampleStat: () => Stat)(implicit ct: Clas
     * @param other the other stat to add
     */
   override def +(other: GroupBy[T]): GroupBy[T] = {
-    val newGB = new GroupBy[T](attribute, exampleStat)
+    val newGB = new GroupBy[T](attribute, exampleStat, sft)
     newGB += this
     newGB += other
     newGB

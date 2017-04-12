@@ -126,6 +126,7 @@ object KryoStatSerializer {
 
   private [stats] def writeGroupBy(output: Output, sft: SimpleFeatureType, stat: GroupBy[_]): Unit = {
     output.writeInt(stat.attribute, true)
+    output.writeString(stat.exampleStat)
     output.writeInt(stat.groupedStats.keys.size, true)
     stat.groupedStats.foreach { case (key, groupedStat) =>
       writer(output, sft.getDescriptor(stat.attribute).getType.getBinding)(key)
@@ -134,15 +135,16 @@ object KryoStatSerializer {
   }
 
   private [stats] def readGroupBy(input: Input, sft: SimpleFeatureType, immutable: Boolean): GroupBy[_] = {
-    val attribute = input.readInt(true)
-    val keyLength = input.readInt(true)
+    val attribute   = input.readInt(true)
+    val exampleStat = input.readString()
+    val keyLength   = input.readInt(true)
 
     val binding = sft.getDescriptor(attribute).getType.getBinding
     val classTag = ClassTag[Any](binding)
     val stat = if (immutable) {
-      new GroupBy(attribute, null)(classTag) with ImmutableStat
+      new GroupBy(attribute, exampleStat, sft)(classTag) with ImmutableStat
     } else {
-      new GroupBy(attribute, null)(classTag)
+      new GroupBy(attribute, exampleStat, sft)(classTag)
     }
 
     var i = 0

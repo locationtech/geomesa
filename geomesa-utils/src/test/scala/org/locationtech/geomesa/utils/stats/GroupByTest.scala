@@ -109,6 +109,25 @@ class GroupByTest extends Specification with StatTestHelper {
           groupBy2.size mustEqual 10
         }
 
+        "combine two stats after deserialization" >> {
+          val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
+          val groupBy2 = newStat[Int]("cat1", "GroupBy(cat2,Count())", false)
+
+          features2.foreach { groupBy2.observe }
+          groupBy2.size mustEqual 10
+
+          val groupByPacked = StatSerializer(sft).serialize(groupBy)
+          val groupByUnpacked = StatSerializer(sft).deserialize(groupByPacked, immutable = true)
+
+          val groupBy2Packed = StatSerializer(sft).serialize(groupBy2)
+          val groupBy2Unpacked = StatSerializer(sft).deserialize(groupByPacked, immutable = true)
+
+          val newGroupBy = groupByUnpacked + groupBy2Unpacked
+
+          groupByStat(groupByUnpacked.asInstanceOf[GroupBy[Int]]).size mustEqual 10
+          groupByStat(groupBy2Unpacked.asInstanceOf[GroupBy[Int]]).size mustEqual 10
+        }
+
         "clear" >> {
           val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
           groupBy.isEmpty must beFalse
@@ -459,17 +478,17 @@ class GroupByTest extends Specification with StatTestHelper {
         }
       }
 
-//      "Seq stat" should {
-//        val statStr = "MinMax(intAttr);IteratorStackCount();Enumeration(longAttr);Histogram(doubleAttr,20,0,200)"
-//
-//        "be empty initiallly" >> {
-//          val groupBy = newStat[Int]("cat1", statStr, false)
-//
-//          groupBy.size mustEqual 0
-//          groupBy.toJson mustEqual "[]"
-//          groupBy.isEmpty must beTrue
-//        }
-//      }
+      "Seq stat" should {
+        val statStr = "MinMax(intAttr);IteratorStackCount();Enumeration(longAttr);Histogram(doubleAttr,20,0,200)"
+
+        "be empty initiallly" >> {
+          val groupBy = newStat[Int]("cat1", statStr, false)
+
+          groupBy.size mustEqual 0
+          groupBy.toJson mustEqual "[]"
+          groupBy.isEmpty must beTrue
+        }
+      }
     }
   }
 }
