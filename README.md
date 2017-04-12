@@ -45,8 +45,6 @@ geospatial analytics.
 **Development version: 1.3.2-SNAPSHOT** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 
-<b>NOTE:</b> The current recommended version is `1.2.7.2`
-
 ### Upgrading
 
 To upgrade between minor releases of GeoMesa, the versions of all GeoMesa components **must** match. 
@@ -57,8 +55,7 @@ directory of GeoServer.
 
 ## Maven Integration
 
-GeoMesa artifacts are published to the LocationTech Maven repository. To include GeoMesa in your project,
-add the following repositories to your pom:
+GeoMesa artifacts are published to the [LocationTech Maven repository](https://repo.locationtech.org/content/groups/releases/org/locationtech/geomesa/). To include GeoMesa in your project, add the following repositories to your pom:
 
 ```xml
 <repositories>
@@ -84,6 +81,7 @@ add the following repositories to your pom:
 </repositories>
 ```
 
+
 For snapshot integrations use:
 
 ```xml
@@ -98,6 +96,45 @@ For snapshot integrations use:
     </snapshots>
   </repository>
 ```
+
+and then include the desired `geomesa-*` dependencies:
+
+```xml
+  <dependency>
+    <groupId>org.locationtech.geomesa</groupId>
+    <artifactId>geomesa-spark</artifactId>
+    <version>1.3.1</version>
+  </dependency>
+  ...
+```
+
+
+The following modules are currently available:
+
+`geomesa-accumulo` 
+`geomesa-blobstore`
+`geomesa-cassandra`
+`geomesa-convert`  
+`geomesa-features` 
+`geomesa-filter`
+`geomesa-geojson`
+`geomesa-hbase`
+`geomesa-index-api`
+`geomesa-jobs`
+`geomesa-jupyter`
+`geomesa-kafka`
+`geomesa-logger`
+`geomesa-memory`
+`geomesa-metrics`
+`geomesa-native-api`
+`geomesa-process`
+`geomesa-security`
+`geomesa-spark`
+`geomesa-stream`
+`geomesa-tools`
+`geomesa-utils`
+`geomesa-web`
+`geomesa-z3`
 
 ## Building from Source
 
