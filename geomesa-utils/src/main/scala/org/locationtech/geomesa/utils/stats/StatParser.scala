@@ -67,7 +67,7 @@ private class StatParser extends BasicParser {
   }
 
   private def singleStat: Rule1[Stat] = rule {
-    count | minMax | iteratorStack | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
+    count | minMax | iteratorStack | enumeration | topK | stats | histogram | frequency | z3Histogram | z3Frequency
   }
 
   private def count: Rule1[Stat] = rule {
@@ -99,6 +99,13 @@ private class StatParser extends BasicParser {
       val index = getIndex(attribute)
       val binding = sft.getDescriptor(attribute).getType.getBinding
       new TopK[Any](index)(ClassTag(binding))
+    }
+  }
+
+  private def stats: Rule1[Stat] = rule {
+    "DescriptiveStats(" ~ string ~ ")" ~~> { attributes =>
+      val indices = attributes.split(",").map(getIndex)
+      new DescriptiveStats(indices)
     }
   }
 
