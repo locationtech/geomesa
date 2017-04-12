@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -13,7 +13,7 @@ import org.opengis.feature.simple.SimpleFeature
 /**
   * Counts features
   */
-class CountStat() extends Stat {
+class CountStat extends Stat {
 
   override type S = CountStat
 

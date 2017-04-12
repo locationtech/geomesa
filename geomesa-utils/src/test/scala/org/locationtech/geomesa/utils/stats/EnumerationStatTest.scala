@@ -169,7 +169,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         unpacked.toJson mustEqual stat.toJson
       }
 
-      "combine two states" >> {
+      "combine two stats" >> {
         val stat = newStat[java.lang.Integer]("intAttr")
         val stat2 = newStat[java.lang.Integer]("intAttr", observe = false)
 
