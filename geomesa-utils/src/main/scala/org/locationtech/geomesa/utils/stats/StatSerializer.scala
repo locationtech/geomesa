@@ -240,6 +240,7 @@ object KryoStatSerializer {
     val hpp = {
       val hppBytes = Array.ofDim[Byte](input.readInt(true))
       input.read(hppBytes)
+      println(hppBytes)
       HyperLogLog.Builder.build(hppBytes)
     }
 
