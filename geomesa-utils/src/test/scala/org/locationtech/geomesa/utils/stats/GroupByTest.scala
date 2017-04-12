@@ -124,6 +124,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
           val newGroupBy = groupByUnpacked + groupBy2Unpacked
 
+          groupByStat(newGroupBy.asInstanceOf[GroupBy[Int]]).size mustEqual 10
           groupByStat(groupByUnpacked.asInstanceOf[GroupBy[Int]]).size mustEqual 10
           groupByStat(groupBy2Unpacked.asInstanceOf[GroupBy[Int]]).size mustEqual 10
         }
@@ -480,13 +481,148 @@ class GroupByTest extends Specification with StatTestHelper {
 
       "Seq stat" should {
         val statStr = "MinMax(intAttr);IteratorStackCount();Enumeration(longAttr);Histogram(doubleAttr,20,0,200)"
-
+        def seqStat(groupBy: GroupBy[Int], index: Int = 0): SeqStat =
+          groupBy.getOrElse(index).asInstanceOf[SeqStat]
         "be empty initiallly" >> {
           val groupBy = newStat[Int]("cat1", statStr, false)
 
           groupBy.size mustEqual 0
           groupBy.toJson mustEqual "[]"
           groupBy.isEmpty must beTrue
+        }
+
+        "observe correct values" >> {
+          val groupBy = newStat[Int]("cat1", statStr)
+
+          forall(0 until groupBy.size) { i =>
+            val stats = seqStat(groupBy, i).stats
+            stats must haveSize(4)
+            stats.isEmpty must beFalse
+          }
+
+          val stats = seqStat(groupBy, 0).stats
+          val mm = stats(0).asInstanceOf[MinMax[java.lang.Integer]]
+          val ic = stats(1).asInstanceOf[IteratorStackCount]
+          val eh = stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
+          val rh = stats(3).asInstanceOf[Histogram[java.lang.Double]]
+
+          mm.bounds mustEqual (0, 90)
+
+          ic.counter mustEqual 1
+
+          eh.enumeration.size mustEqual 10
+          eh.enumeration(0L) mustEqual 1
+          eh.enumeration(100L) mustEqual 0
+
+          rh.length mustEqual 20
+          rh.count(rh.indexOf(0.0)) mustEqual 1
+          rh.count(rh.indexOf(50.0)) mustEqual 1
+          rh.count(rh.indexOf(100.0)) mustEqual 0
+
+        }
+
+        "serialize to json" >> {
+          val groupBy = newStat[Int]("cat1", statStr)
+          groupBy.toJson must not(beEmpty)
+        }
+
+        "serialize empty to json" >> {
+          val groupBy = newStat[Int]("cat1", statStr, false)
+          groupBy.toJson mustEqual "[]"
+        }
+
+        "serialize and deserialize" >> {
+          "observed" >> {
+            val groupBy = newStat[Int]("cat1", statStr)
+            val packed = StatSerializer(sft).serialize(groupBy)
+            val unpacked = StatSerializer(sft).deserialize(packed)
+            unpacked.toJson mustEqual groupBy.toJson
+          }
+
+          "unobserved" >> {
+            val groupBy = newStat[Int]("cat1", statStr, false)
+            val packed = StatSerializer(sft).serialize(groupBy)
+            val unpacked = StatSerializer(sft).deserialize(packed)
+            unpacked.toJson mustEqual groupBy.toJson
+          }
+        }
+
+        "deserialize as immutable value" >> {
+          val groupBy = newStat[Int]("cat1", statStr)
+          val packed = StatSerializer(sft).serialize(groupBy)
+          val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
+          unpacked.toJson mustEqual groupBy.toJson
+
+          unpacked.clear must throwAn[Exception]
+          unpacked.+=(groupBy) must throwAn[Exception]
+          unpacked.observe(features.head) must throwAn[Exception]
+          unpacked.unobserve(features.head) must throwAn[Exception]
+        }
+
+        "combine two SeqStats" >> {
+          val groupBy = newStat[Int]("cat1", statStr)
+          val groupBy2 = newStat[Int]("cat1", statStr, false)
+
+          val stat2 = seqStat(groupBy2)
+
+          val mm2 = stat2.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
+          val ic2 = stat2.stats(1).asInstanceOf[IteratorStackCount]
+          val eh2 = stat2.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
+          val rh2 = stat2.stats(3).asInstanceOf[Histogram[java.lang.Double]]
+
+          ic2.counter mustEqual 1
+          mm2.isEmpty must beTrue
+          eh2.enumeration must beEmpty
+
+          rh2.length mustEqual 20
+          forall(0 until 20)(rh2.count(_) mustEqual 0)
+
+          features2.foreach { groupBy2.observe }
+
+          groupBy += groupBy2
+
+          val stat = seqStat(groupBy)
+
+          val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
+          val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
+          val eh = stat.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
+          val rh = stat.stats(3).asInstanceOf[Histogram[java.lang.Double]]
+
+          mm.bounds mustEqual (0, 199)
+
+          ic.counter mustEqual 2
+
+          eh.enumeration.size mustEqual 200
+          eh.enumeration(0L) mustEqual 1
+          eh.enumeration(100L) mustEqual 1
+
+          rh.length mustEqual 20
+          rh.count(rh.indexOf(0.0)) mustEqual 10
+          rh.count(rh.indexOf(50.0)) mustEqual 10
+          rh.count(rh.indexOf(100.0)) mustEqual 10
+
+          mm2.bounds mustEqual (100, 199)
+
+          ic2.counter mustEqual 1
+
+          eh2.enumeration.size mustEqual 100
+          eh2.enumeration(0L) mustEqual 0
+          eh2.enumeration(100L) mustEqual 1
+
+          rh2.length mustEqual 20
+          rh2.count(rh2.indexOf(0.0)) mustEqual 0
+          rh2.count(rh2.indexOf(50.0)) mustEqual 0
+          rh2.count(rh2.indexOf(100.0)) mustEqual 10
+        }
+
+        "clear" >> {
+          val groupBy = newStat[Int]("cat1", statStr)
+          groupBy.isEmpty must beFalse
+
+          groupBy.clear()
+
+          groupBy.isEmpty must beTrue
+          groupBy.toJson mustEqual "[]"
         }
       }
     }

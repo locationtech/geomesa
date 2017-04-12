@@ -67,65 +67,21 @@ private class StatParser extends BasicParser {
     oneOrMore(singleStat, ";") ~~> { s => if (s.length == 1) s.head else new SeqStat(s) } ~ EOI
   }
 
-//  def groupBy: Rule1[Stat] = rule {
-//    // TODO: Fix the dsl here. GroupBy should accept (string, stat) but oneOrMore doesn't work when nested inside (). The effect of this is GroupBy can't accept SeqStat.
-//    "GroupBy(" ~ string ~ "," ~ (statString ~? parses) ~ ")" ~~> { (attribute, groupedStats) =>
-//      val index = getIndex(attribute)
-//      GroupBy(index, groupedStats, sft)
-//    }
-//  }
-//
-//  def parses(input: String): Boolean = {
-//    StatParser.parse(sft, input, true)
-//    true
-//  }
-
-
-  def groupBy: Rule1[Stat] = rule {
-    // TODO: Fix the dsl here. GroupBy should accept (string, stat) but oneOrMore doesn't work when nested inside (). The effect of this is GroupBy can't accept SeqStat.
-    "GroupBy(" ~ string ~ "," ~ statString ~ ")" ~~> { (attribute, groupedStats) =>
-      println(groupedStats)
+  private def groupBy: Rule1[Stat] = rule {
+    "GroupBy(" ~ string ~ "," ~ oneOrMore(statString, ";") ~ ")" ~~> { (attribute, groupedStatsList) =>
+      val groupedStats = groupedStatsList.mkString(";")
       val index = getIndex(attribute)
       GroupBy(index, groupedStats, sft)
     }
   }
 
-  def statString: Rule1[String] = rule {
+  private def statString: Rule1[String] = rule {
     unquotedString ~ "(" ~ (groupByParams | statParams) ~ ")" ~~> { (a, b) => a + "(" + b + ")" }
   }
 
-  def groupByParams: Rule1[String] = rule { string ~ "," ~ statString ~~> { (s, t) => s + "," + t} }
+  private def statParams: Rule1[String] = rule { zeroOrMore(statChar) ~> { c => c } }
 
-  def statParams: Rule1[String] = rule { zeroOrMore(statChar) ~> { c => c } }
-
-//  def statString: ReductionRule1[String,String] = rule {
-//    group(singleStat) ~> {g => (g, ")")}
-//  }
-
-  def nestedStat(input: String): Boolean = {
-    println(s"Trying tp parse $input")
-    StatParser.parse(sft, input)
-    true
-  }
-
-
-
-  def parses(input: String): Boolean = {
-    StatParser.parse(sft, input, true)
-    true
-  }
-
-  //def statConstructor: Rule1[() => Stat] = ???
-
-//  private def singleStatConstructor: Rule1[() => Stat] = rule {
-//    countCstr // | minMax | iteratorStack | groupBy | stats | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
-//  }
-
-  implicit def construct(cstr: () => Stat): Stat = cstr()
-
-//  implicit def constructRule(cstr: Rule1[() => Stat]): Rule1[() => Stat] = rule {
-//   cstr.matcher.
-//  }
+  private def groupByParams: Rule1[String] = rule { string ~ "," ~ statString ~~> { (s, t) => s + "," + t} }
 
   private def singleStat: Rule1[Stat] = rule {
     count | minMax | iteratorStack | groupBy | stats | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
