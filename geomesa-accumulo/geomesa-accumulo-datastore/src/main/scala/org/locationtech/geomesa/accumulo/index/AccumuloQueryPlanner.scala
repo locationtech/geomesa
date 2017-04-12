@@ -58,7 +58,7 @@ class AccumuloQueryPlanner(ds: AccumuloDataStore) extends AccumuloQueryPlannerTy
     val sft = if (query.getHints.isBinQuery) {
       BinAggregatingIterator.BIN_SFT
     } else if (query.getHints.isArrowQuery) {
-      ArrowBatchIterator.ArrowSft
+      org.locationtech.geomesa.arrow.ArrowEncodedSft
     } else if (query.getHints.isDensityQuery) {
       KryoLazyDensityIterator.DENSITY_SFT
     } else if (query.getHints.isStatsIteratorQuery) {

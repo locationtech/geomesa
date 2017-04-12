@@ -16,6 +16,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyAggregatingIterator.SFT_OPT
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator.{TRANSFORM_DEFINITIONS_OPT, TRANSFORM_SCHEMA_OPT}
+import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.arrow.io.DictionaryBuildingWriter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
@@ -118,7 +119,7 @@ object ArrowFileIterator {
     * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
     */
   def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", ArrowBatchIterator.ArrowSft)
+    val sf = new ScalaSimpleFeature("", ArrowEncodedSft)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       sf.setAttribute(0, e.getValue.get())

@@ -9,7 +9,11 @@
 package org.locationtech.geomesa
 
 import org.apache.arrow.memory.RootAllocator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 package object arrow {
   implicit val allocator = new RootAllocator(Long.MaxValue)
+
+  // need to be lazy to avoid class loading issues before init is called
+  lazy val ArrowEncodedSft = SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")
 }

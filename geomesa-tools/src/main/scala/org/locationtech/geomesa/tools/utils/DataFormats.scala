@@ -18,7 +18,7 @@ import org.apache.commons.io.FilenameUtils
 object DataFormats extends Enumeration {
 
   type DataFormat = Value
-  val Avro, Bin, Csv, GeoJson, Gml, Json, Null, Shp, Tsv = Value
+  val Arrow, Avro, Bin, Csv, GeoJson, Gml, Json, Null, Shp, Tsv = Value
 
   /**
     * Returns either the format, or the extension as a string if it doesn't match
@@ -37,7 +37,7 @@ object DataFormats extends Enumeration {
     val extension = FilenameUtils.getExtension(filename).toLowerCase(Locale.US)
     values.find(_.toString.equalsIgnoreCase(extension)) match {
       case Some(f) => Right(f)
-      case None => Left(extension)
+      case None    => Left(extension)
     }
   }
 }

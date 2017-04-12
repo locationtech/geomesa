@@ -22,6 +22,7 @@ import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyAggregatingIterator.SFT_OPT
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator.{TRANSFORM_DEFINITIONS_OPT, TRANSFORM_SCHEMA_OPT}
+import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
@@ -65,7 +66,7 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
         new ArrowBatchAggregate(transformSchema, dictionaries))
     }
   }
-
+source.getTopKey.getRow
   override def notFull(result: ArrowBatchAggregate): Boolean = underBatchSize(result)
 
   override def aggregateResult(sf: SimpleFeature, result: ArrowBatchAggregate): Unit = aggregate(sf, result)
@@ -112,9 +113,6 @@ class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, Arro
 object ArrowBatchIterator {
 
   val DefaultPriority = 25
-
-  // need to be lazy to avoid class loading issues before init is called
-  lazy val ArrowSft = SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")
 
   private val BatchSizeKey  = "grp"
   private val DictionaryKey = "dict"
@@ -163,7 +161,7 @@ object ArrowBatchIterator {
     * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
     */
   def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", ArrowSft)
+    val sf = new ScalaSimpleFeature("", ArrowEncodedSft)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       sf.setAttribute(0, e.getValue.get())
@@ -182,10 +180,10 @@ object ArrowBatchIterator {
   def reduceFeatures(sft: SimpleFeatureType,
                      dictionaries: Map[String, ArrowDictionary]):
       CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = {
-    val header = new ScalaSimpleFeature("", ArrowSft)
+    val header = new ScalaSimpleFeature("", ArrowEncodedSft)
     header.setAttribute(0, fileMetadata(sft, dictionaries))
     header.setAttribute(1, GeometryUtils.zeroPoint)
-    val footer = new ScalaSimpleFeature("", ArrowSft)
+    val footer = new ScalaSimpleFeature("", ArrowEncodedSft)
     // per arrow streaming format footer is the encoded int '0'
     footer.setAttribute(0, Array[Byte](0, 0, 0, 0))
     footer.setAttribute(1, GeometryUtils.zeroPoint)

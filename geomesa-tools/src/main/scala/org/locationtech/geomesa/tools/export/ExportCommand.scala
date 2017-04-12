@@ -14,8 +14,8 @@ import java.util.zip.{Deflater, GZIPOutputStream}
 import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.geotools.data.{DataStore, Query}
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.data.{DataStore, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -63,6 +63,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
       case GeoJson | Json => new GeoJsonExporter(getWriter(params))
       case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
       case Avro           => new AvroExporter(features.getSchema, createOutputStream(params.file, null), avroCompression)
+      case Arrow          => new ArrowExporter(createOutputStream(params.file, null))
       case Null           => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
@@ -95,6 +96,10 @@ object ExportCommand extends LazyLogging {
     params.loadIndex(ds, IndexMode.Read).foreach { index =>
       q.getHints.put(QueryHints.QUERY_INDEX, index)
       logger.debug(s"Using index ${index.identifier}")
+    }
+
+    if (fmt == DataFormats.Arrow) {
+      q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
     }
 
     // get the feature store used to query the GeoMesa data
