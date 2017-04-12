@@ -11,7 +11,6 @@ package org.locationtech.geomesa.arrow.vector
 import java.util.Date
 
 import org.apache.arrow.memory.RootAllocator
-import org.apache.arrow.vector.complex.FixedSizeListVector
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
@@ -43,6 +42,19 @@ class SimpleFeatureVectorTest extends Specification {
           wrapped.reader.getValueCount mustEqual features.length
           forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
         }
+      }
+    }
+    "expand capacity" >> {
+      val total = 128
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, capacity = total / 2)) { vector =>
+        var i = 0
+        while (i < total) {
+          vector.writer.set(i, features(i % features.length))
+          i += 1
+        }
+        vector.writer.setValueCount(total)
+        vector.reader.getValueCount mustEqual total
+        forall(0 until total)(i => vector.reader.get(i) mustEqual features(i % features.length))
       }
     }
     "set and get float precision values" >> {
