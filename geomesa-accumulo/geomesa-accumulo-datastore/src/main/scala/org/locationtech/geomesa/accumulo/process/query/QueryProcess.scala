@@ -44,7 +44,7 @@ class QueryProcess extends LazyLogging {
                  name = "properties",
                  min = 0,
                  description = "The lists of properties and transform definitions to apply")
-               properties: java.util.List[String] = null
+               properties: String = null
              ): SimpleFeatureCollection = {
 
     logger.debug("Attempting Geomesa query on type " + features.getClass.getName)
@@ -53,7 +53,9 @@ class QueryProcess extends LazyLogging {
       logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
-    val visitor = new QueryVisitor(features, Option(filter).getOrElse(Filter.INCLUDE), properties)
+    val arrayString = Option(properties).map(_.split(";")).orNull
+
+    val visitor = new QueryVisitor(features, Option(filter).getOrElse(Filter.INCLUDE), arrayString)
     features.accepts(visitor, new NullProgressListener)
     visitor.getResult.asInstanceOf[QueryResult].results
   }
@@ -61,7 +63,7 @@ class QueryProcess extends LazyLogging {
 
 class QueryVisitor(features: SimpleFeatureCollection,
                    filter: Filter,
-                   properties: java.util.List[String] = null)
+                   properties: Array[String] = null)
   extends FeatureCalc
           with LazyLogging {
 
