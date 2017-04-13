@@ -67,7 +67,7 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
         new ArrowBatchAggregate(transformSchema, dictionaries))
     }
   }
-source.getTopKey.getRow
+
   override def notFull(result: ArrowBatchAggregate): Boolean = underBatchSize(result)
 
   override def aggregateResult(sf: SimpleFeature, result: ArrowBatchAggregate): Unit = aggregate(sf, result)

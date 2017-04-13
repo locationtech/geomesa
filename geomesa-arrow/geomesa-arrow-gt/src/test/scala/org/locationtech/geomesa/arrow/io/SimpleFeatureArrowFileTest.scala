@@ -84,6 +84,26 @@ class SimpleFeatureArrowFileTest extends Specification {
         }
       }
     }
+    "write and read dictionary encoded values with defaults" >> {
+      val dictionaries = Map("foo:String" -> new ArrowDictionary(Seq("foo0", "foo1"))())
+      withTestFile { file =>
+        WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file), dictionaries)) { writer =>
+          features0.foreach(writer.add)
+          writer.flush()
+          features1.foreach(writer.add)
+        }
+        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
+          val features = reader.features.toSeq
+          features must haveLength(20)
+          features must containAllOf(features0 ++ features1.filter(_.getAttribute("foo") != "foo2"))
+          features must containAllOf(features1.collect { case f if f.getAttribute("foo") == "foo2" =>
+            val attributes = f.getAttributes.toArray
+            attributes.update(1, "[other]")
+            ScalaSimpleFeature.create(sft, f.getID, attributes: _*)
+          })
+        }
+      }
+    }
   }
 
   def withTestFile[T](fn: (File) => T): T = {

@@ -40,9 +40,19 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
 
   // TODO user data at feature and schema level
 
+  private var maxIndex = underlying.getValueCapacity - 1
+
   // note: writer creates the map child vectors based on the sft, and should be instantiated before the reader
   val writer = new Writer(this)
   val reader = new Reader(this)
+
+  /**
+    * double underlying vector capacity
+    */
+  def expand(): Unit = {
+    underlying.reAlloc()
+    maxIndex = underlying.getValueCapacity - 1
+  }
 
   /**
     * Clear any simple features currently stored in the vector
@@ -51,7 +61,7 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
 
   override def close(): Unit = {
     underlying.close()
-    writer.arrowWriter.close()
+    writer.close()
   }
 
   class Writer(vector: SimpleFeatureVector) {
@@ -60,6 +70,9 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
     private val attributeWriters = ArrowAttributeWriter(sft, vector.underlying, dictionaries, precision).toArray
 
     def set(index: Int, feature: SimpleFeature): Unit = {
+      while (index > vector.maxIndex ) {
+        vector.expand()
+      }
       arrowWriter.setPosition(index)
       arrowWriter.start()
       idWriter.apply(index, feature.getID)
@@ -75,6 +88,12 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
       arrowWriter.setValueCount(count)
       attributeWriters.foreach(_.setValueCount(count))
     }
+
+    private [vector] def close(): Unit = {
+      idWriter.close()
+      attributeWriters.foreach(_.close())
+      arrowWriter.close()
+    }
   }
 
   class Reader(vector: SimpleFeatureVector) {
@@ -88,6 +107,8 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
 }
 
 object SimpleFeatureVector {
+
+  val DefaultCapacity = 8096
 
   object GeometryPrecision extends Enumeration {
     type GeometryPrecision = Value
@@ -105,11 +126,15 @@ object SimpleFeatureVector {
     */
   def create(sft: SimpleFeatureType,
              dictionaries: Map[String, ArrowDictionary],
-             precision: GeometryPrecision = GeometryPrecision.Double)
+             precision: GeometryPrecision = GeometryPrecision.Double,
+             capacity: Int = DefaultCapacity)
             (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
+    val vector = new SimpleFeatureVector(sft, underlying, dictionaries, precision)
+    // set capacity after all child vectors have been created by the writers, then allocate
+    underlying.setInitialCapacity(capacity)
     underlying.allocateNew()
-    new SimpleFeatureVector(sft, underlying, dictionaries, precision)
+    vector
   }
 
   /**
