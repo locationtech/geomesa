@@ -36,7 +36,7 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
   import scala.collection.JavaConversions._
 
   private val reader = new ArrowStreamReader(is, allocator)
-  reader.loadNextBatch() // load the first batch so we get any dictionaries
+  private var firstBatchLoaded = false
   private val root = reader.getVectorSchemaRoot
   require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
   private val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
@@ -44,6 +44,10 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
   // load any dictionaries into memory
   val dictionaries: Map[String, ArrowDictionary] = underlying.getField.getChildren.flatMap { field =>
     Option(field.getDictionary).map { encoding =>
+      if (!firstBatchLoaded) {
+        reader.loadNextBatch() // load the first batch so we get any dictionaries
+        firstBatchLoaded = true
+      }
       val accessor = reader.lookup(encoding.getId).getVector.asInstanceOf[NullableVarCharVector].getAccessor
       val values = ArrayBuffer.empty[String]
       var i = 0
@@ -62,9 +66,9 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
   // iterator of simple features read from the input stream
   // note that features are lazily backed by the underlying arrow vectors,
   // so may not be valid once another batch is loaded
-  val features = new Iterator[SimpleFeature] {
+  lazy val features = new Iterator[SimpleFeature] {
     private var done = false
-    private var batch: Iterator[ArrowSimpleFeature] = filterBatch().iterator
+    private var batch: Iterator[ArrowSimpleFeature] = filterBatch()
 
     override def hasNext: Boolean = {
       if (done) {
@@ -77,7 +81,7 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
           done = true
           false
         } else {
-          batch = filterBatch().iterator
+          batch = filterBatch()
           hasNext
         }
       }
@@ -96,18 +100,14 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
     *
     * @return
     */
-  private def filterBatch(): Seq[ArrowSimpleFeature] = {
-    if (filter == Filter.INCLUDE) {
-      (0 until root.getRowCount).map(vector.reader.get)
-    } else {
-      (0 until root.getRowCount).flatMap { i =>
-        val sf = vector.reader.get(i)
-        if (filter.evaluate(sf)) {
-          Seq(sf)
-        } else {
-          Seq.empty
-        }
-      }
+  private def filterBatch(): Iterator[ArrowSimpleFeature] = {
+    if (!firstBatchLoaded) {
+      reader.loadNextBatch()
+      firstBatchLoaded = true
+    }
+    val all = Iterator.range(0, root.getRowCount).map(vector.reader.get)
+    if (filter == Filter.INCLUDE) { all } else {
+      all.filter(filter.evaluate)
     }
   }
 
