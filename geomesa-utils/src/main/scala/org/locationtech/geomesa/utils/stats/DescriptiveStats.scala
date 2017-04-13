@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -24,14 +24,14 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
   private[stats] val size_squared = size * size
 
   private[stats] var _count: Long = _
-  private[stats] val _min: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _max: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _sum: SimpleMatrix = new SimpleMatrix(size, 1)
+  private[stats] val _min: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _max: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _sum: SimpleMatrix  = new SimpleMatrix(size, 1)
   private[stats] val _mean: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m2n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m3n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m4n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _c2: SimpleMatrix = new SimpleMatrix(size, size)
+  private[stats] val _m2n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _m3n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _m4n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _c2: SimpleMatrix   = new SimpleMatrix(size, size)
 
   clear()
 
