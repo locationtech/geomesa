@@ -31,9 +31,9 @@ class GroupByTest extends Specification with StatTestHelper {
     "work with" >> {
       "nested GroupBy Count() and" >> {
         def groupByStat(groupBy: GroupBy[Int], index: Int = 0): GroupBy[String] =
-          groupBy.getOrElse(index).asInstanceOf[GroupBy[String]]
+          groupBy.getOrElse(index, null).asInstanceOf[GroupBy[String]]
         def countStat(groupBy: GroupBy[String], index: String): CountStat =
-          groupBy.getOrElse(index).asInstanceOf[CountStat]
+          groupBy.getOrElse(index, null).asInstanceOf[CountStat]
         val groupByCountMatcher = """^\[(\{ "\d" : \[(\{ "." : \{ "count": \d \}\},?)+\]\},?)*\]$"""
 
         "be empty initially" >> {
@@ -142,7 +142,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
       "Count Stat and" >> {
         def countStat(groupBy: GroupBy[Int], index: Int = 0): CountStat =
-          groupBy.getOrElse(index).asInstanceOf[CountStat]
+          groupBy.getOrElse(index, null).asInstanceOf[CountStat]
 
         "be empty initially" >> {
           val groupBy = newStat[Int]("cat1","Count()", false)
@@ -222,7 +222,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
       "MinMax Stat and" >> {
         def minmaxStat(groupBy: GroupBy[Int], index: Int = 0): MinMax[String] =
-          groupBy.getOrElse(index).asInstanceOf[MinMax[String]]
+          groupBy.getOrElse(index, null).asInstanceOf[MinMax[String]]
 
         "be empty initially" >> {
           val groupBy = newStat[Int]("cat1","MinMax(strAttr)", false)
@@ -303,7 +303,7 @@ class GroupByTest extends Specification with StatTestHelper {
       "Enumeration Stat and" >> {
         "work with ints" >> {
           def enumerationStat(groupBy: GroupBy[Int], index: Int = 0): EnumerationStat[jInt] =
-            groupBy.getOrElse(index).asInstanceOf[EnumerationStat[jInt]]
+            groupBy.getOrElse(index, null).asInstanceOf[EnumerationStat[jInt]]
 
           "be empty initially" >> {
             val groupBy = newStat[Int]("cat1","Enumeration(intAttr)", false)
@@ -388,7 +388,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "work with integers and" >> {
           def histogramStat(groupBy: GroupBy[Int], index: Int = 0): Histogram[Int] =
-            groupBy.getOrElse(index).asInstanceOf[Histogram[Int]]
+            groupBy.getOrElse(index, null).asInstanceOf[Histogram[Int]]
           def intStat(bins: Int, min: Int, max: Int): String =
             histogramStatString("intAttr", bins, min.toString, max.toString)
 
@@ -482,7 +482,7 @@ class GroupByTest extends Specification with StatTestHelper {
       "Seq stat" should {
         val statStr = "MinMax(intAttr);IteratorStackCount();Enumeration(longAttr);Histogram(doubleAttr,20,0,200)"
         def seqStat(groupBy: GroupBy[Int], index: Int = 0): SeqStat =
-          groupBy.getOrElse(index).asInstanceOf[SeqStat]
+          groupBy.getOrElse(index, null).asInstanceOf[SeqStat]
         "be empty initiallly" >> {
           val groupBy = newStat[Int]("cat1", statStr, false)
 

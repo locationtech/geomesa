@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -28,9 +28,6 @@ import scala.reflect.ClassTag
 class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLog)
                         (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
     extends Stat with LazyLogging with Serializable {
-
-  this.minValue = defaults.max
-  this.maxValue = defaults.min
 
   override type S = MinMax[T]
 

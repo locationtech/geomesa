@@ -13,7 +13,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-case class GroupBy[T](attribute: Int, exampleStat: String, sft: SimpleFeatureType)(implicit ct: ClassTag[T]) extends Stat {
+class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFeatureType)(implicit val ct: ClassTag[T]) extends Stat {
 
   override type S = GroupBy[T]
 
@@ -21,7 +21,7 @@ case class GroupBy[T](attribute: Int, exampleStat: String, sft: SimpleFeatureTyp
 
   def size: Int = groupedStats.size
   def get(key: T): Option[Stat] = groupedStats.get(key)
-  def getOrElse[U >: Stat](key: T, default: => U = null): U = groupedStats.getOrElse(key, default)
+  def getOrElse[U >: Stat](key: T, default: => U): U = groupedStats.getOrElse(key, default)
 
   private def buildNewStat: Stat = StatParser.parse(sft, exampleStat)
 
@@ -54,11 +54,8 @@ case class GroupBy[T](attribute: Int, exampleStat: String, sft: SimpleFeatureTyp
     * @param other the other stat to add
     */
   override def +=(other: GroupBy[T]): Unit = {
-    other.groupedStats.map { case (key, stat) =>
-      groupedStats.get(key) match {
-        case Some(groupedStat) => groupedStat += stat
-        case None              => groupedStats.put(key, buildNewStat)
-      }
+    other.groupedStats.foreach { case (key, stat) =>
+      groupedStats.getOrElseUpdate(key, buildNewStat) += stat
     }
   }
 
@@ -100,9 +97,9 @@ case class GroupBy[T](attribute: Int, exampleStat: String, sft: SimpleFeatureTyp
     */
   override def isEquivalent(other: Stat): Boolean = {
     other match {
-      case other: GroupBy[T] => !groupedStats.map{ case (key, stat) =>
-          other.getOrElse(key).isEquivalent(stat)
-        }.exists(p => p == false)
+      case other: GroupBy[T] =>
+        other.groupedStats.keys == groupedStats.keys &&
+          groupedStats.forall{ case (key, stat) => other.groupedStats(key).isEquivalent(stat) }
       case _ => false
     }
   }

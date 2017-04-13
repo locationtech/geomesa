@@ -71,7 +71,7 @@ private class StatParser extends BasicParser {
     "GroupBy(" ~ string ~ "," ~ oneOrMore(statString, ";") ~ ")" ~~> { (attribute, groupedStatsList) =>
       val groupedStats = groupedStatsList.mkString(";")
       val index = getIndex(attribute)
-      GroupBy(index, groupedStats, sft)
+      new GroupBy(index, groupedStats, sft)
     }
   }
 
