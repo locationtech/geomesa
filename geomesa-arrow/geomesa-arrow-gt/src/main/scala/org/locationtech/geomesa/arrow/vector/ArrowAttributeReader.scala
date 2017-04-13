@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.vector
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicLong
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom._
@@ -41,6 +42,14 @@ trait ArrowAttributeReader {
 }
 
 object ArrowAttributeReader {
+
+  def id(vector: NullableMapVector, includeFids: Boolean): ArrowAttributeReader = {
+    if (includeFids) {
+      ArrowAttributeReader("id", Seq(ObjectType.STRING), classOf[String], vector, None, null)
+    } else {
+      ArrowAttributeReader.ArrowIncrementingFeatureIdReader
+    }
+  }
 
   def apply(sft: SimpleFeatureType,
             vector: NullableMapVector,
@@ -164,6 +173,11 @@ object ArrowAttributeReader {
     }
 
     override def apply(i: Int): AnyRef = delegate.get(i)
+  }
+
+  object ArrowIncrementingFeatureIdReader extends ArrowAttributeReader {
+    private val ids = new AtomicLong(0)
+    override def apply(i: Int): AnyRef = ids.getAndIncrement.toString
   }
 
   class ArrowStringReader(accessor: NullableVarCharVector#Accessor) extends ArrowAttributeReader {

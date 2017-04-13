@@ -18,10 +18,11 @@ import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
   * Holder for dictionary values
   *
   * @param values dictionary values. When encoded, values are replaced with their index in the seq
-  * @param id dictionary id, must be unique per arrow file
+  * @param encoding dictionary id and int width, must be unique per arrow file
   */
-class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.nextId)
-                     (val encoding: DictionaryEncoding = ArrowDictionary.createEncoding(id, values)) {
+class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding) {
+
+  def id: Long = encoding.getId
 
   lazy private val (map, inverse) = {
     val builder = ImmutableBiMap.builder[AnyRef, Integer]
@@ -60,6 +61,8 @@ class ArrowDictionary(val values: Seq[AnyRef], val id: Long = ArrowDictionary.ne
 }
 
 object ArrowDictionary {
+
+  def create(values: Seq[AnyRef]): ArrowDictionary = new ArrowDictionary(values, createEncoding(nextId, values))
 
   private val values = new SecureRandom().longs(0, Long.MaxValue).iterator()
   private val ids = new AtomicLong(values.next)

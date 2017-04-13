@@ -40,6 +40,14 @@ object ArrowAttributeWriter {
 
   import scala.collection.JavaConversions._
 
+  def id(vector: NullableMapVector, includeFids: Boolean)(implicit allocator: BufferAllocator): ArrowAttributeWriter = {
+    if (includeFids) {
+      ArrowAttributeWriter("id", Seq(ObjectType.STRING), classOf[String], vector, None, null)
+    } else {
+      ArrowAttributeWriter.ArrowNoopWriter
+    }
+  }
+
   def apply(sft: SimpleFeatureType,
             vector: NullableMapVector,
             dictionaries: Map[String, ArrowDictionary],
@@ -167,6 +175,10 @@ object ArrowAttributeWriter {
     }
     override def setValueCount(count: Int): Unit = delegate.setValueCount(count)
     override def close(): Unit = delegate.close()
+  }
+
+  object ArrowNoopWriter extends ArrowAttributeWriter {
+    override def apply(i: Int, value: AnyRef): Unit = {}
   }
 
   class ArrowStringWriter(writer: VarCharWriter, allocator: BufferAllocator) extends ArrowAttributeWriter {

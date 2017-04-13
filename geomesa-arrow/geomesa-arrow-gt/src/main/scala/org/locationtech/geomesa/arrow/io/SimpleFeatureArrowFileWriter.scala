@@ -32,11 +32,14 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * @param os output stream
   * @param dictionaries map of field names to dictionary values, used for dictionary encoding fields.
   *                     All values must be provided up front.
+  * @param includeFids encode feature ids in vectors or not
+  * @param precision precision of coordinates - double or float
   * @param allocator buffer allocator
   */
 class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
                                    os: OutputStream,
                                    dictionaries: Map[String, ArrowDictionary] = Map.empty,
+                                   includeFids: Boolean = true,
                                    precision: GeometryPrecision = GeometryPrecision.Double)
                                   (implicit allocator: BufferAllocator) extends Closeable with Flushable {
 
@@ -47,11 +50,19 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
   // make sure we load dictionaries before instantiating the vector
   private val dictionaryVectors = dictionaries.values.map { dictionary =>
     val vector = new NullableVarCharVector(s"dictionary-${dictionary.id}", new FieldType(true, ArrowType.Utf8.INSTANCE, null), allocator)
+//    vector.setInitialCapacity(dictionary.values.length)
     vector.allocateNew()
     val mutator = vector.getMutator
     var i = 0
+//    var capacity = vector.getValueCapacity
     dictionary.values.foreach { value =>
-      mutator.set(i, value.toString.getBytes(StandardCharsets.UTF_8))
+      val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
+      // TODO figure out capacity checks
+//      while (capacity < i || vector.getByteCapacity < vector.getCurrentSizeInBytes + bytes.length) {
+//        vector.reAlloc()
+//        capacity = vector.getValueCapacity
+//      }
+      mutator.set(i, bytes)
       i += 1
     }
     mutator.setValueCount(i)
@@ -59,7 +70,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
     vector
   }
 
-  private val vector = SimpleFeatureVector.create(sft, dictionaries, precision)
+  private val vector = SimpleFeatureVector.create(sft, dictionaries, includeFids, precision)
   private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
 

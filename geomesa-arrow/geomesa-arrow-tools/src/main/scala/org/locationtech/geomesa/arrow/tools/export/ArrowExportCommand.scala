@@ -90,9 +90,7 @@ class ArrowExportCommand extends ArrowDataStoreCommand with MethodProfiling with
     }
 
     try {
-      val count = exporter.export(features)
-      exporter.flush()
-      count
+      exporter.export(features)
     } finally {
       CloseQuietly(exporter)
     }

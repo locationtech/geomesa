@@ -111,10 +111,10 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
       val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, BinAggregatingIterator.kvsToFeatures(), None)
     } else if (hints.isArrowQuery) {
-      if (hints.precomputeArrowDictionaries) {
+      if (hints.isArrowPrecomputeDictionaries) {
         val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, hints.getArrowDictionaryFields, filter.filter)
         val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
-        val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), dictionaries))
+        val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries))
         ScanConfig(Seq(iter), FullColumnFamily, ArrowBatchIterator.kvsToFeatures(), reduce)
       } else {
         val iter = ArrowFileIterator.configure(sft, this, ecql, hints.getArrowDictionaryFields, hints, dedupe)

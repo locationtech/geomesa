@@ -17,7 +17,6 @@ import org.apache.arrow.vector.types.pojo.ArrowType.{FixedSizeList, FloatingPoin
 import org.apache.arrow.vector.types.pojo.{ArrowType, Field}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
 import org.locationtech.geomesa.features.arrow.ArrowSimpleFeature
-import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -30,11 +29,14 @@ import scala.annotation.tailrec
   * @param underlying underlying arrow vector
   * @param dictionaries map of field names to dictionary values, used for dictionary encoding fields.
   *                     All values must be provided up front.
+  * @param includeFids encode feature ids in vectors or not
+  * @param precision precision of coordinates - double or float
   * @param allocator buffer allocator
   */
 class SimpleFeatureVector private (val sft: SimpleFeatureType,
                                    val underlying: NullableMapVector,
                                    val dictionaries: Map[String, ArrowDictionary],
+                                   val includeFids: Boolean,
                                    val precision: GeometryPrecision)
                                   (implicit allocator: BufferAllocator) extends Closeable {
 
@@ -66,7 +68,7 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
 
   class Writer(vector: SimpleFeatureVector) {
     private [SimpleFeatureVector] val arrowWriter = vector.underlying.getWriter
-    private val idWriter = ArrowAttributeWriter("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, None, null)
+    private val idWriter = ArrowAttributeWriter.id(vector.underlying, vector.includeFids)
     private val attributeWriters = ArrowAttributeWriter(sft, vector.underlying, dictionaries, precision).toArray
 
     def set(index: Int, feature: SimpleFeature): Unit = {
@@ -97,7 +99,7 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
   }
 
   class Reader(vector: SimpleFeatureVector) {
-    private val idReader = ArrowAttributeReader("id", Seq(ObjectType.STRING), classOf[String], vector.underlying, None, null)
+    private val idReader = ArrowAttributeReader.id(vector.underlying, vector.includeFids)
     private val attributeReaders = ArrowAttributeReader(sft, vector.underlying, dictionaries, precision).toArray
 
     def get(index: Int): ArrowSimpleFeature = new ArrowSimpleFeature(sft, idReader, attributeReaders, index)
@@ -116,21 +118,25 @@ object SimpleFeatureVector {
   }
 
   /**
-    * Create a new simple feature vector
+    * * Create a new simple feature vector
     *
     * @param sft simple feature type
     * @param dictionaries map of field names to dictionary values, used for dictionary encoding fields.
     *                     All values must be provided up front.
+    * @param includeFids include feature ids in arrow file or not
+    * @param precision precision of coordinates - double or float
+    * @param capacity initial capacity for number of features able to be stored in vectors
     * @param allocator buffer allocator
     * @return
     */
   def create(sft: SimpleFeatureType,
              dictionaries: Map[String, ArrowDictionary],
+             includeFids: Boolean = true,
              precision: GeometryPrecision = GeometryPrecision.Double,
              capacity: Int = DefaultCapacity)
             (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
-    val vector = new SimpleFeatureVector(sft, underlying, dictionaries, precision)
+    val vector = new SimpleFeatureVector(sft, underlying, dictionaries, includeFids, precision)
     // set capacity after all child vectors have been created by the writers, then allocate
     underlying.setInitialCapacity(capacity)
     underlying.allocateNew()
@@ -154,10 +160,11 @@ object SimpleFeatureVector {
       // filter out feature id from attributes
       case field if field.getName != "id" => field.getName
     }
+    val includeFids = vector.getField.getChildren.exists(_.getName == "id")
     val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))
     val geomVector = Option(vector.getChild(SimpleFeatureTypes.encodeDescriptor(sft, sft.getGeometryDescriptor)))
     val precision = geomVector.map(v => precisionFromField(v.getField)).getOrElse(GeometryPrecision.Double)
-    new SimpleFeatureVector(sft, vector, dictionaries, precision)
+    new SimpleFeatureVector(sft, vector, dictionaries, includeFids, precision)
   }
 
   @tailrec

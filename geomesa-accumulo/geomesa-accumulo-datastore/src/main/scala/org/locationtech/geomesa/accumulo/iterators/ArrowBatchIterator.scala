@@ -37,7 +37,7 @@ import org.opengis.filter.Filter
 
 class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate] with SamplingIterator {
 
-  import ArrowBatchIterator.{BatchSizeKey, DictionaryKey, aggregateCache, decodeDictionaries}
+  import ArrowBatchIterator._
 
   var aggregate: (SimpleFeature, ArrowBatchAggregate) => Unit = _
   var underBatchSize: (ArrowBatchAggregate) => Boolean = _
@@ -49,13 +49,15 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
     }
     val encodedDictionaries = options(DictionaryKey)
     lazy val dictionaries = decodeDictionaries(encodedDictionaries)
+    val includeFids = options(IncludeFidsKey).toBoolean
     val transformSchema = options.get(TRANSFORM_SCHEMA_OPT).map(IteratorCache.sft).orNull
     if (transformSchema == null) {
       sample(options) match {
         case None       => aggregate = (sf, result) => result.add(sf)
         case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { result.add(sf) }
       }
-      aggregateCache.getOrElseUpdate(options(SFT_OPT) + encodedDictionaries, new ArrowBatchAggregate(sft, dictionaries))
+      aggregateCache.getOrElseUpdate(options(SFT_OPT) + includeFids + encodedDictionaries,
+        new ArrowBatchAggregate(sft, dictionaries, includeFids))
     } else {
       val transforms = TransformSimpleFeature.attributes(sft, transformSchema, options(TRANSFORM_DEFINITIONS_OPT))
       val reusable = new TransformSimpleFeature(transformSchema, transforms)
@@ -63,8 +65,8 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
         case None       => aggregate = (sf, result) => { reusable.setFeature(sf); result.add(reusable) }
         case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { reusable.setFeature(sf); result.add(reusable)  }
       }
-      aggregateCache.getOrElseUpdate(options(TRANSFORM_DEFINITIONS_OPT) + encodedDictionaries,
-        new ArrowBatchAggregate(transformSchema, dictionaries))
+      aggregateCache.getOrElseUpdate(options(TRANSFORM_DEFINITIONS_OPT) + includeFids + encodedDictionaries,
+        new ArrowBatchAggregate(transformSchema, dictionaries, includeFids))
     }
   }
 
@@ -75,7 +77,7 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
   override def encodeResult(result: ArrowBatchAggregate): Array[Byte] = result.encode()
 }
 
-class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, ArrowDictionary]) {
+class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, ArrowDictionary], includeFids: Boolean) {
 
   import org.locationtech.geomesa.arrow.allocator
 
@@ -83,7 +85,7 @@ class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, Arro
 
   private var index = 0
 
-  private val vector = SimpleFeatureVector.create(sft, dictionaries, GeometryPrecision.Float)
+  private val vector = SimpleFeatureVector.create(sft, dictionaries, includeFids, GeometryPrecision.Float)
   private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
   private val unloader = new VectorUnloader(root)
   private val os = new ByteArrayOutputStream()
@@ -113,10 +115,13 @@ class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, Arro
 
 object ArrowBatchIterator {
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
   val DefaultPriority = 25
 
-  private val BatchSizeKey  = "grp"
-  private val DictionaryKey = "dict"
+  private val BatchSizeKey   = "grp"
+  private val DictionaryKey  = "dict"
+  private val IncludeFidsKey = "fids"
   private val Tab = '\t'
 
   private val aggregateCache = new SoftThreadLocalCache[String, ArrowBatchAggregate]
@@ -128,13 +133,12 @@ object ArrowBatchIterator {
                 hints: Hints,
                 deduplicate: Boolean,
                 priority: Int = DefaultPriority): IteratorSetting = {
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
     val is = new IteratorSetting(priority, "arrow-iter", classOf[ArrowBatchIterator])
     KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     hints.getSampling.foreach(SamplingIterator.configure(is, sft, _))
     hints.getArrowBatchSize.foreach(i => is.addOption(BatchSizeKey, i.toString))
     is.addOption(DictionaryKey, encodeDictionaries(dictionaries))
+    is.addOption(IncludeFidsKey, hints.isArrowIncludeFid.toString)
     hints.getTransform.foreach { case (tdef, tsft) =>
       is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
       is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
@@ -153,7 +157,7 @@ object ArrowBatchIterator {
       val stats = Stat.SeqStat(fields.map(Stat.Enumeration))
       val enumerations = ds.stats.runStats[EnumerationStat[String]](sft, stats, filter.getOrElse(Filter.INCLUDE))
       // note: sort values to return same dictionary cache
-      enumerations.map(e => sft.getDescriptor(e.attribute).getLocalName -> new ArrowDictionary(e.values.toSeq.sorted)()).toMap
+      enumerations.map(e => sft.getDescriptor(e.attribute).getLocalName -> ArrowDictionary.create(e.values.toSeq.sorted)).toMap
     }
   }
 
@@ -175,14 +179,16 @@ object ArrowBatchIterator {
     * contain record batches
     *
     * @param sft simple feature types
+    * @param hints query hints
     * @param dictionaries dictionaries
     * @return
     */
   def reduceFeatures(sft: SimpleFeatureType,
+                     hints: Hints,
                      dictionaries: Map[String, ArrowDictionary]):
       CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = {
     val header = new ScalaSimpleFeature("", ArrowEncodedSft)
-    header.setAttribute(0, fileMetadata(sft, dictionaries))
+    header.setAttribute(0, fileMetadata(sft, dictionaries, hints.isArrowIncludeFid))
     header.setAttribute(1, GeometryUtils.zeroPoint)
     val footer = new ScalaSimpleFeature("", ArrowEncodedSft)
     // per arrow streaming format footer is the encoded int '0'
@@ -196,12 +202,15 @@ object ArrowBatchIterator {
     *
     * @param sft simple feature type
     * @param dictionaries dictionaries
+    * @param includeFids include feature ids or not
     * @return
     */
-  private def fileMetadata(sft: SimpleFeatureType, dictionaries: Map[String, ArrowDictionary]): Array[Byte] = {
+  private def fileMetadata(sft: SimpleFeatureType,
+                           dictionaries: Map[String, ArrowDictionary],
+                           includeFids: Boolean): Array[Byte] = {
     import org.locationtech.geomesa.arrow.allocator
     val out = new ByteArrayOutputStream
-    val writer = new SimpleFeatureArrowFileWriter(sft, out, dictionaries, GeometryPrecision.Float)
+    val writer = new SimpleFeatureArrowFileWriter(sft, out, dictionaries, includeFids, GeometryPrecision.Float)
     writer.start()
     val bytes = out.toByteArray // copy bytes before closing so we just get the header metadata
     writer.close()
@@ -235,7 +244,7 @@ object ArrowBatchIterator {
   private def decodeDictionaries(encoded: String): Map[String, ArrowDictionary] = {
     encoded.split(s"$Tab$Tab").map { e =>
       val values = e.split(Tab)
-      values.head -> new ArrowDictionary(values.tail)()
+      values.head -> ArrowDictionary.create(values.tail)
     }.toMap
   }
 }

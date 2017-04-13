@@ -51,7 +51,7 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
         values.append(new String(accessor.get(i), StandardCharsets.UTF_8))
         i += 1
       }
-      field.getName -> new ArrowDictionary(values, encoding.getId)(encoding)
+      field.getName -> new ArrowDictionary(values, encoding)
     }.toSeq
   }.toMap
 

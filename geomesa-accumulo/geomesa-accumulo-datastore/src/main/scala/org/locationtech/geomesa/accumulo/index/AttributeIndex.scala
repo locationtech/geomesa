@@ -185,9 +185,9 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       // check to see if we can execute against the index values
       lazy val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, hints.getArrowDictionaryFields, filter.filter)
       if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
-        val (iter, reduce, kvsToFeatures) = if (hints.precomputeArrowDictionaries) {
+        val (iter, reduce, kvsToFeatures) = if (hints.isArrowPrecomputeDictionaries) {
           val iter = ArrowBatchIterator.configure(indexSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchIterator.reduceFeatures(indexSft, dictionaries)(_))
+          val reduce = Some(ArrowBatchIterator.reduceFeatures(indexSft, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
         } else {
           val iter = ArrowFileIterator.configure(sft, this, ecql, hints.getArrowDictionaryFields, hints, dedupe)
@@ -203,9 +203,9 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
         // make sure we set table sharing - required for the iterator
         transformSft.setTableSharing(sft.isTableSharing)
         // the key-value iter needs to run before the arrow iter so that the attribute is available to encode
-        val (iter, reduce, kvsToFeatures) = if (hints.precomputeArrowDictionaries) {
+        val (iter, reduce, kvsToFeatures) = if (hints.isArrowPrecomputeDictionaries) {
           val iter = ArrowBatchIterator.configure(transformSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchIterator.reduceFeatures(transformSft, dictionaries)(_))
+          val reduce = Some(ArrowBatchIterator.reduceFeatures(transformSft, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
         } else {
           val iter = ArrowFileIterator.configure(transformSft, this, ecql, hints.getArrowDictionaryFields, hints, dedupe)
@@ -320,7 +320,7 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       throw new RuntimeException("Record index does not exist for join query")
     }
     val recordIter = if (hints.isArrowQuery) {
-      if (hints.precomputeArrowDictionaries) {
+      if (hints.isArrowPrecomputeDictionaries) {
         Seq(ArrowBatchIterator.configure(sft, recordIndex, ecqlFilter, arrowDictionaries, hints, deduplicate = false))
       } else {
         Seq(ArrowFileIterator.configure(sft, recordIndex, ecqlFilter, hints.getArrowDictionaryFields, hints, deduplicate = false))
@@ -342,8 +342,8 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       // aggregating iterator wouldn't be very effective since each range is a single row
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
     } else if (hints.isArrowQuery) {
-      if (hints.precomputeArrowDictionaries) {
-        val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), arrowDictionaries)(_))
+      if (hints.isArrowPrecomputeDictionaries) {
+        val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, arrowDictionaries)(_))
         (ArrowBatchIterator.kvsToFeatures(), reduce)
       } else {
         (ArrowFileIterator.kvsToFeatures(), None)

@@ -32,6 +32,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
                                         val underlying: NullableMapVector,
                                         val dictionaries: Seq[String],
+                                        val includeFids: Boolean,
                                         val precision: GeometryPrecision)
                                        (implicit allocator: BufferAllocator) extends Closeable {
 
@@ -43,14 +44,20 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
 
   private val arrowWriter = underlying.getWriter
 
-  private val idWriter = ArrowAttributeWriter("id", Seq(ObjectType.STRING), classOf[String], underlying, None, null)
+  private val idWriter = ArrowAttributeWriter.id(underlying, includeFids)
   private val attributeWriters = DictionaryBuildingWriter.attribute(sft, underlying, dictionaries, precision).toArray
 
   private val root = new VectorSchemaRoot(Seq(underlying.getField), Seq(underlying), 0)
 
+  private var maxIndex = underlying.getValueCapacity - 1
+
   def size: Int = index
 
   def add(feature: SimpleFeature): Unit = {
+    // noinspection LoopVariableNotUpdated
+    while (index > maxIndex) {
+      expand()
+    }
     arrowWriter.setPosition(index)
     arrowWriter.start()
     idWriter.apply(index, feature.getID)
@@ -61,6 +68,14 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
     }
     arrowWriter.end()
     index += 1
+  }
+
+  /**
+    * double underlying vector capacity
+    */
+  def expand(): Unit = {
+    underlying.reAlloc()
+    maxIndex = underlying.getValueCapacity - 1
   }
 
   /**
@@ -82,6 +97,7 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
     */
   def encode(os: OutputStream): Unit = {
     arrowWriter.setValueCount(index)
+    idWriter.setValueCount(index)
     attributeWriters.foreach(_.setValueCount(index))
     root.setRowCount(index)
 
@@ -122,11 +138,12 @@ object DictionaryBuildingWriter {
 
   def create(sft: SimpleFeatureType,
              dictionaries: Seq[String],
+             includeFids: Boolean = true,
              precision: GeometryPrecision = GeometryPrecision.Double)
             (implicit allocator: BufferAllocator): DictionaryBuildingWriter = {
     val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
     underlying.allocateNew()
-    new DictionaryBuildingWriter(sft, underlying, dictionaries, precision)
+    new DictionaryBuildingWriter(sft, underlying, dictionaries, includeFids, precision)
   }
 
   def attribute(sft: SimpleFeatureType,

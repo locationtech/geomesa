@@ -58,7 +58,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get float precision values" >> {
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, GeometryPrecision.Float)) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, includeFids = true, GeometryPrecision.Float)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
@@ -70,8 +70,29 @@ class SimpleFeatureVectorTest extends Specification {
         }
       }
     }
+    "exclude feature ids" >> {
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, includeFids = false)) { vector =>
+        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10) { i =>
+          val read = vector.reader.get(i)
+          read.getAttributes mustEqual features(i).getAttributes
+          read.getID mustNotEqual features(i).getID
+        }
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10) { i =>
+            val read = vector.reader.get(i)
+            read.getAttributes mustEqual features(i).getAttributes
+            read.getID mustNotEqual features(i).getID
+          }
+        }
+      }
+    }
     "set and get dictionary encoded values" >> {
-      val dictionary = Map("name" -> new ArrowDictionary(Seq("name00", "name01"))())
+      val dictionary = Map("name" -> ArrowDictionary.create(Seq("name00", "name01")))
       WithClose(SimpleFeatureVector.create(sft, dictionary)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
