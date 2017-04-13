@@ -8,14 +8,17 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import com.google.common.collect.Lists
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.{FilterList, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
+import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HBaseFilter}
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeature
+
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
@@ -83,5 +86,46 @@ case class GetPlan(filter: HBaseFilterStrategyType,
     }
     val get = ds.connection.getTable(table)
     SelfClosingIterator(resultsToFeatures(get.get(ranges).iterator), get.close)
+  }
+}
+
+case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
+                                       table: TableName,
+                                       ranges: Seq[Scan],
+                                       remoteFilters: Seq[HBaseFilter] = Nil,
+                                       resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
+
+  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    import scala.collection.JavaConversions._
+
+    val rowRanges = Lists.newArrayList[RowRange]()
+    ranges.foreach { r =>
+      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
+    }
+    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
+    val numRanges = sortedRowRanges.length
+    val numThreads = ds.config.queryThreads
+    // TODO: parameterize this?
+    val rangesPerThread = math.max(1,math.ceil(numRanges/numThreads*2).toInt)
+    // TODO: align partitions with region boundaries
+    val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
+
+    val groupedScans = groupedRanges.map { localRanges =>
+      val mrrf = new MultiRowRangeFilter(localRanges)
+      val filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, mrrf)
+      remoteFilters.foreach { f => filterList.addFilter(f) }
+
+      val s = new Scan()
+      s.setStartRow(localRanges.head.getStartRow)
+      s.setStopRow(localRanges.get(localRanges.length-1).getStopRow)
+      s.setFilter(filterList)
+      s.setCaching(1000)
+      s.setCacheBlocks(true)
+      s
+    }
+    // Apply Visibilities
+    groupedScans.foreach(ds.applySecurity)
+    val results = new HBaseBatchScan(ds.connection, table, groupedScans, ds.config.queryThreads, 100000, Nil)
+    SelfClosingIterator(resultsToFeatures(results), results.close)
   }
 }

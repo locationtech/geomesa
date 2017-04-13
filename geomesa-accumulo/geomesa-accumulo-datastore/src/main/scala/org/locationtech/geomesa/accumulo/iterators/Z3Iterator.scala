@@ -181,8 +181,6 @@ object Z3Iterator {
                 isSharing: Boolean,
                 priority: Int): IteratorSetting = {
 
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     val is = new IteratorSetting(priority, "z3", classOf[Z3Iterator])
 
     // index space values for comparing in the iterator

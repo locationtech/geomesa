@@ -28,7 +28,7 @@ class Z3HistogramTest extends Specification with StatTestHelper {
 
   def createStat(observe: Boolean = true): Z3Histogram = createStat(1024, observe)
 
-  def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
+  def toDate(string: String) = java.util.Date.from(java.time.LocalDateTime.parse(string, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
   def toGeom(string: String) = WKTUtils.read(string)
 
   "HistogramZ3 stat" should {
