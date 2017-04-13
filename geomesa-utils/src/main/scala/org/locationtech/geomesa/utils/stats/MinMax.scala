@@ -16,6 +16,7 @@ import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.opengis.feature.simple.SimpleFeature
 
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
@@ -97,13 +98,12 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
     }
   }
 
-  override def toJson: String = {
+  override def toJsonObject =
     if (isEmpty) {
-      """{ "min": null, "max": null, "cardinality": 0 }"""
+      ListMap("min" -> null, "max" -> null, "cardinality" -> 0)
     } else {
-      s"""{ "min": ${jsonStringify(minValue)}, "max": ${jsonStringify(maxValue)}, "cardinality": $cardinality }"""
+      ListMap("min" -> minValue, "max" -> maxValue, "cardinality" -> cardinality)
     }
-  }
 
   override def isEmpty: Boolean = minValue == defaults.max
 

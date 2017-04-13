@@ -34,7 +34,7 @@ class GroupByTest extends Specification with StatTestHelper {
           groupBy.getOrElse(index, null).asInstanceOf[GroupBy[String]]
         def countStat(groupBy: GroupBy[String], index: String): CountStat =
           groupBy.getOrElse(index, null).asInstanceOf[CountStat]
-        val groupByCountMatcher = """^\[(\{ "\d" : \[(\{ "." : \{ "count": \d \}\},?)+\]\},?)*\]$"""
+        val groupByCountMatcher = """\[(\{ "\d" : \[(\{ "." : \{ "count": \d \}\},?)+\]\},?)*\]""".ignoreSpace
 
         "be empty initially" >> {
           val groupBy = newStat[Int]("cat1","GroupBy(cat2,Count())", false)
@@ -165,7 +165,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "serialize to json" >> {
           val groupBy = newStat[Int]("cat1", "Count()")
-          groupBy.toJson must beMatching ("""^\[(\{ "\d" : \{ "count": 10 \}\},?){10}\]$""")
+          groupBy.toJson must beMatching ("""\[(\{ "\d" : \{ "count": 10 \}\},?){10}\]""" ignoreSpace)
         }
 
         "serialize and deserialize" >> {
@@ -239,7 +239,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "serialize to json" >> {
           val groupBy = newStat[Int]("cat1","MinMax(strAttr)")
-          groupBy.toJson must beMatching ("""^\[(\{ "\d" : \{ "min": "abc[0-9]{3}", "max": "abc[0-9]{3}", "cardinality": \d+ \}\},?){10}\]$""")
+          groupBy.toJson must beMatching ("""\[(\{ "\d" : \{ "min": "abc[0-9]{3}", "max": "abc[0-9]{3}", "cardinality": \d+ \}\},?){10}\]""" ignoreSpace)
         }
 
         "serialize empty to json" >> {

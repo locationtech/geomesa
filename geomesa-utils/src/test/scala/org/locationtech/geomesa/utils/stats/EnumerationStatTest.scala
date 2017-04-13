@@ -68,7 +68,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[String]("strAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -152,7 +152,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Integer]("intAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -224,7 +224,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Long]("longAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -296,7 +296,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Float]("floatAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -368,7 +368,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Double]("doubleAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -442,7 +442,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[Date]("dtg", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -520,7 +520,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[Geometry]("geom", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {

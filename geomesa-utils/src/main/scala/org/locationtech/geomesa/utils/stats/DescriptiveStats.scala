@@ -12,7 +12,6 @@ import org.ejml.simple.SimpleMatrix
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.ListMap
 import scala.Array._
 
@@ -291,8 +290,8 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
     case _ => false
   }
 
-  override def toJson: String = {
-    val map = if (isEmpty) {
+  override def toJsonObject =
+    if (isEmpty) {
       Map("count" -> 0)
     } else {
       ListMap("count" -> count,
@@ -314,6 +313,4 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
         "sample_covariance" -> sampleCovariance,
         "sample_correlation" -> sampleCorrelation)
     }
-    Stat.JSON.toJson(map.asJava)
-  }
 }

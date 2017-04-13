@@ -39,4 +39,8 @@ trait StatTestHelper {
     val a = Array(f"abc$i%+03d", i, i, i, i, i%10, String.valueOf((math.abs(i%26) + 'A').toChar),s"POINT($i $i)", f"2012-01-02T${Math.abs(i)%24}%02d:00:00.000Z")
     SimpleFeatureBuilder.build(sft, a.asInstanceOf[Array[AnyRef]], i.toString)
   }
+
+  implicit class WhiteSpace(s: String) {
+    def ignoreSpace: String = s.replaceAll("\\s+","\\\\s*")
+  }
 }

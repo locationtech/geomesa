@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.stats
 
 import org.opengis.feature.simple.SimpleFeature
 
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
@@ -60,11 +61,7 @@ class EnumerationStat[T](val attribute: Int)(implicit ct: ClassTag[T]) extends S
   override def +=(other: EnumerationStat[T]): Unit =
     other.enumeration.foreach { case (key, count) => enumeration(key) += count }
 
-  override def toJson: String = {
-    if (enumeration.isEmpty) { "{ }" } else {
-      enumeration.toSeq.sortBy(_.toString).map { case (k, v) => s""""${stringify(k)}" : $v""" }.mkString("{ ", ", ", " }")
-    }
-  }
+  override def toJsonObject = if (enumeration.isEmpty) Map.empty else ListMap(enumeration.toSeq.sortBy(_.toString):_*)
 
   override def isEmpty: Boolean = enumeration.isEmpty
 
