@@ -58,7 +58,11 @@ public class JSimpleFeatureFilter extends FilterBase {
 
         @Override
         public Cell transformCell(Cell v) throws IOException {
-            return v;
+            if(hasTransform) {
+                return CellUtil.createCell(v.getRow(), v.getFamily(), v.getQualifier(), v.getTimestamp(), v.getTypeByte(), reusable.transform());
+            } else {
+                return v;
+            }
         }
     }
 
