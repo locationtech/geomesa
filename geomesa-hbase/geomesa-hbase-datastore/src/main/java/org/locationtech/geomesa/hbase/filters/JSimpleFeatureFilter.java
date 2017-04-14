@@ -60,11 +60,7 @@ public class JSimpleFeatureFilter extends FilterBase {
 
         @Override
         public Cell transformCell(Cell v) throws IOException {
-            if(hasTransform) {
-                return CellUtil.createCell(v.getRow(), v.getFamily(), v.getQualifier(), v.getTimestamp(), v.getTypeByte(), reusable.transform());
-            } else {
-                return super.transformCell(v);
-            }
+            return v;
         }
     }
 
@@ -134,7 +130,8 @@ public class JSimpleFeatureFilter extends FilterBase {
     // TODO: Add static method to compute byte array from SFT and Filter.
     @Override
     public byte[] toByteArray() throws IOException {
-        return Bytes.add(Bytes.add(getLengthArray(sftString), getLengthArray(filterString), getLengthArray(transform)), getLengthArray(transformSchema));
+        byte[][] arrays = {getLengthArray(sftString), getLengthArray(filterString), getLengthArray(transform), getLengthArray(transformSchema)};
+        return Bytes.add(arrays);
     }
 
     private byte[] getLengthArray(String s) {
@@ -156,16 +153,16 @@ public class JSimpleFeatureFilter extends FilterBase {
 
     public static org.apache.hadoop.hbase.filter.Filter parseFrom(final byte [] pbBytes) throws DeserializationException {
         int sftLen =  Bytes.readAsInt(pbBytes, 0, 4);
-        String sftString = new String(Bytes.copy(pbBytes, 4, sftLen));
+        String sftString = new String(pbBytes, 4, sftLen);
 
         int filterLen = Bytes.readAsInt(pbBytes, sftLen + 4, 4);
-        String filterString = new String(Bytes.copy(pbBytes, sftLen + 8, filterLen));
+        String filterString = new String(pbBytes, sftLen + 8, filterLen);
 
         int transformLen = Bytes.readAsInt(pbBytes, sftLen + filterLen + 8, 4);
-        String transformString = new String(Bytes.copy(pbBytes, sftLen + filterLen + 12, transformLen));
+        String transformString = new String(pbBytes, sftLen + filterLen + 12, transformLen);
 
         int transformSchemaLen = Bytes.readAsInt(pbBytes, sftLen + filterLen + transformLen + 12, 4);
-        String transformSchemaString = new String(Bytes.copy(pbBytes, sftLen + filterLen + transformLen + 16, transformSchemaLen));
+        String transformSchemaString = new String(pbBytes, sftLen + filterLen + transformLen + 16, transformSchemaLen);
 
         try {
             if("".equals(filterString)) {

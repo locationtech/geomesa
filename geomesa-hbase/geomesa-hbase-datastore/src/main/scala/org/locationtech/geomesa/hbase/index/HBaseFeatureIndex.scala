@@ -205,7 +205,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-    /** This function is used to implement custom client filters for HBase **/
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
     if (!remote) {
