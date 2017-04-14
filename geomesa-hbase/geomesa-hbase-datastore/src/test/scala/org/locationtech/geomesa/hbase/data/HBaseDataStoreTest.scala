@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.util.Date
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.HBaseTestingUtility
 import org.apache.hadoop.hbase.client.Connection
@@ -36,6 +38,8 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
   val cluster = new HBaseTestingUtility()
   var connection: Connection = _
+
+  System.setProperty("geomesa.scan.ranges.target", "100")
 
   step {
     logger.info("Starting embedded hbase")
@@ -75,7 +79,9 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
       forall(Seq(true, false)) { loose =>
         val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
+        logger.debug(s"Starting loose = $loose queries")
         forall(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
+          logger.debug(s"Starting queries with transforms = $transforms.")
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
           testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.dropRight(2))
@@ -91,7 +97,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
           val features = SelfClosingIterator(fr).toList
           features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
-              beSome("*geom:Point:srid=4326,derived:String")
+            beSome("*geom:Point:srid=4326,derived:String")
           features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
           forall(features) { feature =>
             feature.getAttribute("derived") mustEqual s"helloname${feature.getID}"
@@ -142,10 +148,20 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
   def testQuery(ds: HBaseDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]): MatchResult[Any] = {
     val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+
+    println(s"${new Date}: Running Filter: $filter got fr")
+
     val features = SelfClosingIterator(fr).toList
+    println(s"${new Date}: Running Filter: $filter building attr list")
+
     val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+    println(s"${new Date}: Running Filter: $filter checking ID map")
+
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+
+    println(s"${new Date}: Running Filter: $filter check each feature")
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)
       forall(attributes.zipWithIndex) { case (attribute, i) =>
@@ -153,6 +169,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
       }
     }
+    println(s"${new Date}: Running Filter: $filter check length")
     ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
   }
 

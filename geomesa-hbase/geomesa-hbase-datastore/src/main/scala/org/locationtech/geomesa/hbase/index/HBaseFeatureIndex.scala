@@ -20,6 +20,7 @@ import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -204,14 +205,18 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      val transform = hints.getTransform // will eventually be used to support remote transforms 
-      val feature = sft // will eventually be used to support remote transforms 
-      val query = if (remote) { None } else { ecql }
-      val toFeatures = resultsToFeatures(feature, query, transform)
-      val remoteFilters = if (remote) { ecql.map { filter =>
-        new JSimpleFeatureFilter(sft, filter)
-      }.toSeq } else { Nil }
-      ScanConfig(remoteFilters, toFeatures)
-  }
+    /** This function is used to implement custom client filters for HBase **/
+    val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
+    if (!remote) {
+      val localToFeatures = resultsToFeatures(sft, ecql, transform)
+      ScanConfig(Nil, localToFeatures)
+    } else {
+      val (remoteTdefArg: String, remoteSchema: SimpleFeatureType) = transform.getOrElse(("", sft))
+      val toFeatures = resultsToFeatures(remoteSchema, None, None)
+      val remoteCQLFilter: Filter = ecql.getOrElse(Filter.INCLUDE)
+      val remoteFilters: Seq[HBaseFilter] = Seq(new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, SimpleFeatureTypes.encodeType(remoteSchema)))
+      ScanConfig(remoteFilters, toFeatures)
+    }
+  }
 }
