@@ -128,7 +128,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
+      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe)
 
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
@@ -198,19 +198,17 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                            filter: HBaseFilterStrategyType,
                            hints: Hints,
                            ecql: Option[Filter],
-                           dedupe: Boolean,
-                           remote: Boolean): ScanConfig = {
+                           dedupe: Boolean): ScanConfig = {
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
       val transform = hints.getTransform // will eventually be used to support remote transforms 
       val feature = sft // will eventually be used to support remote transforms 
-      val query = if (remote) { None } else { ecql }
-      val toFeatures = resultsToFeatures(feature, query, transform)
-      val remoteFilters = if (remote) { ecql.map { filter =>
+      val toFeatures = resultsToFeatures(feature, None, transform)
+      val remoteFilters = ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
-      }.toSeq } else { Nil }
+      }.toSeq
       ScanConfig(remoteFilters, toFeatures)
   }
 
