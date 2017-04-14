@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.util.Date
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.HBaseTestingUtility
 import org.apache.hadoop.hbase.client.Connection
@@ -36,6 +38,8 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
   val cluster = new HBaseTestingUtility()
   var connection: Connection = _
+
+  System.setProperty("geomesa.scan.ranges.target", "100")
 
   step {
     logger.info("Starting embedded hbase")
@@ -91,7 +95,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
           val features = SelfClosingIterator(fr).toList
           features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
-              beSome("*geom:Point:srid=4326,derived:String")
+            beSome("*geom:Point:srid=4326,derived:String")
           features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
           forall(features) { feature =>
             feature.getAttribute("derived") mustEqual s"helloname${feature.getID}"
@@ -146,6 +150,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
     val features = SelfClosingIterator(fr).toList
     val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)
       forall(attributes.zipWithIndex) { case (attribute, i) =>
