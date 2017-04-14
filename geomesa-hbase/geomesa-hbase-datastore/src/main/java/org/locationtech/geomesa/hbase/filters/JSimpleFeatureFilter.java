@@ -89,7 +89,6 @@ public class JSimpleFeatureFilter extends FilterBase {
             try {
                 log.trace("cell = {}", v);
                 if (hasTransform) {
-//                    reusable.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
                     reusable.setBuffer(CellUtil.cloneValue(v));
                     log.trace("Evaluating filter against SimpleFeature");
                     if (filter.evaluate(reusable)) {
