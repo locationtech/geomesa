@@ -214,7 +214,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
     }
 
     "return transforms stats encoded as json" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, Seq("attr1=attr+5"))
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, "attr1=attr+5")
       val sf = results.features().next
 
       // NB: Doubles <=> Ints:(
@@ -226,7 +226,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
       fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
 
-      val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, Seq("attr1=attr+5"))
+      val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, "attr1=attr+5")
       val sf = results.features().next
 
       // NB: Doubles <=> Ints:(
