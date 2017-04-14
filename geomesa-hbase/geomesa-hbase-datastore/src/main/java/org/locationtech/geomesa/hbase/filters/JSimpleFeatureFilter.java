@@ -16,10 +16,8 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature;
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer;
 import org.locationtech.geomesa.index.iterators.IteratorCache;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
-import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,21 +84,15 @@ public class JSimpleFeatureFilter extends FilterBase {
                 log.trace("cell = {}", v);
                 if (hasTransform) {
                     reusable.setBuffer(CellUtil.cloneValue(v));
-                    log.trace("Evaluating filter against SimpleFeature");
-                    if (filter.evaluate(reusable)) {
-                        return ReturnCode.INCLUDE;
-                    } else {
-                        return ReturnCode.SKIP;
-                    }
                 } else {
-                    KryoFeatureSerializer serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId());
-                    SimpleFeature sf = serializer.deserialize(v.getValueArray(), v.getValueOffset(), v.getValueLength());
-                    log.trace("Evaluating filter against SimpleFeature");
-                    if (filter.evaluate(sf)) {
-                        return ReturnCode.INCLUDE;
-                    } else {
-                        return ReturnCode.SKIP;
-                    }
+                    reusable.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
+                }
+
+                log.trace("Evaluating filter against SimpleFeature");
+                if (filter.evaluate(reusable)) {
+                    return ReturnCode.INCLUDE;
+                } else {
+                    return ReturnCode.SKIP;
                 }
             } catch(Exception e) {
                 log.error("Exception thrown while scanning, skipping", e);
