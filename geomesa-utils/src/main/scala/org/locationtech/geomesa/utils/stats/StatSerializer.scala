@@ -219,7 +219,11 @@ object KryoStatSerializer {
   private [stats] def writeCount(output: Output, stat: CountStat): Unit = output.writeLong(stat.counter, true)
 
   private [stats] def readCount(input: Input, immutable: Boolean): CountStat = {
-    val stat = if (immutable) new CountStat() with ImmutableStat else new CountStat
+    val stat = if (immutable) {
+      new CountStat with ImmutableStat
+    } else {
+      new CountStat
+    }
     stat.counter = input.readLong(true)
     stat
   }
@@ -481,7 +485,7 @@ object KryoStatSerializer {
     val stat = if (immutable) {
       new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence) with ImmutableStat
     } else {
-      new Z3Frequency(geomIndex, dtgIndex, period,precision, eps, confidence)
+      new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence)
     }
 
     val numSketches = input.readInt(true)
@@ -509,7 +513,11 @@ object KryoStatSerializer {
     output.writeLong(stat.counter, true)
 
   private [stats] def readIteratorStackCount(input: Input, immutable: Boolean): IteratorStackCount = {
-    val stat = if (immutable) new IteratorStackCount() with ImmutableStat else new IteratorStackCount()
+    val stat = if (immutable) {
+      new IteratorStackCount() with ImmutableStat
+    } else {
+      new IteratorStackCount()
+    }
     stat.counter = input.readLong(true)
     stat
   }

@@ -21,6 +21,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.reflect.ClassTag
+import scala.collection.JavaConverters._
 
 /**
  * Stats used by the StatsIterator to compute various statistics server-side for a given query.
@@ -75,11 +76,24 @@ trait Stat {
   def +(other: Stat)(implicit d: DummyImplicit): Stat = this + other.asInstanceOf[S]
 
   /**
-   * Returns a json representation of the stat
+   * Returns a JSON representation of the [[Stat]]
    *
    * @return stat as a json string
    */
-  def toJson: String
+  def toJson: String = Stat.JSON.toJson(toJsonObject)
+
+  /**
+    * Returns a representation of the [[Stat]] to be serialized
+    *
+    * This function should return a representation (view) of the [[Stat]] to be serialized as JSON.
+    * Instances of [[Map]] can be used to represent JSON dictionaries or [[Seq]] for JSON arrays.
+    * A [[collection.SortedMap]] such as [[collection.immutable.ListMap]] is recommended if key order
+    * should be deterministic.  Other types may be used but could require the creation and registration
+    * of custom serializers dependent on the JSON framework being utilized (currently [[Gson]]).
+    *
+    * @return stat as a json serializable object
+    */
+  def toJsonObject: Any
 
   /**
    * Necessary method used by the StatIterator. Indicates if the stat has any values or not
@@ -114,6 +128,23 @@ trait Stat {
  */
 object Stat {
 
+  val ScalaMapSerializer = new JsonSerializer[Map[_,_]] {
+    def serialize(s: Map[_,_], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
+  }
+  val ScalaSeqSerializer = new JsonSerializer[Seq[_]] {
+    def serialize(s: Seq[_], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
+  }
+  val StatSerializer = new JsonSerializer[Stat] {
+    def serialize(s: Stat, t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.toJsonObject)
+  }
+  val GeometrySerializer = new JsonSerializer[Geometry] {
+    def serialize(g: Geometry, t: Type, jsc: JsonSerializationContext): JsonElement =
+      new JsonPrimitive(WKTUtils.write(g))
+  }
+  val DateSerializer = new JsonSerializer[Date] {
+    def serialize(d: Date, t: Type, jsc: JsonSerializationContext): JsonElement =
+      new JsonPrimitive(GeoToolsDateFormat.format(d.toInstant))
+  }
   val DoubleSerializer = new JsonSerializer[jDouble]() {
     def serialize(d: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = d match {
       /* NaN check, use null to mirror existing behavior for missing/invalid values */
@@ -123,7 +154,6 @@ object Stat {
       case _ => new JsonPrimitive(d)
     }
   }
-
   val FloatSerializer = new JsonSerializer[jFloat]() {
     def serialize(f: jFloat, t: Type, jsc: JsonSerializationContext): JsonElement = f match {
       /* NaN check, use null to mirror existing behavior for missing/invalid values */
@@ -135,11 +165,16 @@ object Stat {
   }
 
   val JSON: Gson = new GsonBuilder()
-    .setPrettyPrinting()
+    .serializeNulls()
     .registerTypeAdapter(classOf[Double], DoubleSerializer)
     .registerTypeAdapter(classOf[jDouble], DoubleSerializer)
     .registerTypeAdapter(classOf[Float], FloatSerializer)
     .registerTypeAdapter(classOf[jFloat], FloatSerializer)
+    .registerTypeHierarchyAdapter(classOf[Stat], StatSerializer)
+    .registerTypeHierarchyAdapter(classOf[Geometry], GeometrySerializer)
+    .registerTypeHierarchyAdapter(classOf[Date], DateSerializer)
+    .registerTypeHierarchyAdapter(classOf[Map[_,_]], ScalaMapSerializer)
+    .registerTypeHierarchyAdapter(classOf[Seq[_]], ScalaSeqSerializer)
     .create()
 
   def apply(sft: SimpleFeatureType, s: String) = StatParser.parse(sft, s)

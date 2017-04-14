@@ -45,7 +45,7 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     */
   override def unobserve(sf: SimpleFeature): Unit = {
     val key = sf.getAttribute(attribute).asInstanceOf[T]
-    groupedStats.get(key).foreach( groupedStat => groupedStat.unobserve(sf) )
+    groupedStats.get(key).foreach(groupedStat => groupedStat.unobserve(sf))
   }
 
   /**
@@ -71,15 +71,18 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     newGB
   }
 
-  /**
-    * Returns a json representation of the stat
-    *
-    * @return stat as a json string
-    */
-  override def toJson: String = {
-    // TODO: Provide summary of all items in all groups together. e.g. GroupBy("cat",Count()) should have a total count as well as a per category count.
-    groupedStats.map{ case (key, stat) => "{ \"" + key + "\" : " + stat.toJson + "}" }.mkString("[",",","]")
-  }
+  override def toJsonObject = {
+    val keyClass = groupedStats.keys.headOption.map(_.getClass).getOrElse(ct.runtimeClass)
+    if (classOf[Comparable[T]].isAssignableFrom(keyClass)) {
+      implicit val ordering = new Ordering[T] {
+        def compare(l: T, r: T): Int = l.asInstanceOf[Comparable[T]].compareTo(r)
+      }
+      groupedStats.toSeq.sortBy(_._1)
+    } else {
+      groupedStats.toSeq
+    }
+  }.map{ case (k, v) => Map(k -> v.toJsonObject) }
+
 
   /**
     * Necessary method used by the StatIterator. Indicates if the stat has any values or not

@@ -150,12 +150,10 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
     }
   }
 
-  override def toJson: String = {
-    val timeBins = binMap.toSeq.sortBy(_._1).map { case (p, bins) =>
-      s""""${String.format(jsonFormat, Short.box(p))}" : { "bins" : [ ${bins.counts.mkString(", ")} ] }"""
-    }
-    timeBins.mkString("{ ", ", ", " }")
-  }
+  override def toJsonObject =
+    binMap.toSeq.sortBy(_._1)
+      .map { case (p, bins) => (String.format(jsonFormat, Short.box(p)), bins) }
+      .map { case (label, bins) => Map(label-> Map("bins" -> bins.counts)) }
 
   override def isEmpty: Boolean = binMap.values.forall(_.counts.forall(_ == 0))
 

@@ -177,7 +177,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val sf = results.features().next
 
       val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
 
     "return stats encoded as json with non-Accumulo Feature collections" in {
@@ -188,7 +188,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val sf = results.features().next
 
       val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
 
     "return stats binary encoded as with Accumulo Feature collections" in {
@@ -219,7 +219,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
 
       // NB: Doubles <=> Ints:(
       val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
 
     "return transforms stats encoded as json with non AccumuloFeatureCollections" in {
@@ -231,7 +231,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
 
       // NB: Doubles <=> Ints:(
       val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
   }
 }
