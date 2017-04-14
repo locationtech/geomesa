@@ -10,11 +10,9 @@ package org.locationtech.geomesa.utils.stats
 
 import java.lang.reflect.Type
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
-import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
 import com.google.gson._
-import com.google.gson.stream.{JsonReader, JsonWriter}
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.lang.StringEscapeUtils
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -78,14 +76,20 @@ trait Stat {
   def +(other: Stat)(implicit d: DummyImplicit): Stat = this + other.asInstanceOf[S]
 
   /**
-   * Returns a json representation of the stat
+   * Returns a JSON representation of the [[Stat]]
    *
    * @return stat as a json string
    */
   def toJson: String = Stat.JSON.toJson(toJsonObject)
 
   /**
-    * Returns a representation of the stat to be serialized
+    * Returns a representation of the [[Stat]] to be serialized
+    *
+    * This function should return a representation (view) of the [[Stat]] to be serialized as JSON.
+    * Instances of [[Map]] can be used to represent JSON dictionaries or [[Seq]] for JSON arrays.
+    * A [[collection.SortedMap]] such as [[collection.immutable.ListMap]] is recommended if key order
+    * should be deterministic.  Other types may be used but could require the creation and registration
+    * of custom serializers dependent on the JSON framework being utilized (currently [[Gson]]).
     *
     * @return stat as a json serializable object
     */
