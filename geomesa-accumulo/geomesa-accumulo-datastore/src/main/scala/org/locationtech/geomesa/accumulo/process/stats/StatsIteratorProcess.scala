@@ -53,7 +53,7 @@ class StatsIteratorProcess extends LazyLogging {
                    name = "properties",
                    min = 0,
                    description = "The properties / transforms to apply before gathering stats")
-                 properties: java.util.List[String] = null
+                 properties: String = null
 
              ): SimpleFeatureCollection = {
 
@@ -63,13 +63,15 @@ class StatsIteratorProcess extends LazyLogging {
       logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
-    val visitor = new StatsVisitor(features, statString, encode, properties)
+    val arrayString = Option(properties).map(_.split(";")).orNull
+
+    val visitor = new StatsVisitor(features, statString, encode, arrayString)
     features.accepts(visitor, new NullProgressListener)
     visitor.getResult.asInstanceOf[StatsIteratorResult].results
   }
 }
 
-class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode: Boolean, properties: java.util.List[String] = null)
+class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode: Boolean, properties: Array[String] = null)
     extends FeatureCalc with LazyLogging {
 
   import scala.collection.JavaConversions._

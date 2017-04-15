@@ -17,6 +17,8 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.opengis.feature.simple.SimpleFeature
 
+import scala.collection.immutable.ListMap
+
 /**
   * Estimates frequency counts at scale. Tracks geometry and date attributes as a single value.
   *
@@ -126,10 +128,10 @@ class Z3Frequency(val geomIndex: Int,
 
   override def isEmpty: Boolean = sketches.values.forall(_.size == 0)
 
-  override def toJson: String = {
+  override def toJsonObject = {
     val sketch = sketches.values.headOption.map(new RichCountMinSketch(_))
     val (w, d) = sketch.map(s => (s.width, s.depth)).getOrElse((0, 0))
-    s"{ width : $w, depth : $d, size : $size }"
+    ListMap("width" -> w, "depth" -> d, "size" -> size)
   }
 
   override def isEquivalent(other: Stat): Boolean = {

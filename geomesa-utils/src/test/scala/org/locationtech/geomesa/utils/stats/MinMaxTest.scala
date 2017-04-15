@@ -46,12 +46,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val minMax = newStat[String]("strAttr")
-        minMax.toJson must beMatching("""\{ "min": "abc000", "max": "abc099", "cardinality": \d+ \}""")
+        minMax.toJson must beMatching("""\{ "min": "abc000", "max": "abc099", "cardinality": \d+ \}""" ignoreSpace)
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[String]("strAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
+        minMax.toJson must beEqualTo("""{ "min": null, "max": null, "cardinality": 0 }""").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -123,12 +123,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val minMax = newStat[java.lang.Integer]("intAttr")
-        minMax.toJson must beMatching("""\{ "min": 0, "max": 99, "cardinality": [0-9]+ \}""")
+        minMax.toJson must beMatching("""\{ "min": 0, "max": 99, "cardinality": [0-9]+ \}""".ignoreSpace)
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[java.lang.Integer]("intAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
+        minMax.toJson must beEqualTo("""{ "min": null, "max": null, "cardinality": 0 }""").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -197,12 +197,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val minMax = newStat[java.lang.Long]("longAttr")
-        minMax.toJson must beMatching("""\{ "min": 0, "max": 99, "cardinality": \d+ \}""")
+        minMax.toJson must beMatching("""\{ "min": 0, "max": 99, "cardinality": \d+ \}""" ignoreSpace)
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[java.lang.Long]("longAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
+        minMax.toJson must beEqualTo("""{ "min": null, "max": null, "cardinality": 0 }""").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -271,12 +271,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val minMax = newStat[java.lang.Float]("floatAttr")
-        minMax.toJson must beMatching("""\{ "min": 0.0, "max": 99.0, "cardinality": \d+ \}""")
+        minMax.toJson must beMatching("""\{ "min": 0.0, "max": 99.0, "cardinality": \d+ \}""" ignoreSpace)
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[java.lang.Float]("floatAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
+        minMax.toJson must beEqualTo("""{ "min": null, "max": null, "cardinality": 0 }""").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -345,12 +345,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr")
-        minMax.toJson must beMatching("""\{ "min": 0.0, "max": 99.0, "cardinality": \d+ \}""")
+        minMax.toJson must beMatching("""\{ "min": 0.0, "max": 99.0, "cardinality": \d+ \}""" ignoreSpace)
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
+        minMax.toJson must beEqualTo("""{ "min": null, "max": null, "cardinality": 0 }""").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -422,12 +422,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val minMax = newStat[Date]("dtg")
-        minMax.toJson must beMatching("""\{ "min": "2012-01-01T00:00:00.000Z", "max": "2012-01-01T23:00:00.000Z", "cardinality": \d+ \}""")
+        minMax.toJson must beMatching("""\{ "min": "2012-01-01T00:00:00.000Z", "max": "2012-01-01T23:00:00.000Z", "cardinality": \d+ \}""" ignoreSpace)
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[Date]("dtg", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
+        minMax.toJson must beEqualTo("""{ "min": null, "max": null, "cardinality": 0 }""").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -496,12 +496,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val minMax = newStat[Geometry]("geom")
-        minMax.toJson must beMatching("""\{ "min": "POINT \(-99 0\)", "max": "POINT \(-0 49\)", "cardinality": \d+ \}""")
+        minMax.toJson must beMatching("""\{ "min": "POINT \(-99 0\)", "max": "POINT \(-0 49\)", "cardinality": \d+ \}""" ignoreSpace)
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[Geometry]("geom", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
+        minMax.toJson must beEqualTo("""{ "min": null, "max": null, "cardinality": 0 }""").ignoreSpace
       }
 
       "serialize and deserialize" >> {

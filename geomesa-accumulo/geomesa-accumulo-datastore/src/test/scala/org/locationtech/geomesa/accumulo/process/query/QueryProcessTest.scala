@@ -115,7 +115,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures()
 
       val geomesaQuery = new QueryProcess
-      val results = geomesaQuery.execute(features, null, Seq("type", "geom"))
+      val results = geomesaQuery.execute(features, null, "type;geom")
 
       val f = SelfClosingIterator(results).toList
       f.head.getType.getAttributeCount mustEqual 2
@@ -128,7 +128,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures()
 
       val geomesaQuery = new QueryProcess
-      val results = geomesaQuery.execute(features, null, Seq("type", "geom", "derived=strConcat(type, 'b')"))
+      val results = geomesaQuery.execute(features, null, "type;geom;derived=strConcat(type, 'b')")
 
       val f = SelfClosingIterator(results).toList
       f.head.getType.getAttributeCount mustEqual 3
@@ -145,7 +145,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features,
                                          ECQL.toFilter("strConcat(type, 'b') = 'ab'"),
-                                         Seq("type", "geom", "derived=strConcat(type, 'b')"))
+                                         "type;geom;derived=strConcat(type, 'b')")
 
       val f = SelfClosingIterator(results).toList
       f.head.getType.getAttributeCount mustEqual 3

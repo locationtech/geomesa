@@ -17,6 +17,7 @@ import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC}
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeature
 
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
@@ -174,7 +175,7 @@ class Frequency[T](val attribute: Int,
 
   override def isEmpty: Boolean = sketchMap.isEmpty || sketchMap.values.forall(_.size == 0)
 
-  override def toJson: String = s"{ epsilon : $eps, confidence : $confidence, size : $size }"
+  override def toJsonObject = ListMap("epsilon" -> eps, "confidence" -> confidence, "size" -> size)
 
   override def isEquivalent(other: Stat): Boolean = {
     other match {
