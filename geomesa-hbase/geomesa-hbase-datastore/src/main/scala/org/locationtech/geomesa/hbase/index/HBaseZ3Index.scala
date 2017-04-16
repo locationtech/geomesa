@@ -19,8 +19,10 @@ import org.locationtech.geomesa.index.index.{Z3Index, Z3ProcessingValues}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-case object HBaseZ3Index
-    extends HBaseFeatureIndex with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
+case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform
+
+trait HBaseLikeZ3Index
+    extends HBaseFeatureIndex with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query]  {
   override val version: Int = 1
 
 

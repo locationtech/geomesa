@@ -13,6 +13,6 @@ import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.index.IdIndex
 
 case object HBaseIdIndex
-    extends HBaseFeatureIndex with IdIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+    extends HBaseFeatureIndex with IdIndex[HBaseDataStore, HBaseFeature, Mutation, Query] with HBasePlatform {
   override val version: Int = 1
 }

@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosing
 import org.opengis.feature.simple.SimpleFeature
 
 
-sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
+trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
   def table: TableName
   def ranges: Seq[Query]

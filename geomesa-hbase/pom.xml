@@ -11,7 +11,7 @@
     <name>GeoMesa HBase Parent</name>
 
     <properties>
-        <bigtable.version>0.9.4</bigtable.version>
+        <bigtable.version>0.9.6.1</bigtable.version>
     </properties>
 
     <dependencyManagement>

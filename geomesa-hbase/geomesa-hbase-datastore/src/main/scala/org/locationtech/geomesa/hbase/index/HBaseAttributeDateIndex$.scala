@@ -13,11 +13,11 @@ import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.index.{AttributeDateIndex, AttributeIndex}
 
 case object HBaseAttributeIndex
-    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] with HBasePlatform {
   override val version: Int = 2
 }
 
 case object HBaseAttributeDateIndex
-    extends HBaseFeatureIndex with AttributeDateIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+    extends HBaseFeatureIndex with AttributeDateIndex[HBaseDataStore, HBaseFeature, Mutation, Query] with HBasePlatform {
   override val version: Int = 1
 }

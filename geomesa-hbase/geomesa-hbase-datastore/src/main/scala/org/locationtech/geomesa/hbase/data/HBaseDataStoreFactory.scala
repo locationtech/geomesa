@@ -70,31 +70,22 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
        Some(HBaseDataStoreFactory.buildAuthsProvider(connection, params))
       } else None
 
-    // TODO refactor into buildConfig method
-    val config = buildConfig(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching, authsProvider)
-    new HBaseDataStore(connection, config)
+    buildDataStore(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching, authsProvider, connection)
   }
 
   // overidden by BigtableFactory
-  def buildConfig(catalog: String,
-                  generateStats: Boolean,
-                  audit: Option[(AuditWriter, AuditProvider, String)],
-                  queryThreads: Int,
-                  queryTimeout: Option[Long],
-                  looseBBox: Boolean,
-                  caching: Boolean,
-                  authsProvider: Option[AuthorizationsProvider]) =
-    HBaseDataStoreConfig(
-      catalog,
-      generateStats,
-      audit,
-      queryThreads,
-      queryTimeout,
-      looseBBox,
-      caching,
-      authsProvider,
-      isBigtable = false
-    )
+  def buildDataStore(catalog: String,
+                     generateStats: Boolean,
+                     audit: Option[(AuditWriter, AuditProvider, String)],
+                     queryThreads: Int,
+                     queryTimeout: Option[Long],
+                     looseBBox: Boolean,
+                     caching: Boolean,
+                     authsProvider: Option[AuthorizationsProvider],
+                     connection: Connection) = {
+    val config = HBaseDataStoreConfig(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching, authsProvider)
+    new HBaseDataStore(connection, config)
+  }
 
 
   override def getDisplayName: String = HBaseDataStoreFactory.DisplayName
@@ -114,7 +105,16 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       AuthsParam,
       ForceEmptyAuthsParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = HBaseDataStoreFactory.canProcess(params)
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+    if(HBaseDataStoreFactory.canProcess(params)) {
+      val isHBase = HBaseDataStoreParams.HBaseParam.lookupWithDefault[java.lang.Boolean](params)
+      val isBigtable = HBaseDataStoreParams.BigtableParam.lookupWithDefault[java.lang.Boolean](params)
+      if(isHBase && !isBigtable) true
+      else false
+    } else {
+      false
+    }
+
 
   override def isAvailable = true
 
@@ -124,6 +124,8 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 object HBaseDataStoreParams {
   val BigTableNameParam    = new Param("bigtable.table.name", classOf[String], "Table name", true)
   val ConnectionParam      = new Param("connection", classOf[Connection], "Connection", false)
+  val HBaseParam           = new Param("hbase", classOf[java.lang.Boolean], "Connect to a vanilla HBase cluster", false, java.lang.Boolean.TRUE)
+  val BigtableParam        = new Param("bigtable", classOf[java.lang.Boolean], "Connect to a Google Cloud Bigtable instance", false, java.lang.Boolean.FALSE)
   val LooseBBoxParam       = GeoMesaDataStoreFactory.LooseBBoxParam
   val QueryThreadsParam    = GeoMesaDataStoreFactory.QueryThreadsParam
   val GenerateStatsParam   = GeoMesaDataStoreFactory.GenerateStatsParam
@@ -149,10 +151,9 @@ object HBaseDataStoreFactory {
                                   queryTimeout: Option[Long],
                                   looseBBox: Boolean,
                                   caching: Boolean,
-                                  authProvider: Option[AuthorizationsProvider],
-                                  isBigtable: Boolean) extends GeoMesaDataStoreConfig
+                                  authProvider: Option[AuthorizationsProvider]) extends GeoMesaDataStoreConfig
 
-  def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean =
     params.containsKey(BigTableNameParam.key)
 
   def buildAuthsProvider(connection: Connection, params: java.util.Map[String, Serializable]): AuthorizationsProvider = {

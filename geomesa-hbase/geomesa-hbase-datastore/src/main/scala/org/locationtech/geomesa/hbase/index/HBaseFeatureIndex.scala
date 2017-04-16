@@ -133,41 +133,14 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
       } else {
-        if(ds.config.isBigtable) {
-          bigtableScanPlan(ds, filter, ranges, table, hbaseFilters, toFeatures)
-        } else {
-          hbaseScanPlan(filter, ranges, table, hbaseFilters, toFeatures)
-        }
+        buildPlatformScanPlan(filter, ranges, table, hbaseFilters, toFeatures)
       }
     }
   }
 
-  private def hbaseScanPlan(filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]) = {
-    MultiRowRangeFilterScanPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures)
-  }
+  def buildPlatformScanPlan(filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 
-  private def bigtableScanPlan(ds: HBaseDataStore, filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]) = {
-    // we want to ensure some parallelism in our batch scanning
-    // as not all scans will take the same amount of time, we want to have multiple per-thread
-    // since scans are executed by a thread pool, that should balance the work and keep all threads occupied
-    val scansPerThread = 3
-    val scans = ranges.asInstanceOf[Seq[Scan]]
-    val minScans =
-      if (ds.config.queryThreads == 1) 1
-      else ds.config.queryThreads * scansPerThread
 
-    if (scans.length >= minScans) {
-      ScanPlan(filter, table, scans, hbaseFilters, toFeatures)
-    } else {
-      // split up the scans so that we get some parallelism
-      val multiplier = math.ceil(minScans.toDouble / scans.length).toInt
-      val splitScans = scans.flatMap { scan =>
-        val splits = IndexAdapter.splitRange(scan.getStartRow, scan.getStopRow, multiplier)
-        splits.map { case (start, stop) => new Scan(scan).setStartRow(start).setStopRow(stop) }
-      }
-      ScanPlan(filter, table, splitScans, hbaseFilters, toFeatures)
-    }
-  }
 
   override protected def range(start: Array[Byte], end: Array[Byte]): Query =
     new Scan(start, end).addColumn(DataColumnFamily, DataColumnQualifier)

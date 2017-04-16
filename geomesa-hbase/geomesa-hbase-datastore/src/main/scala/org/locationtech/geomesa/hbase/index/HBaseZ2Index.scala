@@ -12,7 +12,9 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.index.Z2Index
 
-case object HBaseZ2Index
+case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform
+
+trait HBaseLikeZ2Index
     extends HBaseFeatureIndex with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 1
 }
