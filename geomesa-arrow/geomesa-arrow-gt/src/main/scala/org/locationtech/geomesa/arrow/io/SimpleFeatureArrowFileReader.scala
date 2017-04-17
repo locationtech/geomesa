@@ -9,14 +9,16 @@
 package org.locationtech.geomesa.arrow.io
 
 import java.io.{Closeable, InputStream}
-import java.nio.charset.StandardCharsets
 
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.NullableVarCharVector
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.stream.ArrowStreamReader
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
+import org.apache.arrow.vector.types.FloatingPointPrecision
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.{ArrowAttributeReader, ArrowDictionary, GeometryFields, SimpleFeatureVector}
 import org.locationtech.geomesa.features.arrow.ArrowSimpleFeature
+import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureSpecParser
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
@@ -48,11 +50,17 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
         reader.loadNextBatch() // load the first batch so we get any dictionaries
         firstBatchLoaded = true
       }
-      val accessor = reader.lookup(encoding.getId).getVector.asInstanceOf[NullableVarCharVector].getAccessor
-      val values = ArrayBuffer.empty[String]
+      val vector = reader.lookup(encoding.getId).getVector
+      val spec = SimpleFeatureSpecParser.parseAttribute(field.getName)
+      val (objectType, bindings) = ObjectType.selectType(spec.clazz, spec.options)
+      val isSingle = GeometryFields.precisionFromField(field) == FloatingPointPrecision.SINGLE
+      val precision = if (isSingle) { GeometryPrecision.Float } else { GeometryPrecision.Double }
+      val attributeReader = ArrowAttributeReader(bindings.+:(objectType), spec.clazz, vector, None, precision)
+
+      val values = ArrayBuffer.empty[AnyRef]
       var i = 0
-      while (i < accessor.getValueCount) {
-        values.append(new String(accessor.get(i), StandardCharsets.UTF_8))
+      while (i < vector.getAccessor.getValueCount) {
+        values.append(attributeReader.apply(i))
         i += 1
       }
       field.getName -> new ArrowDictionary(values, encoding)

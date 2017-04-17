@@ -16,6 +16,8 @@ import com.vividsolutions.jts.geom._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, NullableMapVector}
 import org.joda.time.DateTime
+import org.locationtech.geomesa.arrow.TypeBindings
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary.HasArrowDictionary
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryReader
 import org.locationtech.geomesa.arrow.vector.LineStringVector.LineStringDoubleReader
 import org.locationtech.geomesa.arrow.vector.MultiLineStringVector.MultiLineStringDoubleReader
@@ -45,7 +47,7 @@ object ArrowAttributeReader {
 
   def id(vector: NullableMapVector, includeFids: Boolean): ArrowAttributeReader = {
     if (includeFids) {
-      ArrowAttributeReader("id", Seq(ObjectType.STRING), classOf[String], vector, None, null)
+      ArrowAttributeReader(Seq(ObjectType.STRING), classOf[String], vector.getChild("id"), None, null)
     } else {
       ArrowAttributeReader.ArrowIncrementingFeatureIdReader
     }
@@ -61,29 +63,27 @@ object ArrowAttributeReader {
       val classBinding = descriptor.getType.getBinding
       val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
       val dictionary = dictionaries.get(name).orElse(dictionaries.get(descriptor.getLocalName))
-      apply(name, bindings.+:(objectType), classBinding, vector, dictionary, precision)
+      apply(bindings.+:(objectType), classBinding, vector.getChild(name), dictionary, precision)
     }
   }
 
-  def apply(name: String,
-            bindings: Seq[ObjectType],
+  def apply(bindings: Seq[ObjectType],
             classBinding: Class[_],
-            vector: NullableMapVector,
+            vector: FieldVector,
             dictionary: Option[ArrowDictionary],
             precision: GeometryPrecision): ArrowAttributeReader = {
-    val child = vector.getChild(name)
-    val accessor = child.getAccessor
+    val accessor = vector.getAccessor
     dictionary match {
       case None =>
         bindings.head match {
           case ObjectType.STRING   => new ArrowStringReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
-          case ObjectType.GEOMETRY => new ArrowGeometryReader(child, classBinding, precision)
+          case ObjectType.GEOMETRY => new ArrowGeometryReader(vector, classBinding, precision)
           case ObjectType.INT      => new ArrowIntReader(accessor.asInstanceOf[NullableIntVector#Accessor])
           case ObjectType.LONG     => new ArrowLongReader(accessor.asInstanceOf[NullableBigIntVector#Accessor])
           case ObjectType.FLOAT    => new ArrowFloatReader(accessor.asInstanceOf[NullableFloat4Vector#Accessor])
           case ObjectType.DOUBLE   => new ArrowDoubleReader(accessor.asInstanceOf[NullableFloat8Vector#Accessor])
           case ObjectType.BOOLEAN  => new ArrowBooleanReader(accessor.asInstanceOf[NullableBitVector#Accessor])
-          case ObjectType.DATE     => new ArrowDateReader(accessor.asInstanceOf[NullableDateVector#Accessor])
+          case ObjectType.DATE     => new ArrowDateReader(accessor.asInstanceOf[NullableDateMilliVector#Accessor])
           case ObjectType.LIST     => new ArrowListReader(accessor.asInstanceOf[ListVector#Accessor], bindings(1))
           case ObjectType.MAP      => new ArrowMapReader(accessor.asInstanceOf[NullableMapVector#Accessor], bindings(1), bindings(2))
           case ObjectType.BYTES    => new ArrowByteReader(accessor.asInstanceOf[NullableVarBinaryVector#Accessor])
@@ -93,22 +93,19 @@ object ArrowAttributeReader {
         }
 
       case Some(dict) =>
-        bindings.head match {
-          case ObjectType.STRING =>
-            accessor match {
-              case a: NullableTinyIntVector#Accessor  => new ArrowDictionaryByteReader(a, dict)
-              case a: NullableSmallIntVector#Accessor => new ArrowDictionaryShortReader(a, dict)
-              case a: NullableIntVector#Accessor      => new ArrowDictionaryIntReader(a, dict)
-              case _ => throw new IllegalArgumentException(s"Unexpected dictionary vector accessor: $accessor")
-            }
-
-          case _ => throw new IllegalArgumentException(s"Dictionary only supported for string type: ${bindings.head}")
+        val dictionaryType = TypeBindings(bindings, classBinding, precision)
+        accessor match {
+          case a: NullableTinyIntVector#Accessor  => new ArrowDictionaryByteReader(a, dict, dictionaryType)
+          case a: NullableSmallIntVector#Accessor => new ArrowDictionaryShortReader(a, dict, dictionaryType)
+          case a: NullableIntVector#Accessor      => new ArrowDictionaryIntReader(a, dict, dictionaryType)
+          case _ => throw new IllegalArgumentException(s"Unexpected dictionary vector accessor: $accessor")
         }
     }
   }
 
-  class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor, dictionary: ArrowDictionary)
-      extends ArrowAttributeReader {
+  class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor,
+                                  val dictionary: ArrowDictionary,
+                                  val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
@@ -116,8 +113,9 @@ object ArrowAttributeReader {
     }
   }
 
-  class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor, dictionary: ArrowDictionary)
-      extends ArrowAttributeReader {
+  class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor,
+                                   val dictionary: ArrowDictionary,
+                                   val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
@@ -125,8 +123,9 @@ object ArrowAttributeReader {
     }
   }
 
-  class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor, dictionary: ArrowDictionary)
-      extends ArrowAttributeReader {
+  class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor,
+                                 val dictionary: ArrowDictionary,
+                                 val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
@@ -208,7 +207,7 @@ object ArrowAttributeReader {
     override def apply(i: Int): AnyRef = accessor.getObject(i)
   }
 
-  class ArrowDateReader(accessor: NullableDateVector#Accessor) extends ArrowAttributeReader {
+  class ArrowDateReader(accessor: NullableDateMilliVector#Accessor) extends ArrowAttributeReader {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         new Date(accessor.get(i))
@@ -254,10 +253,18 @@ object ArrowAttributeReader {
     }
   }
 
+  /**
+    * Conversion for arrow accessor object types to simple feature type standard types.
+    *
+    * Note: geometry conversion is only correct for nested lists and maps
+    *
+    * @param binding object type being read
+    * @return
+    */
   private def arrowConversion(binding: ObjectType): (AnyRef)=> AnyRef = binding match {
     case ObjectType.STRING   => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.GEOMETRY => (v) => WKTUtils.read(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
-    case ObjectType.DATE     => (v) => v.asInstanceOf[DateTime].toDate
+    case ObjectType.DATE     => (v) => new Date(v.asInstanceOf[Long])
     case ObjectType.JSON     => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.UUID     => (v) => UUID.fromString(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
     case _                   => (v) => v

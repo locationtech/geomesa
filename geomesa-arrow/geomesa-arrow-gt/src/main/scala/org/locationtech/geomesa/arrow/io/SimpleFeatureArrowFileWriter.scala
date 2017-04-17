@@ -10,17 +10,18 @@ package org.locationtech.geomesa.arrow.io
 
 import java.io.{Closeable, Flushable, OutputStream}
 import java.nio.channels.Channels
-import java.nio.charset.StandardCharsets
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
+import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
 import org.apache.arrow.vector.stream.ArrowStreamWriter
-import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
+import org.locationtech.geomesa.arrow.TypeBindings
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary.HasArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
+import org.locationtech.geomesa.arrow.vector.{ArrowAttributeWriter, ArrowDictionary, SimpleFeatureVector}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -45,32 +46,33 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
 
   import scala.collection.JavaConversions._
 
+  private val vector = SimpleFeatureVector.create(sft, dictionaries, includeFids, precision)
+
   private val provider = new MapDictionaryProvider()
+  // container for holding our dictionary vectors
+  private val dictionaryContainer = new NullableMapVector("", allocator, null, null)
+  dictionaryContainer.allocateNew()
+
   // convert the dictionary values into arrow vectors
-  // make sure we load dictionaries before instantiating the vector
-  private val dictionaryVectors = dictionaries.values.map { dictionary =>
-    val vector = new NullableVarCharVector(s"dictionary-${dictionary.id}", new FieldType(true, ArrowType.Utf8.INSTANCE, null), allocator)
-//    vector.setInitialCapacity(dictionary.values.length)
-    vector.allocateNew()
-    val mutator = vector.getMutator
-    var i = 0
-//    var capacity = vector.getValueCapacity
-    dictionary.values.foreach { value =>
-      val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
-      // TODO figure out capacity checks
-//      while (capacity < i || vector.getByteCapacity < vector.getCurrentSizeInBytes + bytes.length) {
-//        vector.reAlloc()
-//        capacity = vector.getValueCapacity
-//      }
-      mutator.set(i, bytes)
-      i += 1
-    }
-    mutator.setValueCount(i)
-    provider.put(new Dictionary(vector, dictionary.encoding))
-    vector
+  // make sure we load dictionaries before instantiating the stream writer
+  vector.writer.attributeWriters.foreach {
+    case hasDictionary: HasArrowDictionary =>
+      val name = s"dictionary-${hasDictionary.dictionary.id}"
+      val TypeBindings(bindings, classBinding, precision) = hasDictionary.dictionaryType
+      val writer = ArrowAttributeWriter(name, bindings, classBinding, dictionaryContainer, None, precision)
+      val vector = dictionaryContainer.getChild(name)
+      var i = 0
+      hasDictionary.dictionary.values.foreach { value =>
+        writer.apply(i, value)
+        i += 1
+      }
+      writer.setValueCount(i)
+      vector.getMutator.setValueCount(i)
+      provider.put(new Dictionary(vector, hasDictionary.dictionary.encoding))
+
+    case _ => // no-op
   }
 
-  private val vector = SimpleFeatureVector.create(sft, dictionaries, includeFids, precision)
   private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
 
@@ -114,6 +116,6 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
     writer.end()
     writer.close()
     root.close()
-    dictionaryVectors.foreach(_.close())
+    dictionaryContainer.close()
   }
 }

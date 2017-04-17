@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import com.google.common.collect.ImmutableBiMap
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
+import org.locationtech.geomesa.arrow.TypeBindings
 
 /**
   * Holder for dictionary values
@@ -31,7 +32,7 @@ class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding)
       builder.put(value, i)
       i += 1
     }
-    builder.put("[other]", i)
+    builder.put("[other]", i) // for non-string types, this should evaluate to null
     val m = builder.build()
     (m, m.inverse())
   }
@@ -61,6 +62,11 @@ class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding)
 }
 
 object ArrowDictionary {
+
+  trait HasArrowDictionary {
+    def dictionary: ArrowDictionary
+    def dictionaryType: TypeBindings
+  }
 
   def create(values: Seq[AnyRef]): ArrowDictionary = new ArrowDictionary(values, createEncoding(nextId, values))
 
