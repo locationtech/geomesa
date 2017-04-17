@@ -42,7 +42,6 @@ object KryoLazyDensityUtils {
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
     val sf = new ScalaSimpleFeature("", DENSITY_SFT)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
-    println(s" Setting bytes to ${new String(bytes)}")
     sf.values(0) = bytes
     sf
   }
