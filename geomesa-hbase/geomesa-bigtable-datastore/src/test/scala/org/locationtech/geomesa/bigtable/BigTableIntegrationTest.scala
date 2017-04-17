@@ -34,14 +34,14 @@ class BigTableIntegrationTest extends Specification {
   "HBaseDataStore" should {
     "work with points" >> {
       val typeName = "testpoints"
-      val params = Map(BigTableNameParam.getName -> "integration_test", BigtableParam.getName -> "true", HBaseParam.getName -> false)
+      val params = Map(BigTableNameParam.getName -> "integration_test")
       lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       "gdelt" >> {
         import org.locationtech.geomesa.utils.geotools.Conversions._
         import org.locationtech.geomesa.index.conf.QueryHints
 
-        val params = Map(BigTableNameParam.getName -> "geomesa.gdelt", BigtableParam.getName -> "true", HBaseParam.getName -> false)
+        val params = Map(BigTableNameParam.getName -> "geomesa.gdelt")
         val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
         val fs = ds.getFeatureSource("gdelt")
         val ff = CommonFactoryFinder.getFilterFactory2

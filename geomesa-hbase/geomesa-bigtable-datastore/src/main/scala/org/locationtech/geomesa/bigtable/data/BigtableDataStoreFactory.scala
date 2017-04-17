@@ -166,7 +166,7 @@ case class BigtableExtendedScanPlan(filter: HBaseFilterStrategyType,
     val numRanges = sortedRowRanges.size()
     val numThreads = ds.config.queryThreads
     // TODO: parameterize this?
-    val rangesPerThread = math.max(1,math.ceil(numRanges/numThreads*2).toInt)
+    val rangesPerThread = math.min(100, math.max(1,math.ceil(numRanges/numThreads*2).toInt))
     // TODO: align partitions with region boundaries
     val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
 
