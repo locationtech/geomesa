@@ -19,30 +19,9 @@ import org.locationtech.geomesa.index.index.{Z3Index, Z3ProcessingValues}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform
+case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
 
-trait HBaseLikeZ3Index
-    extends HBaseFeatureIndex with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query]  {
-  override val version: Int = 1
-
-
-  /**
-    * Sets up everything needed to execute the scan - iterators, column families, deserialization, etc
-    *
-    * @param sft    simple feature type
-    * @param filter hbase filter strategy type
-    * @param hints  query hints
-    * @param ecql   secondary filter being applied, if any
-    * @param dedupe scan may have duplicate results or not
-    * @return
-    */
-  override protected def scanConfig(sft: SimpleFeatureType,
-                                    filter: HBaseFilterStrategyType,
-                                    hints: Hints,
-                                    ecql: Option[Filter],
-                                    dedupe: Boolean): ScanConfig = {
-    val config = super.scanConfig(sft, filter, hints, ecql, dedupe)
-
+  def configurePushDownFilters(config: ScanConfig): ScanConfig = {
     org.locationtech.geomesa.index.index.Z3Index.currentProcessingValues match {
       case None => config
       case Some(Z3ProcessingValues(sfc, _, xy, _, times)) =>
@@ -71,6 +50,12 @@ trait HBaseLikeZ3Index
 
         config.copy(hbaseFilters = config.hbaseFilters :+ filt)
     }
+
   }
+}
+
+trait HBaseLikeZ3Index
+    extends HBaseFeatureIndex with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query]  {
+  override val version: Int = 1
 
 }

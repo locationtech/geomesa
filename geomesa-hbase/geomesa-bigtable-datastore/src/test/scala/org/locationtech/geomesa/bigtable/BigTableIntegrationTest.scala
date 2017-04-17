@@ -10,7 +10,7 @@ package org.locationtech.geomesa.bigtable
 
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.factory.Hints
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -36,6 +36,31 @@ class BigTableIntegrationTest extends Specification {
       val typeName = "testpoints"
       val params = Map(BigTableNameParam.getName -> "integration_test", BigtableParam.getName -> "true", HBaseParam.getName -> false)
       lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+
+      "gdelt" >> {
+        import org.locationtech.geomesa.utils.geotools.Conversions._
+        import org.locationtech.geomesa.index.conf.QueryHints
+
+        val params = Map(BigTableNameParam.getName -> "geomesa.gdelt", BigtableParam.getName -> "true", HBaseParam.getName -> false)
+        val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+        val fs = ds.getFeatureSource("gdelt")
+        val ff = CommonFactoryFinder.getFilterFactory2
+        val filt =
+          ff.and(
+            ff.bbox("geom",-80,30,-73,40,"EPSG:4326"),
+            ff.between(ff.property("dtg"), ff.literal("2017-01-01"), ff.literal("2017-01-02")))
+        val query = new Query("gdelt", filt)
+        query.getHints.put(QueryHints.LOOSE_BBOX, false)
+        val results = fs.getFeatures(query).features.toList
+
+        val count = results.length
+
+        val invalidSize = results.filterNot(filt.evaluate).size
+        println(count)
+
+        "size must be greater than 10" >> { count must be greaterThan 10 }
+        "all must pass the filter" >> { invalidSize must be equalTo 0 }
+      }
 
       def createFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(i.toString, sft)
