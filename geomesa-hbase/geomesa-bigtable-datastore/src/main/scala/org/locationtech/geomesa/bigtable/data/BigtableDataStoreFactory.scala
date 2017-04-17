@@ -12,7 +12,7 @@ import com.google.cloud.bigtable.hbase.BigtableExtendedScan
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.Filter
 import org.apache.hadoop.hbase.util.Bytes
-import org.apache.hadoop.hbase.{HColumnDescriptor, TableName}
+import org.apache.hadoop.hbase.{HBaseConfiguration, HColumnDescriptor, TableName}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index._
@@ -25,6 +25,7 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BigtableDataStoreFactory extends HBaseDataStoreFactory {
+
   override def getDisplayName: String = BigtableDataStoreFactory.DisplayName
   override def getDescription: String = BigtableDataStoreFactory.Description
 
@@ -51,18 +52,9 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
   }
 
   override def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean = {
-    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
-    if (HBaseDataStoreFactory.canProcess(params)) {
-      val isHBase = HBaseDataStoreParams.HBaseParam.lookupWithDefault[java.lang.Boolean](params)
-      val isBigtable = HBaseDataStoreParams.BigtableParam.lookupWithDefault[java.lang.Boolean](params)
-      if (!isHBase && isBigtable) true
-      else false
-    } else {
-      false
-    }
+    params.containsKey(HBaseDataStoreParams.BigTableNameParam.key) &&
+        Option(HBaseConfiguration.create().get(HBaseDataStoreFactory.BigTableParamCheck)).exists(_.trim.nonEmpty)
   }
-
-
 }
 
 object BigtableDataStoreFactory {
@@ -71,7 +63,6 @@ object BigtableDataStoreFactory {
 }
 
 class BigtableDataStore(connection: Connection, config: HBaseDataStoreConfig) extends HBaseDataStore(connection, config) {
-
   override def manager: HBaseIndexManagerType = BigtableFeatureIndex
 }
 

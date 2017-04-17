@@ -82,7 +82,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
                      looseBBox: Boolean,
                      caching: Boolean,
                      authsProvider: Option[AuthorizationsProvider],
-                     connection: Connection) = {
+                     connection: Connection): HBaseDataStore = {
     val config = HBaseDataStoreConfig(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching, authsProvider)
     new HBaseDataStore(connection, config)
   }
@@ -106,15 +106,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       ForceEmptyAuthsParam)
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
-    if(HBaseDataStoreFactory.canProcess(params)) {
-      val isHBase = HBaseDataStoreParams.HBaseParam.lookupWithDefault[java.lang.Boolean](params)
-      val isBigtable = HBaseDataStoreParams.BigtableParam.lookupWithDefault[java.lang.Boolean](params)
-      if(isHBase && !isBigtable) true
-      else false
-    } else {
-      false
-    }
-
+    HBaseDataStoreFactory.canProcess(params)
 
   override def isAvailable = true
 
@@ -144,6 +136,8 @@ object HBaseDataStoreFactory {
   val DisplayName = "HBase (GeoMesa)"
   val Description = "Apache HBase\u2122 distributed key/value store"
 
+  private [geomesa] val BigTableParamCheck = "google.bigtable.instance.id"
+
   case class HBaseDataStoreConfig(catalog: String,
                                   generateStats: Boolean,
                                   audit: Option[(AuditWriter, AuditProvider, String)],
@@ -153,8 +147,10 @@ object HBaseDataStoreFactory {
                                   caching: Boolean,
                                   authProvider: Option[AuthorizationsProvider]) extends GeoMesaDataStoreConfig
 
-  def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean =
-    params.containsKey(BigTableNameParam.key)
+  def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean = {
+    params.containsKey(BigTableNameParam.key) &&
+      Option(HBaseConfiguration.create().get(BigTableParamCheck)).forall(_.trim.isEmpty)
+  }
 
   def buildAuthsProvider(connection: Connection, params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
     val forceEmptyOpt: Option[java.lang.Boolean] = security.ForceEmptyAuthsParam.lookupOpt[java.lang.Boolean](params)
