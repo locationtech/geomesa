@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HBaseFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
+import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
@@ -45,6 +46,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
+                        coprocessor: Option[Coprocessor],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 
 }
@@ -128,7 +130,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
+      val ScanConfig(hbaseFilters, coprocessor, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
 
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
@@ -136,17 +138,35 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
         if(ds.config.isBigtable) {
           bigtableScanPlan(ds, filter, ranges, table, hbaseFilters, toFeatures)
         } else {
-          hbaseScanPlan(filter, ranges, table, hbaseFilters, toFeatures)
+          hbaseScanPlan(sft, filter, ranges, table, hbaseFilters, coprocessor, hints, toFeatures)
         }
       }
     }
   }
 
-  private def hbaseScanPlan(filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]) = {
-    MultiRowRangeFilterScanPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures)
+  private def hbaseScanPlan(sft: SimpleFeatureType,
+                            filter: HBaseFilterStrategyType,
+                            ranges: Seq[Query],
+                            table: TableName,
+                            hbaseFilters: Seq[HBaseFilter],
+                            coprocessor: Option[Coprocessor],
+                            hints: Hints,
+                            toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]) = {
+    coprocessor match {
+      case Some(processor) =>
+        CoprocessorPlan(sft, filter, hints, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures)
+      case None =>
+        MultiRowRangeFilterScanPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures)
+    }
+
   }
 
-  private def bigtableScanPlan(ds: HBaseDataStore, filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]) = {
+  private def bigtableScanPlan(ds: HBaseDataStore,
+                               filter: HBaseFilterStrategyType,
+                               ranges: Seq[Query],
+                               table: TableName,
+                               hbaseFilters: Seq[HBaseFilter],
+                               toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]) = {
     // we want to ensure some parallelism in our batch scanning
     // as not all scans will take the same amount of time, we want to have multiple per-thread
     // since scans are executed by a thread pool, that should balance the work and keep all threads occupied
@@ -211,7 +231,16 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val remoteFilters = if (remote) { ecql.map { filter =>
         new JSimpleFeatureFilter(sft, filter)
       }.toSeq } else { Nil }
-      ScanConfig(remoteFilters, toFeatures)
+
+      val coprocessor: Option[Coprocessor] = {
+        if (hints.isDensityQuery) {
+          Some(new KryoLazyDensityCoprocessor)
+        } else {
+          None
+        }
+      }
+
+      ScanConfig(remoteFilters, coprocessor, toFeatures)
   }
 
 }
