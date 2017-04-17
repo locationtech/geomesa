@@ -73,7 +73,7 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
     from(sourceRoute).process { e => inQ.put(e.getIn.getBody.asInstanceOf[String]) }
   }
 
-  override def next: SimpleFeature = outQ.poll(500, TimeUnit.MILLISECONDS)
+  override def next: SimpleFeature = outQ.poll(1, TimeUnit.MILLISECONDS)
 
   def getQueueProcessor(p: SimpleFeatureConverter[String]) = {
     new Runnable {
