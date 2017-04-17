@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -12,7 +12,6 @@ import org.ejml.simple.SimpleMatrix
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.ListMap
 import scala.Array._
 
@@ -24,14 +23,14 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
   private[stats] val size_squared = size * size
 
   private[stats] var _count: Long = _
-  private[stats] val _min: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _max: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _sum: SimpleMatrix = new SimpleMatrix(size, 1)
+  private[stats] val _min: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _max: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _sum: SimpleMatrix  = new SimpleMatrix(size, 1)
   private[stats] val _mean: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m2n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m3n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m4n: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _c2: SimpleMatrix = new SimpleMatrix(size, size)
+  private[stats] val _m2n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _m3n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _m4n: SimpleMatrix  = new SimpleMatrix(size, 1)
+  private[stats] val _c2: SimpleMatrix   = new SimpleMatrix(size, size)
 
   clear()
 
@@ -280,19 +279,19 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
     case that: DescriptiveStats =>
       attributes == that.attributes &&
         _count  == that._count &&
-        _min.isIdentical(that._min, 1e-9) &&
-        _max.isIdentical(that._max, 1e-9) &&
-        _sum.isIdentical(that._sum, 1e-9) &&
-        _mean.isIdentical(that._mean, 1e-9) &&
-        _m2n.isIdentical(that._m2n, 1e-9) &&
-        _m3n.isIdentical(that._m3n, 1e-9) &&
-        _m4n.isIdentical(that._m4n, 1e-9) &&
-        _c2.isIdentical(that._c2, 1e-9)
+        _min.isIdenticalWithinTolerances(that._min, 1e-6, 1e-12) &&
+        _max.isIdenticalWithinTolerances(that._max, 1e-6, 1e-12) &&
+        _sum.isIdenticalWithinTolerances(that._sum, 1e-6, 1e-12) &&
+        _mean.isIdenticalWithinTolerances(that._mean, 1e-6, 1e-12) &&
+        _m2n.isIdenticalWithinTolerances(that._m2n, 1e-6, 1e-12) &&
+        _m3n.isIdenticalWithinTolerances(that._m3n, 1e-6, 1e-12) &&
+        _m4n.isIdenticalWithinTolerances(that._m4n, 1e-6, 1e-12) &&
+        _c2.isIdenticalWithinTolerances(that._c2, 1e-6, 1e-12)
     case _ => false
   }
 
-  override def toJson: String = {
-    val map = if (isEmpty) {
+  override def toJsonObject =
+    if (isEmpty) {
       Map("count" -> 0)
     } else {
       ListMap("count" -> count,
@@ -314,6 +313,4 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
         "sample_covariance" -> sampleCovariance,
         "sample_correlation" -> sampleCorrelation)
     }
-    Stat.JSON.toJson(map.asJava)
-  }
 }

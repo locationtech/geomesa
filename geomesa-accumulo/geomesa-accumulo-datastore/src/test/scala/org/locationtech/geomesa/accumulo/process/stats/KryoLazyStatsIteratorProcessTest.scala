@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -80,6 +80,13 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
       rh.length mustEqual 5
       forall(0 until 5)(rh.count(_) mustEqual 30)
+    }
+
+    "work with the GroupBy stat" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "GroupBy(an_id,MinMax(attr))", encode = true)
+      val sf = results.features().next
+      val gb = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[GroupBy[_]]
+      gb.size mustEqual 150
     }
 
     "work with the DescriptiveStats stat" in {
@@ -170,7 +177,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val sf = results.features().next
 
       val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
 
     "return stats encoded as json with non-Accumulo Feature collections" in {
@@ -181,7 +188,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val sf = results.features().next
 
       val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
 
     "return stats binary encoded as with Accumulo Feature collections" in {
@@ -207,24 +214,24 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
     }
 
     "return transforms stats encoded as json" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, Seq("attr1=attr+5"))
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, "attr1=attr+5")
       val sf = results.features().next
 
       // NB: Doubles <=> Ints:(
       val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
 
     "return transforms stats encoded as json with non AccumuloFeatureCollections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
       fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
 
-      val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, Seq("attr1=attr+5"))
+      val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, "attr1=attr+5")
       val sf = results.features().next
 
       // NB: Doubles <=> Ints:(
       val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
   }
 }

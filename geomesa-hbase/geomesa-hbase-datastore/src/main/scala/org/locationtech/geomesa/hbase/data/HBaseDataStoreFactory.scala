@@ -130,7 +130,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 object HBaseDataStoreParams {
   val BigTableNameParam    = new Param("bigtable.table.name", classOf[String], "Table name", true)
   val ConnectionParam      = new Param("connection", classOf[Connection], "Connection", false)
-  val RemoteParam          = new Param("remote.filtering", classOf[Boolean], "Remote filtering", false)
+  val RemoteParam          = new Param("remote.filtering", classOf[java.lang.Boolean], "Remote filtering", false)
   val LooseBBoxParam       = GeoMesaDataStoreFactory.LooseBBoxParam
   val QueryThreadsParam    = GeoMesaDataStoreFactory.QueryThreadsParam
   val GenerateStatsParam   = GeoMesaDataStoreFactory.GenerateStatsParam

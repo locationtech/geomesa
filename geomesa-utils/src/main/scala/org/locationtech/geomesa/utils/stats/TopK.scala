@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
@@ -31,7 +32,6 @@ class TopK[T](val attribute: Int,
   override type S = TopK[T]
 
   lazy val stringify = Stat.stringifier(ct.runtimeClass)
-  private lazy val jsonStringify = Stat.stringifier(ct.runtimeClass, json = true)
 
   def topK(k: Int): Seq[(T, Long)] = summary.topK(k).map(c => (c.getItem, c.getCount))
   def size: Int = summary.size
@@ -71,10 +71,9 @@ class TopK[T](val attribute: Int,
 
   override def isEmpty: Boolean = summary.size == 0
 
-  override def toJson: String =
-    summary.topK(10).zipWithIndex.map { case (c, i) =>
-      s""""$i" : { "value" : ${jsonStringify(c.getItem)}, "count" : ${c.getCount} }"""
-    }.mkString("{ ", ",", " }")
+  override def toJsonObject =
+    ListMap(summary.topK(10).zipWithIndex.map{ case (c,i) => (i, ListMap( "value" -> c.getItem, "count" -> c.getCount))}:_*)
+
 
   override def isEquivalent(other: Stat): Boolean = other match {
     case s: TopK[T] if summary.size == s.summary.size =>
