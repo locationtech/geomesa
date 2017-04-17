@@ -12,6 +12,7 @@
 
     <properties>
         <bigtable.version>0.9.4</bigtable.version>
+        <protobuf.version>2.6.1</protobuf.version>
     </properties>
 
     <dependencyManagement>
