@@ -9,12 +9,16 @@
 package org.locationtech.geomesa.bigtable.data
 
 import com.google.cloud.bigtable.hbase.BigtableExtendedScan
+import com.google.common.collect.Lists
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.Filter
+import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
+import org.apache.hadoop.hbase.filter.{Filter, MultiRowRangeFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HBaseConfiguration, HColumnDescriptor, TableName}
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.hbase.index._
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
@@ -23,6 +27,7 @@ import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter
 
 class BigtableDataStoreFactory extends HBaseDataStoreFactory {
 
@@ -100,7 +105,43 @@ trait BigtablePlatform extends HBasePlatform {
 
 case object BigtableZ2Index extends HBaseLikeZ2Index with BigtablePlatform
 
-case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform
+case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform {
+
+  /**
+    * Sets up everything needed to execute the scan - iterators, column families, deserialization, etc
+    *
+    * @param sft    simple feature type
+    * @param filter hbase filter strategy type
+    * @param hints  query hints
+    * @param ecql   secondary filter being applied, if any
+    * @param dedupe scan may have duplicate results or not
+    * @return
+    */
+  override def scanConfig(sft: SimpleFeatureType,
+                           filter: HBaseFilterStrategyType,
+                           hints: Hints,
+                           ecql: Option[org.opengis.filter.Filter],
+                           dedupe: Boolean): ScanConfig = {
+
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+    /** This function is used to implement custom client filters for HBase **/
+    val transform = hints.getTransform // will eventually be used to support remote transforms
+    val feature = sft // will eventually be used to support remote transforms
+
+    // ECQL is now pushed down in HBase so don't need to apply it client side
+    // However, the transform is not yet pushed down
+    val toFeatures = resultsToFeatures(feature, ecql, transform)
+
+    configurePushDownFilters(ScanConfig(Nil, toFeatures), ecql, sft)
+  }
+
+  override def configurePushDownFilters(config: HBaseFeatureIndex.ScanConfig,
+                                        ecql: Option[filter.Filter],
+                                        sft: SimpleFeatureType): HBaseFeatureIndex.ScanConfig = {
+    config
+  }
+}
 
 case class BigtableExtendedScanPlan(filter: HBaseFilterStrategyType,
                                     table: TableName,
@@ -116,12 +157,31 @@ case class BigtableExtendedScanPlan(filter: HBaseFilterStrategyType,
     * @return
     */
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-
-    val scan = new BigtableExtendedScan
+    import scala.collection.JavaConversions._
+    val rowRanges = Lists.newArrayList[RowRange]()
     ranges.foreach { r =>
-      scan.addRange(r.getStartRow, r.getStopRow)
+      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
     }
-    val results = new HBaseBatchScan(ds.connection, table, Seq(scan), ds.config.queryThreads, 100000, Nil)
+    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
+    val numRanges = sortedRowRanges.size()
+    val numThreads = ds.config.queryThreads
+    // TODO: parameterize this?
+    val rangesPerThread = math.max(1,math.ceil(numRanges/numThreads*2).toInt)
+    // TODO: align partitions with region boundaries
+    val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
+
+    // group scans into batches to achieve some client side parallelism
+    val groupedScans = groupedRanges.map { localRanges =>
+      // TODO: FIX
+      // currently, this constructor will call sortAndMerge a second time
+      // this is unnecessary as we have already sorted and merged above
+      val scan = new BigtableExtendedScan
+
+      localRanges.foreach { r => scan.addRange(r.getStartRow, r.getStopRow) }
+      scan
+    }
+
+    val results = new HBaseBatchScan(ds.connection, table, groupedScans, ds.config.queryThreads, 100000, Nil)
     SelfClosingIterator(resultsToFeatures(results), results.close)
   }
 }

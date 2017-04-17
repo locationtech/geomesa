@@ -140,7 +140,13 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
   def buildPlatformScanPlan(filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 
-
+  // default implementation does nothing
+  def configurePushDownFilters(config: ScanConfig, ecql: Option[Filter], sft: SimpleFeatureType): ScanConfig = {
+    val remoteFilters = ecql.map { filter =>
+      new JSimpleFeatureFilter(sft, filter)
+    }.toSeq
+    config.copy(hbaseFilters = config.hbaseFilters ++ remoteFilters)
+  }
 
   override protected def range(start: Array[Byte], end: Array[Byte]): Query =
     new Scan(start, end).addColumn(DataColumnFamily, DataColumnQualifier)
@@ -176,13 +182,14 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     /** This function is used to implement custom client filters for HBase **/
-      val transform = hints.getTransform // will eventually be used to support remote transforms 
-      val feature = sft // will eventually be used to support remote transforms 
-      val toFeatures = resultsToFeatures(feature, None, transform)
-      val remoteFilters = ecql.map { filter =>
-        new JSimpleFeatureFilter(sft, filter)
-      }.toSeq
-      ScanConfig(remoteFilters, toFeatures)
+    val transform = hints.getTransform // will eventually be used to support remote transforms
+    val feature = sft // will eventually be used to support remote transforms
+
+    // ECQL is now pushed down in HBase so don't need to apply it client side
+    // However, the transform is not yet pushed down
+    val toFeatures = resultsToFeatures(feature, None, transform)
+
+    configurePushDownFilters(ScanConfig(Nil, toFeatures), ecql, sft)
   }
 
 }
