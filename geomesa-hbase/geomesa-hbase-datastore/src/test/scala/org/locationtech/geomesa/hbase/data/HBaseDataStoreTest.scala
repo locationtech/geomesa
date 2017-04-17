@@ -36,9 +36,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
   val cluster = new HBaseTestingUtility()
   var connection: Connection = _
-
-  System.setProperty("geomesa.scan.ranges.target", "100")
-
+  
   step {
     logger.info("Starting embedded hbase")
     cluster.startMiniCluster(1)
