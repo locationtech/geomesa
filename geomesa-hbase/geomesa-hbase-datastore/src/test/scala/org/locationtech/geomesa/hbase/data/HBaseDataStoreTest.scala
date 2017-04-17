@@ -50,7 +50,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
     "work with points" in {
       val typeName = "testpoints"
 
-      val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> "test_sft")
+      val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> "test_sft", RemoteParam.getName -> true)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull

@@ -86,12 +86,7 @@ public class JSimpleFeatureFilter extends FilterBase {
         public ReturnCode filterKeyValue(Cell v) throws IOException {
             try {
                 log.trace("cell = {}", v);
-                if (hasTransform) {
-                    reusable.setBuffer(CellUtil.cloneValue(v));
-                } else {
-                    reusable.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
-                }
-
+                reusable.setBuffer(CellUtil.cloneValue(v));
                 log.trace("Evaluating filter against SimpleFeature");
                 if (filter.evaluate(reusable)) {
                     return ReturnCode.INCLUDE;
