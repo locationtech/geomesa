@@ -9,15 +9,21 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.google.common.collect.Lists
+import com.google.protobuf.ByteString
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HBaseFilter}
+import org.geotools.factory.Hints
+import org.locationtech.geomesa.hbase.driver.KryoLazyDensityDriver
+import org.locationtech.geomesa.hbase.filters.KryoLazyDensityFilter
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
+import org.locationtech.geomesa.hbase.utils.KryoLazyDensityUtils._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import scala.collection.JavaConverters._
 
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
@@ -66,8 +72,31 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
                     resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     ranges.foreach(ds.applySecurity)
-    val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
+    val results: HBaseBatchScan = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
     SelfClosingIterator(resultsToFeatures(results), results.close)
+  }
+}
+
+case class CoprocessorPlan(sft: SimpleFeatureType,
+                           filter: HBaseFilterStrategyType,
+                           hints: Hints,
+                           table: TableName,
+                           ranges: Seq[Scan],
+                           remoteFilters: Seq[HBaseFilter] = Nil,
+                           resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan  {
+  /**
+    * Runs the query plain against the underlying database, returning the raw entries
+    *
+    * @param ds data store - provides connection object and metadata
+    * @return
+    */
+  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    var kryoLazyDensityFilter = new KryoLazyDensityFilter(ds.getSchema(sft.getTypeName), hints).toByteArray
+    val table1 = ds.connection.getTable(table)
+    val client = new KryoLazyDensityDriver()
+    val result : List[ByteString] = client.kryoLazyDensityFilter(table1, kryoLazyDensityFilter).asScala.toList
+
+    result.map (r => bytesToFeatures(r.toByteArray)).toIterator
   }
 }
 
