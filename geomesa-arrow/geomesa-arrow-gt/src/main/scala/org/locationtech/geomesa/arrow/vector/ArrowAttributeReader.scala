@@ -74,7 +74,7 @@ object ArrowAttributeReader {
           case ObjectType.FLOAT    => new ArrowFloatReader(accessor.asInstanceOf[NullableFloat4Vector#Accessor])
           case ObjectType.DOUBLE   => new ArrowDoubleReader(accessor.asInstanceOf[NullableFloat8Vector#Accessor])
           case ObjectType.BOOLEAN  => new ArrowBooleanReader(accessor.asInstanceOf[NullableBitVector#Accessor])
-          case ObjectType.DATE     => new ArrowDateReader(accessor.asInstanceOf[NullableDateVector#Accessor])
+          case ObjectType.DATE     => new ArrowDateReader(accessor.asInstanceOf[NullableDateMilliVector#Accessor])
           case ObjectType.LIST     => new ArrowListReader(accessor.asInstanceOf[ListVector#Accessor], bindings(1))
           case ObjectType.MAP      => new ArrowMapReader(accessor.asInstanceOf[NullableMapVector#Accessor], bindings(1), bindings(2))
           case ObjectType.BYTES    => new ArrowByteReader(accessor.asInstanceOf[NullableVarBinaryVector#Accessor])
@@ -194,7 +194,7 @@ object ArrowAttributeReader {
     override def apply(i: Int): AnyRef = accessor.getObject(i)
   }
 
-  class ArrowDateReader(accessor: NullableDateVector#Accessor) extends ArrowAttributeReader {
+  class ArrowDateReader(accessor: NullableDateMilliVector#Accessor) extends ArrowAttributeReader {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         new Date(accessor.get(i))
@@ -243,7 +243,7 @@ object ArrowAttributeReader {
   private def arrowConversion(binding: ObjectType): (AnyRef)=> AnyRef = binding match {
     case ObjectType.STRING   => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.GEOMETRY => (v) => WKTUtils.read(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
-    case ObjectType.DATE     => (v) => v.asInstanceOf[DateTime].toDate
+    case ObjectType.DATE     => (v) => v.asInstanceOf[DateTime].toDate // TODO
     case ObjectType.JSON     => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.UUID     => (v) => UUID.fromString(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
     case _                   => (v) => v
