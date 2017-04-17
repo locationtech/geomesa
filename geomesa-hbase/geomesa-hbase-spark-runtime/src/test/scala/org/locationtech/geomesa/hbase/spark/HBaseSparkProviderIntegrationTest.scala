@@ -14,7 +14,7 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.Params._
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

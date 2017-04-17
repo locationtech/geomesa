@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -20,6 +20,8 @@ import org.locationtech.geomesa.utils.stats._
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataStore {
@@ -78,6 +80,37 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
       rh.length mustEqual 5
       forall(0 until 5)(rh.count(_) mustEqual 30)
+    }
+
+    "work with the GroupBy stat" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "GroupBy(an_id,MinMax(attr))", encode = true)
+      val sf = results.features().next
+      val gb = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[GroupBy[_]]
+      gb.size mustEqual 150
+    }
+
+    "work with the DescriptiveStats stat" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "DescriptiveStats(attr)", encode = true)
+      val sf = results.features().next
+
+      val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[DescriptiveStats]
+      rh.count mustEqual 150
+      rh.bounds(0) mustEqual (0, 298)
+      rh.mean(0) must beCloseTo(149.0, 1e-9)
+      rh.populationVariance(0) must beCloseTo(7499.666666666667, 1e-9)
+      rh.populationStandardDeviation(0) must beCloseTo(86.60061585616275, 1e-9)
+      rh.populationSkewness(0) must beCloseTo(0.0, 1e-9)
+      rh.populationKurtosis(0) must beCloseTo(1.7998933285923824, 1e-9)
+      rh.populationExcessKurtosis(0) must beCloseTo(-1.2001066714076176, 1e-9)
+      rh.sampleVariance(0) must beCloseTo(7550.0, 1e-9)
+      rh.sampleStandardDeviation(0) must beCloseTo(86.89073598491383, 1e-9)
+      rh.sampleSkewness(0) must beCloseTo(0.0, 1e-9)
+      rh.sampleKurtosis(0) must beCloseTo(1.859889772878795, 1e-9)
+      rh.sampleExcessKurtosis(0) must beCloseTo(-1.140110227121205, 1e-9)
+      rh.populationCovariance(0) must beCloseTo(7499.666666666667, 1e-9)
+      rh.populationCorrelation(0) must beCloseTo(1.0, 1e-9)
+      rh.sampleCovariance(0) must beCloseTo(7550.0, 1e-9)
+      rh.sampleCorrelation(0) must beCloseTo(1.0, 1e-9)
     }
 
     "work with multiple stats at once" in {
@@ -144,7 +177,61 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val sf = results.features().next
 
       val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
-      sf.getAttribute(0) mustEqual expectedOutput
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
+    }
+
+    "return stats encoded as json with non-Accumulo Feature collections" in {
+      val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
+      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+
+      val results = statsIteratorProcess.execute(features, "MinMax(attr)", false)
+      val sf = results.features().next
+
+      val expectedOutput = """{ "min": 0, "max": 298, "cardinality": 152 }"""
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
+    }
+
+    "return stats binary encoded as with Accumulo Feature collections" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr)", true)
+      val sf = results.features().next
+
+      val stat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[Long]]
+      stat.min mustEqual(0)
+      stat.max mustEqual(298)
+    }
+
+
+    "return stats binary encoded as with non-Accumulo Feature collections" in {
+      val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
+      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+
+      val results = statsIteratorProcess.execute(features, "MinMax(attr)", true)
+      val sf = results.features().next
+
+      val stat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[Long]]
+      stat.min mustEqual(0)
+      stat.max mustEqual(298)
+    }
+
+    "return transforms stats encoded as json" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, "attr1=attr+5")
+      val sf = results.features().next
+
+      // NB: Doubles <=> Ints:(
+      val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
+    }
+
+    "return transforms stats encoded as json with non AccumuloFeatureCollections" in {
+      val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
+      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+
+      val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, "attr1=attr+5")
+      val sf = results.features().next
+
+      // NB: Doubles <=> Ints:(
+      val expectedOutput = """{ "min": 5.0, "max": 303.0, "cardinality": 149 }"""
+      sf.getAttribute(0) must beEqualTo(expectedOutput).ignoreSpace
     }
   }
 }

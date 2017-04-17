@@ -1,5 +1,6 @@
 /***********************************************************************
 * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Portions Crown Copyright (c) 2017 Dstl
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -28,6 +29,7 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
       AccumuloDataStoreParams.zookeepersParam.getName -> params.zookeepers,
       AccumuloDataStoreParams.userParam.getName       -> params.user,
       AccumuloDataStoreParams.passwordParam.getName   -> params.password,
+      AccumuloDataStoreParams.keytabPathParam.getName -> params.keytab,
       AccumuloDataStoreParams.tableNameParam.getName  -> params.catalog,
       AccumuloDataStoreParams.visibilityParam.getName -> params.visibilities,
       AccumuloDataStoreParams.authsParam.getName      -> params.auths,
@@ -36,8 +38,9 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
 
     if (parsedParams.get(AccumuloDataStoreParams.mockParam.getName).exists(_.toBoolean)) {
       val ret = mockDefaults ++ parsedParams // anything passed in will override defaults
-      // MockAccumulo sets the root password to blank so we must use it if user is root
-      if (ret(AccumuloDataStoreParams.userParam.getName) == "root") {
+      // MockAccumulo sets the root password to blank so we must use it if user is root, providing not using keytab instead
+      if (ret(AccumuloDataStoreParams.userParam.getName) == "root" &&
+        !(ret contains AccumuloDataStoreParams.keytabPathParam.getName)) {
         ret.updated(AccumuloDataStoreParams.passwordParam.getName, "")
       } else {
         ret

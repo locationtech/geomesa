@@ -38,6 +38,7 @@
     <modules>
         <module>geomesa-hbase-datastore</module>
         <module>geomesa-hbase-dist</module>
+        <module>geomesa-hbase-distributed-runtime</module>
         <module>geomesa-hbase-gs-plugin</module>
         <module>geomesa-hbase-tools</module>
         <module>geomesa-hbase-spark</module>

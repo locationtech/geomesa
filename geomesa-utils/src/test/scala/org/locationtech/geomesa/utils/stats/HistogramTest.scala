@@ -16,6 +16,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -51,7 +52,7 @@ class HistogramTest extends Specification with StatTestHelper {
   def geomStat(bins: Int, min: String, max: String, observe: Boolean = true) =
     createStat[Geometry]("geom", bins, min, max, observe)
 
-  def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
+  def toDate(string: String) = java.util.Date.from(java.time.LocalDateTime.parse(string, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
   def toGeom(string: String) = WKTUtils.read(string)
 
   "RangeHistogram stat" should {
@@ -585,19 +586,15 @@ class HistogramTest extends Specification with StatTestHelper {
         val stat = dateStat(4, "2012-01-01T00:00:00.000Z", "2012-01-28T23:59:59.999Z", observe = false)
         val stat2 = dateStat(5, "2012-01-01T00:00:00.000Z", "2012-02-04T23:59:59.999Z", observe = false)
 
-        val attributes = Array.ofDim[AnyRef](7)
-        (1 to 28).foreach { i =>
-          attributes(6) = f"2012-01-$i%02dT12:00:00.000Z"
-          stat.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
+        def newSF(dtg: String): SimpleFeature = {
+          val sf = SimpleFeatureBuilder.build(sft, Array[AnyRef](), "")
+          sf.setAttribute("dtg", dtg)
+          sf
         }
-        (29 to 31).foreach { i =>
-          attributes(6) = f"2012-01-$i%02dT12:00:00.000Z"
-          stat2.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
-        }
-        (1 to 4).foreach { i =>
-          attributes(6) = f"2012-02-$i%02dT12:00:00.000Z"
-          stat2.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
-        }
+
+        ( 1 to 28).foreach { i => stat.observe(newSF(f"2012-01-$i%02dT12:00:00.000Z")) }
+        (29 to 31).foreach { i => stat2.observe(newSF(f"2012-01-$i%02dT12:00:00.000Z")) }
+        ( 1 to  4).foreach { i => stat2.observe(newSF(f"2012-02-$i%02dT12:00:00.000Z")) }
 
         stat.length mustEqual 4
         forall(0 until 4)(stat.count(_) mustEqual 7)
@@ -706,6 +703,19 @@ class HistogramTest extends Specification with StatTestHelper {
         stat2.count(30) mustEqual 46
         stat2.count(31) mustEqual 24
         forall((0 until 25) ++ Seq(26, 28, 29))(stat2.count(_) mustEqual 0)
+      }
+
+      "merge high-precision points" >> {
+        val fromBounds =
+          (WKTUtils.read("POINT (-91.7467224461 40.6750300641)"), WKTUtils.read("POINT (-91.723442566 40.691904323)"))
+        val toBounds =
+          (WKTUtils.read("POINT (-91.7467224461 40.6750300641)"), WKTUtils.read("POINT (-91.7186474559 40.6933565934)"))
+
+        val from = new BinnedGeometryArray(10000, fromBounds)
+        val to = new BinnedGeometryArray(10000, toBounds)
+        (0 until 10000).foreach(i => from.counts(i) = 1)
+
+        Histogram.copyInto(to, from) must not(throwAn[Exception])
       }
 
       "clear" >> {

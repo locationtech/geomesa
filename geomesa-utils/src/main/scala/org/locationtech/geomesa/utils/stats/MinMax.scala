@@ -11,10 +11,12 @@ package org.locationtech.geomesa.utils.stats
 import java.util.Date
 
 import com.clearspring.analytics.stream.cardinality.HyperLogLog
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.opengis.feature.simple.SimpleFeature
 
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
@@ -25,7 +27,8 @@ import scala.reflect.ClassTag
  * @tparam T the type of the attribute the stat is targeting (needs to be comparable)
  */
 class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLog)
-                        (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) extends Stat {
+                        (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
+    extends Stat with LazyLogging with Serializable {
 
   override type S = MinMax[T]
 
@@ -56,9 +59,13 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
   override def observe(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute).asInstanceOf[T]
     if (value != null) {
-      minValue = defaults.min(value, minValue)
-      maxValue = defaults.max(value, maxValue)
-      hpp.offer(value)
+      try {
+        minValue = defaults.min(value, minValue)
+        maxValue = defaults.max(value, maxValue)
+        hpp.offer(value)
+      } catch {
+        case e: Exception => logger.warn(s"Error observing value '$value': ${e.toString}")
+      }
     }
   }
 
@@ -91,13 +98,12 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
     }
   }
 
-  override def toJson: String = {
+  override def toJsonObject =
     if (isEmpty) {
-      """{ "min": null, "max": null, "cardinality": 0 }"""
+      ListMap("min" -> null, "max" -> null, "cardinality" -> 0)
     } else {
-      s"""{ "min": ${jsonStringify(minValue)}, "max": ${jsonStringify(maxValue)}, "cardinality": $cardinality }"""
+      ListMap("min" -> minValue, "max" -> maxValue, "cardinality" -> cardinality)
     }
-  }
 
   override def isEmpty: Boolean = minValue == defaults.max
 
@@ -146,37 +152,37 @@ object MinMax {
     }
   }
 
-  abstract class ComparableMinMax[T <: Comparable[T]] extends MinMaxDefaults[T] {
+  abstract class ComparableMinMax[T <: Comparable[T]] extends MinMaxDefaults[T] with Serializable {
     override def min(left: T, right: T): T = if (left.compareTo(right) > 0) right else left
     override def max(left: T, right: T): T = if (left.compareTo(right) < 0) right else left
   }
 
-  implicit object MinMaxString extends ComparableMinMax[String] {
+  implicit object MinMaxString extends ComparableMinMax[String] with Serializable {
     override val min: String = ""
     override val max: String = "\uFFFF\uFFFF\uFFFF"
   }
 
-  implicit object MinMaxInt extends ComparableMinMax[Integer] {
+  implicit object MinMaxInt extends ComparableMinMax[Integer] with Serializable {
     override val min: Integer = Integer.MIN_VALUE
     override val max: Integer = Integer.MAX_VALUE
   }
 
-  implicit object MinMaxLong extends ComparableMinMax[java.lang.Long] {
+  implicit object MinMaxLong extends ComparableMinMax[java.lang.Long] with Serializable {
     override val min: java.lang.Long = java.lang.Long.MIN_VALUE
     override val max: java.lang.Long = java.lang.Long.MAX_VALUE
   }
 
-  implicit object MinMaxFloat extends ComparableMinMax[java.lang.Float] {
+  implicit object MinMaxFloat extends ComparableMinMax[java.lang.Float] with Serializable {
     override val min: java.lang.Float = 0f - java.lang.Float.MAX_VALUE
     override val max: java.lang.Float = java.lang.Float.MAX_VALUE
   }
 
-  implicit object MinMaxDouble extends ComparableMinMax[java.lang.Double] {
+  implicit object MinMaxDouble extends ComparableMinMax[java.lang.Double] with Serializable  {
     override val min: java.lang.Double = 0d - java.lang.Double.MAX_VALUE
     override val max: java.lang.Double = java.lang.Double.MAX_VALUE
   }
 
-  implicit object MinMaxDate extends ComparableMinMax[Date] {
+  implicit object MinMaxDate extends ComparableMinMax[Date] with Serializable {
     override val min: Date = new Date(java.lang.Long.MIN_VALUE)
     override val max: Date = new Date(java.lang.Long.MAX_VALUE)
   }
@@ -184,7 +190,7 @@ object MinMax {
   /**
     * Geometry min/max tracks the bounding box of each geometry, not the geometries themselves.
     */
-  implicit object MinMaxGeometry extends MinMaxDefaults[Geometry] {
+  implicit object MinMaxGeometry extends MinMaxDefaults[Geometry] with Serializable {
 
     private val gf = JTSFactoryFinder.getGeometryFactory
 

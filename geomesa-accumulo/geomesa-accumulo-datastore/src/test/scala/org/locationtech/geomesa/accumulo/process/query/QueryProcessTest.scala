@@ -108,5 +108,51 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       forall(f)(_.getDefaultGeometry.asInstanceOf[Geometry].intersects(poly) must beTrue)
       f must haveLength(4)
     }
+
+    import scala.collection.JavaConversions._
+
+    "allow for projections in the returned result set" in {
+      val features = fs.getFeatures()
+
+      val geomesaQuery = new QueryProcess
+      val results = geomesaQuery.execute(features, null, "type;geom")
+
+      val f = SelfClosingIterator(results).toList
+      f.head.getType.getAttributeCount mustEqual 2
+
+      forall(f)(_.getAttribute("type") must beOneOf("a", "b"))
+      f must haveLength(8)
+    }
+
+    "support transforms in the returned result set" in {
+      val features = fs.getFeatures()
+
+      val geomesaQuery = new QueryProcess
+      val results = geomesaQuery.execute(features, null, "type;geom;derived=strConcat(type, 'b')")
+
+      val f = SelfClosingIterator(results).toList
+      f.head.getType.getAttributeCount mustEqual 3
+
+      forall(f)(_.getAttribute("type") must beOneOf("a", "b"))
+      forall(f)(_.getAttribute("derived") must beOneOf("ab", "bb"))
+      f must haveLength(8)
+    }
+
+    // NB: We 'filter' and then 'transform'.  Any filter on a 'derived' field must be expressed as a function.
+    "support transforms with filters in the returned result set" in {
+      val features = fs.getFeatures()
+
+      val geomesaQuery = new QueryProcess
+      val results = geomesaQuery.execute(features,
+                                         ECQL.toFilter("strConcat(type, 'b') = 'ab'"),
+                                         "type;geom;derived=strConcat(type, 'b')")
+
+      val f = SelfClosingIterator(results).toList
+      f.head.getType.getAttributeCount mustEqual 3
+
+      forall(f)(_.getAttribute("type") mustEqual "a")
+      forall(f)(_.getAttribute("derived") mustEqual "ab")
+      f must haveLength(4)
+    }
   }
 }

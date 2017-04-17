@@ -35,7 +35,7 @@ class IteratorStackCount extends Stat {
 
   override def +=(other: IteratorStackCount): Unit = counter += other.counter
 
-  override def toJson: String = s"""{ "count": $counter }"""
+  override def toJsonObject = Map("count" -> counter)
 
   override def isEmpty: Boolean = false
 

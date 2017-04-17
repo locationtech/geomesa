@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.utils.stats
 
+import java.lang.reflect.Type
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date
 
+import com.google.gson._
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.lang.StringEscapeUtils
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -19,6 +21,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.reflect.ClassTag
+import scala.collection.JavaConverters._
 
 /**
  * Stats used by the StatsIterator to compute various statistics server-side for a given query.
@@ -73,11 +76,24 @@ trait Stat {
   def +(other: Stat)(implicit d: DummyImplicit): Stat = this + other.asInstanceOf[S]
 
   /**
-   * Returns a json representation of the stat
+   * Returns a JSON representation of the [[Stat]]
    *
    * @return stat as a json string
    */
-  def toJson: String
+  def toJson: String = Stat.JSON.toJson(toJsonObject)
+
+  /**
+    * Returns a representation of the [[Stat]] to be serialized
+    *
+    * This function should return a representation (view) of the [[Stat]] to be serialized as JSON.
+    * Instances of [[Map]] can be used to represent JSON dictionaries or [[Seq]] for JSON arrays.
+    * A [[collection.SortedMap]] such as [[collection.immutable.ListMap]] is recommended if key order
+    * should be deterministic.  Other types may be used but could require the creation and registration
+    * of custom serializers dependent on the JSON framework being utilized (currently [[Gson]]).
+    *
+    * @return stat as a json serializable object
+    */
+  def toJsonObject: Any
 
   /**
    * Necessary method used by the StatIterator. Indicates if the stat has any values or not
@@ -111,6 +127,55 @@ trait Stat {
  * (see tests for more use cases)
  */
 object Stat {
+
+  val ScalaMapSerializer = new JsonSerializer[Map[_,_]] {
+    def serialize(s: Map[_,_], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
+  }
+  val ScalaSeqSerializer = new JsonSerializer[Seq[_]] {
+    def serialize(s: Seq[_], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
+  }
+  val StatSerializer = new JsonSerializer[Stat] {
+    def serialize(s: Stat, t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.toJsonObject)
+  }
+  val GeometrySerializer = new JsonSerializer[Geometry] {
+    def serialize(g: Geometry, t: Type, jsc: JsonSerializationContext): JsonElement =
+      new JsonPrimitive(WKTUtils.write(g))
+  }
+  val DateSerializer = new JsonSerializer[Date] {
+    def serialize(d: Date, t: Type, jsc: JsonSerializationContext): JsonElement =
+      new JsonPrimitive(GeoToolsDateFormat.format(d.toInstant))
+  }
+  val DoubleSerializer = new JsonSerializer[jDouble]() {
+    def serialize(d: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = d match {
+      /* NaN check, use null to mirror existing behavior for missing/invalid values */
+      case d if jDouble.isNaN(d) => JsonNull.INSTANCE
+      case d if d == jDouble.NEGATIVE_INFINITY => new JsonPrimitive("Infinity")
+      case d if d == jDouble.POSITIVE_INFINITY => new JsonPrimitive("+Infinity")
+      case _ => new JsonPrimitive(d)
+    }
+  }
+  val FloatSerializer = new JsonSerializer[jFloat]() {
+    def serialize(f: jFloat, t: Type, jsc: JsonSerializationContext): JsonElement = f match {
+      /* NaN check, use null to mirror existing behavior for missing/invalid values */
+      case f if jFloat.isNaN(f) => JsonNull.INSTANCE
+      case f if f == jFloat.NEGATIVE_INFINITY => new JsonPrimitive("Infinity")
+      case f if f == jFloat.POSITIVE_INFINITY => new JsonPrimitive("+Infinity")
+      case _ => new JsonPrimitive(f)
+    }
+  }
+
+  val JSON: Gson = new GsonBuilder()
+    .serializeNulls()
+    .registerTypeAdapter(classOf[Double], DoubleSerializer)
+    .registerTypeAdapter(classOf[jDouble], DoubleSerializer)
+    .registerTypeAdapter(classOf[Float], FloatSerializer)
+    .registerTypeAdapter(classOf[jFloat], FloatSerializer)
+    .registerTypeHierarchyAdapter(classOf[Stat], StatSerializer)
+    .registerTypeHierarchyAdapter(classOf[Geometry], GeometrySerializer)
+    .registerTypeHierarchyAdapter(classOf[Date], DateSerializer)
+    .registerTypeHierarchyAdapter(classOf[Map[_,_]], ScalaMapSerializer)
+    .registerTypeHierarchyAdapter(classOf[Seq[_]], ScalaSeqSerializer)
+    .create()
 
   def apply(sft: SimpleFeatureType, s: String) = StatParser.parse(sft, s)
 
@@ -222,6 +287,23 @@ object Stat {
   def SeqStat(stats: Seq[String]): String = stats.mkString(";")
 
   /**
+    * Groups results by attribute and runs stats for each group.
+    *
+    * @param attribute attribute to group stats by
+    * @param groupedStat stat to apply to grouped attributes
+    * @return
+    */
+  def GroupBy(attribute: String, groupedStat: Stat): String = s"GroupBy(${safeString(attribute)},$groupedStat)"
+
+  /**
+    * String that will be parsed into a multi variate descriptive stat
+    *
+    * @param attributes attribute name to evaluate
+    * @return
+    */
+  def DescriptiveStats(attributes: Seq[String]): String = s"DescriptiveStats(${attributes.map(safeString).mkString(",")})"
+
+  /**
     * Combines a sequence of stats. This will not modify any of the inputs.
     *
     * @param stats stats to combine
@@ -253,7 +335,7 @@ object Stat {
     val toString: (Any) => String = if (classOf[Geometry].isAssignableFrom(clas)) {
       (v) => WKTUtils.write(v.asInstanceOf[Geometry])
     } else if (clas == classOf[Date]) {
-      (v) => GeoToolsDateFormat.print(v.asInstanceOf[Date].getTime)
+      (v) => GeoToolsDateFormat.format(v.asInstanceOf[Date].toInstant)
     } else {
       (v) => v.toString
     }
@@ -287,7 +369,7 @@ object Stat {
     } else if (classOf[Geometry].isAssignableFrom(clas)) {
       (s) => if (s == "null") null.asInstanceOf[T] else WKTUtils.read(s).asInstanceOf[T]
     } else if (clas == classOf[Date]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else GeoToolsDateFormat.parseDateTime(s).toDate.asInstanceOf[T]
+      (s) => if (s == "null") null.asInstanceOf[T] else java.util.Date.from(java.time.LocalDateTime.parse(s, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)).asInstanceOf[T]
     } else {
       throw new RuntimeException(s"Unexpected class binding for stat attribute: $clas")
     }

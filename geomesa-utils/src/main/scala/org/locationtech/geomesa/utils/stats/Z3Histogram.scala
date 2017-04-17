@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -29,7 +30,8 @@ import org.opengis.feature.simple.SimpleFeature
   * @param period time period to use for z index
   * @param length number of bins the histogram has, per period
  */
-class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod, val length: Int) extends Stat {
+class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod, val length: Int)
+    extends Stat with LazyLogging {
 
   import Z3Histogram._
 
@@ -96,8 +98,12 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
     val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry]
     val dtg  = sf.getAttribute(dtgIndex).asInstanceOf[Date]
     if (geom != null && dtg != null) {
-      val (timeBin, z3) = toKey(geom, dtg)
-      binMap.getOrElseUpdate(timeBin, newBins).add(z3, 1L)
+      try {
+        val (timeBin, z3) = toKey(geom, dtg)
+        binMap.getOrElseUpdate(timeBin, newBins).add(z3, 1L)
+      } catch {
+        case e: Exception => logger.warn(s"Error observing geom '$geom' and date '$dtg': ${e.toString}")
+      }
     }
   }
 
@@ -105,8 +111,12 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
     val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry]
     val dtg  = sf.getAttribute(dtgIndex).asInstanceOf[Date]
     if (geom != null && dtg != null) {
-      val (timeBin, z3) = toKey(geom, dtg)
-      binMap.get(timeBin).foreach(_.add(z3, -1L))
+      try {
+        val (timeBin, z3) = toKey(geom, dtg)
+        binMap.get(timeBin).foreach(_.add(z3, -1L))
+      } catch {
+        case e: Exception => logger.warn(s"Error un-observing geom '$geom' and date '$dtg': ${e.toString}")
+      }
     }
   }
 
@@ -140,12 +150,10 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
     }
   }
 
-  override def toJson: String = {
-    val timeBins = binMap.toSeq.sortBy(_._1).map { case (p, bins) =>
-      s""""${String.format(jsonFormat, Short.box(p))}" : { "bins" : [ ${bins.counts.mkString(", ")} ] }"""
-    }
-    timeBins.mkString("{ ", ", ", " }")
-  }
+  override def toJsonObject =
+    binMap.toSeq.sortBy(_._1)
+      .map { case (p, bins) => (String.format(jsonFormat, Short.box(p)), bins) }
+      .map { case (label, bins) => Map(label-> Map("bins" -> bins.counts)) }
 
   override def isEmpty: Boolean = binMap.values.forall(_.counts.forall(_ == 0))
 

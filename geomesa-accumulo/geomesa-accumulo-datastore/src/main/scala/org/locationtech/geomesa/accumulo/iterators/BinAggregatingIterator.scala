@@ -261,14 +261,14 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
       }
       (_) => {
         val row = source.getTopKey.getRow
-        sf.getIdentifier.setID(getId(row.getBytes, 0, row.getLength))
+        sf.setId(getId(row.getBytes, 0, row.getLength))
         setValuesFromBin(sf, gf)
         sf
       }
     } else if (sample && dedupe) {
       (_) => {
         val row = source.getTopKey.getRow
-        sf.getIdentifier.setID(getId(row.getBytes, 0, row.getLength))
+        sf.setId(getId(row.getBytes, 0, row.getLength))
         setTrackIdFromBin(sf)
         sf
       }
@@ -280,7 +280,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
     } else if (dedupe) {
       (_) => {
         val row = source.getTopKey.getRow
-        sf.getIdentifier.setID(getId(row.getBytes, 0, row.getLength))
+        sf.setId(getId(row.getBytes, 0, row.getLength))
         sf
       }
     } else {

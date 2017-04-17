@@ -1,10 +1,10 @@
-.. _accumulo_authorizations:
+.. _authorizations:
 
-Accumulo Authorizations
------------------------
+DataStore Authorizations
+------------------------
 
-When performing a query, GeoMesa delegates the retrieval of authorizations to ``service providers`` that
-implement the following interface:
+When performing a query using the Accumulo or HBase datastore, GeoMesa delegates the retrieval of authorizations to
+``service providers`` that implement the following interface:
 
 .. code-block:: java
 
@@ -20,7 +20,7 @@ implement the following interface:
          *
          * @return
          */
-        public Authorizations getAuthorizations();
+        public List<String> getAuthorizations();
 
         /**
          * Configures this instance with parameters passed into the DataStoreFinder
@@ -61,7 +61,7 @@ default ``AuthorizationsProvider`` implementation provided by GeoMesa.
     DataStore dataStore = DataStoreFinder.getDataStore(configuration);
 
 If there are no ``AuthorizationsProvider`` implementations found on the classpath, and the ``auths`` parameter is
-not set, GeoMesa will default to using the authorizations associated with the underlying Accumulo
+not set, GeoMesa will default to using the authorizations associated with the underlying Accumulo or HBase
 connection (i.e. the ``user`` configuration value).
 
 .. warning::
@@ -69,6 +69,6 @@ connection (i.e. the ``user`` configuration value).
     This is not a recommended approach for a production system.
 
 In addition, please note that the authorizations used in any scenario cannot exceed
-the authorizations of the underlying Accumulo connection.
+the authorizations of the underlying Accumulo or HBase connection.
 
 For examples on implementing an ``AuthorizationsProvider`` see the :ref:`accumulo_tutorials_security` tutorials.

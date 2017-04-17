@@ -53,7 +53,7 @@ class FrequencyTest extends Specification with StatTestHelper {
   def geomStat(precision: Int, observe: Boolean = true) =
     createStat[Geometry]("geom", precision: Int, observe)
 
-  def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
+  def toDate(string: String) = java.util.Date.from(java.time.LocalDateTime.parse(string, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
   def toGeom(string: String) = WKTUtils.read(string)
 
   "Frequency stat" should {
@@ -72,9 +72,11 @@ class FrequencyTest extends Specification with StatTestHelper {
       val weeks = Set(weekStart, weekStart + 1, weekStart + 2, weekStart + 3)
       val dayStart = BinnedTime.Epoch.plusWeeks(weekStart).plusHours(1)
       (0 until 28 * 4).foreach { i =>
-        val a = Array(null, null, i, null, null, "POINT(-75 45)", dayStart.plusDays(i % 28).toDate)
-        val f = SimpleFeatureBuilder.build(sft, a.asInstanceOf[Array[AnyRef]], i.toString)
-        stat.observe(f)
+        val sf = SimpleFeatureBuilder.build(sft, Array[AnyRef](), i.toString)
+        sf.setAttribute("longAttr", i)
+        sf.setAttribute("geom", "POINT(-75 45)")
+        sf.setAttribute("dtg", dayStart.plusDays(i % 28).toDate)
+        stat.observe(sf)
       }
       val serializer = StatSerializer(sft)
 

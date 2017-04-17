@@ -14,8 +14,8 @@ import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.blob.api.{Blob, BlobStore}
-import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.AuditProvider
 
 import scala.collection.JavaConversions._
@@ -23,7 +23,7 @@ import scala.util.control.NonFatal
 
 class AccumuloBlobStoreImpl(val connector: Connector,
                             val blobTableName: String,
-                            val authProvider: AuthorizationsProvider,
+                            val authProvider: AccumuloAuthsProvider,
                             val auditProvider: AuditProvider,
                             val bwConf: BatchWriterConfig ) extends BlobStore with LazyLogging {
 

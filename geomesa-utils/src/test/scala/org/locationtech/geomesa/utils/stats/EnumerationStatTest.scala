@@ -68,7 +68,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[String]("strAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -152,7 +152,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Integer]("intAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -169,7 +169,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         unpacked.toJson mustEqual stat.toJson
       }
 
-      "combine two states" >> {
+      "combine two stats" >> {
         val stat = newStat[java.lang.Integer]("intAttr")
         val stat2 = newStat[java.lang.Integer]("intAttr", observe = false)
 
@@ -224,7 +224,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Long]("longAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -296,7 +296,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Float]("floatAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -368,7 +368,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Double]("doubleAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -423,7 +423,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "observe correct values" >> {
         val stat = newStat[Date]("dtg")
-        val dates = (0 until 24).map(i => GeoToolsDateFormat.parseDateTime(f"2012-01-01T$i%02d:00:00.000Z").toDate)
+        val dates = (0 until 24).map(i => java.util.Date.from(java.time.LocalDateTime.parse(f"2012-01-01T$i%02d:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)))
         forall(dates.take(4))(d => stat.enumeration(d) mustEqual 5)
         forall(dates.drop(4))(d => stat.enumeration(d) mustEqual 4)
       }
@@ -442,7 +442,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[Date]("dtg", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -465,8 +465,8 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         features2.foreach { stat2.observe }
 
-        val dates = (0 until 24).map(i => GeoToolsDateFormat.parseDateTime(f"2012-01-01T$i%02d:00:00.000Z").toDate)
-        val dates2 = (0 until 24).map(i => GeoToolsDateFormat.parseDateTime(f"2012-01-02T$i%02d:00:00.000Z").toDate)
+        val dates = (0 until 24).map(i => java.util.Date.from(java.time.LocalDateTime.parse(f"2012-01-01T$i%02d:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)))
+        val dates2 = (0 until 24).map(i => java.util.Date.from(java.time.LocalDateTime.parse(f"2012-01-02T$i%02d:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)))
 
         stat2.enumeration must haveSize(24)
         forall(dates2.slice(4, 8))(d => stat2.enumeration(d) mustEqual 5)
@@ -520,7 +520,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[Geometry]("geom", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {

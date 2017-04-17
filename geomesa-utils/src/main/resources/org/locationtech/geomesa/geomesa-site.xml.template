@@ -256,4 +256,14 @@
         <final>false</final>
     </property>
 
+    <property>
+        <name>geomesa.hbase.remote.filtering</name>
+        <value>false</value>
+        <description>Enable usage of the server-side HBase Filters for GeoMesa. This requires installation
+            of the HBase Distributed Runtime jar which enables pushdown predicates of ECQL filters to be executed
+            on HBase Region Servers instead of in client code.
+        </description>
+        <final>false</final>
+    </property>
+
 </configuration>

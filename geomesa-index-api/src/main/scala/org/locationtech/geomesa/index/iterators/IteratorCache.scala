@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.iterators
+package org.locationtech.geomesa.index.iterators
 
 import java.util.concurrent.ConcurrentHashMap
 

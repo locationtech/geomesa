@@ -10,10 +10,12 @@ package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeature
 
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
@@ -29,13 +31,13 @@ import scala.reflect.ClassTag
  * @tparam T a comparable type which must have a StatHelperFunctions type class
  */
 class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
-                  (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) extends Stat {
+                  (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
+    extends Stat with LazyLogging {
 
   override type S = Histogram[T]
 
   private [stats] var bins: BinnedArray[T] = BinnedArray[T](initialBins, initialEndpoints)
   lazy val stringify = Stat.stringifier(ct.runtimeClass)
-  private lazy val jsonStringify = Stat.stringifier(ct.runtimeClass, json = true)
 
   def length: Int = bins.length
   def directIndex(value: Long): Int = bins.directIndex(value)
@@ -64,12 +66,16 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   override def observe(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute)
     if (value != null) {
-      val i = bins.indexOf(value.asInstanceOf[T])
-      if (i == -1) {
-        bins = Histogram.expandBins(value.asInstanceOf[T], bins)
-        bins.add(value.asInstanceOf[T])
-      } else {
-        bins.counts(i) += 1
+      try {
+        val i = bins.indexOf(value.asInstanceOf[T])
+        if (i == -1) {
+          bins = Histogram.expandBins(value.asInstanceOf[T], bins)
+          bins.add(value.asInstanceOf[T])
+        } else {
+          bins.counts(i) += 1
+        }
+      } catch {
+        case e: Exception => logger.warn(s"Error observing value '$value': ${e.toString}")
       }
     }
   }
@@ -77,12 +83,16 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   override def unobserve(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute)
     if (value != null) {
-      val i = bins.indexOf(value.asInstanceOf[T])
-      if (i == -1) {
-        bins = Histogram.expandBins(value.asInstanceOf[T], bins)
-        bins.add(value.asInstanceOf[T], -1)
-      } else {
-        bins.counts(i) -= 1
+      try {
+        val i = bins.indexOf(value.asInstanceOf[T])
+        if (i == -1) {
+          bins = Histogram.expandBins(value.asInstanceOf[T], bins)
+          bins.add(value.asInstanceOf[T], -1)
+        } else {
+          bins.counts(i) -= 1
+        }
+      } catch {
+        case e: Exception => logger.warn(s"Error un-observing value '$value': ${e.toString}")
       }
     }
   }
@@ -135,26 +145,19 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
     }
   }
 
-  override def toJson: String = {
-    val sb = new StringBuilder()
-    sb.append(s"""{ "lower-bound" : ${jsonStringify(bounds._1)}, """)
-    sb.append(s""""upper-bound" : ${jsonStringify(bounds._2)}, "bins" : [ """)
-    var i = 0
-    while (i < bins.length) {
-      sb.append(s"""{ "index": $i, "lower-bound": ${jsonStringify(bounds(i)._1)}, """)
-
-      if (i == bins.length-1) {
-        sb.append(s""""upper-bound": ${jsonStringify(bounds(i)._2)}, "count": ${bins.counts(i)}}""")
-      } else {
-        sb.append(s""""upper-bound": ${jsonStringify(bounds(i)._2)}, "count": ${bins.counts(i)}}, """)
-      }
-
-      i += 1
-    }
-
-    sb.append("] }")
-    sb.toString()
-  }
+  override def toJsonObject =
+    ListMap(
+      "lower-bound" -> bounds._1,
+      "upper-bound" -> bounds._2,
+      "bins" -> (ListMap(
+        "index" -> 0,
+        "lower-bound" -> bounds(0)._1,
+        "upper-bound" -> bounds(0)._2,
+        "count" -> bins.counts(0)) +:
+        (1 until bins.length).map(i => ListMap(
+        "index" -> i,
+        "upper-bound" -> bounds(i)._2,
+        "count" -> bins.counts(i)))))
 
   override def isEmpty: Boolean = bins.counts.forall(_ == 0)
 

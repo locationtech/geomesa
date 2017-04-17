@@ -33,7 +33,7 @@ class CountStat() extends Stat {
 
   override def +=(other: CountStat): Unit = counter += other.counter
 
-  override def toJson: String = s"""{ "count": $counter }"""
+  override def toJsonObject = Map("count" -> counter)
 
   override def isEmpty: Boolean = counter == 0
 
