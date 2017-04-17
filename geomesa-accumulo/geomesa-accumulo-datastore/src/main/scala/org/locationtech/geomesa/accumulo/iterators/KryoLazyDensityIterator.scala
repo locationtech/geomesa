@@ -207,7 +207,6 @@ object KryoLazyDensityIterator extends LazyLogging {
     val output = KryoFeatureSerializer.getOutput(null)
     result.toList.groupBy(_._1._1).foreach { case (row, cols) =>
       output.writeInt(row, true)
-      val x = cols.size
       output.writeInt(cols.size, true)
       cols.foreach { case (xy, weight) =>
         output.writeInt(xy._2, true)

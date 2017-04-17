@@ -37,6 +37,7 @@
         <module>geomesa-metrics</module>
         <module>geomesa-native-api</module>
         <module>geomesa-process</module>
+        <module>geomesa-process-utils</module>
         <module>geomesa-security</module>
         <module>geomesa-spark</module>
         <module>geomesa-stream</module>
