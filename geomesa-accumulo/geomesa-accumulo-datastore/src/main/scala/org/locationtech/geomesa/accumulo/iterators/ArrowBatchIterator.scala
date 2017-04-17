@@ -26,8 +26,7 @@ import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.index.iterators.IteratorCache
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
@@ -50,24 +49,14 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
     val encodedDictionaries = options(DictionaryKey)
     lazy val dictionaries = decodeDictionaries(encodedDictionaries)
     val includeFids = options(IncludeFidsKey).toBoolean
-    val transformSchema = options.get(TRANSFORM_SCHEMA_OPT).map(IteratorCache.sft).orNull
-    if (transformSchema == null) {
-      sample(options) match {
-        case None       => aggregate = (sf, result) => result.add(sf)
-        case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { result.add(sf) }
-      }
-      aggregateCache.getOrElseUpdate(options(SFT_OPT) + includeFids + encodedDictionaries,
-        new ArrowBatchAggregate(sft, dictionaries, includeFids))
-    } else {
-      val transforms = TransformSimpleFeature.attributes(sft, transformSchema, options(TRANSFORM_DEFINITIONS_OPT))
-      val reusable = new TransformSimpleFeature(transformSchema, transforms)
-      sample(options) match {
-        case None       => aggregate = (sf, result) => { reusable.setFeature(sf); result.add(reusable) }
-        case Some(samp) => aggregate = (sf, result) => if (samp(sf)) { reusable.setFeature(sf); result.add(reusable)  }
-      }
-      aggregateCache.getOrElseUpdate(options(TRANSFORM_DEFINITIONS_OPT) + includeFids + encodedDictionaries,
-        new ArrowBatchAggregate(transformSchema, dictionaries, includeFids))
+    val (arrowSft, arrowSftString) =
+      if (hasTransform) { (transformSft, options(TRANSFORM_SCHEMA_OPT)) } else { (sft, options(SFT_OPT)) }
+    aggregate = sample(options) match {
+      case None       => (sf, result) => result.add(sf)
+      case Some(samp) => (sf, result) => if (samp(sf)) { result.add(sf) }
     }
+    aggregateCache.getOrElseUpdate(arrowSftString + includeFids + encodedDictionaries,
+      new ArrowBatchAggregate(arrowSft, dictionaries, includeFids))
   }
 
   override def notFull(result: ArrowBatchAggregate): Boolean = underBatchSize(result)

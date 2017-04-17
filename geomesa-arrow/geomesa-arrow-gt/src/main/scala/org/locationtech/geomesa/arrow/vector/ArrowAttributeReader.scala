@@ -264,7 +264,7 @@ object ArrowAttributeReader {
   private def arrowConversion(binding: ObjectType): (AnyRef)=> AnyRef = binding match {
     case ObjectType.STRING   => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.GEOMETRY => (v) => WKTUtils.read(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
-    case ObjectType.DATE     => (v) => new Date(v.asInstanceOf[Long])
+    case ObjectType.DATE     => (v) => v.asInstanceOf[DateTime].toDate
     case ObjectType.JSON     => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.UUID     => (v) => UUID.fromString(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
     case _                   => (v) => v
