@@ -71,7 +71,7 @@ object ArrowAttributeWriter {
           case ObjectType.FLOAT    => new ArrowFloatWriter(vector.getWriter.float4(name))
           case ObjectType.DOUBLE   => new ArrowDoubleWriter(vector.getWriter.float8(name))
           case ObjectType.BOOLEAN  => new ArrowBooleanWriter(vector.getWriter.bit(name))
-          case ObjectType.DATE     => new ArrowDateWriter(vector.getWriter.date(name))
+          case ObjectType.DATE     => new ArrowDateWriter(vector.getWriter.dateMilli(name))
           case ObjectType.LIST     => new ArrowListWriter(vector.getWriter.list(name), bindings(1), allocator)
           case ObjectType.MAP      => new ArrowMapWriter(vector.getWriter.map(name), bindings(1), bindings(2), allocator)
           case ObjectType.BYTES    => new ArrowBytesWriter(vector.getWriter.varBinary(name), allocator)
@@ -166,7 +166,7 @@ object ArrowAttributeWriter {
       delegate.set(i, value.asInstanceOf[Geometry])
     }
     override def setValueCount(count: Int): Unit = delegate.setValueCount(count)
-    override def close(): Unit = delegate.close()
+    override def close(): Unit = {}
   }
 
   class ArrowStringWriter(writer: VarCharWriter, allocator: BufferAllocator) extends ArrowAttributeWriter {
@@ -209,9 +209,9 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowDateWriter(writer: DateWriter) extends ArrowAttributeWriter {
+  class ArrowDateWriter(writer: DateMilliWriter) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      writer.writeDate(value.asInstanceOf[Date].getTime)
+      writer.writeDateMilli(value.asInstanceOf[Date].getTime)
     }
   }
 
@@ -286,7 +286,7 @@ object ArrowAttributeWriter {
       }
     } else if (binding == ObjectType.DATE) {
       (value: AnyRef) => if (value != null) {
-        writer.date().writeDate(value.asInstanceOf[Date].getTime)
+        writer.dateMilli().writeDateMilli(value.asInstanceOf[Date].getTime)
       }
     } else if (binding == ObjectType.GEOMETRY) {
       (value: AnyRef) => if (value != null) {
