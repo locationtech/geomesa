@@ -13,6 +13,7 @@ import java.util.{Locale, Map => jMap}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.factory.Hints
+import org.geotools.factory.Hints.ClassKey
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation.CostEvaluation
@@ -74,6 +75,12 @@ object ViewParams extends LazyLogging {
         case "BIN_LABEL"       => setHint(BIN_LABEL, value)
         case "BIN_SORT"        => toBoolean(key, value).foreach(setHint(BIN_SORT, _))
         case "BIN_BATCH_SIZE"  => toInt(key, value).foreach(setHint(BIN_BATCH_SIZE, _))
+
+        case "ARROW_ENCODE"                => toBoolean(key, value).foreach(setHint(ARROW_ENCODE, _))
+        case "ARROW_INCLUDE_FID"           => toBoolean(key, value).foreach(setHint(ARROW_INCLUDE_FID, _))
+        case "ARROW_DICTIONARY_FIELDS"     => setHint(ARROW_DICTIONARY_FIELDS, value)
+        case "ARROW_DICTIONARY_PRECOMPUTE" => toBoolean(key, value).foreach(setHint(ARROW_DICTIONARY_COMPUTE, _))
+        case "ARROW_BATCH_SIZE"            => toInt(key, value).foreach(setHint(ARROW_BATCH_SIZE, _))
 
         // back-compatible check for strategy
         case "STRATEGY"        => toIndex(ds, sft, value).foreach(setHint(QUERY_INDEX, _))

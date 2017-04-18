@@ -9,12 +9,15 @@
 package org.locationtech.geomesa.arrow.vector
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicLong
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, NullableMapVector}
 import org.joda.time.DateTime
+import org.locationtech.geomesa.arrow.TypeBindings
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary.HasArrowDictionary
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryReader
 import org.locationtech.geomesa.arrow.vector.LineStringVector.LineStringDoubleReader
 import org.locationtech.geomesa.arrow.vector.MultiLineStringVector.MultiLineStringDoubleReader
@@ -42,6 +45,14 @@ trait ArrowAttributeReader {
 
 object ArrowAttributeReader {
 
+  def id(vector: NullableMapVector, includeFids: Boolean): ArrowAttributeReader = {
+    if (includeFids) {
+      ArrowAttributeReader(Seq(ObjectType.STRING), classOf[String], vector.getChild("id"), None, null)
+    } else {
+      ArrowAttributeReader.ArrowIncrementingFeatureIdReader
+    }
+  }
+
   def apply(sft: SimpleFeatureType,
             vector: NullableMapVector,
             dictionaries: Map[String, ArrowDictionary],
@@ -52,23 +63,21 @@ object ArrowAttributeReader {
       val classBinding = descriptor.getType.getBinding
       val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
       val dictionary = dictionaries.get(name).orElse(dictionaries.get(descriptor.getLocalName))
-      apply(name, bindings.+:(objectType), classBinding, vector, dictionary, precision)
+      apply(bindings.+:(objectType), classBinding, vector.getChild(name), dictionary, precision)
     }
   }
 
-  def apply(name: String,
-            bindings: Seq[ObjectType],
+  def apply(bindings: Seq[ObjectType],
             classBinding: Class[_],
-            vector: NullableMapVector,
+            vector: FieldVector,
             dictionary: Option[ArrowDictionary],
             precision: GeometryPrecision): ArrowAttributeReader = {
-    val child = vector.getChild(name)
-    val accessor = child.getAccessor
+    val accessor = vector.getAccessor
     dictionary match {
       case None =>
         bindings.head match {
           case ObjectType.STRING   => new ArrowStringReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
-          case ObjectType.GEOMETRY => new ArrowGeometryReader(child, classBinding, precision)
+          case ObjectType.GEOMETRY => new ArrowGeometryReader(vector, classBinding, precision)
           case ObjectType.INT      => new ArrowIntReader(accessor.asInstanceOf[NullableIntVector#Accessor])
           case ObjectType.LONG     => new ArrowLongReader(accessor.asInstanceOf[NullableBigIntVector#Accessor])
           case ObjectType.FLOAT    => new ArrowFloatReader(accessor.asInstanceOf[NullableFloat4Vector#Accessor])
@@ -84,22 +93,19 @@ object ArrowAttributeReader {
         }
 
       case Some(dict) =>
-        bindings.head match {
-          case ObjectType.STRING =>
-            accessor match {
-              case a: NullableTinyIntVector#Accessor  => new ArrowDictionaryByteReader(a, dict)
-              case a: NullableSmallIntVector#Accessor => new ArrowDictionaryShortReader(a, dict)
-              case a: NullableIntVector#Accessor      => new ArrowDictionaryIntReader(a, dict)
-              case _ => throw new IllegalArgumentException(s"Unexpected dictionary vector accessor: $accessor")
-            }
-
-          case _ => throw new IllegalArgumentException(s"Dictionary only supported for string type: ${bindings.head}")
+        val dictionaryType = TypeBindings(bindings, classBinding, precision)
+        accessor match {
+          case a: NullableTinyIntVector#Accessor  => new ArrowDictionaryByteReader(a, dict, dictionaryType)
+          case a: NullableSmallIntVector#Accessor => new ArrowDictionaryShortReader(a, dict, dictionaryType)
+          case a: NullableIntVector#Accessor      => new ArrowDictionaryIntReader(a, dict, dictionaryType)
+          case _ => throw new IllegalArgumentException(s"Unexpected dictionary vector accessor: $accessor")
         }
     }
   }
 
-  class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor, dictionary: ArrowDictionary)
-      extends ArrowAttributeReader {
+  class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor,
+                                  val dictionary: ArrowDictionary,
+                                  val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
@@ -107,8 +113,9 @@ object ArrowAttributeReader {
     }
   }
 
-  class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor, dictionary: ArrowDictionary)
-      extends ArrowAttributeReader {
+  class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor,
+                                   val dictionary: ArrowDictionary,
+                                   val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
@@ -116,8 +123,9 @@ object ArrowAttributeReader {
     }
   }
 
-  class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor, dictionary: ArrowDictionary)
-      extends ArrowAttributeReader {
+  class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor,
+                                 val dictionary: ArrowDictionary,
+                                 val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
@@ -164,6 +172,11 @@ object ArrowAttributeReader {
     }
 
     override def apply(i: Int): AnyRef = delegate.get(i)
+  }
+
+  object ArrowIncrementingFeatureIdReader extends ArrowAttributeReader {
+    private val ids = new AtomicLong(0)
+    override def apply(i: Int): AnyRef = ids.getAndIncrement.toString
   }
 
   class ArrowStringReader(accessor: NullableVarCharVector#Accessor) extends ArrowAttributeReader {
@@ -240,6 +253,14 @@ object ArrowAttributeReader {
     }
   }
 
+  /**
+    * Conversion for arrow accessor object types to simple feature type standard types.
+    *
+    * Note: geometry conversion is only correct for nested lists and maps
+    *
+    * @param binding object type being read
+    * @return
+    */
   private def arrowConversion(binding: ObjectType): (AnyRef)=> AnyRef = binding match {
     case ObjectType.STRING   => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.GEOMETRY => (v) => WKTUtils.read(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)

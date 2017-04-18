@@ -38,6 +38,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   import KryoLazyAggregatingIterator._
 
   var sft: SimpleFeatureType = _
+  var transformSft: SimpleFeatureType = _
   var index: AccumuloFeatureIndex = _
   var source: SortedKeyValueIterator[Key, Value] = _
 
@@ -85,10 +86,10 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     val transform = Option(jOptions.get(TRANSFORM_DEFINITIONS_OPT))
     val transformSchema = Option(jOptions.get(TRANSFORM_SCHEMA_OPT))
     for { t <- transform; ts <- transformSchema } {
-      reusableTransformSf = TransformSimpleFeature(IteratorCache.sft(spec), IteratorCache.sft(ts), t)
+      transformSft = IteratorCache.sft(ts)
+      reusableTransformSf = TransformSimpleFeature(IteratorCache.sft(spec), transformSft, t)
     }
     hasTransform = transform.isDefined
-
 
     val filt = options.get(CQL_OPT).map(IteratorCache.filter(spec, _)).orNull
     val dedupe = options.get(DUPE_OPT).exists(_.toBoolean)
