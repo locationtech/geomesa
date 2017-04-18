@@ -20,11 +20,9 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreC
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.hbase.index._
-import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter
@@ -39,6 +37,7 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
                               audit: Option[(AuditWriter, AuditProvider, String)],
                               queryThreads: Int,
                               queryTimeout: Option[Long],
+                              maxRangesPerExtendedScan: Int,
                               looseBBox: Boolean,
                               caching: Boolean,
                               authsProvider: Option[AuthorizationsProvider],
@@ -49,6 +48,7 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
       audit,
       queryThreads,
       queryTimeout,
+      maxRangesPerExtendedScan,
       looseBBox,
       caching,
       authsProvider
@@ -56,15 +56,19 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
     new BigtableDataStore(connection, config)
   }
 
-  override def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean = {
-    params.containsKey(HBaseDataStoreParams.BigTableNameParam.key) &&
-        Option(HBaseConfiguration.create().get(HBaseDataStoreFactory.BigTableParamCheck)).exists(_.trim.nonEmpty)
-  }
+  override def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean =
+    BigtableDataStoreFactory.canProcess(params)
+
 }
 
 object BigtableDataStoreFactory {
   val DisplayName = "Google Bigtable (GeoMesa)"
   val Description = "Google Bigtable\u2122 distributed key/value store"
+
+  def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean = {
+    params.containsKey(HBaseDataStoreParams.BigTableNameParam.key) &&
+      Option(HBaseConfiguration.create().get(HBaseDataStoreFactory.BigTableParamCheck)).exists(_.trim.nonEmpty)
+  }
 }
 
 class BigtableDataStore(connection: Connection, config: HBaseDataStoreConfig) extends HBaseDataStore(connection, config) {
@@ -94,12 +98,38 @@ object BigtableFeatureIndex extends HBaseIndexManagerType {
 }
 
 trait BigtablePlatform extends HBasePlatform {
-  override def buildPlatformScanPlan(filter: HBaseFilterStrategyType,
-                                     ranges: Seq[Query],
+
+  override def buildPlatformScanPlan(ds: HBaseDataStore,
+                                     filter: HBaseFilterStrategyType,
+                                     originalRanges: Seq[Query],
                                      table: TableName,
                                      hbaseFilters: Seq[Filter],
                                      toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
-    BigtableExtendedScanPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], Nil, toFeatures)
+    import scala.collection.JavaConversions._
+    val rowRanges = Lists.newArrayList[RowRange]()
+    originalRanges.foreach { r =>
+      rowRanges.add(new RowRange(r.asInstanceOf[Scan].getStartRow, true, r.asInstanceOf[Scan].getStopRow, false))
+    }
+    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
+    val numRanges = sortedRowRanges.size()
+    val numThreads = ds.config.queryThreads
+    // TODO: parameterize this?
+    val rangesPerThread = math.min(ds.config.maxRangesPerExtendedScan, math.max(1,math.ceil(numRanges/numThreads*2).toInt))
+    // TODO: align partitions with region boundaries
+    val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
+
+    // group scans into batches to achieve some client side parallelism
+    val groupedScans = groupedRanges.map { localRanges =>
+      // TODO: FIX
+      // currently, this constructor will call sortAndMerge a second time
+      // this is unnecessary as we have already sorted and merged above
+      val scan = new BigtableExtendedScan
+
+      localRanges.foreach { r => scan.addRange(r.getStartRow, r.getStopRow) }
+      scan
+    }
+
+    ScanPlan(filter, table, groupedScans, Nil, toFeatures)
   }
 }
 
@@ -140,48 +170,5 @@ case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform {
                                         ecql: Option[filter.Filter],
                                         sft: SimpleFeatureType): HBaseFeatureIndex.ScanConfig = {
     config
-  }
-}
-
-case class BigtableExtendedScanPlan(filter: HBaseFilterStrategyType,
-                                    table: TableName,
-                                    ranges: Seq[Scan],
-                                    remoteFilters: Seq[Filter] = Nil,
-                                    resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
-
-
-  /**
-    * Runs the query plain against the underlying database, returning the raw entries
-    *
-    * @param ds data store - provides connection object and metadata
-    * @return
-    */
-  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    import scala.collection.JavaConversions._
-    val rowRanges = Lists.newArrayList[RowRange]()
-    ranges.foreach { r =>
-      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
-    }
-    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
-    val numRanges = sortedRowRanges.size()
-    val numThreads = ds.config.queryThreads
-    // TODO: parameterize this?
-    val rangesPerThread = math.min(100, math.max(1,math.ceil(numRanges/numThreads*2).toInt))
-    // TODO: align partitions with region boundaries
-    val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
-
-    // group scans into batches to achieve some client side parallelism
-    val groupedScans = groupedRanges.map { localRanges =>
-      // TODO: FIX
-      // currently, this constructor will call sortAndMerge a second time
-      // this is unnecessary as we have already sorted and merged above
-      val scan = new BigtableExtendedScan
-
-      localRanges.foreach { r => scan.addRange(r.getStartRow, r.getStopRow) }
-      scan
-    }
-
-    val results = new HBaseBatchScan(ds.connection, table, groupedScans, ds.config.queryThreads, 100000, Nil)
-    SelfClosingIterator(resultsToFeatures(results), results.close)
   }
 }

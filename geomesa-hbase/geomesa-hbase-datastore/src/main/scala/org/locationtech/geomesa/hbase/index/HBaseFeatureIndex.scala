@@ -133,12 +133,12 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
       } else {
-        buildPlatformScanPlan(filter, ranges, table, hbaseFilters, toFeatures)
+        buildPlatformScanPlan(ds, filter, ranges, table, hbaseFilters, toFeatures)
       }
     }
   }
 
-  def buildPlatformScanPlan(filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
+  def buildPlatformScanPlan(ds: HBaseDataStore, filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 
   // default implementation does nothing
   def configurePushDownFilters(config: ScanConfig, ecql: Option[Filter], sft: SimpleFeatureType): ScanConfig = {

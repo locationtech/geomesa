@@ -43,6 +43,8 @@
         <module>geomesa-hbase-tools</module>
         <module>geomesa-hbase-spark</module>
         <module>geomesa-hbase-spark-runtime</module>
+        <module>geomesa-bigtable-spark</module>
+        <module>geomesa-bigtable-spark-runtime</module>
     </modules>
 
     <profiles>

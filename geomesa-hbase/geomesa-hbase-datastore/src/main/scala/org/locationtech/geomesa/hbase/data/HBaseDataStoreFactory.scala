@@ -62,6 +62,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     }
     val queryThreads = QueryThreadsParam.lookupWithDefault[Int](params)
     val queryTimeout = GeoMesaDataStoreFactory.queryTimeout(params)
+    val maxRangesPerExtendedScan = MaxRangesPerExtendedScan.lookupWithDefault[java.lang.Integer](params)
     val looseBBox = LooseBBoxParam.lookupWithDefault[Boolean](params)
     val caching = CachingParam.lookupWithDefault[Boolean](params)
     val security = EnableSecurityParam.lookup[Boolean](params)
@@ -70,7 +71,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
        Some(HBaseDataStoreFactory.buildAuthsProvider(connection, params))
       } else None
 
-    buildDataStore(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching, authsProvider, connection)
+    buildDataStore(catalog, generateStats, audit, queryThreads, queryTimeout, maxRangesPerExtendedScan, looseBBox, caching, authsProvider, connection)
   }
 
   // overidden by BigtableFactory
@@ -79,11 +80,12 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
                      audit: Option[(AuditWriter, AuditProvider, String)],
                      queryThreads: Int,
                      queryTimeout: Option[Long],
+                     maxRangesPerExtendedScan: Int,
                      looseBBox: Boolean,
                      caching: Boolean,
                      authsProvider: Option[AuthorizationsProvider],
                      connection: Connection): HBaseDataStore = {
-    val config = HBaseDataStoreConfig(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching, authsProvider)
+    val config = HBaseDataStoreConfig(catalog, generateStats, audit, queryThreads, queryTimeout, maxRangesPerExtendedScan, looseBBox, caching, authsProvider)
     new HBaseDataStore(connection, config)
   }
 
@@ -116,10 +118,9 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 object HBaseDataStoreParams {
   val BigTableNameParam    = new Param("bigtable.table.name", classOf[String], "Table name", true)
   val ConnectionParam      = new Param("connection", classOf[Connection], "Connection", false)
-  val HBaseParam           = new Param("hbase", classOf[java.lang.Boolean], "Connect to a vanilla HBase cluster", false, java.lang.Boolean.TRUE)
-  val BigtableParam        = new Param("bigtable", classOf[java.lang.Boolean], "Connect to a Google Cloud Bigtable instance", false, java.lang.Boolean.FALSE)
   val LooseBBoxParam       = GeoMesaDataStoreFactory.LooseBBoxParam
   val QueryThreadsParam    = GeoMesaDataStoreFactory.QueryThreadsParam
+  val MaxRangesPerExtendedScan    = new Param("max.ranges.per.extended.scan", classOf[java.lang.Integer], "Max Ranges per Extended Scan", false, 100)
   val GenerateStatsParam   = GeoMesaDataStoreFactory.GenerateStatsParam
   val AuditQueriesParam    = GeoMesaDataStoreFactory.AuditQueriesParam
   val QueryTimeoutParam    = GeoMesaDataStoreFactory.QueryTimeoutParam
@@ -143,6 +144,7 @@ object HBaseDataStoreFactory {
                                   audit: Option[(AuditWriter, AuditProvider, String)],
                                   queryThreads: Int,
                                   queryTimeout: Option[Long],
+                                  maxRangesPerExtendedScan: Int,
                                   looseBBox: Boolean,
                                   caching: Boolean,
                                   authProvider: Option[AuthorizationsProvider]) extends GeoMesaDataStoreConfig

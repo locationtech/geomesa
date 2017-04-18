@@ -38,13 +38,13 @@
         <!-- spark support -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-spark_2.11</artifactId>
+            <artifactId>geomesa-bigtable-spark_2.11</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-spark-runtime_2.11</artifactId>
+            <artifactId>geomesa-bigtable-spark-runtime_2.11</artifactId>
             <version>${project.version}</version>
         </dependency>
  
