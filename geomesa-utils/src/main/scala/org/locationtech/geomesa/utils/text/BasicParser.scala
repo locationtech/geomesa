@@ -27,8 +27,6 @@ class BasicParser extends Parser {
 
   def char: Rule0 = rule { "a" - "z" | "A" - "Z" | "0" - "9" | "_" }
 
-  def statChar: Rule0 = rule { char | "," | "'" }
-
   def string: Rule1[String] = rule { quotedString | singleQuotedString | unquotedString }
 
   def unquotedString: Rule1[String] = rule { oneOrMore(char) ~> { c => c } }
