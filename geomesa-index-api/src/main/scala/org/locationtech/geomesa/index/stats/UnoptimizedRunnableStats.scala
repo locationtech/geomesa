@@ -8,10 +8,9 @@
 
 package org.locationtech.geomesa.index.stats
 
-import org.geotools.data.{Query, Transaction}
+import org.geotools.data.{DataStore, Query, Transaction}
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -22,7 +21,7 @@ import org.opengis.filter.Filter
   *
   * @param ds datastore
   */
-class UnoptimizedRunnableStats[DS <: GeoMesaDataStore[_, _, _]](val ds: DS) extends MetadataBackedStats[DS] {
+class UnoptimizedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]) extends MetadataBackedStats {
 
   override protected val generateStats: Boolean = false
 
