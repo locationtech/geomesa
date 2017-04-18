@@ -224,15 +224,15 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
 
       _m4n += that._m4n +
         n_product * (n1_squared - n_product + n2_squared) * delta * A * A_squared +
-        (n1_squared * that._m2n + n2_squared * _m2n) * A_squared * 6d +
-        (n1 * that._m3n - n2 * _m3n) * A * 4d
+        (that._m2n * n1_squared + _m2n * n2_squared) * A_squared * 6d +
+        (that._m3n * n1 - _m3n * n2) * A * 4d
 
       _m3n += that._m3n +
         n_product * (n1 - n2) * delta * A_squared +
-        ( n1 * that._m2n - n2 * _m2n) * A * 3d
+        (that._m2n * n1 - _m2n * n2) * A * 3d
 
       _m2n += that._m2n +
-        n_product * delta * A
+        delta * A * n_product
 
       /* optimize original code (below) by special handling of diagonal and reflection about it
        * _c2 += (that._c2 + (delta |*| delta.T) * (n_product * n_i))
@@ -242,17 +242,17 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
       while (ri < size) {
         _c2.set(ri, ri, _m2n.get(ri)) // c2 diagonal is equal to m2n
         val rd = delta.get(ri)
-        var ci = ri + 1
+        var ci = ri + 1 // traverse upper diagonal
         while (ci < size) {
           val c2 = _c2.get(ri, ci) + that._c2.get(ri,ci) + rd * delta.get(ci) * coef
-          _c2.set(ri, ci, c2)
-          _c2.set(ci, ri, c2) // set other side of diagonal
+          _c2.set(ri, ci, c2) // set upper diagonal
+          _c2.set(ci, ri, c2) // set lower diagonal
           ci += 1
         }
         ri += 1
       } // c2 update
 
-      _mean += n2 * A
+      _mean += A * n2
 
       _sum += that._sum
 
