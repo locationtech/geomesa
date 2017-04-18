@@ -69,6 +69,28 @@ class SimpleFeatureArrowFileTest extends Specification {
         }
       }
     }
+    "write and read multiple logical files in one" >> {
+      withTestFile { file =>
+        WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file))) { writer =>
+          features0.foreach(writer.add)
+        }
+        WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file, true))) { writer =>
+          features1.foreach(writer.add)
+        }
+        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
+          val features = reader.features.toSeq
+          features must haveLength(20)
+          features must containTheSameElementsAs(features0 ++ features1)
+        }
+        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file), ECQL.toFilter("foo = 'foo1'"))) { reader =>
+          val features = reader.features.toSeq
+          features must haveLength(9)
+          features must containTheSameElementsAs(
+            Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
+          )
+        }
+      }
+    }
     "write and read dictionary encoded values" >> {
       val dictionaries = Map("foo:String" -> ArrowDictionary.create(Seq("foo0", "foo1", "foo2")))
       withTestFile { file =>
