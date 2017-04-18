@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import com.google.common.collect.ImmutableBiMap
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
+import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter}
 import org.locationtech.geomesa.arrow.TypeBindings
 
 /**
@@ -68,12 +69,12 @@ object ArrowDictionary {
     def dictionaryType: TypeBindings
   }
 
-  def create(values: Seq[AnyRef]): ArrowDictionary = new ArrowDictionary(values, createEncoding(nextId, values))
-
   private val values = new SecureRandom().longs(0, Long.MaxValue).iterator()
   private val ids = new AtomicLong(values.next)
 
   def nextId: Long = ids.getAndSet(values.next)
+
+  def create(values: Seq[AnyRef]): ArrowDictionary = new ArrowDictionary(values, createEncoding(nextId, values))
 
   // use the smallest int type possible to minimize bytes used
   private def createEncoding(id: Long, values: Seq[Any]): DictionaryEncoding = {

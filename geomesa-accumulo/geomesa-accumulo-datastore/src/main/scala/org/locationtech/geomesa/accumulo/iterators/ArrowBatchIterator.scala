@@ -16,7 +16,6 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.arrow.vector.file.WriteChannel
 import org.apache.arrow.vector.stream.MessageSerializer
 import org.apache.arrow.vector.{VectorSchemaRoot, VectorUnloader}
-import org.apache.commons.lang3.StringEscapeUtils
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
@@ -31,6 +30,7 @@ import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -137,16 +137,31 @@ object ArrowBatchIterator {
 
   def createDictionaries(ds: AccumuloDataStore,
                          sft: SimpleFeatureType,
+                         filter: Option[Filter],
                          fields: Seq[String],
-                         filter: Option[Filter]): Map[String, ArrowDictionary] = {
+                         provided: Map[String, Seq[AnyRef]]): Map[String, ArrowDictionary] = {
     if (fields.isEmpty) { Map.empty } else {
-      require(fields.forall(sft.getDescriptor(_).getType.getBinding == classOf[String]),
-        "Only string types supported for dictionary encoding")
-      // run a live stats query to get the dictionary values
-      val stats = Stat.SeqStat(fields.map(Stat.Enumeration))
-      val enumerations = ds.stats.runStats[EnumerationStat[String]](sft, stats, filter.getOrElse(Filter.INCLUDE))
       // note: sort values to return same dictionary cache
-      enumerations.map(e => sft.getDescriptor(e.attribute).getLocalName -> ArrowDictionary.create(e.values.toSeq.sorted)).toMap
+      val providedDictionaries = provided.map { case (k, v) => k -> ArrowDictionary.create(sort(v)) }
+      val remaining = fields.filterNot(provided.contains)
+      val queried = if (remaining.isEmpty) { Map.empty } else {
+        // run a live stats query to get the not-provided dictionary values
+        val stats = Stat.SeqStat(fields.map(Stat.Enumeration))
+        val enumerations = ds.stats.runStats[EnumerationStat[String]](sft, stats, filter.getOrElse(Filter.INCLUDE))
+        enumerations.map { e => sft.getDescriptor(e.attribute).getLocalName -> ArrowDictionary.create(sort(e.values.toSeq)) }.toMap
+      }
+      providedDictionaries ++ queried
+    }
+  }
+
+  private def sort(values: Seq[AnyRef]): Seq[AnyRef] = {
+    if (values.isEmpty || !classOf[Comparable[_]].isAssignableFrom(values.head.getClass)) {
+      values
+    } else {
+      implicit val ordering = new Ordering[AnyRef] {
+        def compare(left: AnyRef, right: AnyRef): Int = left.asInstanceOf[Comparable[AnyRef]].compareTo(right)
+      }
+      values.sorted
     }
   }
 
@@ -212,17 +227,8 @@ object ArrowBatchIterator {
     * @param dictionaries dictionaries
     * @return
     */
-  private def encodeDictionaries(dictionaries: Map[String, ArrowDictionary]): String = {
-    val sb = new StringBuilder()
-    dictionaries.foreach { case (name, dictionary) =>
-      sb.append(name).append(Tab)
-      dictionary.values.foreach { value =>
-        sb.append(StringEscapeUtils.escapeJava(value.asInstanceOf[String])).append(Tab)
-      }
-      sb.append(Tab)
-    }
-    sb.toString
-  }
+  private def encodeDictionaries(dictionaries: Map[String, ArrowDictionary]): String =
+    StringSerialization.encodeSeqMap(dictionaries.map { case (k, v) => k -> v.values })
 
   /**
     * Decodes an encoded dictionary string from an iterator config
@@ -230,10 +236,6 @@ object ArrowBatchIterator {
     * @param encoded dictionary string
     * @return
     */
-  private def decodeDictionaries(encoded: String): Map[String, ArrowDictionary] = {
-    encoded.split(s"$Tab$Tab").map { e =>
-      val values = e.split(Tab)
-      values.head -> ArrowDictionary.create(values.tail)
-    }.toMap
-  }
+  private def decodeDictionaries(encoded: String): Map[String, ArrowDictionary] =
+    StringSerialization.decodeSeqMap(encoded).map { case (k, v) => k -> ArrowDictionary.create(v) }
 }

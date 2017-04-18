@@ -40,7 +40,7 @@ class ArrowFileIteratorTest extends TestWithDataStore {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_PRECOMPUTE, false)
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_COMPUTE, false)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))

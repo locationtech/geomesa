@@ -37,28 +37,25 @@ class ArrowExporter(ds: GeoMesaDataStore[_, _, _], query: Query, os: OutputStrea
       val includeFid = hints.isArrowIncludeFid
       val batchSize = hints.getArrowBatchSize.getOrElse(1000000)
       val dictionaryFields = hints.getArrowDictionaryFields
+      val providedDictionaries = hints.getArrowDictionaryEncodedValues
       var count = 0L
-      if (dictionaryFields.nonEmpty && !hints.isArrowPrecomputeDictionaries) {
-        val writer = DictionaryBuildingWriter.create(sft, dictionaryFields, includeFid, GeometryPrecision.Float)
-        this.writer = writer
-        features.foreach { f =>
-          writer.add(f)
-          count += 1
-          if (count % batchSize == 0) {
-            writer.encode(os)
-            writer.clear()
-          }
-        }
-      } else {
+      if (hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
         val dictionaries: Map[String, ArrowDictionary] = if (dictionaryFields.isEmpty) { Map.empty } else {
           import scala.collection.JavaConversions._
-          val dictionaryQuery = new Query(query.getTypeName, query.getFilter)
-          dictionaryQuery.setPropertyNames(dictionaryFields)
-          val map = dictionaryFields.map(f => f -> scala.collection.mutable.HashSet.empty[String]).toMap
-          SelfClosingIterator(ds.getFeatureReader(dictionaryQuery, Transaction.AUTO_COMMIT)).foreach { sf =>
-            map.foreach { case (k, values) => Option(sf.getAttribute(k).asInstanceOf[String]).foreach(values.add) }
+          val provided = providedDictionaries.map { case (k, v) => k -> ArrowDictionary.create(v) }
+          val queried = {
+            val remaining = dictionaryFields.filterNot(providedDictionaries.contains)
+            if (remaining.isEmpty) { Map.empty } else {
+              val dictionaryQuery = new Query(query.getTypeName, query.getFilter)
+              dictionaryQuery.setPropertyNames(remaining)
+              val map = remaining.map(f => f -> scala.collection.mutable.HashSet.empty[AnyRef]).toMap
+              SelfClosingIterator(ds.getFeatureReader(dictionaryQuery, Transaction.AUTO_COMMIT)).foreach { sf =>
+                map.foreach { case (k, values) => Option(sf.getAttribute(k)).foreach(values.add) }
+              }
+              map.map { case (k, s) => k -> ArrowDictionary.create(s.toSeq) }
+            }
           }
-          map.map { case (k, s) => k -> ArrowDictionary.create(s.toSeq) }
+          provided ++ queried
         }
         val writer = new SimpleFeatureArrowFileWriter(sft, os, dictionaries, includeFid, GeometryPrecision.Float)
         this.writer = writer
@@ -68,6 +65,17 @@ class ArrowExporter(ds: GeoMesaDataStore[_, _, _], query: Query, os: OutputStrea
           count += 1
           if (count % batchSize == 0) {
             writer.flush()
+          }
+        }
+      } else {
+        val writer = DictionaryBuildingWriter.create(sft, dictionaryFields, includeFid, GeometryPrecision.Float)
+        this.writer = writer
+        features.foreach { f =>
+          writer.add(f)
+          count += 1
+          if (count % batchSize == 0) {
+            writer.encode(os)
+            writer.clear()
           }
         }
       }

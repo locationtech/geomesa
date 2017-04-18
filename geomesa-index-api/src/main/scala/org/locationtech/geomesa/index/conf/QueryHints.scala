@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.conf
 
 import com.vividsolutions.jts.geom.Envelope
+import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -16,6 +17,7 @@ import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 
 object QueryHints {
@@ -45,11 +47,12 @@ object QueryHints {
   val BIN_SORT         = new ClassKey(classOf[java.lang.Boolean])
   val BIN_BATCH_SIZE   = new ClassKey(classOf[java.lang.Integer])
 
-  val ARROW_ENCODE                = new ClassKey(classOf[java.lang.Boolean])
-  val ARROW_INCLUDE_FID           = new ClassKey(classOf[java.lang.Boolean])
-  val ARROW_DICTIONARY_FIELDS     = new ClassKey(classOf[java.lang.String])
-  val ARROW_DICTIONARY_PRECOMPUTE = new ClassKey(classOf[java.lang.Boolean])
-  val ARROW_BATCH_SIZE            = new ClassKey(classOf[java.lang.Integer])
+  val ARROW_ENCODE             = new ClassKey(classOf[java.lang.Boolean])
+  val ARROW_INCLUDE_FID        = new ClassKey(classOf[java.lang.Boolean])
+  val ARROW_DICTIONARY_FIELDS  = new ClassKey(classOf[java.lang.String])
+  val ARROW_DICTIONARY_VALUES  = new ClassKey(classOf[java.lang.String])
+  val ARROW_DICTIONARY_COMPUTE = new ClassKey(classOf[java.lang.Boolean])
+  val ARROW_BATCH_SIZE         = new ClassKey(classOf[java.lang.Integer])
 
   // internal hints that shouldn't be set directly by users
   object Internal {
@@ -89,8 +92,10 @@ object QueryHints {
     def isArrowIncludeFid: Boolean = Option(hints.get(ARROW_INCLUDE_FID).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
     def getArrowDictionaryFields: Seq[String] =
       Option(hints.get(ARROW_DICTIONARY_FIELDS).asInstanceOf[String]).toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
-    def isArrowPrecomputeDictionaries: Boolean =
-      Option(hints.get(ARROW_DICTIONARY_PRECOMPUTE).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
+    def isArrowComputeDictionaries: Boolean =
+      Option(hints.get(ARROW_DICTIONARY_COMPUTE).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
+    def getArrowDictionaryEncodedValues: Map[String, Seq[AnyRef]] =
+      Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap).getOrElse(Map.empty)
     def getArrowBatchSize: Option[Int] = Option(hints.get(ARROW_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue)
     def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsIteratorQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
