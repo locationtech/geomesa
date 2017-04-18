@@ -59,6 +59,26 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         reader.features.toSeq must containTheSameElementsAs(features)
       }
     }
+    "return arrow dictionary encoded data with provided dictionaries" in {
+      val query = new Query(sft.getTypeName, Filter.INCLUDE)
+      query.getHints.put(QueryHints.ARROW_ENCODE, true)
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0")
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      val out = new ByteArrayOutputStream
+      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      val in = new ByteArrayInputStream(out.toByteArray)
+      WithClose(new SimpleFeatureArrowFileReader(in)) { reader =>
+        val read = reader.features.toSeq
+        read must haveLength(10)
+        read must containAllOf(features.filter(_.getAttribute(0) != "name1"))
+        read must containAllOf {
+          val expected = features.filter(_.getAttribute(0) == "name1").map(ScalaSimpleFeature.create(sft, _))
+          expected.foreach(_.setAttribute(0, "[other]"))
+          expected
+        }
+      }
+    }
     "return arrow encoded projections" in {
       import scala.collection.JavaConverters._
       val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("dtg", "geom"))
