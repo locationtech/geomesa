@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.filters;
 
 import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.exceptions.DeserializationException;
 import org.apache.hadoop.hbase.filter.FilterBase;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -30,32 +31,44 @@ public class JSimpleFeatureFilter extends FilterBase {
     protected org.opengis.filter.Filter filter;
     private String filterString;
 
-    public JSimpleFeatureFilter(String sftString, String filterString) throws Exception {
-        this.sftString = sftString;
-        this.filterString = filterString;
-    }
+    private String transform;
+    private String transformSchema;
 
     private static abstract class AbstractFilter extends FilterBase {
         protected SimpleFeatureType sft;
         protected org.opengis.filter.Filter filter;
+        protected Boolean hasTransform;
+        protected KryoBufferSimpleFeature reusable;
         static Logger log = LoggerFactory.getLogger(JSimpleFeatureFilter.class);
 
-        AbstractFilter(String sftString, String filterString) {
+        AbstractFilter(String sftString, String filterString, String transform, String transformSchema) {
             log.debug("Instantiating new JSimpleFeatureFilter, sftString = {}, filterString = {}", sftString, filterString);
             sft = IteratorCache.sft(sftString);
             this.filter = IteratorCache.filter(sftString, filterString);
+
+            reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
+            if(transform == null || transform.isEmpty() || transformSchema == null || transformSchema.isEmpty()) {
+                hasTransform = false;
+            } else {
+                hasTransform = true;
+                reusable.setTransforms(transform, SimpleFeatureTypes.createType("", transformSchema));
+            }
         }
 
 
         @Override
         public Cell transformCell(Cell v) throws IOException {
-            return v;
+            if(hasTransform) {
+                return CellUtil.createCell(v.getRow(), v.getFamily(), v.getQualifier(), v.getTimestamp(), v.getTypeByte(), reusable.transform());
+            } else {
+                return v;
+            }
         }
     }
 
     private static class IncludeFilter extends AbstractFilter {
-        IncludeFilter(String sftString, String filter) {
-            super(sftString, filter);
+        IncludeFilter(String sftString, String filter, String transform, String transformSchema) {
+            super(sftString, filter, transform, transformSchema);
         }
 
         @Override
@@ -65,17 +78,15 @@ public class JSimpleFeatureFilter extends FilterBase {
     }
 
     private static class CQLFilter extends AbstractFilter {
-        KryoBufferSimpleFeature reusable;
-        CQLFilter(String sftString, String filter) {
-            super(sftString, filter);
-            reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
+        CQLFilter(String sftString, String filter, String transform, String transformSchema) {
+            super(sftString, filter, transform, transformSchema);
         }
 
         @Override
         public ReturnCode filterKeyValue(Cell v) throws IOException {
             try {
                 log.trace("cell = {}", v);
-                reusable.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
+                reusable.setBuffer(CellUtil.cloneValue(v));
                 log.trace("Evaluating filter against SimpleFeature");
                 if (filter.evaluate(reusable)) {
                     return ReturnCode.INCLUDE;
@@ -89,11 +100,17 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
-    public JSimpleFeatureFilter(SimpleFeatureType sft, org.opengis.filter.Filter filter) {
+    public JSimpleFeatureFilter(SimpleFeatureType sft,
+                                org.opengis.filter.Filter filter,
+                                String transform,
+                                String transformSchema) {
         this.sft = sft;
         this.filter = filter;
         this.sftString = SimpleFeatureTypes.encodeType(sft, true);
         this.filterString = ECQL.toCQL(filter);
+
+        this.transformSchema = transformSchema;
+        this.transform = transform;
     }
 
     @Override
@@ -104,7 +121,8 @@ public class JSimpleFeatureFilter extends FilterBase {
     // TODO: Add static method to compute byte array from SFT and Filter.
     @Override
     public byte[] toByteArray() throws IOException {
-        return Bytes.add(getLengthArray(sftString), getLengthArray(filterString));
+        byte[][] arrays = {getLengthArray(sftString), getLengthArray(filterString), getLengthArray(transform), getLengthArray(transformSchema)};
+        return Bytes.add(arrays);
     }
 
     private byte[] getLengthArray(String s) {
@@ -126,20 +144,25 @@ public class JSimpleFeatureFilter extends FilterBase {
 
     public static org.apache.hadoop.hbase.filter.Filter parseFrom(final byte [] pbBytes) throws DeserializationException {
         int sftLen =  Bytes.readAsInt(pbBytes, 0, 4);
-        String sftString = new String(Bytes.copy(pbBytes, 4, sftLen));
+        String sftString = new String(pbBytes, 4, sftLen);
 
         int filterLen = Bytes.readAsInt(pbBytes, sftLen + 4, 4);
-        String filterString = new String(Bytes.copy(pbBytes, sftLen + 8, filterLen));
+        String filterString = new String(pbBytes, sftLen + 8, filterLen);
+
+        int transformLen = Bytes.readAsInt(pbBytes, sftLen + filterLen + 8, 4);
+        String transformString = new String(pbBytes, sftLen + filterLen + 12, transformLen);
+
+        int transformSchemaLen = Bytes.readAsInt(pbBytes, sftLen + filterLen + transformLen + 12, 4);
+        String transformSchemaString = new String(pbBytes, sftLen + filterLen + transformLen + 16, transformSchemaLen);
 
         try {
             if("".equals(filterString)) {
-                return new IncludeFilter(sftString, filterString);
+                return new IncludeFilter(sftString, filterString, transformString, transformSchemaString);
             } else {
-                return new CQLFilter(sftString, filterString);
+                return new CQLFilter(sftString, filterString, transformString, transformSchemaString);
             }
         } catch (Exception e) {
             throw new DeserializationException(e);
         }
     }
-
 }

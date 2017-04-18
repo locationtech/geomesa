@@ -36,7 +36,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
   val cluster = new HBaseTestingUtility()
   var connection: Connection = _
-
+  
   step {
     logger.info("Starting embedded hbase")
     cluster.startMiniCluster(1)
@@ -48,7 +48,6 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
     "work with points" in {
       val typeName = "testpoints"
 
-      System.setProperty("geomesa.hbase.remote.filtering", "true")
       val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> "test_sft")
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
@@ -94,7 +93,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
           val features = SelfClosingIterator(fr).toList
           features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
-              beSome("*geom:Point:srid=4326,derived:String")
+            beSome("*geom:Point:srid=4326,derived:String")
           features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
           forall(features) { feature =>
             feature.getAttribute("derived") mustEqual s"helloname${feature.getID}"

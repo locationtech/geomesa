@@ -141,9 +141,12 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
   def buildPlatformScanPlan(ds: HBaseDataStore, filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 
   // default implementation does nothing
-  def configurePushDownFilters(config: ScanConfig, ecql: Option[Filter], sft: SimpleFeatureType): ScanConfig = {
+  def configurePushDownFilters(config: ScanConfig,
+                               ecql: Option[Filter],
+                              transform: Option[(String, SimpleFeatureType)],
+                               sft: SimpleFeatureType): ScanConfig = {
     val remoteFilters = ecql.map { filter =>
-      new JSimpleFeatureFilter(sft, filter)
+      new JSimpleFeatureFilter(sft, filter, )
     }.toSeq
     config.copy(hbaseFilters = config.hbaseFilters ++ remoteFilters)
   }
@@ -186,10 +189,8 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     val feature = sft // will eventually be used to support remote transforms
 
     // ECQL is now pushed down in HBase so don't need to apply it client side
-    // However, the transform is not yet pushed down
-    val toFeatures = resultsToFeatures(feature, None, transform)
+    val toFeatures = resultsToFeatures(feature, None, None)
 
-    configurePushDownFilters(ScanConfig(Nil, toFeatures), ecql, sft)
+    configurePushDownFilters(ScanConfig(Nil, toFeatures), ecql, transform, sft)
   }
-
 }

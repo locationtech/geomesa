@@ -45,12 +45,12 @@ class CountStatTest extends Specification with StatTestHelper {
 
     "serialize to json" >> {
       val stat = newStat()
-      stat.toJson mustEqual """{ "count": 100 }"""
+      stat.toJson must beEqualTo("""{ "count": 100 }""").ignoreSpace
     }
 
     "serialize empty to json" >> {
       val stat = newStat(observe = false)
-      stat.toJson mustEqual """{ "count": 0 }"""
+      stat.toJson must beEqualTo("""{ "count": 0 }""").ignoreSpace
     }
 
     "serialize and deserialize" >> {
