@@ -48,12 +48,12 @@ public class BigtableExtendedScanSplit extends InputSplit implements Writable, C
     @Override
     public void write(DataOutput out) throws IOException {
         Bytes.writeByteArray(out, name.getName());
-        Bytes.writeByteArray(out, MultiTableInputFormatBase.scanToString(scan).getBytes());
+        Bytes.writeByteArray(out, BigtableInputFormatBase.scanToString(scan).getBytes());
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
         name = TableName.valueOf(Bytes.readByteArray(in));
-        scan = MultiTableInputFormatBase.stringToScan(Bytes.toString(Bytes.readByteArray(in)));
+        scan = BigtableInputFormatBase.stringToScan(Bytes.toString(Bytes.readByteArray(in)));
     }
 }

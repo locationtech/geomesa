@@ -22,8 +22,6 @@ import com.google.cloud.bigtable.hbase.BigtableExtendedScan;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.classification.InterfaceAudience;
-import org.apache.hadoop.hbase.classification.InterfaceStability;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableRecordReader;
@@ -36,16 +34,12 @@ import java.util.Base64;
 import java.util.List;
 
 /**
- * A base for {@link MultiTableInputFormat}s. Receives a list of
- * {@link Scan} instances that define the input tables and
- * filters etc. Subclasses may use other TableRecordReader implementations.
+ * Adapted from HBase MultiTableInputFormatBase
  */
-@InterfaceAudience.Public
-@InterfaceStability.Evolving
-public abstract class MultiTableInputFormatBase extends
+public abstract class BigtableInputFormatBase extends
     InputFormat<ImmutableBytesWritable, Result> {
 
-  private static final Log LOG = LogFactory.getLog(MultiTableInputFormatBase.class);
+  private static final Log LOG = LogFactory.getLog(BigtableInputFormatBase.class);
 
   /** Holds the set of scans used to define the input. */
   private List<Scan> scans;

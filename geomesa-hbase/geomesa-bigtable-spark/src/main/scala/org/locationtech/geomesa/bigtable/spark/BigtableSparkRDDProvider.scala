@@ -1,14 +1,10 @@
 package org.locationtech.geomesa.bigtable.spark
 
-import java.io.ByteArrayOutputStream
-import java.util.Base64
-
-import com.google.bigtable.v2.RowSet
 import com.google.cloud.bigtable.hbase.BigtableExtendedScan
 import org.apache.hadoop.conf.{Configurable, Configuration}
-import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.hadoop.hbase.client.Scan
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat
+import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.apache.spark.SparkContext
@@ -22,9 +18,6 @@ import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.geomesa.spark.hbase.{HBaseGeoMesaRecordReader, HBaseSpatialRDDProvider}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-/**
-  * Created by afox on 4/17/17.
-  */
 class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
     BigtableDataStoreFactory.canProcess(params)
@@ -53,14 +46,18 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
       GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)
       GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
       transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
-      qp.filter.secondary.foreach { f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)) }
+
+      // we need to pass the original filter all the way to the Spark workers so
+      // that we enforce bbox'es and secondary filters.
+      GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
+
       val scans = qp.ranges.map { s =>
         val scan = s
         // need to set the table name in each scan
         scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
-        MultiTableInputFormatBase.scanToString(scan.asInstanceOf[BigtableExtendedScan])
+        BigtableInputFormatBase.scanToString(scan.asInstanceOf[BigtableExtendedScan])
       }
-      conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
+      conf.setStrings(BigtableInputFormat.SCANS, scans: _*)
 
       val rdd = sc.newAPIHadoopRDD(conf, classOf[GeoMesaBigtableInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
       SpatialRDD(rdd, transform.getOrElse(sft))
@@ -70,7 +67,7 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
 }
 
 class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] {
-  var delegate: BigtableMultiTableInputFormat = _
+  var delegate: BigtableInputFormat = _
 
   var sft: SimpleFeatureType = _
   var table: HBaseFeatureIndex = _
@@ -78,7 +75,7 @@ class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] {
   private def init(conf: Configuration) = if (sft == null) {
     sft = GeoMesaConfigurator.getSchema(conf)
     table = HBaseFeatureIndex.index(GeoMesaConfigurator.getIndexIn(conf))
-    delegate = new BigtableMultiTableInputFormat(TableName.valueOf(GeoMesaConfigurator.getTable(conf)))
+    delegate = new BigtableInputFormat(TableName.valueOf(GeoMesaConfigurator.getTable(conf)))
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
     HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
@@ -105,15 +102,12 @@ class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] {
 
 }
 
-
-
-
-object MultiTableInputFormat {
+object BigtableInputFormat {
   /** Job parameter that specifies the scan list. */
   val SCANS = "hbase.mapreduce.scans"
 }
 
-class BigtableMultiTableInputFormat(val name: TableName) extends MultiTableInputFormatBase with Configurable {
+class BigtableInputFormat(val name: TableName) extends BigtableInputFormatBase with Configurable {
   setName(name)
 
   /** The configuration. */
@@ -138,10 +132,10 @@ class BigtableMultiTableInputFormat(val name: TableName) extends MultiTableInput
     */
   def setConf(configuration: Configuration): Unit = {
     this.conf = configuration
-    val rawScans = conf.getStrings(MultiTableInputFormat.SCANS)
-    if (rawScans.length <= 0) throw new IllegalArgumentException("There must be at least 1 scan configuration set to : " + MultiTableInputFormat.SCANS)
+    val rawScans = conf.getStrings(BigtableInputFormat.SCANS)
+    if (rawScans.length <= 0) throw new IllegalArgumentException("There must be at least 1 scan configuration set to : " + BigtableInputFormat.SCANS)
     val s = new java.util.ArrayList[Scan]
-    rawScans.foreach { r => s.add(MultiTableInputFormatBase.stringToScan(r)) }
+    rawScans.foreach { r => s.add(BigtableInputFormatBase.stringToScan(r)) }
     setScans(s)
   }
 }

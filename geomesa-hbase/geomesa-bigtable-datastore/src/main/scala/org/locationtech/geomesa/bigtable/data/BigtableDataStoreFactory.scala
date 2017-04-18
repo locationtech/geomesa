@@ -159,7 +159,7 @@ case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform {
     val transform = hints.getTransform // will eventually be used to support remote transforms
     val feature = sft // will eventually be used to support remote transforms
 
-    // ECQL is now pushed down in HBase so don't need to apply it client side
+    // ECQL is not pushed down in Bigtable
     // However, the transform is not yet pushed down
     val toFeatures = resultsToFeatures(feature, ecql, transform)
 
