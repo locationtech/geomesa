@@ -142,7 +142,8 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
     def idQuery(conn: Connection, tableName: String, typeName: String): Seq[String] = {
       val params = Map(
         ConnectionParam.getName -> conn,
-        BigTableNameParam.getName -> tableName)
+        BigTableNameParam.getName -> tableName,
+        LooseBBoxParam.getName -> false)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
       idQueryWithDS(ds, typeName)
     }
@@ -159,7 +160,10 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
     "properly filter vis" >> {
       val typeName = "vistest1"
       val tableName = "vistest1"
-      val params = Map(ConnectionParam.getName -> adminConn, BigTableNameParam.getName -> tableName)
+      val params = Map(
+        ConnectionParam.getName -> adminConn,
+        BigTableNameParam.getName -> tableName,
+        LooseBBoxParam.getName -> false)
       val writeDS = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       writeDS.getSchema(typeName) must beNull
@@ -213,6 +217,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       val params = Map(
         ConnectionParam.getName -> dynConn,
         BigTableNameParam.getName -> tableName,
+        LooseBBoxParam.getName -> false,
         org.locationtech.geomesa.security.AuthProviderParam.getName -> authsProvider,
         "security.enabled" -> "true")
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
@@ -262,7 +267,10 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
     "work with points" in {
       val typeName = "testpoints"
 
-      val params = Map(ConnectionParam.getName -> user1Conn, BigTableNameParam.getName -> "test_sft")
+      val params = Map(
+        ConnectionParam.getName -> user1Conn,
+        BigTableNameParam.getName -> "test_sft",
+        LooseBBoxParam.getName -> false)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull
@@ -289,7 +297,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
-      forall(Seq(true, false)) { loose =>
+      forall(Seq(/*true, */false)) { loose =>
         val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
         forall(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd.take(5))
