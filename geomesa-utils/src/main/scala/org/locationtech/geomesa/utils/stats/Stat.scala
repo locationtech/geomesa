@@ -128,11 +128,11 @@ trait Stat {
  */
 object Stat {
 
-  val ScalaMapSerializer = new JsonSerializer[Map[_,_]] {
-    def serialize(s: Map[_,_], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
+  val ScalaMapSerializer = new JsonSerializer[Map[Any,Any]] {
+    def serialize(s: Map[Any,Any], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
   }
-  val ScalaSeqSerializer = new JsonSerializer[Seq[_]] {
-    def serialize(s: Seq[_], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
+  val ScalaSeqSerializer = new JsonSerializer[Seq[Any]] {
+    def serialize(s: Seq[Any], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
   }
   val StatSerializer = new JsonSerializer[Stat] {
     def serialize(s: Stat, t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.toJsonObject)
