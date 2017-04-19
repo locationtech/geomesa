@@ -141,21 +141,11 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
   def buildPlatformScanPlan(ds: HBaseDataStore, filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 
-  // default implementation does nothing
+  // default implementation does nothing, override in subclasses
   def configurePushDownFilters(config: ScanConfig,
                                ecql: Option[Filter],
-                              transform: Option[(String, SimpleFeatureType)],
-                               sft: SimpleFeatureType): ScanConfig = {
-    val remoteFilters =
-      if(ecql.isDefined || transform.isDefined) {
-        val (tform, tSchema) = transform.getOrElse(("", null))
-        val tSchemaString = Option(tSchema).map(SimpleFeatureTypes.encodeType(_)).getOrElse("")
-        Seq(new JSimpleFeatureFilter(sft, ecql.getOrElse(Filter.INCLUDE), tform, tSchemaString))
-      } else {
-        Seq.empty
-      }
-    config.copy(hbaseFilters = config.hbaseFilters ++ remoteFilters)
-  }
+                               transform: Option[(String, SimpleFeatureType)],
+                               sft: SimpleFeatureType): ScanConfig = config
 
   override protected def range(start: Array[Byte], end: Array[Byte]): Query =
     new Scan(start, end).addColumn(DataColumnFamily, DataColumnQualifier)

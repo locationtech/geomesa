@@ -166,7 +166,7 @@ case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform {
     configurePushDownFilters(ScanConfig(Nil, toFeatures), ecql, sft)
   }
 
-  override def configurePushDownFilters(config: HBaseFeatureIndex.ScanConfig,
+  def configurePushDownFilters(config: HBaseFeatureIndex.ScanConfig,
                                         ecql: Option[filter.Filter],
                                         sft: SimpleFeatureType): HBaseFeatureIndex.ScanConfig = {
     config

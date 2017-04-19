@@ -10,7 +10,6 @@ package org.locationtech.geomesa.hbase.filters;
 
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.exceptions.DeserializationException;
 import org.apache.hadoop.hbase.filter.FilterBase;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -19,6 +18,7 @@ import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature;
+import org.locationtech.geomesa.filter.factory.FastFilterFactory;
 import org.locationtech.geomesa.hbase.index.HBaseZ3Index;
 import org.locationtech.geomesa.index.iterators.IteratorCache;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
@@ -133,7 +133,7 @@ public class JSimpleFeatureFilter extends FilterBase {
     }
 
     private static class LocalFilterTransformer extends FilterBase {
-        private final Function3<byte[], Object, Object, String> getId;
+        //private final Function3<byte[], Object, Object, String> getId;
         protected SimpleFeatureType sft;
         private JSimpleFeatureFilter.Filter filter;
         private JSimpleFeatureFilter.Transformer transformer;
@@ -150,7 +150,7 @@ public class JSimpleFeatureFilter extends FilterBase {
             this.filter.setReusableSF(reusable);
             this.transformer.setReusableSF(reusable);
             // TODO: pass index type into filter from client rather than hardcoding HBaseZ3Index
-            this.getId = HBaseZ3Index.getIdFromRow(sft);
+            // this.getId = HBaseZ3Index.getIdFromRow(sft);
         }
 
         @Override
@@ -240,7 +240,7 @@ public class JSimpleFeatureFilter extends FilterBase {
 
     private static JSimpleFeatureFilter.Filter buildFilter(String filterString) throws CQLException {
         if(!"".equals(filterString)) {
-            return new CQLFilter(ECQL.toFilter(filterString));
+            return new CQLFilter(FastFilterFactory.toFilter(filterString));
         } else {
             return new IncludeFilter();
         }
