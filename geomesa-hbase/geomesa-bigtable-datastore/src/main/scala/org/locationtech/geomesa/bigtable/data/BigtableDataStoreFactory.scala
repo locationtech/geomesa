@@ -129,7 +129,7 @@ trait BigtablePlatform extends HBasePlatform {
       scan
     }
 
-    ScanPlan(filter, table, groupedScans, Nil, toFeatures)
+    ScanPlan(filter, table, groupedScans, toFeatures)
   }
 }
 

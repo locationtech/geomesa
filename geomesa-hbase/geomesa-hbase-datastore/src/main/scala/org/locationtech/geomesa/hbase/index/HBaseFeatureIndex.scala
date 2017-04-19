@@ -16,11 +16,9 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -39,10 +37,10 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   override def index(identifier: String): HBaseFeatureIndex =
     super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 
-  val DataColumnFamily = Bytes.toBytes("d")
+  val DataColumnFamily: Array[Byte] = Bytes.toBytes("d")
   val DataColumnFamilyDescriptor = new HColumnDescriptor(DataColumnFamily)
 
-  val DataColumnQualifier = Bytes.toBytes("d")
+  val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
@@ -132,6 +130,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe)
 
       if (ranges.head.isInstanceOf[Get]) {
+        // TODO: when do we have a GET plan?  only on IDs?
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
       } else {
         buildPlatformScanPlan(ds, filter, ranges, table, hbaseFilters, toFeatures)
