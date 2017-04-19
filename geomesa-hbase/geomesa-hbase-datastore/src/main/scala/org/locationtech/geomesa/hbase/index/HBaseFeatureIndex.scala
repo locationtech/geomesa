@@ -16,9 +16,11 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter

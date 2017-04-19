@@ -19,13 +19,11 @@ import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature;
 import org.locationtech.geomesa.filter.factory.FastFilterFactory;
-import org.locationtech.geomesa.hbase.index.HBaseZ3Index;
 import org.locationtech.geomesa.index.iterators.IteratorCache;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Function3;
 
 import java.io.IOException;
 
@@ -132,25 +130,35 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
-    private static class LocalFilterTransformer extends FilterBase {
+    public static class LocalFilterTransformer extends FilterBase {
+        private final String transform;
+        private final String transformSchema;
         //private final Function3<byte[], Object, Object, String> getId;
+        private String sftString;
+        private String filterString;
         protected SimpleFeatureType sft;
         private JSimpleFeatureFilter.Filter filter;
         private JSimpleFeatureFilter.Transformer transformer;
         private KryoBufferSimpleFeature reusable;
 
         LocalFilterTransformer(String sftString,
-                               JSimpleFeatureFilter.Filter filter,
-                               JSimpleFeatureFilter.Transformer transformer) {
-            this.filter = filter;
-            this.transformer = transformer;
+                               String filterString,
+                               String transform,
+                               String transformSchema) throws CQLException {
+            this.sftString = sftString;
+            this.filterString = filterString;
+            this.transform = transform;
+            this.transformSchema = transformSchema;
+            this.filter = buildFilter(filterString);
+            this.transformer = buildTransformer(transform, transformSchema);
 
             sft = IteratorCache.sft(sftString);
             reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
+
             this.filter.setReusableSF(reusable);
             this.transformer.setReusableSF(reusable);
+
             // TODO: pass index type into filter from client rather than hardcoding HBaseZ3Index
-            // this.getId = HBaseZ3Index.getIdFromRow(sft);
         }
 
         @Override
@@ -168,6 +176,16 @@ public class JSimpleFeatureFilter extends FilterBase {
         @Override
         public Cell transformCell(Cell v) throws IOException {
             return transformer.transformCell(v);
+        }
+
+        public static org.apache.hadoop.hbase.filter.Filter parseFrom(final byte [] pbBytes) throws DeserializationException {
+            // Required due to weird reflection
+            return JSimpleFeatureFilter.parseFrom(pbBytes);
+        }
+
+        @Override
+        public byte[] toByteArray() throws IOException {
+            return JSimpleFeatureFilter.toByteArray(sftString, filterString, transform, transformSchema);
         }
     }
 
@@ -197,7 +215,12 @@ public class JSimpleFeatureFilter extends FilterBase {
         return Bytes.add(arrays);
     }
 
-    private byte[] getLengthArray(String s) {
+    public static byte[] toByteArray(String sftString, String filterString, String transform, String transformSchema) throws IOException {
+        byte[][] arrays = {getLengthArray(sftString), getLengthArray(filterString), getLengthArray(transform), getLengthArray(transformSchema)};
+        return Bytes.add(arrays);
+    }
+
+    public static byte[] getLengthArray(String s) {
         int len = getLen(s);
         if (len == 0) {
             return Bytes.toBytes(0);
@@ -206,7 +229,7 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
-    private int getLen(String s) {
+    public static int getLen(String s) {
         if (s != null) {
             return s.length();
         } else {
@@ -229,10 +252,7 @@ public class JSimpleFeatureFilter extends FilterBase {
 
 
         try {
-            JSimpleFeatureFilter.Filter filter = buildFilter(filterString);
-            JSimpleFeatureFilter.Transformer transformer = buildTransformer(transformString, transformSchemaString);
-
-            return new LocalFilterTransformer(sftString, filter, transformer);
+            return new LocalFilterTransformer(sftString, filterString, transformString, transformSchemaString);
         } catch (Exception e) {
             throw new DeserializationException(e);
         }
