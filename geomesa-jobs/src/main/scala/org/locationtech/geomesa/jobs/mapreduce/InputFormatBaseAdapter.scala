@@ -60,12 +60,12 @@ object InputFormatBaseAdapter {
 
   def setScanAuthorizations15(job: Job, authorizations: Authorizations): Unit = {
     val method = Class.forName("org.apache.accumulo.core.client.mapreduce.InputFormatBase")
-        .getMethod("setScanAuthorizations", classOf[Job], classOf[Authorizations], classOf[String])
+        .getMethod("setScanAuthorizations", classOf[Job], classOf[Authorizations])
     method.invoke(null, job, authorizations)
   }
 
   def setScanAuthorizations16(job: Job, authorizations: Authorizations): Unit = {
-    val method = classOf[AccumuloInputFormat].getMethod("setScanAuthorizations", classOf[Job], classOf[Authorizations], classOf[String])
+    val method = classOf[AccumuloInputFormat].getMethod("setScanAuthorizations", classOf[Job], classOf[Authorizations])
     method.invoke(null, job, authorizations)
   }
 

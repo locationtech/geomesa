@@ -7,7 +7,8 @@ and Scalding jobs for maintaining GeoMesa.
 Building Instructions
 ---------------------
 
-If you wish to build ``geomesa-jobs`` separately, you can with Maven:
+If you wish to build ``geomesa-jobs`` separately, you can with Maven. Note that
+for mapreduce jobs you need to build a shaded jar as described later.
 
 .. code-block:: shell
 
@@ -108,7 +109,9 @@ slightly):
         --geomesa.input.tableName <catalog-table> \
         --geomesa.input.feature <feature> \
         --geomesa.index.coverage <full|join> \ # optional attribute
+        --geomesa.input.auths <comma separated auths> \ # set max auths on the connector
         --geomesa.index.attributes <attributes to index - space separated>
+
 
 .. note::
 
