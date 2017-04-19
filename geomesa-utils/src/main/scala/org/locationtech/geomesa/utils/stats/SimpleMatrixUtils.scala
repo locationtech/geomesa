@@ -43,7 +43,7 @@ object SimpleMatrixUtils {
     def /=(b: SimpleMatrix): Unit = CommonOps.elementDiv(a, b, a)
 
     def **(b: Double): SimpleMatrix = a.elementPower(b)
-    def **(b: SimpleMatrix) = a.elementPower(b)
+    def **(b: SimpleMatrix): SimpleMatrix = a.elementPower(b)
 
     def **=(b: Double): Unit = CommonOps.elementPower(a, b, a)
     def **=(b: SimpleMatrix): Unit = CommonOps.elementPower(a, b, a)
