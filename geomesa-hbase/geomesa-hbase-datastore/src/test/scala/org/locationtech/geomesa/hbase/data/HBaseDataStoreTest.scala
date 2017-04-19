@@ -75,8 +75,8 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
       // TODO: transforms are not working
-      // val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
-      val transformsList = Seq[Array[String]](null)
+      val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
+//      val transformsList = Seq[Array[String]](null)
 
       forall(Seq(true, false)) { loose =>
         val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]

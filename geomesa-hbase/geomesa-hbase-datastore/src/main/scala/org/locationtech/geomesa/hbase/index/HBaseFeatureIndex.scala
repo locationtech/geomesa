@@ -192,10 +192,10 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     /** This function is used to implement custom client filters for HBase **/
     val transform = hints.getTransform // will eventually be used to support remote transforms
-    val feature = sft // will eventually be used to support remote transforms
+    val schema = transform.map(_._2).getOrElse(sft) // schema coming back from server
 
     // ECQL is now pushed down in HBase so don't need to apply it client side
-    val toFeatures = resultsToFeatures(feature, None, None)
+    val toFeatures = resultsToFeatures(schema, None, None)
 
     configurePushDownFilters(ScanConfig(Nil, toFeatures), ecql, transform, sft)
   }

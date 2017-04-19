@@ -160,8 +160,8 @@ public class JSimpleFeatureFilter extends FilterBase {
             // NOTE: the reusable sf buffer is set here and the filter and transformer depend on it
             reusable.setBuffer(CellUtil.cloneValue(v));
             // TODO: avoid boxing if possible
-            String id = getId.apply(v.getRowArray(), new Integer(v.getRowOffset()), new Integer(v.getRowLength()));
-            reusable.setId(id);
+//            String id = getId.apply(v.getRowArray(), new Integer(v.getRowOffset()), new Integer(v.getRowLength()));
+//            reusable.setId(id);
             return filter.filterKeyValue(v);
         }
 
