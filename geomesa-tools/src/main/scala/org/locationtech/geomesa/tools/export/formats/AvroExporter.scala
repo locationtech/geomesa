@@ -23,11 +23,6 @@ class AvroExporter(sft: SimpleFeatureType, os: OutputStream, compression: Int) e
     None
   }
 
-  override def flush(): Unit = {
-    writer.flush()
-    os.flush()
-  }
-
   override def close(): Unit = {
     writer.close()
     os.close()
