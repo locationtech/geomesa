@@ -99,6 +99,37 @@ For snapshot integrations use:
   </repository>
 ```
 
+and then include the desired `geomesa-*` dependencies:
+
+```xml
+  <dependency>
+    <groupId>org.locationtech.geomesa</groupId>
+    <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+    <version>1.3.1</version>
+  </dependency>
+  ...
+```
+
+## `sbt` Integration
+
+Similarly, integration with `sbt` is straightforward:
+
+```scala
+// Add necessary resolvers
+resolvers ++= Seq(
+  "locationtech-releases" at "https://repo.locationtech.org/content/groups/releases",
+  "boundlessgeo" at "https://repo.boundlessgeo.com/main",
+  "osgeo" at "http://download.osgeo.org/webdav/geotools",
+  "conjars.org" at "http://conjars.org/repo"
+)
+
+// Select desired modules
+libraryDependencies ++= Seq(
+  "org.locationtech.geomesa" %% "geomesa-utils" % "1.3.1",
+  ...
+)
+```
+
 ## Building from Source
 
 Requirements:
