@@ -8,26 +8,24 @@
 
 package org.locationtech.geomesa.hbase.filters;
 
-import com.esotericsoftware.kryo.io.Input;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.KeyValueUtil;
 import org.apache.hadoop.hbase.exceptions.DeserializationException;
-import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterBase;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Strings;
-import org.geotools.filter.AbstractFilter;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature;
+import org.locationtech.geomesa.hbase.index.HBaseZ3Index;
 import org.locationtech.geomesa.index.iterators.IteratorCache;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Function3;
 
 import java.io.IOException;
 
@@ -74,8 +72,6 @@ public class JSimpleFeatureFilter extends FilterBase {
         @Override
         public ReturnCode filterKeyValue(Cell v) throws IOException {
             try {
-                log.trace("cell = {}", v);
-                sf.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
                 log.trace("Evaluating filter against SimpleFeature");
                 if (filter.evaluate(sf)) {
                     return ReturnCode.INCLUDE;
@@ -129,19 +125,19 @@ public class JSimpleFeatureFilter extends FilterBase {
 
         @Override
         public Cell transformCell(Cell c) throws IOException {
+            // TODO: transforms are not working
             byte[] newval = sf.transform();
-            return new KeyValue(CellUtil.cloneRow(c), CellUtil.cloneFamily(c), CellUtil.cloneQualifier(c), newval);
+            return CellUtil.createCell(c.getRow(), c.getFamily(), c.getQualifier(), c.getTimestamp(), c.getTypeByte(), newval);
+//            return new KeyValue(CellUtil.cloneRow(c), CellUtil.cloneFamily(c), CellUtil.cloneQualifier(c), newval);
         }
     }
 
     private static class LocalFilterTransformer extends FilterBase {
+        private final Function3<byte[], Object, Object, String> getId;
         protected SimpleFeatureType sft;
         private JSimpleFeatureFilter.Filter filter;
         private JSimpleFeatureFilter.Transformer transformer;
-
-        KryoBufferSimpleFeature reusable;
-
-        static Logger log = LoggerFactory.getLogger(JSimpleFeatureFilter.class);
+        private KryoBufferSimpleFeature reusable;
 
         LocalFilterTransformer(String sftString,
                                JSimpleFeatureFilter.Filter filter,
@@ -153,10 +149,19 @@ public class JSimpleFeatureFilter extends FilterBase {
             reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
             this.filter.setReusableSF(reusable);
             this.transformer.setReusableSF(reusable);
+            // TODO: pass index type into filter from client rather than hardcoding HBaseZ3Index
+            this.getId = HBaseZ3Index.getIdFromRow(sft);
         }
 
         @Override
         public ReturnCode filterKeyValue(Cell v) throws IOException {
+            // TODO: is visibility filter first in the FilterList?
+            // TODO: why do we have to clone the value here?
+            // NOTE: the reusable sf buffer is set here and the filter and transformer depend on it
+            reusable.setBuffer(CellUtil.cloneValue(v));
+            // TODO: avoid boxing if possible
+            String id = getId.apply(v.getRowArray(), new Integer(v.getRowOffset()), new Integer(v.getRowLength()));
+            reusable.setId(id);
             return filter.filterKeyValue(v);
         }
 
