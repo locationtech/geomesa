@@ -18,7 +18,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.driver.KryoLazyDensityDriver
 import org.locationtech.geomesa.hbase.filters.KryoLazyDensityFilter
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils._
+import org.locationtech.geomesa.index.iterators.KryoLazyDensityUtils._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}

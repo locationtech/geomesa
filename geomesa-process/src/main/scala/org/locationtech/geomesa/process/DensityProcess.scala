@@ -58,8 +58,6 @@ class DensityProcess extends VectorProcess {
 
     val heatMap = new HeatmapSurface(radiusCells, argOutputEnv, gridWidth, gridHeight)
 
-    // TODO: Use KryoLazyDensityFilterUtils
-    // TODO: Move KryoLazyDensityFilterUtils to geomesa-utils
     val decode = KryoLazyDensityIterator.decodeResult(argOutputEnv, gridWidth, gridHeight)
 
     try {

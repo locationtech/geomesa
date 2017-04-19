@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.process.utils
+package org.locationtech.geomesa.index.iterators
 
 import com.vividsolutions.jts.geom.Envelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature

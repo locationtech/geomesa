@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util
 
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.iterators.KryoLazyDensityUtils
 
 import scala.collection.JavaConversions._
 
