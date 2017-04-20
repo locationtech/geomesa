@@ -7,13 +7,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-hbase-native_2.11</artifactId>
-    <name>GeoMesa HBase Native Index</name>
+    <artifactId>geomesa-hbase-native-api_2.11</artifactId>
+    <name>GeoMesa HBase Native API</name>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-native-api_2.11</artifactId>
+            <artifactId>geomesa-native-api_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

@@ -17,10 +17,10 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 @InterfaceStability.Unstable
-class HBaseGeoIndex[T](override protected val ds: HBaseDataStore,
-                       name: String,
-                       serde: ValueSerializer[T],
-                       view: SimpleFeatureView[T]) extends BaseBigTableIndex[T](ds, name, serde, view) {
+class HBaseGeoMesaIndex[T](override protected val ds: HBaseDataStore,
+                           name: String,
+                           serde: ValueSerializer[T],
+                           view: SimpleFeatureView[T]) extends BaseBigTableIndex[T](ds, name, serde, view) {
 
   override def flush(): Unit = {
     writers.asMap().values().map(_.asInstanceOf[HBaseFeatureWriter]).foreach(_.flush())
@@ -28,11 +28,11 @@ class HBaseGeoIndex[T](override protected val ds: HBaseDataStore,
 }
 
 @InterfaceStability.Unstable
-object HBaseGeoIndex {
+object HBaseGeoMesaIndex {
   def build[T](name: String,
                remote: Boolean,
                connection: Connection,
-               valueSerializer: ValueSerializer[T]): HBaseGeoIndex[T] = {
+               valueSerializer: ValueSerializer[T]): HBaseGeoMesaIndex[T] = {
     build(name, remote, connection, valueSerializer, new DefaultSimpleFeatureView[T]())
   }
 
@@ -40,33 +40,33 @@ object HBaseGeoIndex {
                remote: Boolean,
                connection: Connection,
                valueSerializer: ValueSerializer[T],
-               view: SimpleFeatureView[T]): HBaseGeoIndex[T] =
+               view: SimpleFeatureView[T]): HBaseGeoMesaIndex[T] =
     buildWithView[T](name, remote, connection, valueSerializer, view)
 
   def build[T](name: String,
                remote: Boolean,
                valueSerializer: ValueSerializer[T])
-              (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T]()): HBaseGeoIndex[T] =
+              (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T]()): HBaseGeoMesaIndex[T] =
     buildWithView[T](name, remote, valueSerializer, view)
 
   def buildWithView[T](name: String,
                        remote: Boolean,
                        valueSerializer: ValueSerializer[T],
-                       view: SimpleFeatureView[T]): HBaseGeoIndex[T] = {
+                       view: SimpleFeatureView[T]): HBaseGeoMesaIndex[T] = {
     import scala.collection.JavaConversions._
     val ds =
       DataStoreFinder.getDataStore(Map(
         HBaseDataStoreParams.BigTableNameParam.key-> name,
         HBaseDataStoreParams.RemoteParam.key-> remote
       )).asInstanceOf[HBaseDataStore]
-    new HBaseGeoIndex[T](ds, name, valueSerializer, view)
+    new HBaseGeoMesaIndex[T](ds, name, valueSerializer, view)
   }
 
   def buildWithView[T](name: String,
                        remote: Boolean,
                        connection: Connection,
                        valueSerializer: ValueSerializer[T],
-                       view: SimpleFeatureView[T]): HBaseGeoIndex[T] = {
+                       view: SimpleFeatureView[T]): HBaseGeoMesaIndex[T] = {
 
     val ds = DataStoreFinder.getDataStore(
       Map[String, Any](
@@ -74,19 +74,19 @@ object HBaseGeoIndex {
         HBaseDataStoreParams.BigTableNameParam.key-> name,
         HBaseDataStoreParams.RemoteParam.key-> remote
     ).asJava).asInstanceOf[HBaseDataStore]
-    new HBaseGeoIndex[T](ds, name, valueSerializer, view)
+    new HBaseGeoMesaIndex[T](ds, name, valueSerializer, view)
   }
 
   def buildDefaultView[T](name: String,
                           remote: Boolean,
-                          valueSerializer: ValueSerializer[T]): HBaseGeoIndex[T] = {
+                          valueSerializer: ValueSerializer[T]): HBaseGeoMesaIndex[T] = {
     build(name, remote, valueSerializer)()
   }
 
   def buildDefaultView[T](name: String,
                           remote: Boolean,
                           connection: Connection,
-                          valueSerializer: ValueSerializer[T]): HBaseGeoIndex[T] = {
+                          valueSerializer: ValueSerializer[T]): HBaseGeoMesaIndex[T] = {
     build(name, remote, connection, valueSerializer, new DefaultSimpleFeatureView[T]())
   }
 

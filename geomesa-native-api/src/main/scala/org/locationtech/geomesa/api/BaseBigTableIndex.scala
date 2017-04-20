@@ -32,9 +32,9 @@ import scala.collection.JavaConverters._
 
 @InterfaceStability.Unstable
 abstract class BaseBigTableIndex[T](protected val ds: GeoMesaDataStore[_,_,_],
-                           name: String,
-                           serde: ValueSerializer[T],
-                           view: SimpleFeatureView[T]) extends GeoMesaIndex[T] {
+                                    name: String,
+                                    serde: ValueSerializer[T],
+                                    view: SimpleFeatureView[T]) extends GeoMesaIndex[T] {
 
   protected[this] val sft = BaseBigTableIndex.buildSimpleFeatureType(name)(view)
 

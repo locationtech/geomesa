@@ -7,8 +7,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-accumulo-native_2.11</artifactId>
-    <name>GeoMesa Accumulo Native Index</name>
+    <artifactId>geomesa-accumulo-native-api_2.11</artifactId>
+    <name>GeoMesa Accumulo Native API</name>
 
     <dependencies>
         <dependency>

@@ -135,7 +135,7 @@ public class GeoMesaIndexTest {
     public void testNativeAPI() {
 
         final GeoMesaIndex<DomainObject> index =
-                HBaseGeoIndex.build(
+                HBaseGeoMesaIndex.build(
                         "hello",
                         false,
                         userConn,
@@ -187,7 +187,7 @@ public class GeoMesaIndexTest {
     public void testVisibilityNativeAPI() throws Throwable {
         // Note we are inserting here with adminConn bc it has both visibilities!
         final GeoMesaIndex<DomainObject> index =
-                HBaseGeoIndex.buildDefaultView("securityTest", false, adminConn, new DomainObjectValueSerializer());
+                HBaseGeoMesaIndex.buildDefaultView("securityTest", false, adminConn, new DomainObjectValueSerializer());
 
         Map<String, Object> visibility = ImmutableMap.<String,Object>of(GeoMesaIndex.VISIBILITY, "user");
         index.insert(
@@ -211,7 +211,7 @@ public class GeoMesaIndexTest {
 
         // Query again at the lower level.
         final GeoMesaIndex<DomainObject> index2 =
-                HBaseGeoIndex.buildDefaultView("securityTest", false, userConn, new DomainObjectValueSerializer());
+                HBaseGeoMesaIndex.buildDefaultView("securityTest", false, userConn, new DomainObjectValueSerializer());
 
         final Iterable<DomainObject> results2 = index2.query(GeoMesaQuery.include());
         Assert.assertEquals(1, Iterables.size(results2));
@@ -220,7 +220,7 @@ public class GeoMesaIndexTest {
     @Test
     public void testCustomView() throws Exception {
         final GeoMesaIndex<DomainObject> index =
-                HBaseGeoIndex.buildWithView(
+                HBaseGeoMesaIndex.buildWithView(
                         "customview",
                         false,
                         userConn,
@@ -303,7 +303,7 @@ public class GeoMesaIndexTest {
 
         // create the index, and insert a few records
         final GeoMesaIndex<DomainObject> index =
-                HBaseGeoIndex.buildWithView(
+                HBaseGeoMesaIndex.buildWithView(
                         featureName,
                         false,
                         userConn,
@@ -334,7 +334,7 @@ public class GeoMesaIndexTest {
                 date("2016-02-01T12:15:00.000Z"));
         index.flush();
         // fetch the underlying Accumulo data store
-        HBaseDataStore ds = ((HBaseGeoIndex)index).ds();
+        HBaseDataStore ds = ((HBaseGeoMesaIndex)index).ds();
 
         // look up the tables that exist
         SortedSet<String> preTables = filterTablesByPrefix(listTables(ds), featureName);
