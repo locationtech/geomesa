@@ -46,6 +46,11 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
 
   override val hasPrecomputedBins: Boolean = false
 
+  // hook to allow for not returning join plans
+  val AllowJoinPlans = new ThreadLocal[Boolean] {
+    override def initialValue: Boolean = true
+  }
+
   override def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
     val table = getTableName(sft.getTypeName, ds)
@@ -101,6 +106,19 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
     filter match {
       case None => false
       case Some(f) => FilterHelper.propertyNames(f, sft).exists(p => sft.getDescriptor(p).isMultiValued)
+    }
+  }
+
+  override def getFilterStrategy(sft: SimpleFeatureType,
+                                 filter: Filter,
+                                 transform: Option[SimpleFeatureType]): Seq[AccumuloFilterStrategyType] = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+    // verify that it's ok to return join plans
+    super.getFilterStrategy(sft, filter, transform).filter { strategy =>
+      val attributes = strategy.primary.toSeq.flatMap(FilterHelper.propertyNames(_, sft))
+      val joins = attributes.filter(sft.getDescriptor(_).getIndexCoverage() == IndexCoverage.JOIN)
+      AllowJoinPlans.get || joins.forall(!requiresJoin(sft, _, strategy.secondary, transform))
     }
   }
 
@@ -391,6 +409,15 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       }
     }
     cost.getOrElse(Long.MaxValue)
+  }
+
+  def requiresJoin(sft: SimpleFeatureType,
+                   attribute: String,
+                   filter: Option[Filter],
+                   transform: Option[SimpleFeatureType]): Boolean = {
+    sft.getDescriptor(attribute).getIndexCoverage == IndexCoverage.JOIN &&
+        !IteratorTrigger.canUseAttrIdxValues(sft, filter, transform) &&
+        !IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter, transform)
   }
 }
 
