@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class JSimpleFeatureFilter extends FilterBase {
+    private final Filter localFilter;
+    private final KryoBufferSimpleFeature reusable;
+    private final Transformer transformer;
     private String sftString;
     protected SimpleFeatureType sft;
 
@@ -39,7 +42,6 @@ public class JSimpleFeatureFilter extends FilterBase {
 
     private interface Filter {
         ReturnCode filterKeyValue(Cell v) throws IOException;
-
         void setReusableSF(KryoBufferSimpleFeature reusableSF);
     }
 
@@ -130,70 +132,29 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
-    public static class LocalFilterTransformer extends FilterBase {
-        private final String transform;
-        private final String transformSchema;
-        //private final Function3<byte[], Object, Object, String> getId;
-        private String sftString;
-        private String filterString;
-        protected SimpleFeatureType sft;
-        private JSimpleFeatureFilter.Filter filter;
-        private JSimpleFeatureFilter.Transformer transformer;
-        private KryoBufferSimpleFeature reusable;
+    public JSimpleFeatureFilter(String sftString, String filterString, String transformString, String transformSchemaString) throws CQLException {
+        this.sftString = sftString;
+        this.filterString = filterString;
 
-        LocalFilterTransformer(String sftString,
-                               String filterString,
-                               String transform,
-                               String transformSchema) throws CQLException {
-            this.sftString = sftString;
-            this.filterString = filterString;
-            this.transform = transform;
-            this.transformSchema = transformSchema;
-            this.filter = buildFilter(filterString);
-            this.transformer = buildTransformer(transform, transformSchema);
+        this.transformSchema = transformSchemaString;
+        this.transform = transformString;
 
-            sft = IteratorCache.sft(sftString);
-            reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
+        this.localFilter = buildFilter(filterString);
+        this.transformer = buildTransformer(transform, transformSchema);
 
-            this.filter.setReusableSF(reusable);
-            this.transformer.setReusableSF(reusable);
+        this.sft = IteratorCache.sft(sftString);
+        reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
 
-            // TODO: pass index type into filter from client rather than hardcoding HBaseZ3Index
-        }
+        this.localFilter.setReusableSF(reusable);
+        this.transformer.setReusableSF(reusable);
 
-        @Override
-        public ReturnCode filterKeyValue(Cell v) throws IOException {
-            // TODO: is visibility filter first in the FilterList?
-            // TODO: why do we have to clone the value here?
-            // NOTE: the reusable sf buffer is set here and the filter and transformer depend on it
-            reusable.setBuffer(CellUtil.cloneValue(v));
-            // TODO: avoid boxing if possible
-//            String id = getId.apply(v.getRowArray(), new Integer(v.getRowOffset()), new Integer(v.getRowLength()));
-//            reusable.setId(id);
-            return filter.filterKeyValue(v);
-        }
-
-        @Override
-        public Cell transformCell(Cell v) throws IOException {
-            return transformer.transformCell(v);
-        }
-
-        public static org.apache.hadoop.hbase.filter.Filter parseFrom(final byte [] pbBytes) throws DeserializationException {
-            // Required due to weird reflection
-            return JSimpleFeatureFilter.parseFrom(pbBytes);
-        }
-
-        @Override
-        public byte[] toByteArray() throws IOException {
-            return JSimpleFeatureFilter.toByteArray(sftString, filterString, transform, transformSchema);
-        }
+        // TODO: pass index type into filter from client rather than hardcoding HBaseZ3Index
     }
-
 
     public JSimpleFeatureFilter(SimpleFeatureType sft,
                                 org.opengis.filter.Filter filter,
                                 String transform,
-                                String transformSchema) {
+                                String transformSchema) throws CQLException {
         this.sft = sft;
         this.filter = filter;
         this.sftString = SimpleFeatureTypes.encodeType(sft, true);
@@ -201,11 +162,33 @@ public class JSimpleFeatureFilter extends FilterBase {
 
         this.transformSchema = transformSchema;
         this.transform = transform;
+
+        this.localFilter = buildFilter(filterString);
+        this.transformer = buildTransformer(transform, transformSchema);
+
+        reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
+
+        this.localFilter.setReusableSF(reusable);
+        this.transformer.setReusableSF(reusable);
+
+        // TODO: pass index type into filter from client rather than hardcoding HBaseZ3Index
     }
 
     @Override
     public ReturnCode filterKeyValue(Cell v) throws IOException {
-        return ReturnCode.INCLUDE;
+        // TODO: is visibility filter first in the FilterList?
+        // TODO: why do we have to clone the value here?
+        // NOTE: the reusable sf buffer is set here and the filter and transformer depend on it
+        reusable.setBuffer(CellUtil.cloneValue(v));
+        // TODO: avoid boxing if possible
+//            String id = getId.apply(v.getRowArray(), new Integer(v.getRowOffset()), new Integer(v.getRowLength()));
+//            reusable.setId(id);
+        return localFilter.filterKeyValue(v);
+    }
+
+    @Override
+    public Cell transformCell(Cell v) throws IOException {
+        return transformer.transformCell(v);
     }
 
     // TODO: Add static method to compute byte array from SFT and Filter.
@@ -252,7 +235,7 @@ public class JSimpleFeatureFilter extends FilterBase {
 
 
         try {
-            return new LocalFilterTransformer(sftString, filterString, transformString, transformSchemaString);
+            return new JSimpleFeatureFilter(sftString, filterString, transformString, transformSchemaString);
         } catch (Exception e) {
             throw new DeserializationException(e);
         }

@@ -1,7 +1,8 @@
 package org.locationtech.geomesa.index.filters
 
-import com.google.common.primitives.{Longs, Shorts}
-import org.apache.commons.lang.SerializationUtils
+import java.nio.ByteBuffer
+
+import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
 import org.locationtech.sfcurve.zorder.Z3
 
 
@@ -60,7 +61,7 @@ object Z3Filter {
   def getRowToZ(offset: Int, zLength: Int): (Array[Byte], Int, Int) => Long = {
     // account for epoch - first 2 bytes
     if (zLength == 8) {
-      (b, off, l) =>
+      (b, off, _) =>
         val base = offset + off + 2
         Longs.fromBytes(
           b(base),
@@ -73,12 +74,12 @@ object Z3Filter {
           b(base+7))
 
     } else if (zLength == 3) {
-      (b, off, l) =>
+      (b, off, _) =>
         val base = offset + off + 2
         Longs.fromBytes(b(base), b(base+1), b(base+2), 0, 0, 0, 0, 0)
 
     } else if (zLength == 4) {
-      (b, off, l) =>
+      (b, off, _) =>
         val base = offset + off + 2
         Longs.fromBytes(b(base), b(base+1), b(base+2), b(base+3), 0, 0, 0, 0)
 
@@ -91,8 +92,62 @@ object Z3Filter {
     (b, off, _) => Shorts.fromBytes(b(offset + off), b(offset+off+1))
   }
 
-  def toByteArray(f: Z3Filter): Array[Byte] = SerializationUtils.serialize(f)
+  def toByteArray(f: Z3Filter): Array[Byte] = {
+    val boundsLength = f.xyvals.length
+    val boundsSer =
+      f.xyvals.map { bounds =>
+        val length = bounds.length
+        val ser = Bytes.concat(bounds.map { v => Ints.toByteArray(v) }: _*)
+        Bytes.concat(Ints.toByteArray(length), ser)
+      }
+    val xyz = Bytes.concat(Ints.toByteArray(boundsLength), Bytes.concat(boundsSer: _*),
+      Ints.toByteArray(f.zOffset),
+      Ints.toByteArray(f.zLength))
 
-  def fromByteArray(a: Array[Byte]): Z3Filter = SerializationUtils.deserialize(a).asInstanceOf[Z3Filter]
+
+    val tlength = f.tvals.length
+    val tSer =
+      f.tvals.map { bounds =>
+        val length = bounds.length
+        val innerSer = bounds.map { b =>
+          val innerLength = b.length
+          val ser = Bytes.concat(b.map { v => Ints.toByteArray(v) }: _*)
+          Bytes.concat(Ints.toByteArray(innerLength), ser)
+        }
+        Bytes.concat(Ints.toByteArray(length), Bytes.concat(innerSer: _*))
+      }
+
+    val t = Bytes.concat(Ints.toByteArray(tlength), Bytes.concat(tSer: _*))
+
+    Bytes.concat(xyz, t, Shorts.toByteArray(f.minEpoch), Shorts.toByteArray(f.maxEpoch))
+  }
+
+  def fromByteArray(a: Array[Byte]): Z3Filter = {
+    val buf = ByteBuffer.wrap(a)
+    val boundsLength = buf.getInt()
+    val bounds = (0 until boundsLength).map { _ =>
+      val length = buf.getInt()
+      (0 until length).map { _ =>
+        buf.getInt()
+      }.toArray
+    }.toArray
+    val zOffset = buf.getInt
+    val zLength = buf.getInt
+
+    val tLength = buf.getInt
+    val tvals = (0 until tLength).map { _ =>
+      val length = buf.getInt()
+      (0 until length).map { _ =>
+        val innerLength = buf.getInt()
+        (0 until innerLength).map { _ =>
+          buf.getInt
+        }.toArray
+      }.toArray
+    }.toArray
+
+    val minEpoch = buf.getShort
+    val maxEpoch = buf.getShort
+    new Z3Filter(bounds, tvals, minEpoch,maxEpoch, zOffset, zLength)
+  }
 
 }

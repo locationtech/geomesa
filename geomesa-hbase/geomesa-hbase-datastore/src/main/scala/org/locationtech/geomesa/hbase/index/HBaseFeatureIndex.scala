@@ -147,6 +147,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                                ecql: Option[Filter],
                                transform: Option[(String, SimpleFeatureType)],
                                sft: SimpleFeatureType): ScanConfig = {
+    // TODO: configure priority of filters since Z3 is ending up after ECQL and Transform
     val remoteFilters =
       if (ecql.isDefined || transform.isDefined) {
         val (tform, tSchema) = transform.getOrElse(("", null))

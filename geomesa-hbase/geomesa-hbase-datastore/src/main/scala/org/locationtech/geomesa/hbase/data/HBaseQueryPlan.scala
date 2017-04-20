@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import com.google.common.collect.Lists
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
-import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.filter.{FilterList, Filter => HBaseFilter}
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer

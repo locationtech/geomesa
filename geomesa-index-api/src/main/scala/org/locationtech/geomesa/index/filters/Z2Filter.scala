@@ -1,7 +1,8 @@
 package org.locationtech.geomesa.index.filters
 
-import com.google.common.primitives.Longs
-import org.apache.commons.lang.SerializationUtils
+import java.nio.ByteBuffer
+
+import com.google.common.primitives.{Bytes, Ints, Longs}
 import org.locationtech.sfcurve.zorder.Z2
 
 class Z2Filter(val xyvals: Array[Array[Int]],
@@ -53,9 +54,32 @@ object Z2Filter {
     }
   }
 
-  def toByteArray(f: Z2Filter): Array[Byte] = SerializationUtils.serialize(f)
+  def toByteArray(f: Z2Filter): Array[Byte] = {
+    val boundsLength = f.xyvals.length
+    val boundsSer =
+      f.xyvals.map { bounds =>
+        val length = bounds.length
+        val ser = Bytes.concat(bounds.map { v => Ints.toByteArray(v) }: _*)
+        Bytes.concat(Ints.toByteArray(length), ser)
+      }
+    Bytes.concat(Ints.toByteArray(boundsLength), Bytes.concat(boundsSer: _*),
+      Ints.toByteArray(f.zOffset),
+      Ints.toByteArray(f.zLength))
+  }
 
-  def fromByteArray(a: Array[Byte]): Z2Filter = SerializationUtils.deserialize(a).asInstanceOf[Z2Filter]
+  def fromByteArray(a: Array[Byte]): Z2Filter = {
+    val buf = ByteBuffer.wrap(a)
+    val boundsLength = buf.getInt()
+    val bounds = (0 until boundsLength).map { i =>
+      val length = buf.getInt()
+      (0 until length).map { j =>
+        buf.getInt()
+      }.toArray
+    }.toArray
+    val zOffset = buf.getInt
+    val zLength = buf.getInt
+    new Z2Filter(bounds, zOffset, zLength)
+  }
 
 
 }
