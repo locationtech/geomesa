@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.api;
+package org.locationtech.geomesa.accumulo.nativeapi;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex;
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex$;
+import org.locationtech.geomesa.api.*;
 import org.locationtech.geomesa.utils.index.IndexMode$;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -35,12 +36,7 @@ import org.opengis.filter.FilterFactory2;
 
 import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public class GeoMesaIndexTest {
 
@@ -142,7 +138,7 @@ public class GeoMesaIndexTest {
                 AccumuloGeoMesaIndex.buildDefaultView("securityTest", "zoo1:2181", instanceId, "myuser", "password",
                         true, new DomainObjectValueSerializer());
 
-        Map<String, Object> visibility = ImmutableMap.<String,Object>of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), "user");
+        Map<String, Object> visibility = ImmutableMap.<String,Object>of(GeoMesaIndex.VISIBILITY, "user");
         index.insert(
                 one.id,
                 one,
@@ -150,7 +146,7 @@ public class GeoMesaIndexTest {
                 date("2016-01-01T12:15:00.000Z"),
                 visibility);
 
-        Map<String, Object> visibility2 = ImmutableMap.<String,Object>of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), "admin");
+        Map<String, Object> visibility2 = ImmutableMap.<String,Object>of(GeoMesaIndex.VISIBILITY, "admin");
         index.insert(
                 two.id,
                 two,
