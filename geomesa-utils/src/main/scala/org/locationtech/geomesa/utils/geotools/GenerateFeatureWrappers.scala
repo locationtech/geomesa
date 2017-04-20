@@ -85,6 +85,10 @@ object GenerateFeatureWrappers {
       sb.append(s"$tab  ${a.optionGetter}\n")
       sb.append(s"$tab  ${a.setter}\n")
     }
+
+    sb.append(s"\n$tab  def getSimpleFeatureTypeName: String = ")
+    sb.append("\"" + sft.getTypeName + "\"\n")
+
     sb.append(
       s"""
         |$tab  def debug(): String = {
