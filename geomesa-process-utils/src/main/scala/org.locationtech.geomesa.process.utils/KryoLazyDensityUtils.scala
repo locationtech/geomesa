@@ -40,6 +40,22 @@ object KryoLazyDensityUtils {
     output.toBytes
   }
 
+  /**
+    * Encodes a sparse matrix into a byte array
+    */
+  def encodeResult(result: mutable.Map[(Int, Int), Double]): Array[Byte] = {
+    val output = KryoFeatureSerializer.getOutput(null)
+    result.toList.groupBy(_._1._1).foreach { case (row, cols) =>
+      output.writeInt(row, true)
+      output.writeInt(cols.size, true)
+      cols.foreach { case (xy, weight) =>
+        output.writeInt(xy._2, true)
+        output.writeDouble(weight)
+      }
+    }
+    output.toBytes
+  }
+
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
     val sf = new ScalaSimpleFeature("", DENSITY_SFT)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
