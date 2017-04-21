@@ -19,8 +19,8 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.{HeatmapSurface, VectorProcess}
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
@@ -58,9 +58,7 @@ class DensityProcess extends VectorProcess {
 
     val heatMap = new HeatmapSurface(radiusCells, argOutputEnv, gridWidth, gridHeight)
 
-    // TODO: Use KryoLazyDensityFilterUtils
-    // TODO: Move KryoLazyDensityFilterUtils to geomesa-utils
-    val decode = KryoLazyDensityIterator.decodeResult(argOutputEnv, gridWidth, gridHeight)
+    val decode = KryoLazyDensityUtils.decodeResult(argOutputEnv, gridWidth, gridHeight)
 
     try {
       val features = obsFeatures.features()

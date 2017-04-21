@@ -8,37 +8,128 @@
 
 package org.locationtech.geomesa.process.utils
 
-import com.vividsolutions.jts.geom.Envelope
-import org.locationtech.geomesa.features.ScalaSimpleFeature
+import com.vividsolutions.jts.geom.{Coordinate, Envelope, Geometry, Point}
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.Converters
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
+import org.locationtech.geomesa.utils.geotools.{GridSnap}
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.expression.Expression
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-object KryoLazyDensityUtils {
+trait KryoLazyDensityUtils{
+
+  import KryoLazyDensityUtils._
+  var geomIndex: Int = -1
+  // we snap each point into a pixel and aggregate based on that
+  var gridSnap: GridSnap = null
+  var writeGeom: (SimpleFeature, DensityResult) => Unit = null
+
+  def initialize(options: Map[String, String], sft: SimpleFeatureType): DensityResult = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    geomIndex = sft.getGeomIndex
+    gridSnap = {
+      val bounds = options(ENVELOPE_OPT).split(",").map(_.toDouble)
+      val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
+      val Array(width, height) = options(GRID_OPT).split(",").map(_.toInt)
+      new GridSnap(envelope, width, height)
+    }
+
+    // function to get the weight from the feature - defaults to 1.0 unless an attribute/exp is specified
+    val weightIndex = options.get(WEIGHT_OPT).map(sft.indexOf).getOrElse(-2)
+    val weightFn: (SimpleFeature) => Double =
+      if (weightIndex == -2) {
+        (_) => 1.0
+      } else if (weightIndex == -1) {
+        val expression = ECQL.toExpression(options(WEIGHT_OPT))
+        getWeightFromExpression(expression)
+      } else if (sft.getDescriptor(weightIndex).getType.getBinding == classOf[java.lang.Double]) {
+        getWeightFromDouble(weightIndex)
+      } else {
+        getWeightFromNonDouble(weightIndex)
+      }
+
+    writeGeom = if (sft.isPoints) {
+      (sf, result) => writePoint(sf, weightFn(sf), result)
+    } else {
+      (sf, result) => writeNonPoint(sf.getDefaultGeometry.asInstanceOf[Geometry], weightFn(sf), result)
+    }
+
+    mutable.Map.empty[(Int, Int), Double]
+  }
+
+  /**
+    * Gets the weight for a feature from a double attribute
+    */
+  def getWeightFromDouble(i: Int)(sf: SimpleFeature): Double = {
+    val d = sf.getAttribute(i).asInstanceOf[java.lang.Double]
+    if (d == null) 0.0 else d
+  }
+
+  /**
+    * Tries to convert a non-double attribute into a double
+    */
+  def getWeightFromNonDouble(i: Int)(sf: SimpleFeature): Double = {
+    val d = sf.getAttribute(i)
+    if (d == null) {
+      0.0
+    } else {
+      val converted = Converters.convert(d, classOf[java.lang.Double])
+      if (converted == null) 1.0 else converted
+    }
+  }
+
+  /**
+    * Evaluates an arbitrary expression against the simple feature to return a weight
+    */
+  def getWeightFromExpression(e: Expression)(sf: SimpleFeature): Double = {
+    val d = e.evaluate(sf, classOf[java.lang.Double])
+    if (d == null) 0.0 else d
+  }
+
+  /**
+    * Writes a density record from a feature that has a point geometry
+    */
+  def writePoint(sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
+    writePointToResult(sf.getAttribute(geomIndex).asInstanceOf[Point], weight, result)
+
+  /**
+    * Writes a density record from a feature that has an arbitrary geometry
+    */
+  def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    writePointToResult(geom.safeCentroid(), weight, result)
+  }
+
+  protected def writePointToResult(pt: Point, weight: Double, result: DensityResult): Unit =
+    writeSnappedPoint((gridSnap.i(pt.getX), gridSnap.j(pt.getY)), weight, result)
+
+  protected def writePointToResult(pt: Coordinate, weight: Double, result: DensityResult): Unit =
+    writeSnappedPoint((gridSnap.i(pt.x), gridSnap.j(pt.y)), weight, result)
+
+  protected def writePointToResult(x: Double, y: Double, weight: Double, result: DensityResult): Unit =
+    writeSnappedPoint((gridSnap.i(x), gridSnap.j(y)), weight, result)
+
+  private def writeSnappedPoint(xy: (Int, Int), weight: Double, result: DensityResult): Unit =
+    result.update(xy, result.getOrElse(xy, 0.0) + weight)
+
+}
+
+object KryoLazyDensityUtils{
+
+  type DensityResult = mutable.Map[(Int, Int), Double]
+  type GridIterator = (SimpleFeature) => Iterator[(Double, Double, Double)]
+
   val DENSITY_SFT: SimpleFeatureType = SimpleFeatureTypes.createType("density", "result:String,*geom:Point:srid=4326")
   val density_serializer: KryoFeatureSerializer  = new KryoFeatureSerializer(DENSITY_SFT, SerializationOptions.withoutId)
-  /**
-    * Encodes a sparse matrix into a byte array
-    */
-  def encodeResult(input: java.util.Map[(java.lang.Integer, java.lang.Integer), java.lang.Double]): Array[Byte] = {
-    val result = input.asScala.toMap
-    val output = KryoFeatureSerializer.getOutput(null)
-    result.toList.groupBy(_._1._1).foreach { case (row, cols) =>
-      output.writeInt(row, true)
-      val x = cols.size
-      output.writeInt(cols.size, true)
-      cols.foreach { case (xy, weight) =>
-        output.writeInt(xy._2, true)
-        output.writeDouble(weight)
-      }
-    }
-    output.toBytes
-  }
+
+  // configuration keys
+  val ENVELOPE_OPT = "envelope"
+  val GRID_OPT     = "grid"
+  val WEIGHT_OPT   = "weight"
 
   /**
     * Encodes a sparse matrix into a byte array
@@ -55,16 +146,6 @@ object KryoLazyDensityUtils {
     }
     output.toBytes
   }
-
-  def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", DENSITY_SFT)
-    sf.setAttribute(1, GeometryUtils.zeroPoint)
-    sf.values(0) = bytes
-    sf
-  }
-
-  type DensityResult = mutable.Map[(Int, Int), Double]
-  type GridIterator = (SimpleFeature) => Iterator[(Double, Double, Double)]
 
   /**
     * Returns a mapping of simple features (returned from a density query) to weighted points in the
