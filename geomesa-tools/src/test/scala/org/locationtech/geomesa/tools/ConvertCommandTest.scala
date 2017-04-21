@@ -205,7 +205,8 @@ class ConvertCommandTest extends Specification with LazyLogging {
       |}
     """.stripMargin
 
-  val formats: Array[String] = DataFormats.values.filter(_ != DataFormats.Null).map(_.toString).toArray
+  // TODO enable arrow
+  val formats: Array[String] = DataFormats.values.filter(f => f != DataFormats.Null && f != DataFormats.Arrow).map(_.toString).toArray
   try {
     for (x <- formats; y <- formats) {
       logger.debug(s"Testing $x to $y converter")

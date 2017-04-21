@@ -20,9 +20,10 @@ import org.locationtech.geomesa.accumulo.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.accumulo.process.unique.UniqueProcess
 
 class ProcessFactory
-  extends AnnotatedBeanProcessFactory(
-    Text.text("GeoMesa Process Factory"),
-    "geomesa",
+    extends AnnotatedBeanProcessFactory(Text.text("GeoMesa Process Factory"), "geomesa", ProcessFactory.Processes: _*)
+
+object ProcessFactory {
+  val Processes = Seq(
     classOf[DensityProcess],
     classOf[Point2PointProcess],
     classOf[StatsIteratorProcess],
@@ -36,5 +37,7 @@ class ProcessFactory
     classOf[SamplingProcess],
     classOf[JoinProcess],
     classOf[RouteSearchProcess],
-    classOf[BinConversionProcess]
+    classOf[BinConversionProcess],
+    classOf[ArrowConversionProcess]
   )
+}

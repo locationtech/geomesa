@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>false</useTransitiveFiltering> <!-- transitive filtering applies to excludes too so disable it -->
+            <excludes>
+                <exclude>org.locationtech.geomesa:*:tar.gz:*</exclude>
+            </excludes>
+        </dependencySet>
+        <!--<dependencySet>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-arrow-gs-plugin*</include>
+            </includes>
+        </dependencySet>-->
+        <dependencySet>
+            <outputDirectory>dist/converters</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>../../</directory>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>LICENSE.txt</include>
+            </includes>
+        </fileSet>
+
+        <!-- Accumulo Tools filesets -->
+        <fileSet>
+            <directory>../geomesa-arrow-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-arrow-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+
+        <!-- Common Tools filesets -->
+        <fileSet>
+            <directory>../../geomesa-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+
+        <fileSet>
+            <directory>./</directory>
+            <outputDirectory>logs</outputDirectory>
+            <directoryMode>0700</directoryMode>
+            <excludes>
+                <exclude>*/**</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
+    <files>
+        <!-- geomesa-site.xml.template -->
+        <file>
+            <source>../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
+            <destName>geomesa-site.xml.template</destName>
+            <outputDirectory>conf</outputDirectory>
+        </file>
+        <!-- autocomplete -->
+        <!--<file>
+            <source>../geomesa-arrow-tools/target/autocomplete.sh</source>
+            <destName>autocomplete.sh</destName>
+            <outputDirectory>conf</outputDirectory>
+        </file>-->
+    </files>
+</component>

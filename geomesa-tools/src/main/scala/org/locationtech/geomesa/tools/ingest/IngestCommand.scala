@@ -89,11 +89,8 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 }
 
 // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-trait IngestParams extends CatalogParam
-  with OptionalTypeNameParam
-  with OptionalFeatureSpecParam
-  with OptionalConverterConfigParam
-  with OptionalInputFormatParam {
+trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam
+  with OptionalConverterConfigParam with OptionalInputFormatParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
 }
