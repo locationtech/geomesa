@@ -248,6 +248,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     }
     indexedAttributes.flatMap { case (attribute, coverage) =>
       val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck)
+      // check to see if we have a join plan and if so, that it's ok to return it
       lazy val joinCheck = coverage match {
         case IndexCoverage.FULL => true
         case IndexCoverage.JOIN => AllowJoinPlans.get || !requiresJoin(sft, attribute, secondary, transform)

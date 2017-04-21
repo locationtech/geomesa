@@ -80,7 +80,7 @@ object AccumuloJobUtils extends LazyLogging {
       if (queryPlans.isEmpty) {
         EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE)))
       } else if (queryPlans.length > 1) {
-        // this query requires multiple scans, which we can't execute from input formats
+        // this query requires multiple scans, which we can't execute from some input formats
         // instead, fall back to a full table scan
         logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
         val qps = ds.getQueryPlan(query, Some(fallbackIndex))

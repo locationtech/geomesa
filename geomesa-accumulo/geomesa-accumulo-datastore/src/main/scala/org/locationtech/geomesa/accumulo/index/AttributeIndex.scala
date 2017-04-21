@@ -114,11 +114,14 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
                                  transform: Option[SimpleFeatureType]): Seq[AccumuloFilterStrategyType] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    // verify that it's ok to return join plans
-    super.getFilterStrategy(sft, filter, transform).filter { strategy =>
-      val attributes = strategy.primary.toSeq.flatMap(FilterHelper.propertyNames(_, sft))
-      val joins = attributes.filter(sft.getDescriptor(_).getIndexCoverage() == IndexCoverage.JOIN)
-      AllowJoinPlans.get || joins.forall(!requiresJoin(sft, _, strategy.secondary, transform))
+    val strategies = super.getFilterStrategy(sft, filter, transform)
+    // verify that it's ok to return join plans, and filter them out if not
+    if (AllowJoinPlans.get) { strategies } else {
+      strategies.filterNot { strategy =>
+        val attributes = strategy.primary.toSeq.flatMap(FilterHelper.propertyNames(_, sft))
+        val joins = attributes.filter(sft.getDescriptor(_).getIndexCoverage() == IndexCoverage.JOIN)
+        joins.exists(requiresJoin(sft, _, strategy.secondary, transform))
+      }
     }
   }
 
@@ -411,6 +414,16 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
     cost.getOrElse(Long.MaxValue)
   }
 
+  /**
+    * Does the query require a join against the record table, or can it be satisfied
+    * in a single scan. Assumes that the attribute is indexed.
+    *
+    * @param sft simple feature type
+    * @param attribute attribute being queried
+    * @param filter non-attribute filter being evaluated, if any
+    * @param transform transform being applied, if any
+    * @return
+    */
   def requiresJoin(sft: SimpleFeatureType,
                    attribute: String,
                    filter: Option[Filter],
