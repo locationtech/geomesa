@@ -160,6 +160,7 @@ object FilterHelper {
       case op: Within     => isOperationGeomWholeWorld(op)
       case op: Intersects => isOperationGeomWholeWorld(op)
       case op: Overlaps   => isOperationGeomWholeWorld(op)
+      case op: Contains   => isOperationGeomWholeWorld(op)
       case _ => false
     }
 

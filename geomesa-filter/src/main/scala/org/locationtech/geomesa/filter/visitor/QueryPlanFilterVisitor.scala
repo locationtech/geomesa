@@ -89,6 +89,11 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
       visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Overlaps], sft)
     }
 
+  override def visit(f: Contains, data: AnyRef): AnyRef =
+    if (isFilterWholeWorld(f)) { Filter.INCLUDE } else {
+      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Contains], sft)
+    }
+  
   override def visit(expression: PropertyName, extraData: AnyRef): AnyRef = {
     val name = expression.getPropertyName
     if (name == null || name.isEmpty) {

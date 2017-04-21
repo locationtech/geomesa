@@ -130,13 +130,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
       val ScanConfig(hbaseFilters, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe)
-
-      if (ranges.head.isInstanceOf[Get]) {
-        // TODO: when do we have a GET plan?  only on IDs?
-        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
-      } else {
-        buildPlatformScanPlan(ds, filter, ranges, table, hbaseFilters, toFeatures)
-      }
+      buildPlatformScanPlan(ds, filter, ranges, table, hbaseFilters, toFeatures)
     }
   }
 

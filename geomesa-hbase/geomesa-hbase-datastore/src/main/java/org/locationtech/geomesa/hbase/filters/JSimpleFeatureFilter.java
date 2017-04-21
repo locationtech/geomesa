@@ -179,8 +179,9 @@ public class JSimpleFeatureFilter extends FilterBase {
         // TODO: is visibility filter first in the FilterList?
         // TODO: why do we have to clone the value here?
         // NOTE: the reusable sf buffer is set here and the filter and transformer depend on it
-        reusable.setBuffer(CellUtil.cloneValue(v));
+        reusable.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
         // TODO: avoid boxing if possible
+        // TODO: we need to set the id properly
 //            String id = getId.apply(v.getRowArray(), new Integer(v.getRowOffset()), new Integer(v.getRowLength()));
 //            reusable.setId(id);
         return localFilter.filterKeyValue(v);
