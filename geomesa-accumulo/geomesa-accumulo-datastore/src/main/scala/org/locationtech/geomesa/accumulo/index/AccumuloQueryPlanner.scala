@@ -57,6 +57,8 @@ class AccumuloQueryPlanner(ds: AccumuloDataStore) extends AccumuloQueryPlannerTy
   override protected def setReturnSft(query: Query, baseSft: SimpleFeatureType): Unit = {
     val sft = if (query.getHints.isBinQuery) {
       BinAggregatingIterator.BIN_SFT
+    } else if (query.getHints.isArrowQuery) {
+      org.locationtech.geomesa.arrow.ArrowEncodedSft
     } else if (query.getHints.isDensityQuery) {
       KryoLazyDensityIterator.DENSITY_SFT
     } else if (query.getHints.isStatsIteratorQuery) {

@@ -205,7 +205,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
       |}
     """.stripMargin
 
-  val formats: Array[String] = DataFormats.values.filter(_ != DataFormats.Null).map(_.toString).toArray
+  val formats: Array[String] = DataFormats.values.filter(f => f != DataFormats.Null && f != DataFormats.Arrow).map(_.toString).toArray
   try {
     for (x <- formats; y <- formats) {
       logger.debug(s"Testing $x to $y converter")
@@ -215,14 +215,9 @@ class ConvertCommandTest extends Specification with LazyLogging {
     FileUtils.deleteQuietly(testCSVFile)
     FileUtils.deleteQuietly(testJSONFile)
     FileUtils.deleteQuietly(testTSVFile)
-    FileUtils.deleteQuietly(testCSVFile)
-    FileUtils.deleteQuietly(testCSVFile)
-    FileUtils.deleteQuietly(testCSVFile)
-    FileUtils.deleteQuietly(testCSVFile)
-    FileUtils.deleteQuietly(testCSVFile)
   }
 
-  def getInputFileandConf(fmt: String): (String, String) = {
+  def getInputFileAndConf(fmt: String): (String, String) = {
     fmt.toLowerCase match {
       case "avro"    => (testCSVFile.toString, csvConf)
       case "bin"     => (testCSVFile.toString, csvConf)
@@ -238,7 +233,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
   def testPair(inFmt: String, outFmt: String): Unit ={
     s"Convert Command should convert $inFmt -> $outFmt" in {
       val params = new ConvertParameters
-      val (inputFile, conf) = getInputFileandConf(inFmt)
+      val (inputFile, conf) = getInputFileAndConf(inFmt)
       params.files.add(inputFile)
       params.config = conf
       params.spec = conf
