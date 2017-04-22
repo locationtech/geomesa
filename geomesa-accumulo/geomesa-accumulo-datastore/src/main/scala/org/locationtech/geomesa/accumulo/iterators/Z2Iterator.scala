@@ -15,6 +15,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1
 import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.index.filters.Z2Filter
 import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -30,6 +31,7 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
   var xyvals: Array[Array[Int]] = null
   var rowToZ: Array[Byte] => Long = null
+  var filter: Z2Filter = _
 
   var topKey: Key = null
   var topValue: Value = null
@@ -47,6 +49,7 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
     keyXY = options.get(ZKeyXY)
     xyvals = keyXY.split(TermSeparator).map(_.split(RangeSeparator).map(_.toInt))
+    filter = new Z2Filter(xyvals, zOffset, zLength)
   }
 
   override def next(): Unit = {
@@ -68,21 +71,10 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
     }
   }
 
+  private val text = new Text()
   private def inBounds(k: Key): Boolean = {
-    k.getRow(row)
-    val z = rowToZ(row.getBytes)
-    val x = Z2(z).d0
-    val y = Z2(z).d1
-
-    var i = 0
-    while (i < xyvals.length) {
-      val xy = xyvals(i)
-      if (x >= xy(0) && x <= xy(2) && y >= xy(1) && y <= xy(3)) {
-        return true
-      }
-      i += 1
-    }
-    false
+    k.getRow(text)
+    filter.inBounds(text.getBytes)
   }
 
   override def seek(range: AccRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {

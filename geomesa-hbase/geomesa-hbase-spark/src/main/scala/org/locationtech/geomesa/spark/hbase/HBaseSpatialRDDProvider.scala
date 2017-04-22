@@ -19,6 +19,7 @@ import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory}
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
@@ -37,6 +38,8 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
           origQuery: Query): SpatialRDD = {
     import org.locationtech.geomesa.index.conf.QueryHints._
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[HBaseDataStore]
+    // force loose bbox to be false
+    origQuery.getHints.put(QueryHints.LOOSE_BBOX, false)
 
     // get the query plan to set up the iterators, ranges, etc
     lazy val sft = ds.getSchema(origQuery.getTypeName)

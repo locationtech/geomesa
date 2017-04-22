@@ -13,6 +13,7 @@ import java.util.{Locale, Map => jMap}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.factory.Hints
+import org.geotools.factory.Hints.ClassKey
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation.CostEvaluation
