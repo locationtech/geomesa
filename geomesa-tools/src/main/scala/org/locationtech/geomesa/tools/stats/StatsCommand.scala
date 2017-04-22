@@ -48,7 +48,7 @@ object StatsCommand {
   }
 }
 
-trait StatsParams extends CatalogParam with RequiredTypeNameParam with OptionalCqlFilterParam {
+trait StatsParams extends RequiredTypeNameParam with OptionalCqlFilterParam {
   @Parameter(names = Array("--no-cache"), description = "Calculate against the data set instead of using cached statistics (may be slow)")
   var exact: Boolean = false
 }
