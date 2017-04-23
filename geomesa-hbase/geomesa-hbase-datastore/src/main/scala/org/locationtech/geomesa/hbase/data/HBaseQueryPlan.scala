@@ -15,16 +15,14 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HBaseFilter}
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 import org.locationtech.geomesa.hbase.driver.KryoLazyDensityDriver
-import org.locationtech.geomesa.hbase.filters.KryoLazyDensityFilter
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
-import org.locationtech.geomesa.index.iterators.KryoLazyDensityUtils._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConverters._
-
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
@@ -91,12 +89,12 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
     * @return
     */
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    var kryoLazyDensityFilter = new KryoLazyDensityFilter(ds.getSchema(sft.getTypeName), hints).toByteArray
+    val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, null, hints)
+    val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
     val table1 = ds.connection.getTable(table)
     val client = new KryoLazyDensityDriver()
-    val result : List[ByteString] = client.kryoLazyDensityFilter(table1, kryoLazyDensityFilter).asScala.toList
-
-    result.map (r => bytesToFeatures(r.toByteArray)).toIterator
+    val result : List[ByteString] = client.kryoLazyDensityFilter(table1, byteArray).asScala.toList
+    result.map (r => KryoLazyDensityCoprocessor.bytesToFeatures(r.toByteArray)).toIterator
   }
 }
 

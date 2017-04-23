@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
@@ -34,9 +33,9 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
-import org.locationtech.geomesa.index.iterators.KryoLazyDensityUtils
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification

@@ -25,7 +25,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.index.api.{FilterSplitter, FilterStrategy}
 import org.locationtech.geomesa.index.conf.QueryHints._
-import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer, KryoLazyDensityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -323,7 +323,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_HEIGHT, 600)
       query.getHints.put(DENSITY_WIDTH, 400)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = KryoLazyDensityUtils.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((41.325,58.5375,1.0), (42.025,58.5375,1.0), (40.675,58.5375,1.0)))
     }
@@ -336,7 +336,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_WIDTH, 400)
       query.getHints.put(DENSITY_WEIGHT, "count")
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = KryoLazyDensityUtils.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((41.325,58.5375,3.0), (42.025,58.5375,4.0), (40.675,58.5375,2.0)))
     }
@@ -349,7 +349,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_WIDTH, 400)
       query.getHints.put(DENSITY_WEIGHT, "age")
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = KryoLazyDensityUtils.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((40.675,58.5375,21.0), (41.325,58.5375,30.0), (42.025,58.5375,0.0)))
     }
@@ -361,7 +361,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_HEIGHT, 600)
       query.getHints.put(DENSITY_WIDTH, 400)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = KryoLazyDensityUtils.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((40.675,58.5375,1.0), (42.025,58.5375,1.0)))
     }
