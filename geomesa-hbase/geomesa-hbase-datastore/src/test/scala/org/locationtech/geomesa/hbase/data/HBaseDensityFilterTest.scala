@@ -33,7 +33,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification

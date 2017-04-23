@@ -22,7 +22,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

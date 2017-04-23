@@ -18,9 +18,9 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils._
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils}
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils._
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 

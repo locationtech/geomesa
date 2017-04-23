@@ -25,8 +25,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.index.api.{FilterSplitter, FilterStrategy}
 import org.locationtech.geomesa.index.conf.QueryHints._
-import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer, KryoLazyDensityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.text.WKTUtils

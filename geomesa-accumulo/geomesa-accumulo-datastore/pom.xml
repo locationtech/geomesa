@@ -49,11 +49,6 @@
             <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-process-utils_${scala.binary.version}</artifactId>
-            <version>1.3.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
         </dependency>

@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.index.RecordIndex
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification

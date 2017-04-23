@@ -6,14 +6,14 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.process.utils
+package org.locationtech.geomesa.index.utils
 
 import com.vividsolutions.jts.geom.{Coordinate, Envelope, Geometry, Point}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.utils.geotools.{GridSnap}
+import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.Expression

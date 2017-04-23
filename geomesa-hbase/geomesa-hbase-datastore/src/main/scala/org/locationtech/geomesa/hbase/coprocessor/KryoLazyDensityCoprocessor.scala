@@ -15,6 +15,7 @@ import com.google.protobuf.RpcController
 import com.google.protobuf.Service
 import com.vividsolutions.jts.geom.Envelope
 import java.io._
+
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
 import org.apache.hadoop.hbase.client.Scan
@@ -26,16 +27,17 @@ import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.regionserver.InternalScanner
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils._
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils._
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 

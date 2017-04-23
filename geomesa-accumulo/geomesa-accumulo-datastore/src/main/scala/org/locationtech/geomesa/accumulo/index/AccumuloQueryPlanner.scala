@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter

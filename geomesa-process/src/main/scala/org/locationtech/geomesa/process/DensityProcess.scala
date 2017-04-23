@@ -20,7 +20,7 @@ import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.{HeatmapSurface, VectorProcess}
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression

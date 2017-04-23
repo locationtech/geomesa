@@ -19,7 +19,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.process.utils.KryoLazyDensityUtils.DensityResult
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils.DensityResult
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
