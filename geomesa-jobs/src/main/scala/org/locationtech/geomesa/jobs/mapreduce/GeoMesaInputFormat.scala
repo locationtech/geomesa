@@ -31,6 +31,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -227,6 +228,7 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
     extends RecordReader[Text, SimpleFeature] {
 
   var currentFeature: SimpleFeature = null
+  var currentVis: Text = new Text()
   var readerIndex: Int = -1
   var currentReader: Option[RecordReader[Key, Value]] = None
 
@@ -277,6 +279,7 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
           if (!hasId) {
             currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(reader.getCurrentKey.getRow))
           }
+          SecurityUtils.setFeatureVisibility(currentFeature, reader.getCurrentKey.getColumnVisibility(currentVis).toString)
           true
         } else {
           nextReader()

@@ -38,13 +38,16 @@ trait InputDataStoreArgs extends ReverseParsable {
   @Parameter(names = Array("--geomesa.input.tableName"), description = "Accumulo catalog table name", required = true)
   var inTableName: String = null
 
+  @Parameter(names = Array("--geomesa.input.auths"), description = "comma separated auths to use on the input format", required = false)
+  var inAuths: String = null
+
   def inDataStore: Map[String, String] = Map(
     AccumuloDataStoreParams.userParam.getName       -> inUser,
     AccumuloDataStoreParams.passwordParam.getName   -> inPassword,
     AccumuloDataStoreParams.instanceIdParam.getName -> inInstanceId,
     AccumuloDataStoreParams.zookeepersParam.getName -> inZookeepers,
     AccumuloDataStoreParams.tableNameParam.getName  -> inTableName
-  )
+  ) ++ Option(inAuths).map(a => AccumuloDataStoreParams.authsParam.getName -> a)
 
   override def unparse(): Array[String] = {
     val buf = ArrayBuffer.empty[String]
@@ -62,6 +65,9 @@ trait InputDataStoreArgs extends ReverseParsable {
     }
     if (inTableName != null) {
       buf.append("--geomesa.input.tableName", inTableName)
+    }
+    if (inAuths != null) {
+      buf.append("--geomesa.input.auths", inAuths)
     }
     buf.toArray
   }
