@@ -18,11 +18,14 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform {
-  override def configurePushDownFilters(config: HBaseFeatureIndex.ScanConfig, ecql: Option[Filter], transform: Option[(String, SimpleFeatureType)], sft: SimpleFeatureType): HBaseFeatureIndex.ScanConfig = {
+  override def configurePushDownFilters(config: HBaseFeatureIndex.ScanConfig,
+                                        ecql: Option[Filter],
+                                        transform: Option[(String, SimpleFeatureType)],
+                                        sft: SimpleFeatureType): HBaseFeatureIndex.ScanConfig = {
     val z2Filter =
       org.locationtech.geomesa.index.index.Z2Index.currentProcessingValues match {
-        case None                                           => Seq.empty[org.apache.hadoop.hbase.filter.Filter]
-        case Some(Z2ProcessingValues(geoms, bounds))        => configureZ2PushDown(bounds)
+        case None                                    => Seq.empty[org.apache.hadoop.hbase.filter.Filter]
+        case Some(Z2ProcessingValues(geoms, bounds)) => configureZ2PushDown(bounds)
       }
 
     val copy = super.configurePushDownFilters(config, ecql, transform, sft)

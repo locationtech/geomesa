@@ -145,9 +145,9 @@ public abstract class BigtableInputFormatBase extends
       BigtableExtendedScan scan = (BigtableExtendedScan) s;
       BigtableExtendedScanSplit split = new BigtableExtendedScanSplit(name, scan);
       splits.add(split);
-      if (LOG.isDebugEnabled())
+      if (LOG.isDebugEnabled()) {
         LOG.debug("getSplits: split -> " + (count++) + " -> " + split);
-
+      }
     }
 
     return splits;

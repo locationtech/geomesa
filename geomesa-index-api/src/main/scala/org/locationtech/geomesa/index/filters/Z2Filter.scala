@@ -29,7 +29,6 @@ class Z2Filter(val xyvals: Array[Array[Int]],
     }
     false
   }
-
 }
 
 object Z2Filter {
@@ -80,6 +79,4 @@ object Z2Filter {
     val zLength = buf.getInt
     new Z2Filter(bounds, zOffset, zLength)
   }
-
-
 }

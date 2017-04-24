@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.index.conf
 
 import com.vividsolutions.jts.geom.Envelope
-import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope

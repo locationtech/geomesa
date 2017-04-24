@@ -23,14 +23,16 @@ case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
     val z3Filter =
       org.locationtech.geomesa.index.index.Z3Index.currentProcessingValues match {
         case None                                           => Seq.empty[org.apache.hadoop.hbase.filter.Filter]
-        case Some(Z3ProcessingValues(sfc, _, xy, _, times))        => configureZ3PushDown(sfc, xy, times)
+        case Some(Z3ProcessingValues(sfc, _, xy, _, times)) => configureZ3PushDown(sfc, xy, times)
       }
 
     val copy = super.configurePushDownFilters(config, ecql, transform, sft)
     copy.copy(hbaseFilters = copy.hbaseFilters ++ z3Filter)
   }
 
-  private def configureZ3PushDown(sfc: Z3SFC, xy: Seq[(Double, Double, Double, Double)], times: Map[Short, Seq[(Long, Long)]]) = {
+  private def configureZ3PushDown(sfc: Z3SFC,
+                                  xy: Seq[(Double, Double, Double, Double)],
+                                  times: Map[Short, Seq[(Long, Long)]]) = {
     // we know we're only going to scan appropriate periods, so leave out whole ones
     val wholePeriod = Seq((sfc.time.min.toLong, sfc.time.max.toLong))
     val filteredTimes = times.filter(_._2 != wholePeriod)
@@ -56,12 +58,9 @@ case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
 
     Seq(filt)
   }
-
-
 }
 
 trait HBaseLikeZ3Index
   extends HBaseFeatureIndex with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query]  {
   override val version: Int = 1
-
 }

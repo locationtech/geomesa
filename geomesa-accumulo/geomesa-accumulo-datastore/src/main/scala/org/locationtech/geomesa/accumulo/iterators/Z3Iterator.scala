@@ -22,14 +22,16 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
 
   import org.locationtech.geomesa.accumulo.iterators.Z3Iterator._
 
-  private var source: SortedKeyValueIterator[Key, Value] = null
+  private var source: SortedKeyValueIterator[Key, Value] = _
 
   private var keyXY: String = _
   private var keyT: String = _
-  private var filter: Z3Filter = null
+  private var filter: Z3Filter = _
 
-  private var topKey: Key = null
-  private var topValue: Value = null
+  private var topKey: Key = _
+  private var topValue: Value = _
+
+  private val row = new Text()
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
@@ -70,12 +72,11 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     findTop()
   }
 
-  private val text = new Text
   private def findTop(): Unit = {
     topKey = null
     topValue = null
     while (source.hasTop) {
-      val row = source.getTopKey.getRow(text)
+      val row = source.getTopKey.getRow(row)
       val bytes = row.getBytes
       if (filter.inBounds(bytes, 0, bytes.length)) {
         topKey = source.getTopKey

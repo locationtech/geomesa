@@ -71,10 +71,9 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
     }
   }
 
-  private val text = new Text()
   private def inBounds(k: Key): Boolean = {
-    k.getRow(text)
-    filter.inBounds(text.getBytes)
+    k.getRow(row)
+    filter.inBounds(row.getBytes)
   }
 
   override def seek(range: AccRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {

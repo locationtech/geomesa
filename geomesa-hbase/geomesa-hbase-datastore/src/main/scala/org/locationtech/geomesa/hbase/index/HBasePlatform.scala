@@ -85,10 +85,8 @@ trait HBasePlatform extends HBaseFeatureIndex {
                                         ecql: Option[org.opengis.filter.Filter],
                                         transform: Option[(String, SimpleFeatureType)],
                                         sft: SimpleFeatureType): ScanConfig = {
-    // TODO: currently we configure both z3 filter and ECQL geometry/time push down
-    // TODO: optimize by removing geo and time predicates from ECQL
     val cqlFilter =
-      if(ecql.isDefined || transform.isDefined) {
+      if (ecql.isDefined || transform.isDefined) {
         configureCQLAndTransformPushDown(ecql, transform, sft)
       } else {
         Seq.empty[org.apache.hadoop.hbase.filter.Filter]
@@ -97,11 +95,11 @@ trait HBasePlatform extends HBaseFeatureIndex {
     config.copy(hbaseFilters = config.hbaseFilters ++ cqlFilter)
   }
 
-  private def configureCQLAndTransformPushDown(ecql: Option[org.opengis.filter.Filter], transform: Option[(String, SimpleFeatureType)], sft: SimpleFeatureType) = {
+  private def configureCQLAndTransformPushDown(ecql: Option[org.opengis.filter.Filter],
+                                               transform: Option[(String, SimpleFeatureType)],
+                                               sft: SimpleFeatureType) = {
     val (tform, tSchema) = transform.getOrElse(("", null))
     val tSchemaString = Option(tSchema).map(SimpleFeatureTypes.encodeType(_)).getOrElse("")
     Seq[org.apache.hadoop.hbase.filter.Filter](new JSimpleFeatureFilter(sft, ecql.getOrElse(org.opengis.filter.Filter.INCLUDE), tform, tSchemaString))
   }
-
-
 }

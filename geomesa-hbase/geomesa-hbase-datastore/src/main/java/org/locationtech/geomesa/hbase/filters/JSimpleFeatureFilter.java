@@ -125,10 +125,10 @@ public class JSimpleFeatureFilter extends FilterBase {
 
         @Override
         public Cell transformCell(Cell c) throws IOException {
-            // TODO: transforms are not working
             byte[] newval = sf.transform();
+            // TODO use non-copying method?
+            // org.apache.hadoop.hbase.CellUtil.createCell(byte[], int, int, byte[], int, int, byte[], int, int)
             return CellUtil.createCell(c.getRow(), c.getFamily(), c.getQualifier(), c.getTimestamp(), c.getTypeByte(), newval);
-//            return new KeyValue(CellUtil.cloneRow(c), CellUtil.cloneFamily(c), CellUtil.cloneQualifier(c), newval);
         }
     }
 

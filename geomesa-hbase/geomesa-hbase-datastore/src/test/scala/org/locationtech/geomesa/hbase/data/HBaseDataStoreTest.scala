@@ -106,7 +106,6 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         }
       }
 
-      // TODO: transforms are not working
       testTransforms(ds)
     }
 

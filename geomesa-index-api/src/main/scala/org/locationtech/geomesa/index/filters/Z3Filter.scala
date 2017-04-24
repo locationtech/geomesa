@@ -53,8 +53,6 @@ class Z3Filter(val xyvals: Array[Array[Int]],
       }
     }
   }
-
-
 }
 
 object Z3Filter {
@@ -149,5 +147,4 @@ object Z3Filter {
     val maxEpoch = buf.getShort
     new Z3Filter(bounds, tvals, minEpoch,maxEpoch, zOffset, zLength)
   }
-
 }

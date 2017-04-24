@@ -134,7 +134,12 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     }
   }
 
-  def buildPlatformScanPlan(ds: HBaseDataStore, filter: HBaseFilterStrategyType, ranges: Seq[Query], table: TableName, hbaseFilters: Seq[HBaseFilter], toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
+  def buildPlatformScanPlan(ds: HBaseDataStore,
+                            filter: HBaseFilterStrategyType,
+                            ranges: Seq[Query],
+                            table: TableName,
+                            hbaseFilters: Seq[HBaseFilter],
+                            toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 
   // default implementation does nothing, override in subclasses
   def configurePushDownFilters(config: ScanConfig,
