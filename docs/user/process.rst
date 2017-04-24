@@ -61,6 +61,42 @@ DensityProcess
 StatsIteratorProcess
 ^^^^^^^^^^^^^^^^^^^^
 
+The ``StatsIteratorProcess`` allows the running of statistics on a given feature set. The statics calculations are pushed
+down to the Accumulo iterators allowing for very fast performance.
+
+==========  ===========
+Parameters  Description
+==========  ===========
+features    The feature set on which to query. Can be a raw text input, reference to a remote URL, a subquery or a vector layer.
+statString  Stat string indicating which stats to instantiate. More info here :ref:`statString`.
+encode      Return ht evalues encoded as json. Must be ``true`` or ``false``; empty values will not work.
+properties  The properties / transforms to apply before gathering stats.
+==========  ===========
+
+.. _statString:
+
+Stat Strings
+""""""""""""
+
+Stat strings are a GeoMesa Specific domain specific language (DSL) that allows the specification of stats for the iterators
+to collect. The available stat function are listed below:
+
+=================  ======  ===========
+Stat               Syntax  Description
+=================  ======
+Count              ``Count()``
+MinMax             ``MinMax(
+GroupBy
+Descriptive Stats
+Enumeration
+TopK
+Histogram
+Freqency
+z3Histogram
+z3Frequency
+Iterator Stack
+=================
+
 .. _query_process:
 
 QueryProcess
