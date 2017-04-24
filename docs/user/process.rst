@@ -47,3 +47,39 @@ In the GeoServer web UI, click 'Demos' and then 'WPS request builder'.
 From the request builder, under 'Choose Process', click on any of the
 'geomesa:' options to build up example requests and in some cases see
 results.
+
+Processors
+----------
+
+DensityProcess
+^^^^^^^^^^^^^^
+
+HashAttributeColorProcess and HashAttributeProcess
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+KNearestNeighborSearchProcess
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Point2PointProcess
+^^^^^^^^^^^^^^^^^^
+
+ProximitySearchProcess
+^^^^^^^^^^^^^^^^^^^^^^
+
+SamplingProcess
+^^^^^^^^^^^^^^^
+
+StatsIteratorProcess
+^^^^^^^^^^^^^^^^^^^^
+
+TubeSelectProcess
+^^^^^^^^^^^^^^^^^
+
+QueryProcess
+^^^^^^^^^^^^
+
+UniqueProcess
+^^^^^^^^^^^^^
+
+JoinProcess
+^^^^^^^^^^^
