@@ -76,7 +76,7 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     topKey = null
     topValue = null
     while (source.hasTop) {
-      val row = source.getTopKey.getRow(row)
+      source.getTopKey.getRow(row)
       val bytes = row.getBytes
       if (filter.inBounds(bytes, 0, bytes.length)) {
         topKey = source.getTopKey
