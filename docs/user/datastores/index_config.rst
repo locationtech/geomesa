@@ -52,6 +52,23 @@ a 'user-data' key:
       }
     }
 
+Setting the Indexed Date Attribute
+----------------------------------
+
+For schemas that contain a date attribute, GeoMesa will use the attribute as part of the primary Z3/XZ3 index.
+If a schema contains more than one date attribute, you may specify which attribute to use through the user-data
+key ``geomesa.index.dtg``. If you would prefer to not index any date, you may disable it through the key
+``geomesa.ignore.dtg``. If nothing is specified, the first declared date attribute will be used.
+
+
+.. code-block:: java
+
+    // specify the attribute 'myDate' as the indexed date
+    sft1.getUserData().put("geomesa.index.dtg", "myDate");
+
+    // disable indexing by date
+    sft2.getUserData().put("geomesa.ignore.dtg", true);
+
 .. _customizing_index_creation:
 
 Customizing Index Creation
