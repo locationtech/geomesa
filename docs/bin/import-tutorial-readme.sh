@@ -67,6 +67,7 @@ geomesa-examples-transformations
 geomesa-quickstart-accumulo
 geomesa-quickstart-hbase
 geomesa-quickstart-kafka
+geomesa-quickstart-nifi
 geomesa-quickstart-storm
     "
 else
@@ -97,7 +98,7 @@ for tutorial in $TUTORIALS ; do
     # copy the assets too, if they exist
     asset_src=$GEOMESA_TUTORIALS/assets/${tutorial}
     asset_dst=$GEOMESA/docs/tutorials/_static/${tutorial}
-    if [ -d $asset_src ] ; then
+    if [[ -d $asset_src ]] ; then
         echo "Copying $asset_src/* => $asset_dst"
 	    mkdir -p $asset_dst
 	    cp $asset_src/* $asset_dst

@@ -504,7 +504,7 @@ We want to configure LDAP with a user to match the Spring Security PKIs
 we are testing with. The end result we want is to create the following
 user:
 
-::
+.. code::
 
     DN: cn=rod,ou=Spring Security,o=Spring Framework
 
