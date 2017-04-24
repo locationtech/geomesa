@@ -10,6 +10,7 @@ package org.locationtech.geomesa.hbase.filters;
 
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.exceptions.DeserializationException;
 import org.apache.hadoop.hbase.filter.FilterBase;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -126,9 +127,12 @@ public class JSimpleFeatureFilter extends FilterBase {
         @Override
         public Cell transformCell(Cell c) throws IOException {
             byte[] newval = sf.transform();
-            // TODO use non-copying method?
-            // org.apache.hadoop.hbase.CellUtil.createCell(byte[], int, int, byte[], int, int, byte[], int, int)
-            return CellUtil.createCell(c.getRow(), c.getFamily(), c.getQualifier(), c.getTimestamp(), c.getTypeByte(), newval);
+            return new KeyValue(c.getRowArray(), c.getRowOffset(), c.getRowLength(),
+                    c.getFamilyArray(), c.getFamilyOffset(), c.getFamilyLength(),
+                    c.getQualifierArray(), c.getQualifierOffset(), c.getQualifierLength(),
+                    c.getTimestamp(),
+                    KeyValue.Type.Put,
+                    newval, 0, newval.length);
         }
     }
 
@@ -177,9 +181,8 @@ public class JSimpleFeatureFilter extends FilterBase {
     @Override
     public ReturnCode filterKeyValue(Cell v) throws IOException {
         // TODO: is visibility filter first in the FilterList?
-        // TODO: why do we have to clone the value here?
         // NOTE: the reusable sf buffer is set here and the filter and transformer depend on it
-        reusable.setBuffer(CellUtil.cloneValue(v));
+        reusable.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
         // TODO: avoid boxing if possible
         // TODO: we need to set the id properly
 //            String id = getId.apply(v.getRowArray(), new Integer(v.getRowOffset()), new Integer(v.getRowLength()));
