@@ -4,19 +4,19 @@ GeoMesa Processes
 The following analytic processes are available and optimized on GeoMesa
 data stores, found in the ``geomesa-process`` module:
 
--  ``DensityProcess`` - computes a density heatmap for a CQL query
--  ``HashAttributeColorProcess`` and ``HashAttributeProcess`` - computes an
+-  :ref:`density_process` - computes a density heatmap for a CQL query
+-  ``hash_attribute_process`` - computes an
    additional 'hash' attribute which is useful for styling.
--  ``KNearestNeighborSearchProcess`` - performs a KNN search
--  ``Point2PointProcess`` - aggregates a collection of points into a
+-  ``knn_search_process`` - performs a KNN search
+-  ``point2point_process`` - aggregates a collection of points into a
    collection of line segments
--  ``ProximitySearchProcess`` - performs a nearest neighbor search
--  ``SamplingProcess`` - uses statistical sampling to reduces the features
+-  ``proximity_search_process`` - performs a nearest neighbor search
+-  ``sampling_process`` - uses statistical sampling to reduces the features
    returned by a query
--  ``StatsIteratorProcess`` - returns various stats for a CQL query
+-  :ref:`StatsIteratorProcess` - returns various stats for a CQL query
 -  ``TubeSelectProcess`` - performs a correlated search across
    time/space dimensions
--  ``QueryProcess`` - optimizes GeoMesa queries in WPS chains
+-  :ref:`QueryProcess` - optimizes GeoMesa queries in WPS chains
 -  ``UniqueProcess`` - identifies unique values for an attribute in
    results of a CQL query
 -  ``JoinProcess`` - returns merged features from two different schemas
@@ -51,35 +51,17 @@ results.
 Processors
 ----------
 
+.. _density_process:
+
 DensityProcess
 ^^^^^^^^^^^^^^
 
-HashAttributeColorProcess and HashAttributeProcess
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-KNearestNeighborSearchProcess
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Point2PointProcess
-^^^^^^^^^^^^^^^^^^
-
-ProximitySearchProcess
-^^^^^^^^^^^^^^^^^^^^^^
-
-SamplingProcess
-^^^^^^^^^^^^^^^
+.. _statsiterator_process:
 
 StatsIteratorProcess
 ^^^^^^^^^^^^^^^^^^^^
 
-TubeSelectProcess
-^^^^^^^^^^^^^^^^^
+.. _query_process:
 
 QueryProcess
 ^^^^^^^^^^^^
-
-UniqueProcess
-^^^^^^^^^^^^^
-
-JoinProcess
-^^^^^^^^^^^
