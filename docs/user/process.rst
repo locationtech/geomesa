@@ -69,7 +69,7 @@ Parameters  Description
 ==========  ===========
 features    The feature set on which to query. Can be a raw text input, reference to a remote URL, a subquery or a vector layer.
 statString  Stat string indicating which stats to instantiate. More info here :ref:`statString`.
-encode      Return ht evalues encoded as json. Must be ``true`` or ``false``; empty values will not work.
+encode      Return the values encoded as json. Must be ``true`` or ``false``; empty values will not work.
 properties  The properties / transforms to apply before gathering stats.
 ==========  ===========
 
@@ -81,21 +81,36 @@ Stat Strings
 Stat strings are a GeoMesa Specific domain specific language (DSL) that allows the specification of stats for the iterators
 to collect. The available stat function are listed below:
 
-=================  ======  ===========
-Stat               Syntax  Description
-=================  ======
-Count              ``Count()``
-MinMax             ``MinMax(
-GroupBy
-Descriptive Stats
-Enumeration
-TopK
-Histogram
-Freqency
-z3Histogram
-z3Frequency
-Iterator Stack
-=================
+=================  ===============================================  ===========
+Stat               Syntax                                           Description
+=================  ===============================================  ===========
+Count              ``Count()``                                      Counts the number of features.
+MinMax             ``MinMax(attribute)``                            Finds the Min and Max values of the given attribute.
+GroupBy            ``GroupBy(attribute,stat)``                      Groups Stats by the given attribute and then runs
+                                                                    the give stat on each group. Any stat can be provided.
+Descriptive Stats  ``DescriptiveStats(attribute)``                  Runs single pass stats on the given attribute
+                                                                    calculating stats describing the attribute such as:
+                                                                    Count; Min; Max; Mean; and Population and Sample
+                                                                    versions of Variance, Standard Deviation, Kurtosis,
+                                                                    Excess Kurtosis, Covariance, and Correlation.
+Enumeration        ``Enumeration(attribute)``                       Enumerates the values in the give attribute and the
+                                                                    number of occurrences.
+TopK               ``TopK(attribute)``                              TopK of the given attribute
+Histogram          ``Histogram(attribute,numBins,lower,upper)``     Provides a histogram of the given attribute, binning
+                                                                    the results into a Binned Array using the numBins as
+                                                                    the number of Bins and lower and upper as the bounds
+                                                                    of the Binned Array.
+Freqency           ``Frequency(attribute,dtgAndPeriod,precision)``  Estimates frequency counts at scale.
+z3Histogram        ``Z3Histogram(geom,dtg,period,length)``          Provides a histogram similar to ``Histogram`` but
+                                                                    treats the geometry and date attributes as a single
+                                                                    value.
+z3Frequency        ``Z3Frequency(geom,dtg,period,precision)``       Provides a freqency estimate similar to ``Frequency``
+                                                                    but treats the geometry and date attributes as a
+                                                                    single value.
+Iterator Stack     ``IteratorStackCount()``                         IteratorStackCount keeps track of the number of times
+                                                                    Accumulo sets up an iterator stack as a result of a
+                                                                    query.
+=================  ===============================================  ===========
 
 .. _query_process:
 
