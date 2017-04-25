@@ -22,15 +22,15 @@ mechanisms from `Geotools <http://www.geotools.org/>`__.
 
 .. note::
 
-    When this tutorial refers to "projections", it means in the
-    relational sense - see `Projection - Relational
+    When this tutorial refers to "projections", it means
+    in the relational sense - see `Projection - Relational
     Algebra <http://en.wikipedia.org/wiki/Projection_(relational_algebra)>`__.
     Projection also has `many other
     meanings <http://en.wikipedia.org/wiki/Projection_(disambiguation)>`__
-    in spatial discussions - they are not used in this tutorial. Although
-    projections can also modify an attribute's value, in this tutorial we
-    will refer to such modifications as "transformations" to keep things
-    clearer.
+    in spatial discussions - they are not used in this tutorial.
+    Although projections can also modify an attribute's value, in this
+    tutorial we will refer to such modifications as "transformations" to
+    keep things clearer.
 
 This tutorial will show you how to write custom Java code using GeoMesa
 to do the following:
@@ -46,11 +46,11 @@ Prerequisites
 
 You will need:
 
--  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
--  an Accumulo user that has appropriate permissions to query your data
+-  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|,
+-  an Accumulo user that has appropriate permissions to query your data,
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ |maven_version|
--  a `git <http://git-scm.com/>`__ client
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
+-  a `git <http://git-scm.com/>`__ client.
 
 This tutorial queries the GDELT data set. Instructions on ingesting
 GDELT data are available in the :doc:`./geomesa-examples-gdelt` tutorial.
@@ -99,7 +99,10 @@ Run the Tutorial
 
     Before continuing, ensure that you have ingested the GDELT
     data set described in the :doc:`./geomesa-examples-gdelt`
-    tutorial.
+    tutorial. If using GDELT data from a
+    time period different than that used in the GDELT tutorial,
+    change the date range in the ``QueryTutorial`` ``createBaseFilter``
+    function and recompile.
 
 On the command line, run:
 

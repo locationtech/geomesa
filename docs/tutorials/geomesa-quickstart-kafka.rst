@@ -31,9 +31,9 @@ Prerequisites
 -  an instance of GeoServer version |geoserver_version| with the GeoMesa Kafka plugin
    installed,
 -  `Java JDK
-   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
+   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|,
--  a `git <http://git-scm.com/>`__ client
+-  a `git <http://git-scm.com/>`__ client.
 
 In order to install the GeoMesa Kafka GeoServer plugin, follow the instructions here: :ref:`install_kafka_geoserver`.
 
@@ -75,7 +75,9 @@ For Kafka 0.10.0.1
 
     $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-10
 
-    :warning: Note: ensure that the version of Kafka and Zookeeper in
+.. note::
+
+    Ensure that the version of Kafka and Zookeeper in
     the root ``pom.xml`` match your environment.
 
 Run the Code
@@ -216,7 +218,9 @@ each other in the middle. As the two ``SimpleFeature``\ s get updated,
 the older ``SimpleFeature``\ s disappear from the display.
 
 .. figure:: _static/geomesa-quickstart-kafka/layer-preview.png
-   :alt: "GeoServer view"
+   :alt: GeoServer view
+
+   GeoServer view
 
 Consumers Explained
 -------------------
@@ -279,8 +283,9 @@ each time there is an event (typically when the data are changed) in a
 which has a single method called ``changed()`` that is invoked as each
 ``FeatureEvent`` is fired.
 
-The code in ``KafkaListener`` implements a simple ``FeatureListener`` that prints the messages received.
-Open up a second terminal window and run (with ``$KAFKA_VERSION`` set to "08", "09", or "10" as appropriate):
+The code in ``KafkaListener`` implements a simple ``FeatureListener``
+that prints the messages received. Open up a second terminal window and
+run (with ``$KAFKA_VERSION`` set to "08", "09", or "10" as appropriate):
 
 .. code-block:: bash
 
@@ -336,8 +341,8 @@ Additionally, the ``KafkaQuickStart`` class run above can generate a
 .. code-block:: bash
 
     $ java -Dclear=true -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-$KAFKA_VERSION/target/geomesa-quickstart-kafka-$KAFKA_VERSION-${geomesa.version}.jar \
-    > com.example.geomesa.kafka$KAFKA_VERSION.KafkaQuickStart \
-    > -brokers <brokers> -zookeepers <zookeepers> 
+      com.example.geomesa.kafka$KAFKA_VERSION.KafkaQuickStart \
+      -brokers <brokers> -zookeepers <zookeepers> 
 
 KafkaDataStore Load Test
 ------------------------
@@ -349,8 +354,8 @@ random latitude, and then have them step left or right.
 .. code-block:: bash
 
     $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-$KAFKA_VERSION/target/geomesa-quickstart-kafka-$KAFKA_VERSION-${geomesa.version}.jar \
-    > com.example.geomesa.kafka$KAFKA_VERSION.KafkaLoadTester \
-    > -brokers <brokers> -zookeepers <zookeepers> -count <count>
+      com.example.geomesa.kafka$KAFKA_VERSION.KafkaLoadTester \
+      -brokers <brokers> -zookeepers <zookeepers> -count <count>
 
 The 'count' parameter is optional. Without it, the tool defaults to 1000
 SimpleFeatures.
