@@ -18,11 +18,12 @@ Prerequisites
 You will also need:
 
 -  access to an Accumulo user that has both create-table and write
-   permissions
+   permissions,
 -  an instance of GeoServer |geoserver_version| with the GeoMesa plugin installed,
--  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org>`__ |maven_version|
--  a `git <http://git-scm.com>`__ client
+-  `Java JDK
+   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
+-  `Apache Maven <http://maven.apache.org>`__ |maven_version|, and
+-  a `git <http://git-scm.com>`__ client.
 
 Obtaining GDELT data
 --------------------
@@ -217,7 +218,7 @@ Analyze
 GeoServer Setup
 ~~~~~~~~~~~~~~~
 
-First, follow :ref:`installation` to set up the
+First, follow :ref:`install_accumulo_geoserver` to set up the
 GeoMesa GeoServer plugin if you haven't done so.
 
 Register the GeoMesa DataStore with GeoServer
@@ -230,6 +231,8 @@ is in the right directory and restart GeoServer.
 .. figure:: _static/geomesa-examples-gdelt/Accumulo_Feature_Data_Store.png
    :alt: Registering new Data Store
 
+   Registering new Data Store
+
 Register the newly created Accumulo table using the same parameters
 specified in the command line above. (If you use a workspace:layer name
 other than "geomesa:gdelt", you will need to change the WMS requests
@@ -237,6 +240,8 @@ that follow.)
 
 .. figure:: _static/geomesa-examples-gdelt/Geoserver_Accumulo_Store_Registration.png
    :alt: Registering new Accumulo Feature Data Store
+
+   Registering new Accumulo Feature Data Store
 
 Publish layer
 ~~~~~~~~~~~~~
@@ -249,6 +254,8 @@ need to specify a presentation for time - use List as a default.
 
 .. figure:: _static/geomesa-examples-gdelt/Edit_Layer_Enable_Time.png
    :alt: Enable Time for the Layer
+
+   Enable Time for the Layer
 
 Query
 ~~~~~
@@ -264,11 +271,13 @@ data.
 .. figure:: _static/geomesa-examples-gdelt/Ukraine_Unfiltered.png
    :alt: Showing all GDELT events from Jan 1, 2013 to April 30, 2014
 
+   Showing all GDELT events from Jan 1, 2013 to April 30, 2014
+
 The above map is using the `Stamen
 Toner <http://maps.stamen.com/toner/>`__ layer as a base layer. For more
 information about adding multiple layers into one group see the
 `GeoServer
-documentation <http://docs.geoserver.org/stable/en/user/data/webadmin/layergroups.html>`__.
+documentation <http://docs.geoserver.org/2.9.1/user/data/webadmin/layergroups.html>`__.
 
 Filter
 ~~~~~~
@@ -283,12 +292,16 @@ OpenLayers preview.
 .. figure:: _static/geomesa-examples-gdelt/Geoserver_Toggle_Options_Toolbar.png
    :alt: Open GeoServer Toggle Options Toolbar
 
+   Open GeoServer Toggle Options Toolbar
+
 .. figure:: _static/geomesa-examples-gdelt/Geoserver_Layer_Preview_Drop_Down.png
    :alt: Enter CQL Filter into Toolbar
 
+   Enter CQL Filter into Toolbar
+
 Let's use a custom icon to display THREATEN events, by adding an `SLD
-style <http://docs.geoserver.org/stable/en/user/styling/index.html>`__
-to the layer. Add the SLD file
+style <http://docs.geoserver.org/2.9.1/user/styling/index.html>`__ to
+the layer. Add the SLD file
 :download:`threat.sld <_static/geomesa-examples-gdelt/threat.sld>`
 to GeoServer (See the GeoServer documentation for `more information
 about adding SLD
@@ -300,8 +313,11 @@ specified location in your GeoServer installation.
 
     http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=geomesa:gdelt&CQL_FILTER=EventRootCode=13&styles=threat&bbox=31.6,44,37.4,47.75&width=1200&height=600&srs=EPSG:4326&format=application/openlayers&TIME=2013-01-01T00:00:00.000Z/2014-04-30T23:00:00.000Z
 
-.. image:: _static/geomesa-examples-gdelt/Ukraine_Event_RootCode_Threaten.png
+.. figure:: _static/geomesa-examples-gdelt/Ukraine_Event_RootCode_Threaten.png
    :alt: Showing GDELT events with CAMEO root code THREATEN from Jan 1, 2013 to April 30, 2014
+
+   Showing GDELT events with CAMEO root code THREATEN from Jan 1, 2013
+   to April 30, 2014
 
 .. _gdelt_heatmaps:
 
@@ -330,5 +346,8 @@ and will replace the default value assigned in the SLD.
 
     http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=geomesa:gdelt,geomesa:gdelt&CQL_FILTER=include;EventRootCode=13&styles=heatmap,threat&bbox=31.6,44,37.4,47.75&width=1200&height=600&srs=EPSG:4326&format=application/openlayers&TIME=2013-01-01T00:00:00.000Z/2014-04-30T23:00:00.000Z&env=radiusPixels:30
 
-.. image:: _static/geomesa-examples-gdelt/Heatmap_Ukraine_EventRootCode_Threaten.png
+.. figure:: _static/geomesa-examples-gdelt/Heatmap_Ukraine_EventRootCode_Threaten.png
    :alt: Showing heatmap with event overlay of GDELT events with CAMEO root code THREATEN from Jan 1, 2013 to April 30, 2014
+
+   Showing heatmap with event overlay of GDELT events with CAMEO root
+   code THREATEN from Jan 1, 2013 to April 30, 2014

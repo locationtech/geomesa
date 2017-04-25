@@ -243,6 +243,7 @@ trait StatsBasedEstimator {
                                      hiDate: Option[Date]): Option[Long] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
+    // noinspection ExistsEquals
     if (attribute == sft.getGeomField) {
       estimateSpatialCount(sft, filter)
     } else if (sft.getDtgField.exists(_ == attribute)) {
@@ -357,7 +358,7 @@ trait StatsBasedEstimator {
                                   values: Seq[Any],
                                   loDate: Option[Date],
                                   hiDate: Option[Date]): Option[Long] = {
-    val timeBins = for { dtg <- sft.getDtgField; d1  <- loDate; d2  <- hiDate } yield {
+    val timeBins = for { d1  <- loDate; d2  <- hiDate } yield {
       val timeToBin = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
       Range.inclusive(timeToBin(d1.getTime).bin, timeToBin(d2.getTime).bin).map(_.toShort)
     }
@@ -401,30 +402,33 @@ object CountEstimator {
   val ZHistogramPrecision = math.ceil(math.log(GeoMesaStats.MaxHistogramSize) / math.log(2)).toInt + 2
 
   /**
-    * Extracts date bounds from a filter.
+    * Extracts date bounds from a filter. None is used to indicate a disjoint date range, otherwise
+    * there will be a bounds object (which may be unbounded).
     *
     * @param sft simple feature type
     * @param filter filter
-    * @return date bounds, if any
+    * @return None, if disjoint filters, otherwise date bounds (which may be unbounded)
     */
   private [stats] def extractDates(sft: SimpleFeatureType, filter: Filter): Option[Bounds[Date]] = {
-    sft.getDtgField.flatMap { dtg =>
-      val intervals = FilterHelper.extractIntervals(filter, dtg)
-      if (intervals.disjoint) { None } else {
-        // don't consider gaps, just get the endpoints of the intervals
-        val dateTimes = intervals.values.reduceOption[(DateTime, DateTime)] { case (left, right) =>
-          val lower = if (left._1.isAfter(right._1)) right._1 else left._1
-          val upper = if (left._2.isBefore(right._2)) right._2 else left._2
-          (lower, upper)
+    sft.getDtgField match {
+      case None => Some(Bounds(None, None, inclusive = false))
+      case Some(dtg) =>
+        val intervals = FilterHelper.extractIntervals(filter, dtg)
+        if (intervals.disjoint) { None } else {
+          // don't consider gaps, just get the endpoints of the intervals
+          val dateTimes = intervals.values.reduceOption[(DateTime, DateTime)] { case (left, right) =>
+            val lower = if (left._1.isAfter(right._1)) right._1 else left._1
+            val upper = if (left._2.isBefore(right._2)) right._2 else left._2
+            (lower, upper)
+          }
+          // filter out unbounded endpoints
+          val (lowerOption, upperOption) = dateTimes.map { case (lower, upper) =>
+            val lowerOption = if (lower == FilterHelper.MinDateTime) None else Some(lower.toDate)
+            val upperOption = if (upper == FilterHelper.MaxDateTime) None else Some(upper.toDate)
+            (lowerOption, upperOption)
+          }.getOrElse((None, None))
+          Some(Bounds(lowerOption, upperOption, inclusive = false))
         }
-        // filter out unbounded endpoints
-        val (lowerOption, upperOption) = dateTimes.map { case (lower, upper) =>
-          val lowerOption = if (lower == FilterHelper.MinDateTime) None else Some(lower.toDate)
-          val upperOption = if (upper == FilterHelper.MaxDateTime) None else Some(upper.toDate)
-          (lowerOption, upperOption)
-        }.getOrElse((None, None))
-        Some(Bounds(lowerOption, upperOption, inclusive = false))
-      }
     }
   }
 }

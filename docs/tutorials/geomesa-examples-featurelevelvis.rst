@@ -23,10 +23,11 @@ Prerequisites
 
 You will need:
 
--  an Accumulo |accumulo_version| instance running on Hadoop |hadoop_version|
+-  an Accumulo |accumulo_version| instance running on Hadoop |hadoop_version|,
 -  an Accumulo user that has appropriate permissions to manage
-   authorizations and query data
--  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
+   authorizations and query data,
+-  `Java JDK
+   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client
 
@@ -34,8 +35,9 @@ If you haven't already read both the :ref:`installation` section of
 the GeoMesa User Manual and the  :doc:`geomesa-quickstart-accumulo`, you should do so now,
 and make sure you have gone through the initial setup of GeoMesa.
 
-Additionally, you should be familiar with `Accumulo's Security Label Expression
-Syntax <https://accumulo.apache.org/1.5/accumulo_user_manual.html#_security_label_expressions>`__,
+Additionally, you should be familiar with Accumulo's `Security Label
+Expression
+Syntax <https://accumulo.apache.org/1.7/accumulo_user_manual.html#_security_label_expressions>`__,
 which we make use of when securing features in GeoMesa.
 
 Download and Build the Tutorial
@@ -61,7 +63,8 @@ To build, run
 
 .. note::
 
-    Ensure that the version of Accumulo, Hadoop, etc in the root ``pom.xml`` match your environment.
+    Ensure that the version of Accumulo, Hadoop, etc in
+    the root ``pom.xml`` match your environment.
 
 .. note::
 
@@ -226,8 +229,7 @@ Let's move on to GeoServer to visualize feature level visibility.
 GeoServer Visualization
 -----------------------
 
-Assuming you have already set up GeoServer as described in the :ref:`installation`
-section of the GeoMesa
+Assuming you have already set up GeoServer as described in the GeoMesa
 User Manual, we're going to add a new ``DataStore`` to GeoServer. First,
 login to GeoServer, and then click "Add stores" from the homepage.
 
@@ -238,6 +240,8 @@ parameters to make contact with GeoMesa/Accumulo, but be sure to use
 
 .. figure:: _static/geomesa-examples-featurelevelvis/gs-admin-datastore.png
    :alt: GeoMesa DataStore configuration with "admin" user
+
+   GeoMesa DataStore configuration with "admin" user
 
 Then, publish your layer when prompted by GeoServer. Remember to click
 the "Compute from data" and "Compute from native bounds" links on the

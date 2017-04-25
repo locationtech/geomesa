@@ -18,7 +18,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.stats.AttributeBounds
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -30,12 +30,14 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
+class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts {
 
   sequential
 
   // note: attributes that are not indexed but still collect stats only store bounds and topK
   val spec = "name:String:index=true,age:Int:keep-stats=true,height:Int,dtg:Date,*geom:Point:srid=4326"
+  val sft  = createNewSchema(spec)
+  val sftName = sft.getTypeName
 
   val baseMillis = {
     val sf = new ScalaSimpleFeature("", sft)
@@ -344,12 +346,28 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
         }
       }
 
+      "estimate counts for schemas without a date" >> {
+        val sft = createNewSchema("name:String:index=true,*geom:Point:srid=4326", None)
+        val reader = ds.getFeatureReader(new Query(AccumuloDataStoreStatsTest.this.sftName), Transaction.AUTO_COMMIT)
+        val features = SelfClosingIterator(reader).map { f =>
+          ScalaSimpleFeature.create(sft, f.getID, f.getAttribute("name"), f.getAttribute("geom"))
+        }
+        addFeatures(sft, features.toSeq)
+        val filters = Seq("name = '5'", "name < '7'", "name > 'foo'", "NOT name = '3'")
+        forall(filters.map(ECQL.toFilter)) { filter =>
+          val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
+          val exact = SelfClosingIterator(reader).length
+          val estimated = ds.stats.getCount(sft, filter, exact = false)
+          estimated must beSome(beCloseTo(exact, 1L))
+        }
+      }
+
       "not calculate stats when collection is disabled" >> {
         import scala.collection.JavaConversions._
         val dsNoStats =  DataStoreFinder.getDataStore(Map(
           "connector"     -> connector,
           "caching"       -> false,
-          "tableName"     -> sftName,
+          "tableName"     -> ds.config.catalog,
           "generateStats" -> false)).asInstanceOf[AccumuloDataStore]
 
         val fs = dsNoStats.getFeatureSource(sftName)
