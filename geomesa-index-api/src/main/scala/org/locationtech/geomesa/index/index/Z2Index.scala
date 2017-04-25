@@ -26,6 +26,8 @@ import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.util.control.NonFatal
+
 trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
     with IndexAdapter[DS, F, W, R] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
 
@@ -135,7 +137,10 @@ object Z2Index extends IndexKeySpace[Z2ProcessingValues] {
       if (geom == null) {
         throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
       }
-      Longs.toByteArray(Z2SFC.index(geom.getX, geom.getY).z)
+      val z = try { Z2SFC.index(geom.getX, geom.getY).z } catch {
+        case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry: $geom", e)
+      }
+      Longs.toByteArray(z)
     }
   }
 

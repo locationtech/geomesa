@@ -28,6 +28,8 @@ import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.util.control.NonFatal
+
 trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
     with IndexAdapter[DS, F, W, R] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
 
@@ -130,7 +132,9 @@ object XZ3Index extends IndexKeySpace[XZ3ProcessingValues] {
       val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) { 0L } else { dtg.getTime }
       val BinnedTime(b, t) = timeToIndex(time)
-      val xz = sfc.index(envelope.getMinX, envelope.getMinY, t, envelope.getMaxX, envelope.getMaxY, t)
+      val xz = try { sfc.index(envelope.getMinX, envelope.getMinY, t, envelope.getMaxX, envelope.getMaxY, t) } catch {
+        case NonFatal(e) => throw new IllegalArgumentException(s"Invalid xz value from geometry/time: $geom,$dtg", e)
+      }
       ByteArrays.toBytes(b, xz)
     }
   }

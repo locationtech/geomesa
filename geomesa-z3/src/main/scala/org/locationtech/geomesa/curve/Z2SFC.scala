@@ -19,7 +19,11 @@ object Z2SFC extends SpaceFillingCurve[Z2] {
   override val lon  = NormalizedLon(xprec)
   override val lat  = NormalizedLat(yprec)
 
-  override def index(x: Double, y: Double): Z2 = Z2(lon.normalize(x), lat.normalize(y))
+  override def index(x: Double, y: Double): Z2 = {
+    require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max,
+      s"Value(s) out of bounds ([${lon.min},${lon.max}], [${lat.min},${lat.max}]): $x, $y")
+    Z2(lon.normalize(x), lat.normalize(y))
+  }
 
   override def invert(z: Z2): (Double, Double) = {
     val (x, y) = z.decode
