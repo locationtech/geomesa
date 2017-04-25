@@ -192,9 +192,9 @@ filter      The filter to apply to the feature collection.
 
             .. code-block:: xml
 
-		            <wps:ComplexData mimeType="text/plain; subtype=cql">
-		                <![CDATA[some-query-text]]
-                </wps:ComplexData>
+    <wps:ComplexData mimeType="text/plain; subtype=cql">
+        <![CDATA[some-query-text]]
+    </wps:ComplexData>
 
 
 		        For interactive WPS request builder select TEXT & choose ``"text/plain; subtype=cql"``
