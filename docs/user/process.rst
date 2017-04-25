@@ -56,7 +56,19 @@ Processors
 DensityProcess
 ^^^^^^^^^^^^^^
 
+The ``DensityProcess`` computes a density map over a set of features stored in GeoMesa. The calculations are pushed down
+to the Accumulo iterators allowing for fast performance. A raster image is returned.
 
+============  ===========
+Parameters    Description
+============  ===========
+data          Input Simple Feature Collection to run the density process over.
+radiusPixels  Radius of the density kernel in pixels. Controls the "fuzziness" of the density map.
+weightAttr    Name of the attribute to use for data point weights.
+outputBBOX    Bounding box and CRS of the output raster.
+outputWidth   Width of the output raster in pixels.
+outputHeight  Height of the output raster in pixels.
+============  ===========
 
 .. _statsiterator_process:
 
@@ -64,7 +76,7 @@ StatsIteratorProcess
 ^^^^^^^^^^^^^^^^^^^^
 
 The ``StatsIteratorProcess`` allows the running of statistics on a given feature set. The statics calculations are pushed
-down to the Accumulo iterators allowing for very fast performance.
+down to the Accumulo iterators allowing for fast performance.
 
 ==========  ===========
 Parameters  Description
@@ -72,7 +84,7 @@ Parameters  Description
 features    The feature set on which to query. Can be a raw text input, reference to a remote URL, a subquery or a vector layer.
 statString  Stat string indicating which stats to instantiate. More info here :ref:`statString`.
 encode      Return the values encoded as json. Must be ``true`` or ``false``; empty values will not work.
-properties  The properties / transforms to apply before gathering stats. More info here :ref:`transformationsAndProjections`
+properties  The properties / transforms to apply before gathering stats. More info here :ref:`transformationsAndProjections`.
 ==========  ===========
 
 .. _statString:
@@ -93,7 +105,7 @@ to collect. The available stat function are listed below:
 
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | Syntax                                                            |   Parameters         | Description                                             |
-+-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
++===================================================================+======================+=========================================================+
 | Count                                                                                                                                              |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | ``Count()``                                                       |                      | Counts the number of features.                          |
