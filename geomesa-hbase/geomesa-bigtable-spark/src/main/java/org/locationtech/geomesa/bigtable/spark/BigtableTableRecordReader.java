@@ -175,9 +175,7 @@ public class BigtableTableRecordReader {
         if (key == null) key = new ImmutableBytesWritable();
         if (value == null) value = new Result();
         try {
-            if(!value.advance()) {
-                value = this.scanner.next();
-            }
+            value = this.scanner.next();
             if (value != null && value.isStale()) numStale++;
             if (logScannerActivity) {
                 rowcount ++;
