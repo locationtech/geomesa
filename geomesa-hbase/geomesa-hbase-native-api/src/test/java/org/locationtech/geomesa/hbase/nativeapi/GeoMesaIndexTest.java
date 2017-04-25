@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.api;
+package org.locationtech.geomesa.hbase.nativeapi;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
@@ -16,33 +16,37 @@ import com.google.gson.Gson;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.security.Authorizations;
+import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.security.User;
+import org.apache.hadoop.hbase.security.visibility.VisibilityClient;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.junit.Assert;
-import org.junit.Test;
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex;
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex$;
+import org.junit.*;
+import org.locationtech.geomesa.api.*;
+import org.locationtech.geomesa.hbase.data.HBaseDataStore;
+import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex;
+import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex$;
 import org.locationtech.geomesa.utils.index.IndexMode$;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.security.PrivilegedExceptionAction;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GeoMesaIndexTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(GeoMesaIndex.class);
 
     public static class DomainObject {
         public final String id;
@@ -73,17 +77,68 @@ public class GeoMesaIndexTest {
     final DomainObject two = new DomainObject("2", 2, 2.0);
     final GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
 
+    private static final HBaseTestingUtility testingUtil = new HBaseTestingUtility();
+    static Connection userConn = null;
+    static Connection adminConn = null;
+    static User adminUser = null;
+    static User testUser = null;
+
+    @BeforeClass
+    public static void setup() throws Exception {
+        testingUtil.getConfiguration().set("hbase.superuser", "admin");
+        testingUtil.getConfiguration().set("hfile.format.version", "3");
+        testingUtil.startMiniCluster(1);
+
+        adminUser = User.createUserForTesting(testingUtil.getConfiguration(), "admin", new String[] {"supergroup"});
+        testUser = User.createUserForTesting(testingUtil.getConfiguration(), "testUser", new String[] {});
+
+        adminUser.runAs(new PrivilegedExceptionAction<Object>(){
+            @Override
+            public Object run() throws Exception {
+                testingUtil.waitTableAvailable(TableName.valueOf("hbase:labels"), 50000);
+                adminConn = ConnectionFactory.createConnection(testingUtil.getConfiguration());
+                try {
+                    VisibilityClient.addLabels(adminConn, new String[]{ "user", "admin" });
+                } catch (Throwable throwable) {
+                    throw new Exception(throwable);
+                }
+                testingUtil.waitLabelAvailable(10000, "user", "admin");
+
+                try {
+                    VisibilityClient.setAuths(adminConn, new String[]{ "user" }, "testUser");
+                } catch (Throwable throwable) {
+                    throw new Exception(throwable);
+                }
+                return null;
+            }
+        });
+
+        testUser.runAs(new PrivilegedExceptionAction<Object>(){
+            @Override
+            public Object run() throws Exception {
+                userConn = ConnectionFactory.createConnection(testingUtil.getConfiguration());
+                return null;
+            }
+        });
+
+        logger.info("HBase Testing Cluster Started");
+    }
+
+    @AfterClass
+    public static void teardown() throws Exception {
+        logger.info("try shutdown mini cluster");
+        testingUtil.shutdownMiniCluster();
+        logger.info("Shutdown mini cluster");
+    }
+
     @Test
     public void testNativeAPI() {
 
-
         final GeoMesaIndex<DomainObject> index =
-                AccumuloGeoMesaIndex.build(
+                HBaseGeoMesaIndex.build(
                         "hello",
-                        "zoo1:2181",
-                        "mycloud",
-                        "myuser", "mypass",
-                        true,
+                        false,
+                        userConn,
                         new DomainObjectValueSerializer(),
                         new DefaultSimpleFeatureView<DomainObject>());
 
@@ -97,7 +152,7 @@ public class GeoMesaIndexTest {
                 two,
                 gf.createPoint(new Coordinate(-78.0, 40.0)),
                 date("2016-02-01T12:15:00.000Z"));
-
+        index.flush();
         final GeoMesaQuery q =
                 GeoMesaQuery.GeoMesaQueryBuilder.builder()
                         .within(-79.0, 37.0, -77.0, 39.0)
@@ -129,20 +184,12 @@ public class GeoMesaIndexTest {
     }
 
     @Test
-    public void testVisibilityNativeAPI() throws Exception {
-        String instanceId = "testVis";
-
-        MockInstance mockInstance = new MockInstance(instanceId);
-        Connector conn = mockInstance.getConnector("myuser", new PasswordToken("password".getBytes()));
-        conn.securityOperations().changeUserAuthorizations("myuser", new Authorizations("user", "admin"));
-        conn.securityOperations().createLocalUser("nonpriv", new PasswordToken("nonpriv".getBytes("UTF8")));
-        conn.securityOperations().changeUserAuthorizations("nonpriv", new Authorizations("user"));
-
+    public void testVisibilityNativeAPI() throws Throwable {
+        // Note we are inserting here with adminConn bc it has both visibilities!
         final GeoMesaIndex<DomainObject> index =
-                AccumuloGeoMesaIndex.buildDefaultView("securityTest", "zoo1:2181", instanceId, "myuser", "password",
-                        true, new DomainObjectValueSerializer());
+                HBaseGeoMesaIndex.buildDefaultView("securityTest", false, adminConn, new DomainObjectValueSerializer());
 
-        Map<String, Object> visibility = ImmutableMap.<String,Object>of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), "user");
+        Map<String, Object> visibility = ImmutableMap.<String,Object>of(GeoMesaIndex.VISIBILITY, "user");
         index.insert(
                 one.id,
                 one,
@@ -150,35 +197,33 @@ public class GeoMesaIndexTest {
                 date("2016-01-01T12:15:00.000Z"),
                 visibility);
 
-        Map<String, Object> visibility2 = ImmutableMap.<String,Object>of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), "admin");
+        Map<String, Object> visibility2 = ImmutableMap.<String,Object>of(GeoMesaIndex.VISIBILITY, "admin");
         index.insert(
                 two.id,
                 two,
                 gf.createPoint(new Coordinate(-78.0, 40.0)),
                 date("2016-02-01T12:15:00.000Z"),
                 visibility2);
+        index.flush();
 
         final Iterable<DomainObject> results = index.query(GeoMesaQuery.include());
-        Assert.assertEquals(Iterables.size(results), 2);
+        Assert.assertEquals(2, Iterables.size(results));
 
         // Query again at the lower level.
         final GeoMesaIndex<DomainObject> index2 =
-                AccumuloGeoMesaIndex.buildDefaultView("securityTest", "zoo1:2181", instanceId, "nonpriv", "nonpriv",
-                        true, new DomainObjectValueSerializer());
+                HBaseGeoMesaIndex.buildDefaultView("securityTest", false, userConn, new DomainObjectValueSerializer());
 
         final Iterable<DomainObject> results2 = index2.query(GeoMesaQuery.include());
-        Assert.assertEquals(Iterables.size(results2), 1);
+        Assert.assertEquals(1, Iterables.size(results2));
     }
 
     @Test
     public void testCustomView() throws Exception {
         final GeoMesaIndex<DomainObject> index =
-                AccumuloGeoMesaIndex.buildWithView(
+                HBaseGeoMesaIndex.buildWithView(
                         "customview",
-                        "zoo1:2181",
-                        "mycloud",
-                        "myuser", "mypass",
-                        true,
+                        false,
+                        userConn,
                         new DomainObjectValueSerializer(),
                         new SimpleFeatureView<DomainObject>() {
                             AttributeTypeBuilder atb = new AttributeTypeBuilder();
@@ -205,6 +250,7 @@ public class GeoMesaIndexTest {
                 two,
                 gf.createPoint(new Coordinate(-78.0, 40.0)),
                 date("2016-02-01T12:15:00.000Z"));
+        index.flush();
 
         final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
         final GeoMesaQuery q =
@@ -252,17 +298,15 @@ public class GeoMesaIndexTest {
     }
 
     @Test
-    public void testRemoveSchema() {
+    public void testRemoveSchema() throws Exception {
         String featureName = "deleteme";
 
         // create the index, and insert a few records
         final GeoMesaIndex<DomainObject> index =
-                AccumuloGeoMesaIndex.buildWithView(
+                HBaseGeoMesaIndex.buildWithView(
                         featureName,
-                        "zoo1:2181",
-                        "mycloud",
-                        "myuser", "mypass",
-                        true,
+                        false,
+                        userConn,
                         new DomainObjectValueSerializer(),
                         new SimpleFeatureView<DomainObject>() {
                             AttributeTypeBuilder atb = new AttributeTypeBuilder();
@@ -288,23 +332,22 @@ public class GeoMesaIndexTest {
                 two,
                 gf.createPoint(new Coordinate(-78.0, 40.0)),
                 date("2016-02-01T12:15:00.000Z"));
-
+        index.flush();
         // fetch the underlying Accumulo data store
-        AccumuloDataStore ds = ((AccumuloGeoMesaIndex)index).ds();
+        HBaseDataStore ds = ((HBaseGeoMesaIndex)index).ds();
 
         // look up the tables that exist
-        SortedSet<String> preTables = filterTablesByPrefix(ds.connector().tableOperations().list(), featureName);
+        SortedSet<String> preTables = filterTablesByPrefix(listTables(ds), featureName);
         Assert.assertFalse("creating a MockAccumulo instance should create at least one table", preTables.isEmpty());
 
         // require that the function to pre-compute the names of all tables for this feature type is accurate
-        scala.collection.Iterator<AccumuloFeatureIndex> indices =
-                AccumuloFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), IndexMode$.MODULE$.Any()).iterator();
+        scala.collection.Iterator<HBaseFeatureIndex> indices =
+                HBaseFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), IndexMode$.MODULE$.Any()).iterator();
         List<String> expectedTables = new ArrayList<>();
         while (indices.hasNext()) {
             expectedTables.add(indices.next().getTableName(featureName, ds));
         }
         expectedTables.add(featureName);
-        expectedTables.add(featureName + "_stats");
 
         for (String expectedTable : expectedTables) {
             Assert.assertTrue("Every expected table must be created:  " + expectedTable,
@@ -316,11 +359,14 @@ public class GeoMesaIndexTest {
         index.removeSchema();
 
         // ensure that all of the tables are now gone
-        SortedSet<String> postTables = filterTablesByPrefix(ds.connector().tableOperations().list(), featureName);
-        Assert.assertTrue("removeScheme on a MockAccumulo instance should remove all but two tables",
-                postTables.contains(featureName) && postTables.contains(featureName + "_stats") && postTables.size() == 2);
+        SortedSet<String> postTables = filterTablesByPrefix(listTables(ds), featureName);
+        Assert.assertTrue("removeScheme on a MockAccumulo instance should remove all but one tables",
+                postTables.contains(featureName) && postTables.size() == 1);
     }
 
+    private TreeSet<String> listTables(HBaseDataStore ds) throws IOException {
+        return new TreeSet<>(Arrays.stream(ds.connection().getAdmin().listTables()).map(h -> h.getTableName().getNameAsString()).collect(Collectors.toList()));
+    }
     private Date date(String s) {
         return Date.from(ZonedDateTime.parse(s).toInstant());
     }
