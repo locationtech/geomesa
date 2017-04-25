@@ -17,11 +17,11 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <http://java.oracle.com/>`__ Development Kit 1.8
--  Apache `Maven <http://maven.apache.org/>`__
--  a GitHub client
--  HBase 1.1.x (optional)
--  GeoServer |geoserver_version| (optional)
+-  `Java <http://java.oracle.com/>`__ Development Kit 1.8,
+-  Apache `Maven <http://maven.apache.org/>`__,
+-  a GitHub client,
+-  HBase 1.2.x (optional), and
+-  GeoServer |geoserver_version| (optional).
 
 An existing HBase 1.1.x installation is helpful but not necessary. The
 tutorial described will work either with an existing HBase server or by
@@ -70,11 +70,11 @@ or later).
 
 .. note::
 
-    The only reason these libraries are bundled into the final JAR is
-    that this is easier for most people to do this than it is to set the
-    classpath when running the tutorial. If you would rather not bundle
-    these dependencies, mark them as ``provided`` in the POM, and update
-    your classpath as appropriate.)
+    The only reason these libraries are bundled into the
+    final JAR is that this is easier for most people to do this than it
+    is to set the classpath when running the tutorial. If you would
+    rather not bundle these dependencies, mark them as ``provided`` in
+    the POM, and update your classpath as appropriate.
 
 GeoMesa's ``HBaseDataStore`` searches for a file called
 ``hbase-site.xml``, which among other things configures the Zookeeper
@@ -104,12 +104,14 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-hbase/target/geomesa-quickstart-hbase-$VERSION.jar \
-      com.example.geomesa.hbase.HBaseQuickStart --bigtable_table_name geomesa
+    $ java -cp target/geomesa-quickstart-hbase-$VERSION.jar \
+      com.example.geomesa.hbase.HBaseQuickStart \
+      --bigtable_table_name geomesa
 
 The only argument passed is the name of the HBase table where GeoMesa
 will store the feature type information. It will also create a table
-called ``<featuretype>_z3`` which will store the Z3-indexed features.
+called ``<tablename>_<featuretype>_z3`` which will store the Z3-indexed
+features.
 
 You should see output similar to the following (not including some of
 Maven's output and log4j's warnings), which lists the features that
@@ -143,12 +145,12 @@ specified on the command line):
      QuickStart                      column=M:schema, timestamp=1463593804724, value=Who:String,What:Long,When:Date,*Where:Point:s
                                      rid=4326,Why:String
 
-The features are stored in ``<featuretype>_z3`` (``QuickStart_z3`` in
-this example):
+The features are stored in ``<tablename>_<featuretype>_z3``
+(``geomesa_QuickStart_z3`` in this example):
 
 ::
 
-    hbase> scan 'QuickStart_z3', { LIMIT => 3 }
+    hbase> scan 'geomesa_QuickStart_z3', { LIMIT => 3 }
     ROW                              COLUMN+CELL                                                                                  
      \x08\xF7\x0F#\x83\x91\xAE\xA2\x column=D:\x0F#\x83\x91\xAE\xA2\xA8PObservation.452, timestamp=1463593805801, value=\x02\x00\x
      A8P                             00\x00@Observation.45\xB2Clemen\xF3\x01\x00\x00\x00\x00\x00\x00\x01\xC4\x01\x00\x00\x01CM8\x0
@@ -253,6 +255,8 @@ in your view should look something like this:
 .. figure:: _static/geomesa-quickstart-hbase/geoserver-layer-preview.png
    :alt: Visualizing quickstart data
 
+   Visualizing quickstart data
+
 Click on one of the red points in the display, and GeoServer should
 report a detailed record for the clicked point underneath the map area.
 
@@ -263,4 +267,4 @@ display will now show only those points matching your filter criterion.
 
 This is a CQL filter, which can be constructed in various ways to query
 our data. You can find more information about CQL from `GeoServer's CQL
-tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
+tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.

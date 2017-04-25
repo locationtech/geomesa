@@ -23,8 +23,11 @@ class Z3SFC(period: TimePeriod) extends SpaceTimeFillingCurve[Z3] {
   override val lat  = NormalizedLat(yprec)
   override val time = NormalizedTime(tprec, tmax)
 
-  override def index(x: Double, y: Double, t: Long): Z3 =
+  override def index(x: Double, y: Double, t: Long): Z3 = {
+    require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max && t >= time.min && t <= time.max,
+      s"Value(s) out of bounds ([${lon.min},${lon.max}], [${lat.min},${lat.max}], [${time.min},${time.max}]): $x, $y, $t")
     Z3(lon.normalize(x), lat.normalize(y), time.normalize(t))
+  }
 
   override def invert(z: Z3): (Double, Double, Long) = {
     val (x, y, t) = z.decode

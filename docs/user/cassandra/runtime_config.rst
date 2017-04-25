@@ -1,7 +1,7 @@
-Accumulo Configuration
-======================
+Cassandra Configuration
+=======================
 
-This section details Accumulo specific configuration properties. For general properties,
+This section details Cassandra-specific configuration properties. For general properties,
 see :ref:`geomesa_site_xml`.
 
 Connection Properties
