@@ -21,6 +21,7 @@ import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.hbase.index._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
+import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
@@ -79,10 +80,10 @@ object BigtableFeatureIndex extends HBaseIndexManagerType {
 
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
-    Seq(BigtableZ3Index, HBaseXZ3Index, BigtableZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex, HBaseAttributeDateIndex)
+    Seq(BigtableZ3Index, BigtableXZ3Index, BigtableZ2Index, BigtableXZ2Index, BigtableIdIndex, BigtableAttributeIndex, BigtableAttributeDateIndex)
 
   override val CurrentIndices: Seq[HBaseFeatureIndex] =
-    Seq(BigtableZ3Index, HBaseXZ3Index, BigtableZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex)
+    Seq(BigtableZ3Index, BigtableXZ3Index, BigtableZ2Index, BigtableXZ2Index, BigtableIdIndex, BigtableAttributeIndex)
 
   override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[HBaseFeatureIndex] =
     super.indices(sft, mode).asInstanceOf[Seq[HBaseFeatureIndex]]
@@ -99,12 +100,68 @@ object BigtableFeatureIndex extends HBaseIndexManagerType {
 
 trait BigtablePlatform extends HBasePlatform {
 
+  /**
+    * Sets up everything needed to execute the scan - iterators, column families, deserialization, etc
+    *
+    * @param sft    simple feature type
+    * @param filter hbase filter strategy type
+    * @param hints  query hints
+    * @param ecql   secondary filter being applied, if any
+    * @param dedupe scan may have duplicate results or not
+    * @return
+    */
+  override def scanConfig(sft: SimpleFeatureType,
+                          filter: HBaseFilterStrategyType,
+                          hints: Hints,
+                          ecql: Option[org.opengis.filter.Filter],
+                          dedupe: Boolean): ScanConfig = {
+
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+    /** This function is used to implement custom client filters for HBase **/
+    val transform = hints.getTransform // will eventually be used to support remote transforms
+    val feature = sft // will eventually be used to support remote transforms
+
+    // ECQL is not pushed down in Bigtable
+    // However, the transform is not yet pushed down
+    val toFeatures = resultsToFeatures(feature, ecql, transform)
+
+    configurePushDownFilters(ScanConfig(Nil, toFeatures), ecql, sft)
+  }
+
+  def configurePushDownFilters(config: HBaseFeatureIndex.ScanConfig,
+                               ecql: Option[filter.Filter],
+                               sft: SimpleFeatureType): HBaseFeatureIndex.ScanConfig = {
+    config
+  }
+
+
   override def buildPlatformScanPlan(ds: HBaseDataStore,
                                      filter: HBaseFilterStrategyType,
                                      originalRanges: Seq[Query],
                                      table: TableName,
                                      hbaseFilters: Seq[Filter],
                                      toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
+    // check if these Scans or Gets
+    // Only in the case of 'ID IN ()' queries will this be Gets
+    val scans = originalRanges.head match {
+      case t: Get => configureGet(originalRanges, hbaseFilters)
+      case t: Scan => configureBigtableExtendedScan(ds, originalRanges, hbaseFilters)
+    }
+
+    ScanPlan(filter, table, scans, toFeatures)
+  }
+  private def configureGet(originalRanges: Seq[Query], hbaseFilters: Seq[Filter]): Seq[Scan] = {
+    // convert Gets to Scans for Spark SQL compatibility
+    originalRanges.map { r =>
+      val g = r.asInstanceOf[Get]
+      val start = g.getRow
+      val end = IndexAdapter.rowFollowingRow(start)
+      new Scan(g).setStartRow(start).setStopRow(end).setSmall(true)
+    }
+  }
+
+  private def configureBigtableExtendedScan(ds: HBaseDataStore, originalRanges: Seq[Query], hbaseFilters: Seq[Filter]): Seq[Scan] = {
     import scala.collection.JavaConversions._
     val rowRanges = Lists.newArrayList[RowRange]()
     originalRanges.foreach { r =>
@@ -129,46 +186,14 @@ trait BigtablePlatform extends HBasePlatform {
       scan
     }
 
-    ScanPlan(filter, table, groupedScans, toFeatures)
+    groupedScans
   }
 }
 
 case object BigtableZ2Index extends HBaseLikeZ2Index with BigtablePlatform
-
-case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform {
-
-  /**
-    * Sets up everything needed to execute the scan - iterators, column families, deserialization, etc
-    *
-    * @param sft    simple feature type
-    * @param filter hbase filter strategy type
-    * @param hints  query hints
-    * @param ecql   secondary filter being applied, if any
-    * @param dedupe scan may have duplicate results or not
-    * @return
-    */
-  override def scanConfig(sft: SimpleFeatureType,
-                           filter: HBaseFilterStrategyType,
-                           hints: Hints,
-                           ecql: Option[org.opengis.filter.Filter],
-                           dedupe: Boolean): ScanConfig = {
-
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
-    /** This function is used to implement custom client filters for HBase **/
-    val transform = hints.getTransform // will eventually be used to support remote transforms
-    val feature = sft // will eventually be used to support remote transforms
-
-    // ECQL is not pushed down in Bigtable
-    // However, the transform is not yet pushed down
-    val toFeatures = resultsToFeatures(feature, ecql, transform)
-
-    configurePushDownFilters(ScanConfig(Nil, toFeatures), ecql, sft)
-  }
-
-  def configurePushDownFilters(config: HBaseFeatureIndex.ScanConfig,
-                                        ecql: Option[filter.Filter],
-                                        sft: SimpleFeatureType): HBaseFeatureIndex.ScanConfig = {
-    config
-  }
-}
+case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform
+case object BigtableIdIndex extends HBaseIdLikeIndex with BigtablePlatform
+case object BigtableXZ2Index extends HBaseXZ2LikeIndex with BigtablePlatform
+case object BigtableXZ3Index extends HBaseXZ3LikeIndex with BigtablePlatform
+case object BigtableAttributeIndex extends HBaseAttributeLikeIndex with BigtablePlatform
+case object BigtableAttributeDateIndex extends HBaseAttributeDateLikeIndex with BigtablePlatform

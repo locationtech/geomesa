@@ -12,12 +12,16 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.index.{AttributeDateIndex, AttributeIndex}
 
-case object HBaseAttributeIndex
-    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] with HBasePlatform {
+trait HBaseAttributeLikeIndex
+    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 2
 }
 
-case object HBaseAttributeDateIndex
-    extends HBaseFeatureIndex with AttributeDateIndex[HBaseDataStore, HBaseFeature, Mutation, Query] with HBasePlatform {
+case object HBaseAttributeIndex extends HBaseAttributeLikeIndex with HBasePlatform
+
+trait HBaseAttributeDateLikeIndex
+    extends HBaseFeatureIndex with AttributeDateIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 1
 }
+
+case object HBaseAttributeDateIndex extends HBaseAttributeDateLikeIndex with HBasePlatform

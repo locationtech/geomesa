@@ -13,6 +13,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore}
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.geomesa.spark.hbase.{HBaseGeoMesaRecordReader, HBaseSpatialRDDProvider}
@@ -51,11 +52,23 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
       // that we enforce bbox'es and secondary filters.
       GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
 
-      val scans = qp.ranges.map { s =>
-        val scan = s
-        // need to set the table name in each scan
-        scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
-        BigtableInputFormatBase.scanToString(scan.asInstanceOf[BigtableExtendedScan])
+      val scans = qp.ranges.map {
+        case scan: BigtableExtendedScan =>
+          // need to set the table name in each scan
+          scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
+          BigtableInputFormatBase.scanToString(scan)
+
+        case get: org.apache.hadoop.hbase.client.Get =>
+          val bes = new BigtableExtendedScan()
+          bes.addRange(get.getRow, IndexAdapter.rowFollowingRow(get.getRow))
+          bes.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
+          BigtableInputFormatBase.scanToString(bes)
+
+        case scan: org.apache.hadoop.hbase.client.Scan =>
+          val bes = new BigtableExtendedScan()
+          bes.addRange(scan.getStartRow, scan.getStopRow)
+          bes.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
+          BigtableInputFormatBase.scanToString(bes)
       }
       conf.setStrings(BigtableInputFormat.SCANS, scans: _*)
 
