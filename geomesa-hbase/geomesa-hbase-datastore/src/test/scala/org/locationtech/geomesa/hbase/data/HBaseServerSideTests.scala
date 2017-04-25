@@ -10,7 +10,7 @@ import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.{Before, Specification}
+import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -43,16 +43,9 @@ class HBaseServerSideTests extends Specification with LazyLogging {
         HBaseDataStoreParams.LooseBBoxParam.getName -> false)
 
     ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
-
-    ds.getSchema(typeName) must beNull
-
-    ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326"))
-
+    ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String:index=full,attr:String,dtg:Date,*geom:Point:srid=4326"))
     val sft = ds.getSchema(typeName)
-
-    sft must not(beNull)
-
-    val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+    fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
 
     val toAdd = (0 until 10).map { i =>
       val sf = new ScalaSimpleFeature(i.toString, sft)
@@ -66,21 +59,27 @@ class HBaseServerSideTests extends Specification with LazyLogging {
 
     fs.addFeatures(new ListFeatureCollection(sft, toAdd))
     fs.flush()
+    logger.info("Done populating data")
+    success
   }
 
   "transforms" should {
     "work for id queries" >> {
+      // NOTE: geometry is implicitly returned
+      val results = fs.getFeatures(new Query("testpoints", ff.id(ff.featureId("1")), Array("name"))).features.toList
+      results.length must be equalTo 1 and
+        (results.head.getType.getAttributeDescriptors.map(_.getLocalName) must containAllOf(Seq("geom","name"))) and
+        (results.head.getAttributes.length must be equalTo 2) and
+        (results.head.get[String]("name") must be equalTo "name1")
+    }
 
-      val results = fs.getFeatures(new Query("test_sft", ff.id(ff.featureId("1")), Array("name"))).features.toList
-      "count should be 1" >> {
-        results.length must be equalTo 1
-      }
-      "attributes should contain only 1 attribute" >> {
-        results.head.getAttributes.length must be equalTo 1
-      }
-      "attribute should be 'name'" >> {
-        results.head.get[String]("name") must be equalTo "name1"
-      }
+    "work for attribute indexes" >> {
+      val results = fs.getFeatures(new Query("testpoints", ff.equals(ff.property("name"), ff.literal("name1")), Array("name"))).features.toList
+      results.length must be equalTo 1 and
+        (results.head.getType.getAttributeDescriptors.map(_.getLocalName) must containAllOf(Seq("geom","name"))) and
+        (results.head.getAttributes.length must be equalTo 2) and
+        (results.head.get[String]("name") must be equalTo "name1")
+
     }
   }
 
