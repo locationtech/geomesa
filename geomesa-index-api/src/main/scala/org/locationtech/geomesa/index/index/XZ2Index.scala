@@ -25,6 +25,8 @@ import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.util.control.NonFatal
+
 trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
     with IndexAdapter[DS, F, W, R] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
 
@@ -121,7 +123,10 @@ object XZ2Index extends IndexKeySpace[Z2ProcessingValues] {
         throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
       }
       val envelope = geom.getEnvelopeInternal
-      Longs.toByteArray(sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY))
+      val xz = try { sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY) } catch {
+        case NonFatal(e) => throw new IllegalArgumentException(s"Invalid xz value from geometry: $geom", e)
+      }
+      Longs.toByteArray(xz)
     }
   }
 
