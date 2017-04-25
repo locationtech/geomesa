@@ -80,7 +80,7 @@ properties  The properties / transforms to apply before gathering stats.
 Stat Strings
 """"""""""""
 
-Stat strings are a GeoMesa Specific domain specific language (DSL) that allows the specification of stats for the iterators
+Stat strings are a GeoMesa domain specific language (DSL) that allows the specification of stats for the iterators
 to collect. The available stat function are listed below:
 
 .. note::
@@ -95,33 +95,33 @@ to collect. The available stat function are listed below:
 Stat               Syntax                                           Parameters          Description
 =================  ===============================================  ==================  ===========
 Count              ``Count()``                                                          Counts the number of features.
-MinMax             ``MinMax(attribute)``                            *attribute: String  Finds the Min and Max values of the given attribute.
-GroupBy            ``GroupBy(attribute,stat)``                      *attribute: String  Groups Stats by the given attribute and then runs
-                                                                    stat: Stat String   the given stat on each group. Any stat can be provided.
-Descriptive Stats  ``DescriptiveStats(attribute)``                  *attribute: String  Runs single pass stats on the given attribute
+MinMax             ``MinMax(attribute)``                            -*attribute: String  Finds the Min and Max values of the given attribute.
+GroupBy            ``GroupBy(attribute,stat)``                      -*attribute: String  Groups Stats by the given attribute and then runs
+                                                                    -stat: Stat String   the given stat on each group. Any stat can be provided.
+Descriptive Stats  ``DescriptiveStats(attribute)``                  -*attribute: String  Runs single pass stats on the given attribute
                                                                                         calculating stats describing the attribute such as:
                                                                                         Count; Min; Max; Mean; and Population and Sample
                                                                                         versions of Variance, Standard Deviation, Kurtosis,
                                                                                         Excess Kurtosis, Covariance, and Correlation.
-Enumeration        ``Enumeration(attribute)``                       *attribute: String  Enumerates the values in the give attribute and the
+Enumeration        ``Enumeration(attribute)``                       -*attribute: String  Enumerates the values in the give attribute and the
                                                                                         number of occurrences.
-TopK               ``TopK(attribute)``                              *attribute: String  TopK of the given attribute
-Histogram          ``Histogram(attribute,numBins,lower,upper)``     *attribute: String  Provides a histogram of the given attribute, binning
-                                                                    numBins: Int        the results into a Binned Array using the numBins as
-                                                                    lower: Int          the number of Bins and lower and upper as the bounds
-                                                                    upper: Int          of the Binned Array.
-Freqency           ``Frequency(attribute,dtg,period,precision)``    *attribute: String  Estimates frequency counts at scale.
-                                                                    *dtg: String
-                                                                    period: TimePeriod
-                                                                    precision: Int
-z3Histogram        ``Z3Histogram(geom,dtg,period,length)``          *geom: String       Provides a histogram similar to ``Histogram`` but
-                                                                    *dtg: String        treats the geometry and date attributes as a single
-                                                                    period: TimePeriod  value.
-                                                                    length: Int
-z3Frequency        ``Z3Frequency(geom,dtg,period,precision)``       *geom: String       Provides a freqency estimate similar to ``Frequency``
-                                                                    *dtg: String        but treats the geometry and date attributes as a
-                                                                    period: TimePeriod  single value.
-                                                                    precision: Int
+TopK               ``TopK(attribute)``                              -*attribute: String  TopK of the given attribute
+Histogram          ``Histogram(attribute,numBins,lower,upper)``     -*attribute: String  Provides a histogram of the given attribute, binning
+                                                                    -numBins: Int        the results into a Binned Array using the numBins as
+                                                                    -lower: Int          the number of Bins and lower and upper as the bounds
+                                                                    -upper: Int          of the Binned Array.
+Freqency           ``Frequency(attribute,dtg,period,precision)``    -*attribute: String  Estimates frequency counts at scale.
+                                                                    -*dtg: String
+                                                                    -period: TimePeriod
+                                                                    -precision: Int
+z3Histogram        ``Z3Histogram(geom,dtg,period,length)``          -*geom: String       Provides a histogram similar to ``Histogram`` but
+                                                                    -*dtg: String        treats the geometry and date attributes as a single
+                                                                    -period: TimePeriod  value.
+                                                                    -length: Int
+z3Frequency        ``Z3Frequency(geom,dtg,period,precision)``       -*geom: String       Provides a freqency estimate similar to ``Frequency``
+                                                                    -*dtg: String        but treats the geometry and date attributes as a
+                                                                    -period: TimePeriod  single value.
+                                                                    -precision: Int
 Iterator Stack     ``IteratorStackCount()``                                             IteratorStackCount keeps track of the number of times
                                                                                         Accumulo sets up an iterator stack as a result of a
                                                                                         query.
