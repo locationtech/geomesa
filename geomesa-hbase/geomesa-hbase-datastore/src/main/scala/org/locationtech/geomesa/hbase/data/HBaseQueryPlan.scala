@@ -10,6 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import com.google.common.collect.Lists
 import com.google.protobuf.ByteString
+import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
@@ -22,6 +23,7 @@ import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanTy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.collection.JavaConverters._
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
@@ -89,12 +91,17 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
     * @return
     */
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, null, hints)
-    val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
-    val table1 = ds.connection.getTable(table)
-    val client = new KryoLazyDensityDriver()
-    val result : List[ByteString] = client.kryoLazyDensityFilter(table1, byteArray).asScala.toList
-    result.map (r => KryoLazyDensityCoprocessor.bytesToFeatures(r.toByteArray)).toIterator
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+    if (hints.isDensityQuery) {
+      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, null, hints)
+      val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
+      val hbaseTable = ds.connection.getTable(table)
+      val client = new KryoLazyDensityDriver()
+      val result: List[ByteString] = client.kryoLazyDensityFilter(hbaseTable, byteArray).asScala.toList
+      result.map(r => KryoLazyDensityCoprocessor.bytesToFeatures(r.toByteArray)).toIterator
+    } else {
+      throw new NotImplementedException()
+    }
   }
 }
 

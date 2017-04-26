@@ -1,10 +1,10 @@
-/** *********************************************************************
+/***********************************************************************
 * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
-* ************************************************************************/
+*************************************************************************/
 
 package org.locationtech.geomesa.hbase.coprocessor
 
@@ -76,7 +76,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
     var scanner : InternalScanner = null
     try {
       val scan = new Scan
-      val options: Map[String, String] = deserializeOptions(request.getByteFilter.toByteArray)
+      val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
       val densityResult: DensityResult = this.init(options, sft)

@@ -15,7 +15,7 @@ option java_generate_equals_and_hash = true;
 option optimize_for = SPEED;
 
 message DensityRequest {
-    required bytes byteFilter = 1;
+    required bytes options = 1;
 }
 
 message DensityResponse {

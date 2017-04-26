@@ -21,13 +21,13 @@ public final class KryoLazyDensityProto {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>required bytes byteFilter = 1;</code>
+     * <code>required bytes options = 1;</code>
      */
-    boolean hasByteFilter();
+    boolean hasOptions();
     /**
-     * <code>required bytes byteFilter = 1;</code>
+     * <code>required bytes options = 1;</code>
      */
-    com.google.protobuf.ByteString getByteFilter();
+    com.google.protobuf.ByteString getOptions();
   }
   /**
    * Protobuf type {@code DensityRequest}
@@ -83,7 +83,7 @@ public final class KryoLazyDensityProto {
             }
             case 10: {
               bitField0_ |= 0x00000001;
-              byteFilter_ = input.readBytes();
+              options_ = input.readBytes();
               break;
             }
           }
@@ -126,23 +126,23 @@ public final class KryoLazyDensityProto {
     }
 
     private int bitField0_;
-    public static final int BYTEFILTER_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString byteFilter_;
+    public static final int OPTIONS_FIELD_NUMBER = 1;
+    private com.google.protobuf.ByteString options_;
     /**
-     * <code>required bytes byteFilter = 1;</code>
+     * <code>required bytes options = 1;</code>
      */
-    public boolean hasByteFilter() {
+    public boolean hasOptions() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>required bytes byteFilter = 1;</code>
+     * <code>required bytes options = 1;</code>
      */
-    public com.google.protobuf.ByteString getByteFilter() {
-      return byteFilter_;
+    public com.google.protobuf.ByteString getOptions() {
+      return options_;
     }
 
     private void initFields() {
-      byteFilter_ = com.google.protobuf.ByteString.EMPTY;
+      options_ = com.google.protobuf.ByteString.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -150,7 +150,7 @@ public final class KryoLazyDensityProto {
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
 
-      if (!hasByteFilter()) {
+      if (!hasOptions()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -162,7 +162,7 @@ public final class KryoLazyDensityProto {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, byteFilter_);
+        output.writeBytes(1, options_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -175,7 +175,7 @@ public final class KryoLazyDensityProto {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, byteFilter_);
+          .computeBytesSize(1, options_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -200,10 +200,10 @@ public final class KryoLazyDensityProto {
       org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto.DensityRequest other = (org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto.DensityRequest) obj;
 
       boolean result = true;
-      result = result && (hasByteFilter() == other.hasByteFilter());
-      if (hasByteFilter()) {
-        result = result && getByteFilter()
-            .equals(other.getByteFilter());
+      result = result && (hasOptions() == other.hasOptions());
+      if (hasOptions()) {
+        result = result && getOptions()
+            .equals(other.getOptions());
       }
       result = result &&
           getUnknownFields().equals(other.getUnknownFields());
@@ -217,9 +217,9 @@ public final class KryoLazyDensityProto {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptorForType().hashCode();
-      if (hasByteFilter()) {
-        hash = (37 * hash) + BYTEFILTER_FIELD_NUMBER;
-        hash = (53 * hash) + getByteFilter().hashCode();
+      if (hasOptions()) {
+        hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
+        hash = (53 * hash) + getOptions().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -331,7 +331,7 @@ public final class KryoLazyDensityProto {
 
       public Builder clear() {
         super.clear();
-        byteFilter_ = com.google.protobuf.ByteString.EMPTY;
+        options_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
@@ -364,7 +364,7 @@ public final class KryoLazyDensityProto {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.byteFilter_ = byteFilter_;
+        result.options_ = options_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -381,15 +381,15 @@ public final class KryoLazyDensityProto {
 
       public Builder mergeFrom(org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto.DensityRequest other) {
         if (other == org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto.DensityRequest.getDefaultInstance()) return this;
-        if (other.hasByteFilter()) {
-          setByteFilter(other.getByteFilter());
+        if (other.hasOptions()) {
+          setOptions(other.getOptions());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
       public final boolean isInitialized() {
-        if (!hasByteFilter()) {
+        if (!hasOptions()) {
           
           return false;
         }
@@ -415,37 +415,37 @@ public final class KryoLazyDensityProto {
       }
       private int bitField0_;
 
-      private com.google.protobuf.ByteString byteFilter_ = com.google.protobuf.ByteString.EMPTY;
+      private com.google.protobuf.ByteString options_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>required bytes byteFilter = 1;</code>
+       * <code>required bytes options = 1;</code>
        */
-      public boolean hasByteFilter() {
+      public boolean hasOptions() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>required bytes byteFilter = 1;</code>
+       * <code>required bytes options = 1;</code>
        */
-      public com.google.protobuf.ByteString getByteFilter() {
-        return byteFilter_;
+      public com.google.protobuf.ByteString getOptions() {
+        return options_;
       }
       /**
-       * <code>required bytes byteFilter = 1;</code>
+       * <code>required bytes options = 1;</code>
        */
-      public Builder setByteFilter(com.google.protobuf.ByteString value) {
+      public Builder setOptions(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-        byteFilter_ = value;
+        options_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required bytes byteFilter = 1;</code>
+       * <code>required bytes options = 1;</code>
        */
-      public Builder clearByteFilter() {
+      public Builder clearOptions() {
         bitField0_ = (bitField0_ & ~0x00000001);
-        byteFilter_ = getDefaultInstance().getByteFilter();
+        options_ = getDefaultInstance().getOptions();
         onChanged();
         return this;
       }
@@ -1157,13 +1157,13 @@ public final class KryoLazyDensityProto {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n#KryoLazyDensityProtoGenerator.proto\"$\n" +
-      "\016DensityRequest\022\022\n\nbyteFilter\030\001 \002(\014\"\035\n\017D" +
-      "ensityResponse\022\n\n\002sf\030\001 \002(\0142I\n\026KryoLazyDe" +
-      "nsityService\022/\n\ngetDensity\022\017.DensityRequ" +
-      "est\032\020.DensityResponseBD\n$org.locationtec" +
-      "h.geomesa.hbase.protoB\024KryoLazyDensityPr" +
-      "otoH\001\210\001\001\240\001\001"
+      "\n#KryoLazyDensityProtoGenerator.proto\"!\n" +
+      "\016DensityRequest\022\017\n\007options\030\001 \002(\014\"\035\n\017Dens" +
+      "ityResponse\022\n\n\002sf\030\001 \002(\0142I\n\026KryoLazyDensi" +
+      "tyService\022/\n\ngetDensity\022\017.DensityRequest" +
+      "\032\020.DensityResponseBD\n$org.locationtech.g" +
+      "eomesa.hbase.protoB\024KryoLazyDensityProto" +
+      "H\001\210\001\001\240\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1182,7 +1182,7 @@ public final class KryoLazyDensityProto {
     internal_static_DensityRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_DensityRequest_descriptor,
-        new java.lang.String[] { "ByteFilter", });
+        new java.lang.String[] { "Options", });
     internal_static_DensityResponse_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_DensityResponse_fieldAccessorTable = new

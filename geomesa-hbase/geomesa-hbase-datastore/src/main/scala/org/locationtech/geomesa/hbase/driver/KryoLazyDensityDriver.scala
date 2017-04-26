@@ -1,15 +1,17 @@
-/** *********************************************************************
+/***********************************************************************
 * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
-* ************************************************************************/
+*************************************************************************/
 
 package org.locationtech.geomesa.hbase.driver
 
 import java.io.IOException
-import java.util.{ArrayList, List}
+import java.util
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.{ArrayList, List, Queue}
 
 import com.google.protobuf.{ByteString, RpcCallback, RpcController}
 import org.apache.hadoop.hbase.client.Table
@@ -18,17 +20,18 @@ import org.apache.hadoop.hbase.ipc.BlockingRpcCallback
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
   * An RpcController implementation for use here in this endpoint.
   */
 class KryoLazyDensityRpcController extends RpcController {
 
-  var errorText: String = _
+  private[driver] var errorText: String = _
 
   private var cancelled: Boolean = false
 
-  var failed: Boolean = false
+  private[driver] var failed: Boolean = false
 
   override def isCanceled(): Boolean = this.cancelled
 
@@ -63,12 +66,12 @@ class KryoLazyDensityDriver {
     * @return HashMap result;
     * @throws Throwable
     */
-  def kryoLazyDensityFilter(table: Table, filter: Array[Byte]): List[ByteString] = {
-    val requestArg: DensityRequest = DensityRequest.newBuilder().setByteFilter(ByteString.copyFrom(filter)).build()
+  def kryoLazyDensityFilter(table: Table, options: Array[Byte]): List[ByteString] = {
+    val requestArg: DensityRequest = DensityRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
 
     class KryoLazyDensityFilterCallBack extends Callback[ByteString] {
 
-      private var finalResult: List[ByteString] = new ArrayList()
+      private var finalResult: Queue[ByteString] = new ConcurrentLinkedQueue[ByteString]()
 
       def getResult(): List[ByteString] = {
         val list: List[ByteString] = new ArrayList[ByteString]()
@@ -79,9 +82,7 @@ class KryoLazyDensityDriver {
       }
 
       override def update(region: Array[Byte], row: Array[Byte], result: ByteString): Unit = {
-        synchronized {
-          finalResult.add(result)
-        }
+        finalResult.offer(result)
       }
     }
 
@@ -102,6 +103,6 @@ class KryoLazyDensityDriver {
       kryoLazyDensityFilterCallBack
     )
     kryoLazyDensityFilterCallBack.getResult
-  }
+  }.asScala
 
 }
