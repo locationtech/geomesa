@@ -1,0 +1,374 @@
+<?xml version="1.0" ?>
+<template encoding-version="1.0">
+  <description>Basic NiFi flow for ingesting GDELT data. </description>
+  <groupId>dd58727e-015a-1000-2cc0-3a9a973a1ce8</groupId>
+  <name>GeoMesa Quickstart</name>
+  <snippet>
+    <connections>
+      <id>ddded51f-015a-1000-0000-000000000000</id>
+      <parentGroupId>dd58727e-015a-1000-0000-000000000000</parentGroupId>
+      <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+      <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+      <destination>
+        <groupId>dd58727e-015a-1000-0000-000000000000</groupId>
+        <id>ddde88d3-015a-1000-0000-000000000000</id>
+        <type>PROCESSOR</type>
+      </destination>
+      <flowFileExpiration>0 sec</flowFileExpiration>
+      <labelIndex>1</labelIndex>
+      <name></name>
+      <selectedRelationships>success</selectedRelationships>
+      <source>
+        <groupId>dd58727e-015a-1000-0000-000000000000</groupId>
+        <id>dd6bf897-015a-1000-0000-000000000000</id>
+        <type>PROCESSOR</type>
+      </source>
+      <zIndex>0</zIndex>
+    </connections>
+    <processors>
+      <id>dd6bf897-015a-1000-0000-000000000000</id>
+      <parentGroupId>dd58727e-015a-1000-0000-000000000000</parentGroupId>
+      <position>
+        <x>0.0</x>
+        <y>0.0</y>
+      </position>
+      <config>
+        <bulletinLevel>WARN</bulletinLevel>
+        <comments></comments>
+        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+        <descriptors>
+          <entry>
+            <key>Input Directory</key>
+            <value>
+              <name>Input Directory</name>
+            </value>
+          </entry>
+          <entry>
+            <key>File Filter</key>
+            <value>
+              <name>File Filter</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Path Filter</key>
+            <value>
+              <name>Path Filter</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Batch Size</key>
+            <value>
+              <name>Batch Size</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Keep Source File</key>
+            <value>
+              <name>Keep Source File</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Recurse Subdirectories</key>
+            <value>
+              <name>Recurse Subdirectories</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Polling Interval</key>
+            <value>
+              <name>Polling Interval</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Ignore Hidden Files</key>
+            <value>
+              <name>Ignore Hidden Files</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Minimum File Age</key>
+            <value>
+              <name>Minimum File Age</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Maximum File Age</key>
+            <value>
+              <name>Maximum File Age</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Minimum File Size</key>
+            <value>
+              <name>Minimum File Size</name>
+            </value>
+          </entry>
+          <entry>
+            <key>Maximum File Size</key>
+            <value>
+              <name>Maximum File Size</name>
+            </value>
+          </entry>
+        </descriptors>
+        <executionNode>ALL</executionNode>
+        <lossTolerant>false</lossTolerant>
+        <penaltyDuration>30 sec</penaltyDuration>
+        <properties>
+          <entry>
+            <key>Input Directory</key>
+            <value>/tmp/gdelt</value>
+          </entry>
+          <entry>
+            <key>File Filter</key>
+            <value>[^\.].*.csv</value>
+          </entry>
+          <entry>
+            <key>Path Filter</key>
+          </entry>
+          <entry>
+            <key>Batch Size</key>
+            <value>10</value>
+          </entry>
+          <entry>
+            <key>Keep Source File</key>
+            <value>true</value>
+          </entry>
+          <entry>
+            <key>Recurse Subdirectories</key>
+            <value>true</value>
+          </entry>
+          <entry>
+            <key>Polling Interval</key>
+            <value>0 sec</value>
+          </entry>
+          <entry>
+            <key>Ignore Hidden Files</key>
+            <value>true</value>
+          </entry>
+          <entry>
+            <key>Minimum File Age</key>
+            <value>0 sec</value>
+          </entry>
+          <entry>
+            <key>Maximum File Age</key>
+          </entry>
+          <entry>
+            <key>Minimum File Size</key>
+            <value>0 B</value>
+          </entry>
+          <entry>
+            <key>Maximum File Size</key>
+          </entry>
+        </properties>
+        <runDurationMillis>0</runDurationMillis>
+        <schedulingPeriod>0 sec</schedulingPeriod>
+        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+        <yieldDuration>1 sec</yieldDuration>
+      </config>
+      <name>GetFile</name>
+      <relationships>
+        <autoTerminate>false</autoTerminate>
+        <name>success</name>
+      </relationships>
+      <style>
+        <entry>
+          <key>background-color</key>
+          <value>#e8a617</value>
+        </entry>
+      </style>
+      <type>org.apache.nifi.processors.standard.GetFile</type>
+    </processors>
+    <processors>
+      <id>ddde88d3-015a-1000-0000-000000000000</id>
+      <parentGroupId>dd58727e-015a-1000-0000-000000000000</parentGroupId>
+      <position>
+        <x>650.0</x>
+        <y>4.0</y>
+      </position>
+      <config>
+        <bulletinLevel>WARN</bulletinLevel>
+        <comments></comments>
+        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+        <descriptors>
+          <entry>
+            <key>Mode</key>
+            <value>
+              <name>Mode</name>
+            </value>
+          </entry>
+          <entry>
+            <key>SftName</key>
+            <value>
+              <name>SftName</name>
+            </value>
+          </entry>
+          <entry>
+            <key>ConverterName</key>
+            <value>
+              <name>ConverterName</name>
+            </value>
+          </entry>
+          <entry>
+            <key>FeatureNameOverride</key>
+            <value>
+              <name>FeatureNameOverride</name>
+            </value>
+          </entry>
+          <entry>
+            <key>SftSpec</key>
+            <value>
+              <name>SftSpec</name>
+            </value>
+          </entry>
+          <entry>
+            <key>ConverterSpec</key>
+            <value>
+              <name>ConverterSpec</name>
+            </value>
+          </entry>
+          <entry>
+            <key>instanceId</key>
+            <value>
+              <name>instanceId</name>
+            </value>
+          </entry>
+          <entry>
+            <key>zookeepers</key>
+            <value>
+              <name>zookeepers</name>
+            </value>
+          </entry>
+          <entry>
+            <key>user</key>
+            <value>
+              <name>user</name>
+            </value>
+          </entry>
+          <entry>
+            <key>password</key>
+            <value>
+              <name>password</name>
+            </value>
+          </entry>
+          <entry>
+            <key>visibilities</key>
+            <value>
+              <name>visibilities</name>
+            </value>
+          </entry>
+          <entry>
+            <key>tableName</key>
+            <value>
+              <name>tableName</name>
+            </value>
+          </entry>
+          <entry>
+            <key>writeThreads</key>
+            <value>
+              <name>writeThreads</name>
+            </value>
+          </entry>
+          <entry>
+            <key>generateStats</key>
+            <value>
+              <name>generateStats</name>
+            </value>
+          </entry>
+          <entry>
+            <key>useMock</key>
+            <value>
+              <name>useMock</name>
+            </value>
+          </entry>
+          <entry>
+            <key>GeoMesa Configuration Service</key>
+            <value>
+              <identifiesControllerService>org.geomesa.nifi.geo.GeomesaConfigService</identifiesControllerService>
+              <name>GeoMesa Configuration Service</name>
+            </value>
+          </entry>
+        </descriptors>
+        <executionNode>ALL</executionNode>
+        <lossTolerant>false</lossTolerant>
+        <penaltyDuration>30 sec</penaltyDuration>
+        <properties>
+          <entry>
+            <key>Mode</key>
+            <value>Converter</value>
+          </entry>
+          <entry>
+            <key>SftName</key>
+            <value>gdelt</value>
+          </entry>
+          <entry>
+            <key>ConverterName</key>
+            <value>gdelt</value>
+          </entry>
+          <entry>
+            <key>FeatureNameOverride</key>
+          </entry>
+          <entry>
+            <key>SftSpec</key>
+          </entry>
+          <entry>
+            <key>ConverterSpec</key>
+          </entry>
+          <entry>
+            <key>instanceId</key>
+          </entry>
+          <entry>
+            <key>zookeepers</key>
+          </entry>
+          <entry>
+            <key>user</key>
+          </entry>
+          <entry>
+            <key>password</key>
+          </entry>
+          <entry>
+            <key>visibilities</key>
+          </entry>
+          <entry>
+            <key>tableName</key>
+            <value>gdelt</value>
+          </entry>
+          <entry>
+            <key>writeThreads</key>
+            <value>10</value>
+          </entry>
+          <entry>
+            <key>generateStats</key>
+            <value>true</value>
+          </entry>
+          <entry>
+            <key>useMock</key>
+          </entry>
+          <entry>
+            <key>GeoMesa Configuration Service</key>
+          </entry>
+        </properties>
+        <runDurationMillis>0</runDurationMillis>
+        <schedulingPeriod>0 sec</schedulingPeriod>
+        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+        <yieldDuration>1 sec</yieldDuration>
+      </config>
+      <name>PutGeoMesa</name>
+      <relationships>
+        <autoTerminate>false</autoTerminate>
+        <name>failure</name>
+      </relationships>
+      <relationships>
+        <autoTerminate>false</autoTerminate>
+        <name>success</name>
+      </relationships>
+      <style>
+        <entry>
+          <key>background-color</key>
+          <value>#e8a617</value>
+        </entry>
+      </style>
+      <type>org.geomesa.nifi.geo.PutGeoMesa</type>
+    </processors>
+  </snippet>
+  <timestamp>03/20/2017 16:51:03 UTC</timestamp>
+</template>

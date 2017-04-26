@@ -91,4 +91,5 @@ public interface GeoMesaIndex<T> {
      */
     void close();
 
+    String VISIBILITY = "visibility";
 }

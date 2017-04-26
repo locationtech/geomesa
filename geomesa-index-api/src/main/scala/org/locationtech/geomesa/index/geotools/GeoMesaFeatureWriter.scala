@@ -28,6 +28,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.control.NonFatal
 
 object GeoMesaFeatureWriter extends LazyLogging {
 
@@ -127,11 +128,14 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val featureWithFid = GeoMesaFeatureWriter.featureWithFid(sft, feature)
     val wrapped = wrapFeature(featureWithFid)
-    // note: we should calculate all mutations up front in case the feature is not valid, to avoid
-    // writing to some indices and not others. However, we can avoid storing the intermediate results
-    // because of our index order. Currently if an index validates, all indices after it will
-    // also validate (X/Z3, X/Z2, Id, Attribute)
-    writers.foreach { case (mutator, convert) => executeWrite(mutator, convert(wrapped)) }
+    // calculate all mutations up front in case the feature is not valid, so we don't write partial entries
+    val converted = try { writers.map { case (mutator, convert) => (mutator, convert(wrapped)) } } catch {
+      case NonFatal(e) =>
+        import scala.collection.JavaConversions._
+        val attributes = s"${featureWithFid.getID}:${featureWithFid.getAttributes.mkString("|")}"
+        throw new IllegalArgumentException(s"Error indexing feature '$attributes'", e)
+    }
+    converted.foreach { case (mutator, writes) => executeWrite(mutator, writes) }
     statUpdater.add(featureWithFid)
   }
 

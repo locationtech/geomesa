@@ -63,28 +63,21 @@ private class StatParser extends BasicParser {
   import StatParser.{getIndex, sft}
 
   // main parsing rule
-  def stat: Rule1[Stat] = rule {
-    oneOrMore(singleStat, ";") ~~> { s => if (s.length == 1) s.head else new SeqStat(s) } ~ EOI
+  def stat: Rule1[Stat] = rule { stats ~ EOI }
+
+  private def stats: Rule1[Stat] = rule {
+    oneOrMore(singleStat, ";") ~~> { s => if (s.length == 1) s.head else new SeqStat(s) }
   }
 
   private def groupBy: Rule1[Stat] = rule {
-    "GroupBy(" ~ string ~ "," ~ oneOrMore(statString, ";") ~ ")" ~~> { (attribute, groupedStatsList) =>
-      val groupedStats = groupedStatsList.mkString(";")
-      val index = getIndex(attribute)
-      new GroupBy(index, groupedStats, sft)
+    "GroupBy(" ~ string ~ "," ~ (stats ~> { s => s }) ~ ")" ~~> { (attribute, _, groupedStats) =>
+      new GroupBy(getIndex(attribute), groupedStats, sft)
     }
   }
 
-  private def statString: Rule1[String] = rule {
-    unquotedString ~ "(" ~ (groupByParams | statParams) ~ ")" ~~> { (a, b) => a + "(" + b + ")" }
-  }
-
-  private def statParams: Rule1[String] = rule { zeroOrMore(statChar) ~> { c => c } }
-
-  private def groupByParams: Rule1[String] = rule { string ~ "," ~ statString ~~> { (s, t) => s + "," + t} }
-
   private def singleStat: Rule1[Stat] = rule {
-    count | minMax | iteratorStack | groupBy | stats | enumeration | topK | histogram | frequency | z3Histogram | z3Frequency
+    count | minMax | groupBy | descriptiveStats | enumeration | topK | histogram |
+        frequency | z3Histogram | z3Frequency | iteratorStack
   }
 
   private def count: Rule1[Stat] = rule {
@@ -119,7 +112,7 @@ private class StatParser extends BasicParser {
     }
   }
 
-  private def stats: Rule1[Stat] = rule {
+  private def descriptiveStats: Rule1[Stat] = rule {
     "DescriptiveStats(" ~ string ~ ")" ~~> { attributes =>
       val indices = attributes.split(",").map(getIndex)
       new DescriptiveStats(indices)

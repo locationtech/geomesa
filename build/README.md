@@ -45,8 +45,6 @@ geospatial analytics.
 **Development version: ${project.version}** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 
-<b>NOTE:</b> The current recommended version is `${geomesa.12.release.version}`
-
 ### Upgrading
 
 To upgrade between minor releases of GeoMesa, the versions of all GeoMesa components **must** match. 
@@ -57,8 +55,8 @@ directory of GeoServer.
 
 ## Maven Integration
 
-GeoMesa artifacts are published to the LocationTech Maven repository. To include GeoMesa in your project,
-add the following repositories to your pom:
+GeoMesa artifacts are published to the [LocationTech Maven repository](https://repo.locationtech.org/content/groups/releases/org/locationtech/geomesa/). To include GeoMesa in your project, add the following repositories to your pom:
+
 
 ```xml
 <repositories>
@@ -71,7 +69,7 @@ add the following repositories to your pom:
   </repository>
   <repository>
     <id>boundlessgeo</id>
-    <url>http://repo.boundlessgeo.com/main</url>
+    <url>https://repo.boundlessgeo.com/main</url>
   </repository>
   <repository>
     <id>osgeo</id>
@@ -97,6 +95,37 @@ For snapshot integrations use:
       <enabled>true</enabled>
     </snapshots>
   </repository>
+```
+
+and then include the desired `geomesa-*` dependencies:
+
+```xml
+  <dependency>
+    <groupId>org.locationtech.geomesa</groupId>
+    <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+    <version>1.3.1</version>
+  </dependency>
+  ...
+```
+
+## `sbt` Integration
+
+Similarly, integration with `sbt` is straightforward:
+
+```scala
+// Add necessary resolvers
+resolvers ++= Seq(
+  "locationtech-releases" at "https://repo.locationtech.org/content/groups/releases",
+  "boundlessgeo" at "https://repo.boundlessgeo.com/main",
+  "osgeo" at "http://download.osgeo.org/webdav/geotools",
+  "conjars.org" at "http://conjars.org/repo"
+)
+
+// Select desired modules
+libraryDependencies ++= Seq(
+  "org.locationtech.geomesa" %% "geomesa-utils" % "1.3.1",
+  ...
+)
 ```
 
 ## Building from Source
