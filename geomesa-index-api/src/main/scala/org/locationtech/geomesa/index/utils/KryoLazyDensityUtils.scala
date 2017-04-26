@@ -20,7 +20,7 @@ import org.opengis.filter.expression.Expression
 
 import scala.collection.mutable
 
-trait KryoLazyDensityUtils{
+trait KryoLazyDensityUtils {
 
   import KryoLazyDensityUtils._
   var geomIndex: Int = -1
@@ -118,7 +118,7 @@ trait KryoLazyDensityUtils{
 
 }
 
-object KryoLazyDensityUtils{
+object KryoLazyDensityUtils {
 
   type DensityResult = mutable.Map[(Int, Int), Double]
   type GridIterator = (SimpleFeature) => Iterator[(Double, Double, Double)]

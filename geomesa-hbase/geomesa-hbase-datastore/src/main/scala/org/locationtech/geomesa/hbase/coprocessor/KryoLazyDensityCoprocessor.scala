@@ -16,6 +16,7 @@ import com.google.protobuf.Service
 import com.vividsolutions.jts.geom.Envelope
 import java.io._
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
 import org.apache.hadoop.hbase.client.Scan
@@ -34,9 +35,11 @@ import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
@@ -45,14 +48,14 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   import KryoLazyDensityCoprocessor._
 
   private var env : RegionCoprocessorEnvironment = null
-  var sft: SimpleFeatureType = null
+  private var sft: SimpleFeatureType = null
 
   def init(options: Map[String, String], sft: SimpleFeatureType): DensityResult = {
     this.sft = sft
     initialize(options, sft)
   }
 
-    def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
+  def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
 
   @throws[IOException]
   def start(env: CoprocessorEnvironment) {
@@ -69,17 +72,17 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   def getService: Service = this
 
   def getDensity(controller: RpcController, request: KryoLazyDensityProto.DensityRequest, done: RpcCallback[KryoLazyDensityProto.DensityResponse]) {
-    val byteFilterArray = request.getByteFilter.toByteArray
     var response : DensityResponse = null
     var scanner : InternalScanner = null
     try {
       val scan = new Scan
-      val options: Map[String, String] = deserializeOptions(byteFilterArray)
+      val options: Map[String, String] = deserializeOptions(request.getByteFilter.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
       val densityResult: DensityResult = this.init(options, sft)
       scanner = env.getRegion.getScanner(scan)
       val results = new java.util.ArrayList[Cell]
+      
       var hasMore = false
       do {
         hasMore = scanner.next(results)
@@ -93,23 +96,19 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       val result: Array[Byte] = KryoLazyDensityUtils.encodeResult(densityResult)
       response = DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
     } catch {
-      case ioe: IOException => {
+      case ioe: IOException =>
         ResponseConverter.setControllerException(controller, ioe)
-      }
-      case cnfe: ClassNotFoundException => {
-        logger.error(Throwables.getStackTraceAsString(cnfe))
-      }
-      case dse: DeserializationException => {
-        logger.error(Throwables.getStackTraceAsString(dse))
-      }
-    } finally IOUtils.closeQuietly(scanner)
+      case cnfe: ClassNotFoundException =>
+        throw cnfe
+      case dse: DeserializationException =>
+        throw dse
+    } finally CloseQuietly(scanner)
+
     done.run(response)
   }
 }
 
-object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils{
-
-  final private val logger = LoggerFactory.getLogger(classOf[KryoLazyDensityCoprocessor])
+object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
 
   private val SFT_OPT = "sft"
 
@@ -127,11 +126,11 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils{
   }
 
   protected def configure(sft: SimpleFeatureType,
-                                     filter: Option[Filter],
-                                     envelope: Envelope,
-                                     gridWidth: Int,
-                                     gridHeight: Int,
-                                     weightAttribute: Option[String]): Map[String, String] = {
+                          filter: Option[Filter],
+                          envelope: Envelope,
+                          gridWidth: Int,
+                          gridHeight: Int,
+                          weightAttribute: Option[String]): Map[String, String] = {
     val is = mutable.Map.empty[String, String]
     is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.put(GRID_OPT, s"$gridWidth,$gridHeight")
@@ -142,12 +141,13 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils{
 
   @throws[IOException]
   def serializeOptions(map: Map[String, String]): Array[Byte] = {
-    val fis = new ByteArrayOutputStream
-    val ois = new ObjectOutputStream(fis)
-    ois.writeObject(map)
-    val output = fis.toByteArray
-    ois.close()
-    fis.close()
+    val baos = new ByteArrayOutputStream
+    val oos = new ObjectOutputStream(baos)
+    oos.writeObject(map)
+    oos.flush()
+    val output = baos.toByteArray
+    oos.close()
+    baos.close()
     output
   }
 
