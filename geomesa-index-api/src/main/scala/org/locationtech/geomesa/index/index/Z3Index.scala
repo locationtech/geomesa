@@ -29,6 +29,8 @@ import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.util.control.NonFatal
+
 trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
     with IndexAdapter[DS, F, W, R] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
 
@@ -142,9 +144,11 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
         throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
       }
       val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
-      val time = if (dtg == null) 0 else dtg.getTime
+      val time = if (dtg == null) { 0 } else { dtg.getTime }
       val BinnedTime(b, t) = timeToIndex(time)
-      val z = sfc.index(geom.getX, geom.getY, t).z
+      val z = try { sfc.index(geom.getX, geom.getY, t).z } catch {
+        case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry/time: $geom,$dtg", e)
+      }
       ByteArrays.toBytes(b, z)
     }
   }
