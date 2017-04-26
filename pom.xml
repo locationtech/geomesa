@@ -21,6 +21,7 @@
     <modules>
         <module>geomesa-accumulo</module>
         <module>geomesa-archetypes</module>
+        <module>geomesa-arrow</module>
         <module>geomesa-blobstore</module>
         <module>geomesa-cassandra</module>
         <module>geomesa-convert</module>
@@ -87,6 +88,8 @@
         <kafka.08.version>0.8.2.1</kafka.08.version>
         <kafka.09.version>0.9.0.1</kafka.09.version>
         <kafka.10.version>0.10.0.1</kafka.10.version>
+        <arrow.version>0.2.1-SNAPSHOT</arrow.version>
+        <netty.version>4.0.41.Final</netty.version>
 
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
@@ -1486,6 +1489,26 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-arrow-jts</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-arrow-gt_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-arrow-datastore_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-arrow-tools_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -2028,6 +2051,41 @@
                 <version>1.2.1</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-vector</artifactId>
+                <version>${arrow.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                     <exclusion>
+                         <groupId>io.netty</groupId>
+                         <artifactId>netty-codec</artifactId>
+                     </exclusion>
+                     <exclusion>
+                         <groupId>io.netty</groupId>
+                         <artifactId>netty-transport</artifactId>
+                     </exclusion>
+                </exclusions>
+            </dependency>
+            <!-- version used by spark - also compatible with arrow (which defaults to 2.7.1) -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.6.5</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>2.6.5</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.6.5</version>
+            </dependency>
+            <dependency>
                 <groupId>org.scalatra</groupId>
                 <artifactId>scalatra_${scala.binary.version}</artifactId>
                 <version>${scalatra.version}</version>
@@ -2257,6 +2315,32 @@
                 <version>${cassandra.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <!-- used by arrow and c* -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-buffer</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-common</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-handler</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
 
             <!-- geoserver 2.9 spring version -->
             <dependency>
@@ -2363,6 +2447,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>2.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.0.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2621,7 +2710,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <failOnError>true</failOnError>
+                            <failsOnError>true</failsOnError>
                             <checkstyleRules>
                                 <module name="Checker">
                                     <module name="NewlineAtEndOfFile"/>

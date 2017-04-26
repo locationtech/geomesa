@@ -13,6 +13,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.iterators.Z3Iterator
+import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.index.{Z3Index, Z3ProcessingValues}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -32,10 +33,12 @@ case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
   override val hasPrecomputedBins: Boolean = true
 
   override protected def scanConfig(sft: SimpleFeatureType,
+                                    ds: AccumuloDataStore,
+                                    filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
                                     hints: Hints,
                                     ecql: Option[Filter],
                                     dedupe: Boolean): ScanConfig = {
-    val config = super.scanConfig(sft, hints, ecql, dedupe)
+    val config = super.scanConfig(sft, ds, filter, hints, ecql, dedupe)
     org.locationtech.geomesa.index.index.Z3Index.currentProcessingValues match {
       case None => config
       case Some(Z3ProcessingValues(sfc, _, xy, _, times)) =>
