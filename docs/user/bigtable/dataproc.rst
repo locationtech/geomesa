@@ -58,7 +58,7 @@ spark runtime jar.
    $ vi geomesa/conf/hbase-site.xml
    $ cp geomesa/conf/hbase-site.xml geomesa/dist/spark/
    $ cd geomesa/dist/spark/
-   $ jar uvf geomesa-hbase-spark-runtime_2.11-$VERSION hbase-site.xml
+   $ jar uvf geomesa-bigtable-spark-runtime_2.11-$VERSION hbase-site.xml
 
 Download sample GDELT data and ingest it as follows.
 
@@ -70,13 +70,12 @@ Now, you can run a spark shell and execute Spark SQL over your GeoMesa on Bigtab
 
 .. code-block:: shell
 
-   $ spark-shell --num-executors 4 --master yarn --jars file://$HOME/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-$VERSION.jar,file://$HOME/geomesa/lib/bigtable-hbase-1.2-0.9.4.jar,file://$HOME/geomesa/lib/netty-tcnative-boringssl-static-1.1.33.Fork19.jar
+   $ spark-shell --num-executors 4 --master yarn --jars file://$HOME/geomesa/dist/spark/geomesa-bigtable-spark-runtime_2.11-$VERSION.jar,file://$HOME/geomesa/lib/bigtable-hbase-1.2-0.9.4.jar,file://$HOME/geomesa/lib/netty-tcnative-boringssl-static-1.1.33.Fork19.jar
 
 From the Spark shell prompt.
 
 .. code-block:: shell
 
-   scala> System.setProperty("geomesa.scan.ranges.target", "1")
    scala> val df = spark.read.format("geomesa").option("bigtable.table.name", "geomesa.gdelt").option("geomesa.feature", "gdelt").load()
    scala> df.createOrReplaceTempView("gdelt")
    scala> spark.sql("SELECT actor1Name,actor2Name,geom,dtg FROM gdelt WHERE st_contains(st_geomFromWKT('POLYGON((-80 35,-70 35,-70 40,-80 40,-80 35))'),geom)").show()
