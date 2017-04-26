@@ -21,7 +21,9 @@ trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: Wrappe
 
   import SpatioTemporalFilterStrategy.{StaticCost, isBounded}
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType,
+                                 filter: Filter,
+                                 transform: Option[SimpleFeatureType]): Seq[FilterStrategy[DS, F, W]] = {
 
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 

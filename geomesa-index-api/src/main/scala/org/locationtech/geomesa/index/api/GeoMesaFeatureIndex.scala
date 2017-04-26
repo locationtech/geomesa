@@ -117,9 +117,12 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: Wrapp
     * The returned values will each satisfy the query.
     *
     * @param filter input filter
+    * @param transform attribute transforms
     * @return sequence of options, any of which can satisfy the query
     */
-  def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[TypedFilterStrategy]
+  def getFilterStrategy(sft: SimpleFeatureType,
+                        filter: Filter,
+                        transform: Option[SimpleFeatureType]): Seq[TypedFilterStrategy]
 
   /**
     * Gets the estimated cost of running the query. In general, this is the estimated

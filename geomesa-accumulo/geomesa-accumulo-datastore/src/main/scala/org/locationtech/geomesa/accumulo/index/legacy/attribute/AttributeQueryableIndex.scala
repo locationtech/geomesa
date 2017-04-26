@@ -36,6 +36,7 @@ import scala.util.Try
 
 trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
 
+  import AttributeIndex.requiresJoin
   import AttributeQueryableIndex.attributeCheck
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -235,12 +236,24 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
   }
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[AccumuloFilterStrategyType] = {
+  override def getFilterStrategy(sft: SimpleFeatureType,
+                                 filter: Filter,
+                                 transform: Option[SimpleFeatureType]): Seq[AccumuloFilterStrategyType] = {
+    import AttributeIndex.AllowJoinPlans
     val attributes = FilterHelper.propertyNames(filter, sft)
-    val indexedAttributes = attributes.filter(a => Option(sft.getDescriptor(a)).exists(_.isIndexed))
-    indexedAttributes.flatMap { attribute =>
+    val indexedAttributes = attributes.flatMap { a =>
+      Option(sft.getDescriptor(a)).map(_.getIndexCoverage()).toSeq.collect {
+        case coverage if coverage != IndexCoverage.NONE => (a, coverage)
+      }
+    }
+    indexedAttributes.flatMap { case (attribute, coverage) =>
       val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck)
-      if (primary.isDefined) {
+      // check to see if we have a join plan and if so, that it's ok to return it
+      lazy val joinCheck = coverage match {
+        case IndexCoverage.FULL => true
+        case IndexCoverage.JOIN => AllowJoinPlans.get || !requiresJoin(sft, attribute, secondary, transform)
+      }
+      if (primary.isDefined && joinCheck) {
         Seq(FilterStrategy(this, primary, secondary))
       } else {
         Seq.empty
@@ -261,12 +274,10 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
           val descriptor = sft.getDescriptor(attribute)
           if (descriptor.getCardinality == Cardinality.HIGH) {
             count / 10 // prioritize attributes marked high-cardinality
-          } else if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
-              IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
-              IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
-            count
-          } else {
+          } else if (requiresJoin(sft, attribute, filter.secondary, transform)) {
             count * 10 // de-prioritize join queries, they are much more expensive
+          } else {
+            count
           }
         }
         statCost.getOrElse(indexBasedCost(sft, filter, transform))
