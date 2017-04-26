@@ -192,13 +192,13 @@ filter      The filter to apply to the feature collection.
 
             .. code-block:: xml
 
-    <wps:ComplexData mimeType="text/plain; subtype=cql">
-        <![CDATA[some-query-text]]
-    </wps:ComplexData>
+	    	<wps:ComplexData mimeType="text/plain; subtype=cql">
+		   <![CDATA[some-query-text]]
+	 	</wps:ComplexData>
 
 
-		        For interactive WPS request builder select TEXT & choose ``"text/plain; subtype=cql"``
-		        enter the query text in the text box
+	    For interactive WPS request builder select TEXT & choose ``"text/plain; subtype=cql"``
+		enter the query text in the text box
 
 output      Specify how the output feature collection will be presented.
 		        For an XML file enter:
@@ -212,7 +212,7 @@ output      Specify how the output feature collection will be presented.
                 </wps:ResponseForm>
 
 
-		        For interactive WPS request builder check the Generate box and choose "application/json"
+       	    For interactive WPS request builder check the Generate box and choose "application/json"
 
 properties  The properties / transforms to apply before gathering stats.
 ==========  ===========
@@ -265,33 +265,45 @@ The query should generate results that look like :download:`this </user/_static/
 UniqueProcess
 ^^^^^^^^^^^^^
 
-The ``UniqueProcess`` takes an (E)CQL query/filter for a given feature set as a text object and returns
-the result as a json object. Queries are pushed to Accumulo iterators allowing for very fast performance.
+The ``UniqueProcess`` class is optimized for GeoMesa to find unique attributes values for a feature collection,
+which are returned as a json object. Queries are pushed to Accumulo iterators allowing for very fast performance.
 
-==========  ===========
-Parameters  Description
-==========  ===========
-features    The data source feature collection to query. Reference as ``store:layername``.
+===========  ===========
+Parameters   Description
+===========  ===========
+features     The data source feature collection to query. Reference as ``store:layername``.
 		        For an XML file enter ``<wfs:Query typeName=store:layername />``
 		        For interactive WPS request builder select ``VECTOR_LAYER`` & choose ``store:layername``
 
-filter      The filter to apply to the feature collection.
+attribute    The attribute for which unique values will be extracted. Attributes are expressed as a string.
+		        For an XML file enter ``<wps:LiteralData>attribute-name</wps:LiteralData>``
+
+filter       The filter to apply to the feature collection.
 		        For an XML file enter:
 
-            .. code-block:: xml
+             .. code-block:: xml
 
-    <wps:ComplexData mimeType="text/plain; subtype=cql">
-        <![CDATA[some-query-text]]
-    </wps:ComplexData>
+    		<wps:ComplexData mimeType="text/plain; subtype=cql">
+     		   <![CDATA[some-query-text]]
+    		</wps:ComplexData>
 
 
-		        For interactive WPS request builder select TEXT & choose ``"text/plain; subtype=cql"``
-		        enter the query text in the text box
+	     For interactive WPS request builder select TEXT & choose ``"text/plain; subtype=cql"``
+		 enter the query text in the text box.
 
-output      Specify how the output feature collection will be presented.
+histogram    Create a histogram of attribute values. Expressed as a boolean (true/false).
+		        For an XML file enter ``<wps:LiteralData>true/false</wps:LiteralData>``
+
+sort         Sort the results. Expressed as a string; allowed values are ASC or DESC.
+		        For an XML file enter ``<wps:LiteralData>ASC/DESC</wps:LiteralData>``
+
+sortByCount  Sort by histogram counts instead of attribute values. Expressed as a boolean (true/false).
+		        For an XML file enter ``<wps:LiteralData>true/false</wps:LiteralData>``
+
+output       Specify how the output feature collection will be presented.
 		        For an XML file enter:
 
-            .. code-block:: xml
+             .. code-block:: xml
 
                 <wps:ResponseForm>
                    <wps:RawDataOutput mimeType="application/json">
@@ -300,9 +312,54 @@ output      Specify how the output feature collection will be presented.
                 </wps:ResponseForm>
 
 
-		        For interactive WPS request builder check the Generate box and choose "application/json"
+	     For interactive WPS request builder check the Generate box and choose "application/json"
+===========  ===========
 
-properties  The properties / transforms to apply before gathering stats.
-==========  ===========
+.. _uniqueExampleXML:
 
+Unique example (XML)
+""""""""""""""""""""
+
+:download:`UniqueProcess_wps.xml </user/_static/process/UniqueProcess_wps.xml>` is a geoserver WPS call to the GeoMesa UniqueProcess that reports the unique names
+in in the 'Who' field of the Accumulo quickstart data for a restricted beounding box (-77.5, -37.5, -76.5, -36.5)). It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@UniqueProcess_wps.xml localhost:8080/geoserver/wps
+
+.. _uniqueExampleResults:
+
+The query should generate results that look like this:
+
+.. code-block:: json
+
+	{
+	  "type": "FeatureCollection",
+	  "features": [
+	    {
+	      "type": "Feature",
+	      "properties": {
+		"value": "Addams",
+		"count": 37
+	      },
+	      "id": "fid--21d4eb0_15b68e0e8ca_-7fd6"
+	    },
+	    {
+	      "type": "Feature",
+	      "properties": {
+		"value": "Bierce",
+		"count": 43
+	      },
+	      "id": "fid--21d4eb0_15b68e0e8ca_-7fd5"
+	    },
+	    {
+	      "type": "Feature",
+	      "properties": {
+		"value": "Clemens",
+		"count": 48
+	      },
+	      "id": "fid--21d4eb0_15b68e0e8ca_-7fd4"
+	    }
+	  ]
+	}
 
