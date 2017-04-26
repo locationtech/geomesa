@@ -65,8 +65,12 @@ class HBaseServerSideTests extends Specification with LazyLogging {
 
   "transforms" should {
     "work for id queries" >> {
+      val idFilt = ff.id(ff.featureId("1"))
+      val query = new Query("testpoints", idFilt, Array("name"))
       // NOTE: geometry is implicitly returned
-      val results = fs.getFeatures(new Query("testpoints", ff.id(ff.featureId("1")), Array("name"))).features.toList
+      val results = fs.getFeatures(query).features.toList
+
+      // we expect only 1 result with two attributes and one of the attributes is 'name'
       results.length must be equalTo 1 and
         (results.head.getType.getAttributeDescriptors.map(_.getLocalName) must containAllOf(Seq("geom","name"))) and
         (results.head.getAttributes.length must be equalTo 2) and
@@ -74,7 +78,11 @@ class HBaseServerSideTests extends Specification with LazyLogging {
     }
 
     "work for attribute indexes" >> {
-      val results = fs.getFeatures(new Query("testpoints", ff.equals(ff.property("name"), ff.literal("name1")), Array("name"))).features.toList
+      val nameFilter = ff.equals(ff.property("name"), ff.literal("name1"))
+      val query = new Query("testpoints", nameFilter, Array("name"))
+      val results = fs.getFeatures(query).features.toList
+
+      // we expect only 1 result with 2 attributes and one of the attributes is 'name'
       results.length must be equalTo 1 and
         (results.head.getType.getAttributeDescriptors.map(_.getLocalName) must containAllOf(Seq("geom","name"))) and
         (results.head.getAttributes.length must be equalTo 2) and
