@@ -16,7 +16,7 @@ data stores, found in the ``geomesa-process`` module:
 -  :ref:`query_process` - performs a Geomesa optimized query using spatiotemporal indexes
 -  ``sampling_process`` - uses statistical sampling to reduces the features
    returned by a query
--  :ref:`StatsIteratorProcess` - returns various stats for a CQL query
+-  :ref:`statsiterator_process` - returns various stats for a CQL query
 -  ``TubeSelectProcess`` - performs a correlated search across
    time/space dimensions
 -  :ref:`unique_process` - identifies unique values for an attribute in
@@ -362,4 +362,41 @@ The query should generate results that look like this:
 	    }
 	  ]
 	}
+
+.. _chaining_processes:
+
+Chaining Processes
+^^^^^^^^^^^^^^^^^^
+
+WPS processes can be chained, using the result of one process as the input for another. For example, a bounding box
+in a GeoMesa :ref:`query_process` can be used to restrict data sent to :ref:`statsiterator_process`. 
+:download:`GeoMesa_WPS_chain_example.xml </user/_static/process/GeoMesa_WPS_chain_example.xml>` will get all points from
+the AccumuloQuickStart table that are within a specified bounding box (-77.5, -37.5, -76.5, -36.5), and calulate
+descriptive statistics on the 'What' attribute of the results.
+
+
+The query should generate results that look like this:
+
+.. code-block:: json
+
+	{
+	  "type": "FeatureCollection",
+	  "features": [
+	    {
+	      "type": "Feature",
+	      "geometry": {
+		"type": "Point",
+		"coordinates": [
+		  0,
+		  0
+		]
+	      },
+	      "properties": {
+		"stats": "{\"count\":128,\"minimum\":[29.0],\"maximum\":[991.0],\"mean\":[508.5781249999999],\"population_variance\":[85116.25952148438],\"population_standard_deviation\":[291.74691004616375],\"population_skewness\":[-0.11170819256679464],\"population_kurtosis\":[1.7823482287566166],\"population_excess_kurtosis\":[-1.2176517712433834],\"sample_variance\":[85786.46628937007],\"sample_standard_deviation\":[292.893267743337],\"sample_skewness\":[-0.11303718280959842],\"sample_kurtosis\":[1.8519712064424219],\"sample_excess_kurtosis\":[-1.1480287935575781],\"population_covariance\":[85116.25952148438],\"population_correlation\":[1.0],\"sample_covariance\":[85786.46628937007],\"sample_correlation\":[1.0]}"
+	      },
+	      "id": "stat"
+	    }
+	  ]
+	}
+
 
