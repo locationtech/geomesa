@@ -13,7 +13,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
+import org.apache.hadoop.hbase.{HBaseTestingUtility}
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.geotools.data._
@@ -27,16 +27,12 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
-import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.{SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -185,7 +181,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     ds.removeSchema(typeName)
     ds.getSchema(typeName) must beNull
     ds.createSchema(SimpleFeatureTypes.createType(typeName, TEST_FAMILY))
-
     val sft = ds.getSchema(typeName)
     sft must not(beNull)
     val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]

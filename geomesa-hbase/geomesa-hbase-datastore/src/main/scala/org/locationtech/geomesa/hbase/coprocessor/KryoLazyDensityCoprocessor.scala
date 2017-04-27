@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.hbase.coprocessor
 
-import com.google.common.base.Throwables
 import com.google.protobuf.ByteString
 import com.google.protobuf.RpcCallback
 import com.google.protobuf.RpcController
@@ -16,14 +15,13 @@ import com.google.protobuf.Service
 import com.vividsolutions.jts.geom.Envelope
 import java.io._
 
-import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
 import org.apache.hadoop.hbase.client.Scan
 import org.apache.hadoop.hbase.coprocessor.CoprocessorException
 import org.apache.hadoop.hbase.coprocessor.CoprocessorService
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment
 import org.apache.hadoop.hbase.exceptions.DeserializationException
+import org.apache.hadoop.hbase.filter.{Filter => HBaseFilter}
 import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.regionserver.InternalScanner
 import org.geotools.factory.Hints
@@ -37,8 +35,6 @@ import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
-import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -78,6 +74,12 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       val scan = new Scan
       val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
+      if (options.containsKey(FILTER_OPT)) {
+//        val remoteFilters: Seq[HBaseFilter] = options(FILTER_OPT).split(",").map(_.getBytes.toString).map(HBaseFilter.parseFrom(_))
+//        remoteFilters.foreach(filter =>
+//          println(filter.getClass.getName)
+//        )
+      }
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
       val densityResult: DensityResult = this.init(options, sft)
       scanner = env.getRegion.getScanner(scan)
@@ -111,12 +113,13 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
 
   private val SFT_OPT = "sft"
+  private val FILTER_OPT = "filter"
 
   /**
     * Creates an iterator config for the kryo density iterator
     */
   def configure(sft: SimpleFeatureType,
-                filter: Option[Filter],
+                filter: Seq[HBaseFilter],
                 hints: Hints): Map[String, String] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val envelope = hints.getDensityEnvelope.get
@@ -126,7 +129,7 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
   }
 
   protected def configure(sft: SimpleFeatureType,
-                          filter: Option[Filter],
+                          filters: Seq[HBaseFilter],
                           envelope: Envelope,
                           gridWidth: Int,
                           gridHeight: Int,
@@ -136,6 +139,9 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
     is.put(GRID_OPT, s"$gridWidth,$gridHeight")
     weightAttribute.foreach(is.put(WEIGHT_OPT, _))
     is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, false))
+    if (filters != Nil){
+//      is.put(FILTER_OPT, filters.map(obj => obj.toByteArray.toString).mkString(","))
+    }
     is.toMap
   }
 
