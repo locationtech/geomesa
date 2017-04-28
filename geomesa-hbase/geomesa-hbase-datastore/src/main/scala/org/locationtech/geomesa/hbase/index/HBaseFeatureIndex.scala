@@ -240,7 +240,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     } else {
       val (remoteTdefArg: String, remoteSchema: SimpleFeatureType) = transform.getOrElse(("", sft))
       val toFeatures = resultsToFeatures(remoteSchema, None, None)
-      val remoteCQLFilter: Filter = ecql.getOrElse(filter.filter.getOrElse(Filter.INCLUDE))
+      val remoteCQLFilter: Filter = ecql.getOrElse(Filter.INCLUDE)
       val remoteFilters: Seq[HBaseFilter] = Seq(new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, SimpleFeatureTypes.encodeType(remoteSchema)))
       ScanConfig(remoteFilters, coprocessor, toFeatures)
     }

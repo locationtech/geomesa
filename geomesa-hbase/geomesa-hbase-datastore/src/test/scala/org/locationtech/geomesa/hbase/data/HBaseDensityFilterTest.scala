@@ -208,7 +208,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   }
 
   def initializeHBaseSchema(): (SimpleFeatureType, SimpleFeatureStore)  = {
-    ds.remote = true
     ds.removeSchema(typeName)
     ds.getSchema(typeName) must beNull
     ds.createSchema(SimpleFeatureTypes.createType(typeName, TEST_FAMILY))

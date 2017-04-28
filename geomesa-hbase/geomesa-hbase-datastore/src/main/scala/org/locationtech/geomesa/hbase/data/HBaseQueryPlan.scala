@@ -96,7 +96,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
       val filterList = new FilterList()
       remoteFilters.foreach { filter => filterList.addFilter(filter) }
 
-      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, filterList, hints)
+      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, ranges, filterList, hints)
       val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
       val hbaseTable = ds.connection.getTable(table)
       val client = new KryoLazyDensityDriver()

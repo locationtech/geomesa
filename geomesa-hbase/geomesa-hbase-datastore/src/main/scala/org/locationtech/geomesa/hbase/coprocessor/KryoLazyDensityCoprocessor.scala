@@ -21,7 +21,7 @@ import org.apache.hadoop.hbase.coprocessor.CoprocessorException
 import org.apache.hadoop.hbase.coprocessor.CoprocessorService
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment
 import org.apache.hadoop.hbase.exceptions.DeserializationException
-import org.apache.hadoop.hbase.filter.{FilterList}
+import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.regionserver.InternalScanner
 import org.geotools.data.Base64
@@ -71,31 +71,40 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   def getDensity(controller: RpcController, request: KryoLazyDensityProto.DensityRequest, done: RpcCallback[KryoLazyDensityProto.DensityResponse]) {
     var response : DensityResponse = null
     var scanner : InternalScanner = null
+    var filterList : FilterList = new FilterList()
+
     try {
-      val scan = new Scan
       val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
+      var scanList : List[Scan] = List[Scan]()
+
+      options(RANGES_OPT).split(",").foreach(range => {
+        val scanInfo = range.split("\\|")
+        scanList ::= new Scan(Base64.decode(scanInfo(0)), Base64.decode(scanInfo(1)))
+      })
 
       if (options.containsKey(FILTER_OPT)) {
-        val filterList : FilterList = FilterList.parseFrom(Base64.decode(options(FILTER_OPT)))
-        scan.setFilter(filterList)
+        filterList = FilterList.parseFrom(Base64.decode(options(FILTER_OPT)))
       }
 
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
       val densityResult: DensityResult = this.init(options, sft)
 
-      scanner = env.getRegion.getScanner(scan)
-      val results = new java.util.ArrayList[Cell]
+      scanList.foreach(scan => {
+        scan.setFilter(filterList)
+        scanner = env.getRegion.getScanner(scan)
+        val results = new java.util.ArrayList[Cell]
 
-      var hasMore = false
-      do {
-        hasMore = scanner.next(results)
-        for (cell <- results) {
-          val sf = serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
-          aggregateResult(sf, densityResult)
-        }
-        results.clear()
-      } while (hasMore)
+        var hasMore = false
+        do {
+          hasMore = scanner.next(results)
+          for (cell <- results) {
+            val sf = serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
+            aggregateResult(sf, densityResult)
+          }
+          results.clear()
+        } while (hasMore)
+      })
 
       val result: Array[Byte] = KryoLazyDensityUtils.encodeResult(densityResult)
       response = DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
@@ -116,32 +125,44 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
 
   private val SFT_OPT = "sft"
   private val FILTER_OPT = "filter"
+  private val RANGES_OPT = "ranges"
 
   /**
     * Creates an iterator config for the kryo density iterator
     */
   def configure(sft: SimpleFeatureType,
+                ranges: Seq[Scan],
                 filterList: FilterList,
                 hints: Hints): Map[String, String] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
     val weight = hints.getDensityWeight
-    configure(sft, filterList, envelope, width, height, weight)
+    configure(sft, ranges, filterList, envelope, width, height, weight)
   }
 
 
   protected def configure(sft: SimpleFeatureType,
+                          ranges: Seq[Scan],
                           filterList: FilterList,
                           envelope: Envelope,
                           gridWidth: Int,
                           gridHeight: Int,
                           weightAttribute: Option[String]): Map[String, String] = {
     val is = mutable.Map.empty[String, String]
+    var scanRanges : List[String] = List[String]()
+
     is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.put(GRID_OPT, s"$gridWidth,$gridHeight")
     weightAttribute.foreach(is.put(WEIGHT_OPT, _))
     is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, false))
+
+    ranges.foreach(range =>
+      scanRanges ::= (Base64.encodeBytes(range.getStartRow) + "|" + Base64.encodeBytes(range.getStopRow))
+    )
+
+    is.put(RANGES_OPT, scanRanges.mkString(","))
+
     if (filterList != null) {
       is.put(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
     }
@@ -173,5 +194,6 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
     sf.values(0) = bytes
     sf
   }
+
 
 }
