@@ -93,7 +93,10 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isDensityQuery) {
-      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, remoteFilters, hints)
+      val filterList = new FilterList()
+      remoteFilters.foreach { filter => filterList.addFilter(filter) }
+
+      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, filterList, hints)
       val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
       val hbaseTable = ds.connection.getTable(table)
       val client = new KryoLazyDensityDriver()
