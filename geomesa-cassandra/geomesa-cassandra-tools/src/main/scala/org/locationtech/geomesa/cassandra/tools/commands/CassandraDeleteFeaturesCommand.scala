@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.cassandra.tools.commands
 
-import java.io.File
-
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStore
 import org.locationtech.geomesa.cassandra.tools.{CassandraDataStoreCommand, CassandraDataStoreParams}
+import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.data.{DeleteFeaturesCommand, DeleteFeaturesParams}
 
 class CassandraDeleteFeaturesCommand extends DeleteFeaturesCommand[CassandraDataStore] with CassandraDataStoreCommand {
@@ -20,5 +19,6 @@ class CassandraDeleteFeaturesCommand extends DeleteFeaturesCommand[CassandraData
 }
 
 @Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
-class CassandraDeleteFeaturesParams extends DeleteFeaturesParams with CassandraDataStoreParams
+class CassandraDeleteFeaturesParams extends CassandraDataStoreParams with DeleteFeaturesParams with CatalogParam
+
 
