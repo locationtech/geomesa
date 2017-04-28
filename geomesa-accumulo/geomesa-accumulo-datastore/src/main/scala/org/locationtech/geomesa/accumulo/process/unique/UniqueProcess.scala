@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.process.unique
 
+import java.util
+
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
@@ -15,7 +17,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
+import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
@@ -26,7 +28,8 @@ import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.opengis.filter.{Filter, FilterFactory}
+import org.opengis.filter.expression.Expression
 import org.opengis.util.ProgressListener
 
 import scala.collection.JavaConverters._
@@ -160,15 +163,16 @@ object UniqueProcess {
 class AttributeVisitor(val features: SimpleFeatureCollection,
                        val attributeDescriptor: AttributeDescriptor,
                        val filter: Option[Filter],
-                       histogram: Boolean) extends FeatureCalc with LazyLogging {
+                       histogram: Boolean) extends FeatureCalc with FeatureAttributeVisitor with LazyLogging {
 
   import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor._
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
   import scala.collection.JavaConversions._
 
-  private val attribute = attributeDescriptor.getLocalName
+  private val attribute    = attributeDescriptor.getLocalName
   private val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
+  private val origSft      = features.getSchema
 
   private var attributeIdx: Int = -1
 
@@ -266,6 +270,10 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     // execute the query
     SelfClosingIterator(source.getFeatures(query).features()).foreach(addValue)
     uniqueValues.toMap
+  }
+
+  override def getExpressions: java.util.List[Expression] ={
+    origSft.getAttributeDescriptors.map(ad => ff.property(ad.getLocalName)).toList
   }
 }
 

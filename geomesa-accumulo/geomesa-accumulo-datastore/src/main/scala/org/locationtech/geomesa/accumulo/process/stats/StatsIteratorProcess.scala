@@ -71,17 +71,6 @@ class StatsIteratorProcess extends LazyLogging {
     val arrayString = Option(properties).map(_.split(";")).orNull
     val visitor = new StatsVisitor(features, statString, encode, arrayString)
     features.accepts(visitor, new NullProgressListener)
-
-    features match {
-      case rtfc: ReTypingFeatureCollection =>
-        if(ReTypingFeatureCollection.isTypeCompatible(visitor, rtfc.getSchema)) {
-          logger.info(s"Retypingfeature collection is type compatible with ${rtfc.getSchema}")
-        } else {
-          logger.info(s"Retypingfeature collection is not type compatible with ${rtfc.getSchema}")
-        }
-      case _ => logger.info("not retypingfeaturecollection")
-    }
-
     visitor.getResult.asInstanceOf[StatsIteratorResult].results
   }
 }
@@ -109,7 +98,6 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
 
   //  Called for non AccumuloFeatureCollections
   def visit(feature: Feature): Unit = {
-    logger.warn("***Visiting Each Feature***")
     val sf = feature.asInstanceOf[SimpleFeature]
 
     if (properties != null) {
