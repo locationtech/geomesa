@@ -24,19 +24,24 @@ import org.apache.arrow.vector.types.pojo.FieldType;
 import org.locationtech.geomesa.arrow.vector.GeometryVector;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractPointVector implements GeometryVector<Point, FixedSizeListVector> {
+
+  private static FieldType createFieldType(Map<String, String> metadata) {
+    return new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata);
+  }
 
   private final FixedSizeListVector vector;
   private final PointWriter writer;
   private final PointReader reader;
 
-  protected AbstractPointVector(String name, BufferAllocator allocator) {
-    this(new FixedSizeListVector(name, allocator, 2, null, null));
+  protected AbstractPointVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
+    this(new FixedSizeListVector(name, allocator, createFieldType(metadata), null));
   }
 
-  protected AbstractPointVector(String name, AbstractContainerVector container) {
-    this(container.addOrGet(name, new FieldType(true, new ArrowType.FixedSizeList(2), null), FixedSizeListVector.class));
+  protected AbstractPointVector(String name, AbstractContainerVector container, Map<String, String> metadata) {
+    this(container.addOrGet(name, createFieldType(metadata), FixedSizeListVector.class));
   }
 
   protected AbstractPointVector(FixedSizeListVector vector) {

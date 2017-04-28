@@ -27,19 +27,24 @@ import org.apache.arrow.vector.types.pojo.FieldType;
 import org.locationtech.geomesa.arrow.vector.GeometryVector;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractPolygonVector implements GeometryVector<Polygon, ListVector> {
+
+  private static FieldType createFieldType(Map<String, String> metadata) {
+    return new FieldType(true, ArrowType.List.INSTANCE, null, metadata);
+  }
 
   private final ListVector vector;
   private final PolygonWriter writer;
   private final PolygonReader reader;
 
-  protected AbstractPolygonVector(String name, BufferAllocator allocator) {
-    this(new ListVector(name, allocator, null, null));
+  protected AbstractPolygonVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
+    this(new ListVector(name, allocator, createFieldType(metadata), null));
   }
 
-  protected AbstractPolygonVector(String name, AbstractContainerVector container) {
-    this(container.addOrGet(name, new FieldType(true, ArrowType.List.INSTANCE, null), ListVector.class));
+  protected AbstractPolygonVector(String name, AbstractContainerVector container, Map<String, String> metadata) {
+    this(container.addOrGet(name, createFieldType(metadata), ListVector.class));
   }
 
   protected AbstractPolygonVector(ListVector vector) {
