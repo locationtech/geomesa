@@ -37,8 +37,8 @@ class DictionaryBuildingWriterTest extends Specification {
       }
       WithClose(new SimpleFeatureArrowFileReader(new ByteArrayInputStream(out.toByteArray))) { reader =>
         reader.dictionaries must haveSize(1)
-        reader.dictionaries.get("name:String") must beSome
-        reader.dictionaries("name:String").values must containTheSameElementsAs(Seq("name00", "name01"))
+        reader.dictionaries.get("name") must beSome
+        reader.dictionaries("name").values must containTheSameElementsAs(Seq("name00", "name01"))
 
         val read = reader.features.toSeq
         read must haveLength(10)

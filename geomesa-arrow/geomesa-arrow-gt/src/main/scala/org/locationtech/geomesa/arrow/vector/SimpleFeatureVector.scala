@@ -105,6 +105,7 @@ object SimpleFeatureVector {
 
   val DefaultCapacity = 8096
   val FeatureIdField = "id"
+  val DescriptorKey  = "descriptor"
 
   object GeometryPrecision extends Enumeration {
     type GeometryPrecision = Value
@@ -129,7 +130,7 @@ object SimpleFeatureVector {
              precision: GeometryPrecision = GeometryPrecision.Double,
              capacity: Int = DefaultCapacity)
             (implicit allocator: BufferAllocator): SimpleFeatureVector = {
-    val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
+    val underlying = NullableMapVector.empty(sft.getTypeName, allocator)
     val vector = new SimpleFeatureVector(sft, underlying, dictionaries, includeFids, precision)
     // set capacity after all child vectors have been created by the writers, then allocate
     underlying.setInitialCapacity(capacity)
@@ -152,11 +153,11 @@ object SimpleFeatureVector {
     import scala.collection.JavaConversions._
     val attributes = vector.getField.getChildren.collect {
       // filter out feature id from attributes
-      case field if field.getName != FeatureIdField => field.getName
+      case field if field.getName != FeatureIdField => field.getMetadata.get(DescriptorKey)
     }
     val includeFids = vector.getField.getChildren.exists(_.getName == FeatureIdField)
     val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))
-    val geomVector = Option(vector.getChild(SimpleFeatureTypes.encodeDescriptor(sft, sft.getGeometryDescriptor)))
+    val geomVector = Option(sft.getGeometryDescriptor).flatMap(d => Option(vector.getChild(d.getLocalName)))
     val isFloat = geomVector.exists(v => GeometryFields.precisionFromField(v.getField) == FloatingPointPrecision.SINGLE)
     val precision = if (isFloat) { GeometryPrecision.Float } else { GeometryPrecision.Double }
     new SimpleFeatureVector(sft, vector, dictionaries, includeFids, precision)

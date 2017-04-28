@@ -109,7 +109,7 @@ class SimpleFeatureArrowFileReader(is: InputStream, filter: Filter = Filter.INCL
           firstBatchLoaded = true
         }
         val vector = reader.lookup(encoding.getId).getVector
-        val spec = SimpleFeatureSpecParser.parseAttribute(field.getName)
+        val spec = SimpleFeatureSpecParser.parseAttribute(field.getMetadata.get(SimpleFeatureVector.DescriptorKey))
         val (objectType, bindings) = ObjectType.selectType(spec.clazz, spec.options)
         val isSingle = GeometryFields.precisionFromField(field) == FloatingPointPrecision.SINGLE
         val precision = if (isSingle) { GeometryPrecision.Float } else { GeometryPrecision.Double }

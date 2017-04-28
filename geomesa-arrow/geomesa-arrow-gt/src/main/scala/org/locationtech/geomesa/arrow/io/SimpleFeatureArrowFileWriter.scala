@@ -50,7 +50,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
 
   private val provider = new MapDictionaryProvider()
   // container for holding our dictionary vectors
-  private val dictionaryContainer = new NullableMapVector("", allocator, null, null)
+  private val dictionaryContainer = NullableMapVector.empty("", allocator)
   dictionaryContainer.allocateNew() // TODO might need to expand container size
 
   // convert the dictionary values into arrow vectors
@@ -59,7 +59,7 @@ class SimpleFeatureArrowFileWriter(val sft: SimpleFeatureType,
     case hasDictionary: HasArrowDictionary =>
       val name = s"dictionary-${hasDictionary.dictionary.id}"
       val TypeBindings(bindings, classBinding, precision) = hasDictionary.dictionaryType
-      val writer = ArrowAttributeWriter(name, bindings, classBinding, dictionaryContainer, None, precision)
+      val writer = ArrowAttributeWriter(name, bindings, classBinding, dictionaryContainer, None, Map.empty, precision)
       val vector = dictionaryContainer.getChild(name)
       var i = 0
       hasDictionary.dictionary.values.foreach { value =>
