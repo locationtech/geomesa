@@ -9,9 +9,8 @@
 package org.locationtech.geomesa.hbase.driver
 
 import java.io.IOException
-import java.util
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.{ArrayList, List, Queue}
+import java.util.Queue
 
 import com.google.protobuf.{ByteString, RpcCallback, RpcController}
 import org.apache.hadoop.hbase.client.Table
@@ -20,7 +19,6 @@ import org.apache.hadoop.hbase.ipc.BlockingRpcCallback
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 /**
   * An RpcController implementation for use here in this endpoint.
@@ -74,9 +72,9 @@ class KryoLazyDensityDriver {
       private var finalResult: Queue[ByteString] = new ConcurrentLinkedQueue[ByteString]()
 
       def getResult(): List[ByteString] = {
-        val list: List[ByteString] = new ArrayList[ByteString]()
+        var list: List[ByteString] = List[ByteString]()
         for (s <- finalResult) {
-          list.add(s)
+          list ::= s
         }
         list
       }
@@ -103,6 +101,6 @@ class KryoLazyDensityDriver {
       kryoLazyDensityFilterCallBack
     )
     kryoLazyDensityFilterCallBack.getResult
-  }.asScala
+  }
 
 }

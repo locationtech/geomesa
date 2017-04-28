@@ -100,7 +100,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
       val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
       val hbaseTable = ds.connection.getTable(table)
       val client = new KryoLazyDensityDriver()
-      val result: List[ByteString] = client.kryoLazyDensityFilter(hbaseTable, byteArray).asScala.toList
+      val result: List[ByteString] = client.kryoLazyDensityFilter(hbaseTable, byteArray)
       result.map(r => KryoLazyDensityCoprocessor.bytesToFeatures(r.toByteArray)).toIterator
     } else {
       throw new NotImplementedException()
