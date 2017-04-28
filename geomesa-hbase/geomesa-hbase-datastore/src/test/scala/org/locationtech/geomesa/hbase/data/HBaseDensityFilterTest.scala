@@ -94,7 +94,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       val density = getDensity(typeName, q, fs)
       density.foreach {println}
 
-      density.length must equalTo(5)
+      density.length must equalTo(1)
     }
 
     "reduce total features returned" in {

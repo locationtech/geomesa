@@ -21,7 +21,7 @@ import org.apache.hadoop.hbase.coprocessor.CoprocessorException
 import org.apache.hadoop.hbase.coprocessor.CoprocessorService
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment
 import org.apache.hadoop.hbase.exceptions.DeserializationException
-import org.apache.hadoop.hbase.filter.{FilterList, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.filter.{FilterList}
 import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.regionserver.InternalScanner
 import org.geotools.data.Base64
@@ -30,7 +30,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils._
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
