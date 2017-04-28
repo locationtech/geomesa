@@ -89,7 +89,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       WithClose(new SimpleFeatureArrowFileReader(new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         reader.features.toSeq must containTheSameElementsAs(features)
-        reader.dictionaries.get("name:String") must beSome
+        reader.dictionaries.get("name") must beSome
       }
     }
   }
