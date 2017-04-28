@@ -8,18 +8,21 @@
 
 package org.locationtech.geomesa.accumulo.process.query
 
+import java.util
+
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
+import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+import org.opengis.filter.expression.Expression
 
 @DescribeProcess(
   title = "Geomesa Query",
@@ -57,6 +60,17 @@ class QueryProcess extends LazyLogging {
 
     val visitor = new QueryVisitor(features, Option(filter).getOrElse(Filter.INCLUDE), arrayString)
     features.accepts(visitor, new NullProgressListener)
+
+    features match {
+      case rtfc: ReTypingFeatureCollection =>
+        if(ReTypingFeatureCollection.isTypeCompatible(visitor, rtfc.getSchema)) {
+          logger.info(s"Retypingfeature collection is type compatible with ${rtfc.getSchema}")
+        } else {
+          logger.info(s"Retypingfeature collection is not type compatible with ${rtfc.getSchema}")
+        }
+      case _ => logger.info("not retypingfeaturecollection")
+    }
+
     visitor.getResult.asInstanceOf[QueryResult].results
   }
 }
@@ -64,11 +78,12 @@ class QueryProcess extends LazyLogging {
 class QueryVisitor(features: SimpleFeatureCollection,
                    filter: Filter,
                    properties: Array[String] = null)
-  extends FeatureCalc
-          with LazyLogging {
+  extends FeatureCalc with FeatureAttributeVisitor with LazyLogging {
 
+  import scala.collection.JavaConversions._
   val manualVisitResults = new DefaultFeatureCollection(null, features.getSchema)
   val ff  = CommonFactoryFinder.getFilterFactory2
+  val origSft = features.getSchema
 
   // Called for non AccumuloFeactureCollections
   def visit(feature: Feature): Unit = {
@@ -98,6 +113,9 @@ class QueryVisitor(features: SimpleFeatureCollection,
     source.getFeatures(query)
   }
 
+  override def getExpressions: java.util.List[Expression] = {
+    origSft.getAttributeDescriptors.map(ad => ff.property(ad.getLocalName)).toList
+  }
 }
 
 case class QueryResult(results: SimpleFeatureCollection) extends AbstractCalcResult
