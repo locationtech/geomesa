@@ -87,7 +87,7 @@ object ArrowAttributeReader {
             precision: GeometryPrecision = GeometryPrecision.Double): Seq[ArrowAttributeReader] = {
     import scala.collection.JavaConversions._
     sft.getAttributeDescriptors.map { descriptor =>
-      val name = descriptor.getLocalName //SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
+      val name = SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
       val classBinding = descriptor.getType.getBinding
       val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
       val dictionary = dictionaries.get(name).orElse(dictionaries.get(descriptor.getLocalName))

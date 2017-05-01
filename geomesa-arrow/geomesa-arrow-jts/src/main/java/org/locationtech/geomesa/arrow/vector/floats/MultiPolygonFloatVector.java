@@ -18,21 +18,19 @@ import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.GeometryFields;
 import org.locationtech.geomesa.arrow.vector.impl.AbstractMultiPolygonVector;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 
 public class MultiPolygonFloatVector extends AbstractMultiPolygonVector {
 
   // fields created by this vector
   public static final List<Field> fields = GeometryFields.XY_FLOAT_LIST_3;
 
-  public MultiPolygonFloatVector(String name, BufferAllocator allocator, @Nullable Map<String, String> metadata) {
-    super(name, allocator, metadata);
+  public MultiPolygonFloatVector(String name, BufferAllocator allocator) {
+    super(name, allocator);
   }
 
-  public MultiPolygonFloatVector(String name, AbstractContainerVector container, @Nullable Map<String, String> metadata) {
-    super(name, container, metadata);
+  public MultiPolygonFloatVector(String name, AbstractContainerVector container) {
+    super(name, container);
   }
 
   public MultiPolygonFloatVector(ListVector vector) {
