@@ -23,7 +23,7 @@ import org.locationtech.geomesa.arrow.TypeBindings
 import org.locationtech.geomesa.arrow.io.DictionaryBuildingWriter.ArrowAttributeDictionaryBuildingWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
-import org.locationtech.geomesa.arrow.vector.{ArrowAttributeWriter, ArrowDictionary, SimpleFeatureVector}
+import org.locationtech.geomesa.arrow.vector.{ArrowAttributeWriter, ArrowDictionary}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -106,13 +106,13 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
     attributeWriters.foreach(_.setValueCount(index))
     root.setRowCount(index)
 
-    val container = NullableMapVector.empty("", allocator)
+    val container = new NullableMapVector("", allocator, null, null)
     container.allocateNew() // TODO might need to expand this as we add values
 
     val dictionaries = attributeWriters.collect { case w: ArrowAttributeDictionaryBuildingWriter =>
       val name = s"dict-${w.encoding.getId}"
       val TypeBindings(bindings, classBinding, precision) = w.dictionaryType
-      val writer = ArrowAttributeWriter(name, bindings, classBinding, container, None, Map.empty, precision)
+      val writer = ArrowAttributeWriter(name, bindings, classBinding, container, None, precision)
       val vector = container.getChild(name)
 
       var i = 0
@@ -163,7 +163,7 @@ object DictionaryBuildingWriter {
              includeFids: Boolean = true,
              precision: GeometryPrecision = GeometryPrecision.Double)
             (implicit allocator: BufferAllocator): DictionaryBuildingWriter = {
-    val underlying = NullableMapVector.empty(sft.getTypeName, allocator)
+    val underlying = new NullableMapVector(sft.getTypeName, allocator, null, null)
     underlying.allocateNew()
     new DictionaryBuildingWriter(sft, underlying, dictionaries, includeFids, precision)
   }
@@ -177,18 +177,16 @@ object DictionaryBuildingWriter {
                         precision: GeometryPrecision = GeometryPrecision.Double)
                        (implicit allocator: BufferAllocator): Seq[ArrowAttributeWriter] = {
     sft.getAttributeDescriptors.map { descriptor =>
-      val name = descriptor.getLocalName
-      val metadata = Map(SimpleFeatureVector.DescriptorKey -> SimpleFeatureTypes.encodeDescriptor(sft, descriptor))
+      val name = SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
       val classBinding = descriptor.getType.getBinding
       val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
       if (dictionaries.contains(descriptor.getLocalName)) {
         val encoding = new DictionaryEncoding(ArrowDictionary.nextId, false, new ArrowType.Int(16, true))
-        val fieldType = new FieldType(true, MinorType.SMALLINT.getType, encoding, metadata)
-        vector.addOrGet(name, fieldType, classOf[NullableSmallIntVector])
+        vector.addOrGet(name, new FieldType(true, MinorType.SMALLINT.getType, encoding), classOf[NullableSmallIntVector])
         val dictionaryType = TypeBindings(bindings.+:(objectType), classBinding, precision)
         new ArrowAttributeDictionaryBuildingWriter(vector.getWriter.smallInt(name), encoding, dictionaryType)
       } else {
-        ArrowAttributeWriter(name, bindings.+:(objectType), classBinding, vector, None, metadata, precision)
+        ArrowAttributeWriter(name, bindings.+:(objectType), classBinding, vector, None, precision)
       }
     }
   }

@@ -18,21 +18,19 @@ import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.GeometryFields;
 import org.locationtech.geomesa.arrow.vector.impl.AbstractPolygonVector;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 
 public class PolygonFloatVector extends AbstractPolygonVector {
 
   // fields created by this vector
   public static final List<Field> fields = GeometryFields.XY_FLOAT_LIST_2;
 
-  public PolygonFloatVector(String name, BufferAllocator allocator, @Nullable Map<String, String> metadata) {
-    super(name, allocator, metadata);
+  public PolygonFloatVector(String name, BufferAllocator allocator) {
+    super(name, allocator);
   }
 
-  public PolygonFloatVector(String name, AbstractContainerVector container, @Nullable Map<String, String> metadata) {
-    super(name, container, metadata);
+  public PolygonFloatVector(String name, AbstractContainerVector container) {
+    super(name, container);
   }
 
   public PolygonFloatVector(ListVector vector) {
