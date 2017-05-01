@@ -113,20 +113,20 @@ to collect. The available stat function are listed below:
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | MinMax                                                                                                                                             |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
-| ``MinMax(attribute)``                                             | * attribute*: String | Finds the Min and Max values of the given attribute.    |
+| ``MinMax(attribute)``                                             | * attribute*: String | Finds the min and max values of the given attribute.    |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | GroupBy                                                                                                                                            |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
-| ``GroupBy(attribute,stat)``                                       | * attribute*: String | Groups Stats by the given attribute and then runs       |
+| ``GroupBy(attribute,stat)``                                       | * attribute*: String | Groups stats by the given attribute and then runs       |
 |                                                                   | * stat: Stat String  | the given stat on each group. Any stat can be provided. |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | Descriptive Stats                                                                                                                                  |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | ``DescriptiveStats(attribute)``                                   | * attribute*: String | Runs single pass stats on the given attribute           |
 |                                                                   |                      | calculating stats describing the attribute such as:     |
-|                                                                   |                      | Count; Min; Max; Mean; and Population and Sample        |
-|                                                                   |                      | versions of Variance, Standard Deviation, Kurtosis,     |
-|                                                                   |                      | Excess Kurtosis, Covariance, and Correlation.           |
+|                                                                   |                      | count; min; max; mean; and population and sample        |
+|                                                                   |                      | versions of variance, standard deviation, kurtosis,     |
+|                                                                   |                      | excess kurtosis, covariance, and correlation.           |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | Enumeration                                                                                                                                        |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
@@ -140,9 +140,9 @@ to collect. The available stat function are listed below:
 | Histogram                                                                                                                                          |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | ``Histogram(attribute,numBins,lower,upper)``                      | * attribute*: String | Provides a histogram of the given attribute, binning    |
-|                                                                   | * numBins: Int       | the results into a Binned Array using the numBins as    |
-|                                                                   | * lower: Int         | the number of Bins and lower and upper as the bounds    |
-|                                                                   | * upper: Int         | of the Binned Array.                                    |
+|                                                                   | * numBins: Int       | the results into a binned array using the numBins as    |
+|                                                                   | * lower: Int         | the number of bins and lower and upper as the bounds    |
+|                                                                   | * upper: Int         | of the binned array.                                    |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | Freqency                                                                                                                                           |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
@@ -321,7 +321,7 @@ Unique example (XML)
 """"""""""""""""""""
 
 :download:`UniqueProcess_wps.xml </user/_static/process/UniqueProcess_wps.xml>` is a geoserver WPS call to the GeoMesa UniqueProcess that reports the unique names
-in in the 'Who' field of the Accumulo quickstart data for a restricted beounding box (-77.5, -37.5, -76.5, -36.5)). It can be run with the following curl call:
+in in the 'Who' field of the Accumulo quickstart data for a restricted bounding box (-77.5, -37.5, -76.5, -36.5)). It can be run with the following curl call:
 
 .. code-block:: bash
 
