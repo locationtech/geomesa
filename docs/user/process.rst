@@ -5,16 +5,16 @@ The following analytic processes are available and optimized on GeoMesa
 data stores, found in the ``geomesa-process`` module:
 
 -  :ref:`density_process` - computes a density heatmap for a CQL query
--  ``hash_attribute_process`` - computes an
+-  ``HashAttributeColorProcess`` and ``HashAttributeProcess`` - computes an
    additional 'hash' attribute which is useful for styling.
 -  ``JoinProcess`` - returns merged features from two different schemas
    using a common attribute field
--  ``knn_search_process`` - performs a KNN search
--  ``point2point_process`` - aggregates a collection of points into a
+-  ``KNearestNeighborSearchProcess`` - performs a KNN search
+-  ``Point2PointProcess`` - aggregates a collection of points into a
    collection of line segments
--  ``proximity_search_process`` - performs a nearest neighbor search
+-  ``ProximitySearchProcess`` - performs a nearest neighbor search
 -  :ref:`query_process` - performs a Geomesa optimized query using spatiotemporal indexes
--  ``sampling_process`` - uses statistical sampling to reduces the features
+-  ``SamplingProcess`` - uses statistical sampling to reduces the features
    returned by a query
 -  :ref:`statsiterator_process` - returns various stats for a CQL query
 -  ``TubeSelectProcess`` - performs a correlated search across
