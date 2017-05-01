@@ -11,11 +11,38 @@
             <wps:DataInputs>
               <wps:Input>
                 <ows:Identifier>features</ows:Identifier>
-                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
                   <wps:Body>
-                    <wfs:GetFeature service="WFS" version="1.1.0" outputFormat="text/xml; subtype=gml/3.1.1" xmlns:geomesa="geomesa">
-                      <wfs:Query typeName="geomesa:route-tracks" srsName="EPSG:4326"/>
-                    </wfs:GetFeature>
+                    <wps:Execute version="1.0.0" service="WPS">
+                      <ows:Identifier>geomesa:Query</ows:Identifier>
+                      <wps:DataInputs>
+                        <wps:Input>
+                          <ows:Identifier>features</ows:Identifier>
+                          <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs"
+                              method="POST">
+                            <wps:Body>
+                              <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2">
+                                <!-- type name set up in geoserver named "testType" -->
+                                <wfs:Query typeName="geomesa:route-tracks"/>
+                              </wfs:GetFeature>
+                            </wps:Body>
+                          </wps:Reference>
+                        </wps:Input>
+                        <wps:Input>
+                          <ows:Identifier>filter</ows:Identifier>
+                          <wps:Data>
+                            <wps:ComplexData mimeType="text/plain; subtype=cql">
+                              <![CDATA[dtg DURING 2017-02-19T00:00:00.000Z/2017-02-21T00:00:00.000Z]]>
+                            </wps:ComplexData>
+                          </wps:Data>
+                        </wps:Input>
+                      </wps:DataInputs>
+                      <wps:ResponseForm>
+                        <wps:RawDataOutput mimeType="application/xml">
+                          <ows:Identifier>result</ows:Identifier>
+                        </wps:RawDataOutput>
+                      </wps:ResponseForm>
+                    </wps:Execute>
                   </wps:Body>
                 </wps:Reference>
               </wps:Input>
