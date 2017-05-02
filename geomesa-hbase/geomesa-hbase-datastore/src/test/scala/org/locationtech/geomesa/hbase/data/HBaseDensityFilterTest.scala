@@ -67,95 +67,47 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
   "HBaseDataStore" should {
+    val (sft, fs) = initializeHBaseSchema()
+
+    val toAdd = (0 until 150).map { i =>
+      val sf = new ScalaSimpleFeature(i.toString, sft)
+      sf.setAttribute(0, i.toString)
+      sf.setAttribute(1, "1.0")
+      sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
+      sf.setAttribute(3, "POINT(-77 38)")
+      sf
+    }  :+ {
+      val sf2 = new ScalaSimpleFeature("200", sft)
+      sf2.setAttribute(0, "200")
+      sf2.setAttribute(1, "1.0")
+      sf2.setAttribute(2, new DateTime("2010-01-01T19:00:00", DateTimeZone.UTC).toDate)
+      sf2.setAttribute(3, "POINT(1 1)")
+      sf2
+    }
+
+    val features_list = new ListFeatureCollection(sft, toAdd)
+    fs.addFeatures(features_list)
+
     "work with filters" in {
-      val (sft, fs) = initializeHBaseSchema()
-      clearFeatures()
-
-      val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
-        sf.setAttribute(3, "POINT(-77 38)")
-        sf
-      }  :+ {
-        val sf2 = new ScalaSimpleFeature("200", sft)
-        sf2.setAttribute(0, "200")
-        sf2.setAttribute(1, "1.0")
-        sf2.setAttribute(2, new DateTime("2010-01-01T19:00:00", DateTimeZone.UTC).toDate)
-        sf2.setAttribute(3, "POINT(1 1)")
-        sf2
-      }
-
-      val features_list = new ListFeatureCollection(sft, toAdd)
-      fs.addFeatures(features_list)
-
       val q = " BBOX(geom, 0, 0, 10, 10)"
       val density = getDensity(typeName, q, fs)
-      density.foreach {println}
 
       density.length must equalTo(1)
     }
 
     "reduce total features returned" in {
-      val (sft, fs) = initializeHBaseSchema()
-      clearFeatures()
-
-      val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
-        sf.setAttribute(3, "POINT(-77 38)")
-        sf
-      }
-
-      val features_list = new ListFeatureCollection(sft, toAdd)
-      fs.addFeatures(features_list)
-
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
       density.length must beLessThan(150)
     }
 
     "maintain total weight of points" in {
-      val (sft, fs) = initializeHBaseSchema()
-      clearFeatures()
-
-      val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
-        sf.setAttribute(3, "POINT(-77 38)")
-        sf
-      }
-
-      val features_list = new ListFeatureCollection(sft, toAdd)
-      fs.addFeatures(features_list)
-
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
       density.length must beLessThan(150)
     }
 
     "maintain weights irrespective of dates" in {
-      val (sft, fs) = initializeHBaseSchema()
-      clearFeatures()
-
-      val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
-      val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
-        sf.setAttribute(3, "POINT(-77 38)")
-        sf
-      }
-
-      val features_list = new ListFeatureCollection(sft, toAdd)
-      fs.addFeatures(features_list)
-
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
       density.length must beLessThan(150)
