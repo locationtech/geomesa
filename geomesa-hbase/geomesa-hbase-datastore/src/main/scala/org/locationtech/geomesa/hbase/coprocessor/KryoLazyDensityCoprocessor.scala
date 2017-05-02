@@ -80,7 +80,12 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
       options(RANGES_OPT).split(",").foreach(range => {
         val scanInfo = range.split("\\|")
-        scanList ::= new Scan(Base64.decode(scanInfo(0)), Base64.decode(scanInfo(1)))
+
+        if (scanInfo.isEmpty) {
+          scanList ::= new Scan()
+        } else {
+          scanList ::= new Scan(Base64.decode(scanInfo(0)), Base64.decode(scanInfo(1)))
+        }
       })
 
       if (options.containsKey(FILTER_OPT)) {
@@ -110,6 +115,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       response = DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
     } catch {
       case ioe: IOException =>
+        ioe.printStackTrace()
         ResponseConverter.setControllerException(controller, ioe)
       case cnfe: ClassNotFoundException =>
         throw cnfe
