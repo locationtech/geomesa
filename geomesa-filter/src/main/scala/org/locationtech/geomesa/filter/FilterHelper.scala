@@ -152,6 +152,7 @@ object FilterHelper {
       case op: DWithin    => ff.dwithin(e1, e2, args.asInstanceOf[Double], "meters")
       // use the direct constructor so that we preserve our geom user data
       case op: BBOX       => new BBOXImpl(e1, e2)
+      case op: Contains   => ff.contains(e1, e2)
     }
   }
 
@@ -160,6 +161,7 @@ object FilterHelper {
       case op: Within     => isOperationGeomWholeWorld(op)
       case op: Intersects => isOperationGeomWholeWorld(op)
       case op: Overlaps   => isOperationGeomWholeWorld(op)
+      case op: Contains   => isOperationGeomWholeWorld(op)
       case _ => false
     }
 

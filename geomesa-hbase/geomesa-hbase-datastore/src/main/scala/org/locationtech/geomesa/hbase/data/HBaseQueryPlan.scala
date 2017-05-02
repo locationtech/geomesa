@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import com.google.common.collect.Lists
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
-import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.filter.{FilterList, Filter => HBaseFilter}
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
@@ -20,11 +18,10 @@ import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosing
 import org.opengis.feature.simple.SimpleFeature
 
 
-sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
+trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
   def table: TableName
   def ranges: Seq[Query]
-  def remoteFilters: Seq[HBaseFilter]
   // note: entriesToFeatures encapsulates ecql and transform
   def resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]
 
@@ -38,7 +35,6 @@ object HBaseQueryPlan {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
     explainer(s"Table: ${Option(plan.table).orNull}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    explainer(s"Remote Filters (${plan.remoteFilters.size}):", plan.remoteFilters.map(_.toString))
     explainer.popLevel()
   }
 
@@ -54,7 +50,6 @@ object HBaseQueryPlan {
 case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override val table: TableName = null
   override val ranges: Seq[Query] = Seq.empty
-  override val remoteFilters: Seq[HBaseFilter] = Nil
   override val resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature] = (i) => Iterator.empty
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
@@ -62,11 +57,10 @@ case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
 case class ScanPlan(filter: HBaseFilterStrategyType,
                     table: TableName,
                     ranges: Seq[Scan],
-                    remoteFilters: Seq[HBaseFilter] = Nil,
                     resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     ranges.foreach(ds.applySecurity)
-    val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
+    val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
     SelfClosingIterator(resultsToFeatures(results), results.close)
   }
 }
@@ -76,6 +70,7 @@ case class GetPlan(filter: HBaseFilterStrategyType,
                    ranges: Seq[Get],
                    remoteFilters: Seq[HBaseFilter] = Nil,
                    resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
+  // TODO: do we need to push down Z3Iterator?
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
     val filterList = new FilterList()
@@ -86,46 +81,5 @@ case class GetPlan(filter: HBaseFilterStrategyType,
     }
     val get = ds.connection.getTable(table)
     SelfClosingIterator(resultsToFeatures(get.get(ranges).iterator), get.close)
-  }
-}
-
-case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
-                                       table: TableName,
-                                       ranges: Seq[Scan],
-                                       remoteFilters: Seq[HBaseFilter] = Nil,
-                                       resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
-
-  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    import scala.collection.JavaConversions._
-
-    val rowRanges = Lists.newArrayList[RowRange]()
-    ranges.foreach { r =>
-      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
-    }
-    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
-    val numRanges = sortedRowRanges.length
-    val numThreads = ds.config.queryThreads
-    // TODO: parameterize this?
-    val rangesPerThread = math.max(1,math.ceil(numRanges/numThreads*2).toInt)
-    // TODO: align partitions with region boundaries
-    val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
-
-    val groupedScans = groupedRanges.map { localRanges =>
-      val mrrf = new MultiRowRangeFilter(localRanges)
-      val filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, mrrf)
-      remoteFilters.foreach { f => filterList.addFilter(f) }
-
-      val s = new Scan()
-      s.setStartRow(localRanges.head.getStartRow)
-      s.setStopRow(localRanges.get(localRanges.length-1).getStopRow)
-      s.setFilter(filterList)
-      s.setCaching(1000)
-      s.setCacheBlocks(true)
-      s
-    }
-    // Apply Visibilities
-    groupedScans.foreach(ds.applySecurity)
-    val results = new HBaseBatchScan(ds.connection, table, groupedScans, ds.config.queryThreads, 100000, Nil)
-    SelfClosingIterator(resultsToFeatures(results), results.close)
   }
 }

@@ -33,7 +33,7 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-hbase-spark*</include>
+                <include>org.locationtech.geomesa:geomesa-bigtable-spark*</include>
                 <include>org.locationtech.geomesa:geomesa-spark*</include>
             </includes>
         </dependencySet>

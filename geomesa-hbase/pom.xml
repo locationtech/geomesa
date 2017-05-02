@@ -11,7 +11,7 @@
     <name>GeoMesa HBase Parent</name>
 
     <properties>
-        <bigtable.version>0.9.4</bigtable.version>
+        <bigtable.version>0.9.6.1</bigtable.version>
     </properties>
 
     <dependencyManagement>
@@ -54,6 +54,8 @@
                 <module>geomesa-bigtable-dist</module>
                 <module>geomesa-bigtable-gs-plugin</module>
                 <module>geomesa-bigtable-tools</module>
+                <module>geomesa-bigtable-spark</module>
+                <module>geomesa-bigtable-spark-runtime</module>
             </modules>
         </profile>
     </profiles>
