@@ -59,7 +59,7 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     * note: ORs will not be split if they operate on a single attribute
     *
     */
-  def getQueryOptions(filter: Filter): Seq[TypedFilterPlan] = {
+  def getQueryOptions(filter: Filter, transform: Option[SimpleFeatureType] = None): Seq[TypedFilterPlan] = {
     // cnf gives us a top level AND with ORs as first children
     rewriteFilterInCNF(filter) match {
       case a: And =>
@@ -67,18 +67,18 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
         val (complex, simple) = a.getChildren.partition(f => f.isInstanceOf[Or] && attributeAndIdCount(f, sft) > 1)
         if (complex.isEmpty) {
           // no cross-attribute ORs
-          getSimpleQueryOptions(a).map(FilterPlan.apply[DS, F, W])
+          getSimpleQueryOptions(a, transform).map(FilterPlan.apply[DS, F, W])
         } else if (simple.nonEmpty) {
           logger.warn("Not considering complex OR predicates in query planning: " +
               s"${complex.map(filterToString).mkString("(", ") AND (", ")")}")
           def addComplexPredicates(qf: TypedFilterStrategy) =
             qf.copy(secondary = andOption(qf.secondary.toSeq ++ complex))
-          val simpleOptions = getSimpleQueryOptions(andFilters(simple))
+          val simpleOptions = getSimpleQueryOptions(andFilters(simple), transform)
           simpleOptions.map(addComplexPredicates).map(FilterPlan.apply[DS, F, W])
         } else {
           logger.warn(s"Falling back to expand/reduce query splitting for filter ${filterToString(filter)}")
           val dnf = rewriteFilterInDNF(filter).asInstanceOf[Or]
-          expandReduceOrOptions(dnf).map(makeDisjoint)
+          expandReduceOrOptions(dnf, transform).map(makeDisjoint)
         }
 
       case o: Or =>
@@ -89,19 +89,19 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
         // group and then recombine the OR'd filters by the attribute they operate on
         val groups = o.getChildren.groupBy(getGroup).values.map(ff.or(_)).toSeq
         val perAttributeOptions = groups.flatMap { g =>
-          val options = getSimpleQueryOptions(g)
+          val options = getSimpleQueryOptions(g, transform)
           require(options.length < 2, s"Expected only a single option for ${filterToString(g)} but got $options")
           options.headOption
         }
         if (perAttributeOptions.exists(_.primary.isEmpty)) {
           // we have to do a full table scan for part of the query, just append everything to that
-          Seq(FilterPlan(fullTableScanOption(o)))
+          Seq(FilterPlan(fullTableScanOption(o, transform)))
         } else {
           Seq(makeDisjoint(FilterPlan(perAttributeOptions)))
         }
 
       case f =>
-        getSimpleQueryOptions(f).map(qf => FilterPlan(Seq(qf)))
+        getSimpleQueryOptions(f, transform).map(qf => FilterPlan(Seq(qf)))
     }
   }
 
@@ -118,8 +118,8 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     * @param filter input filter
     * @return sequence of options, any of which can satisfy the query
     */
-  private def getSimpleQueryOptions(filter: Filter): Seq[TypedFilterStrategy] = {
-    val options = indices.flatMap(_.getFilterStrategy(sft, filter))
+  private def getSimpleQueryOptions(filter: Filter, transform: Option[SimpleFeatureType]): Seq[TypedFilterStrategy] = {
+    val options = indices.flatMap(_.getFilterStrategy(sft, filter, transform))
     if (options.isEmpty) {
       Seq.empty
     } else {
@@ -136,12 +136,12 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     * Calculates all possible options for each part of the filter, then determines all permutations of
     * the options. This can end up being expensive (O(2&#94;n)), so is only used as a fall-back.
     */
-  private def expandReduceOrOptions(filter: Or): Seq[TypedFilterPlan] = {
+  private def expandReduceOrOptions(filter: Or, transform: Option[SimpleFeatureType]): Seq[TypedFilterPlan] = {
 
     // for each child of the or, get the query options
     // each filter plan should only have a single query filter
     def getChildOptions: Seq[Seq[TypedFilterPlan]] =
-      filter.getChildren.map(getSimpleQueryOptions(_).map(qf => FilterPlan(Seq(qf))))
+      filter.getChildren.map(getSimpleQueryOptions(_, transform).map(qf => FilterPlan(Seq(qf))))
 
     // combine the filter plans so that each plan has multiple query filters
     // use the permutations of the different options for each child
@@ -217,7 +217,7 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     if (merged.nonEmpty) {
       merged
     } else {
-      Seq(FilterPlan(Seq(fullTableScanOption(filter))))
+      Seq(FilterPlan(Seq(fullTableScanOption(filter, transform))))
     }
   }
 
@@ -225,9 +225,9 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     * Will perform a full table scan - used when we don't have anything better. Currently z3, z2 and record
     * tables support full table scans.
     */
-  private def fullTableScanOption(filter: Filter): TypedFilterStrategy = {
+  private def fullTableScanOption(filter: Filter, transform: Option[SimpleFeatureType]): TypedFilterStrategy = {
     val secondary = if (filter == Filter.INCLUDE) None else Some(filter)
-    val options = indices.toStream.flatMap(_.getFilterStrategy(sft, Filter.INCLUDE))
+    val options = indices.toStream.flatMap(_.getFilterStrategy(sft, Filter.INCLUDE, transform))
     options.headOption.map(o => o.copy(secondary = secondary)).getOrElse {
       throw new UnsupportedOperationException(s"Configured indices do not support the query ${filterToString(filter)}")
     }

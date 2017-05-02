@@ -16,7 +16,7 @@ import org.apache.hadoop.conf.Configuration
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, JoinPlan, _}
+import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, _}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.jobs.JobUtils
@@ -64,6 +64,8 @@ object AccumuloJobUtils extends LazyLogging {
   def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): AccumuloQueryPlan = {
     // disable range batching for this request
     AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.set(Int.MaxValue.toString)
+    // disable join plans
+    AttributeIndex.AllowJoinPlans.set(false)
 
     try {
       lazy val fallbackIndex = {
@@ -77,8 +79,8 @@ object AccumuloJobUtils extends LazyLogging {
 
       if (queryPlans.isEmpty) {
         EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE)))
-      } else if (queryPlans.length > 1 || queryPlans.head.isInstanceOf[JoinPlan]) {
-        // this query has a join or requires multiple scans, which we can't execute from input formats
+      } else if (queryPlans.length > 1) {
+        // this query requires multiple scans, which we can't execute from some input formats
         // instead, fall back to a full table scan
         logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
         val qps = ds.getQueryPlan(query, Some(fallbackIndex))
@@ -92,8 +94,9 @@ object AccumuloJobUtils extends LazyLogging {
         queryPlans.head
       }
     } finally {
-      // make sure we reset the thread local
+      // make sure we reset the thread locals
       AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.remove()
+      AttributeIndex.AllowJoinPlans.remove()
     }
   }
 
@@ -105,6 +108,8 @@ object AccumuloJobUtils extends LazyLogging {
   def getMultipleQueryPlan(ds: AccumuloDataStore, query: Query): Seq[AccumuloQueryPlan] = {
     // disable range batching for this request
     AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.set(Int.MaxValue.toString)
+    // disable join plans
+    AttributeIndex.AllowJoinPlans.set(false)
 
     try {
       lazy val fallbackIndex = {
@@ -114,21 +119,16 @@ object AccumuloJobUtils extends LazyLogging {
         }
       }
 
-      val queryPlans: Seq[AccumuloQueryPlan] = ds.getQueryPlan(query)
-
+      val queryPlans = ds.getQueryPlan(query)
       if (queryPlans.isEmpty) {
         Seq(EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE))))
-      } else if (queryPlans.exists(_.isInstanceOf[JoinPlan])) {
-        // this query has a join, which we can't execute from input formats
-        // instead, fall back to a full table scan
-        logger.warn("Desired query plan contains joins - falling back to full table scan")
-        ds.getQueryPlan(query, Some(fallbackIndex))
       } else {
         queryPlans
       }
     } finally {
-      // make sure we reset the thread local
+      // make sure we reset the thread locals
       AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.remove()
+      AttributeIndex.AllowJoinPlans.remove()
     }
   }
 }

@@ -20,7 +20,9 @@ trait SpatialFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatur
 
   import SpatialFilterStrategy.{StaticCost, spatialCheck}
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType,
+                                 filter: Filter,
+                                 transform: Option[SimpleFeatureType]): Seq[FilterStrategy[DS, F, W]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     if (filter == Filter.INCLUDE) {

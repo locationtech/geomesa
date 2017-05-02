@@ -17,7 +17,9 @@ import org.opengis.filter.{And, Filter, Id, Or}
 
 trait IdFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W] extends GeoMesaFeatureIndex[DS, F, W] {
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType,
+                                 filter: Filter,
+                                 transform: Option[SimpleFeatureType]): Seq[FilterStrategy[DS, F, W]] = {
     if (filter == Filter.INCLUDE) {
       Seq(FilterStrategy(this, None, None))
     } else if (filter == Filter.EXCLUDE) {
