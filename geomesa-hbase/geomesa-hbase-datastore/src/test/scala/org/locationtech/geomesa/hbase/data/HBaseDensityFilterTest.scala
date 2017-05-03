@@ -95,8 +95,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     "work with filters" in {
       val q = " BBOX(geom, 0, 0, 10, 10)"
       val density = getDensity(typeName, q, fs)
-      density.foreach { println }
-
       density.length must equalTo(1)
     }
 
@@ -119,11 +117,8 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     }
 
     "correctly bin points" in {
-      println(s"Here at clearFeatures start ${new Date}")
       //val (sft, fs) = initializeHBaseSchema()
       clearFeatures()
-
-       println(s"Here at clearFeatures end ${new Date}")
 
       val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
       val toAdd = (0 until 150).map { i =>
@@ -140,23 +135,11 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       val features_list = new ListFeatureCollection(sft, toAdd)
       fs.addFeatures(features_list)
 
-      println(s"Here at getDensity ${new Date}")
-
-      //val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 7, 40)"
-      val q = "INCLUDE"
+      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 7, 40)"
 
       fs.getCount(Query.ALL) mustEqual(150)
 
-      val ids= fs.getFeatures(ECQL.toFilter("INCLUDE")).features.map{ _.getID}.toList.sorted.mkString(",")
-
-      println(s"IDs: $ids")
-
       val density = getDensity(typeName, q, fs)
-
-      println(s"Here at getDensity finished ${new Date}")
-
-      density.foreach { println }
-
       density.map(_._3).sum mustEqual 150
 
       val compiled = density.groupBy(d => (d._1, d._2)).map { case (pt, group) => group.map(_._3).sum }
