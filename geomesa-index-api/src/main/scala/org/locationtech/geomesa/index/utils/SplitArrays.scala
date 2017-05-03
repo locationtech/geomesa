@@ -15,6 +15,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 object SplitArrays {
 
+  val EmptySplits = IndexedSeq(Array.empty[Byte])
+
   private val splitArraysMap: ConcurrentHashMap[Int, IndexedSeq[Array[Byte]]] =
     new ConcurrentHashMap[Int, IndexedSeq[Array[Byte]]]()
 

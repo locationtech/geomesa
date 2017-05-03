@@ -77,6 +77,11 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     feature
   }
 
+  val shards = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    sft.getAttributeShards
+  }
+
   addFeatures(features)
 
   def execute(filter: String, explain: Explainer = ExplainNull, ranges: Option[Matcher[Int]] = None): List[String] = {
@@ -177,7 +182,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges with the attribute equals prefix
-        val features = execute(s"height = 12.0 AND $stFilter", ranges = Some(beGreaterThan(1)))
+        val features = execute(s"height = 12.0 AND $stFilter", ranges = Some(beGreaterThan(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -193,7 +198,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the upper bound
-        val features = execute(s"height < 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height < 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("alice")
       }
@@ -209,7 +214,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the upper bound
-        val features = execute(s"height <= 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height <= 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(2)
         features must contain("bill", "bob")
       }
@@ -225,7 +230,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the lower bound
-        val features = execute(s"height > 11.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height > 11.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -241,7 +246,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the lower bound
-        val features = execute(s"height >= 11.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height >= 11.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -257,7 +262,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the end bounds
-        val features = execute(s"height between 11.0 AND 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height between 11.0 AND 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }

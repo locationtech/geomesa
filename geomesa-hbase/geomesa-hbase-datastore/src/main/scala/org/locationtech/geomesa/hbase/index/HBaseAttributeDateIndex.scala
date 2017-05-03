@@ -11,10 +11,20 @@ package org.locationtech.geomesa.hbase.index
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.index.{AttributeDateIndex, AttributeIndex}
+import org.locationtech.geomesa.index.utils.SplitArrays
+import org.opengis.feature.simple.SimpleFeatureType
 
 case object HBaseAttributeIndex
     extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+  override val version: Int = 3
+}
+
+// no shards
+case object HBaseAttributeIndexV2
+    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 2
+
+  override protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = SplitArrays.EmptySplits
 }
 
 case object HBaseAttributeDateIndex
