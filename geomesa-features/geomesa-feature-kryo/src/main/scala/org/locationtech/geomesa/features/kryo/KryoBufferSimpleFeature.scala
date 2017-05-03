@@ -12,6 +12,7 @@ import java.util.{Collection => jCollection, List => jList, Map => jMap}
 
 import com.esotericsoftware.kryo.io.Input
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.ScalaSimpleFeature
