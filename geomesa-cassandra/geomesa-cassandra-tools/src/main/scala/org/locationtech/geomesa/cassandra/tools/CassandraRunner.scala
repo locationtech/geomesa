@@ -27,6 +27,7 @@ object CassandraRunner extends Runner {
     new CassandraGetSftConfigCommand,
     new CassandraCreateSchemaCommand,
     new CassandraRemoveSchemaCommand,
+    new CassandraDeleteFeaturesCommand,
     new CassandraIngestCommand,
     new CassandraExportCommand
   )
