@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.hbase.index
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
@@ -62,54 +61,12 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     super.configure(sft, ds)
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
     val admin = ds.connection.getAdmin
-    val coproUrl = ds.config.coprocessorUrl
-
-    def addCoprocessors(desc: HTableDescriptor, path: Path): Unit =
-      coprocessorList.foreach(c => addCoprocessor(c, desc, path))
-
-    def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor, path: Path): Unit ={
-      val name = clazz.getCanonicalName
-      if (!desc.getCoprocessors.contains(name)) {
-        if (!path.equals(HBaseDataStoreParams.CoprocessorUrl.sample)) {
-          desc.addCoprocessor(name, path, Coprocessor.PRIORITY_USER, null)
-        } else {
-          desc.addCoprocessor(name)
-        }
-      }
-    }
 
     try {
       val descriptor = new HTableDescriptor(name)
       if (!admin.tableExists(name)) {
-        logger.info("Attempting coprocessor registration")
-        addCoprocessors(descriptor, coproUrl)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
         admin.createTable(descriptor, getSplits(sft).toArray)
-      } else {
-        if (!coprocessorList.forall(c => descriptor.getCoprocessors.contains(c.getCanonicalName))) {
-          logger.info(s"Attempting coprocessor registration on table $name")
-
-          admin.disableTable(name)
-          addCoprocessors(descriptor, coproUrl)
-          admin.modifyTable(name, descriptor)
-          admin.enableTable(name)
-
-          logger.info("Coprocessors Registered, waiting for replication")
-
-          val sleepInt = 100 // ms
-          var remainder: Int = admin.getOperationTimeout
-
-          while (admin.getAlterStatus(name).getFirst > 0 && remainder >= 0){
-            remainder = remainder - sleepInt
-            Thread.sleep(sleepInt)
-          }
-
-          if (remainder < 0) {
-            logger.warn("Timed out while waiting for HBase configuration replication")
-          }
-
-          logger.info("Registration complete")
-        }
       }
     } finally {
       admin.close()

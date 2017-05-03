@@ -12,9 +12,9 @@ import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
+import org.geotools.data.{Query, _}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{Query, _}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -38,10 +38,14 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
   val TEST_FAMILY = "an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
   val TEST_HINT = new Hints()
-
+  val sftName = "test_sft"
   val typeName = "HBaseDensityFilterTest"
 
-  lazy val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> typeName)
+
+  lazy val params = Map(
+    ConnectionParam.getName -> connection,
+    BigTableNameParam.getName -> sftName)
+
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
   var sft: SimpleFeatureType = _

@@ -16,7 +16,8 @@ import org.apache.hadoop.hbase.client.Scan
 import org.apache.hadoop.hbase.coprocessor.{CoprocessorException, CoprocessorService, RegionCoprocessorEnvironment}
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
-import org.apache.hadoop.hbase.protobuf.ResponseConverter
+import org.apache.hadoop.hbase.protobuf.generated.ClientProtos
+import org.apache.hadoop.hbase.protobuf.{ProtobufUtil, ResponseConverter}
 import org.apache.hadoop.hbase.regionserver.InternalScanner
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
 import org.geotools.data.Base64
@@ -73,12 +74,18 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
     val response: DensityResponse = try {
       val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
-      var scanList : ArrayBuffer[Scan] = ArrayBuffer()
+      var scanList : List[Scan] = List()
 
-      options(RANGES_OPT).split(",").foreach(range => {
-        val scanInfo = range.split("\\|")
-        scanList += new Scan(Base64.decode(scanInfo(0)), Base64.decode(scanInfo(1)))
-      })
+      if (options.containsKey(SCAN_OPT)) {
+
+        val decoded = org.apache.hadoop.hbase.util.Base64.decode(options.get(SCAN_OPT).get)
+        val clientScan = ClientProtos.Scan.parseFrom(decoded)
+        val scan = ProtobufUtil.toScan(clientScan)
+        scanList ::= scan
+
+      } else {
+        scanList ::= new Scan()
+      }
 
       if (options.containsKey(FILTER_OPT)) {
         filterList = FilterList.parseFrom(Base64.decode(options(FILTER_OPT)))
@@ -125,48 +132,42 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
   private val SFT_OPT    = "sft"
   private val FILTER_OPT = "filter"
   private val RANGES_OPT = "ranges"
+  private val SCAN_OPT = "scan"
 
   /**
     * Creates an iterator config for the kryo density iterator
     */
   def configure(sft: SimpleFeatureType,
-                ranges: Seq[Scan],
-                filters: Seq[HFilter],
+                scan: Scan,
+                filterList: FilterList,
                 hints: Hints): Map[String, String] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
     val weight = hints.getDensityWeight
-    configure(sft, ranges, filters, envelope, width, height, weight)
+    configure(sft, scan, filterList, envelope, width, height, weight)
   }
 
 
   protected def configure(sft: SimpleFeatureType,
-                          ranges: Seq[Scan],
-                          filters: Seq[HFilter],
+                          scan: Scan,
+                          filterList: FilterList,
                           envelope: Envelope,
                           gridWidth: Int,
                           gridHeight: Int,
                           weightAttribute: Option[String]): Map[String, String] = {
     val is = mutable.Map.empty[String, String]
-    val rangeBuilder : StringBuilder = StringBuilder.newBuilder
+
+    //var scanRanges : List[String] = List[String]()
 
     is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.put(GRID_OPT, s"$gridWidth,$gridHeight")
     weightAttribute.foreach(is.put(WEIGHT_OPT, _))
     is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-
-    ranges.foreach(range =>
-      rangeBuilder.append(Base64.encodeBytes(range.getStartRow)).append("|").append(Base64.encodeBytes(range.getStopRow)).append(",")
-    )
-
-    val ranges_opt = if (rangeBuilder.length > 0) rangeBuilder.substring(0, rangeBuilder.length - 1) else ""
-
-    is.put(RANGES_OPT, ranges_opt)
-
-    val filterList = new FilterList
-    filters.foreach(filterList.addFilter)
     is.put(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
+
+    import org.apache.hadoop.hbase.util.Base64
+    is.put(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
 
     is.toMap
   }
