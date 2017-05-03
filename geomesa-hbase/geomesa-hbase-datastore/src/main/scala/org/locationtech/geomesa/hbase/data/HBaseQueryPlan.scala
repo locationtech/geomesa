@@ -8,11 +8,14 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.util
+
 import com.google.common.collect.Lists
 import com.google.protobuf.ByteString
 import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.filter.FilterList.Operator
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HBaseFilter}
 import org.geotools.factory.Hints
@@ -23,8 +26,6 @@ import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanTy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.JavaConverters._
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
@@ -93,10 +94,20 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isDensityQuery) {
-      val filterList = new FilterList()
+      val rowRanges = Lists.newArrayList[RowRange]()
+      ranges.foreach { r =>
+        rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
+      }
+      val sortedRowRanges: util.List[RowRange] = MultiRowRangeFilter.sortAndMerge(rowRanges)
+      val mrff = new MultiRowRangeFilter(sortedRowRanges)
+
+      val filterList = new FilterList(Operator.MUST_PASS_ALL, mrff)
       remoteFilters.foreach { filter => filterList.addFilter(filter) }
 
-      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, ranges, filterList, hints)
+      val scan = new Scan()
+      scan.setFilter(filterList)
+
+      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, scan, filterList, hints)
       val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
       val hbaseTable = ds.connection.getTable(table)
       val client = new KryoLazyDensityDriver()

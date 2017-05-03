@@ -63,7 +63,11 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     logger.info("Started")
 //  }
 
-  lazy val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> sftName)
+  lazy val params = Map(
+    ConnectionParam.getName -> connection,
+    BigTableNameParam.getName -> sftName,
+    RemoteParam.getName -> "true")
+
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
   "HBaseDataStore" should {

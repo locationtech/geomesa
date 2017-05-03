@@ -235,6 +235,9 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     }
 
     if (!remote) {
+
+      if (coprocessor.isDefined) throw new Exception ("shouldn't get here!")
+
       val localToFeatures = resultsToFeatures(sft, ecql, transform)
       ScanConfig(Nil, coprocessor, localToFeatures)
     } else {
