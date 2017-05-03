@@ -120,7 +120,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
 
       output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
       output(s"Original filter: ${filterToString(original.getFilter)}")
-      output(s"Hints: bin[${hints.isBinQuery}] arrow[${hints.isArrowQuery}] density[${hints.isDensityQuery}] " +
+      output(s"Hints: density[${hints.isDensityQuery}] bin[${hints.isBinQuery}] " +
           s"stats[${hints.isStatsIteratorQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
       output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")

@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.Closeable
+import java.io.{Closeable, Flushable}
 
 import org.geotools.data.simple.SimpleFeatureCollection
 
-trait FeatureExporter extends Closeable {
+trait FeatureExporter extends Closeable with Flushable {
   def export(featureCollection: SimpleFeatureCollection): Option[Long]
 }

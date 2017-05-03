@@ -11,8 +11,6 @@ package org.locationtech.geomesa.tools.export
 import java.io.File
 
 import com.beust.jcommander.Parameter
-import org.locationtech.geomesa.tools.utils.ParameterConverters.HintConverter
-import org.locationtech.geomesa.tools.utils.SemiColonParamSplitter
 import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, OptionalIndexParam, RequiredTypeNameParam, _}
 
 trait FileExportParams {
@@ -34,11 +32,6 @@ trait MaxFeaturesParam {
   var maxFeatures: Integer = null
 }
 
-trait QueryHintsParam {
-  @Parameter(names = Array("--hints"), description = "Query hints to set, in the form key1=value1;key2=value2", required = false, converter = classOf[HintConverter])
-  var hints: java.util.Map[String, String] = null
-}
-
 trait DataExportParams extends OptionalCqlFilterParam with MaxFeaturesParam {
   @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
     "(comma-separated)...Comma-separated expressions with each in the format " +
@@ -48,8 +41,7 @@ trait DataExportParams extends OptionalCqlFilterParam with MaxFeaturesParam {
   var attributes: java.util.List[String] = null
 }
 
-trait BaseExportParams extends FileExportParams with DataExportParams
-  with TypeNameParam with OptionalIndexParam with QueryHintsParam
+trait BaseExportParams extends FileExportParams with DataExportParams with TypeNameParam with OptionalIndexParam
 
 trait ExportParams extends BaseExportParams with CatalogParam with RequiredTypeNameParam
 

@@ -79,6 +79,8 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
     }
   }
 
+  override def flush(): Unit = printer.flush()
+
   override def close(): Unit = {
     printer.flush()
     printer.close()

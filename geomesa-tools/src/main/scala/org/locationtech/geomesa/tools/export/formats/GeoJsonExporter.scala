@@ -22,6 +22,8 @@ class GeoJsonExporter(writer: Writer) extends FeatureExporter {
     None
   }
 
+  override def flush(): Unit  = writer.flush()
+
   override def close(): Unit  = {
     writer.flush()
     writer.close()

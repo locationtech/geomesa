@@ -216,8 +216,20 @@ Example export commands::
       -a "user_name,buf=buffer(geom\, 2)" \
       --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
 
-For fine-grained control, query hints can be set using the `--hints` parameter, in the form `key1=value1;key2=value2`.
-See :ref:`query_hints` and :ref:`analytic_queries` for more information.
+.. note::
+
+    Use the `export-bin` command to export data in binary format.
+
+Example binary export command::
+
+    $ geomesa export-bin -u username -p password \
+      -c test_catalog -f test_feature \
+      -a "geom,text,user_name" -q "screen_name='JohnSmith'" \
+      --id-attribute "id_str" \
+      --lat-attribute "coord_lat" \
+      --lon-attribute "coord_lon" \
+      --date-attribute "dtg" \
+      --label-attribute "screen_name"
 
 .. _ingest:
 

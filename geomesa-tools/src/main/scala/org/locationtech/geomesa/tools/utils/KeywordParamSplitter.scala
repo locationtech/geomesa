@@ -16,7 +16,3 @@ import scala.collection.JavaConversions._
 class KeywordParamSplitter extends IParameterSplitter {
   override def split(s : String): java.util.List[String] = List(s)
 }
-
-class SemiColonParamSplitter extends IParameterSplitter {
-  override def split(s : String): java.util.List[String] = List(s)
-}

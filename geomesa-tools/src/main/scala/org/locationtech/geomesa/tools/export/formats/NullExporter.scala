@@ -19,6 +19,7 @@ object NullExporter extends FeatureExporter {
     Some(count)
   }
 
+  override def flush(): Unit = {}
   override def close(): Unit = {}
 }
 

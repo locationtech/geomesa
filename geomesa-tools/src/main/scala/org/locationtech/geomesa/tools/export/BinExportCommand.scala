@@ -33,11 +33,11 @@ trait BinExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand
     val sft = ds.getSchema(params.featureName)
     val dtg = sft.getDtgField
     val attributes = ExportCommand.getAttributes(ds, DataFormats.Bin, params)
-    val query = ExportCommand.getQuery(ds, DataFormats.Bin, attributes, params)
-    val features = ExportCommand.getFeatureCollection(ds, query)
+    val features = ExportCommand.getFeatureCollection(ds, DataFormats.Bin, attributes, params)
     val exporter = BinExporter(ExportCommand.createOutputStream(params.file, params.gzip), params, dtg)
     try {
       exporter.export(features)
+      exporter.flush()
     } finally {
       IOUtils.closeQuietly(exporter)
     }
