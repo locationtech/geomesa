@@ -27,6 +27,7 @@ import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWr
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 
 import scala.collection.JavaConversions._
+import org.apache.hadoop.security.UserGroupInformation
 
 
 class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
@@ -35,7 +36,19 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   // TODO: investigate multiple HBase connections per jvm
   private lazy val globalConnection: Connection = {
-    val ret = ConnectionFactory.createConnection(HBaseConfiguration.create())
+    val conf = HBaseConfiguration.create()
+    val auth = conf.get("hbase.security.authentication")
+    auth match{
+      case "kerberos" => {
+        conf.set("hadoop.security.authentication", "Kerberos")
+        UserGroupInformation.setConfiguration(conf)
+        UserGroupInformation.loginUserFromKeytab(conf.get("hbase.geomesa.principal"), conf.get("hbase.geomesa.keytab"))
+      }
+      case _ => {
+        logger.debug("no kerberos detected")
+      }
+    }
+    val ret = ConnectionFactory.createConnection(conf)
     Runtime.getRuntime.addShutdownHook(new Thread() {
       override def run(): Unit = {
         ret.close()
