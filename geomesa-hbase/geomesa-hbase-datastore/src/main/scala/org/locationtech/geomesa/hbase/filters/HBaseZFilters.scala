@@ -43,7 +43,7 @@ object Z3HBaseFilter extends LazyLogging {
 class Z2HBaseFilter(filt: Z2Filter) extends FilterBase with LazyLogging {
 
   override def filterKeyValue(v: Cell): Filter.ReturnCode = {
-    // TODO: can we avoid the clone?
+    // TODO GEOMESA-1805 can we avoid the clone?
     logger.trace("In filterKeyValue()")
     if (filt.inBounds(CellUtil.cloneRow(v))) {
       Filter.ReturnCode.INCLUDE

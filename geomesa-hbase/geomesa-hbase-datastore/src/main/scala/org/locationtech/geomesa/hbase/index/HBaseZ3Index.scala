@@ -50,7 +50,6 @@ case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
       }.toArray
     }.toArray
 
-    // TODO: deal with non-points in the XZ filter
     new Z3HBaseFilter(new Z3Filter(normalizedXY, tOpts, minEpoch.toShort, maxEpoch.toShort, 1, 8))
   }
 }

@@ -17,4 +17,6 @@ case object HBaseXZ3Index extends HBaseXZ3LikeIndex with HBasePlatform
 trait HBaseXZ3LikeIndex
     extends HBaseFeatureIndex with XZ3Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 1
+
+  // TODO GEOMESA-1807 deal with non-points in a pushdown XZ filter
 }

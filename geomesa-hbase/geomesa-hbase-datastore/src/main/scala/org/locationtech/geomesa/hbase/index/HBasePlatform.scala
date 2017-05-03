@@ -56,14 +56,14 @@ trait HBasePlatform extends HBaseFeatureIndex {
     val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
     val numRanges = sortedRowRanges.length
     val numThreads = ds.config.queryThreads
-    // TODO: parameterize this?
+    // TODO GEOMESA-1806 parameterize this?
     val rangesPerThread = math.min(ds.config.maxRangesPerExtendedScan, math.max(1, math.ceil(numRanges / numThreads * 2).toInt))
-    // TODO: align partitions with region boundaries
+    // TODO GEOMESA-1806 align partitions with region boundaries
     val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
 
     // group scans into batches to achieve some client side parallelism
     val groupedScans = groupedRanges.map { localRanges =>
-      // TODO: FIX
+      // TODO GEOMESA-1806
       // currently, this constructor will call sortAndMerge a second time
       // this is unnecessary as we have already sorted and merged above
       val mrrf = new MultiRowRangeFilter(localRanges)
@@ -74,7 +74,7 @@ trait HBasePlatform extends HBaseFeatureIndex {
       s.setStartRow(localRanges.head.getStartRow)
       s.setStopRow(localRanges.get(localRanges.length - 1).getStopRow)
       s.setFilter(filterList)
-      // TODO: parameterize cache size
+      // TODO GEOMESA-1806 parameterize cache size
       s.setCaching(1000)
       s.setCacheBlocks(true)
       s

@@ -80,14 +80,14 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
     val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
     val numRanges = sortedRowRanges.size()
     val numThreads = ds.config.queryThreads
-    // TODO: parameterize this?
+    // TODO GEOMESA-1802 parameterize this?
     val rangesPerThread = math.min(ds.config.maxRangesPerExtendedScan, math.max(1,math.ceil(numRanges/numThreads*2).toInt))
-    // TODO: align partitions with region boundaries
+    // TODO GEOMESA-1802 align partitions with region boundaries
     val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
 
     // group scans into batches to achieve some client side parallelism
     val groupedScans = groupedRanges.map { localRanges =>
-      // TODO: FIX
+      // TODO GEOMESA-1802
       // currently, this constructor will call sortAndMerge a second time
       // this is unnecessary as we have already sorted and merged above
       val scan = new BigtableExtendedScan

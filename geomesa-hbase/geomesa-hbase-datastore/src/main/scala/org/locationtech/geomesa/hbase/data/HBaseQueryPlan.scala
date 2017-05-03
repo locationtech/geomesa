@@ -70,7 +70,6 @@ case class GetPlan(filter: HBaseFilterStrategyType,
                    ranges: Seq[Get],
                    remoteFilters: Seq[HBaseFilter] = Nil,
                    resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
-  // TODO: do we need to push down Z3Iterator?
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
     val filterList = new FilterList()

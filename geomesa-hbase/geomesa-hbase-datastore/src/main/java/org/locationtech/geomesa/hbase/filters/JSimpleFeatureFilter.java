@@ -151,7 +151,7 @@ public class JSimpleFeatureFilter extends FilterBase {
         this.localFilter.setReusableSF(reusable);
         this.transformer.setReusableSF(reusable);
 
-        // TODO: pass index type into filter from client and set featureID
+        // TODO GEOMESA-1803 pass index type into filter from client and set featureID
     }
 
     public JSimpleFeatureFilter(SimpleFeatureType sft,
@@ -174,15 +174,15 @@ public class JSimpleFeatureFilter extends FilterBase {
         this.localFilter.setReusableSF(reusable);
         this.transformer.setReusableSF(reusable);
 
-        // TODO: pass index type into filter from client and set featureID
+        // TODO GEOMESA-1803 pass index type into filter from client and set featureID
     }
 
     @Override
     public ReturnCode filterKeyValue(Cell v) throws IOException {
-        // TODO: is visibility filter first in the FilterList?
+        // TODO GEOMESA-1804 is visibility filter first in the FilterList?
         // NOTE: the reusable sf buffer is set here and the filter and transformer depend on it
         reusable.setBuffer(v.getValueArray(), v.getValueOffset(), v.getValueLength());
-        // TODO: we need to set the id properly
+        // TODO GEOMESA-1803 we need to set the id properly
         return localFilter.filterKeyValue(v);
     }
 

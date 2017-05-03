@@ -35,7 +35,6 @@ case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform {
       Array(Z2SFC.lon.normalize(xmin), Z2SFC.lat.normalize(ymin), Z2SFC.lon.normalize(xmax), Z2SFC.lat.normalize(ymax))
     }.toArray
 
-    // TODO: deal with non-points in the XZ filter
     new Z2HBaseFilter(new Z2Filter(normalizedXY, 1, 8))
   }
 }
