@@ -1,8 +1,7 @@
                              Kerberos
 ========
 
-GeoMesa includes initial support for HBase clusters which are authenticated using Kerberos. Currently keytabs
-(and not cached TGTs) are supported, apart from initial setup which requires a cached TGT, usually obtained using ``kinit``.
+GeoMesa includes initial support for HBase clusters which are authenticated using Kerberos. Currently, keytabs are supported.
 
 Kerberos functionality should be configured by appending the following properties to ``hbase-site.xml``:
 
@@ -16,8 +15,8 @@ Note that Kerberos support is only available in HBase 1.1.2 or newer.
 Development & Testing
 ---------------------
 
-GeoMesa Kerberos support was developed against Hortonworks Data Platform 2.5 authenticating against an MIT KDC.
-So far, it has been tested in a limited development environment with Hortonworks Data Platform 2.5 on a single node.
+GeoMesa Kerberos support was developed against Hortonworks Data Platform 2.6 authenticating against an MIT KDC.
+So far, it has been tested in a limited development environment with Hortonworks Data Platform 2.6 on a single node.
 
 
 .. note::
