@@ -142,6 +142,7 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
   }
 
   override def getExpressions: java.util.List[Expression] ={
+    // TODO: Only report the attributes being using in the stats.
     val ff: FilterFactory = CommonFactoryFinder.getFilterFactory
     origSft.getAttributeDescriptors.map(ad => ff.property(ad.getLocalName)).toList
   }

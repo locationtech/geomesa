@@ -19,10 +19,13 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
+import org.locationtech.geomesa.filter.FilterHelper
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
+
+import scala.collection.mutable
 
 @DescribeProcess(
   title = "Geomesa Query",
@@ -103,7 +106,7 @@ class QueryVisitor(features: SimpleFeatureCollection,
   }
 
   override def getExpressions: java.util.List[Expression] = {
-    origSft.getAttributeDescriptors.map(ad => ff.property(ad.getLocalName)).toList
+    FilterHelper.propertyNames(filter, origSft).map(ff.property).toList
   }
 }
 

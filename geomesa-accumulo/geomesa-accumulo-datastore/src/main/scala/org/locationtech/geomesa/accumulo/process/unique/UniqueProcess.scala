@@ -21,6 +21,7 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttr
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -34,6 +35,7 @@ import org.opengis.util.ProgressListener
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 @DescribeProcess(title = "Geomesa Unique",
   description = "Finds unique attributes values, optimized for GeoMesa")
@@ -273,7 +275,11 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   }
 
   override def getExpressions: java.util.List[Expression] ={
-    origSft.getAttributeDescriptors.map(ad => ff.property(ad.getLocalName)).toList
+    val expList: mutable.ListBuffer[Expression] = mutable.ListBuffer[Expression](ff.property(attribute))
+    filter match {
+      case Some(f) => FilterHelper.propertyNames(f, origSft).foreach(expList += ff.property(_))
+    }
+    expList.toList
   }
 }
 
