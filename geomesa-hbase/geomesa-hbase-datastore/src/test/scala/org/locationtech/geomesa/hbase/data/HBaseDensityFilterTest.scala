@@ -54,14 +54,12 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   val typeName = "testpoints"
   val sftName = "test_sft"
 
- // step {
-    logger.info("Starting embedded hbase")
-    conf.set(CoprocessorHost.REGION_COPROCESSOR_CONF_KEY,
-      "org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor");
-    cluster.startMiniCluster(1)
-    connection = cluster.getConnection
-    logger.info("Started")
-//  }
+  logger.info("Starting embedded hbase")
+  conf.set(CoprocessorHost.REGION_COPROCESSOR_CONF_KEY,
+    "org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor")
+  cluster.startMiniCluster(1)
+  connection = cluster.getConnection
+  logger.info("Started")
 
   lazy val params = Map(
     ConnectionParam.getName -> connection,
@@ -73,19 +71,24 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   "HBaseDataStore" should {
     val (sft, fs) = initializeHBaseSchema()
 
+    val AN_ID = sft.indexOf("an_id")
+    val ATTR  = sft.indexOf("attr")
+    val DTG   = sft.indexOf("dtg")
+    val GEOM  = sft.indexOf("geom")
+
     val toAdd = (0 until 150).map { i =>
       val sf = new ScalaSimpleFeature(i.toString, sft)
-      sf.setAttribute(0, i.toString)
-      sf.setAttribute(1, "1.0")
-      sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
-      sf.setAttribute(3, "POINT(-77 38)")
+      sf.setAttribute(AN_ID, i.toString)
+      sf.setAttribute(ATTR, "1.0")
+      sf.setAttribute(DTG, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
+      sf.setAttribute(GEOM, "POINT(-77 38)")
       sf
     }  :+ {
       val sf2 = new ScalaSimpleFeature("200", sft)
-      sf2.setAttribute(0, "200")
-      sf2.setAttribute(1, "1.0")
-      sf2.setAttribute(2, new DateTime("2010-01-01T19:00:00", DateTimeZone.UTC).toDate)
-      sf2.setAttribute(3, "POINT(1 1)")
+      sf2.setAttribute(AN_ID, "200")
+      sf2.setAttribute(ATTR, "1.0")
+      sf2.setAttribute(DTG, new DateTime("2010-01-01T19:00:00", DateTimeZone.UTC).toDate)
+      sf2.setAttribute(GEOM, "POINT(1 1)")
       sf2
     }
 
@@ -93,7 +96,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     fs.addFeatures(features_list)
 
     "work with filters" in {
-      val q = " BBOX(geom, 0, 0, 10, 10)"
+      val q = "BBOX(geom, 0, 0, 10, 10)"
       val density = getDensity(typeName, q, fs)
       density.length must equalTo(1)
     }
@@ -101,23 +104,25 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     "reduce total features returned" in {
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
-      density.length must beLessThan(150)
+      density.length must beEqualTo(4)
+      density.map(_._3).sum must beEqualTo(150)
     }
 
     "maintain total weight of points" in {
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
-      density.length must beLessThan(150)
+      density.length must beEqualTo(4)
+      density.map(_._3).sum must beEqualTo(150)
     }
 
     "maintain weights irrespective of dates" in {
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
-      density.length must beLessThan(150)
+      density.length must beEqualTo(4)
+      density.map(_._3).sum must beEqualTo(150)
     }
 
     "correctly bin points" in {
-      //val (sft, fs) = initializeHBaseSchema()
       clearFeatures()
 
       val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
@@ -146,7 +151,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
 
       // should be 5 bins of 30
       compiled must haveLength(5)
-      forall(compiled)(_ mustEqual 30)
+      forall(compiled){ _ mustEqual 30 }
     }
 
     step {
