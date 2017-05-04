@@ -14,20 +14,23 @@ import org.locationtech.geomesa.index.index.{AttributeDateIndex, AttributeIndex}
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseAttributeIndex
-    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+case object HBaseAttributeIndex extends HBaseAttributeLikeIndex with HBasePlatform {
   override val version: Int = 3
 }
 
 // no shards
-case object HBaseAttributeIndexV2
-    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+case object HBaseAttributeIndexV2 extends HBaseAttributeLikeIndex with HBasePlatform {
   override val version: Int = 2
 
   override protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = SplitArrays.EmptySplits
 }
 
-case object HBaseAttributeDateIndex
+trait HBaseAttributeLikeIndex
+    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query]
+
+trait HBaseAttributeDateLikeIndex
     extends HBaseFeatureIndex with AttributeDateIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 1
 }
+
+case object HBaseAttributeDateIndex extends HBaseAttributeDateLikeIndex with HBasePlatform

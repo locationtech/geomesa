@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
@@ -40,16 +40,15 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   override def index(identifier: String): HBaseFeatureIndex =
     super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 
-  val DataColumnFamily = Bytes.toBytes("d")
+  val DataColumnFamily: Array[Byte] = Bytes.toBytes("d")
   val DataColumnFamilyDescriptor = new HColumnDescriptor(DataColumnFamily)
 
-  val DataColumnQualifier = Bytes.toBytes("d")
+  val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
-  case class ScanConfig(hbaseFilters: Seq[HBaseFilter],
+  case class ScanConfig(filters: Seq[HFilter],
                         coprocessor: Option[Coprocessor],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
-
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
@@ -121,75 +120,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     del
   }
 
-  override protected def scanPlan(sft: SimpleFeatureType,
-                                  ds: HBaseDataStore,
-                                  filter: HBaseFilterStrategyType,
-                                  hints: Hints,
-                                  ranges: Seq[Query],
-                                  ecql: Option[Filter]): HBaseQueryPlanType = {
-    if (ranges.isEmpty) EmptyPlan(filter)
-    else {
-      val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
-      val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, coprocessor, toFeatures) = scanConfig(sft, filter, hints, ecql, dedupe, ds.remote)
-
-      if (ranges.head.isInstanceOf[Get]) {
-        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], hbaseFilters, toFeatures)
-      } else {
-        if(ds.config.isBigtable) {
-          bigtableScanPlan(ds, filter, ranges, table, hbaseFilters, toFeatures)
-        } else {
-          hbaseScanPlan(sft, filter, ranges, table, hbaseFilters, coprocessor, hints, toFeatures)
-        }
-      }
-    }
-  }
-
-  private def hbaseScanPlan(sft: SimpleFeatureType,
-                            filter: HBaseFilterStrategyType,
-                            ranges: Seq[Query],
-                            table: TableName,
-                            hbaseFilters: Seq[HBaseFilter],
-                            coprocessor: Option[Coprocessor],
-                            hints: Hints,
-                            toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]) = {
-    coprocessor match {
-      case Some(processor) =>
-        CoprocessorPlan(sft, filter, hints, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures)
-      case None =>
-        MultiRowRangeFilterScanPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures)
-    }
-
-  }
-
-  private def bigtableScanPlan(ds: HBaseDataStore,
-                               filter: HBaseFilterStrategyType,
-                               ranges: Seq[Query],
-                               table: TableName,
-                               hbaseFilters: Seq[HBaseFilter],
-                               toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]) = {
-    // we want to ensure some parallelism in our batch scanning
-    // as not all scans will take the same amount of time, we want to have multiple per-thread
-    // since scans are executed by a thread pool, that should balance the work and keep all threads occupied
-    val scansPerThread = 3
-    val scans = ranges.asInstanceOf[Seq[Scan]]
-    val minScans =
-      if (ds.config.queryThreads == 1) 1
-      else ds.config.queryThreads * scansPerThread
-
-    if (scans.length >= minScans) {
-      ScanPlan(filter, table, scans, hbaseFilters, toFeatures)
-    } else {
-      // split up the scans so that we get some parallelism
-      val multiplier = math.ceil(minScans.toDouble / scans.length).toInt
-      val splitScans = scans.flatMap { scan =>
-        val splits = IndexAdapter.splitRange(scan.getStartRow, scan.getStopRow, multiplier)
-        splits.map { case (start, stop) => new Scan(scan).setStartRow(start).setStopRow(stop) }
-      }
-      ScanPlan(filter, table, splitScans, hbaseFilters, toFeatures)
-    }
-  }
-
   override protected def range(start: Array[Byte], end: Array[Byte]): Query =
     new Scan(start, end).addColumn(DataColumnFamily, DataColumnQualifier)
 
@@ -202,12 +132,24 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       cell.getValueArray, cell.getValueOffset, cell.getValueLength)
   }
 
-  protected def hasDuplicates(sft: SimpleFeatureType, filter: Option[Filter]): Boolean = false
-
+  override protected def scanPlan(sft: SimpleFeatureType,
+                                  ds: HBaseDataStore,
+                                  filter: HBaseFilterStrategyType,
+                                  hints: Hints,
+                                  ranges: Seq[Query],
+                                  ecql: Option[Filter]): HBaseQueryPlanType = {
+    if (ranges.isEmpty) { EmptyPlan(filter) } else {
+      val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
+      val dedupe = hasDuplicates(sft, filter.primary)
+      val ScanConfig(hbaseFilters, coprocessor, toFeatures) = scanConfig(ds, sft, filter, hints, ecql, dedupe)
+      buildPlatformScanPlan(ds, sft, filter, hints, ranges, table, hbaseFilters, coprocessor, toFeatures)
+    }
+  }
 
   /**
     * Sets up everything needed to execute the scan - iterators, column families, deserialization, etc
     *
+    * @param ds     data store
     * @param sft    simple feature type
     * @param filter hbase filter strategy type
     * @param hints  query hints
@@ -215,35 +157,56 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     * @param dedupe scan may have duplicate results or not
     * @return
     */
-  protected def scanConfig(sft: SimpleFeatureType,
+  protected def scanConfig(ds: HBaseDataStore,
+                           sft: SimpleFeatureType,
                            filter: HBaseFilterStrategyType,
                            hints: Hints,
                            ecql: Option[Filter],
-                           dedupe: Boolean,
-                           remote: Boolean): ScanConfig = {
+                           dedupe: Boolean): ScanConfig = {
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    /** This function is used to implement custom client filters for HBase **/
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
-    val coprocessor: Option[Coprocessor] = {
-      if (hints.isDensityQuery) {
+    if (!ds.config.remoteFilter) {
+      // everything is done client side
+      ScanConfig(Seq.empty, None, resultsToFeatures(sft, ecql, transform))
+    } else {
+
+      val coprocessor: Option[Coprocessor] = if (hints.isDensityQuery) {
         Some(new KryoLazyDensityCoprocessor)
       } else {
         None
       }
-    }
 
-    if (!remote) {
-      val localToFeatures = resultsToFeatures(sft, ecql, transform)
-      ScanConfig(Nil, coprocessor, localToFeatures)
-    } else {
-      val (remoteTdefArg: String, remoteSchema: SimpleFeatureType) = transform.getOrElse(("", sft))
-      val toFeatures = resultsToFeatures(remoteSchema, None, None)
-      val remoteCQLFilter: Filter = ecql.getOrElse(Filter.INCLUDE)
-      val remoteFilters: Seq[HBaseFilter] = Seq(new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, SimpleFeatureTypes.encodeType(remoteSchema)))
-      ScanConfig(remoteFilters, coprocessor, toFeatures)
+      val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
+      val toFeatures = resultsToFeatures(returnSchema, None, None)
+      val filterTransform: Seq[HFilter] = if (ecql.isEmpty && transform.isEmpty) { Seq.empty } else {
+        // transforms and filters are applied server-side
+        val remoteCQLFilter: Filter = ecql.getOrElse(Filter.INCLUDE)
+        Seq(new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, SimpleFeatureTypes.encodeType(returnSchema)))
+      }
+
+      val additionalFilters = createPushDownFilters(ds, sft, filter, transform)
+      ScanConfig(filterTransform ++ additionalFilters, coprocessor, toFeatures)
     }
   }
+
+  protected def hasDuplicates(sft: SimpleFeatureType, filter: Option[Filter]): Boolean = false
+
+  // default implementation does nothing, override in subclasses
+  protected def createPushDownFilters(ds: HBaseDataStore,
+                                      sft: SimpleFeatureType,
+                                      filter: HBaseFilterStrategyType,
+                                      transform: Option[(String, SimpleFeatureType)]): Seq[HFilter] = Seq.empty
+
+  protected def buildPlatformScanPlan(ds: HBaseDataStore,
+                                      sft: SimpleFeatureType,
+                                      filter: HBaseFilterStrategyType,
+                                      hints: Hints,
+                                      ranges: Seq[Query],
+                                      table: TableName,
+                                      hbaseFilters: Seq[HFilter],
+                                      coprocessor: Option[Coprocessor],
+                                      toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 }

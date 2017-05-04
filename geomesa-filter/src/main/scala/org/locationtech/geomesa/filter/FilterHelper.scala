@@ -152,20 +152,31 @@ object FilterHelper {
       case op: DWithin    => ff.dwithin(e1, e2, args.asInstanceOf[Double], "meters")
       // use the direct constructor so that we preserve our geom user data
       case op: BBOX       => new BBOXImpl(e1, e2)
+      case op: Contains   => ff.contains(e1, e2)
     }
   }
 
   def isFilterWholeWorld(f: Filter): Boolean = f match {
       case op: BBOX       => isOperationGeomWholeWorld(op)
-      case op: Within     => isOperationGeomWholeWorld(op)
       case op: Intersects => isOperationGeomWholeWorld(op)
       case op: Overlaps   => isOperationGeomWholeWorld(op)
+      case op: Within     => isOperationGeomWholeWorld(op, SpatialOpOrder.PropertyFirst)
+      case op: Contains   => isOperationGeomWholeWorld(op, SpatialOpOrder.LiteralFirst)
       case _ => false
     }
 
-  private def isOperationGeomWholeWorld[Op <: BinarySpatialOperator](op: Op): Boolean = {
+  private def isOperationGeomWholeWorld[Op <: BinarySpatialOperator]
+      (op: Op, order: SpatialOpOrder.SpatialOpOrder = SpatialOpOrder.AnyOrder): Boolean = {
     val prop = checkOrder(op.getExpression1, op.getExpression2)
-    prop.map(_.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
+    // validate that property and literal are in the specified order
+    prop.exists { p =>
+      val ordered = order match {
+        case SpatialOpOrder.AnyOrder      => true
+        case SpatialOpOrder.PropertyFirst => !p.flipped
+        case SpatialOpOrder.LiteralFirst  => p.flipped
+      }
+      ordered && Option(p.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
+    }
   }
 
   def isWholeWorld[G <: Geometry](g: G): Boolean = g != null && g.union.covers(WholeWorldPolygon)
@@ -549,6 +560,11 @@ object FilterHelper {
       }
     } while (remaining.nonEmpty)
     result
+  }
+
+  private object SpatialOpOrder extends Enumeration {
+    type SpatialOpOrder = Value
+    val PropertyFirst, LiteralFirst, AnyOrder = Value
   }
 }
 
