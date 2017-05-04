@@ -39,6 +39,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService with KryoLazyDensityUtils {
 
@@ -76,11 +77,11 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
     try {
       val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
-      var scanList : List[Scan] = List[Scan]()
+      var scanList : ArrayBuffer[Scan] = ArrayBuffer()
 
       options(RANGES_OPT).split(",").foreach(range => {
         val scanInfo = range.split("\\|")
-        scanList ::= new Scan(Base64.decode(scanInfo(0)), Base64.decode(scanInfo(1)))
+        scanList += new Scan(Base64.decode(scanInfo(0)), Base64.decode(scanInfo(1)))
       })
 
       if (options.containsKey(FILTER_OPT)) {
@@ -92,6 +93,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
       scanList.foreach(scan => {
         scan.setFilter(filterList)
+        // TODO: Explore use of MultiRangeFilter
         scanner = env.getRegion.getScanner(scan)
         val results = new java.util.ArrayList[Cell]
 
@@ -150,7 +152,7 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
                           gridHeight: Int,
                           weightAttribute: Option[String]): Map[String, String] = {
     val is = mutable.Map.empty[String, String]
-    var scanRanges : List[String] = List[String]()
+    val rangeBuilder : StringBuilder = StringBuilder.newBuilder
 
     is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.put(GRID_OPT, s"$gridWidth,$gridHeight")
@@ -158,10 +160,12 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
     is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, false))
 
     ranges.foreach(range =>
-      scanRanges ::= (Base64.encodeBytes(range.getStartRow) + "|" + Base64.encodeBytes(range.getStopRow))
+      rangeBuilder.append(Base64.encodeBytes(range.getStartRow)).append("|").append(Base64.encodeBytes(range.getStopRow)).append(",")
     )
 
-    is.put(RANGES_OPT, scanRanges.mkString(","))
+    val ranges_opt = if (rangeBuilder.length() > 0) rangeBuilder.substring(0, rangeBuilder.length() - 1) else ""
+
+    is.put(RANGES_OPT, ranges_opt)
 
     if (filterList != null) {
       is.put(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
