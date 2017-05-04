@@ -14,12 +14,14 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature._
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.identity.FeatureId
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 class GeoMesaFeatureStore(ds: GeoMesaDataStore[_, _, _],
                           sft: SimpleFeatureType,
@@ -33,23 +35,31 @@ class GeoMesaFeatureStore(ds: GeoMesaDataStore[_, _, _],
       return List.empty[FeatureId]
     }
 
-    val features = collection.features
-    val writer = getDataStore.getFeatureWriterAppend(sft.getTypeName, transaction)
-
     val fids = new java.util.ArrayList[FeatureId](collection.size())
+    val errors = ArrayBuffer.empty[Throwable]
 
-    try {
-      while (features.hasNext) {
-        val toWrite = FeatureUtils.copyToWriter(writer, features.next())
-        writer.write()
-        fids.add(toWrite.getIdentifier)
-      }
-    } finally {
-      features.close()
-      writer.close()
+    WithClose(collection.features, getDataStore.getFeatureWriterAppend(sft.getTypeName, transaction)) {
+      case (features, writer) =>
+        while (features.hasNext) {
+          try {
+            val toWrite = FeatureUtils.copyToWriter(writer, features.next())
+            writer.write()
+            fids.add(toWrite.getIdentifier)
+          } catch {
+            // validation errors in indexing will throw an IllegalArgumentException
+            // make the caller handle other errors, which are likely related to the underlying database,
+            // as we wouldn't know which features were actually written or not due to write buffering
+            case e: IllegalArgumentException => errors.append(e)
+          }
+        }
     }
 
-    fids
+    if (errors.isEmpty) { fids } else {
+      val e = new IllegalArgumentException("Some features were not written:")
+      // suppressed exceptions should contain feature ids and attributes
+      errors.foreach(e.addSuppressed)
+      throw e
+    }
   }
 
   override def setFeatures(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): Unit = {

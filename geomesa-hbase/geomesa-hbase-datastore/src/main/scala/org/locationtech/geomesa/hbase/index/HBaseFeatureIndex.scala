@@ -6,15 +6,15 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-
 package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
+import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HBaseFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
+import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
@@ -24,6 +24,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
+import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
@@ -45,7 +47,9 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
-  case class ScanConfig(filters: Seq[HFilter], entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
+  case class ScanConfig(filters: Seq[HFilter],
+                        coprocessor: Option[Coprocessor],
+                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
@@ -138,8 +142,8 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, toFeatures) = scanConfig(ds, sft, filter, hints, ecql, dedupe)
-      buildPlatformScanPlan(ds, filter, ranges, table, hbaseFilters, toFeatures)
+      val ScanConfig(hbaseFilters, coprocessor, toFeatures) = scanConfig(ds, sft, filter, hints, ecql, dedupe)
+      buildPlatformScanPlan(ds, filter, ranges, table, hbaseFilters, coprocessor, toFeatures)
     }
   }
 
@@ -167,8 +171,15 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     if (!ds.config.remoteFilter) {
       // everything is done client side
-      ScanConfig(Seq.empty, resultsToFeatures(sft, ecql, transform))
+      ScanConfig(Seq.empty, None, resultsToFeatures(sft, ecql, transform))
     } else {
+
+      val coprocessor: Option[Coprocessor] = if (hints.isDensityQuery) {
+        Some(new KryoLazyDensityCoprocessor)
+      } else {
+        None
+      }
+
       val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
       val toFeatures = resultsToFeatures(returnSchema, None, None)
       val filterTransform: Seq[HFilter] = if (ecql.isEmpty && transform.isEmpty) { Seq.empty } else {
@@ -178,7 +189,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       }
 
       val additionalFilters = createPushDownFilters(ds, sft, filter, transform)
-      ScanConfig(filterTransform ++ additionalFilters, toFeatures)
+      ScanConfig(filterTransform ++ additionalFilters, coprocessor, toFeatures)
     }
   }
 
@@ -195,5 +206,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                                       ranges: Seq[Query],
                                       table: TableName,
                                       hbaseFilters: Seq[HFilter],
+                                      coprocessor: Option[Coprocessor],
                                       toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 }
