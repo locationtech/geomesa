@@ -129,5 +129,6 @@ object IndexConfigurationCheck {
   def validateIndices(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     require(sft.getZShards > 0 && sft.getZShards < 128, "Z shards must be between 1 and 127")
+    require(sft.getAttributeShards > 0 && sft.getAttributeShards < 128, "Attribute shards must be between 1 and 127")
   }
 }

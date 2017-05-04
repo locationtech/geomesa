@@ -11,15 +11,16 @@ package org.locationtech.geomesa.bigtable.index
 import com.google.cloud.bigtable.hbase.BigtableExtendedScan
 import com.google.common.collect.Lists
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.{Coprocessor, TableName}
 import org.apache.hadoop.hbase.client.{Get, Query, Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{MultiRowRangeFilter, Filter => HFilter}
+import org.apache.hadoop.hbase.{Coprocessor, TableName}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseQueryPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.index._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
 import org.locationtech.geomesa.index.index.IndexAdapter
+import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -28,7 +29,7 @@ object BigtableFeatureIndex extends HBaseIndexManagerType {
 
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
-    Seq(BigtableZ3Index, BigtableXZ3Index, BigtableZ2Index, BigtableXZ2Index, BigtableIdIndex, BigtableAttributeIndex, BigtableAttributeDateIndex)
+    Seq(BigtableZ3Index, BigtableXZ3Index, BigtableZ2Index, BigtableXZ2Index, BigtableIdIndex, BigtableAttributeIndex, BigtableAttributeIndexV2, BigtableAttributeDateIndex)
 
   override val CurrentIndices: Seq[HBaseFeatureIndex] =
     Seq(BigtableZ3Index, BigtableXZ3Index, BigtableZ2Index, BigtableXZ2Index, BigtableIdIndex, BigtableAttributeIndex)
@@ -109,5 +110,14 @@ case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform
 case object BigtableIdIndex extends HBaseIdLikeIndex with BigtablePlatform
 case object BigtableXZ2Index extends HBaseXZ2LikeIndex with BigtablePlatform
 case object BigtableXZ3Index extends HBaseXZ3LikeIndex with BigtablePlatform
-case object BigtableAttributeIndex extends HBaseAttributeLikeIndex with BigtablePlatform
+
+case object BigtableAttributeIndex extends HBaseAttributeLikeIndex with BigtablePlatform {
+  override val version: Int = 3
+}
+// no shards
+case object BigtableAttributeIndexV2 extends HBaseAttributeLikeIndex with BigtablePlatform {
+  override val version: Int = 2
+
+  override protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = SplitArrays.EmptySplits
+}
 case object BigtableAttributeDateIndex extends HBaseAttributeDateLikeIndex with BigtablePlatform

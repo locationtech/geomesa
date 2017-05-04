@@ -16,13 +16,14 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.index.index.AttributeRowDecoder
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -33,11 +34,12 @@ class KryoAttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] w
 
   import KryoAttributeKeyValueIterator._
 
-  var source: SortedKeyValueIterator[Key, Value] = null
+  var source: SortedKeyValueIterator[Key, Value] = _
   val topValue: Value = new Value
 
-  var sft: SimpleFeatureType = null
-  var serializer: KryoFeatureSerializer = null
+  var sft: SimpleFeatureType = _
+  var decodeRowValue: (Array[Byte], Int, Int) => Try[Any] = _
+  var serializer: KryoFeatureSerializer = _
   var attribute: Int = -1
 
   override def init(src: SortedKeyValueIterator[Key, Value],
@@ -49,11 +51,14 @@ class KryoAttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] w
     sft = IteratorCache.sft(spec)
     attribute = options.get(ATTRIBUTE_OPT).toInt
 
-    val index = try { AccumuloFeatureIndex.index(options.get(INDEX_OPT)) } catch {
+    val index = try {
+      AccumuloFeatureIndex.index(options.get(INDEX_OPT)).asInstanceOf[AccumuloFeatureIndex with AttributeRowDecoder]
+    } catch {
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
     serializer = IteratorCache.serializer(spec, kryoOptions)
+    decodeRowValue = index.decodeRowValue(sft, attribute)
   }
 
   override def seek(range: Range, columnFamilies: jCollection[ByteSequence], inclusive: Boolean): Unit =
@@ -65,7 +70,8 @@ class KryoAttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] w
 
   override def getTopValue: Value = {
     val serializedSf = source.getTopValue.get()
-    val value = AttributeWritableIndex.decodeRow(sft, attribute, source.getTopKey.getRow).map { value =>
+    val row = source.getTopKey.getRow
+    val value = decodeRowValue(row.getBytes, 0, row.getLength).map { value =>
       val sf = serializer.deserialize(serializedSf)
       sf.setAttribute(attribute, value)
       serializer.serialize(sf)
