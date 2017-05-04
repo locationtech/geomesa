@@ -8,14 +8,11 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import com.google.common.collect.Lists
 import com.google.protobuf.ByteString
 import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{FilterList, Filter => HBaseFilter}
-import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
-import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HBaseFilter}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 import org.locationtech.geomesa.hbase.driver.KryoLazyDensityDriver
@@ -24,8 +21,6 @@ import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanTy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.JavaConverters._
 
 trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
@@ -89,7 +84,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isDensityQuery) {
-      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, ranges, filterList, hints)
+      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, ranges, hints)
       val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
       val hbaseTable = ds.connection.getTable(table)
       val client = new KryoLazyDensityDriver()

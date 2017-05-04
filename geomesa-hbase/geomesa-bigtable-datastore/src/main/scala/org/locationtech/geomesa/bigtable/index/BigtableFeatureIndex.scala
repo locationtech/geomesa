@@ -11,10 +11,11 @@ package org.locationtech.geomesa.bigtable.index
 import com.google.cloud.bigtable.hbase.BigtableExtendedScan
 import com.google.common.collect.Lists
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.{Coprocessor, TableName}
 import org.apache.hadoop.hbase.client.{Get, Query, Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{MultiRowRangeFilter, Filter => HFilter}
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseQueryPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.index._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
@@ -41,10 +42,13 @@ object BigtableFeatureIndex extends HBaseIndexManagerType {
 trait BigtablePlatform extends HBasePlatform with LazyLogging {
 
   override def buildPlatformScanPlan(ds: HBaseDataStore,
+                                     sft: SimpleFeatureType,
                                      filter: HBaseFilterStrategyType,
-                                     originalRanges: Seq[Query],
+                                     hints: Hints,
+                                     ranges: Seq[Query],
                                      table: TableName,
                                      hbaseFilters: Seq[HFilter],
+                                     coprocessor: Option[Coprocessor],
                                      toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
     if (hbaseFilters.nonEmpty) {
       // bigtable does support some filters, but currently we only use custom filters that aren't supported
@@ -53,9 +57,9 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
 
     // check if these Scans or Gets
     // Only in the case of 'ID IN ()' queries will this be Gets
-    val scans = originalRanges.head match {
-      case t: Get  => configureGet(originalRanges)
-      case t: Scan => configureBigtableExtendedScan(ds, originalRanges)
+    val scans = ranges.head match {
+      case t: Get  => configureGet(ranges)
+      case t: Scan => configureBigtableExtendedScan(ds, ranges)
     }
 
     ScanPlan(filter, table, scans, toFeatures)

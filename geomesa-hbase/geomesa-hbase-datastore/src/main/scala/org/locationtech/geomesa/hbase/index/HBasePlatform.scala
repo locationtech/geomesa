@@ -9,22 +9,26 @@
 package org.locationtech.geomesa.hbase.index
 
 import com.google.common.collect.Lists
-import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.{Coprocessor, TableName}
 import org.apache.hadoop.hbase.client.{Get, Query, Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
-import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseQueryPlan, ScanPlan}
+import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
 import org.locationtech.geomesa.index.index.IndexAdapter
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait HBasePlatform extends HBaseFeatureIndex {
 
   override protected def buildPlatformScanPlan(ds: HBaseDataStore,
+                                               sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
+                                               hints: Hints,
                                                originalRanges: Seq[Query],
                                                table: TableName,
                                                hbaseFilters: Seq[HFilter],
+                                               coprocessor: Option[Coprocessor],
                                                toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
     // check if these Scans or Gets
     // Only in the case of 'ID IN ()' queries will this be Gets
@@ -33,7 +37,10 @@ trait HBasePlatform extends HBaseFeatureIndex {
       case t: Scan => configureMultiRowRangeFilter(ds, originalRanges, hbaseFilters)
     }
 
-    ScanPlan(filter, table, scans, toFeatures)
+    coprocessor match {
+      case Some(processor) => CoprocessorPlan(sft, filter, hints, table, scans, toFeatures)
+      case None => ScanPlan(filter, table, scans, toFeatures)
+    }
   }
 
   private def configureGet(originalRanges: Seq[Query], hbaseFilters: Seq[HFilter]): Seq[Scan] = {

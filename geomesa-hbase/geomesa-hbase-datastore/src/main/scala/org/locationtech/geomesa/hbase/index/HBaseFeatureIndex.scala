@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
@@ -24,8 +24,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
-import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
@@ -143,7 +141,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val dedupe = hasDuplicates(sft, filter.primary)
       val ScanConfig(hbaseFilters, coprocessor, toFeatures) = scanConfig(ds, sft, filter, hints, ecql, dedupe)
-      buildPlatformScanPlan(ds, filter, ranges, table, hbaseFilters, coprocessor, toFeatures)
+      buildPlatformScanPlan(ds, sft, filter, hints, ranges, table, hbaseFilters, coprocessor, toFeatures)
     }
   }
 
@@ -202,7 +200,9 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                                       transform: Option[(String, SimpleFeatureType)]): Seq[HFilter] = Seq.empty
 
   protected def buildPlatformScanPlan(ds: HBaseDataStore,
+                                      sft: SimpleFeatureType,
                                       filter: HBaseFilterStrategyType,
+                                      hints: Hints,
                                       ranges: Seq[Query],
                                       table: TableName,
                                       hbaseFilters: Seq[HFilter],
