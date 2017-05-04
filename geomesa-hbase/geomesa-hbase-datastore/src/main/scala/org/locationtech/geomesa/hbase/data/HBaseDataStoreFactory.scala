@@ -57,7 +57,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val remoteFilters = RemoteFiltersParam.lookupOpt[Boolean](params)
       .getOrElse(SystemProperty("geomesa.hbase.remote.filtering", "true").get.toBoolean)
-    logger.info(s"Using ${if (remoteFilters) "remote" else "local" } filtering")
+    logger.debug(s"Using ${if (remoteFilters) "remote" else "local" } filtering")
 
     val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
     val audit = if (AuditQueriesParam.lookupWithDefault[Boolean](params)) {

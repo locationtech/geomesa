@@ -15,7 +15,7 @@ import com.vividsolutions.jts.geom.Envelope
 import org.apache.hadoop.hbase.client.Scan
 import org.apache.hadoop.hbase.coprocessor.{CoprocessorException, CoprocessorService, RegionCoprocessorEnvironment}
 import org.apache.hadoop.hbase.exceptions.DeserializationException
-import org.apache.hadoop.hbase.filter.FilterList
+import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
 import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.regionserver.InternalScanner
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
@@ -131,17 +131,19 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
     */
   def configure(sft: SimpleFeatureType,
                 ranges: Seq[Scan],
+                filters: Seq[HFilter],
                 hints: Hints): Map[String, String] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
     val weight = hints.getDensityWeight
-    configure(sft, ranges, envelope, width, height, weight)
+    configure(sft, ranges, filters, envelope, width, height, weight)
   }
 
 
   protected def configure(sft: SimpleFeatureType,
                           ranges: Seq[Scan],
+                          filters: Seq[HFilter],
                           envelope: Envelope,
                           gridWidth: Int,
                           gridHeight: Int,
@@ -152,7 +154,7 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
     is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.put(GRID_OPT, s"$gridWidth,$gridHeight")
     weightAttribute.foreach(is.put(WEIGHT_OPT, _))
-    is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, false))
+    is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
 
     ranges.foreach(range =>
       rangeBuilder.append(Base64.encodeBytes(range.getStartRow)).append("|").append(Base64.encodeBytes(range.getStopRow)).append(",")
@@ -162,9 +164,9 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
 
     is.put(RANGES_OPT, ranges_opt)
 
-    ranges.headOption.flatMap(r => Option(r.getFilter)).foreach { f =>
-      is.put(FILTER_OPT, Base64.encodeBytes(f.toByteArray))
-    }
+    val filterList = new FilterList
+    filters.foreach(filterList.addFilter)
+    is.put(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
 
     is.toMap
   }

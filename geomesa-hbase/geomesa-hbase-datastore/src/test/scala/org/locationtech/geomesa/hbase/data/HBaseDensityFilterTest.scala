@@ -12,63 +12,50 @@ import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.{HBaseTestingUtility}
-import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
-import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.Query
+import org.geotools.data.{Query, _}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.opengis.feature.simple.{SimpleFeatureType}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.util.Random
 
-@RunWith(classOf[JUnitRunner])
-class HBaseDensityFilterTest extends Specification with LazyLogging {
+class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
   sequential
 
-  val cluster: HBaseTestingUtility = new HBaseTestingUtility()
-  var connection: Connection = null
-  var conf: Configuration = cluster.getConfiguration();
   val TEST_FAMILY = "an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
   val TEST_HINT = new Hints()
 
-  val typeName = "testpoints"
-  val sftName = "test_sft"
+  val typeName = "HBaseDensityFilterTest"
 
-  step {
-    logger.info("Starting embedded hbase")
-    conf.set(CoprocessorHost.REGION_COPROCESSOR_CONF_KEY,
-      "org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor");
-    cluster.startMiniCluster(1)
-    connection = cluster.getConnection
-    logger.info("Started")
-  }
-
-  lazy val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> sftName)
+  lazy val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> typeName)
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
-  "HBaseDataStore" should {
+  var sft: SimpleFeatureType = _
+  var fs: SimpleFeatureStore = _
+
+  step {
+    ds.getSchema(typeName) must beNull
+    ds.createSchema(SimpleFeatureTypes.createType(typeName, TEST_FAMILY))
+    sft = ds.getSchema(typeName)
+    fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+  }
+
+  "HBaseDensityCoprocessor" should {
     "work with filters" in {
-      val (sft, fs) = initializeHBaseSchema()
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
@@ -92,13 +79,10 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
 
       val q = " BBOX(geom, 0, 0, 10, 10)"
       val density = getDensity(typeName, q, fs)
-      density.foreach {println}
-
       density.length must equalTo(1)
     }
 
     "reduce total features returned" in {
-      val (sft, fs) = initializeHBaseSchema()
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
@@ -119,7 +103,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     }
 
     "maintain total weight of points" in {
-      val (sft, fs) = initializeHBaseSchema()
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
@@ -140,7 +123,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     }
 
     "maintain weights irrespective of dates" in {
-      val (sft, fs) = initializeHBaseSchema()
       clearFeatures()
 
       val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
@@ -162,7 +144,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     }
 
     "correctly bin points" in {
-      val (sft, fs) = initializeHBaseSchema()
       clearFeatures()
 
       val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
@@ -190,12 +171,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       compiled must haveLength(5)
       forall(compiled)(_ mustEqual 30)
     }
-
-    step {
-      logger.info("Stopping embedded hbase")
-      cluster.shutdownMiniCluster()
-      logger.info("Stopped")
-    }
   }
 
   def clearFeatures(): Unit = {
@@ -207,17 +182,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     writer.close()
   }
 
-  def initializeHBaseSchema(): (SimpleFeatureType, SimpleFeatureStore)  = {
-    ds.removeSchema(typeName)
-    ds.getSchema(typeName) must beNull
-    ds.createSchema(SimpleFeatureTypes.createType(typeName, TEST_FAMILY))
-    val sft = ds.getSchema(typeName)
-    sft must not(beNull)
-    val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
-
-    (sft, fs)
-  }
-
   def getDensity(typeName: String, query: String, fs: SimpleFeatureStore): List[(Double, Double, Double)] = {
     val q = new Query(typeName, ECQL.toFilter(query))
     val env = ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
@@ -227,5 +191,4 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     val decode = KryoLazyDensityUtils.decodeResult(env, 500, 500)
     fs.getFeatures(q).features().flatMap(decode).toList
   }
-
 }

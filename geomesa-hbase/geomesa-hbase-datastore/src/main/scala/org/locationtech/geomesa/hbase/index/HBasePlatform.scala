@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.hbase.index
 
 import com.google.common.collect.Lists
-import org.apache.hadoop.hbase.{Coprocessor, TableName}
 import org.apache.hadoop.hbase.client.{Get, Query, Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
+import org.apache.hadoop.hbase.{Coprocessor, TableName}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
@@ -25,21 +25,23 @@ trait HBasePlatform extends HBaseFeatureIndex {
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
                                                hints: Hints,
-                                               originalRanges: Seq[Query],
+                                               ranges: Seq[Query],
                                                table: TableName,
                                                hbaseFilters: Seq[HFilter],
                                                coprocessor: Option[Coprocessor],
                                                toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
-    // check if these Scans or Gets
-    // Only in the case of 'ID IN ()' queries will this be Gets
-    val scans = originalRanges.head match {
-      case t: Get  => configureGet(originalRanges, hbaseFilters)
-      case t: Scan => configureMultiRowRangeFilter(ds, originalRanges, hbaseFilters)
-    }
-
     coprocessor match {
-      case Some(processor) => CoprocessorPlan(sft, filter, hints, table, scans, toFeatures)
-      case None => ScanPlan(filter, table, scans, toFeatures)
+      case None =>
+        // optimize the scans
+        val scans = ranges.head match {
+          case t: Get  => configureGet(ranges, hbaseFilters)
+          case t: Scan => configureMultiRowRangeFilter(ds, ranges, hbaseFilters)
+        }
+        ScanPlan(filter, table, scans, toFeatures)
+
+      case Some(processor) =>
+        // note: coprocessors don't currently handle multiRowRangeFilters, so pass the raw ranges
+        CoprocessorPlan(sft, filter, hints, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures)
     }
   }
 

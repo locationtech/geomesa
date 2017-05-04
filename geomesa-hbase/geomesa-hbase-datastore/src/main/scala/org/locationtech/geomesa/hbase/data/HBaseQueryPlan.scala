@@ -12,7 +12,7 @@ import com.google.protobuf.ByteString
 import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.{FilterList, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 import org.locationtech.geomesa.hbase.driver.KryoLazyDensityDriver
@@ -74,6 +74,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
                            hints: Hints,
                            table: TableName,
                            ranges: Seq[Scan],
+                           hbaseFilters: Seq[HFilter],
                            resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan  {
   /**
     * Runs the query plain against the underlying database, returning the raw entries
@@ -84,7 +85,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isDensityQuery) {
-      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, ranges, hints)
+      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, ranges, hbaseFilters, hints)
       val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
       val hbaseTable = ds.connection.getTable(table)
       val client = new KryoLazyDensityDriver()
@@ -99,7 +100,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
 case class GetPlan(filter: HBaseFilterStrategyType,
                    table: TableName,
                    ranges: Seq[Get],
-                   remoteFilters: Seq[HBaseFilter] = Nil,
+                   remoteFilters: Seq[HFilter] = Nil,
                    resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
