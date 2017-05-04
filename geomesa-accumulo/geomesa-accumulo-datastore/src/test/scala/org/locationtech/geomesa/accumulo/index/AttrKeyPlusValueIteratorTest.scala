@@ -15,7 +15,6 @@ import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.iterators.{KryoAttributeKeyValueIterator, KryoLazyFilterTransformIterator}
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -36,7 +35,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
 
   val dtf = ISODateTimeFormat.dateTime().withZoneUTC()
 
-  def features(sft: SimpleFeatureType) = Seq(
+  def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = Seq(
     Array("alice",   20,   1, dtf.parseDateTime("2014-01-01T12:00:00.000Z").toDate, WKTUtils.read("POINT(45.0 49.0)")),
     Array("bill",    21,   2, dtf.parseDateTime("2014-01-02T12:00:00.000Z").toDate, WKTUtils.read("POINT(46.0 49.0)")),
     Array("bob",     30,   3, dtf.parseDateTime("2014-01-03T12:00:00.000Z").toDate, WKTUtils.read("POINT(47.0 49.0)")),

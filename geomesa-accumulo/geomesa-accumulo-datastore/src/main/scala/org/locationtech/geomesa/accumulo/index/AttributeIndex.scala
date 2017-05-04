@@ -32,15 +32,17 @@ import org.opengis.filter.Filter
 
 import scala.util.Try
 
+case object AttributeIndex extends AccumuloAttributeIndex {
+  override val version: Int = 5
+}
+
 // secondary z-index
-case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
+trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
     with AttributeIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] with AttributeSplittable {
 
   import scala.collection.JavaConversions._
 
   type ScanPlanFn = (SimpleFeatureType, Option[Filter], Option[(String, SimpleFeatureType)]) => BatchScanPlan
-
-  override val version: Int = 4
 
   override val serializedWithId: Boolean = false
 
@@ -161,7 +163,6 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
                                attribute: String): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
 
     val table = getTableName(sft.getTypeName, ds)
     val numThreads = queryThreads(ds)
