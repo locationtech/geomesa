@@ -52,6 +52,23 @@ a 'user-data' key:
       }
     }
 
+Setting the Indexed Date Attribute
+----------------------------------
+
+For schemas that contain a date attribute, GeoMesa will use the attribute as part of the primary Z3/XZ3 index.
+If a schema contains more than one date attribute, you may specify which attribute to use through the user-data
+key ``geomesa.index.dtg``. If you would prefer to not index any date, you may disable it through the key
+``geomesa.ignore.dtg``. If nothing is specified, the first declared date attribute will be used.
+
+
+.. code-block:: java
+
+    // specify the attribute 'myDate' as the indexed date
+    sft1.getUserData().put("geomesa.index.dtg", "myDate");
+
+    // disable indexing by date
+    sft2.getUserData().put("geomesa.ignore.dtg", true);
+
 .. _customizing_index_creation:
 
 Customizing Index Creation
@@ -152,6 +169,24 @@ the simple feature type user data using the hint ``geomesa.xz.precision``.  See 
 
 For more information on resolution level (g), see
 "XZ-Ordering: A Space-Filling Curve for Objects with Spatial Extension" by Böhm, Klump and Kriegel.
+
+.. _configuring_attr_shards:
+
+Configuring Attribute Index Shards
+----------------------------------
+
+GeoMesa allows configuration of the number of shards (or splits) into which the attribute indices are
+divided. This parameter may be changed individually for each ``SimpleFeatureType``. If nothing is specified,
+GeoMesa will default to 4 shards. The number of shards must be between 1 and 127.
+
+See :ref:`configuring_z_shards` for more background on shards.
+
+The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
+user data using the hint ``geomesa.attr.splits``. See :ref:`set_sft_options`.
+
+.. code-block:: java
+
+    sft.getUserData().put("geomesa.attr.splits", "4");
 
 Mixed Geometry Types
 --------------------

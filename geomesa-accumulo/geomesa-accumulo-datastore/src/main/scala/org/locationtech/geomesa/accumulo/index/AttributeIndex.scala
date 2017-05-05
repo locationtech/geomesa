@@ -32,19 +32,26 @@ import org.opengis.filter.Filter
 
 import scala.util.Try
 
+case object AttributeIndex extends AccumuloAttributeIndex {
+  override val version: Int = 5
+}
+
 // secondary z-index
-case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
+trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
     with AttributeIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] with AttributeSplittable {
 
   import scala.collection.JavaConversions._
 
   type ScanPlanFn = (SimpleFeatureType, Option[Filter], Option[(String, SimpleFeatureType)]) => BatchScanPlan
 
-  override val version: Int = 4
-
   override val serializedWithId: Boolean = false
 
   override val hasPrecomputedBins: Boolean = false
+
+  // hook to allow for not returning join plans
+  val AllowJoinPlans = new ThreadLocal[Boolean] {
+    override def initialValue: Boolean = true
+  }
 
   override def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
@@ -104,6 +111,22 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
     }
   }
 
+  override def getFilterStrategy(sft: SimpleFeatureType,
+                                 filter: Filter,
+                                 transform: Option[SimpleFeatureType]): Seq[AccumuloFilterStrategyType] = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+    val strategies = super.getFilterStrategy(sft, filter, transform)
+    // verify that it's ok to return join plans, and filter them out if not
+    if (AllowJoinPlans.get) { strategies } else {
+      strategies.filterNot { strategy =>
+        val attributes = strategy.primary.toSeq.flatMap(FilterHelper.propertyNames(_, sft))
+        val joins = attributes.filter(sft.getDescriptor(_).getIndexCoverage() == IndexCoverage.JOIN)
+        joins.exists(requiresJoin(sft, _, strategy.secondary, transform))
+      }
+    }
+  }
+
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: AccumuloDataStore,
                                   filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
@@ -140,7 +163,6 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
                                attribute: String): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
 
     val table = getTableName(sft.getTypeName, ds)
     val numThreads = queryThreads(ds)
@@ -449,6 +471,25 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
       }
     }
     cost.getOrElse(Long.MaxValue)
+  }
+
+  /**
+    * Does the query require a join against the record table, or can it be satisfied
+    * in a single scan. Assumes that the attribute is indexed.
+    *
+    * @param sft simple feature type
+    * @param attribute attribute being queried
+    * @param filter non-attribute filter being evaluated, if any
+    * @param transform transform being applied, if any
+    * @return
+    */
+  def requiresJoin(sft: SimpleFeatureType,
+                   attribute: String,
+                   filter: Option[Filter],
+                   transform: Option[SimpleFeatureType]): Boolean = {
+    sft.getDescriptor(attribute).getIndexCoverage == IndexCoverage.JOIN &&
+        !IteratorTrigger.canUseAttrIdxValues(sft, filter, transform) &&
+        !IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter, transform)
   }
 }
 

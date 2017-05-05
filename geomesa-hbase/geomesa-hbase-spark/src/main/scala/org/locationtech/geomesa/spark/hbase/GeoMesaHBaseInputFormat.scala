@@ -127,7 +127,7 @@ class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
 
   private def nextFeatureFromOptional(toFeature: Result => Option[SimpleFeature]) = () => {
     staged = null
-    while (reader.nextKeyValue() && staged == null) {
+    while (staged == null && reader.nextKeyValue()) {
       toFeature(reader.getCurrentValue) match {
         case Some(feature) => staged = feature
         case None => staged = null
@@ -137,7 +137,7 @@ class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
 
   private def nextFeatureFromDirect(toFeature: Result => SimpleFeature) = () => {
     staged = null
-    while (reader.nextKeyValue() && staged == null) {
+    while (staged == null && reader.nextKeyValue()) {
       staged = toFeature(reader.getCurrentValue)
     }
   }

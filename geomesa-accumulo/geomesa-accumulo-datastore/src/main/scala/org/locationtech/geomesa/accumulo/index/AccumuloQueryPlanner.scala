@@ -15,6 +15,7 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -60,7 +61,7 @@ class AccumuloQueryPlanner(ds: AccumuloDataStore) extends AccumuloQueryPlannerTy
     } else if (query.getHints.isArrowQuery) {
       org.locationtech.geomesa.arrow.ArrowEncodedSft
     } else if (query.getHints.isDensityQuery) {
-      KryoLazyDensityIterator.DENSITY_SFT
+      KryoLazyDensityUtils.DENSITY_SFT
     } else if (query.getHints.isStatsIteratorQuery) {
       KryoLazyStatsIterator.StatsSft
     } else if (query.getHints.isMapAggregatingQuery) {

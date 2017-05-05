@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets
 import org.locationtech.geomesa.cassandra.data._
 import org.locationtech.geomesa.cassandra.{NamedColumn, RowRange, RowValue}
 import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
 case object CassandraAttributeIndex
@@ -22,6 +23,8 @@ case object CassandraAttributeIndex
     with CassandraFeatureIndex {
 
   override val version: Int = 1
+
+  override protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = SplitArrays.EmptySplits
 
   private val Index     = NamedColumn("attrIdx",   0, "smallint", classOf[Short],  partition = true)
   private val Value     = NamedColumn("attrVal",   1, "text",     classOf[String])

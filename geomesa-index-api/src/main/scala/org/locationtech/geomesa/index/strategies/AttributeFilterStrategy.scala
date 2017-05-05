@@ -21,7 +21,9 @@ import org.opengis.filter.temporal.{After, Before, During, TEquals}
 trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     extends GeoMesaFeatureIndex[DS, F, W] {
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType,
+                                 filter: Filter,
+                                 transform: Option[SimpleFeatureType]): Seq[FilterStrategy[DS, F, W]] = {
     import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy.attributeCheck
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 

@@ -12,6 +12,7 @@ import java.io.Closeable
 
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
+import org.geotools.feature.FeatureIterator
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.FeatureType
 import org.opengis.feature.simple.SimpleFeature
@@ -42,7 +43,7 @@ object CloseableIterator {
       override def close(): Unit = iter.close()
     }
 
-  def apply(iter: SimpleFeatureIterator): CloseableIterator[SimpleFeature] =
+  def apply(iter: FeatureIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
     new CloseableIterator[SimpleFeature] {
       override def hasNext: Boolean = iter.hasNext
       override def next(): SimpleFeature  = iter.next()

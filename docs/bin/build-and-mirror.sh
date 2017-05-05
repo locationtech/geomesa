@@ -4,33 +4,9 @@
 
 # default paths for docs, can be overridden by setting the GEOMESA
 # and GEOMESA_GITHUB_IO variables and/or by command line switches
-GEOMESA=${GEOMESA:-/path/to/geomesa}
+# (will try to guess $GEOMESA relative to the script path)
+GEOMESA=${GEOMESA:-$(readlink -f "$(dirname ${BASH_SOURCE[0]})/../..")}
 GEOMESA_GITHUB_IO=${GEOMESA_GITHUB_IO:-/path/to/geomesa.github.io}
-
-function check_repo {
-    # check that repo in $dir is a Git repo and has $url as a remote
-    dir="$1"
-    url="$2"
-    echo "check_repo $dir $url"
-    if [[ ! -d "$dir" ]] ; then
-        echo "ERROR: $dir not a directory"
-        exit 3
-    fi
-    if [[ ! -d "$dir/.git" ]] ; then
-        echo "ERROR: $dir not a git repo"
-        exit 3
-    fi
-    cwd=`pwd`
-    cd $dir
-    n=`git remote -v show 2>&1 | grep "$url" | wc -l`
-    cd $cwd
-    if [[ "$n" -gt 0 ]] ; then
-        return 0
-    else
-        echo "ERROR: $dir does not have specified remote url"
-        exit 3
-    fi
-}
 
 function build_and_mirror {
     # build GeoMesa docs and mirror to geomesa.github.io repo
@@ -102,6 +78,13 @@ done
 # check command line arguments
 if [[ $# -ne 2 ]] ; then
     usage
+    exit 1
+fi
+
+# load functions
+source $GEOMESA/docs/bin/common.sh
+if [[ "$?" != 0 ]] ; then
+    echo "ERROR: can't source common.sh"
     exit 1
 fi
 

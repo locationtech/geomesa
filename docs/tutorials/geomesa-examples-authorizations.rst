@@ -12,14 +12,14 @@ protection of data, based on arbitrary labels.
 
 .. note::
 
-    Authorizations are distinct from table-level permissions, and
-    operate at a much finer grain.
+    Authorizations are distinct from table-level
+    permissions, and operate at a much finer grain.
 
 If you are not familiar with Accumulo authorizations, you should review
 the relevant Accumulo
-`documentation <http://accumulo.apache.org/1.6/accumulo_user_manual.html#_security>`__,
+`documentation <http://accumulo.apache.org/1.7/accumulo_user_manual.html#_security>`__,
 with more examples
-`here <http://accumulo.apache.org/1.6/examples/visibility.html>`__.
+`here <http://accumulo.apache.org/1.7/examples/visibility.html>`__.
 
 Public Key Infrastructure (PKI)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,13 +55,14 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
--  an Accumulo user that has appropriate permissions to query your data
--  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ |maven_version|
--  a `git <http://git-scm.com/>`__ client
+-  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|,
+-  an Accumulo user that has appropriate permissions to query your data,
+-  `Java JDK
+   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
+-  a `git <http://git-scm.com/>`__ client.
 
-.. warning::
+.. note::
 
     Ensure that the version of Accumulo, Hadoop, etc in
     the root ``pom.xml`` match your environment.
@@ -133,7 +134,7 @@ When a GeoMesa ``DataStore`` is instantiated, it will scan for available
 service providers. Third-party implementations can be enabled by placing
 them on the classpath and including a special service descriptor file.
 See the Oracle
-`Javadoc <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__
+`Javadoc <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__
 for details on implementing a service provider.
 
 The GeoMesa ``DataStore`` will call ``configure()`` on the
@@ -170,7 +171,8 @@ the authorizations associated with the underlying Accumulo connection
 
 .. warning::
 
-    This is not a recommended approach for a production system.
+    This is not a recommended approach for a production
+    system.
 
 In addition, please note that the authorizations used in any scenario
 cannot exceed the authorizations of the underlying Accumulo connection.
@@ -228,6 +230,11 @@ through the Accumulo shell with the ``addauths`` command:
     myuser@mycloud> getauths
     user,admin
 
+.. note::
+
+    A user cannot set authorizations unless the user has
+    the System.ALTER\_USER permission.
+
 Next we'll grant permissions to read the appropriate tables to ``user``
 and ``admin``.
 
@@ -235,11 +242,6 @@ and ``admin``.
 
     > grant -u user -p <table>.* Table.READ
     > grant -u admin -p <table>.* Table.READ
-
-.. warning::
-
-    A user cannot set authorizations unless that user has the
-    ``System.ALTER\_USER`` permission.
 
 Once the GDELT data is ingested, you should see a visibility label in
 square brackets when you scan the spatio-temporal index table through
@@ -398,7 +400,8 @@ Run GeoServer in Tomcat
 
 .. note::
 
-    If you are already running GeoServer in Tomcat, you can skip this step.
+    If you are already running GeoServer in Tomcat, you
+    can skip this step.
 
 GeoServer ships by default with an embedded Jetty servlet. In order to
 use PKI login, we need to install it in Tomcat instead.
@@ -454,7 +457,7 @@ Configure GeoServer for PKI Login
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Follow the instructions located
-`here <http://docs.geoserver.org/stable/en/user/security/tutorials/cert/index.html>`__
+`here <http://docs.geoserver.org/2.9.1/user/security/tutorials/cert/index.html>`__
 in order to enable PKI login to GeoServer.
 
 In the step where you add the 'cert' filter to the 'Filter Chains', also
@@ -474,12 +477,15 @@ that the 'web' filter chain has the 'cert' filter selected:
 .. figure:: _static/geomesa-examples-authorizations/filter-chain-cert.jpg
    :alt: Web Filter Panel
 
+   Web Filter Panel
+
 Install an LDAP Server for Storing Authorizations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
-    If you are already have an LDAP server set up, you can skip this step.
+    If you are already have an LDAP server set up, you
+    can skip this step.
 
 1. Download and install
    `ApacheDS <http://directory.apache.org/apacheds/>`__
@@ -498,7 +504,9 @@ We want to configure LDAP with a user to match the Spring Security PKIs
 we are testing with. The end result we want is to create the following
 user:
 
-``DN: cn=rod,ou=Spring Security,o=Spring Framework``
+.. code::
+
+    DN: cn=rod,ou=Spring Security,o=Spring Framework
 
 In order to do that, we will use Apache Directory Studio.
 
@@ -626,8 +634,8 @@ specified as the ``EmptyAuthorizationsProvider``.
 
 .. note::
 
-   We want to use the unshaded jar since all the
-   required dependencies are already installed in GeoServer.
+    We want to use the unshaded jar since all the
+    required dependencies are already installed in GeoServer.
 
 4. Restart GeoServer (or start it if it is not running).
 
@@ -652,14 +660,16 @@ indicating the data:
 .. figure:: _static/geomesa-examples-authorizations/Ukraine_Unfiltered.png
    :alt: Authorized Results
 
+   Authorized Results
+
 Now try the same query, but use the 'scott' certificate. This time,
 there should be no data returned, as the 'scott' user does not have any
 authorizations set up in LDAP.
 
 .. note::
 
-    A simple way to use different certificates at once is to open
-    multiple 'incognito' or 'private' browser windows.
+    A simple way to use different certificates at once
+    is to open multiple 'incognito' or 'private' browser windows.
 
 Querying GeoServer through a Web Feature Service (WFS) with a Java Client
 -------------------------------------------------------------------------
@@ -669,7 +679,7 @@ Service (WFS). Using GeoTools, we can create a client in Java through a
 WFSDataStore. More details are available
 `here <http://docs.geotools.org/latest/userguide/library/data/wfs.html>`__
 and
-`here <http://docs.geoserver.org/stable/en/user/services/wfs/reference.html>`__,
+`here <http://docs.geoserver.org/2.9.1/user/services/wfs/reference.html>`__,
 although some of the documentation is out of date.
 
 We can leverage the same PKI and LDAP setup that we used through the web
