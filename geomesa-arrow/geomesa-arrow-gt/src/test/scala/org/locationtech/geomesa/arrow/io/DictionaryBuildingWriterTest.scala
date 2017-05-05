@@ -15,6 +15,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.SimpleFeature
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -28,6 +30,16 @@ class DictionaryBuildingWriterTest extends Specification {
 
   implicit val allocator = new RootAllocator(Long.MaxValue)
 
+  // note: need to compare as we iterate since values are only valid until 'next'
+  def compare(features: Iterator[SimpleFeature], expected: Seq[SimpleFeature]): MatchResult[Any] = {
+    var i = 0
+    while (features.hasNext) {
+      features.next mustEqual expected(i)
+      i += 1
+    }
+    i mustEqual expected.length
+  }
+
   "SimpleFeatureVector" should {
     "dynamically encode dictionary values" >> {
       val out = new ByteArrayOutputStream()
@@ -35,14 +47,12 @@ class DictionaryBuildingWriterTest extends Specification {
         features.foreach(writer.add)
         writer.encode(out)
       }
-      WithClose(new SimpleFeatureArrowFileReader(new ByteArrayInputStream(out.toByteArray))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(out.toByteArray))) { reader =>
         reader.dictionaries must haveSize(1)
         reader.dictionaries.get("name:String") must beSome
         reader.dictionaries("name:String").values must containTheSameElementsAs(Seq("name00", "name01"))
 
-        val read = reader.features.toSeq
-        read must haveLength(10)
-        read must containTheSameElementsAs(features)
+        compare(reader.features(), features)
       }
     }
   }

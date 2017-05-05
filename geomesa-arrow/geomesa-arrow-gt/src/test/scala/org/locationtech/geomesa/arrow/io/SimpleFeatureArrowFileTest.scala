@@ -19,6 +19,8 @@ import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.SimpleFeature
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -38,13 +40,23 @@ class SimpleFeatureArrowFileTest extends Specification {
     ScalaSimpleFeature.create(sft, s"$i", s"name$i", s"foo${i % 3}", s"2017-03-15T00:$i:00.000Z", s"POINT (4${i -10} 5${i -10})")
   }
 
+  // note: need to compare as we iterate since values are only valid until 'next'
+  def compare(features: Iterator[SimpleFeature], expected: Seq[SimpleFeature]): MatchResult[Any] = {
+    var i = 0
+    while (features.hasNext) {
+      features.next mustEqual expected(i)
+      i += 1
+    }
+    i mustEqual expected.length
+  }
+
   "SimpleFeatureArrowFiles" should {
     "write and read just a schema" >> {
       withTestFile { file =>
         new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file)).close()
-        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
           reader.sft mustEqual sft
-          reader.features.toSeq must beEmpty
+          reader.features().toSeq must beEmpty
         }
       }
     }
@@ -55,18 +67,14 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.flush()
           features1.foreach(writer.add)
         }
-        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          val features = reader.features.toSeq
-          features must haveLength(20)
-          features must containTheSameElementsAs(features0 ++ features1)
+        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+          compare(reader.features(), features0 ++ features1)
         }
-        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file), ECQL.toFilter("foo = 'foo1'"))) { reader =>
-          val features = reader.features.toSeq
-          features must haveLength(9)
-          features must containTheSameElementsAs(
-            Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
-          )
+        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+          compare(reader.features(ECQL.toFilter("foo = 'foo1'")),
+            Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9)))
         }
+        // TODO test caching
       }
     }
     "write and read multiple logical files in one" >> {
@@ -77,15 +85,11 @@ class SimpleFeatureArrowFileTest extends Specification {
         WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file, true))) { writer =>
           features1.foreach(writer.add)
         }
-        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          val features = reader.features.toSeq
-          features must haveLength(20)
-          features must containTheSameElementsAs(features0 ++ features1)
+        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+          compare(reader.features(), features0 ++ features1)
         }
-        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file), ECQL.toFilter("foo = 'foo1'"))) { reader =>
-          val features = reader.features.toSeq
-          features must haveLength(9)
-          features must containTheSameElementsAs(
+        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+          compare(reader.features(ECQL.toFilter("foo = 'foo1'")),
             Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
           )
         }
@@ -99,10 +103,8 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.flush()
           features1.foreach(writer.add)
         }
-        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          val features = reader.features.toSeq
-          features must haveLength(20)
-          features must containTheSameElementsAs(features0 ++ features1)
+        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+          compare(reader.features(), features0 ++ features1)
         }
       }
     }
@@ -114,15 +116,15 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.flush()
           features1.foreach(writer.add)
         }
-        WithClose(new SimpleFeatureArrowFileReader(new FileInputStream(file))) { reader =>
-          val features = reader.features.toSeq
-          features must haveLength(20)
-          features must containAllOf(features0 ++ features1.filter(_.getAttribute("foo") != "foo2"))
-          features must containAllOf(features1.collect { case f if f.getAttribute("foo") == "foo2" =>
-            val attributes = f.getAttributes.toArray
-            attributes.update(1, "[other]")
-            ScalaSimpleFeature.create(sft, f.getID, attributes: _*)
-          })
+        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+          val expected = features1.map {
+            case f if f.getAttribute("foo") != "foo2" => f
+            case f =>
+              val attributes = f.getAttributes.toArray
+              attributes.update(1, "[other]")
+              ScalaSimpleFeature.create(sft, f.getID, attributes: _*)
+          }
+          compare(reader.features(), features0 ++ expected)
         }
       }
     }

@@ -1,12 +1,12 @@
-/***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+/*******************************************************************************
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ******************************************************************************/
 
-package org.locationtech.geomesa.features.arrow
+package org.locationtech.geomesa.arrow.features
 
 import java.util.{Collection => jCollection, List => jList, Map => jMap}
 
@@ -33,30 +33,16 @@ import org.opengis.geometry.BoundingBox
 class ArrowSimpleFeature(sft: SimpleFeatureType,
                          idReader: ArrowAttributeReader,
                          attributeReaders: Array[ArrowAttributeReader],
-                         index: Int) extends SimpleFeature {
+                         private[arrow] var index: Int) extends SimpleFeature {
 
   import scala.collection.JavaConversions._
 
-  private lazy val id = idReader.apply(index).asInstanceOf[String]
-  // in order to try to leverage the columnar memory layout, only read the attributes when requested
-  // this way filtering through a single attribute for a bunch of features will hit a contiguous chunk of memory
-  private val attributes = attributeReaders.map(a => new ArrowSimpleFeature.Lazy(a.apply(index)))
-
   private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
 
-  override def getAttribute(i: Int): AnyRef = attributes(i).value
+  override def getAttribute(i: Int): AnyRef = attributeReaders(i).apply(index)
 
-  /**
-    * Load values from the underlying vector, which removes the dependency on it
-    */
-  def load(): Unit = {
-    // just reference the lazy vals so that they are evaluated
-    id
-    attributes.foreach(_.value)
-  }
-
-  override def getID: String = id
-  override def getIdentifier: FeatureId = new ImmutableFeatureId(id)
+  override def getID: String = idReader.apply(index).asInstanceOf[String]
+  override def getIdentifier: FeatureId = new ImmutableFeatureId(getID)
 
   override def getUserData: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
 
@@ -67,7 +53,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
   override def getAttribute(name: Name): AnyRef = getAttribute(name.getLocalPart)
   override def getAttribute(name: String): Object = {
     val index = sft.indexOf(name)
-    if (index == -1) null else getAttribute(index)
+    if (index == -1) { null } else { getAttribute(index) }
   }
 
   override def getDefaultGeometry: AnyRef = getAttribute(geomIndex)
@@ -119,8 +105,4 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
       getID == other.getID && getName == other.getName && getAttributes == other.getAttributes
     case _ => false
   }
-}
-
-object ArrowSimpleFeature {
-  class Lazy[T](v: => T) { lazy val value = v }
 }

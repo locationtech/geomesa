@@ -31,8 +31,9 @@ class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry
   override def getCountInternal(query: Query): Int = -1
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val reader = new SimpleFeatureArrowFileReader(ds.createInputStream(), query.getFilter)
-    val features = reader.features
+    // TODO option for caching reader
+    val reader = SimpleFeatureArrowFileReader.streaming(() => ds.createInputStream())
+    val features = reader.features(query.getFilter)
 
     new FeatureReader[SimpleFeatureType, SimpleFeature] {
       override def getFeatureType: SimpleFeatureType = reader.sft

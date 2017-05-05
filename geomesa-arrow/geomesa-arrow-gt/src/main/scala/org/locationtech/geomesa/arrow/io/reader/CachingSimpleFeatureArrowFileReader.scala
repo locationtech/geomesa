@@ -1,0 +1,141 @@
+/*******************************************************************************
+  * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  ******************************************************************************/
+
+package org.locationtech.geomesa.arrow.io.reader
+
+import java.io.{Closeable, InputStream}
+import java.nio.channels.{Channels, ReadableByteChannel}
+
+import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.complex.NullableMapVector
+import org.apache.arrow.vector.file.ReadChannel
+import org.apache.arrow.vector.schema.ArrowRecordBatch
+import org.apache.arrow.vector.stream.{ArrowStreamReader, MessageSerializer}
+import org.apache.arrow.vector.{VectorLoader, VectorSchemaRoot}
+import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
+import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
+
+import scala.collection.mutable.ArrayBuffer
+
+class CachingSimpleFeatureArrowFileReader(is: InputStream)(implicit allocator: BufferAllocator)
+    extends SimpleFeatureArrowFileReader  {
+
+  private val opened = ArrayBuffer.empty[CachingSingleFileReader]
+  private val readers = createReaders()
+
+  override def sft: SimpleFeatureType = readers.head.sft
+
+  override def dictionaries: Map[String, ArrowDictionary] = readers.head.dictionaries
+
+  override def features(filter: Filter): Iterator[ArrowSimpleFeature] = readers.iterator.flatMap(_.features(filter))
+
+  override def close(): Unit = opened.foreach(_.close())
+
+  private def createReaders(): Stream[CachingSingleFileReader] = {
+    if (is.available() > 0) {
+      val reader = new CachingSingleFileReader(Channels.newChannel(is))
+      opened.append(reader)
+      reader #:: createReaders()
+    } else {
+      is.close()
+      Stream.empty
+    }
+  }
+}
+
+/**
+  * Reads a single logical arrow 'file' from the stream, which may contain multiple record batches
+  */
+private class CachingSingleFileReader(is: ReadableByteChannel)(implicit allocator: BufferAllocator) extends Closeable {
+
+  import SimpleFeatureArrowFileReader.loadDictionaries
+
+  import scala.collection.JavaConversions._
+
+  private val reader = new ArrowStreamReader(is, allocator)
+
+  private val opened = ArrayBuffer.empty[SimpleFeatureVector]
+
+  private val vectors: Stream[SimpleFeatureVector] = {
+    reader.loadNextBatch() // load dictionaries and the first batch
+    val root = reader.getVectorSchemaRoot
+    require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
+    val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
+    // load any dictionaries into memory
+    val dictionaries = loadDictionaries(underlying.getField.getChildren, reader)
+
+    // lazily evaluate batches as we need them
+    def createStream(current: SimpleFeatureVector): Stream[SimpleFeatureVector] = {
+      opened.append(current)
+      CachingSingleFileReader.readIsolatedBatch(current, is) match {
+        case None       => current #:: Stream.empty
+        case Some(next) => current #:: createStream(next)
+      }
+    }
+
+    createStream(SimpleFeatureVector.wrap(underlying, dictionaries))
+  }
+
+  def sft: SimpleFeatureType = vectors.head.sft
+  def dictionaries: Map[String, ArrowDictionary] = vectors.head.dictionaries
+
+  // iterator of simple features read from the input stream
+  def features(filt: Filter): Iterator[ArrowSimpleFeature] = new Iterator[ArrowSimpleFeature] {
+    private var batch: Iterator[ArrowSimpleFeature] = Iterator.empty
+    private val batches = vectors.iterator
+
+    override def hasNext: Boolean = {
+      if (batch.hasNext) {
+        true
+      } else if (batches.hasNext) {
+        batch = CachingSingleFileReader.features(batches.next, filt)
+        hasNext
+      } else {
+        false
+      }
+    }
+
+    override def next(): ArrowSimpleFeature = batch.next()
+  }
+
+  override def close(): Unit = {
+    reader.close()
+    opened.foreach(_.close())
+  }
+}
+
+private object CachingSingleFileReader {
+
+  private def readIsolatedBatch(original: SimpleFeatureVector, is: ReadableByteChannel)
+                       (implicit allocator: BufferAllocator): Option[SimpleFeatureVector] = {
+    import scala.collection.JavaConversions._
+
+    Option(MessageSerializer.deserializeMessageBatch(new ReadChannel(is), allocator)).map {
+      case b: ArrowRecordBatch =>
+        val fields = Seq(original.underlying.getField)
+        val vectors = fields.map(_.createVector(allocator))
+        val root = new VectorSchemaRoot(fields, vectors, 0)
+        new VectorLoader(root).load(b)
+        SimpleFeatureVector.clone(original, vectors.head.asInstanceOf[NullableMapVector])
+
+      case b => throw new IllegalArgumentException(s"Expected record batch but got $b")
+    }
+  }
+
+  private def features(vector: SimpleFeatureVector, filter: Filter): Iterator[ArrowSimpleFeature] = {
+    // re-use the same feature object
+    val feature = vector.reader.feature
+    val all = Iterator.range(0, vector.reader.getValueCount).map { i => vector.reader.load(i); feature }
+    if (filter == Filter.INCLUDE) { all } else {
+      all.filter(filter.evaluate)
+    }
+  }
+}

@@ -13,8 +13,8 @@ import java.io.Closeable
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.types.FloatingPointPrecision
+import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
-import org.locationtech.geomesa.features.arrow.ArrowSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -95,7 +95,12 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
     private val idReader = ArrowAttributeReader.id(vector.underlying, vector.includeFids)
     private [arrow] val attributeReaders = ArrowAttributeReader(sft, vector.underlying, dictionaries, precision).toArray
 
+    // feature that can be re-populated with calls to 'load'
+    val feature: ArrowSimpleFeature = new ArrowSimpleFeature(sft, idReader, attributeReaders, -1)
+
     def get(index: Int): ArrowSimpleFeature = new ArrowSimpleFeature(sft, idReader, attributeReaders, index)
+
+    def load(index: Int): Unit = feature.index = index
 
     def getValueCount: Int = vector.underlying.getAccessor.getValueCount
   }
@@ -146,8 +151,7 @@ object SimpleFeatureVector {
     * @param allocator buffer allocator
     * @return
     */
-  def wrap(vector: NullableMapVector,
-           dictionaries: Map[String, ArrowDictionary])
+  def wrap(vector: NullableMapVector, dictionaries: Map[String, ArrowDictionary])
           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     import scala.collection.JavaConversions._
     val attributes = vector.getField.getChildren.collect {
@@ -160,5 +164,18 @@ object SimpleFeatureVector {
     val isFloat = geomVector.exists(v => GeometryFields.precisionFromField(v.getField) == FloatingPointPrecision.SINGLE)
     val precision = if (isFloat) { GeometryPrecision.Float } else { GeometryPrecision.Double }
     new SimpleFeatureVector(sft, vector, dictionaries, includeFids, precision)
+  }
+
+  /**
+    * Create a simple feature vector using a new arrow vector
+    *
+    * @param vector simple feature vector to copy
+    * @param underlying arrow vector
+    * @param allocator buffer allocator
+    * @return
+    */
+  def clone(vector: SimpleFeatureVector, underlying: NullableMapVector)
+           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
+    new SimpleFeatureVector(vector.sft, underlying, vector.dictionaries, vector.includeFids, vector.precision)
   }
 }

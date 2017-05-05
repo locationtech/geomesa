@@ -63,7 +63,7 @@ class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore
     WithClose(createInputStream()) { is =>
       if (is.available() < 1) { null } else {
         try {
-          WithClose(new SimpleFeatureArrowFileReader(is))(_.sft)
+          WithClose(SimpleFeatureArrowFileReader.streaming(() => is))(_.sft)
         } catch {
           case e: Exception => throw new IOException("Error reading schema", e)
       }

@@ -13,10 +13,13 @@ import java.nio.file.Files
 
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -24,6 +27,16 @@ import org.specs2.runner.JUnitRunner
 class ArrowDataStoreTest extends Specification {
 
   import scala.collection.JavaConversions._
+
+  // note: need to compare as we iterate since values are only valid until 'next'
+  def compare(features: Iterator[SimpleFeature], expected: Seq[SimpleFeature]): MatchResult[Any] = {
+    var i = 0
+    while (features.hasNext) {
+      features.next mustEqual expected(i)
+      i += 1
+    }
+    i mustEqual expected.length
+  }
 
   "ArrowDataStore" should {
     "write and read values" >> {
@@ -50,8 +63,12 @@ class ArrowDataStoreTest extends Specification {
         }
         writer.close()
 
-        var results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)).toSeq
-        results must containTheSameElementsAs(features0)
+        var results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
+        try {
+          compare(results, features0)
+        } finally {
+          results.close()
+        }
 
         writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
         features1.foreach { f =>
@@ -60,8 +77,12 @@ class ArrowDataStoreTest extends Specification {
         }
         writer.close()
 
-        results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)).toSeq
-        results must containTheSameElementsAs(features0 ++ features1)
+        results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
+        try {
+          compare(results, features0 ++ features1)
+        } finally {
+          results.close()
+        }
       } finally {
         if (!new File(file.getPath).delete()) {
           new File(file.getPath).deleteOnExit()
