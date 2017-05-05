@@ -18,7 +18,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
@@ -73,7 +73,7 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
         (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None)
       } else if (hints.isStatsIteratorQuery) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, dupes)
-        val reduce = Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_))
+        val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
         (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce)
       } else if (hints.isMapAggregatingQuery) {
         val iter = KryoLazyMapAggregatingIterator.configure(sft, this, filter.secondary, hints, dupes)

@@ -23,6 +23,7 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
@@ -243,7 +244,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
         val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
-        val reduce = Some(KryoLazyStatsIterator.reduceFeatures(indexSft, hints)(_))
+        val reduce = Some(KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_))
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
       } else {
         // have to do a join against the record table
@@ -316,7 +317,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       // aggregating iterator wouldn't be very effective since each range is a single row
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
     } else if (hints.isStatsIteratorQuery) {
-      (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_)))
+      (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
     } else if (hints.isDensityQuery) {
       (KryoLazyDensityIterator.kvsToFeatures(), None)
     } else {

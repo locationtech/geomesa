@@ -21,7 +21,7 @@ import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
-import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
+import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
@@ -106,7 +106,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, FullColumnFamily, false)
     } else if (hints.isStatsIteratorQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)
-      val reduce = Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_))
+      val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
       (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce, FullColumnFamily, false)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, sft.nonPoints)
