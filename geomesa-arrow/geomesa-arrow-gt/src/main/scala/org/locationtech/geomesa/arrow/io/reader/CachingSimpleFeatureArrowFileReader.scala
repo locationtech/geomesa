@@ -36,9 +36,19 @@ class CachingSimpleFeatureArrowFileReader(is: InputStream)(implicit allocator: B
 
   override def dictionaries: Map[String, ArrowDictionary] = readers.head.dictionaries
 
-  override def features(filter: Filter): Iterator[ArrowSimpleFeature] = readers.iterator.flatMap(_.features(filter))
+  override def features(filt: Filter): Iterator[ArrowSimpleFeature] with Closeable = {
+    new Iterator[ArrowSimpleFeature] with Closeable {
+      val iter = readers.iterator.flatMap(_.features(filt))
+      override def hasNext: Boolean = iter.hasNext
+      override def next(): ArrowSimpleFeature = iter.next
+      override def close(): Unit = {}
+    }
+  }
 
-  override def close(): Unit = opened.foreach(_.close())
+  override def close(): Unit = {
+    opened.foreach(_.close())
+    is.close()
+  }
 
   private def createReaders(): Stream[CachingSingleFileReader] = {
     if (is.available() > 0) {
@@ -94,7 +104,7 @@ private class CachingSingleFileReader(is: ReadableByteChannel)(implicit allocato
   def dictionaries: Map[String, ArrowDictionary] = vectors.head.dictionaries
 
   // iterator of simple features read from the input stream
-  def features(filt: Filter): Iterator[ArrowSimpleFeature] = new Iterator[ArrowSimpleFeature] {
+  def features(filt: Filter): Iterator[ArrowSimpleFeature] with Closeable = new Iterator[ArrowSimpleFeature] with Closeable {
     private var batch: Iterator[ArrowSimpleFeature] = Iterator.empty
     private val batches = vectors.iterator
 
@@ -110,6 +120,8 @@ private class CachingSingleFileReader(is: ReadableByteChannel)(implicit allocato
     }
 
     override def next(): ArrowSimpleFeature = batch.next()
+
+    override def close(): Unit = {}
   }
 
   override def close(): Unit = {

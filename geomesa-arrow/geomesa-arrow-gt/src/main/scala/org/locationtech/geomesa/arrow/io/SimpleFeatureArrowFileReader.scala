@@ -57,7 +57,7 @@ trait SimpleFeatureArrowFileReader extends Closeable {
     * @param filter filter to apply
     * @return
     */
-  def features(filter: Filter = Filter.INCLUDE): Iterator[ArrowSimpleFeature]
+  def features(filter: Filter = Filter.INCLUDE): Iterator[ArrowSimpleFeature] with Closeable
 }
 
 object SimpleFeatureArrowFileReader {

@@ -52,7 +52,7 @@ class DictionaryBuildingWriterTest extends Specification {
         reader.dictionaries.get("name:String") must beSome
         reader.dictionaries("name:String").values must containTheSameElementsAs(Seq("name00", "name01"))
 
-        compare(reader.features(), features)
+        WithClose(reader.features())(f => compare(f, features))
       }
     }
   }

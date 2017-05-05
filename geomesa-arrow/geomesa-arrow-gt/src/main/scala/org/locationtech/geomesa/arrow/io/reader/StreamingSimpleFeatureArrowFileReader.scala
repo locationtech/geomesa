@@ -31,35 +31,27 @@ import scala.collection.mutable.ArrayBuffer
 class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allocator: BufferAllocator)
     extends SimpleFeatureArrowFileReader  {
 
-  private var stream: InputStream = _
+  private var initialized = false
 
-  // reader for current logical 'file'
-  private var reader: StreamingSingleFileReader = _
-
-  // we track all the readers and close at the end to avoid closing the input stream prematurely
-  private val readers = ArrayBuffer.empty[StreamingSingleFileReader]
-
-  override def sft: SimpleFeatureType = {
-    if (reader == null) {
-      initializeStream()
-    }
-    reader.sft
+  private lazy val metadata = {
+    initialized = true
+    new StreamingSingleFileReader(is())
   }
 
-  override def dictionaries: Map[String, ArrowDictionary] = {
-    if (reader == null) {
-      initializeStream()
-    }
-    reader.dictionaries
-  }
+  override def sft: SimpleFeatureType = metadata.sft
 
-  override def features(filt: Filter): Iterator[ArrowSimpleFeature] = {
-    if (reader == null) {
-      initializeStream()
-    }
-    new Iterator[ArrowSimpleFeature] {
+  override def dictionaries: Map[String, ArrowDictionary] = metadata.dictionaries
+
+  override def features(filt: Filter): Iterator[ArrowSimpleFeature] with Closeable = {
+    val stream = is()
+    // we track all the readers and close at the end to avoid closing the input stream prematurely
+    val readers = ArrayBuffer.empty[StreamingSingleFileReader]
+    // reader for current logical 'file'
+    var reader: StreamingSingleFileReader = null
+
+    new Iterator[ArrowSimpleFeature] with Closeable {
       private var done = false
-      private var batch: Iterator[ArrowSimpleFeature] = reader.features(filt)
+      private var batch: Iterator[ArrowSimpleFeature] = Iterator.empty
 
       override def hasNext: Boolean = {
         if (done) {
@@ -74,25 +66,20 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
           hasNext
         } else {
           done = true
-          reader = null
           false
         }
       }
 
       override def next(): ArrowSimpleFeature = batch.next()
+
+      override def close(): Unit = readers.foreach(_.close())
     }
   }
 
   override def close(): Unit = {
-    readers.foreach(_.close())
-    readers.clear()
-  }
-
-  private def initializeStream(): Unit = {
-    close() // close any previous streams
-    stream = is()
-    reader = new StreamingSingleFileReader(stream)
-    readers.append(reader)
+    if (initialized) {
+      metadata.close()
+    }
   }
 }
 

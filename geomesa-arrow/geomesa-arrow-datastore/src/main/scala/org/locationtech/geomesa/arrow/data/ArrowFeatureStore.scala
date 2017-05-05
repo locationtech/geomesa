@@ -33,7 +33,7 @@ class ArrowFeatureSource(entry: ContentEntry, reader: SimpleFeatureArrowFileRead
       override def getFeatureType: SimpleFeatureType = reader.sft
       override def hasNext: Boolean = features.hasNext
       override def next(): SimpleFeature = features.next()
-      override def close(): Unit = reader.close()
+      override def close(): Unit = features.close()
     }
   }
 

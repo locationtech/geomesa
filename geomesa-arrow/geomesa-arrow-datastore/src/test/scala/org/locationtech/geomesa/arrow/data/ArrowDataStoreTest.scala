@@ -68,7 +68,7 @@ class ArrowDataStoreTest extends Specification {
 
         caching = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> true))
 
-        foreach(Seq(ds, caching)) { store =>
+        foreach(Seq(ds, caching, caching)) { store =>
           val results = CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
           try {
             compare(results, features0)
@@ -88,7 +88,7 @@ class ArrowDataStoreTest extends Specification {
 
         caching = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> true))
 
-        foreach(Seq(ds, caching)) { store =>
+        foreach(Seq(ds, caching, caching)) { store =>
           val results = CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
           try {
             compare(results, features0 ++ features1)

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.arrow.data
 
 import java.io.{FileOutputStream, IOException, InputStream, OutputStream}
 import java.net.URL
-import java.util.concurrent.atomic.AtomicBoolean
 
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
@@ -19,7 +18,7 @@ import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoOpMetadata, UnoptimizedRunnableStats}
-import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter

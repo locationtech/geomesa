@@ -38,9 +38,11 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
     val caching = Option(CachingParam.lookUp(params)).exists(_.asInstanceOf[Boolean]) // default false
-    Option(UrlParam.lookUp(params).asInstanceOf[URL]).map(new ArrowDataStore(_, caching)).getOrElse {
+    val ds = Option(UrlParam.lookUp(params).asInstanceOf[URL]).map(new ArrowDataStore(_, caching)).getOrElse {
       throw new IllegalArgumentException(s"Could not create data store using $params")
     }
+    Option(NamespaceParam.lookUp(params).asInstanceOf[String]).foreach(ds.setNamespaceURI)
+    ds
   }
 
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
@@ -48,7 +50,7 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
     Try(Option(UrlParam.lookUp(params).asInstanceOf[URL]).exists(canProcess)).getOrElse(false)
 
-  override def getParametersInfo: Array[Param] = Array(UrlParam, CachingParam)
+  override def getParametersInfo: Array[Param] = Array(UrlParam, CachingParam, NamespaceParam)
 
   override def getDisplayName: String = DisplayName
 
@@ -62,8 +64,9 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 
 object ArrowDataStoreFactory {
 
-  val UrlParam     = new Param("url", classOf[URL], "URL to an arrow file", true, null, Collections.singletonMap(Parameter.EXT, "arrow"))
-  val CachingParam = new Param("caching", classOf[java.lang.Boolean], "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", false, false)
+  val UrlParam       = new Param("url", classOf[URL], "URL to an arrow file", true, null, Collections.singletonMap(Parameter.EXT, "arrow"))
+  val CachingParam   = new Param("caching", classOf[java.lang.Boolean], "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", false, false)
+  val NamespaceParam = new Param("namespace", classOf[String], "Namespace", false)
 
   private val DisplayName = "Apache Arrow (GeoMesa)"
 

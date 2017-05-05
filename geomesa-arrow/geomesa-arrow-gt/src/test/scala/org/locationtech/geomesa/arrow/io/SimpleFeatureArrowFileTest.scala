@@ -72,11 +72,12 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
-          compare(reader.features(), features0 ++ features1)
+          WithClose(reader.features())(f => compare(f, features0 ++ features1))
         }
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
-          compare(reader.features(ECQL.toFilter("foo = 'foo1'")),
-            Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9)))
+          WithClose(reader.features(ECQL.toFilter("foo = 'foo1'"))) { f =>
+            compare(f, Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9)))
+          }
         }
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
           compare(reader.features(), features0 ++ features1)
@@ -94,12 +95,12 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
-          compare(reader.features(), features0 ++ features1)
+          WithClose(reader.features())(f => compare(f, features0 ++ features1))
         }
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
-          compare(reader.features(ECQL.toFilter("foo = 'foo1'")),
-            Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
-          )
+          WithClose(reader.features(ECQL.toFilter("foo = 'foo1'"))) { f =>
+            compare(f, Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9)))
+          }
         }
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
           compare(reader.features(), features0 ++ features1)
@@ -118,7 +119,7 @@ class SimpleFeatureArrowFileTest extends Specification {
           features1.foreach(writer.add)
         }
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
-          compare(reader.features(), features0 ++ features1)
+          WithClose(reader.features())(f => compare(f, features0 ++ features1))
         }
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
           compare(reader.features(), features0 ++ features1)
@@ -141,7 +142,7 @@ class SimpleFeatureArrowFileTest extends Specification {
             ScalaSimpleFeature.create(sft, f.getID, attributes: _*)
         }
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
-          compare(reader.features(), expected)
+          WithClose(reader.features())(f => compare(f, expected))
         }
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
           compare(reader.features(), expected)
