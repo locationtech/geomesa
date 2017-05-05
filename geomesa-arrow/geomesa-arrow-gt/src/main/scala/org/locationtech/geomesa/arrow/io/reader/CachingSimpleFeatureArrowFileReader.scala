@@ -20,6 +20,7 @@ import org.apache.arrow.vector.{VectorLoader, VectorSchemaRoot}
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -118,13 +119,15 @@ private object CachingSingleFileReader {
                        (implicit allocator: BufferAllocator): Option[SimpleFeatureVector] = {
     import scala.collection.JavaConversions._
 
-    Option(MessageSerializer.deserializeMessageBatch(new ReadChannel(is), allocator)).map {
+    WithClose(MessageSerializer.deserializeMessageBatch(new ReadChannel(is), allocator)) {
+      case null => None
+
       case b: ArrowRecordBatch =>
         val fields = Seq(original.underlying.getField)
         val vectors = fields.map(_.createVector(allocator))
         val root = new VectorSchemaRoot(fields, vectors, 0)
         new VectorLoader(root).load(b)
-        SimpleFeatureVector.clone(original, vectors.head.asInstanceOf[NullableMapVector])
+        Some(SimpleFeatureVector.clone(original, vectors.head.asInstanceOf[NullableMapVector]))
 
       case b => throw new IllegalArgumentException(s"Expected record batch but got $b")
     }

@@ -58,6 +58,10 @@ class SimpleFeatureArrowFileTest extends Specification {
           reader.sft mustEqual sft
           reader.features().toSeq must beEmpty
         }
+        WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
+          reader.sft mustEqual sft
+          reader.features().toSeq must beEmpty
+        }
       }
     }
     "write and read and filter values" >> {
@@ -74,7 +78,11 @@ class SimpleFeatureArrowFileTest extends Specification {
           compare(reader.features(ECQL.toFilter("foo = 'foo1'")),
             Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9)))
         }
-        // TODO test caching
+        WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
+          compare(reader.features(), features0 ++ features1)
+          compare(reader.features(ECQL.toFilter("foo = 'foo1'")),
+            Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9)))
+        }
       }
     }
     "write and read multiple logical files in one" >> {
@@ -93,6 +101,12 @@ class SimpleFeatureArrowFileTest extends Specification {
             Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
           )
         }
+        WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
+          compare(reader.features(), features0 ++ features1)
+          compare(reader.features(ECQL.toFilter("foo = 'foo1'")),
+            Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
+          )
+        }
       }
     }
     "write and read dictionary encoded values" >> {
@@ -106,6 +120,9 @@ class SimpleFeatureArrowFileTest extends Specification {
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
           compare(reader.features(), features0 ++ features1)
         }
+        WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
+          compare(reader.features(), features0 ++ features1)
+        }
       }
     }
     "write and read dictionary encoded values with defaults" >> {
@@ -116,15 +133,18 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.flush()
           features1.foreach(writer.add)
         }
+        val expected = features0 ++ features1.map {
+          case f if f.getAttribute("foo") != "foo2" => f
+          case f =>
+            val attributes = f.getAttributes.toArray
+            attributes.update(1, "[other]")
+            ScalaSimpleFeature.create(sft, f.getID, attributes: _*)
+        }
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
-          val expected = features1.map {
-            case f if f.getAttribute("foo") != "foo2" => f
-            case f =>
-              val attributes = f.getAttributes.toArray
-              attributes.update(1, "[other]")
-              ScalaSimpleFeature.create(sft, f.getID, attributes: _*)
-          }
-          compare(reader.features(), features0 ++ expected)
+          compare(reader.features(), expected)
+        }
+        WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
+          compare(reader.features(), expected)
         }
       }
     }
