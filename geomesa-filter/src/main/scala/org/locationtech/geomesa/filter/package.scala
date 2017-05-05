@@ -405,8 +405,8 @@ package object filter {
   /**
    * Checks the order of properties and literals in the expression
    *
-   * @param one
-   * @param two
+   * @param one first expression
+   * @param two second expression
    * @return (prop, literal, whether the order was flipped)
    */
   def checkOrder(one: Expression, two: Expression): Option[PropertyLiteral] =

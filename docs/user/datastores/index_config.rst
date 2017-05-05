@@ -170,6 +170,24 @@ the simple feature type user data using the hint ``geomesa.xz.precision``.  See 
 For more information on resolution level (g), see
 "XZ-Ordering: A Space-Filling Curve for Objects with Spatial Extension" by Böhm, Klump and Kriegel.
 
+.. _configuring_attr_shards:
+
+Configuring Attribute Index Shards
+----------------------------------
+
+GeoMesa allows configuration of the number of shards (or splits) into which the attribute indices are
+divided. This parameter may be changed individually for each ``SimpleFeatureType``. If nothing is specified,
+GeoMesa will default to 4 shards. The number of shards must be between 1 and 127.
+
+See :ref:`configuring_z_shards` for more background on shards.
+
+The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
+user data using the hint ``geomesa.attr.splits``. See :ref:`set_sft_options`.
+
+.. code-block:: java
+
+    sft.getUserData().put("geomesa.attr.splits", "4");
+
 Mixed Geometry Types
 --------------------
 
