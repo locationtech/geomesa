@@ -9,16 +9,16 @@
 package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.Parameter
+import org.geotools.data.DataStore
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.opengis.filter.Filter
 
 import scala.math.Ordering
-import scala.util.control.NonFatal
 
-trait StatsTopKCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait StatsTopKCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {
 
   override val name = "stats-top-k"
   override val params: StatsTopKParams

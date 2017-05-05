@@ -35,6 +35,11 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   // TODO: investigate multiple HBase connections per jvm
   private lazy val globalConnection: Connection = {
+    val conf = HBaseConfiguration.create()
+    import org.apache.hadoop.security.UserGroupInformation
+    conf.set("hadoop.security.authentication", "Kerberos")
+    UserGroupInformation.setConfiguration(conf)
+    UserGroupInformation.loginUserFromKeytab("hbase/devbox.t-mobile.at", "/etc/security/keytabs/hbase.service.keytab")
     val ret = ConnectionFactory.createConnection(HBaseConfiguration.create())
     Runtime.getRuntime.addShutdownHook(new Thread() {
       override def run(): Unit = {

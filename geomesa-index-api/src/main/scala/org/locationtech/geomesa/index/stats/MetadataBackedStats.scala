@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataSerializer}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -28,14 +28,13 @@ import scala.util.control.NonFatal
 /**
  * Tracks stats via entries stored in metadata
  */
-trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _]]
-    extends GeoMesaStats with StatsBasedEstimator with LazyLogging {
+trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with LazyLogging {
 
   import MetadataBackedStats._
 
   private [geomesa] def metadata: GeoMesaMetadata[Stat]
 
-  protected def ds: DS
+  protected def ds: HasGeoMesaMetadata[String]
   protected def generateStats: Boolean
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
@@ -317,7 +316,7 @@ trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _]]
   * @param statFunction creates stats for tracking new features - this will be re-created on flush,
   *                     so that our bounds are more accurate
   */
-class MetadataStatUpdater(stats: MetadataBackedStats[_], sft: SimpleFeatureType, statFunction: => Stat)
+class MetadataStatUpdater(stats: MetadataBackedStats, sft: SimpleFeatureType, statFunction: => Stat)
     extends StatUpdater with LazyLogging {
 
   private var stat: Stat = statFunction
