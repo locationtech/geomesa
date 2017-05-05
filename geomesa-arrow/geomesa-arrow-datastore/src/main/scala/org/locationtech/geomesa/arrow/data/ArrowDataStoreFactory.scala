@@ -23,9 +23,12 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 
   // FileDataStoreFactory methods
 
-  override def createDataStore(url: URL): FileDataStore = new ArrowDataStore(url)
+  override def createDataStore(url: URL): FileDataStore = new ArrowDataStore(url, false)
 
-  override def getTypeName(url: URL): String = new ArrowDataStore(url).getSchema().getTypeName
+  override def getTypeName(url: URL): String = {
+    val ds = new ArrowDataStore(url, false)
+    try { ds.getSchema().getTypeName } finally { ds.dispose() }
+  }
 
   override def getFileExtensions: Array[String] = Array("arrow")
 
@@ -34,7 +37,8 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
   // DataStoreFactory methods
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
-    Option(UrlParam.lookUp(params).asInstanceOf[URL]).map(createDataStore).getOrElse {
+    val caching = Option(CachingParam.lookUp(params)).exists(_.asInstanceOf[Boolean]) // default false
+    Option(UrlParam.lookUp(params).asInstanceOf[URL]).map(new ArrowDataStore(_, caching)).getOrElse {
       throw new IllegalArgumentException(s"Could not create data store using $params")
     }
   }
@@ -44,7 +48,7 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
     Try(Option(UrlParam.lookUp(params).asInstanceOf[URL]).exists(canProcess)).getOrElse(false)
 
-  override def getParametersInfo: Array[Param] = Array(UrlParam)
+  override def getParametersInfo: Array[Param] = Array(UrlParam, CachingParam)
 
   override def getDisplayName: String = DisplayName
 
@@ -57,7 +61,9 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 }
 
 object ArrowDataStoreFactory {
-  val UrlParam = new Param("url", classOf[URL], "URL to an arrow file", true, null, Collections.singletonMap(Parameter.EXT, "arrow"))
+
+  val UrlParam     = new Param("url", classOf[URL], "URL to an arrow file", true, null, Collections.singletonMap(Parameter.EXT, "arrow"))
+  val CachingParam = new Param("caching", classOf[java.lang.Boolean], "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", false, false)
 
   private val DisplayName = "Apache Arrow (GeoMesa)"
 

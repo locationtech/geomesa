@@ -13,9 +13,8 @@ import java.nio.file.Files
 
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -50,11 +49,15 @@ class ArrowDataStoreTest extends Specification {
 
       val file = Files.createTempFile("gm-arrow-ds", ".arrow").toUri.toURL
       try {
-        val ds = DataStoreFinder.getDataStore(Map("url" -> file)).asInstanceOf[ArrowDataStore]
+        val ds = DataStoreFinder.getDataStore(Map("url" -> file))
         ds must not(beNull)
 
         ds.createSchema(sft)
         ds.getSchema(sft.getTypeName) mustEqual sft
+
+        var caching = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> true))
+        caching.getSchema(sft.getTypeName) mustEqual sft
+        caching.dispose() must not(throwAn[Exception])
 
         var writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
         features0.foreach { f =>
@@ -63,12 +66,18 @@ class ArrowDataStoreTest extends Specification {
         }
         writer.close()
 
-        var results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
-        try {
-          compare(results, features0)
-        } finally {
-          results.close()
+        caching = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> true))
+
+        foreach(Seq(ds, caching)) { store =>
+          val results = CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
+          try {
+            compare(results, features0)
+          } finally {
+            results.close()
+          }
         }
+
+        caching.dispose() must not(throwAn[Exception])
 
         writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
         features1.foreach { f =>
@@ -77,12 +86,20 @@ class ArrowDataStoreTest extends Specification {
         }
         writer.close()
 
-        results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
-        try {
-          compare(results, features0 ++ features1)
-        } finally {
-          results.close()
+        caching = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> true))
+
+        foreach(Seq(ds, caching)) { store =>
+          val results = CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
+          try {
+            compare(results, features0 ++ features1)
+          } finally {
+            results.close()
+          }
         }
+
+        caching.dispose() must not(throwAn[Exception])
+
+        ds.dispose() must not(throwAn[Exception])
       } finally {
         if (!new File(file.getPath).delete()) {
           new File(file.getPath).deleteOnExit()

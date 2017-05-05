@@ -167,6 +167,8 @@ class ScalaSimpleFeature(initialId: String,
 
 object ScalaSimpleFeature {
 
+  def create(copy: SimpleFeature): ScalaSimpleFeature = create(copy.getFeatureType, copy)
+
   def create(sft: SimpleFeatureType, copy: SimpleFeature): ScalaSimpleFeature =
     new ScalaSimpleFeature(copy.getID, sft, copy.getAttributes.toArray, copy.getUserData)
 

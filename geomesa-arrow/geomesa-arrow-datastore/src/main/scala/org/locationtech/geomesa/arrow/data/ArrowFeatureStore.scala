@@ -18,23 +18,17 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry, Query.ALL) {
+class ArrowFeatureSource(entry: ContentEntry, reader: SimpleFeatureArrowFileReader)
+    extends ContentFeatureSource(entry, Query.ALL) {
 
-  import org.locationtech.geomesa.arrow.allocator
-
-  private [data] val ds = entry.getDataStore.asInstanceOf[ArrowDataStore]
-
-  override def buildFeatureType(): SimpleFeatureType = ds.getSchema()
+  override def buildFeatureType(): SimpleFeatureType = reader.sft
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = null
 
   override def getCountInternal(query: Query): Int = -1
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    // TODO option for caching reader
-    val reader = SimpleFeatureArrowFileReader.streaming(() => ds.createInputStream())
     val features = reader.features(query.getFilter)
-
     new FeatureReader[SimpleFeatureType, SimpleFeature] {
       override def getFeatureType: SimpleFeatureType = reader.sft
       override def hasNext: Boolean = features.hasNext
@@ -53,11 +47,12 @@ class ArrowFeatureSource(entry: ContentEntry) extends ContentFeatureSource(entry
   override def canTransact: Boolean = false
 }
 
-class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL) {
+class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReader)
+    extends ContentFeatureStore(entry, Query.ALL) {
 
   import org.locationtech.geomesa.arrow.allocator
 
-  private val delegate = new ArrowFeatureSource(entry)
+  private val delegate = new ArrowFeatureSource(entry, reader)
 
   private val featureIds = new AtomicLong(0)
 
@@ -65,8 +60,9 @@ class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, 
     require(flags != 0, "no write flags set")
     require((flags | WRITER_ADD) == WRITER_ADD, "Only append supported")
 
-    val sft = delegate.ds.getSchema
-    val os = delegate.ds.createOutputStream(true)
+    val sft = delegate.getSchema
+    val os = entry.getDataStore.asInstanceOf[ArrowDataStore].createOutputStream(true)
+
     val writer = new SimpleFeatureArrowFileWriter(sft, os)
     val flushCount = SystemProperty("geomesa.arrow.batch.size", "10000").get.toLong
 

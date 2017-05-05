@@ -66,7 +66,7 @@ private class CachingSingleFileReader(is: ReadableByteChannel)(implicit allocato
   private val opened = ArrayBuffer.empty[SimpleFeatureVector]
 
   private val vectors: Stream[SimpleFeatureVector] = {
-    reader.loadNextBatch() // load dictionaries and the first batch
+    val hasMore = reader.loadNextBatch() // load dictionaries and the first batch
     val root = reader.getVectorSchemaRoot
     require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
     val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
@@ -75,14 +75,19 @@ private class CachingSingleFileReader(is: ReadableByteChannel)(implicit allocato
 
     // lazily evaluate batches as we need them
     def createStream(current: SimpleFeatureVector): Stream[SimpleFeatureVector] = {
-      opened.append(current)
       CachingSingleFileReader.readIsolatedBatch(current, is) match {
         case None       => current #:: Stream.empty
-        case Some(next) => current #:: createStream(next)
+        case Some(next) => opened.append(next); current #:: createStream(next)
       }
     }
 
-    createStream(SimpleFeatureVector.wrap(underlying, dictionaries))
+    val head = SimpleFeatureVector.wrap(underlying, dictionaries)
+    opened.append(head)
+    if (hasMore) {
+      createStream(head)
+    } else {
+      head #:: Stream.empty
+    }
   }
 
   def sft: SimpleFeatureType = vectors.head.sft
@@ -116,7 +121,7 @@ private class CachingSingleFileReader(is: ReadableByteChannel)(implicit allocato
 private object CachingSingleFileReader {
 
   private def readIsolatedBatch(original: SimpleFeatureVector, is: ReadableByteChannel)
-                       (implicit allocator: BufferAllocator): Option[SimpleFeatureVector] = {
+                               (implicit allocator: BufferAllocator): Option[SimpleFeatureVector] = {
     import scala.collection.JavaConversions._
 
     WithClose(MessageSerializer.deserializeMessageBatch(new ReadChannel(is), allocator)) {
