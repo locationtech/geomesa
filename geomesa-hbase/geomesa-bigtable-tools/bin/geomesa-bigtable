@@ -92,9 +92,7 @@ if  [[ $1 = configure ]]; then
   geomesaConfigure
 elif [[ $1 = classpath ]]; then
   CLASSPATH="$GEOMESA_CP:$HADOOP_CP"
-  for element in ${CLASSPATH//:/ } ; do
-    echo ${element}
-  done
+  echo $CLASSPATH | tr ':' '\n' | xargs ls -di | sort -u -k1,1 | awk '{print $2}' | sort
 else
   if [[ $1 = debug ]]; then
     GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
