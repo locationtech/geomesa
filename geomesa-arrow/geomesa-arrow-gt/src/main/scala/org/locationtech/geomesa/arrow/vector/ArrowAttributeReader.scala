@@ -141,17 +141,23 @@ object ArrowAttributeReader {
     }
   }
 
+  trait ArrowDictionaryReader[T] extends ArrowAttributeReader with HasArrowDictionary {
+    def getRaw(i: Int): T
+  }
+
   /**
     * Reads dictionary encoded bytes and converts them to the actual values
     */
   class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor,
                                   val dictionary: ArrowDictionary,
-                                  val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
+                                  val dictionaryType: TypeBindings) extends ArrowDictionaryReader[Byte] {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
       }
     }
+
+    override def getRaw(i: Int): Byte = accessor.get(i)
   }
 
   /**
@@ -160,12 +166,14 @@ object ArrowAttributeReader {
     */
   class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor,
                                    val dictionary: ArrowDictionary,
-                                   val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
+                                   val dictionaryType: TypeBindings) extends ArrowDictionaryReader[Short] {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
       }
     }
+
+    override def getRaw(i: Int): Short = accessor.get(i)
   }
 
   /**
@@ -174,12 +182,14 @@ object ArrowAttributeReader {
     */
   class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor,
                                  val dictionary: ArrowDictionary,
-                                 val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
+                                 val dictionaryType: TypeBindings) extends ArrowDictionaryReader[Int] {
     override def apply(i: Int): AnyRef = {
       if (accessor.isNull(i)) { null } else {
         dictionary.lookup(accessor.get(i))
       }
     }
+
+    override def getRaw(i: Int): Int = accessor.get(i)
   }
 
   /**

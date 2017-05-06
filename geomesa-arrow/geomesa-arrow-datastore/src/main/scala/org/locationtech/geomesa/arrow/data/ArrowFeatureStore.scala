@@ -28,7 +28,8 @@ class ArrowFeatureSource(entry: ContentEntry, reader: SimpleFeatureArrowFileRead
   override def getCountInternal(query: Query): Int = -1
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val features = reader.features(query.getFilter)
+    val optimized = FilterOptimizer.rewrite(query.getFilter, getSchema, reader.dictionaries)
+    val features = reader.features(optimized)
     new FeatureReader[SimpleFeatureType, SimpleFeature] {
       override def getFeatureType: SimpleFeatureType = reader.sft
       override def hasNext: Boolean = features.hasNext
@@ -102,4 +103,6 @@ class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReade
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] =
     delegate.getReaderInternal(query)
+
+  override def canFilter: Boolean = true
 }

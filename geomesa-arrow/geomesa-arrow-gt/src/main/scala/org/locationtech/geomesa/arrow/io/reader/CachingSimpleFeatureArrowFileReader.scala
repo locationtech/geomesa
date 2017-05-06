@@ -37,6 +37,7 @@ class CachingSimpleFeatureArrowFileReader(is: InputStream)(implicit allocator: B
   override def dictionaries: Map[String, ArrowDictionary] = readers.head.dictionaries
 
   override def features(filt: Filter): Iterator[ArrowSimpleFeature] with Closeable = {
+    // TODO: optimize dictionary reads
     new Iterator[ArrowSimpleFeature] with Closeable {
       val iter = readers.iterator.flatMap(_.features(filt))
       override def hasNext: Boolean = iter.hasNext

@@ -13,6 +13,7 @@ import java.util.{Collection => jCollection, List => jList, Map => jMap}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
+import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.ArrowDictionaryReader
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -34,7 +35,6 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
                          idReader: ArrowAttributeReader,
                          attributeReaders: Array[ArrowAttributeReader],
                          private[arrow] var index: Int) extends SimpleFeature {
-
   import scala.collection.JavaConversions._
 
   private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
@@ -50,6 +50,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
   override def getFeatureType: SimpleFeatureType = sft
   override def getName: Name = sft.getName
 
+  def getAttributeRaw(i: Int): AnyRef = attributeReaders(i).asInstanceOf[ArrowDictionaryReader[_]].getRaw(index).asInstanceOf[AnyRef]
   override def getAttribute(name: Name): AnyRef = getAttribute(name.getLocalPart)
   override def getAttribute(name: String): Object = {
     val index = sft.indexOf(name)
