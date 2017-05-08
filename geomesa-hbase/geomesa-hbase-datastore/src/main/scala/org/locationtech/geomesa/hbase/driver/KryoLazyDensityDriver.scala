@@ -39,7 +39,6 @@ class KryoLazyDensityRpcController extends RpcController {
     this.failed = false
   }
 
-
   override def setFailed(errorText: String): Unit = {
     this.failed = true
     this.errorText = errorText

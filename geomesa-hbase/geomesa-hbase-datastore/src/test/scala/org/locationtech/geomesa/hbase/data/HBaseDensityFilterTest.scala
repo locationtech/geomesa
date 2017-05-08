@@ -175,12 +175,6 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       compiled must haveLength(5)
       forall(compiled){ _ mustEqual 30 }
     }
-
-    step {
-      logger.info("Stopping embedded hbase")
-      cluster.shutdownMiniCluster()
-      logger.info("Stopped")
-    }
   }
 
   def clearFeatures(): Unit = {
