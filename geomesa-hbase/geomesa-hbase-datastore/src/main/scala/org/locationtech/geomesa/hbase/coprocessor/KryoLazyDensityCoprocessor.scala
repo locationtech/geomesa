@@ -47,8 +47,8 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
   import KryoLazyDensityCoprocessor._
 
-  private var env : RegionCoprocessorEnvironment = null
-  private var sft: SimpleFeatureType = null
+  private var env: RegionCoprocessorEnvironment = _
+  private var sft: SimpleFeatureType = _
 
   def init(options: Map[String, String], sft: SimpleFeatureType): DensityResult = {
     this.sft = sft
@@ -59,10 +59,10 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
   @throws[IOException]
   def start(env: CoprocessorEnvironment) {
-    if (env.isInstanceOf[RegionCoprocessorEnvironment])
-      this.env = env.asInstanceOf[RegionCoprocessorEnvironment]
-    else
-      throw new CoprocessorException("Must be loaded on a table region!")
+    env match {
+      case e: RegionCoprocessorEnvironment => this.env = e
+      case _ => throw new CoprocessorException("Must be loaded on a table region!")
+    }
   }
 
   @throws[IOException]
@@ -72,11 +72,10 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   def getService: Service = this
 
   def getDensity(controller: RpcController, request: KryoLazyDensityProto.DensityRequest, done: RpcCallback[KryoLazyDensityProto.DensityResponse]) {
-    var response : DensityResponse = null
     var scanner : InternalScanner = null
     var filterList : FilterList = new FilterList()
 
-    try {
+    val response: DensityResponse = try {
       val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
       var scanList : List[Scan] = List[Scan]()
@@ -116,11 +115,12 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       })
 
       val result: Array[Byte] = KryoLazyDensityUtils.encodeResult(densityResult)
-      response = DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
+      DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
     } catch {
       case ioe: IOException =>
         ioe.printStackTrace()
         ResponseConverter.setControllerException(controller, ioe)
+        null
       case cnfe: ClassNotFoundException =>
         throw cnfe
       case dse: DeserializationException =>
@@ -133,10 +133,10 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
 object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
 
-  private val SFT_OPT = "sft"
+  private val SFT_OPT    = "sft"
   private val FILTER_OPT = "filter"
   private val RANGES_OPT = "ranges"
-  private val SCAN_OPT = "scan"
+  private val SCAN_OPT   = "scan"
 
   /**
     * Creates an iterator config for the kryo density iterator
@@ -203,6 +203,4 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
     sf.values(0) = bytes
     sf
   }
-
-
 }
