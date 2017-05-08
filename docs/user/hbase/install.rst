@@ -15,7 +15,7 @@ and untar it somewhere convenient:
     $ tar xvf geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-hbase-dist_2.11-$VERSION
     $ ls
-    bin/  conf/  docs/  examples/  lib/  LICENSE.txt  logs/
+    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _hbase_deploy_distributed_runtime:
 
@@ -36,6 +36,9 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 .. code-block:: bash
 
     $ aws s3 cp ${GEOMESA_HOME}/dist/geomesa-hbase-distributed-runtime-$VERSION.jar s3://${hbase.dynamic.jars.dir}/
+
+If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
+to ``false``. Note that this may have an adverse effect on performance.
 
 .. _hbase_install_source:
 

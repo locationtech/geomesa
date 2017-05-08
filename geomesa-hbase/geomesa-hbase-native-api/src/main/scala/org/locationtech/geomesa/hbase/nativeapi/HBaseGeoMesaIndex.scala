@@ -58,7 +58,7 @@ object HBaseGeoMesaIndex {
     val ds =
       DataStoreFinder.getDataStore(Map(
         HBaseDataStoreParams.BigTableNameParam.key-> name,
-        HBaseDataStoreParams.RemoteParam.key-> remote
+        HBaseDataStoreParams.RemoteFiltersParam.key-> remote
       )).asInstanceOf[HBaseDataStore]
     new HBaseGeoMesaIndex[T](ds, name, valueSerializer, view)
   }
@@ -73,7 +73,7 @@ object HBaseGeoMesaIndex {
       Map[String, Any](
         HBaseDataStoreParams.ConnectionParam.key -> connection,
         HBaseDataStoreParams.BigTableNameParam.key-> name,
-        HBaseDataStoreParams.RemoteParam.key-> remote
+        HBaseDataStoreParams.RemoteFiltersParam.key-> remote
     ).asJava).asInstanceOf[HBaseDataStore]
     new HBaseGeoMesaIndex[T](ds, name, valueSerializer, view)
   }

@@ -21,7 +21,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -39,8 +39,7 @@ import scala.util.Try
   */
 trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
     extends GeoMesaFeatureIndex[DS, F, W] with IndexAdapter[DS, F, W, R] with AttributeFilterStrategy[DS, F, W]
-    with LazyLogging {
-
+    with AttributeRowDecoder with LazyLogging {
 
   import AttributeIndex._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -62,7 +61,9 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 
   override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
     // drop the encoded value and the date field (12 bytes) if it's present - the rest of the row is the ID
-    val from = if (sft.isTableSharing) 3 else 2  // exclude feature byte and 2 index bytes
+    val shard = getShards(sft).head.length
+    // exclude feature byte and 2 index bytes and shard bytes
+    val from = if (sft.isTableSharing) { 3 + shard } else { 2 + shard }
     val secondary = getSecondaryIndexKeyLength(sft)
     (row, offset, length) => {
       val start = row.indexOf(NullByte, from + offset) + secondary + 1
@@ -70,10 +71,30 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     }
   }
 
+  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[Any] = {
+    val shard = getShards(sft).head.length
+    // exclude feature byte and 2 index bytes and shard bytes
+    val from = if (sft.isTableSharing) { 3 + shard } else { 2 + shard }
+    val descriptor = sft.getDescriptor(index)
+    (row, offset, length) => Try {
+      val valueStart = offset + from // start of the encoded value
+      val end = offset + length // end of the row, max search space
+      var valueEnd = valueStart // end of the encoded value
+      while (valueEnd < end && row(valueEnd) != NullByte) { // null byte indicates end of value
+        valueEnd += 1
+      }
+      val encoded = new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8)
+      decode(encoded, descriptor)
+    }
+  }
+
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     val sharing = sft.getTableSharingBytes
     val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
-    indices.map(i => Bytes.concat(sharing, indexToBytes(i)))
+    val shards = getShards(sft)
+    for (i <- indices; s <- shards) yield {
+      Bytes.concat(sharing, indexToBytes(i), s)
+    }
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,
@@ -115,20 +136,36 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     lazy val lowerSecondary = secondaryRanges.map(_._1).minOption.getOrElse(Array.empty)
     lazy val upperSecondary = secondaryRanges.map(_._2).maxOption.getOrElse(Array.empty)
 
+    val shards = getShards(sft)
+
     val ranges = fb.values.flatMap { bounds =>
       bounds.bounds match {
-        case (None, None) => Seq(range(lowerBound(sft, i), upperBound(sft, i))) // not null
-        case (Some(lower), None) => Seq(range(startRow(sft, i, lower, bounds.inclusive, lowerSecondary), upperBound(sft, i)))
-        case (None, Some(upper)) => Seq(range(lowerBound(sft, i), endRow(sft, i, upper, bounds.inclusive, upperSecondary)))
+        case (None, None) => // not null
+          val starts = lowerBounds(sft, i, shards)
+          val ends = upperBounds(sft, i, shards)
+          shards.indices.map(i => range(starts(i), ends(i)))
+
+        case (Some(lower), None) =>
+          val starts = startRows(sft, i, shards, lower, bounds.inclusive, lowerSecondary)
+          val ends = upperBounds(sft, i, shards)
+          shards.indices.map(i => range(starts(i), ends(i)))
+
+        case (None, Some(upper)) =>
+          val starts = lowerBounds(sft, i, shards)
+          val ends = endRows(sft, i, shards, upper, bounds.inclusive, upperSecondary)
+          shards.indices.map(i => range(starts(i), ends(i)))
+
         case (Some(lower), Some(upper)) =>
           if (lower == upper) {
-            equals(sft, i, lower, secondaryRanges)
+            equals(sft, i, shards, lower, secondaryRanges)
           } else if (lower + WILDCARD_SUFFIX == upper) {
-            Seq(rangePrefix(Bytes.concat(rowPrefix(sft, i), encodeForQuery(lower, sft.getDescriptor(i)))))
+            val prefix = rowPrefix(sft, i)
+            val value = encodeForQuery(lower, sft.getDescriptor(i))
+            shards.map(shard => rangePrefix(Bytes.concat(prefix, shard, value)))
           } else {
-            val start = startRow(sft, i, lower, bounds.inclusive, lowerSecondary)
-            val end = endRow(sft, i, upper, bounds.inclusive, upperSecondary)
-            Seq(range(start, end))
+            val starts = startRows(sft, i, shards, lower, bounds.inclusive, lowerSecondary)
+            val ends = endRows(sft, i, shards, upper, bounds.inclusive, upperSecondary)
+            shards.indices.map(i => range(starts(i), ends(i)))
           }
       }
     }
@@ -137,10 +174,21 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
   }
 
   /**
+    * Shards to use for attribute indices. Subclasses can override to disable shards by returning
+    * `IndexedSeq(Array.empty[Byte])`
+    *
+    * @param sft simple feature type
+    * @return number of shards
+    */
+  protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] =
+    Option(sft.getAttributeShards).filter(_ > 1).map(SplitArrays.apply).getOrElse(SplitArrays.EmptySplits)
+
+  /**
     * Rows in the attribute table have the following layout:
     *
     * - 1 byte identifying the sft (OPTIONAL - only if table is shared)
     * - 2 bytes storing the index of the attribute in the sft
+    * - 1 byte shard (OPTIONAL)
     * - n bytes storing the lexicoded attribute value
     * - NULLBYTE as a separator
     * - n bytes storing the secondary z-index of the feature - identified by getSecondaryIndexKeyLength
@@ -149,6 +197,15 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
   protected def getRowKeys(sft: SimpleFeatureType): (F) => Seq[(Int, Array[Byte])] = {
     val prefix = sft.getTableSharingBytes
     val getSecondaryKey = getSecondaryIndexKey(sft)
+    val getShard: (F) => Array[Byte] = {
+      val shards = getShards(sft)
+      if (shards.length == 1) {
+        val shard = shards.head
+        (_) => shard
+      } else {
+        (wf: F) => shards(wf.idHash % shards.length)
+      }
+    }
 
     val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map { d =>
       val i = sft.indexOf(d.getName)
@@ -157,9 +214,10 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 
     (wf) => {
       val secondary = getSecondaryKey(wf)
+      val shard = getShard(wf)
       indexedAttributes.flatMap { case (descriptor, idx, idxBytes) =>
         val attributes = encodeForIndex(wf.feature.getAttribute(idx), descriptor)
-        attributes.map(a => (idx, Bytes.concat(prefix, idxBytes, a, NullByteArray, secondary, wf.idBytes)))
+        attributes.map(a => (idx, Bytes.concat(prefix, idxBytes, shard, a, NullByteArray, secondary, wf.idBytes)))
       }
     }
   }
@@ -171,17 +229,27 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     secondaryIndex(sft).map(_.indexKeyLength).getOrElse(0)
 
   // ranges for querying - equals
-  private def equals(sft: SimpleFeatureType, i: Int, value: Any, secondary: Seq[(Array[Byte], Array[Byte])]): Seq[R] = {
-    val prefix = Bytes.concat(sft.getTableSharingBytes, indexToBytes(i))
+  private def equals(sft: SimpleFeatureType,
+                     i: Int,
+                     shards: Seq[Array[Byte]],
+                     value: Any,
+                     secondary: Seq[(Array[Byte], Array[Byte])]): Seq[R] = {
+    val prefixes = {
+      val sharing = sft.getTableSharingBytes
+      val index = indexToBytes(i)
+      shards.map(shard => Bytes.concat(sharing, index, shard))
+    }
     val encoded = encodeForQuery(value, sft.getDescriptor(i))
     if (secondary.isEmpty) {
       // if no secondary ranges, use a prefix range terminated with a null byte to match all secondary values
-      Seq(rangePrefix(Bytes.concat(prefix, encoded, NullByteArray)))
+      prefixes.map(prefix => rangePrefix(Bytes.concat(prefix, encoded, NullByteArray)))
     } else {
-      secondary.map { case (lo, hi) =>
-        val start = Bytes.concat(prefix, encoded, NullByteArray, lo)
-        val end = IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded, NullByteArray, hi))
-        range(start, end)
+      prefixes.flatMap { prefix =>
+        secondary.map { case (lo, hi) =>
+          val start = Bytes.concat(prefix, encoded, NullByteArray, lo)
+          val end = IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded, NullByteArray, hi))
+          range(start, end)
+        }
       }
     }
   }
@@ -202,6 +270,18 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
       }
     }.getOrElse(Seq.empty)
   }
+}
+
+trait AttributeRowDecoder {
+
+  /**
+    * Decodes an attribute value out of row string
+    *
+    * @param sft simple feature type
+    * @param i attribute index
+    * @return (bytes, offset, length) => decoded value
+    */
+  def decodeRowValue(sft: SimpleFeatureType, i: Int): (Array[Byte], Int, Int) => Try[Any]
 }
 
 /**
@@ -274,23 +354,13 @@ object AttributeIndex {
 
   /**
     * Gets the row prefix for a given attribute
+    *
     * @param sft simple feature type
     * @param i index of the attribute
     * @return
     */
   private def rowPrefix(sft: SimpleFeatureType, i: Int): Array[Byte] =
     Bytes.concat(sft.getTableSharingBytes, indexToBytes(i))
-
-  /**
-    * Decodes an attribute value out of row string
-    */
-  def decodeRow(sft: SimpleFeatureType, i: Int, row: Array[Byte]): Try[Any] = Try {
-    val from = if (sft.isTableSharing) 3 else 2 // exclude feature byte and index bytes
-    // null byte indicates end of value
-    val length = row.indexOf(NullByte, from + 1) - from
-    val encoded = new String(row, from, length, StandardCharsets.UTF_8)
-    decode(encoded, sft.getDescriptor(i))
-  }
 
   /**
     * Lexicographically encode the value. Collections will return multiple rows, one for each entry.
@@ -345,43 +415,58 @@ object AttributeIndex {
   }
 
   // gets a lower bound for a range
-  private def startRow(sft: SimpleFeatureType,
-                       attributeIndex: Int,
-                       value: Any,
-                       inclusive: Boolean,
-                       secondary: Array[Byte]): Array[Byte] = {
-    val prefix = rowPrefix(sft, attributeIndex)
+  private def startRows(sft: SimpleFeatureType,
+                        attributeIndex: Int,
+                        shards: Seq[Array[Byte]],
+                        value: Any,
+                        inclusive: Boolean,
+                        secondary: Array[Byte]): Seq[Array[Byte]] = {
+    val prefixes = {
+      val prefix = rowPrefix(sft, attributeIndex)
+      shards.map(shard => Bytes.concat(prefix, shard))
+    }
     val encoded = encodeForQuery(value, sft.getDescriptor(attributeIndex))
     if (inclusive) {
-      Bytes.concat(prefix, encoded, NullByteArray, secondary)
+      prefixes.map(prefix => Bytes.concat(prefix, encoded, NullByteArray, secondary))
     } else {
       // get the next row, then append the secondary range
-      val following = IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded))
-      Bytes.concat(following, NullByteArray, secondary)
+      prefixes.map { prefix =>
+        val following = IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded))
+        Bytes.concat(following, NullByteArray, secondary)
+      }
     }
   }
 
   // gets an upper bound for a range
-  private def endRow(sft: SimpleFeatureType,
-                     attributeIndex: Int,
-                     value: Any,
-                     inclusive: Boolean,
-                     secondary: Array[Byte]): Array[Byte] = {
-    val prefix = rowPrefix(sft, attributeIndex)
+  private def endRows(sft: SimpleFeatureType,
+                      attributeIndex: Int,
+                      shards: Seq[Array[Byte]],
+                      value: Any,
+                      inclusive: Boolean,
+                      secondary: Array[Byte]): Seq[Array[Byte]] = {
+    val prefixes = {
+      val prefix = rowPrefix(sft, attributeIndex)
+      shards.map(shard => Bytes.concat(prefix, shard))
+    }
     val encoded = encodeForQuery(value, sft.getDescriptor(attributeIndex))
     if (inclusive) {
       // append secondary range, then get the next row - this will match anything with the same value, up to the secondary
-      IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded, NullByteArray, secondary))
+      prefixes.map(prefix => IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded, NullByteArray, secondary)))
     } else {
       // can't use secondary range on an exclusive upper, as there aren't any methods to calculate previous rows
-      Bytes.concat(prefix, encoded, NullByteArray)
+      prefixes.map(prefix => Bytes.concat(prefix, encoded, NullByteArray))
     }
   }
 
   // lower bound for all values of the attribute, inclusive
-  private def lowerBound(sft: SimpleFeatureType, i: Int): Array[Byte] = rowPrefix(sft, i)
+  private def lowerBounds(sft: SimpleFeatureType, i: Int, shards: Seq[Array[Byte]]): Seq[Array[Byte]] = {
+    val prefix = rowPrefix(sft, i)
+    shards.map(shard => Bytes.concat(prefix, shard))
+  }
 
   // upper bound for all values of the attribute, exclusive
-  private def upperBound(sft: SimpleFeatureType, i: Int): Array[Byte] =
-    IndexAdapter.rowFollowingPrefix(rowPrefix(sft, i))
+  private def upperBounds(sft: SimpleFeatureType, i: Int, shards: Seq[Array[Byte]]): Seq[Array[Byte]] = {
+    val prefix = rowPrefix(sft, i)
+    shards.map(shard => IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, shard)))
+  }
 }

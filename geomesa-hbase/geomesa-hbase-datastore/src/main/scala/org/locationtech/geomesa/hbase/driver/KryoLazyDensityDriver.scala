@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.Queue
 
 import com.google.protobuf.{ByteString, RpcCallback, RpcController}
-import org.apache.hadoop.hbase.client.{Scan, Table}
+import org.apache.hadoop.hbase.client.Table
 import org.apache.hadoop.hbase.client.coprocessor.Batch._
 import org.apache.hadoop.hbase.ipc.BlockingRpcCallback
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
@@ -31,13 +31,14 @@ class KryoLazyDensityRpcController extends RpcController {
 
   private[driver] var failed: Boolean = false
 
-  override def isCanceled(): Boolean = this.cancelled
+  override def isCanceled: Boolean = this.cancelled
 
   override def reset(): Unit = {
     this.errorText = null
     this.cancelled = false
     this.failed = false
   }
+
 
   override def setFailed(errorText: String): Unit = {
     this.failed = true
@@ -71,37 +72,36 @@ class KryoLazyDensityDriver {
 
       private val finalResult: Queue[ByteString] = new ConcurrentLinkedQueue[ByteString]()
 
-      def getResult: List[ByteString] = finalResult.toList
+      def getResult: List[ByteString] = {
+        var list: List[ByteString] = List[ByteString]()
+        for (s <- finalResult) {
+          list ::= s
+        }
+        list
+      }
 
       override def update(region: Array[Byte], row: Array[Byte], result: ByteString): Unit = {
         finalResult.offer(result)
       }
     }
 
-    val densityCallBack: KryoLazyDensityFilterCallBack = new KryoLazyDensityFilterCallBack()
-
-
-    def buildCall = {
-      new Call[KryoLazyDensityService, ByteString]() {
-        override def call(instance: KryoLazyDensityService): ByteString = {
-          val controller: RpcController = new KryoLazyDensityRpcController()
-          val rpcCallback = new BlockingRpcCallback[DensityResponse]()
-          instance.getDensity(controller, requestArg, rpcCallback)
-          val response: DensityResponse = rpcCallback.get
-          if (controller.failed()) {
-            throw new IOException(controller.errorText())
-          }
-          response.getSf
+    val kryoLazyDensityFilterCallBack: KryoLazyDensityFilterCallBack = new KryoLazyDensityFilterCallBack()
+    table.coprocessorService(classOf[KryoLazyDensityService], null, null, new Call[KryoLazyDensityService, ByteString]() {
+      override def call(instance: KryoLazyDensityService): ByteString = {
+        val controller: RpcController = new KryoLazyDensityRpcController()
+        val rpcCallback: BlockingRpcCallback[DensityResponse] =
+          new BlockingRpcCallback[DensityResponse]()
+        instance.getDensity(controller, requestArg, rpcCallback)
+        val response: DensityResponse = rpcCallback.get
+        if (controller.failed()) {
+          throw new IOException(controller.errorText())
         }
+        response.getSf
       }
-    }
-
-    table.coprocessorService(classOf[KryoLazyDensityService], null, null, buildCall, densityCallBack)
-
-//    ranges.foreach { r =>
-//      table.coprocessorService(classOf[KryoLazyDensityService], r.getStartRow, r.getStopRow, buildCall, densityCallBack)
-//    }
-    densityCallBack.getResult
+    },
+      kryoLazyDensityFilterCallBack
+    )
+    kryoLazyDensityFilterCallBack.getResult
   }
 
 }

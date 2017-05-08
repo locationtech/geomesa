@@ -8,40 +8,33 @@
 
 package org.locationtech.geomesa.hbase.coprocessor
 
-import com.google.protobuf.ByteString
-import com.google.protobuf.RpcCallback
-import com.google.protobuf.RpcController
-import com.google.protobuf.Service
-import com.vividsolutions.jts.geom.Envelope
 import java.io._
 
-import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
+import com.google.protobuf.{ByteString, RpcCallback, RpcController, Service}
+import com.vividsolutions.jts.geom.Envelope
 import org.apache.hadoop.hbase.client.Scan
-import org.apache.hadoop.hbase.coprocessor.CoprocessorException
-import org.apache.hadoop.hbase.coprocessor.CoprocessorService
-import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment
+import org.apache.hadoop.hbase.coprocessor.{CoprocessorException, CoprocessorService, RegionCoprocessorEnvironment}
 import org.apache.hadoop.hbase.exceptions.DeserializationException
-import org.apache.hadoop.hbase.filter.FilterList
-import org.apache.hadoop.hbase.protobuf.generated.ClientProtos
-import org.apache.hadoop.hbase.protobuf.{ProtobufUtil, ResponseConverter}
+import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
+import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.regionserver.InternalScanner
-//import org.apache.hadoop.hbase.util.Base64
-import org.apache.hadoop.yarn.api.records.impl.pb.ProtoUtils
+import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
 import org.geotools.data.Base64
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils._
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils._
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService with KryoLazyDensityUtils {
 
@@ -58,7 +51,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
 
   @throws[IOException]
-  def start(env: CoprocessorEnvironment) {
+  def start(env: CoprocessorEnvironment): Unit = {
     env match {
       case e: RegionCoprocessorEnvironment => this.env = e
       case _ => throw new CoprocessorException("Must be loaded on a table region!")
@@ -66,30 +59,26 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   }
 
   @throws[IOException]
-  def stop(coprocessorEnvironment: CoprocessorEnvironment) {
+  def stop(coprocessorEnvironment: CoprocessorEnvironment): Unit = {
   }
 
   def getService: Service = this
 
-  def getDensity(controller: RpcController, request: KryoLazyDensityProto.DensityRequest, done: RpcCallback[KryoLazyDensityProto.DensityResponse]) {
+  def getDensity(controller: RpcController,
+                 request: KryoLazyDensityProto.DensityRequest,
+                 done: RpcCallback[KryoLazyDensityProto.DensityResponse]): Unit = {
     var scanner : InternalScanner = null
     var filterList : FilterList = new FilterList()
 
     val response: DensityResponse = try {
       val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
-      var scanList : List[Scan] = List[Scan]()
+      var scanList : ArrayBuffer[Scan] = ArrayBuffer()
 
-      if (options.containsKey(SCAN_OPT)) {
-
-        val decoded = org.apache.hadoop.hbase.util.Base64.decode(options.get(SCAN_OPT).get)
-        val clientScan = ClientProtos.Scan.parseFrom(decoded)
-        val scan = ProtobufUtil.toScan(clientScan)
-        scanList ::= scan
-
-      } else {
-        scanList ::= new Scan()
-      }
+      options(RANGES_OPT).split(",").foreach(range => {
+        val scanInfo = range.split("\\|")
+        scanList += new Scan(Base64.decode(scanInfo(0)), Base64.decode(scanInfo(1)))
+      })
 
       if (options.containsKey(FILTER_OPT)) {
         filterList = FilterList.parseFrom(Base64.decode(options(FILTER_OPT)))
@@ -118,7 +107,6 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
     } catch {
       case ioe: IOException =>
-        ioe.printStackTrace()
         ResponseConverter.setControllerException(controller, ioe)
         null
       case cnfe: ClassNotFoundException =>
@@ -136,45 +124,49 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
   private val SFT_OPT    = "sft"
   private val FILTER_OPT = "filter"
   private val RANGES_OPT = "ranges"
-  private val SCAN_OPT   = "scan"
 
   /**
     * Creates an iterator config for the kryo density iterator
     */
   def configure(sft: SimpleFeatureType,
-                scan: Scan,
-                filterList: FilterList,
+                ranges: Seq[Scan],
+                filters: Seq[HFilter],
                 hints: Hints): Map[String, String] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
     val weight = hints.getDensityWeight
-    configure(sft, scan, filterList, envelope, width, height, weight)
+    configure(sft, ranges, filters, envelope, width, height, weight)
   }
 
 
   protected def configure(sft: SimpleFeatureType,
-                          scan: Scan,
-//                          ranges: Seq[Scan],
-                          filterList: FilterList,
+                          ranges: Seq[Scan],
+                          filters: Seq[HFilter],
                           envelope: Envelope,
                           gridWidth: Int,
                           gridHeight: Int,
                           weightAttribute: Option[String]): Map[String, String] = {
     val is = mutable.Map.empty[String, String]
-    //var scanRanges : List[String] = List[String]()
+    val rangeBuilder : StringBuilder = StringBuilder.newBuilder
 
     is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.put(GRID_OPT, s"$gridWidth,$gridHeight")
     weightAttribute.foreach(is.put(WEIGHT_OPT, _))
-    is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, false))
+    is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
 
-    import org.apache.hadoop.hbase.util.Base64
-    is.put(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
+    ranges.foreach(range =>
+      rangeBuilder.append(Base64.encodeBytes(range.getStartRow)).append("|").append(Base64.encodeBytes(range.getStopRow)).append(",")
+    )
 
-    if (filterList != null) {
-      is.put(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
-    }
+    val ranges_opt = if (rangeBuilder.length > 0) rangeBuilder.substring(0, rangeBuilder.length - 1) else ""
+
+    is.put(RANGES_OPT, ranges_opt)
+
+    val filterList = new FilterList
+    filters.foreach(filterList.addFilter)
+    is.put(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
+
     is.toMap
   }
 

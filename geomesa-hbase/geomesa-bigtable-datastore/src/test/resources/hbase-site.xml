@@ -5,11 +5,11 @@
   </property>
   <property>
     <name>google.bigtable.instance.id</name>
-    <value>[YOUR PROJECT NAME HERE]</value>
+    <value>[INSTANCE-ID]</value>
   </property>
   <property>
     <name>google.bigtable.project.id</name>
-    <value>[YOUR PROJECT ID HERE]</value>
+    <value>[PROJECT-ID]</value>
   </property>
   <!-- default hbase value is 1200000, bigtable requires < 300000 -->
   <property>

@@ -26,7 +26,6 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.{BatchScanPlan, JoinPlan}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.execute.Success
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -84,18 +83,19 @@ class BatchMultiScannerTest extends Specification {
   fs.addFeatures(featureCollection)
 
   def attrIdxEqualQuery(attr: String, value: String, batchSize: Int): Int = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val qps = ds.getQueryPlan(new Query(sftName, ECQL.toFilter(s"$attr = '$value'")))
     qps must haveLength(1)
     val qp = qps.head
     qp must beAnInstanceOf[JoinPlan]
-    qp.ranges must haveLength(1)
+    qp.ranges must haveLength(sft.getAttributeShards)
 
     val instance = new MockInstance(instanceName)
     val conn = instance.getConnector(user, new PasswordToken(pass))
 
     conn.tableOperations.exists(qp.table) must beTrue
-    val attrScanner = conn.createScanner(qp.table, new Authorizations())
-    attrScanner.setRange(qp.ranges.head)
+    val attrScanner = conn.createBatchScanner(qp.table, new Authorizations(), 1)
+    attrScanner.setRanges(qp.ranges)
 
     val jp = qp.join.get._2.asInstanceOf[BatchScanPlan]
     conn.tableOperations().exists(jp.table) must beTrue
@@ -110,7 +110,7 @@ class BatchMultiScannerTest extends Specification {
 
   "BatchMultiScanner" should {
     "handle corner cases for attr index queries" in {
-      List(1, 2, 3, 4, 5, 6, 8, 15, 16, 17, 200).foreach { batchSize =>
+      foreach(List(1, 2, 3, 4, 5, 6, 8, 15, 16, 17, 200)) { batchSize =>
         // test something that exists
         attrIdxEqualQuery("name", "b", batchSize) mustEqual 4
 
@@ -123,7 +123,6 @@ class BatchMultiScannerTest extends Specification {
         // test something that was stored as a null
         attrIdxEqualQuery("age", "43", batchSize) mustEqual 0
       }
-      Success()
     }
 
     "should throw an exception on a bad batch size" in {

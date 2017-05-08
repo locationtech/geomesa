@@ -49,10 +49,11 @@ object CloseQuietly extends SafeClose {
 object WithClose {
   // defined for up to 3 variables, implement more methods if needed
   def apply[A <: AnyCloseable, B](a: A)(fn: (A) => B): B = try { fn(a) } finally { a.close() }
-  def apply[A <: AnyCloseable, B <: AnyCloseable, C](a: A, b: B)(fn: (A, B) => C): C =
-    try { try { fn(a, b) } finally { a.close() } } finally { b.close() }
-  def apply[A <: AnyCloseable, B <: AnyCloseable, C <: AnyCloseable, D](a: A, b: B, c: C)(fn: (A, B, C) => D): D =
-    try { try { try { fn(a, b, c) } finally { a.close() } } finally { b.close() } } finally { c.close() }
+  def apply[A <: AnyCloseable, B <: AnyCloseable, C](a: A, b: => B)(fn: (A, B) => C): C =
+    apply(a) { a => apply(b) { b => fn(a, b) } }
+  def apply[A <: AnyCloseable, B <: AnyCloseable, C <: AnyCloseable, D](a: A, b: => B, c: => C)(fn: (A, B, C) => D): D = {
+    apply(a) { a => apply(b) { b => apply(c) { c => fn(a, b, c) } } }
+  }
 }
 
 /**

@@ -60,8 +60,10 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     init(context.getConfiguration)
     val rr = delegate.createRecordReader(split, context)
     val transformSchema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
+    val schema = transformSchema.getOrElse(sft)
     val q = GeoMesaConfigurator.getFilter(context.getConfiguration).map { f => ECQL.toFilter(f) }
-    new HBaseGeoMesaRecordReader(sft, table, rr, q, transformSchema)
+    // transforms are pushed down in HBase
+    new HBaseGeoMesaRecordReader(schema, table, rr, q, None)
   }
 }
 
@@ -127,7 +129,7 @@ class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
 
   private def nextFeatureFromOptional(toFeature: Result => Option[SimpleFeature]) = () => {
     staged = null
-    while (reader.nextKeyValue() && staged == null) {
+    while (staged == null && reader.nextKeyValue()) {
       toFeature(reader.getCurrentValue) match {
         case Some(feature) => staged = feature
         case None => staged = null
@@ -137,7 +139,7 @@ class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
 
   private def nextFeatureFromDirect(toFeature: Result => SimpleFeature) = () => {
     staged = null
-    while (reader.nextKeyValue() && staged == null) {
+    while (staged == null && reader.nextKeyValue()) {
       staged = toFeature(reader.getCurrentValue)
     }
   }
