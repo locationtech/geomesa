@@ -20,7 +20,9 @@ import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex.{NullByteArray, decode}
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AttributeSplittable}
+import org.locationtech.geomesa.index.index.AttributeRowDecoder
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -34,7 +36,8 @@ import scala.util.{Failure, Success, Try}
 /**
  * Contains logic for converting between accumulo and geotools for the attribute index
  */
-trait AttributeWritableIndex extends AccumuloFeatureIndex with AttributeSplittable with LazyLogging {
+trait AttributeWritableIndex extends AccumuloFeatureIndex
+    with AttributeSplittable with AttributeRowDecoder with LazyLogging {
 
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
@@ -76,6 +79,21 @@ trait AttributeWritableIndex extends AccumuloFeatureIndex with AttributeSplittab
         }
     }
     AttributeWritableIndex.getRowKeys(indexedAttributes, prefix, getSuffix)
+  }
+
+  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[Any] = {
+    val from = if (sft.isTableSharing) 3 else 2 // exclude feature byte and index bytes
+    val descriptor = sft.getDescriptor(index)
+    (row, offset, length) => Try {
+      val valueStart = offset + from // start of the encoded value
+      val end = offset + length // end of the row, max search space
+      var valueEnd = valueStart // end of the encoded value
+      while (valueEnd < end && row(valueEnd) != NullByteArray(0)) { // null byte indicates end of value
+        valueEnd += 1
+      }
+      val encoded = new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8)
+      decode(encoded, descriptor)
+    }
   }
 }
 
@@ -228,18 +246,6 @@ object AttributeWritableIndex extends LazyLogging {
   // upper bound for all values of the attribute, exclusive
   private def upperBound(sft: SimpleFeatureType, i: Int): Text =
     AccRange.followingPrefix(new Text(getRowPrefix(sft, i)))
-
-  /**
-   * Decodes an attribute value out of row string
-   */
-  def decodeRow(sft: SimpleFeatureType, i: Int, row: Text): Try[Any] = Try {
-    val from = if (sft.isTableSharing) 3 else 2 // exclude feature byte and index bytes
-    // null byte indicates end of value
-    val rawBytes = row.getBytes
-    val length = rawBytes.indexOf(NullByteArray(0), from + 1) - from
-    val encoded = new String(rawBytes, from, length, StandardCharsets.UTF_8)
-    decode(encoded, sft.getDescriptor(i))
-  }
 
   /**
    * Lexicographically encode the value. Collections will return multiple rows, one for each entry.

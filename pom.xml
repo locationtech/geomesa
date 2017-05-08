@@ -1489,6 +1489,13 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
+                <type>test-jar</type>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-arrow-jts</artifactId>
                 <version>${project.version}</version>
             </dependency>

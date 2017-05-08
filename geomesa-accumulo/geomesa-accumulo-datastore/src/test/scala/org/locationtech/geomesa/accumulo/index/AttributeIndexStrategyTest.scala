@@ -25,7 +25,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.index.api.{FilterSplitter, FilterStrategy}
 import org.locationtech.geomesa.index.conf.QueryHints._
-import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer, KryoLazyDensityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -75,6 +75,11 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     val feature = new ScalaSimpleFeature(entry.head.toString, sft)
     feature.setAttributes(entry.asInstanceOf[Array[AnyRef]])
     feature
+  }
+
+  val shards = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    sft.getAttributeShards
   }
 
   addFeatures(features)
@@ -177,7 +182,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges with the attribute equals prefix
-        val features = execute(s"height = 12.0 AND $stFilter", ranges = Some(beGreaterThan(1)))
+        val features = execute(s"height = 12.0 AND $stFilter", ranges = Some(beGreaterThan(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -193,7 +198,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the upper bound
-        val features = execute(s"height < 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height < 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("alice")
       }
@@ -209,7 +214,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the upper bound
-        val features = execute(s"height <= 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height <= 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(2)
         features must contain("bill", "bob")
       }
@@ -225,7 +230,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the lower bound
-        val features = execute(s"height > 11.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height > 11.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -241,7 +246,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the lower bound
-        val features = execute(s"height >= 11.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height >= 11.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -257,7 +262,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the end bounds
-        val features = execute(s"height between 11.0 AND 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height between 11.0 AND 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -323,7 +328,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_HEIGHT, 600)
       query.getHints.put(DENSITY_WIDTH, 400)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = KryoLazyDensityUtils.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((41.325,58.5375,1.0), (42.025,58.5375,1.0), (40.675,58.5375,1.0)))
     }
@@ -336,7 +341,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_WIDTH, 400)
       query.getHints.put(DENSITY_WEIGHT, "count")
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = KryoLazyDensityUtils.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((41.325,58.5375,3.0), (42.025,58.5375,4.0), (40.675,58.5375,2.0)))
     }
@@ -349,7 +354,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_WIDTH, 400)
       query.getHints.put(DENSITY_WEIGHT, "age")
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = KryoLazyDensityUtils.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((40.675,58.5375,21.0), (41.325,58.5375,30.0), (42.025,58.5375,0.0)))
     }
@@ -361,7 +366,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_HEIGHT, 600)
       query.getHints.put(DENSITY_WIDTH, 400)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = KryoLazyDensityUtils.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((40.675,58.5375,1.0), (42.025,58.5375,1.0)))
     }

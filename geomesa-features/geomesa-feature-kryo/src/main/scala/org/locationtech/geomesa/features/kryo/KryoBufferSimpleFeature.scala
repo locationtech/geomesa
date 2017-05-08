@@ -35,6 +35,9 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
                               readers: Array[(Input) => AnyRef],
                               readUserData: (Input) => jMap[AnyRef, AnyRef],
                               options: Set[SerializationOption]) extends SimpleFeature {
+  private var offset: Int = _
+  private var length: Int = _
+
 
   private val input = new Input
   private val offsets = Array.ofDim[Int](sft.getAttributeCount)
@@ -48,6 +51,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
   private var transforms: String = _
   private var transformSchema: SimpleFeatureType = _
+
   private var binaryTransform: () => Array[Byte] = input.getBuffer
   private var reserializeTransform: () => Array[Byte] = input.getBuffer
 
@@ -88,11 +92,13 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     * @param length number of valid bytes to read from the byte array
     */
   def setBuffer(bytes: Array[Byte], offset: Int, length: Int): Unit = {
+    this.offset = offset
+    this.length = length
     input.setBuffer(bytes, offset, offset + length)
     // reset our offsets
     input.setPosition(offset + 1) // skip version
-    startOfOffsets = input.readInt()
-    input.setPosition(offset + startOfOffsets) // set to offsets start
+    startOfOffsets = offset + input.readInt()
+    input.setPosition(startOfOffsets) // set to offsets start
     var i = 0
     while (i < offsets.length && input.position < input.limit) {
       offsets(i) = offset + input.readInt(true)
@@ -148,8 +154,10 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
       val mutableOffsetsAndLength = Array.ofDim[(Int,Int)](indices.length)
 
       () => {
+        // NOTE: the input buffer is the raw buffer. we need to ensure that we use the
+        // offset into the raw buffer rather than the raw buffer directly
         val buf = input.getBuffer
-        var length = offsets(0) // space for version, offset block and ID
+        var length = offsets(0) - this.offset // space for version, offset block and ID
         var idx = 0
         while(idx < mutableOffsetsAndLength.length) {
           val i = indices(idx)
@@ -161,8 +169,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
         val dst = Array.ofDim[Byte](length)
         // copy the version, offset block and id
-        var dstPos = offsets(0)
-        System.arraycopy(buf, 0, dst, 0, dstPos)
+        var dstPos = offsets(0) - this.offset
+        System.arraycopy(buf, this.offset, dst, 0, dstPos)
         mutableOffsetsAndLength.foreach { case (o, l) =>
           System.arraycopy(buf, o, dst, dstPos, l)
           dstPos += l

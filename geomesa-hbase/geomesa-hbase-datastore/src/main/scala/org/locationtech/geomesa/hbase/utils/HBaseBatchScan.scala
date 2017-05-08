@@ -15,7 +15,7 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.Filter
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 
-class HBaseBatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan], threads: Int, buffer: Int, remoteFilters: Seq[Filter] = Nil)
+class HBaseBatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)
     extends AbstractBatchScan[Scan, Result](ranges, threads, buffer) {
 
   private lazy val table = connection.getTable(tableName)
@@ -30,7 +30,6 @@ class HBaseBatchScan(connection: Connection, tableName: TableName, ranges: Seq[S
   override protected def scan(range: Scan, out: BlockingQueue[Result]): Unit = {
     import scala.collection.JavaConversions._
 
-    remoteFilters.foreach { filter => range.setFilter(filter) }
     val scan = table.getScanner(range)
     try {
       scan.iterator.foreach(out.put)

@@ -11,7 +11,8 @@
     <name>GeoMesa HBase Parent</name>
 
     <properties>
-        <bigtable.version>0.9.4</bigtable.version>
+        <bigtable.version>0.9.6.1</bigtable.version>
+        <protobuf.version>2.6.1</protobuf.version>
     </properties>
 
     <dependencyManagement>
@@ -40,6 +41,7 @@
         <module>geomesa-hbase-dist</module>
         <module>geomesa-hbase-distributed-runtime</module>
         <module>geomesa-hbase-gs-plugin</module>
+        <module>geomesa-hbase-native-api</module>
         <module>geomesa-hbase-tools</module>
         <module>geomesa-hbase-spark</module>
         <module>geomesa-hbase-spark-runtime</module>
@@ -53,6 +55,8 @@
                 <module>geomesa-bigtable-dist</module>
                 <module>geomesa-bigtable-gs-plugin</module>
                 <module>geomesa-bigtable-tools</module>
+                <module>geomesa-bigtable-spark</module>
+                <module>geomesa-bigtable-spark-runtime</module>
             </modules>
         </profile>
     </profiles>

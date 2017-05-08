@@ -18,7 +18,7 @@ import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.legacy.attribute.{AttributeIndexV2, AttributeIndexV3}
+import org.locationtech.geomesa.accumulo.index.legacy.attribute.{AttributeIndexV2, AttributeIndexV3, AttributeIndexV4}
 import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV1
 import org.locationtech.geomesa.accumulo.index.legacy.z2.{Z2IndexV1, Z2IndexV2}
 import org.locationtech.geomesa.accumulo.index.legacy.z3.{Z3IndexV1, Z3IndexV2, Z3IndexV3}
@@ -44,7 +44,7 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
 
   private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV2, Z2IndexV1)
   private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV3, Z3IndexV2, Z3IndexV1)
-  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV3, AttributeIndexV2)
+  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
   private val RecordIndices         = Seq(RecordIndex, RecordIndexV1)
 
   // note: keep in priority order for running full table scans

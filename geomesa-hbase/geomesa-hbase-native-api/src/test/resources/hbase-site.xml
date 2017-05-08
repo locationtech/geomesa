@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <!--<property>-->
+    <!--<name>hbase.rootdir</name>-->
+    <!--<value>file:///opt/devel/install/hbase-1.2.3/data/hbase</value>-->
+  <!--</property>-->
+  <!--<property>-->
+    <!--<name>hbase.zookeeper.property.dataDir</name>-->
+    <!--<value>/opt/devel/install/hbase-1.2.3/data/zookeeper</value>-->
+  <!--</property>-->
+  <property>
+    <name>hbase.coprocessor.master.classes</name>
+    <value>org.apache.hadoop.hbase.security.visibility.VisibilityController</value>
+  </property>
+  <property>
+    <name>hbase.coprocessor.region.classes</name>
+    <value>org.apache.hadoop.hbase.security.visibility.VisibilityController</value>
+  </property>
+
+  <property>
+    <name>hfile.format.version</name>
+    <value>3</value>
+  </property>
+</configuration>

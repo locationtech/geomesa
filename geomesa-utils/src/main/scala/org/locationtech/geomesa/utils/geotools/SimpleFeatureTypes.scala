@@ -27,6 +27,7 @@ object SimpleFeatureTypes {
   object Configs {
     val TABLE_SHARING_KEY   = "geomesa.table.sharing"
     val DEFAULT_DATE_KEY    = "geomesa.index.dtg"
+    val IGNORE_INDEX_DTG    = "geomesa.ignore.dtg"
     val VIS_LEVEL_KEY       = "geomesa.visibility.level"
     val Z3_INTERVAL_KEY     = "geomesa.z3.interval"
     val XZ_PRECISION_KEY    = "geomesa.xz.precision"
@@ -40,7 +41,8 @@ object SimpleFeatureTypes {
     // keep around old values for back compatibility
     val ENABLED_INDEX_OPTS  = Seq(ENABLED_INDICES, "geomesa.indexes.enabled", "table.indexes.enabled")
     val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
-    val NUM_SPLITS_KEY      = "geomesa.z.splits"
+    val Z_SPLITS_KEY        = "geomesa.z.splits"
+    val ATTR_SPLITS_KEY     = "geomesa.attr.splits"
   }
 
   private [geomesa] object InternalConfigs {
@@ -155,7 +157,7 @@ object SimpleFeatureTypes {
     * @param newName new name
     * @return
     */
-  def renameSft(sft: SimpleFeatureType, newName: String) = {
+  def renameSft(sft: SimpleFeatureType, newName: String): SimpleFeatureType = {
     val builder = new SimpleFeatureTypeBuilder()
     builder.init(sft)
     builder.setName(newName)
@@ -166,7 +168,7 @@ object SimpleFeatureTypes {
 
   private def createType(namespace: String, name: String, spec: SimpleFeatureSpec): SimpleFeatureType = {
     import AttributeOptions.OPT_DEFAULT
-    import Configs.DEFAULT_DATE_KEY
+    import Configs.{DEFAULT_DATE_KEY, IGNORE_INDEX_DTG}
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val defaultGeom = {
@@ -175,7 +177,7 @@ object SimpleFeatureTypes {
           .orElse(geomAttributes.headOption)
           .map(_.name)
     }
-    val defaultDate = {
+    val defaultDate = if (spec.options.get(IGNORE_INDEX_DTG).exists(toBoolean)) { None } else {
       val dateAttributes = spec.attributes.filter(_.clazz.isAssignableFrom(classOf[Date]))
       spec.options.get(DEFAULT_DATE_KEY).flatMap(dtg => dateAttributes.find(_.name == dtg))
           .orElse(dateAttributes.find(_.options.get(OPT_DEFAULT).exists(_.toBoolean)))
@@ -207,4 +209,11 @@ object SimpleFeatureTypes {
 
   def getSecondaryIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] =
     sft.getAttributeDescriptors.filter(ad => ad.isIndexed && !ad.isInstanceOf[GeometryDescriptor])
+
+  private [utils] def toBoolean(value: AnyRef): Boolean = value match {
+    case null => false
+    case bool: java.lang.Boolean => bool.booleanValue
+    case bool: String => java.lang.Boolean.valueOf(bool).booleanValue
+    case bool => java.lang.Boolean.valueOf(bool.toString).booleanValue
+  }
 }

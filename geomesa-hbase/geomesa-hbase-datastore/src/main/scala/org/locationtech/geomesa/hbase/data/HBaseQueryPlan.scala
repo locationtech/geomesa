@@ -8,23 +8,24 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import com.google.common.collect.Lists
+import com.google.protobuf.ByteString
+import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
-import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HBaseFilter}
+import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
+import org.geotools.factory.Hints
+import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
+import org.locationtech.geomesa.hbase.driver.KryoLazyDensityDriver
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-
-sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
+trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
   def table: TableName
   def ranges: Seq[Query]
-  def remoteFilters: Seq[HBaseFilter]
   // note: entriesToFeatures encapsulates ecql and transform
   def resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]
 
@@ -38,7 +39,6 @@ object HBaseQueryPlan {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
     explainer(s"Table: ${Option(plan.table).orNull}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    explainer(s"Remote Filters (${plan.remoteFilters.size}):", plan.remoteFilters.map(_.toString))
     explainer.popLevel()
   }
 
@@ -54,7 +54,6 @@ object HBaseQueryPlan {
 case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override val table: TableName = null
   override val ranges: Seq[Query] = Seq.empty
-  override val remoteFilters: Seq[HBaseFilter] = Nil
   override val resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature] = (i) => Iterator.empty
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
@@ -62,19 +61,46 @@ case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
 case class ScanPlan(filter: HBaseFilterStrategyType,
                     table: TableName,
                     ranges: Seq[Scan],
-                    remoteFilters: Seq[HBaseFilter] = Nil,
                     resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     ranges.foreach(ds.applySecurity)
-    val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000, remoteFilters)
+    val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
     SelfClosingIterator(resultsToFeatures(results), results.close)
+  }
+}
+
+case class CoprocessorPlan(sft: SimpleFeatureType,
+                           filter: HBaseFilterStrategyType,
+                           hints: Hints,
+                           table: TableName,
+                           ranges: Seq[Scan],
+                           hbaseFilters: Seq[HFilter],
+                           resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan  {
+  /**
+    * Runs the query plain against the underlying database, returning the raw entries
+    *
+    * @param ds data store - provides connection object and metadata
+    * @return
+    */
+  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+    if (hints.isDensityQuery) {
+      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, ranges, hbaseFilters, hints)
+      val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
+      val hbaseTable = ds.connection.getTable(table)
+      val client = new KryoLazyDensityDriver()
+      val result: List[ByteString] = client.kryoLazyDensityFilter(hbaseTable, byteArray)
+      result.map(r => KryoLazyDensityCoprocessor.bytesToFeatures(r.toByteArray)).toIterator
+    } else {
+      throw new NotImplementedException()
+    }
   }
 }
 
 case class GetPlan(filter: HBaseFilterStrategyType,
                    table: TableName,
                    ranges: Seq[Get],
-                   remoteFilters: Seq[HBaseFilter] = Nil,
+                   remoteFilters: Seq[HFilter] = Nil,
                    resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
@@ -86,46 +112,5 @@ case class GetPlan(filter: HBaseFilterStrategyType,
     }
     val get = ds.connection.getTable(table)
     SelfClosingIterator(resultsToFeatures(get.get(ranges).iterator), get.close)
-  }
-}
-
-case class MultiRowRangeFilterScanPlan(filter: HBaseFilterStrategyType,
-                                       table: TableName,
-                                       ranges: Seq[Scan],
-                                       remoteFilters: Seq[HBaseFilter] = Nil,
-                                       resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
-
-  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    import scala.collection.JavaConversions._
-
-    val rowRanges = Lists.newArrayList[RowRange]()
-    ranges.foreach { r =>
-      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
-    }
-    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
-    val numRanges = sortedRowRanges.length
-    val numThreads = ds.config.queryThreads
-    // TODO: parameterize this?
-    val rangesPerThread = math.max(1,math.ceil(numRanges/numThreads*2).toInt)
-    // TODO: align partitions with region boundaries
-    val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
-
-    val groupedScans = groupedRanges.map { localRanges =>
-      val mrrf = new MultiRowRangeFilter(localRanges)
-      val filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, mrrf)
-      remoteFilters.foreach { f => filterList.addFilter(f) }
-
-      val s = new Scan()
-      s.setStartRow(localRanges.head.getStartRow)
-      s.setStopRow(localRanges.get(localRanges.length-1).getStopRow)
-      s.setFilter(filterList)
-      s.setCaching(1000)
-      s.setCacheBlocks(true)
-      s
-    }
-    // Apply Visibilities
-    groupedScans.foreach(ds.applySecurity)
-    val results = new HBaseBatchScan(ds.connection, table, groupedScans, ds.config.queryThreads, 100000, Nil)
-    SelfClosingIterator(resultsToFeatures(results), results.close)
   }
 }

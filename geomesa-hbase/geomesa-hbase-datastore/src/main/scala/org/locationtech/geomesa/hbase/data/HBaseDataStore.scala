@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class HBaseDataStore(val connection: Connection, val remote: Boolean, override val config: HBaseDataStoreConfig)
+class HBaseDataStore(val connection: Connection, override val config: HBaseDataStoreConfig)
     extends HBaseDataStoreType(config) with LocalLocking {
 
   override val metadata: GeoMesaMetadata[String] =

@@ -13,17 +13,16 @@ import java.security.PrivilegedExceptionAction
 import java.util
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.security.SecurityCapability
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
-import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -31,18 +30,13 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
-@RunWith(classOf[JUnitRunner])
-class HBaseVisibilityTest extends Specification with LazyLogging {
+class HBaseVisibilityTest extends HBaseTest with LazyLogging {
 
   sequential
-
-  val cluster = new HBaseTestingUtility()
 
   var adminUser: User = _
   var user1:     User = _
@@ -81,10 +75,6 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
   }
 
   step {
-    logger.info("Starting embedded hbase")
-    cluster.getConfiguration.set("hbase.superuser", "admin")
-    cluster.startMiniCluster(1)
-
     adminUser = User.createUserForTesting(cluster.getConfiguration, "admin",    Array[String]("supergroup"))
     user1     = User.createUserForTesting(cluster.getConfiguration, "user1",    Array.empty[String])
     user2     = User.createUserForTesting(cluster.getConfiguration, "user2",    Array.empty[String])
@@ -128,7 +118,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       }
     })
 
-    logger.info("Successfully started embedded hbase")
+    logger.info("Successfully created authorizations")
   }
 
   "HBase cluster" should {
@@ -159,7 +149,9 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
     "properly filter vis" >> {
       val typeName = "vistest1"
       val tableName = "vistest1"
-      val params = Map(ConnectionParam.getName -> adminConn, BigTableNameParam.getName -> tableName)
+      val params = Map(
+        ConnectionParam.getName -> adminConn,
+        BigTableNameParam.getName -> tableName)
       val writeDS = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       writeDS.getSchema(typeName) must beNull
@@ -262,7 +254,9 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
     "work with points" in {
       val typeName = "testpoints"
 
-      val params = Map(ConnectionParam.getName -> user1Conn, BigTableNameParam.getName -> "test_sft")
+      val params = Map(
+        ConnectionParam.getName -> user1Conn,
+        BigTableNameParam.getName -> "test_sft")
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull
@@ -317,12 +311,6 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
         }
       }
       ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
-    }
-
-    step {
-      logger.info("Stopping embedded hbase")
-      cluster.shutdownMiniCluster()
-      logger.info("Embedded HBase stopped")
     }
   }
 }

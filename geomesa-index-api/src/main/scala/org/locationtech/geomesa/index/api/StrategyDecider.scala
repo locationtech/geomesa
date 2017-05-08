@@ -49,7 +49,7 @@ class StrategyDecider[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](
     val availableIndices = manager.indices(sft, IndexMode.Read)
 
     // get the various options that we could potentially use
-    val options = profile("split")(new FilterSplitter(sft, availableIndices).getQueryOptions(filter))
+    val options = profile("split")(new FilterSplitter(sft, availableIndices).getQueryOptions(filter, transform))
 
     explain(s"Query processing took ${timings.time("split")}ms and produced ${options.length} options")
 
