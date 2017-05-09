@@ -73,6 +73,8 @@ class StatsIteratorProcess extends LazyLogging {
 
 class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode: Boolean, properties: Array[String] = null)
     extends FeatureCalc with LazyLogging {
+
+  import scala.collection.JavaConversions._
   val origSft = features.getSchema
 
   lazy val (transforms, transformSFT) = QueryPlanner.buildTransformSFT(origSft, properties)
