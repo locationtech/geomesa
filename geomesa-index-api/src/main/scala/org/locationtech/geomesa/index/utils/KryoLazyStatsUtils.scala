@@ -1,3 +1,11 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 package org.locationtech.geomesa.index.utils
 
 import org.apache.commons.codec.binary.Base64
@@ -10,9 +18,6 @@ import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-/**
-  * Created by Spandan on 5/8/17.
-  */
 object KryoLazyStatsUtils {
   val StatsSft = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
 
