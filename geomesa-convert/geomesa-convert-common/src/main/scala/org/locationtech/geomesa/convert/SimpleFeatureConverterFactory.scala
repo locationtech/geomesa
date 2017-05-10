@@ -126,7 +126,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
   }
   protected def getValidator(conf: Config, sft: SimpleFeatureType): SimpleFeatureValidator = {
     val validators: Seq[String] =
-      if (conf.hasPath(StandardOption.Validating.path) && conf.hasPath(StandardOption.Validating.path)) {
+      if (conf.hasPath(StandardOption.Validating.path) && conf.hasPath(StandardOption.ValidatorsOpt.path)) {
         throw new IllegalArgumentException(s"Converter should not have both ${StandardOption.Validating.path} and " +
           s"${StandardOption.ValidatorsOpt.path} config keys")
       } else if (conf.hasPath(StandardOption.ValidatorsOpt.path)) {
