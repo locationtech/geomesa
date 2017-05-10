@@ -160,5 +160,26 @@ class ValidatorTest extends Specification {
       converter.process(is("20120101,Point(2 2)")).next().point.getY mustEqual 2.0
       converter.process(is("20120101,Point(200 200)")).toList.size mustEqual 0
     }
+
+    "skip bad geo records in batch mode" >> {
+      val conf = baseConf.withFallback(ConfigFactory.parseString(
+        """ { options.parse-mode = "batch", options.validation-mode = skip-bad-records, options.validators = ["z-index"] } """))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not beNull
+
+      val res = converter.process(is(
+        """20120101,Point(2 2)
+          |20120102,Point(200 200)
+          |20120103,Point(3 3)
+          |20120104,Point(-181 -181)
+          |20120105,Point(4 4)
+        """.stripMargin)).toList
+      res.size mustEqual 3
+      res.sortBy(_.point.getY)
+      res(0).point.getY mustEqual 2.0
+      res(1).point.getY mustEqual 3.0
+      res(2).point.getY mustEqual 4.0
+
+    }
   }
 }
