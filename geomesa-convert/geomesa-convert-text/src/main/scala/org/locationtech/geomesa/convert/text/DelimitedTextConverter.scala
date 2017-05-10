@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.convert.text
 
 import java.io._
+
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
-import org.locationtech.geomesa.convert.{AbstractSimpleFeatureConverterFactory, Field, LinesToSimpleFeatureConverter}
+import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.collection.immutable.IndexedSeq
 
 class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
@@ -29,7 +31,7 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
-                                        validating: Boolean): DelimitedTextConverter = {
+                                        parseOpts: ConvertParseOpts): DelimitedTextConverter = {
     var baseFmt = conf.getString("format").toUpperCase match {
       case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
@@ -61,7 +63,7 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
       baseFmt = baseFmt.withEscape(q.toCharArray()(0))
     }
 
-    new DelimitedTextConverter(baseFmt, sft, idBuilder, fields, userDataBuilder, opts, validating)
+    new DelimitedTextConverter(baseFmt, sft, idBuilder, fields, userDataBuilder, opts, parseOpts)
   }
 }
 
@@ -73,7 +75,7 @@ class DelimitedTextConverter(format: CSVFormat,
                              val inputFields: IndexedSeq[Field],
                              val userDataBuilder: Map[String, Expr],
                              val options: DelimitedOptions,
-                             val validating: Boolean)
+                             val parseOpts: ConvertParseOpts)
   extends LinesToSimpleFeatureConverter {
 
   override def processInput(is: Iterator[String], ec: EvaluationContext): Iterator[SimpleFeature] = {

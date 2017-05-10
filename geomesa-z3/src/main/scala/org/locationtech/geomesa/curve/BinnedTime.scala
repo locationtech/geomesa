@@ -116,6 +116,15 @@ object BinnedTime {
     }
   }
 
+  def maxDate(period: TimePeriod): DateTime = {
+    period match {
+      case TimePeriod.Day   => DaysMaxDate
+      case TimePeriod.Week  => WeeksMaxDate
+      case TimePeriod.Month => MonthsMaxDate
+      case TimePeriod.Year  => YearsMaxDate
+    }
+  }
+
   private def toDayAndMillis(time: Long): BinnedTime =
     toDayAndMillis(new DateTime(time, DateTimeZone.UTC))
 

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert.json
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
-import com.google.gson.{JsonArray, JsonElement, JsonNull, JsonObject}
+import com.google.gson.{JsonArray, JsonElement, JsonObject}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
 import com.jayway.jsonpath.{Configuration, JsonPath}
 import com.typesafe.config.Config
@@ -35,7 +35,7 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
                                  val inputFields: IndexedSeq[Field],
                                  val idBuilder: Expr,
                                  val userDataBuilder: Map[String, Expr],
-                                 val validating: Boolean,
+                                 val parseOpts: ConvertParseOpts,
                                  val lineMode: LineMode) extends ToSimpleFeatureConverter[String] {
 
   import scala.collection.JavaConversions._
@@ -80,10 +80,10 @@ class JsonSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
-                                        validating: Boolean): SimpleFeatureConverter[String] = {
+                                        parseOpts: ConvertParseOpts): SimpleFeatureConverter[String] = {
     val lineMode = LineMode.getLineMode(conf)
     val root = if (conf.hasPath("feature-path")) Some(JsonPath.compile(conf.getString("feature-path"))) else None
-    new JsonSimpleFeatureConverter(jsonConfig, sft, root, fields, idBuilder, userDataBuilder, validating, lineMode)
+    new JsonSimpleFeatureConverter(jsonConfig, sft, root, fields, idBuilder, userDataBuilder, parseOpts, lineMode)
   }
 
   override protected def buildField(field: Config): Field = {

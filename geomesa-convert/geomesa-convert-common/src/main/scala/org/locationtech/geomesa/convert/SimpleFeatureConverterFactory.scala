@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa.convert
 
-import java.io.{Closeable, InputStream}
+import java.io.{Closeable, IOException, InputStream}
 import java.nio.charset.StandardCharsets
+import java.util.NoSuchElementException
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
+import org.locationtech.geomesa.convert.ParseMode.ParseMode
 import org.locationtech.geomesa.convert.Transformers._
+import org.locationtech.geomesa.convert.ValidationMode.ValidationMode
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -30,17 +33,46 @@ trait Field {
 
 case class SimpleField(name: String, transform: Transformers.Expr) extends Field
 
-object StandardOptions {
-  val Validating = "options.validating"
-  val LineMode   = "options.line-mode"
+object StandardOption extends Enumeration {
+  type StandardOption = Value
+  @Deprecated val Validating = Value("validating")
+
+  val ValidatorsOpt     = Value("validators")
+  val ValidationModeOpt = Value("validation-mode")
+  val LineModeOpt       = Value("line-mode")
+  val ParseModeOpt      = Value("parse-mode")
+  val VerboseOpt        = Value("verbose")
+
+  implicit class StandardOptionValue(opt: Value) {
+    def path = s"options.$opt"
+  }
 }
+
+object ParseMode extends Enumeration {
+  type ParseMode = Value
+  val Incremental = Value("incremental")
+  val Batch       = Value("batch")
+  val Default     = Incremental
+}
+
+object ValidationMode extends Enumeration {
+  type ValidationMode = Value
+  val SkipBadRecords = Value("skip-bad-records")
+  val RaiseErrors    = Value("raise-errors")
+  val Default        = SkipBadRecords
+}
+
+case class ConvertParseOpts(parseMode: ParseMode,
+                            validator: SimpleFeatureValidator,
+                            validationMode: ValidationMode,
+                            verbose: Boolean)
 
 trait SimpleFeatureConverterFactory[I] {
   def canProcess(conf: Config): Boolean
   def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I]
 }
 
-abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
+abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureConverterFactory[I] with LazyLogging {
 
   override def canProcess(conf: Config): Boolean =
     if (conf.hasPath("type")) conf.getString("type").equals(typeToProcess) else false
@@ -49,8 +81,8 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
     val idBuilder = buildIdBuilder(conf)
     val fields = buildFields(conf)
     val userDataBuilder = buildUserDataBuilder(conf)
-    val validating = isValidating(conf)
-    buildConverter(sft, conf, idBuilder, fields, userDataBuilder, validating)
+    val parseOpts = getParsingOptions(conf, sft)
+    buildConverter(sft, conf, idBuilder, fields, userDataBuilder, parseOpts)
   }
 
   protected def typeToProcess: String
@@ -60,7 +92,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
                                idBuilder: Expr,
                                fields: IndexedSeq[Field],
                                userDataBuilder: Map[String, Expr],
-                               validating: Boolean): SimpleFeatureConverter[I]
+                               parseOpts: ConvertParseOpts): SimpleFeatureConverter[I]
 
   protected def buildFields(conf: Config): IndexedSeq[Field] =
     conf.getConfigList("fields").map(buildField).toIndexedSeq
@@ -86,8 +118,58 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
     }
   }
 
-  protected def isValidating(conf: Config): Boolean =
-    if (conf.hasPath(StandardOptions.Validating)) conf.getBoolean(StandardOptions.Validating) else true
+  protected def getParsingOptions(conf: Config, sft: SimpleFeatureType): ConvertParseOpts = {
+    val verbose = if (conf.hasPath(StandardOption.VerboseOpt.path)) conf.getBoolean(StandardOption.VerboseOpt.path) else false
+    val opts = ConvertParseOpts(getParseMode(conf), getValidator(conf, sft), getValidationMode(conf), verbose = verbose)
+    logger.info(s"Using ParseMode ${opts.parseMode} with validation mode ${opts.validationMode} and validator ${opts.validator.name}")
+    opts
+  }
+  protected def getValidator(conf: Config, sft: SimpleFeatureType): SimpleFeatureValidator = {
+    val validators: Seq[String] =
+      if (conf.hasPath(StandardOption.Validating.path) && conf.hasPath(StandardOption.Validating.path)) {
+        throw new IllegalArgumentException(s"Converter should not have both ${StandardOption.Validating.path} and " +
+          s"${StandardOption.ValidatorsOpt.path} config keys")
+      } else if (conf.hasPath(StandardOption.ValidatorsOpt.path)) {
+        conf.getStringList(StandardOption.ValidatorsOpt.path)
+      } else if (conf.hasPath(StandardOption.Validating.path)) {
+        logger.warn(s"Using deprecated validation key ${StandardOption.Validating.path}")
+        if (conf.getBoolean(StandardOption.Validating.path)) {
+          Seq("has-geo", "has-dtg")
+        } else {
+          Seq("none")
+        }
+      } else {
+        Seq("has-geo", "has-dtg")
+      }
+    ValidatorLoader.createValidator(validators, sft)
+  }
+
+  protected def getParseMode(conf: Config): ParseMode =
+    if (conf.hasPath(StandardOption.ParseModeOpt.path)) {
+      val modeStr = conf.getString(StandardOption.ParseModeOpt.path)
+      try {
+        ParseMode.withName(modeStr)
+      } catch {
+        case e: NoSuchElementException =>
+          throw new IllegalArgumentException(s"Unknown parse mode $modeStr")
+      }
+    } else {
+      ParseMode.Default
+    }
+
+  protected def getValidationMode(conf: Config): ValidationMode =
+    if (conf.hasPath(StandardOption.ValidationModeOpt.path)) {
+      val modeStr = conf.getString(StandardOption.ValidationModeOpt.path)
+      try {
+        ValidationMode.withName(modeStr)
+      } catch {
+        case e: NoSuchElementException =>
+          throw new IllegalArgumentException(s"Unknown validation mode $modeStr")
+      }
+    } else {
+      ValidationMode.Default
+    }
+
 }
 
 trait SimpleFeatureConverter[I] extends Closeable {
@@ -129,34 +211,23 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   def idBuilder: Expr
   def userDataBuilder: Map[String, Expr]
   def fromInputType(i: I): Seq[Array[Any]]
-  def validating: Boolean
+  def parseOpts: ConvertParseOpts
 
-  val validate: (SimpleFeature, EvaluationContext) => Boolean = {
-    val valid: (SimpleFeature) => Boolean = {
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-      val dtgFn: (SimpleFeature) => Boolean = targetSFT.getDtgIndex match {
-        case Some(dtgIdx) => (sf: SimpleFeature) => sf.getAttribute(dtgIdx) != null
-        case None => (_) => true
-      }
-      val geomFn: (SimpleFeature) => Boolean =
-        if (targetSFT.getGeometryDescriptor != null) {
-          (sf: SimpleFeature) => sf.getDefaultGeometry != null
+  val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
+    (sf: SimpleFeature, ec: EvaluationContext) => {
+      val v = parseOpts.validator.validate(sf)
+      if (v) {
+        sf
+      } else {
+        val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: ${parseOpts.validator.lastError}"
+        if (parseOpts.validationMode == ValidationMode.RaiseErrors) {
+          throw new IOException(msg)
         } else {
-          (_) => true
+          logger.debug(msg)
+          null
         }
-      (sf: SimpleFeature) => dtgFn(sf) && geomFn(sf)
       }
-
-    if (validating) {
-      (sf: SimpleFeature, ec: EvaluationContext) => {
-        val v = valid(sf)
-        if (!v) {
-          logger.debug(s"Invalid SimpleFeature on line ${ec.counter.getLineCount}")
-        }
-        v
-      }
-    } else (sf: SimpleFeature, ec: EvaluationContext) => true
-  }
+    }
 
   val fieldNameMap = inputFields.map(f => (f.name, f)).toMap
 
@@ -189,10 +260,20 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
         ec.set(i, requiredFields(i).eval(t)(ec))
       } catch {
         case e: Exception =>
-          val valuesStr = if (t.length > 0) t.tail.mkString(", ") else ""
-          logger.warn(s"Failed to evaluate field '${requiredFields(i).name}' using values:\n" +
-            s"${t.headOption.orNull}\n[$valuesStr]", e) // head is the whole record
-          return null
+          val msg = if (parseOpts.verbose) {
+            val valuesStr = if (t.length > 0) t.tail.mkString(", ") else ""
+            s"Failed to evaluate field '${requiredFields(i).name}' " +
+              s"on line ${ec.counter.getLineCount} using values:\n" +
+              s"${t.headOption.orNull}\n[$valuesStr]"  // head is the whole record
+          } else {
+            s"Failed to evaluate field '${requiredFields(i).name}' on line ${ec.counter.getLineCount}"
+          }
+          if (parseOpts.validationMode == ValidationMode.SkipBadRecords) {
+            if (parseOpts.verbose) logger.debug(msg, e) else logger.debug(msg)
+            return null
+          } else {
+            throw new IOException(msg, e)
+          }
       }
       val sftIndex = sftIndices(i)
       if (sftIndex != -1) {
@@ -205,7 +286,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     val sf = new ScalaSimpleFeature(id, targetSFT, sfValues)
     userDataBuilder.foreach { case (k, v) => sf.getUserData.put(k, v.eval(t)(ec).asInstanceOf[AnyRef]) }
 
-    if (validate(sf, ec)) sf else null
+    validate(sf, ec)
   }
 
   /**
@@ -234,8 +315,16 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     new EvaluationContextImpl(names, values, counter)
   }
 
-  override def processInput(is: Iterator[I], ec: EvaluationContext): Iterator[SimpleFeature] =
-    is.flatMap(i =>  processSingleInput(i, ec))
+  override def processInput(is: Iterator[I], ec: EvaluationContext): Iterator[SimpleFeature] = {
+    parseOpts.parseMode match {
+       case ParseMode.Incremental  =>
+         is.flatMap(i => processSingleInput(i, ec))
+       case ParseMode.Batch =>
+         val ret = mutable.ListBuffer.empty[SimpleFeature]
+         is.foreach(i => ret ++= processSingleInput(i, ec))
+         ret.iterator
+    }
+  }
 }
 
 trait LinesToSimpleFeatureConverter extends ToSimpleFeatureConverter[String] {
