@@ -29,7 +29,6 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 
 import scala.collection.JavaConversions._
 
-
 class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import HBaseDataStoreParams._

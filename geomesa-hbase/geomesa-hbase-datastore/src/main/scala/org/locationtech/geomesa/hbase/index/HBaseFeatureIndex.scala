@@ -64,6 +64,11 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     val coproUrl = ds.config.coprocessorUrl
     val admin = ds.connection.getAdmin
 
+    // TODO: Put this list somewhere better
+    val coproList: Seq[Class[_ <: Coprocessor]] = Seq(
+      classOf[KryoLazyDensityCoprocessor]
+    )
+
     def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor, path: Path): Unit ={
       val name = clazz.getCanonicalName
       if (!desc.getCoprocessors.contains(name)) {
@@ -75,11 +80,9 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       }
     }
 
-    def addCoprocessors(desc: HTableDescriptor, path: Path): Unit = {
-      Seq(
-        classOf[KryoLazyDensityCoprocessor]
-      ).foreach(c => addCoprocessor(c, desc, path))
-    }
+    def addCoprocessors(desc: HTableDescriptor, path: Path): Unit =
+      coproList.foreach(c => addCoprocessor(c, desc, path))
+
 
     try {
       val descriptor = new HTableDescriptor(name)
@@ -89,7 +92,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
         admin.createTable(descriptor, getSplits(sft).toArray)
       } else {
-        if (!descriptor.getCoprocessors.contains(classOf[KryoLazyDensityCoprocessor].toString)) {
+        if (!coproList.forall(c => descriptor.getCoprocessors.contains(c.getCanonicalName))) {
           logger.info(s"Adding coprocessor registration to $name")
 
           admin.disableTable(name)
@@ -99,17 +102,16 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
           logger.info("Coprocessors Registered, waiting for replication")
 
-          def wait(): Unit = {
+          val sleepInt = 100 // ms
+          def wait(remainder: Int = admin.getOperationTimeout): Unit = {
             if (admin.getAlterStatus(name).getFirst > 0) {
-              Thread sleep 100
-              wait()
+              Thread.sleep(sleepInt)
+              wait(remainder - sleepInt)
             }
           }
           wait()
 
           logger.info("Registration complete")
-        } else {
-          logger.warn(s"GeoMesa coprocessors are not registered for table: $name")
         }
       }
     } finally {
