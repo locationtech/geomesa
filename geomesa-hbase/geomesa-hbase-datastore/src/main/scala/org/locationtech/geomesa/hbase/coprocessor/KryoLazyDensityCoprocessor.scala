@@ -89,6 +89,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
       scanList.foreach(scan => {
         scan.setFilter(filterList)
+        // TODO: Explore use of MultiRangeFilter
         scanner = env.getRegion.getScanner(scan)
         val results = new java.util.ArrayList[Cell]
 
