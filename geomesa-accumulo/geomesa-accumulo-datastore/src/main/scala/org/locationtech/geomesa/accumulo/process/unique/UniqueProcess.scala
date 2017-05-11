@@ -170,7 +170,6 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
 
   private val attribute    = attributeDescriptor.getLocalName
   private val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
-  private val origSft      = features.getSchema
 
   private var attributeIdx: Int = -1
 

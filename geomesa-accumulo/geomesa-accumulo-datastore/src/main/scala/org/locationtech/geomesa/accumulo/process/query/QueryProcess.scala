@@ -70,7 +70,6 @@ class QueryVisitor(features: SimpleFeatureCollection,
   import scala.collection.JavaConversions._
   val manualVisitResults = new DefaultFeatureCollection(null, features.getSchema)
   val ff  = CommonFactoryFinder.getFilterFactory2
-  val origSft = features.getSchema
 
   // Called for non AccumuloFeactureCollections
   def visit(feature: Feature): Unit = {
