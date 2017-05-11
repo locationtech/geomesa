@@ -103,8 +103,9 @@ class QueryVisitor(features: SimpleFeatureCollection,
   }
 
   override def getExpressions: java.util.List[Expression] = {
-    val (_, finalSFT) = QueryPlanner.buildTransformSFT(origSft, properties)
-    FilterHelper.propertyNames(filter, finalSFT).map(ff.property).toList
+    // We return an empty list here to avoid ReTypingFeatureCollections.
+    // Calculating the actual list is difficult given transforms/projections/filters
+    List[Expression]()
   }
 }
 
