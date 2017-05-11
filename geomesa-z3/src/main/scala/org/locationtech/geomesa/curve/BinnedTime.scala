@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.curve
 
+import java.util.Date
+
 import org.joda.time._
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 
@@ -50,6 +52,8 @@ object BinnedTime {
   type BinnedTimeToDate = (BinnedTime) => DateTime
 
   val Epoch = new DateTime(0, DateTimeZone.UTC)
+  val ZMinDate: Date = Epoch.toDate
+
 
   val DaysMaxDate   = Epoch.plus(Days.days(Short.MaxValue.toInt + 1))
   val WeeksMaxDate  = Epoch.plus(Weeks.weeks(Short.MaxValue.toInt + 1))

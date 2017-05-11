@@ -78,7 +78,7 @@ class HasGeoValidator extends SimpleFeatureValidator {
   private var valid: (SimpleFeature) => Boolean = _
   private var lastErr: String = _
 
-  override def name: String = "has-dtg"
+  override def name: String = "has-geo"
 
   override def init(sft: SimpleFeatureType): Unit = {
     valid = {
@@ -87,7 +87,7 @@ class HasGeoValidator extends SimpleFeatureValidator {
         (sf: SimpleFeature) =>
           val res = sf.getDefaultGeometry != null
           if (!res) {
-            lastErr = "Null date attribute"
+            lastErr = "Null geom attribute"
           }
           res
       } else {
@@ -122,7 +122,7 @@ class ZIndexValidator extends SimpleFeatureValidator {
           if (sf.getAttribute(dtgIdx) == null){
             lastErr = "Null date attribute"
             false
-          } else if (sf.get[Date](dtgIdx).before(Z3IndexValidator.Z3MinDate)) {
+          } else if (sf.get[Date](dtgIdx).before(BinnedTime.ZMinDate)) {
             lastErr = "Date is before Z3 Min Date"
             false
           } else if (sf.get[Date](dtgIdx).after(maxDate)) {
@@ -149,7 +149,7 @@ class ZIndexValidator extends SimpleFeatureValidator {
               true
             }
         } else {
-          throw new IllegalArgumentException("Z3 validator cannot be used on a type lacking a dtg index")
+          throw new IllegalArgumentException("Z3 validator cannot be used on a type lacking a geom index")
         }
 
       (sf: SimpleFeature) => dtgFn(sf) && geomFn(sf)
@@ -159,10 +159,6 @@ class ZIndexValidator extends SimpleFeatureValidator {
   override def validate(sf: SimpleFeature): Boolean = valid(sf)
 
   override def lastError: String = lastErr
-}
-
-object Z3IndexValidator {
-  val Z3MinDate = new Date(0)
 }
 
 class CompositeValidator(validators: Seq[SimpleFeatureValidator]) extends SimpleFeatureValidator {
