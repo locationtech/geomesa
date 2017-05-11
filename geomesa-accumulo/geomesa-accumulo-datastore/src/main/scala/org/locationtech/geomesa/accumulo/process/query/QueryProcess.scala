@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.process.query
 
-import java.util
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
@@ -20,12 +18,11 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttr
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.index.api.QueryPlanner
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
-
-import scala.collection.mutable
 
 @DescribeProcess(
   title = "Geomesa Query",
@@ -106,7 +103,8 @@ class QueryVisitor(features: SimpleFeatureCollection,
   }
 
   override def getExpressions: java.util.List[Expression] = {
-    FilterHelper.propertyNames(filter, origSft).map(ff.property).toList
+    val (_, finalSFT) = QueryPlanner.buildTransformSFT(origSft, properties)
+    FilterHelper.propertyNames(filter, finalSFT).map(ff.property).toList
   }
 }
 
