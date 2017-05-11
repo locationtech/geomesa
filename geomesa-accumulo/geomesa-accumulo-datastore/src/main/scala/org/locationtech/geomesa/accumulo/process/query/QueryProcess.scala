@@ -17,8 +17,6 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.index.api.QueryPlanner
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -103,7 +101,7 @@ class QueryVisitor(features: SimpleFeatureCollection,
   }
 
   override def getExpressions: java.util.List[Expression] = {
-    // We return an empty list here to avoid ReTypingFeatureCollections.
+    // We return an empty list here to avoid ReTypingFeatureCollections. Happy day.
     // Calculating the actual list is difficult given transforms/projections/filters
     List[Expression]()
   }

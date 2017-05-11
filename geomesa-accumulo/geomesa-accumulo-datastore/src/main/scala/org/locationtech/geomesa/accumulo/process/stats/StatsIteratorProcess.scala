@@ -12,12 +12,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.api.QueryPlanner
@@ -25,9 +23,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.Feature
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.FilterFactory
 import org.opengis.filter.expression.Expression
 
 @DescribeProcess(
@@ -142,9 +138,8 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
   }
 
   override def getExpressions: java.util.List[Expression] ={
-    // TODO: Only report the attributes being using in the stats.
-    val ff: FilterFactory = CommonFactoryFinder.getFilterFactory
-    origSft.getAttributeDescriptors.map(ad => ff.property(ad.getLocalName)).toList
+    // We return an empty list here to avoid ReTypingFeatureCollections. Happy day.
+    List[Expression]()
   }
 }
 

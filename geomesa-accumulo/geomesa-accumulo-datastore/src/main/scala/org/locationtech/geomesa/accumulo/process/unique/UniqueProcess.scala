@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.process.unique
 
-import java.util
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
@@ -21,7 +19,6 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttr
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -29,13 +26,12 @@ import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.{Filter, FilterFactory}
+import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
 import org.opengis.util.ProgressListener
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 @DescribeProcess(title = "Geomesa Unique",
   description = "Finds unique attributes values, optimized for GeoMesa")
@@ -275,11 +271,8 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   }
 
   override def getExpressions: java.util.List[Expression] ={
-    val expList: mutable.ListBuffer[Expression] = mutable.ListBuffer[Expression](ff.property(attribute))
-    filter match {
-      case Some(f) => FilterHelper.propertyNames(f, origSft).foreach(expList += ff.property(_))
-    }
-    expList.toList
+    // We return an empty list here to avoid ReTypingFeatureCollections. Happy day.
+    List[Expression]()
   }
 }
 
