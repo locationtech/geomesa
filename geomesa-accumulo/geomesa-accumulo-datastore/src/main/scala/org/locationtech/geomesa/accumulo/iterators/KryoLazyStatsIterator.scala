@@ -18,9 +18,9 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.iterators.IteratorCache
+import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats._
@@ -59,7 +59,6 @@ object KryoLazyStatsIterator extends LazyLogging {
   val STATS_STRING_KEY = "geomesa.stats.string"
   val STATS_FEATURE_TYPE_KEY = "geomesa.stats.featuretype"
   // Need a filler namespace, else geoserver throws NPE for xml output
-  val StatsSft = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
 
   def configure(sft: SimpleFeatureType,
                 index: AccumuloFeatureIndexType,
@@ -83,69 +82,12 @@ object KryoLazyStatsIterator extends LazyLogging {
   }
 
   def kvsToFeatures(sft: SimpleFeatureType): (Entry[Key, Value]) => SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", StatsSft)
+    val sf = new ScalaSimpleFeature("", KryoLazyStatsUtils.StatsSft)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       // value is the already serialized stat
       sf.setAttribute(0, Base64.encodeBase64URLSafeString(e.getValue.get()))
       sf
     }
-  }
-
-  /**
-    * Encodes a stat as a base64 string.
-    *
-    * Creates a new serializer each time, so don't call repeatedly.
-    *
-    * @param stat stat to encode
-    * @param sft simple feature type of underlying schema
-    * @return base64 string
-    */
-  def encodeStat(stat: Stat, sft: SimpleFeatureType): String =
-    Base64.encodeBase64URLSafeString(StatSerializer(sft).serialize(stat))
-
-  /**
-    * Decodes a stat string from a result simple feature.
-    *
-    * Creates a new serializer each time, so not used internally.
-    *
-    * @param encoded encoded string
-    * @param sft simple feature type of the underlying schema
-    * @return stat
-    */
-  def decodeStat(encoded: String, sft: SimpleFeatureType): Stat =
-    StatSerializer(sft).deserialize(Base64.decodeBase64(encoded))
-
-  /**
-   * Reduces computed simple features which contain stat information into one on the client
-   *
-   * @param features iterator of features received per tablet server from query
-   * @param hints query hints that the stats are being run against
-   * @return aggregated iterator of features
-   */
-  def reduceFeatures(sft: SimpleFeatureType, hints: Hints)
-                    (features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-    val transform = hints.getTransform
-    val serializer = transform match {
-      case Some((tdef, tsft)) => StatSerializer(tsft)
-      case None               => StatSerializer(sft)
-    }
-
-    val decodedStats = features.map { f =>
-      serializer.deserialize(Base64.decodeBase64(f.getAttribute(0).toString))
-    }
-
-    val sum = if (decodedStats.isEmpty) {
-      // create empty stat based on the original input so that we always return something
-      Stat(sft, hints.get(STATS_STRING).asInstanceOf[String])
-    } else {
-      val sum = decodedStats.next()
-      decodedStats.foreach(sum += _)
-      sum
-    }
-    decodedStats.close()
-
-    val stats = if (hints.containsKey(ENCODE_STATS) && hints.get(ENCODE_STATS).asInstanceOf[Boolean]) encodeStat(sum, sft) else sum.toJson
-    Iterator(new ScalaSimpleFeature("stat", StatsSft, Array(stats, GeometryUtils.zeroPoint)))
   }
 }
