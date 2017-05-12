@@ -99,7 +99,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
-      density.length must beEqualTo(150)
+      density.length must beLessThan(150)
       density.map(_._3).sum must beEqualTo(150)
     }
 
@@ -120,7 +120,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
-      density.length must beEqualTo(150)
+      density.length must beLessThan(150)
       density.map(_._3).sum must beEqualTo(150)
     }
 
@@ -142,7 +142,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
-      density.length must beEqualTo(150)
+      density.length must beLessThan(150)
       density.map(_._3).sum must beEqualTo(150)
     }
 

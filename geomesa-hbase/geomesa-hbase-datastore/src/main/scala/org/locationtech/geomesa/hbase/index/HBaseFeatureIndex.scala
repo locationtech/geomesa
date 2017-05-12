@@ -16,7 +16,7 @@ import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
-import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
+import org.locationtech.geomesa.hbase.coprocessor._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
@@ -61,13 +61,11 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     super.configure(sft, ds)
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
-    val coproUrl = ds.config.coprocessorUrl
     val admin = ds.connection.getAdmin
+    val coproUrl = ds.config.coprocessorUrl
 
-    // TODO: Put this list somewhere better
-    val coproList: Seq[Class[_ <: Coprocessor]] = Seq(
-      classOf[KryoLazyDensityCoprocessor]
-    )
+    def addCoprocessors(desc: HTableDescriptor, path: Path): Unit =
+      coprocessorList.foreach(c => addCoprocessor(c, desc, path))
 
     def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor, path: Path): Unit ={
       val name = clazz.getCanonicalName
@@ -80,20 +78,16 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       }
     }
 
-    def addCoprocessors(desc: HTableDescriptor, path: Path): Unit =
-      coproList.foreach(c => addCoprocessor(c, desc, path))
-
-
     try {
       val descriptor = new HTableDescriptor(name)
       if (!admin.tableExists(name)) {
-        logger.debug("Attempting coprocessor registration")
+        logger.info("Attempting coprocessor registration")
         addCoprocessors(descriptor, coproUrl)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
         admin.createTable(descriptor, getSplits(sft).toArray)
       } else {
-        if (!coproList.forall(c => descriptor.getCoprocessors.contains(c.getCanonicalName))) {
-          logger.info(s"Adding coprocessor registration to $name")
+        if (!coprocessorList.forall(c => descriptor.getCoprocessors.contains(c.getCanonicalName))) {
+          logger.info(s"Attempting coprocessor registration on table $name")
 
           admin.disableTable(name)
           addCoprocessors(descriptor, coproUrl)
@@ -103,13 +97,16 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
           logger.info("Coprocessors Registered, waiting for replication")
 
           val sleepInt = 100 // ms
-          def wait(remainder: Int = admin.getOperationTimeout): Unit = {
-            if (admin.getAlterStatus(name).getFirst > 0) {
-              Thread.sleep(sleepInt)
-              wait(remainder - sleepInt)
-            }
+          var remainder: Int = admin.getOperationTimeout
+
+          while (admin.getAlterStatus(name).getFirst > 0 && remainder >= 0){
+            remainder = remainder - sleepInt
+            Thread.sleep(sleepInt)
           }
-          wait()
+
+          if (remainder < 0) {
+            logger.warn("Timed out while waiting for HBase configuration replication")
+          }
 
           logger.info("Registration complete")
         }
