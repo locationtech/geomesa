@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.utils.{KryoLazyDensityUtils, KryoLazyStatsUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -61,7 +61,7 @@ class AccumuloQueryPlanner(ds: AccumuloDataStore) extends AccumuloQueryPlannerTy
     } else if (query.getHints.isDensityQuery) {
       KryoLazyDensityUtils.DENSITY_SFT
     } else if (query.getHints.isStatsIteratorQuery) {
-      KryoLazyStatsIterator.StatsSft
+      KryoLazyStatsUtils.StatsSft
     } else if (query.getHints.isMapAggregatingQuery) {
       val spec = KryoLazyMapAggregatingIterator.createMapSft(baseSft, query.getHints.getMapAggregatingAttribute)
       SimpleFeatureTypes.createType(baseSft.getTypeName, spec)
