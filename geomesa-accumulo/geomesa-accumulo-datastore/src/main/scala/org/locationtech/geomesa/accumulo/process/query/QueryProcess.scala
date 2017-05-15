@@ -14,12 +14,13 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
+import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+import org.opengis.filter.expression.Expression
 
 @DescribeProcess(
   title = "Geomesa Query",
@@ -64,9 +65,9 @@ class QueryProcess extends LazyLogging {
 class QueryVisitor(features: SimpleFeatureCollection,
                    filter: Filter,
                    properties: Array[String] = null)
-  extends FeatureCalc
-          with LazyLogging {
+  extends FeatureCalc with FeatureAttributeVisitor with LazyLogging {
 
+  import scala.collection.JavaConversions._
   val manualVisitResults = new DefaultFeatureCollection(null, features.getSchema)
   val ff  = CommonFactoryFinder.getFilterFactory2
 
@@ -98,6 +99,11 @@ class QueryVisitor(features: SimpleFeatureCollection,
     source.getFeatures(query)
   }
 
+  override def getExpressions: java.util.List[Expression] = {
+    // We return an empty list here to avoid ReTypingFeatureCollections. Happy day.
+    // Calculating the actual list is difficult given transforms/projections/filters
+    List[Expression]()
+  }
 }
 
 case class QueryResult(results: SimpleFeatureCollection) extends AbstractCalcResult

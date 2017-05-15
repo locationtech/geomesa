@@ -13,17 +13,18 @@ import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
+import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
+import org.opengis.filter.expression.Expression
 
 @DescribeProcess(
   title = "Stats Iterator Process",
@@ -64,7 +65,6 @@ class StatsIteratorProcess extends LazyLogging {
     }
 
     val arrayString = Option(properties).map(_.split(";")).orNull
-
     val visitor = new StatsVisitor(features, statString, encode, arrayString)
     features.accepts(visitor, new NullProgressListener)
     visitor.getResult.asInstanceOf[StatsIteratorResult].results
@@ -72,7 +72,7 @@ class StatsIteratorProcess extends LazyLogging {
 }
 
 class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode: Boolean, properties: Array[String] = null)
-    extends FeatureCalc with LazyLogging {
+    extends FeatureCalc with FeatureAttributeVisitor with LazyLogging {
 
   import scala.collection.JavaConversions._
   val origSft = features.getSchema
@@ -88,7 +88,7 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
 
   lazy val stat: Stat = Stat(statSft, statString)
 
-  val returnSft = KryoLazyStatsIterator.StatsSft
+  val returnSft = KryoLazyStatsUtils.StatsSft
   val manualVisitResults: DefaultFeatureCollection = new DefaultFeatureCollection(null, returnSft)
   var resultCalc: StatsIteratorResult = null
 
@@ -108,7 +108,8 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
   override def getResult: CalcResult = {
     if (resultCalc == null) {
       val stats = if (encode) {
-        KryoLazyStatsIterator.encodeStat(stat, statSft)
+
+        KryoLazyStatsUtils.encodeStat(stat, statSft)
       } else {
         stat.toJson
       }
@@ -135,6 +136,11 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
     query.getHints.put(QueryHints.STATS_STRING, statString)
     query.getHints.put(QueryHints.ENCODE_STATS, new java.lang.Boolean(encode))
     source.getFeatures(query)
+  }
+
+  override def getExpressions: java.util.List[Expression] ={
+    // We return an empty list here to avoid ReTypingFeatureCollections. Happy day.
+    List[Expression]()
   }
 }
 

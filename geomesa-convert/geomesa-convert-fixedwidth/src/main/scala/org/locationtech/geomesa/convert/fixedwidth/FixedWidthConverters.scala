@@ -33,8 +33,8 @@ class FixedWidthConverterFactory extends AbstractSimpleFeatureConverterFactory[S
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
-                                        validating: Boolean): SimpleFeatureConverter[String] = {
-    new FixedWidthConverter(sft, idBuilder, fields, userDataBuilder, validating)
+                                        parseOpts: ConvertParseOpts): SimpleFeatureConverter[String] = {
+    new FixedWidthConverter(sft, idBuilder, fields, userDataBuilder, parseOpts)
   }
 
   override protected def buildField(field: Config): Field = {
@@ -54,7 +54,7 @@ class FixedWidthConverter(val targetSFT: SimpleFeatureType,
                           val idBuilder: Transformers.Expr,
                           val inputFields: IndexedSeq[Field],
                           val userDataBuilder: Map[String, Expr],
-                          val validating: Boolean)
+                          val parseOpts: ConvertParseOpts)
   extends LinesToSimpleFeatureConverter {
 
   override def fromInputType(i: String): Seq[Array[Any]] = Seq(Array(i))
