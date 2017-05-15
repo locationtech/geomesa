@@ -11,6 +11,7 @@ package org.locationtech.geomesa.hbase.data
 import java.io.Serializable
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
@@ -27,7 +28,6 @@ import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWr
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.collection.JavaConversions._
-
 
 class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
@@ -75,9 +75,10 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       if (security) {
        Some(HBaseDataStoreFactory.buildAuthsProvider(connection, params))
       } else None
+    val coprocessorUrl = CoprocessorUrl.lookupWithDefault[Path](params)
 
     val config = HBaseDataStoreConfig(catalog, remoteFilters, generateStats, audit, queryThreads, queryTimeout,
-      maxRangesPerExtendedScan, looseBBox, caching, authsProvider)
+      maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl)
     buildDataStore(connection, config)
   }
 
@@ -95,6 +96,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       RemoteFiltersParam,
       QueryThreadsParam,
       QueryTimeoutParam,
+      CoprocessorUrl,
       GenerateStatsParam,
       AuditQueriesParam,
       LooseBBoxParam,
@@ -114,6 +116,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 object HBaseDataStoreParams {
   val BigTableNameParam    = new Param("bigtable.table.name", classOf[String], "Table name", true)
   val ConnectionParam      = new Param("connection", classOf[Connection], "Connection", false)
+  val CoprocessorUrl       = new Param("coprocessor.url", classOf[Path], "Coprocessor Url", false, new Path("hdfs://"))
   val RemoteFiltersParam   = new Param("remote.filtering", classOf[java.lang.Boolean], "Remote filtering", false)
   val LooseBBoxParam       = GeoMesaDataStoreFactory.LooseBBoxParam
   val QueryThreadsParam    = GeoMesaDataStoreFactory.QueryThreadsParam
@@ -125,7 +128,6 @@ object HBaseDataStoreParams {
   val EnableSecurityParam  = new Param("security.enabled", classOf[java.lang.Boolean], "Enable HBase Security (Visibilities)", false, false)
   val AuthsParam           = org.locationtech.geomesa.security.AuthsParam
   val ForceEmptyAuthsParam = org.locationtech.geomesa.security.ForceEmptyAuthsParam
-
 }
 
 object HBaseDataStoreFactory {
@@ -145,7 +147,8 @@ object HBaseDataStoreFactory {
                                   maxRangesPerExtendedScan: Int,
                                   looseBBox: Boolean,
                                   caching: Boolean,
-                                  authProvider: Option[AuthorizationsProvider]) extends GeoMesaDataStoreConfig
+                                  authProvider: Option[AuthorizationsProvider],
+                                  coprocessorUrl: Path) extends GeoMesaDataStoreConfig
 
   // check that the hbase-site.xml does not have bigtable keys
   def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean = {
