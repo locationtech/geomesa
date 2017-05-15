@@ -87,7 +87,6 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
                            table: TableName,
                            ranges: Seq[Scan],
                            remoteFilters: Seq[HFilter] = Nil,
-//                           hbaseFilters: Seq[HFilter],
                            resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan  {
   /**
     * Runs the query plain against the underlying database, returning the raw entries

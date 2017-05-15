@@ -35,7 +35,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService with KryoLazyDensityUtils {
 
@@ -157,8 +156,6 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
                           gridHeight: Int,
                           weightAttribute: Option[String]): Map[String, String] = {
     val is = mutable.Map.empty[String, String]
-
-    //var scanRanges : List[String] = List[String]()
 
     is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.put(GRID_OPT, s"$gridWidth,$gridHeight")
