@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io.{BufferedInputStream, InputStream, StringReader}
+import java.io.{InputStream, StringReader}
 import java.nio.charset.StandardCharsets
 import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
 import javax.xml.parsers.DocumentBuilderFactory
@@ -37,7 +37,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
                    val xsd: Option[String],
                    val inputFields: IndexedSeq[Field],
                    val userDataBuilder: Map[String, Expr],
-                   val validating: Boolean,
+                   val parseOpts: ConvertParseOpts,
                    val lineMode: LineMode) extends ToSimpleFeatureConverter[String] with LazyLogging {
 
   private val docBuilder = {
@@ -45,7 +45,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
     factory.setNamespaceAware(false)
     factory.newDocumentBuilder()
   }
-  private val validator = xsd.map { path =>
+  private val xmlValidator = xsd.map { path =>
     val schemaFactory = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI)
     val xsdStream = getClass.getClassLoader.getResourceAsStream(path)
     val schema = schemaFactory.newSchema(new StreamSource(xsdStream))
@@ -55,7 +55,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
 
   override def fromInputType(i: String): Seq[Array[Any]] = {
     // if a schema is defined, validate it - this will throw an exception on failure
-    validator.foreach(_.validate(new StreamSource(new StringReader(i))))
+    xmlValidator.foreach(_.validate(new StreamSource(new StringReader(i))))
     // parse the document once, then extract each feature node and operate on it
     val root = docBuilder.parse(new InputSource(new StringReader(i))).getDocumentElement
 
@@ -97,7 +97,7 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
-                                        validating: Boolean): XMLConverter = {
+                                        parseOpts: ConvertParseOpts): XMLConverter = {
     // feature path can be any xpath that resolves to a node set (or a single node)
     // it can be absolute, or relative to the root node
     val featurePath = if (!conf.hasPath("feature-path")) { None } else {
@@ -106,7 +106,7 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
     val xsd         = if (conf.hasPath("xsd")) Some(conf.getString("xsd")) else None
     val lineMode    = LineMode.getLineMode(conf)
 
-    new XMLConverter(sft, idBuilder, featurePath, xsd, fields, userDataBuilder, validating, lineMode)
+    new XMLConverter(sft, idBuilder, featurePath, xsd, fields, userDataBuilder, parseOpts, lineMode)
   }
 
   override protected def buildField(field: Config): Field = {
