@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.hbase.index
 
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
-import org.locationtech.geomesa.hbase.coprocessor._
+import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
@@ -53,7 +52,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
-  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] with LazyLogging {
+  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
@@ -61,10 +60,9 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     super.configure(sft, ds)
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
     val admin = ds.connection.getAdmin
-
     try {
-      val descriptor = new HTableDescriptor(name)
       if (!admin.tableExists(name)) {
+        val descriptor = new HTableDescriptor(name)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
         admin.createTable(descriptor, getSplits(sft).toArray)
       }
