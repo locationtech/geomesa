@@ -105,4 +105,12 @@ class ArrowFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, 
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] =
     delegate.getReaderInternal(query)
+
+  override def canFilter: Boolean = delegate.canFilter
+  override def canReproject: Boolean = delegate.canReproject
+  override def canLimit: Boolean = delegate.canLimit
+  override def canSort: Boolean = delegate.canSort
+  override def canRetype: Boolean = delegate.canRetype
+  override def canLock: Boolean = delegate.canLock
+  override def canTransact: Boolean = delegate.canTransact
 }
