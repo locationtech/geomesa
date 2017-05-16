@@ -53,6 +53,132 @@ distribution. If you have built from source, the distribution is created in the 
 
 More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
+.. _registering_coprocessors:
+
+Register the Coprocessors
+-------------------------
+
+GeoMesa utilizes server side processing to accelerate some queries. Currently the only processing done server side is
+density (heatmap) calculations. In order to utilize this feature the GeoMesa coprocessor must be registered on all GeoMesa tables
+or registered site-wide and the ``geomesa-hbase-distributed-runtime`` code must be available on the classpath.
+There are a two currently supported ways to register the coprocessors, which are detailed later:
+
+* :ref:`register_site-wide` using the ``hbase-site.xml``
+* :ref:`register_per-table` using the ``hbase shell``
+
+There are two ways to get the coprocessor code on the classpath.
+
+* Modify the ``hbase-env.sh`` file and provide the path to the ``geomesa-hbase-distributed-runtime`` JAR in the
+``HBASE_CLASSPATH`` property. If this method is used, the ``geomesa-hbase-distributed-runtime`` JAR must be available at
+the given location on all master and region servers.
+* If registering the coprocessors on a per-table basis using the hbase shell, it is possible to provide an HDFS path to the
+``geomesa-hbase-distributed-runtime`` JAR.
+
+.. _register_site-wide:
+
+Register Site-Wide
+^^^^^^^^^^^^^^^^^^
+
+The easiest method to register the coprocessors is to specify the coprocessors in the ``hbase-site.xml``.
+To do this simply add the coprocessors classname to the ``hbase.coprocessor.user.region.classes`` key.
+
+.. code-block:: xml
+
+    <configuration>
+      <property>
+        <name>hbase.coprocessor.user.region.classes</name>
+        <value>org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor</value>
+      </property>
+    </configuration>
+
+All new and existing non-system tables will have access to the GeoMesa Coprocessor.
+
+.. _register_per-table:
+
+Register Per-Table
+^^^^^^^^^^^^^^^^^^
+
+If your hbase instance is used for more than GeoMesa table or would like to utilize HDFS to deploy the
+``geomesa-hbase-distributed-runtime`` JAR or for some other reason do not wish to register the coprocessor
+site wide you may configure the coprocessor on a per-table basis. This can be done by utilizing the the hbase shell
+as shown below. When specifying a coprocessor, the coprocessor must be available on the HBase classpath on all
+of the master and region servers or you must provide the HDFS URL for the ``geomesa-hbase-distributed-runtime`` JAR.
+
+To run the hbase shell simply execute:
+
+.. code-block:: bash
+
+    $ ${HBASE_HOME}/bin/hbase shell
+    HBase Shell; enter 'help<RETURN>' for list of supported commands.
+    Type "exit<RETURN>" to leave the HBase Shell
+    hbase(main):001:0>
+
+To get a list of the current tables run:
+
+.. code-block:: bash
+
+    hbase(main):001:0> list
+    TABLE
+    geomesa
+    geomesa_QuickStart_id
+    geomesa_QuickStart_z2
+    geomesa_QuickStart_z3
+    4 row(s) in 0.1380 seconds
+
+You will need to install the coprocessor on all table indexes list. The ``geomesa`` table in this example is the metadata
+table and does not need the coprocessor installed.
+
+We use the ``alter`` command to modify the configuration of the tables. The ``coprocessor`` parameter in the ``alter``
+command may be modified to change the registration of the GeoMesa coprocessors. The 'value' of the ``coprocessor``
+parameter has four parts, two of which are configurable depending on your environment.
+
+.. clode-block:: bash
+
+    'coprocessor'=>'HDFS_URL|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor|PRIORITY|'
+
+* To provide the HDFS URL of the ``geomesa-hbase-distributed-runtime`` JAR replace HDFS_URL in the coprocessor value with the
+HDFS URL. This is only need if the ``geomesa-hbase-distributed-runtime`` JAR will not be on the classpath by other means.
+* To alter the priority (execution order) of the coprocessor change PRIRORITY to the desired value, this is optional and
+should be left blank if now used.
+
+.. code-block:: bash
+
+    hbase(main):040:0> alter 'geomesa_QuickStart_id', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor||'
+    Updating all regions with the new schema...
+    22/22 regions updated.
+    Done.
+    0 row(s) in 5.0000 seconds
+
+    hbase(main):041:0> alter 'geomesa_QuickStart_z2', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor||'
+    Updating all regions with the new schema...
+    4/4 regions updated.
+    Done.
+    0 row(s) in 2.8850 seconds
+
+    hbase(main):042:0> alter 'geomesa_QuickStart_z3', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor||'
+    Updating all regions with the new schema...
+    4/4 regions updated.
+    Done.
+    0 row(s) in 2.9150 seconds
+
+To verify this worked successfully, run:
+
+.. code-block:: bash
+
+    hbase(main):002:0> describe 'TABLE_NAME'
+    Table TABLE_NAME is ENABLED
+    TABLE_NAME, {TABLE_ATTRIBUTES => {coprocessor$1 => '|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
+    ||'}
+    COLUMN FAMILIES DESCRIPTION
+    {NAME => 'm', BLOOMFILTER => 'ROW', VERSIONS => '1', IN_MEMORY => 'false', KEEP_DELETED_CELLS => 'FALSE', DATA_BLOCK_EN
+    CODING => 'NONE', TTL => 'FOREVER', COMPRESSION => 'NONE', MIN_VERSIONS => '0', BLOCKCACHE => 'true', BLOCKSIZE => '655
+    36', REPLICATION_SCOPE => '0'}
+    1 row(s) in 0.1940 seconds
+
+
+For more information on managing coprocessors see
+`Coprocessor Introduction <https://blogs.apache.org/hbase/entry/coprocessor_introduction>`_ on Apache's Blog.
+
 .. _setting_up_hbase_commandline:
 
 Setting up the HBase Command Line Tools
@@ -126,6 +252,7 @@ GeoServer's ``WEB-INF/lib`` directory:
  * hadoop-mapreduce-client-core-2.7.3.jar
  * hadoop-yarn-api-2.7.3.jar
  * hadoop-yarn-common-2.7.3.jar
+ * hbase-server-1.2.6.jar
  * zookeeper-3.4.9.jar
  * commons-configuration-1.6.jar
 
