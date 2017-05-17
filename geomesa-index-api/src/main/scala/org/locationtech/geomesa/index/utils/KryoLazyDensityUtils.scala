@@ -124,7 +124,7 @@ object KryoLazyDensityUtils {
   type DensityResult = mutable.Map[(Int, Int), Double]
   type GridIterator = (SimpleFeature) => Iterator[(Double, Double, Double)]
 
-  val DENSITY_SFT: SimpleFeatureType = SimpleFeatureTypes.createType("density", "result:String,*geom:Point:srid=4326")
+  val DENSITY_SFT: SimpleFeatureType = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
   val density_serializer: KryoFeatureSerializer  = new KryoFeatureSerializer(DENSITY_SFT, SerializationOptions.withoutId)
 
   val DENSITY_VALUE = new ClassKey(classOf[Array[Byte]])
