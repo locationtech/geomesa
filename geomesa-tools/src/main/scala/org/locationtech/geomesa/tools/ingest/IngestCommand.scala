@@ -46,9 +46,9 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
         if (params.threads > 1) {
           val parfiles = params.files.par
           parfiles.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(params.threads))
-          parfiles.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+          parfiles.foreach(GeneralShapefileIngest.ingestToDataStore(_, ds, Option(params.featureName)))
         } else {
-          params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+          params.files.foreach(GeneralShapefileIngest.ingestToDataStore(_, ds, Option(params.featureName)))
         }
       })
     } else {
