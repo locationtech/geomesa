@@ -63,8 +63,6 @@ case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
-// This scan plan is used when remote code is not deployed.
-// As such 'resultsToFeatures' handles filtering and transformations.
 case class ScanPlan(filter: HBaseFilterStrategyType,
                     table: TableName,
                     ranges: Seq[Scan],
