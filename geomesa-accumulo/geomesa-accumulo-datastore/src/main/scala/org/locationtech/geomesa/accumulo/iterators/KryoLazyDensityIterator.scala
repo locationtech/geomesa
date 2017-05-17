@@ -84,7 +84,7 @@ object KryoLazyDensityIterator extends LazyLogging with KryoLazyDensityUtils {
    */
   def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
     val sf = new ScalaSimpleFeature("", DENSITY_SFT)
-    sf.setAttribute(1, GeometryUtils.zeroPoint)
+    sf.setAttribute(0, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       // Return value in user data so it's preserved when passed through a RetypingFeatureCollection
       sf.getUserData.put(DENSITY_VALUE, e.getValue.get())

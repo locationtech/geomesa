@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.nativeapi;
+package org.locationtech.geomesa.hbase.nativeapi;
 
 import org.geotools.factory.CommonFactoryFinder;
 import org.junit.Assert;
