@@ -32,7 +32,6 @@ sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
   def table: TableName
   def ranges: Seq[Query]
-  def remoteFilters: Seq[HFilter]
   def resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]
 
   override def explain(explainer: Explainer, prefix: String): Unit =
@@ -45,7 +44,6 @@ object HBaseQueryPlan {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
     explainer(s"Table: ${Option(plan.table).orNull}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    explainer(s"Remote Filters (${plan.remoteFilters.size}):", plan.remoteFilters.map(_.toString))
     explainer.popLevel()
   }
 
@@ -61,7 +59,6 @@ object HBaseQueryPlan {
 case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override val table: TableName = null
   override val ranges: Seq[Query] = Seq.empty
-  override val remoteFilters: Seq[HFilter] = Nil
   override val resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature] = (i) => Iterator.empty
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
@@ -77,8 +74,6 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
     val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
     SelfClosingIterator(resultsToFeatures(results), results.close)
   }
-
-  override def remoteFilters: Seq[HFilter] = Nil
 }
 
 case class CoprocessorPlan(sft: SimpleFeatureType,
