@@ -127,7 +127,7 @@ object KryoLazyDensityUtils {
   val DENSITY_SFT: SimpleFeatureType = SimpleFeatureTypes.createType("density", "result:String,*geom:Point:srid=4326")
   val density_serializer: KryoFeatureSerializer  = new KryoFeatureSerializer(DENSITY_SFT, SerializationOptions.withoutId)
 
-  val DENSITY_VALUE    = new ClassKey(classOf[Array[Byte]])
+  val DENSITY_VALUE = new ClassKey(classOf[Array[Byte]])
 
   // configuration keys
   val ENVELOPE_OPT = "envelope"
