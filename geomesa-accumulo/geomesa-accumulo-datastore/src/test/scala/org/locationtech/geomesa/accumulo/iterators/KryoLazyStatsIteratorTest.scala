@@ -13,9 +13,9 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator.decodeStat
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils.decodeStat
 import org.locationtech.geomesa.utils.stats._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

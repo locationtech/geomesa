@@ -29,7 +29,7 @@ class AvroSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
-                                        validating: Boolean): SimpleFeatureConverter[Array[Byte]] = {
+                                        parseOpts: ConvertParseOpts): SimpleFeatureConverter[Array[Byte]] = {
     val avroSchema =
       if (conf.hasPath("schema-file")) {
         new org.apache.avro.Schema.Parser().parse(getClass.getResourceAsStream(conf.getString("schema-file")))
@@ -37,7 +37,7 @@ class AvroSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
         new org.apache.avro.Schema.Parser().parse(conf.getString("schema"))
       }
     val reader = new GenericDatumReader[GenericRecord](avroSchema)
-    new AvroSimpleFeatureConverter(avroSchema, reader, sft, fields, idBuilder, userDataBuilder, validating)
+    new AvroSimpleFeatureConverter(avroSchema, reader, sft, fields, idBuilder, userDataBuilder, parseOpts)
   }
 }
 
@@ -47,7 +47,7 @@ class AvroSimpleFeatureConverter(avroSchema: Schema,
                                  val inputFields: IndexedSeq[Field],
                                  val idBuilder: Expr,
                                  val userDataBuilder: Map[String, Expr],
-                                 val validating: Boolean)
+                                 val parseOpts: ConvertParseOpts)
   extends ToSimpleFeatureConverter[Array[Byte]] {
 
   var decoder: BinaryDecoder = null

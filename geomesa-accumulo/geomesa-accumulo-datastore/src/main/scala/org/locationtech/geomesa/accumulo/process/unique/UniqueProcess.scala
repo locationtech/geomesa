@@ -15,11 +15,11 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
+import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
@@ -27,6 +27,7 @@ import org.opengis.feature.Feature
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.opengis.filter.expression.Expression
 import org.opengis.util.ProgressListener
 
 import scala.collection.JavaConverters._
@@ -160,14 +161,14 @@ object UniqueProcess {
 class AttributeVisitor(val features: SimpleFeatureCollection,
                        val attributeDescriptor: AttributeDescriptor,
                        val filter: Option[Filter],
-                       histogram: Boolean) extends FeatureCalc with LazyLogging {
+                       histogram: Boolean) extends FeatureCalc with FeatureAttributeVisitor with LazyLogging {
 
   import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor._
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
   import scala.collection.JavaConversions._
 
-  private val attribute = attributeDescriptor.getLocalName
+  private val attribute    = attributeDescriptor.getLocalName
   private val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
 
   private var attributeIdx: Int = -1
@@ -245,7 +246,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
       val enumeration = try {
         // stats should always return exactly one result, even if there are no features in the table
         val encoded = reader.next.getAttribute(0).asInstanceOf[String]
-        KryoLazyStatsIterator.decodeStat(encoded, sft).asInstanceOf[EnumerationStat[Any]]
+        KryoLazyStatsUtils.decodeStat(encoded, sft).asInstanceOf[EnumerationStat[Any]]
       } finally {
         reader.close()
       }
@@ -266,6 +267,11 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     // execute the query
     SelfClosingIterator(source.getFeatures(query).features()).foreach(addValue)
     uniqueValues.toMap
+  }
+
+  override def getExpressions: java.util.List[Expression] ={
+    // We return an empty list here to avoid ReTypingFeatureCollections. Happy day.
+    List[Expression]()
   }
 }
 

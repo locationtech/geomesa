@@ -27,7 +27,7 @@ class OsmNodesConverter(val targetSFT: SimpleFeatureType,
                         val idBuilder: Expr,
                         val inputFields: IndexedSeq[Field],
                         val userDataBuilder: Map[String, Expr],
-                        val validating: Boolean,
+                        val parseOpts: ConvertParseOpts,
                         val pbf: Boolean,
                         val needsMetadata: Boolean) extends ToSimpleFeatureConverter[OsmNode] with LazyLogging {
 
@@ -62,10 +62,10 @@ class OsmNodesConverterFactory extends AbstractSimpleFeatureConverterFactory[Osm
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
-                                        validating: Boolean): SimpleFeatureConverter[OsmNode] = {
+                                        parseOpts: ConvertParseOpts): SimpleFeatureConverter[OsmNode] = {
     val pbf = if (conf.hasPath("format")) conf.getString("format").toLowerCase.trim.equals("pbf") else false
     val needsMetadata = OsmField.requiresMetadata(fields)
-    new OsmNodesConverter(sft, idBuilder, fields, userDataBuilder, validating, pbf, needsMetadata)
+    new OsmNodesConverter(sft, idBuilder, fields, userDataBuilder, parseOpts, pbf, needsMetadata)
   }
 
   override protected def buildField(field: Config): Field = OsmField.build(field)

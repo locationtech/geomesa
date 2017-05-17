@@ -19,8 +19,8 @@ object LineMode extends Enumeration {
   val Default = Single
 
   def getLineMode(conf: Config): LineMode = {
-    if (conf.hasPath(StandardOptions.LineMode)) {
-      val m = conf.getString(StandardOptions.LineMode).toLowerCase
+    if (conf.hasPath(StandardOption.LineModeOpt.path)) {
+      val m = conf.getString(StandardOption.LineModeOpt.path).toLowerCase
       LineMode.withName(m)
     } else {
       LineMode.Default
