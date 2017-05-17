@@ -23,7 +23,6 @@ import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
-import org.locationtech.geomesa.utils.geotools.ShapefileIngest;
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -137,15 +136,5 @@ public class DocumentationTest {
 
     // write this feature collection to the store
     featureStore.addFeatures(DataUtilities.collection(feature));
-  }
-
-  public void ingestShapefile(String shapefileName, String featureName)
-    throws IOException {
-
-    // fetch a data store
-    DataStore dataStore = createDataStore();
-
-    // delegate this work
-    ShapefileIngest.ingestShapefile(shapefileName, dataStore, featureName);
   }
 }
