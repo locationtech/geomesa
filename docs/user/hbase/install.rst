@@ -63,16 +63,16 @@ density (heatmap) calculations. In order to utilize this feature the GeoMesa cop
 or registered site-wide and the ``geomesa-hbase-distributed-runtime`` code must be available on the classpath.
 There are a two currently supported ways to register the coprocessors, which are detailed later:
 
-* :ref:`register_site-wide` using the ``hbase-site.xml``
-* :ref:`register_per-table` using the ``hbase shell``
+ * :ref:`register_site-wide` using the ``hbase-site.xml``
+ * :ref:`register_per-table` using the ``hbase shell``
 
 There are two ways to get the coprocessor code on the classpath.
 
-* Modify the ``hbase-env.sh`` file and provide the path to the ``geomesa-hbase-distributed-runtime`` JAR in the
-``HBASE_CLASSPATH`` property. If this method is used, the ``geomesa-hbase-distributed-runtime`` JAR must be available at
-the given location on all master and region servers.
-* If registering the coprocessors on a per-table basis using the hbase shell, it is possible to provide an HDFS path to the
-``geomesa-hbase-distributed-runtime`` JAR.
+ * Modify the ``hbase-env.sh`` file and provide the path to the ``geomesa-hbase-distributed-runtime`` JAR in the
+   ``HBASE_CLASSPATH`` property. If this method is used, the ``geomesa-hbase-distributed-runtime`` JAR must be available at
+   the given location on all master and region servers.
+ * If registering the coprocessors on a per-table basis using the hbase shell, it is possible to provide an HDFS path to the
+   ``geomesa-hbase-distributed-runtime`` JAR.
 
 .. _register_site-wide:
 
@@ -129,17 +129,18 @@ You will need to install the coprocessor on all table indexes list. The ``geomes
 table and does not need the coprocessor installed.
 
 We use the ``alter`` command to modify the configuration of the tables. The ``coprocessor`` parameter in the ``alter``
-command may be modified to change the registration of the GeoMesa coprocessors. The 'value' of the ``coprocessor``
-parameter has four parts, two of which are configurable depending on your environment.
+command may be modified to change the registration of the GeoMesa coprocessors.
 
-.. clode-block:: bash
+.. code-block:: bash
 
     'coprocessor'=>'HDFS_URL|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor|PRIORITY|'
 
-* To provide the HDFS URL of the ``geomesa-hbase-distributed-runtime`` JAR replace HDFS_URL in the coprocessor value with the
-HDFS URL. This is only need if the ``geomesa-hbase-distributed-runtime`` JAR will not be on the classpath by other means.
-* To alter the priority (execution order) of the coprocessor change PRIRORITY to the desired value, this is optional and
-should be left blank if now used.
+The 'value' of the ``coprocessor`` parameter has four parts, two of which are configurable depending on your environment.
+
+ * To provide the HDFS URL of the ``geomesa-hbase-distributed-runtime`` JAR replace HDFS_URL in the coprocessor value with the
+   HDFS URL. This is only need if the ``geomesa-hbase-distributed-runtime`` JAR will not be on the classpath by other means.
+ * To alter the priority (execution order) of the coprocessor change PRIRORITY to the desired value, this is optional and
+   should be left blank if now used.
 
 .. code-block:: bash
 
