@@ -8,15 +8,22 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.util.Date
+
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.feature.collection.{FeatureIteratorImpl, SimpleFeatureIteratorImpl}
+import org.geotools.feature.simple.SimpleFeatureImpl
+import org.geotools.feature.{DefaultFeatureCollection, FeatureIterator}
+import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable.HashMap
 
 @RunWith(classOf[JUnitRunner])
 class ConversionsTest extends Specification with Mockito {
@@ -110,5 +117,30 @@ class ConversionsTest extends Specification with Mockito {
       }
     }
 
+  }
+
+  "RichSimpleFeatureIterator" should {
+
+    import scala.collection.JavaConversions._
+    def sft = SimpleFeatureTypes.createType("test", "dtg:Date,*geom:Geometry:srid=4326")
+    val sf1 = new SimpleFeatureImpl(List[AnyRef](new Date(1), WKTUtils.read("POINT(1 1)")), sft, new FeatureIdImpl("1"))
+    val sf2 = new SimpleFeatureImpl(List[AnyRef](new Date(2), WKTUtils.read("POINT(2 2)")), sft, new FeatureIdImpl("2"))
+    val df = new DefaultFeatureCollection("foo", sft)
+    df.add(sf1)
+    df.add(sf2)
+
+    "wrap SimpleFeatureIterator" >> {
+      val sfi: SimpleFeatureIterator = new SimpleFeatureIteratorImpl(df)
+      import Conversions._
+      val ids = sfi.map(_.getID)
+      ids.toSeq must containTheSameElementsAs(Seq[String]("2", "1"))
+    }
+
+    "wrap FeatureIterator[SimpleFeature]" >> {
+      val sfi: FeatureIterator[SimpleFeature] = new FeatureIteratorImpl(df)
+      import Conversions._
+      val ids = sfi.map(_.getID)
+      ids.toSeq must containTheSameElementsAs(Seq[String]("2", "1"))
+    }
   }
 }
