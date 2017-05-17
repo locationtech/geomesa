@@ -77,7 +77,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
       if (options.containsKey(SCAN_OPT)) {
 
-        val decoded = org.apache.hadoop.hbase.util.Base64.decode(options.get(SCAN_OPT).get)
+        val decoded = org.apache.hadoop.hbase.util.Base64.decode(options(SCAN_OPT))
         val clientScan = ClientProtos.Scan.parseFrom(decoded)
         val scan = ProtobufUtil.toScan(clientScan)
         scanList ::= scan

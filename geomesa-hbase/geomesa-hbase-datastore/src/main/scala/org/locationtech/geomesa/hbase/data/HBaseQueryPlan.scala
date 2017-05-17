@@ -33,7 +33,6 @@ sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def table: TableName
   def ranges: Seq[Query]
   def remoteFilters: Seq[HFilter]
-  // note: entriesToFeatures encapsulates ecql and transform
   def resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]
 
   override def explain(explainer: Explainer, prefix: String): Unit =
@@ -96,6 +95,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
     * @return
     */
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    // TODO: Refactor this logical into HBasePlatform
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isDensityQuery) {
       val rowRanges = Lists.newArrayList[RowRange]()
