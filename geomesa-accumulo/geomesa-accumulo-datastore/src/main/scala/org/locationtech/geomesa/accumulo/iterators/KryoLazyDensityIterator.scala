@@ -86,9 +86,8 @@ object KryoLazyDensityIterator extends LazyLogging with KryoLazyDensityUtils {
     val sf = new ScalaSimpleFeature("", DENSITY_SFT)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
-      // set the value directly in the array, as we don't support byte arrays as properties
-      // TODO GEOMESA-823 support byte arrays natively
-      sf.values(0) = e.getValue.get()
+      // Return value in user data so it's preserved when passed through a RetypingFeatureCollection
+      sf.getUserData.put(DENSITY_VALUE, e.getValue.get())
       sf
     }
   }
