@@ -38,7 +38,7 @@ import scala.collection.JavaConversions._
  * Tracks stats via entries stored in metadata.
  */
 class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val generateStats: Boolean)
-    extends MetadataBackedStats[AccumuloDataStore] {
+    extends MetadataBackedStats {
 
   import AccumuloGeoMesaStats._
 

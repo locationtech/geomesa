@@ -10,10 +10,10 @@ package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.Parameter
 import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.geotools.data.DataStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
@@ -23,7 +23,7 @@ import org.opengis.filter.Filter
 import scala.reflect.ClassTag
 import scala.util.Try
 
-trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {
 
   override val name = "stats-histogram"
   override def params: StatsHistogramParams

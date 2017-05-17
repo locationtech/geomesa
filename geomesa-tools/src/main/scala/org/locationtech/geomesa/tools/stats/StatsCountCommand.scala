@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.tools.stats
 
+import org.geotools.data.DataStore
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.opengis.filter.Filter
 
-trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {
 
   override val name = "stats-count"
   override def params: StatsCountParams
