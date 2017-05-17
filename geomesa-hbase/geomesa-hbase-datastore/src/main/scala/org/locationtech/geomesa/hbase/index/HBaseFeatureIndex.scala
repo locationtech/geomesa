@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.hbase.index
 
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
@@ -52,19 +54,63 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
-  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
+  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] with LazyLogging {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     super.configure(sft, ds)
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
+    val coproUrl = ds.config.coprocessorUrl
     val admin = ds.connection.getAdmin
+
+    def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor, path: Path): Unit ={
+      val name = clazz.getCanonicalName
+      if (!desc.getCoprocessors.contains(name)) {
+        if (!path.equals(HBaseDataStoreParams.CoprocessorUrl.sample)) {
+          desc.addCoprocessor(name, path, Coprocessor.PRIORITY_USER, null)
+        } else {
+          desc.addCoprocessor(name)
+        }
+      }
+    }
+
+    def addCoprocessors(desc: HTableDescriptor, path: Path): Unit = {
+      Seq(
+        classOf[KryoLazyDensityCoprocessor]
+      ).foreach(c => addCoprocessor(c, desc, path))
+    }
+
     try {
+      val descriptor = new HTableDescriptor(name)
       if (!admin.tableExists(name)) {
-        val descriptor = new HTableDescriptor(name)
+        logger.debug("Attempting coprocessor registration")
+        addCoprocessors(descriptor, coproUrl)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
         admin.createTable(descriptor, getSplits(sft).toArray)
+      } else {
+        if (!descriptor.getCoprocessors.contains(classOf[KryoLazyDensityCoprocessor].toString)) {
+          logger.info(s"Adding coprocessor registration to $name")
+
+          admin.disableTable(name)
+          addCoprocessors(descriptor, coproUrl)
+          admin.modifyTable(name, descriptor)
+          admin.enableTable(name)
+
+          logger.info("Coprocessors Registered, waiting for replication")
+
+          def wait(): Unit = {
+            if (admin.getAlterStatus(name).getFirst > 0) {
+              Thread sleep 100
+              wait()
+            }
+          }
+          wait()
+
+          logger.info("Registration complete")
+        } else {
+          logger.warn(s"GeoMesa coprocessors are not registered for table: $name")
+        }
       }
     } finally {
       admin.close()

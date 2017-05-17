@@ -31,7 +31,7 @@ class KryoLazyDensityRpcController extends RpcController {
 
   private[driver] var failed: Boolean = false
 
-  override def isCanceled(): Boolean = this.cancelled
+  override def isCanceled: Boolean = this.cancelled
 
   override def reset(): Unit = {
     this.errorText = null
@@ -69,9 +69,9 @@ class KryoLazyDensityDriver {
 
     class KryoLazyDensityFilterCallBack extends Callback[ByteString] {
 
-      private var finalResult: Queue[ByteString] = new ConcurrentLinkedQueue[ByteString]()
+      private val finalResult: Queue[ByteString] = new ConcurrentLinkedQueue[ByteString]()
 
-      def getResult(): List[ByteString] = {
+      def getResult: List[ByteString] = {
         var list: List[ByteString] = List[ByteString]()
         for (s <- finalResult) {
           list ::= s
