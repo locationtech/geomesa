@@ -71,8 +71,8 @@ There are two ways to get the coprocessor code on the classpath.
  * Modify the ``hbase-env.sh`` file and provide the path to the ``geomesa-hbase-distributed-runtime`` JAR in the
    ``HBASE_CLASSPATH`` property. If this method is used, the ``geomesa-hbase-distributed-runtime`` JAR must be available at
    the given location on all master and region servers.
- * If registering the coprocessors on a per-table basis using the hbase shell, it is possible to provide an HDFS path to the
-   ``geomesa-hbase-distributed-runtime`` JAR.
+ * If registering the coprocessors on a per-table basis using the hbase shell, it is possible to provide the HDFS path to the
+   ``geomesa-hbase-distributed-runtime`` JAR that was deployed in :ref:`hbase_deploy_distributed_runtime`.
 
 .. _register_site-wide:
 
@@ -102,7 +102,8 @@ If your hbase instance is used for more than GeoMesa table or would like to util
 ``geomesa-hbase-distributed-runtime`` JAR or for some other reason do not wish to register the coprocessor
 site wide you may configure the coprocessor on a per-table basis. This can be done by utilizing the the hbase shell
 as shown below. When specifying a coprocessor, the coprocessor must be available on the HBase classpath on all
-of the master and region servers or you must provide the HDFS URL for the ``geomesa-hbase-distributed-runtime`` JAR.
+of the master and region servers or you must provide the HDFS URL for the ``geomesa-hbase-distributed-runtime`` JAR that
+was deployed in :ref:`hbase_deploy_distributed_runtime`.
 
 To run the hbase shell simply execute:
 
@@ -135,7 +136,8 @@ command may be modified to change the registration of the GeoMesa coprocessors.
 
     'coprocessor'=>'HDFS_URL|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor|PRIORITY|'
 
-The 'value' of the ``coprocessor`` parameter has four parts, two of which are configurable depending on your environment.
+The 'value' of the ``coprocessor`` parameter has four parts, separated by ``|``, two of which, ``HDFS_URL`` and
+``PRIORITY``, are configurable depending on your environment.
 
  * To provide the HDFS URL of the ``geomesa-hbase-distributed-runtime`` JAR replace HDFS_URL in the coprocessor value with the
    HDFS URL. This is only need if the ``geomesa-hbase-distributed-runtime`` JAR will not be on the classpath by other means.
