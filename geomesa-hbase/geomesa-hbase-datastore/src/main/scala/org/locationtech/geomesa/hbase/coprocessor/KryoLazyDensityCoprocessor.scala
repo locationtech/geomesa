@@ -40,7 +40,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
   import KryoLazyDensityCoprocessor._
 
-  private var env : RegionCoprocessorEnvironment = _
+  private var env: RegionCoprocessorEnvironment = _
   private var sft: SimpleFeatureType = _
 
   def init(options: Map[String, String], sft: SimpleFeatureType): DensityResult = {
@@ -67,11 +67,10 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   def getDensity(controller: RpcController,
                  request: KryoLazyDensityProto.DensityRequest,
                  done: RpcCallback[KryoLazyDensityProto.DensityResponse]): Unit = {
-    var response : DensityResponse = null
     var scanner : InternalScanner = null
     var filterList : FilterList = new FilterList()
 
-    try {
+    val response: DensityResponse = try {
       val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
       var scanList : ArrayBuffer[Scan] = ArrayBuffer()
@@ -90,7 +89,6 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
       scanList.foreach(scan => {
         scan.setFilter(filterList)
-        // TODO: Explore use of MultiRangeFilter
         scanner = env.getRegion.getScanner(scan)
         val results = new java.util.ArrayList[Cell]
 
@@ -106,10 +104,11 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       })
 
       val result: Array[Byte] = KryoLazyDensityUtils.encodeResult(densityResult)
-      response = DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
+      DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
     } catch {
       case ioe: IOException =>
         ResponseConverter.setControllerException(controller, ioe)
+        null
       case cnfe: ClassNotFoundException =>
         throw cnfe
       case dse: DeserializationException =>
@@ -122,7 +121,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
 object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
 
-  private val SFT_OPT = "sft"
+  private val SFT_OPT    = "sft"
   private val FILTER_OPT = "filter"
   private val RANGES_OPT = "ranges"
 
@@ -160,7 +159,7 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
       rangeBuilder.append(Base64.encodeBytes(range.getStartRow)).append("|").append(Base64.encodeBytes(range.getStopRow)).append(",")
     )
 
-    val ranges_opt = if (rangeBuilder.length() > 0) rangeBuilder.substring(0, rangeBuilder.length() - 1) else ""
+    val ranges_opt = if (rangeBuilder.length > 0) rangeBuilder.substring(0, rangeBuilder.length - 1) else ""
 
     is.put(RANGES_OPT, ranges_opt)
 
@@ -196,6 +195,4 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
     sf.values(0) = bytes
     sf
   }
-
-
 }

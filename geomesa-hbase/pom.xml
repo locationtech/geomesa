@@ -32,6 +32,11 @@
                 <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${hbase.guava.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <packaging>pom</packaging>
