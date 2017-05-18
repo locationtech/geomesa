@@ -17,8 +17,6 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
-import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.Feature
@@ -75,8 +73,6 @@ class ArrowConversionProcess extends VectorProcess with LazyLogging {
 
 class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchSize: Int, fids: Boolean)
     extends FeatureCalc with FeatureAttributeVisitor with Closeable with LazyLogging {
-
-  import org.locationtech.geomesa.arrow.allocator
 
   import scala.collection.JavaConversions._
 

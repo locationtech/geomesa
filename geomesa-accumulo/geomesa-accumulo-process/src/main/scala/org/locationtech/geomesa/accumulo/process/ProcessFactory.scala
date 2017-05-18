@@ -27,6 +27,7 @@ class ProcessFactory
     classOf[StatsIteratorProcess],
     classOf[TubeSelectProcess],
     classOf[UniqueProcess],
+    classOf[ArrowConversionProcess],
     classOf[BinConversionProcess],
     classOf[JoinProcess],
     classOf[RouteSearchProcess],

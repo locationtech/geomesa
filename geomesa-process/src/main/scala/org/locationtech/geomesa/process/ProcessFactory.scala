@@ -23,7 +23,6 @@ object ProcessFactory {
 //    classOf[QueryProcess],
 //    classOf[UniqueProcess],
     classOf[HashAttributeProcess],
-    classOf[HashAttributeColorProcess],
-    classOf[ArrowConversionProcess]
+    classOf[HashAttributeColorProcess]
   )
 }
