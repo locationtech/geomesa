@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.process
 
 import java.io.{ByteArrayOutputStream, Closeable}
+import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
@@ -22,6 +23,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.expression.Expression
 
 @DescribeProcess(
   title = "Arrow Conversion",
@@ -72,7 +74,7 @@ class ArrowConversionProcess extends VectorProcess with LazyLogging {
 }
 
 class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchSize: Int, fids: Boolean)
-    extends FeatureCalc with Closeable with LazyLogging {
+    extends FeatureCalc with FeatureAttributeVisitor with Closeable with LazyLogging {
 
   import org.locationtech.geomesa.arrow.allocator
 
@@ -140,6 +142,9 @@ class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchS
       unloadManualResults(true)
     }
   }
+
+  // hook to allow delegation from retyping feature collections
+  override def getExpressions: java.util.List[Expression] = Collections.emptyList()
 }
 
 case class ArrowResult(results: java.util.Iterator[Array[Byte]]) extends AbstractCalcResult {
