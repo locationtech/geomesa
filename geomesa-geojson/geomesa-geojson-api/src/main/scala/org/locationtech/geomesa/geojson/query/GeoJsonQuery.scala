@@ -1,10 +1,10 @@
-/** *********************************************************************
+/***********************************************************************
   * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
   * All rights reserved. This program and the accompanying materials
   * are made available under the terms of the Apache License, Version 2.0
   * which accompanies this distribution and is available at
   * http://www.opensource.org/licenses/apache2.0.php.
-  * ************************************************************************/
+  *************************************************************************/
 
 package org.locationtech.geomesa.geojson.query
 
@@ -14,7 +14,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geojson.geom.GeometryJSON
 import org.json4s.{JArray, JObject, JValue}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathElement}
+import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
 import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
