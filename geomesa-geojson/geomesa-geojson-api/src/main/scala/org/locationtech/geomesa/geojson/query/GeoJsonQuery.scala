@@ -361,15 +361,6 @@ object GeoJsonQuery {
     */
   case class Equals(prop: String, value: Any) extends GeoJsonQuery {
     override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
-      //      if (idPath.exists(_ == path)) {
-      //        val fids = value match {
-      //          case v: Iterable[_] => v.map(_.toString).toSeq
-      //          case v => Seq(v.toString)
-      //        }
-      //        ff.id(fids.map(ff.featureId): _*)
-      //      } else {
-      //        ff.equals(filterAttribute(path, dtgPath), ff.literal(value))
-      //      }
       ff.equals(ff.property(prop), ff.literal(value))
     }
 
