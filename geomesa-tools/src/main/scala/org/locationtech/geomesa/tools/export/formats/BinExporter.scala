@@ -29,8 +29,6 @@ class BinExporter(os: OutputStream,
     None
   }
 
-  override def flush(): Unit = os.flush()
-
   override def close(): Unit = os.close()
 }
 

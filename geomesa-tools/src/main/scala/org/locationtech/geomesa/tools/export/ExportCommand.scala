@@ -14,10 +14,12 @@ import java.util.zip.{Deflater, GZIPOutputStream}
 import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.data.{DataStore, Query}
+import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter, ShapefileExporter, _}
 import org.locationtech.geomesa.tools.utils.DataFormats
@@ -54,7 +56,8 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
     }
 
     val attributes = getAttributes(ds, fmt, params)
-    val features = getFeatureCollection(ds, fmt, attributes, params)
+    val query = getQuery(ds, fmt, attributes, params)
+    val features = getFeatureCollection(ds, query)
 
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val exporter = fmt match {
@@ -63,15 +66,14 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
       case GeoJson | Json => new GeoJsonExporter(getWriter(params))
       case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
       case Avro           => new AvroExporter(features.getSchema, createOutputStream(params.file, null), avroCompression)
+      case Arrow          => new ArrowExporter(ds, query, createOutputStream(params.file, null))
       case Null           => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
     }
 
     try {
-      val count = exporter.export(features)
-      exporter.flush()
-      count
+      exporter.export(features)
     } finally {
       IOUtils.closeQuietly(exporter)
     }
@@ -80,28 +82,38 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
 
 object ExportCommand extends LazyLogging {
 
-  def getFeatureCollection(ds: GeoMesaDataStore[_, _, _],
-                           fmt: DataFormat,
-                           attributes: Option[ExportAttributes],
-                           params: BaseExportParams): SimpleFeatureCollection = {
-
+  def getQuery(ds: GeoMesaDataStore[_, _, _],
+               fmt: DataFormat,
+               attributes: Option[ExportAttributes],
+               params: BaseExportParams): Query = {
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
 
     logger.debug(s"Applying CQL filter ${ECQL.toCQL(filter)}")
     logger.debug(s"Applying transform ${attributes.map(_.names.mkString(",")).orNull}")
 
-    val q = new Query(params.featureName, filter, attributes.map(_.names.toArray).orNull)
-    Option(params.maxFeatures).map(Int.unbox).foreach(q.setMaxFeatures)
+    val query = new Query(params.featureName, filter, attributes.map(_.names.toArray).orNull)
+    Option(params.maxFeatures).map(Int.unbox).foreach(query.setMaxFeatures)
     params.loadIndex(ds, IndexMode.Read).foreach { index =>
-      q.getHints.put(QueryHints.QUERY_INDEX, index)
+      query.getHints.put(QueryHints.QUERY_INDEX, index)
       logger.debug(s"Using index ${index.identifier}")
     }
 
-    // get the feature store used to query the GeoMesa data
-    val fs = ds.getFeatureSource(params.featureName)
+    if (fmt == DataFormats.Arrow) {
+      query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+    }
 
+    Option(params.hints).foreach { hints =>
+      query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
+      ViewParams.setHints(ds, ds.getSchema(params.featureName), query)
+    }
+
+    query
+  }
+
+  def getFeatureCollection(ds: GeoMesaDataStore[_, _, _], query: Query): SimpleFeatureCollection = {
     try {
-      fs.getFeatures(q)
+      // get the feature store used to query the GeoMesa data
+      ds.getFeatureSource(query.getTypeName).getFeatures(query)
     } catch {
       case NonFatal(e) =>
         throw new RuntimeException("Could not execute export query. Please ensure " +
@@ -109,7 +121,7 @@ object ExportCommand extends LazyLogging {
     }
   }
 
-  def getAttributes(ds: GeoMesaDataStore[_, _, _], fmt: DataFormat, params: BaseExportParams): Option[ExportAttributes] = {
+  def getAttributes(ds: DataStore, fmt: DataFormat, params: BaseExportParams): Option[ExportAttributes] = {
     import scala.collection.JavaConversions._
 
     lazy val sft = ds.getSchema(params.featureName)
