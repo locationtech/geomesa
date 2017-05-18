@@ -190,8 +190,8 @@ object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
 
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
     val sf = new ScalaSimpleFeature("", DENSITY_SFT)
-    sf.setAttribute(1, GeometryUtils.zeroPoint)
-    sf.values(0) = bytes
+    sf.setAttribute(0, GeometryUtils.zeroPoint)
+    sf.getUserData.put(DENSITY_VALUE, bytes)
     sf
   }
 }
