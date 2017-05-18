@@ -26,9 +26,8 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.filter.function.{BasicValues, BinaryOutputEncoder, Convert2ViewerFunction, ExtendedValues}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -48,22 +47,31 @@ class BinAggregatingIterator
   var dtgIndex: Int = -1
   var labelIndex: Int = -1
 
+  var getTrackId: (KryoBufferSimpleFeature) => Int = _
+  var getDtg: (KryoBufferSimpleFeature) => Long = _
   var isDtgArray: Boolean = false
-  var getDtg: (KryoBufferSimpleFeature) => Long = null
   var linePointIndex: Int = -1
 
   var binSize: Int = 16
   var sort: Boolean = false
 
-  var sampling: Option[(SimpleFeature) => Boolean] = null
+  var sampling: Option[(SimpleFeature) => Boolean] = _
 
-  var writeBin: (KryoBufferSimpleFeature, ByteBufferResult) => Unit = null
+  var writeBin: (KryoBufferSimpleFeature, ByteBufferResult) => Unit = _
 
   override def init(options: Map[String, String]): ByteBufferResult = {
     geomIndex = options(GEOM_OPT).toInt
-    trackIndex = options(TRACK_OPT).toInt
     labelIndex = options.get(LABEL_OPT).map(_.toInt).getOrElse(-1)
 
+    trackIndex = options(TRACK_OPT).toInt
+    getTrackId = if (trackIndex == -1) {
+      (sf) => sf.getID.hashCode
+    } else {
+      (sf) => {
+        val track = sf.getAttribute(trackIndex)
+        if (track == null) { 0 } else { track.hashCode() }
+      }
+    }
     dtgIndex = options(DATE_OPT).toInt
     isDtgArray = options.get(DATE_ARRAY_OPT).exists(_.toBoolean)
     getDtg = if (dtgIndex == -1) {
@@ -73,7 +81,7 @@ class BinAggregatingIterator
         try {
           sf.getAttribute(dtgIndex).asInstanceOf[java.util.List[Date]].get(linePointIndex).getTime
         } catch {
-          case e: IndexOutOfBoundsException => 0L
+          case _: IndexOutOfBoundsException => 0L
         }
       }
     } else {
@@ -139,12 +147,7 @@ class BinAggregatingIterator
    */
   private def writeBinToBuffer(sf: KryoBufferSimpleFeature, pt: Point, result: ByteBufferResult): Unit = {
     val buffer = result.ensureCapacity(16)
-    val track = sf.getAttribute(trackIndex)
-    if (track == null) {
-      buffer.putInt(0)
-    } else {
-      buffer.putInt(track.hashCode())
-    }
+    buffer.putInt(getTrackId(sf))
     buffer.putInt((getDtg(sf) / 1000).toInt)
     buffer.putFloat(pt.getY.toFloat) // y is lat
     buffer.putFloat(pt.getX.toFloat) // x is lon
@@ -226,9 +229,9 @@ class BinAggregatingIterator
  */
 class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 
-  var decodeBin: (Array[Byte]) => SimpleFeature = null
-  var setDate: (SimpleFeature, Long) => Unit = null
-  var writePrecomputedBin: (SimpleFeature, ByteBufferResult) => Unit = null
+  var decodeBin: (Array[Byte]) => SimpleFeature = _
+  var setDate: (SimpleFeature, Long) => Unit = _
+  var writePrecomputedBin: (SimpleFeature, ByteBufferResult) => Unit = _
 
   override def init(options: Map[String, String]): ByteBufferResult = {
     import KryoLazyAggregatingIterator._
@@ -243,7 +246,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
     val gf = new GeometryFactory
 
     val index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
-      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
+      case NonFatal(_) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
     val getId = index.getIdFromRow(sft)
 
@@ -353,8 +356,6 @@ object BinAggregatingIterator extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  // need to be lazy to avoid class loading issues before init is called
-  lazy val BIN_SFT = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
   val BIN_ATTRIBUTE_INDEX = 0 // index of 'bin' attribute in BIN_SFT
   private val zeroPoint = WKTUtils.read("POINT(0 0)")
 
@@ -454,6 +455,7 @@ object BinAggregatingIterator extends LazyLogging {
    * Determines if the requested fields match the precomputed bin data
    */
   def canUsePrecomputedBins(sft: SimpleFeatureType, hints: Hints): Boolean = {
+    // noinspection ExistsEquals
     sft.getBinTrackId.exists(_ == hints.getBinTrackIdField) &&
         hints.getBinGeomField.forall(_ == sft.getGeomField) &&
         hints.getBinDtgField == sft.getDtgField &&
@@ -466,7 +468,7 @@ object BinAggregatingIterator extends LazyLogging {
    * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
    */
   def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", BIN_SFT)
+    val sf = new ScalaSimpleFeature("", BinaryOutputEncoder.BinEncodedSft)
     sf.setAttribute(1, zeroPoint)
     (e: Entry[Key, Value]) => {
       sf.setAttribute(BIN_ATTRIBUTE_INDEX, e.getValue.get())
@@ -578,7 +580,7 @@ object BinAggregatingIterator extends LazyLogging {
       (e: Entry[Key, Value]) => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         // set the value directly in the array, as we don't support byte arrays as properties
-        new ScalaSimpleFeature(deserialized.getID, BIN_SFT, Array(encode(deserialized), zeroPoint))
+        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), zeroPoint))
       }
     } else {
       val getId = index.getIdFromRow(sft)
@@ -588,7 +590,7 @@ object BinAggregatingIterator extends LazyLogging {
         val row = e.getKey.getRow
         deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
         // set the value directly in the array, as we don't support byte arrays as properties
-        new ScalaSimpleFeature(deserialized.getID, BIN_SFT, Array(encode(deserialized), zeroPoint))
+        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), zeroPoint))
       }
     }
 
@@ -652,11 +654,11 @@ object BinSorter extends LazyLogging {
   private val INSERTION_SORT_THRESHOLD = 3
 
   private val swapBuffers = new ThreadLocal[Array[Byte]]() {
-    override def initialValue() = Array.ofDim[Byte](24) // the larger bin size
+    override def initialValue(): Array[Byte] = Array.ofDim[Byte](24) // the larger bin size
   }
 
   private val priorityOrdering = new Ordering[(Array[Byte], Int)]() {
-    override def compare(x: (Array[Byte], Int), y: (Array[Byte], Int)) =
+    override def compare(x: (Array[Byte], Int), y: (Array[Byte], Int)): Int =
       BinSorter.compare(y._1, y._2, x._1, x._2) // reverse for priority queue
   }
 
@@ -726,8 +728,8 @@ object BinSorter extends LazyLogging {
         s" chunks and a median size of ${sizes.sorted.apply(sizes.length / 2)} chunks")
 
     new Iterator[(Array[Byte], Int)] {
-      override def hasNext = queue.nonEmpty
-      override def next() = {
+      override def hasNext: Boolean = queue.nonEmpty
+      override def next(): (Array[Byte], Int) = {
         val (aggregate, offset) = queue.dequeue()
         if (offset < aggregate.length - binSize) {
           queue.enqueue((aggregate, offset + binSize))

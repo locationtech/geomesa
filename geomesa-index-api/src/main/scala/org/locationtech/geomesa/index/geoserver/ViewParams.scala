@@ -37,11 +37,12 @@ object ViewParams extends LazyLogging {
     * Examines the view parameters passed in through geoserver and sets the corresponding query hints
     * This kind of a hack, but it's the only way geoserver exposes custom data to the underlying data store.
     *
-    * @param ds geomesa data store
     * @param sft simple feature type
     * @param query query to examine/update
+    * @param ds geomesa data store, if available - may be null
+    *           (TODO would normally use an option but scala type bounds are causing issues)
     */
-  def setHints(ds: GeoMesaDataStore[_, _, _], sft: SimpleFeatureType, query: Query): Unit = {
+  def setHints(sft: SimpleFeatureType, query: Query, ds: GeoMesaDataStore[_, _, _]): Unit = {
     val params = {
       val viewParams = query.getHints.get(Hints.VIRTUAL_TABLE_PARAMETERS).asInstanceOf[jMap[String, String]]
       Option(viewParams).map(_.toMap).getOrElse(Map.empty)
@@ -105,7 +106,7 @@ object ViewParams extends LazyLogging {
                       sft: SimpleFeatureType,
                       name: String): Option[GeoMesaFeatureIndex[_, _, _]] = {
     val check = name.toLowerCase(Locale.US)
-    val rawIndices = ds.manager.indices(sft, IndexMode.Read)
+    val rawIndices = if (ds == null) { Seq.empty } else { ds.manager.indices(sft, IndexMode.Read) }
     val indices = rawIndices.asInstanceOf[Seq[GeoMesaFeatureIndex[_ <: GeoMesaDataStore[_, _, _], _ <: WrappedFeature, _]]]
     val value = if (check.contains(":")) {
       indices.find(_.identifier.toLowerCase(Locale.US) == check)

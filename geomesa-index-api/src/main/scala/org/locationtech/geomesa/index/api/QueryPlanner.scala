@@ -170,7 +170,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
     }
 
     // handle any params passed in through geoserver
-    ViewParams.setHints(ds, sft, query)
+    ViewParams.setHints(sft, query, ds)
 
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
       // bind the literal values to the appropriate type, so that it isn't done every time the filter is evaluated
