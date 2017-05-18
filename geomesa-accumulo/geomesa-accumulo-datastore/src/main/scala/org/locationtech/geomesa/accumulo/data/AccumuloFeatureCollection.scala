@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
 import org.locationtech.geomesa.accumulo.process.stats.StatsVisitor
 import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
 import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
-import org.locationtech.geomesa.accumulo.process.{BinVisitor, RouteVisitor, SamplingVisitor}
+import org.locationtech.geomesa.accumulo.process.{ArrowVisitor, BinVisitor, RouteVisitor, SamplingVisitor}
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.opengis.feature.FeatureVisitor
 import org.opengis.util.ProgressListener
@@ -37,6 +37,7 @@ class AccumuloFeatureCollection(source: GeoMesaFeatureSource, query: Query)
       case v: AttributeVisitor => v.setValue(v.unique(source, query))
       case v: RouteVisitor     => v.routeSearch(source, query)
       case v: BinVisitor       => v.binQuery(source, query)
+      case v: ArrowVisitor     => v.arrowQuery(source, query)
       case _ => super.accepts(visitor, progress)
     }
 }

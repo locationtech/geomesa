@@ -8,38 +8,58 @@
 
 package org.locationtech.geomesa.tools.export
 
-import org.apache.commons.io.IOUtils
+import com.beust.jcommander.Parameter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.export.formats._
-import org.locationtech.geomesa.tools.utils.DataFormats
+import org.locationtech.geomesa.tools.export.BinExportCommand.BinExportParams
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 
+@deprecated("ExportCommand")
 trait BinExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
 
   override val name = "export-bin"
   override def params: BinExportParams
 
+  def delegate: ExportCommand[DS]
+
   override def execute(): Unit = {
-    implicit val timing = new Timing
-    profile(withDataStore(export))
-    Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
-        s"in ${timing.time}ms")
+    Command.user.warn(s"This operation has been deprecated. Use the 'export' command instead.")
+    val d = delegate
+    d.params.attributes   = params.attributes
+    d.params.file         = params.file
+    d.params.gzip         = params.gzip
+    d.params.maxFeatures  = params.maxFeatures
+    d.params.noHeader     = params.noHeader
+    d.params.outputFormat = params.outputFormat
+    d.params.catalog      = params.catalog
+    d.params.cqlFilter    = params.cqlFilter
+    d.params.featureName  = params.featureName
+    d.params.index        = params.index
+
+    d.params.hints = new java.util.HashMap[String, String]()
+    Option(params.hints).foreach(d.params.hints.putAll)
+    Option(params.idAttribute).foreach(d.params.hints.put("BIN_TRACK", _))
+    Option(params.geomAttribute).foreach(d.params.hints.put("BIN_GEOM", _))
+    Option(params.dateAttribute).foreach(d.params.hints.put("BIN_DTG", _))
+    Option(params.labelAttribute).foreach(d.params.hints.put("BIN_LABEL", _))
+
+    d.execute()
   }
+}
 
-  protected def export(ds: DS): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+object BinExportCommand {
 
-    val sft = ds.getSchema(params.featureName)
-    val dtg = sft.getDtgField
-    val attributes = ExportCommand.getAttributes(ds, DataFormats.Bin, params)
-    val features = ExportCommand.getFeatureCollection(ds, DataFormats.Bin, attributes, params)
-    val exporter = BinExporter(ExportCommand.createOutputStream(params.file, params.gzip), params, dtg)
-    try {
-      exporter.export(features)
-      exporter.flush()
-    } finally {
-      IOUtils.closeQuietly(exporter)
-    }
+  trait BinExportParams extends ExportParams {
+    @Parameter(names = Array("--id-attribute"), description = "Name of the id attribute to export")
+    var idAttribute: String = _
+
+    @Parameter(names = Array("--geom-attribute"), description = "Name of the geometry attribute to export")
+    var geomAttribute: String = _
+
+    @Parameter(names = Array("--label-attribute"), description = "Name of the attribute to use as a bin file label")
+    var labelAttribute: String = _
+
+    @Parameter(names = Array("--dt-attribute"), description = "Name of the date attribute to export")
+    var dateAttribute: String = _
   }
 }

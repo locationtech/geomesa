@@ -14,13 +14,16 @@ import org.geotools.process.vector.{QueryProcess, UniqueProcess}
 import org.geotools.text.Text
 
 class ProcessFactory
-  extends AnnotatedBeanProcessFactory(
-    Text.text("GeoMesa Process Factory"),
-    "geomesa",
+    extends AnnotatedBeanProcessFactory(Text.text("GeoMesa Process Factory"), "geomesa", ProcessFactory.Processes: _*)
+
+object ProcessFactory {
+  val Processes = Seq(
     classOf[DensityProcess],
     classOf[Point2PointProcess],
 //    classOf[QueryProcess],
 //    classOf[UniqueProcess],
     classOf[HashAttributeProcess],
-    classOf[HashAttributeColorProcess]
+    classOf[HashAttributeColorProcess],
+    classOf[ArrowConversionProcess]
   )
+}
