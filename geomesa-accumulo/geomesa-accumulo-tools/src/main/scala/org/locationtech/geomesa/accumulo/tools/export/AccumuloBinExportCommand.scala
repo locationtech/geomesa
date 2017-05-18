@@ -11,10 +11,13 @@ package org.locationtech.geomesa.accumulo.tools.export
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.export.{BinExportCommand, BinExportParams}
+import org.locationtech.geomesa.tools.export.BinExportCommand.BinExportParams
+import org.locationtech.geomesa.tools.export.{BinExportCommand, ExportCommand}
 
+@deprecated("AccumuloExportCommand")
 class AccumuloBinExportCommand extends BinExportCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
   override val params = new AccumuloBinExportParams
+  override val delegate: ExportCommand[AccumuloDataStore] = new AccumuloExportCommand
 }
 
 @Parameters(commandDescription = "Export features from a GeoMesa data store in a binary format")

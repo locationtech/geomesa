@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureReader
 import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
@@ -34,9 +35,9 @@ abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long],
 
   protected def closeOnce(): Unit
 
-  override def getFeatureType = query.getHints.getReturnSft
+  override def getFeatureType: SimpleFeatureType = query.getHints.getReturnSft
 
-  override def close() = if (!closed.getAndSet(true)) {
+  override def close(): Unit = if (!closed.getAndSet(true)) {
     try {
       timeout.foreach(t => ThreadManagement.unregister(this, start, t))
     } finally {
@@ -50,7 +51,7 @@ object GeoMesaFeatureReader {
             query: Query,
             qp: QueryPlanner[_, _, _],
             timeout: Option[Long],
-            audit: Option[(AuditWriter, AuditProvider, String)]) = {
+            audit: Option[(AuditWriter, AuditProvider, String)]): GeoMesaFeatureReader = {
     val maxFeatures = if (query.isMaxFeaturesUnlimited) None else Some(query.getMaxFeatures)
     (audit, maxFeatures) match {
       case (None, None)                 => new GeoMesaFeatureReaderImpl(sft, query, qp, timeout)
@@ -117,7 +118,7 @@ trait FeatureCounting extends GeoMesaFeatureReader {
   protected var counter = 0L
   // because the query planner configures the query hints, we can't check for bin hints
   // until after setting up the iterator
-  protected val sfCount: (SimpleFeature) => Int = if (query.getHints.isBinQuery) {
+  protected val sfCount: (SimpleFeature) => Int = if (getFeatureType == BinaryOutputEncoder.BinEncodedSft) {
     // bin queries pack multiple records into each feature
     // to count the records, we have to count the total bytes coming back, instead of the number of features
     val bytesPerHit = if (query.getHints.getBinLabelField.isDefined) 24 else 16
@@ -132,7 +133,7 @@ trait FeatureCounting extends GeoMesaFeatureReader {
     sf
   }
 
-  abstract override def count = counter
+  abstract override def count: Long = counter
 }
 
 trait FeatureLimiting extends FeatureCounting {

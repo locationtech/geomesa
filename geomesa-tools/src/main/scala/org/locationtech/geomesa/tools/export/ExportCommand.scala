@@ -14,8 +14,7 @@ import java.util.zip.{Deflater, GZIPOutputStream}
 import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.data.{DataStore, Query}
+import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -27,6 +26,7 @@ import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
@@ -47,17 +47,20 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
     import ExportCommand._
     import org.locationtech.geomesa.tools.utils.DataFormats._
 
+    lazy val sft = ds.getSchema(params.featureName)
     val fmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
       throw new ParameterException(s"Invalid format '${params.outputFormat}'. Valid values are " +
-          DataFormats.values.filter(_ != Bin).map(_.toString.toLowerCase).mkString("'", "', '", "'"))
-    }
-    if (fmt == Bin) {
-      throw new ParameterException(s"This operation has been deprecated. Use the command 'export-bin' instead.")
+          DataFormats.values.map(_.toString.toLowerCase).mkString("'", "', '", "'"))
     }
 
-    val attributes = getAttributes(ds, fmt, params)
-    val query = getQuery(ds, fmt, attributes, params)
-    val features = getFeatureCollection(ds, query)
+    val (query, attributes) = createQuery(ds, sft, fmt, params)
+    val features = try {
+      ds.getFeatureSource(query.getTypeName).getFeatures(query)
+    } catch {
+      case NonFatal(e) =>
+        throw new RuntimeException("Could not execute export query. Please ensure " +
+            "that all arguments are correct.", e)
+    }
 
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val exporter = fmt match {
@@ -67,6 +70,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
       case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
       case Avro           => new AvroExporter(features.getSchema, createOutputStream(params.file, null), avroCompression)
       case Arrow          => new ArrowExporter(ds, query, createOutputStream(params.file, null))
+      case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, null))
       case Null           => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
@@ -82,16 +86,13 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
 
 object ExportCommand extends LazyLogging {
 
-  def getQuery(ds: GeoMesaDataStore[_, _, _],
-               fmt: DataFormat,
-               attributes: Option[ExportAttributes],
-               params: BaseExportParams): Query = {
+  def createQuery(ds: GeoMesaDataStore[_, _, _],
+                  sft: => SimpleFeatureType,
+                  fmt: DataFormat,
+                  params: ExportParams): (Query, Option[ExportAttributes]) = {
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
 
-    logger.debug(s"Applying CQL filter ${ECQL.toCQL(filter)}")
-    logger.debug(s"Applying transform ${attributes.map(_.names.mkString(",")).orNull}")
-
-    val query = new Query(params.featureName, filter, attributes.map(_.names.toArray).orNull)
+    val query = new Query(params.featureName, filter)
     Option(params.maxFeatures).map(Int.unbox).foreach(query.setMaxFeatures)
     params.loadIndex(ds, IndexMode.Read).foreach { index =>
       query.getHints.put(QueryHints.QUERY_INDEX, index)
@@ -100,47 +101,38 @@ object ExportCommand extends LazyLogging {
 
     if (fmt == DataFormats.Arrow) {
       query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+    } else if (fmt == DataFormats.Bin) {
+      // this indicates to run a BIN query, will be overridden by hints if specified
+      query.getHints.put(QueryHints.BIN_TRACK, "id")
     }
 
     Option(params.hints).foreach { hints =>
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
-      ViewParams.setHints(ds, ds.getSchema(params.featureName), query)
+      ViewParams.setHints(sft, query, ds)
     }
 
-    query
-  }
-
-  def getFeatureCollection(ds: GeoMesaDataStore[_, _, _], query: Query): SimpleFeatureCollection = {
-    try {
-      // get the feature store used to query the GeoMesa data
-      ds.getFeatureSource(query.getTypeName).getFeatures(query)
-    } catch {
-      case NonFatal(e) =>
-        throw new RuntimeException("Could not execute export query. Please ensure " +
-            "that all arguments are correct.", e)
-    }
-  }
-
-  def getAttributes(ds: DataStore, fmt: DataFormat, params: BaseExportParams): Option[ExportAttributes] = {
-    import scala.collection.JavaConversions._
-
-    lazy val sft = ds.getSchema(params.featureName)
-    val provided = Option(params.attributes).collect { case a if !a.isEmpty => a.toSeq }
-    if (fmt == DataFormats.Shp) {
-      val attributes = provided.map(ShapefileExporter.replaceGeom(sft, _)).getOrElse(ShapefileExporter.modifySchema(sft))
-      Some(ExportAttributes(attributes, fid = true))
-    } else if (fmt == DataFormats.Bin) {
-      val attributes = provided.getOrElse {
-        import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-        BinExporter.getAttributeList(params.asInstanceOf[BinExportParams], sft.getDtgField)
+    val attributes = {
+      import scala.collection.JavaConversions._
+      val provided = Option(params.attributes).collect { case a if !a.isEmpty => a.toSeq }.orElse {
+        if (fmt == DataFormats.Bin) { Some(BinExporter.getAttributeList(sft, query.getHints)) } else { None }
       }
-      Some(ExportAttributes(attributes, fid = false))
-    } else {
-      provided.map { p =>
-        val (id, attributes) = p.partition(_.equalsIgnoreCase("id"))
-        ExportAttributes(attributes, id.nonEmpty)
+      if (fmt == DataFormats.Shp) {
+        val attributes = provided.map(ShapefileExporter.replaceGeom(sft, _)).getOrElse(ShapefileExporter.modifySchema(sft))
+        Some(ExportAttributes(attributes, fid = true))
+      } else {
+        provided.map { p =>
+          val (id, attributes) = p.partition(_.equalsIgnoreCase("id"))
+          ExportAttributes(attributes, id.nonEmpty)
+        }
       }
     }
+
+    query.setPropertyNames(attributes.map(_.names.toArray).orNull)
+
+    logger.debug(s"Applying CQL filter ${ECQL.toCQL(filter)}")
+    logger.debug(s"Applying transform ${Option(query.getPropertyNames).map(_.mkString(",")).orNull}")
+
+    (query, attributes)
   }
 
   def createOutputStream(file: File, compress: Integer): OutputStream = {

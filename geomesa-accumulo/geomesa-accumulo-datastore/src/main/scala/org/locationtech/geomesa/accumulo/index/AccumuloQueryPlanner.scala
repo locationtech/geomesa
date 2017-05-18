@@ -14,6 +14,7 @@ import org.locationtech.geomesa.accumulo.AccumuloQueryPlannerType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.{KryoLazyDensityUtils, KryoLazyStatsUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -57,7 +58,7 @@ class AccumuloQueryPlanner(ds: AccumuloDataStore) extends AccumuloQueryPlannerTy
   // This function calculates the SimpleFeatureType of the returned SFs.
   override protected def setReturnSft(query: Query, baseSft: SimpleFeatureType): Unit = {
     val sft = if (query.getHints.isBinQuery) {
-      BinAggregatingIterator.BIN_SFT
+      BinaryOutputEncoder.BinEncodedSft
     } else if (query.getHints.isArrowQuery) {
       org.locationtech.geomesa.arrow.ArrowEncodedSft
     } else if (query.getHints.isDensityQuery) {
