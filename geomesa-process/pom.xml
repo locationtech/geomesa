@@ -11,18 +11,28 @@
     <name>GeoMesa WPS</name>
 
     <dependencies>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.accumulo</groupId>-->
+            <!--<artifactId>accumulo-core</artifactId>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
+            <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-main</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-data</artifactId>
+        </dependency>
+
+
         <dependency>
             <!-- 'works with' due to license issues -->
             <groupId>javax.media</groupId>
