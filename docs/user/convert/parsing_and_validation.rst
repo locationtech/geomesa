@@ -12,14 +12,14 @@ At their core, Converters transform input streams into SimpleFeatures. Validator
 of those simple features before they are written to GeoMesa. For example, you may want to validate that there is a
 geometry field and that the geometry is valid.
 
-There are currently three converters available for usage with GeoMesa:
+There are currently three validators available for usage with GeoMesa Converters:
 
 * has-geo - Ensure that the feature has a geometry and it is non-null
 * has-dtg - Ensure that the date has a geometry and it is non-null
 * z-index - Ensure the Geometry and Date are within the space/time bounds of GeoMesa Z-Index implementations
 (i.e. Z2, Z3, XZ2, XZ3)
 
-Be default the has-geo and has-dtg validators are enabled. To enable other validators add this to the options block
+By default the has-geo and has-dtg validators are enabled. To enable other validators add this to the options block
 of your typesafe converter config:
 
 ::
