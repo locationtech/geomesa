@@ -54,6 +54,36 @@ class FixedWidthConverterTest extends Specification {
       res(1).getDefaultGeometry.asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(65.0, 65.0)
     }
 
+    "process fixed with data without validating when converter components are out of order" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type      = "fixed-width"
+          |   id-field  = "uuid()"
+          |   options {
+          |     validating = false
+          |   }
+          |   fields = [
+          |     { name = "anotherLat", transform = "$lat" },
+          |     { name = "lat",  transform = "$0::double", start = 1, width = 2 },
+          |     { name = "lon",  transform = "$0::double", start = 3, width = 2 },
+          |     { name = "geom", transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+
+      converter must not beNull
+      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+      res.size must be equalTo 2
+      res(0).getDefaultGeometry.asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(55.0, 45.0)
+      res(1).getDefaultGeometry.asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(65.0, 65.0)
+      // second ob *should* have anotherLat == 65.0, rather than 45.0)
+      res(1).getAttribute("anotherLat").asInstanceOf[Double] must be equalTo 65.0D
+    }
+
     "process with validation on" >> {
       val conf = ConfigFactory.parseString(
         """
