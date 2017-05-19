@@ -7,7 +7,7 @@
     <format>tar.gz</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
-  <baseDirectory>geomesa-hbase_${scala.binary.version}-${project.version}</baseDirectory>
+  <baseDirectory>geomesa-process_${scala.binary.version}-${project.version}</baseDirectory>
 
   <componentDescriptors>
     <componentDescriptor>src/main/assemblies/component.xml</componentDescriptor>
@@ -16,7 +16,7 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>/</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
+      <useProjectArtifact>true</useProjectArtifact>
       <scope></scope>
     </dependencySet>
   </dependencySets>

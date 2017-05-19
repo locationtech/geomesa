@@ -60,7 +60,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
   }
 
   def runQuery(query: Query): Seq[EncodedValues] = {
-    import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+    import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
     val binSize = if (query.getHints.containsKey(BIN_LABEL)) 24 else 16
     val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val bytes = features.map { f =>

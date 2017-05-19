@@ -13,12 +13,15 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, WholeWorldPolygon}
 import org.opengis.filter.Filter
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 

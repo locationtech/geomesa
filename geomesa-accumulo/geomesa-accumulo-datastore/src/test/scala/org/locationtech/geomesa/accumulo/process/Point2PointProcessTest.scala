@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.process
+package org.locationtech.geomesa.accumulo.process
 
 import java.text.SimpleDateFormat
 import java.util.TimeZone
@@ -18,6 +18,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.process.Point2PointProcess
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification

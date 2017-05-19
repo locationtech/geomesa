@@ -385,7 +385,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "support bin queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       val sft = createNewSchema(s"name:String,dtg:Date,*geom:Point:srid=4326")
 
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
@@ -403,7 +403,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "support bin queries with linestrings" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       val sft = createNewSchema(s"name:String,dtgs:List[Date],dtg:Date,*geom:LineString:srid=4326")
       val dtgs1 = new java.util.ArrayList[Date]
       dtgs1.add(Converters.convert("2010-05-07T00:00:00.000Z", classOf[Date]))
