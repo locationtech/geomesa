@@ -46,3 +46,4 @@ by the `Typesafe Config`_ library.
     xml
     avro
     extending
+    parsing_and_validation
