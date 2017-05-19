@@ -60,7 +60,7 @@ is important when it comes to validation. There are two modes available:
 * incremental
 * batch
 
-Since converters provide iterators of SimpleFeatures the default parse mode is incremental which provides better
+Since converters provide iterators of SimpleFeatures, the default parse mode is incremental which provides better
 performance and less memory overhead. Using incremental parse mode means that data may be partially ingested into
 GeoMesa before an error is raised. In most cases this is appropriate and can be handled by the client code.
 
@@ -81,7 +81,7 @@ To configure the parse mode use add an option to your converter's typesafe confi
 Logging
 ~~~~~~~
 
-To view validation logs you may want to enable DEBUG level logging on the package org.locationtech.geomesa.convert
+To view validation logs you may want to enable DEBUG level logging on the package org.locationtech.geomesa.convert.
 
 Transactional Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,6 +114,6 @@ parse mode:
         }
     }
 
-If you are using a framework such as the GeoMesa Nifi processor then the file will still be routed to an error
-relationship but you may experience partially ingested data.
+If you are using a framework such as the GeoMesa Nifi processor, then the file will still be routed to an error
+relationship but you may experience partially ingested data. See :doc:`/user/nifi` for more info.
 
