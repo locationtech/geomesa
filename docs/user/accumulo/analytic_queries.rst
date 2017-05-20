@@ -22,12 +22,13 @@ be returned. Due to distributed processing, the actual count returned is not gua
 percentage - however, there will never be less features than requested. For example, if you sample 5 features
 at 10%, you will get back anywhere from 1 to 5 features, depending on how your data is distributed in the cluster.
 
-========================== ================================== ====================
-Key                        Type                               GeoServer Conversion
-========================== ================================== ====================
-QueryHints.SAMPLING        Float                              any float
-QueryHints.SAMPLE_BY       String - attribute name (optional) any string
-========================== ================================== ====================
++----------------------+------------------------------------+----------------------+
+| Key                  | Type                               | GeoServer Conversion |
++======================+====================================+======================+
+| QueryHints.SAMPLING  | Float                              | any float            |
++----------------------+------------------------------------+----------------------+
+| QueryHints.SAMPLE_BY | String - attribute name (optional) | any string           |
++----------------------+------------------------------------+----------------------+
 
 .. tabs::
 
@@ -58,18 +59,20 @@ To populate heatmaps or other pre-rendered maps, GeoMesa can use server-side agg
 pixels. This results in much less network traffic, and subsequently much faster queries.
 
 The result from a density query is an encoded iterator of ``(x, y, count)``, where ``x`` and ``y`` refer to
-the coordinates for the center of a pixel.
-In GeoServer, you can use the WPS DensityProcess to create a heatmap from the query result.
-See :ref:`gdelt_heatmaps` for more information.
+the coordinates for the center of a pixel. In GeoServer, you can use the WPS DensityProcess to create a
+heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
 
-========================= ======================= ==============================
-Key                       Type                    GeoServer Conversion
-========================= ======================= ==============================
-QueryHints.DENSITY_BBOX   ``ReferencedEnvelope``  use WPS
-QueryHints.DENSITY_WEIGHT String                  use WPS
-QueryHints.DENSITY_WIDTH  Integer                 use WPS
-QueryHints.DENSITY_HEIGHT Integer                 use WPS
-========================= ======================= ==============================
++---------------------------+------------------------+----------------------+
+| Key                       | Type                   | GeoServer Conversion |
++===========================+========================+======================+
+| QueryHints.DENSITY_BBOX   | ``ReferencedEnvelope`` | Use WPS              |
++---------------------------+------------------------+                      +
+| QueryHints.DENSITY_WEIGHT | String                 |                      |
++---------------------------+------------------------+                      +
+| QueryHints.DENSITY_WIDTH  | Integer                |                      |
++---------------------------+------------------------+                      +
+| QueryHints.DENSITY_HEIGHT | Integer                |                      |
++---------------------------+------------------------+----------------------+
 
 .. tabs::
 
@@ -98,3 +101,124 @@ QueryHints.DENSITY_HEIGHT Integer                 use WPS
             }
         }
         reader.close()
+
+Arrow Encoding
+--------------
+
+GeoMesa supports returning features as `Apache Arrow <https://arrow.apache.org/>`__ encoded vectors. This provides
+an optimized columnar memory layout for fast processing and interoperability with other systems.
+
+The result of an Arrow query will be an iterator of SimpleFeatures, where the first attribute of each will be a
+byte array. Concatenated together, the byte arrays will form an Arrow file, in the Arrow streaming format
+(i.e. no footer).
+
+In GeoServer you can use the ``ArrowConversionProcess``. Otherwise, the encoding is controlled through the
+following query hints:
+
++-------------------------------------+--------------------+----------------------+
+| Key                                 | Type               | GeoServer Conversion |
++=====================================+====================+======================+
+| QueryHints.ARROW_ENCODE             | Boolean            | Use WPS              |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_INCLUDE_FID        | Boolean (optional) |                      |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_DICTIONARY_FIELDS  | String  (optional) |                      |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_DICTIONARY_VALUES  | String  (optional) |                      |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_DICTIONARY_COMPUTE | Boolean (optional) |                      |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_BATCH_SIZE         | Integer (optional) |                      |
++-------------------------------------+--------------------+----------------------+
+
+Explanation of Hints
+++++++++++++++++++++
+
+ARROW_ENCODE
+^^^^^^^^^^^^
+
+This hint is used to trigger an Arrow query.
+
+ARROW_INCLUDE_FID
+^^^^^^^^^^^^^^^^^
+
+This hint controls whether to include the feature ID as an Arrow vector or not. The default is to include it.
+
+ARROW_DICTIONARY_FIELDS
+^^^^^^^^^^^^^^^^^^^^^^^
+
+This hint indicates which simple feature attributes should be dictionary encoded. It should be a comma-separated
+list of attribute names.
+
+ARROW_DICTIONARY_VALUES
+^^^^^^^^^^^^^^^^^^^^^^^
+
+This hint indicates known dictionary values to use for encoding each field. This allows for specifying a known
+dictionary up front, which means the dictionary doesn't have to be computed. Values which are not indicated
+in the dictionary will be grouped under 'other'.
+
+The hint should be an encoded map of attribute names to attribute values. The hint should be encoded in
+comma-separated values format, where each line indicates a different attribute. The first item in each line is
+the attribute name, and the subsequent items are dictionary values. Standard CSV escaping can be used. The function
+``org.locationtech.geomesa.utils.text.StringSerialization.encodeSeqMap`` can be used to encode a map of values.
+
+.. tabs::
+
+    .. code-tab:: scala
+
+        import org.locationtech.geomesa.index.conf.QueryHints
+        import org.locationtech.geomesa.utils.text.StringSerialization.encodeSeqMap
+
+        val dictionaries1 =
+            """
+              |name,Harry,Hermione,Severus
+              |age,20,25,30
+            """.stripMargin.trim
+
+        // equivalent to dictionaries1
+        val dictionaries2 = encodSeqMap(Map("name" -> Seq("Harry", "Hermione", "Severus"), "age" -> Seq(20, 25, 30)))
+
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, dictionaries1)
+
+ARROW_DICTIONARY_COMPUTE
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+This hint indicates that dictionaries should be computed before running the query. Any provided dictionaries
+will not be computed. Dictionary values will use cached statistics (top-k) if available, otherwise will run
+a statistical query. Note that this may be slow.
+
+If this hint is false, any dictionary fields will be determined on the fly. However, this means that instead
+of a single Arrow file, the result of the query will be multiple separate arrow files, concatenated together.
+This is a restriction of the Arrow format, which requires that dictionaries be specified before anything else.
+
+ARROW_BATCH_SIZE
+^^^^^^^^^^^^^^^^
+
+This hint will restrict the number of features included in each Arrow record batch. An Arrow file contains
+a series of record batches -limiting the max size of each batch can allow memory-constrained systems to
+operate more easily.
+
+Example Query
++++++++++++++
+
+.. tabs::
+
+    .. code-tab:: scala
+
+        import org.geotools.data.Transaction
+        import org.geotools.geometry.jts.ReferencedEnvelope.ReferencedEnvelope
+        import org.geotools.referencing.CRS
+        import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
+        import org.locationtech.geomesa.index.conf.QueryHints
+
+        query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+
+        val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
+        val os = new ByteArrayOutputStream()
+
+        while (reader.hasNext) {
+          os.write(reader.next().getAttribute(0).asInstanceOf[Array[Byte]])
+        }
+        reader.close()
+
+        // use ArrowStreamReader or other Arrow libraries to process bytes

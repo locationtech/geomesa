@@ -11,42 +11,48 @@ package org.locationtech.geomesa.tools.export.formats
 import java.io.OutputStream
 
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, LatLonAttributes, encodeFeatureCollection}
-import org.locationtech.geomesa.tools.export.BinExportParams
+import org.geotools.factory.Hints
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, GeometryAttribute}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.opengis.feature.simple.SimpleFeatureType
 
-class BinExporter(os: OutputStream,
-                  dtgAttribute: String,
-                  idAttribute: Option[String],
-                  latAttribute: Option[String],
-                  lonAttribute: Option[String],
-                  lblAttribute: Option[String]) extends FeatureExporter {
+class BinExporter(hints: Hints, os: OutputStream) extends FeatureExporter {
 
-  val id = idAttribute.orElse(Some("id"))
-  val latLon = for (lat <- latAttribute; lon <- lonAttribute) yield { LatLonAttributes(lat, lon) }
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   override def export(fc: SimpleFeatureCollection): Option[Long] = {
-    encodeFeatureCollection(fc, os, EncodingOptions(latLon, Option(dtgAttribute), id, lblAttribute))
-    None
+    val sft = fc.getSchema
+    val features = SelfClosingIterator(fc.features())
+    if (sft == BinaryOutputEncoder.BinEncodedSft) {
+      var numBytes = 0L
+      // just copy bytes directly out
+      features.foreach { f =>
+        val bytes = f.getAttribute(0).asInstanceOf[Array[Byte]]
+        os.write(bytes)
+        numBytes += bytes.length
+      }
+      Some(numBytes / (if (hints.getBinLabelField.isEmpty) { 16 } else { 24 }))
+    } else {
+      import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+      // do the encoding here
+      val geom = hints.getBinGeomField.map(GeometryAttribute(_))
+      val options = EncodingOptions(geom, hints.getBinDtgField, Option(hints.getBinTrackIdField), hints.getBinLabelField)
+      val count = BinaryOutputEncoder.encodeFeatureCollection(fc, os, options)
+      Some(count)
+    }
   }
-
-  override def flush(): Unit = os.flush()
 
   override def close(): Unit = os.close()
 }
 
 object BinExporter {
 
-  private def date(params: BinExportParams, dtg: Option[String]): String =
-    Option(params.dateAttribute).orElse(dtg).getOrElse("dtg")
-
-  def getAttributeList(params: BinExportParams, dtg: Option[String]): Seq[String] =
-    Seq(params.latAttribute, params.lonAttribute, params.idAttribute, date(params, dtg), params.labelAttribute).filter(_ != null)
-
-  def apply(os: OutputStream, params: BinExportParams, dtg: Option[String]) =
-    new BinExporter(os,
-      date(params, dtg),
-      Option(params.idAttribute),
-      Option(params.latAttribute),
-      Option(params.lonAttribute),
-      Option(params.labelAttribute))
+  def getAttributeList(sft: SimpleFeatureType, hints: Hints): Seq[String] = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    val geom = hints.getBinGeomField.orElse(Option(sft.getGeomField))
+    val dtg = hints.getBinDtgField.orElse(sft.getDtgField)
+    (Seq(hints.getBinTrackIdField) ++ geom ++ dtg ++ hints.getBinLabelField).filter(_ != "id")
+  }
 }

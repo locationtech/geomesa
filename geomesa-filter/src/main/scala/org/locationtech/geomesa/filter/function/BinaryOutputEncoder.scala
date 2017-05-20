@@ -20,12 +20,13 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-
 object BinaryOutputEncoder extends LazyLogging {
 
   import org.locationtech.geomesa.filter.function.AxisOrder._
   import org.locationtech.geomesa.utils.geotools.Conversions._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  val BinEncodedSft = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
 
   sealed trait GeometrySelector
 
@@ -81,7 +82,7 @@ object BinaryOutputEncoder extends LazyLogging {
       fc: SimpleFeatureCollection,
       output: OutputStream,
       options: EncodingOptions,
-      sort: Boolean = false): Unit = {
+      sort: Boolean = false): Long = {
 
     val iter = toValues(fc.getSchema, options) match {
       case Right(toValue) => fc.features.map(toValue)
@@ -100,12 +101,14 @@ object BinaryOutputEncoder extends LazyLogging {
       }
     }
 
+    var count = 0L
     if (sort) {
-      iter.toList.sorted.foreach(encode)
+      iter.toList.sorted.foreach { values => encode(values); count += 1 }
     } else {
-      iter.foreach(encode)
+      iter.foreach { values => encode(values); count += 1 }
     }
-    // Feature collection has already been closed by SelfClosingIterator
+    // note: feature collection has already been closed by SelfClosingIterator
+    count
   }
 
   private def toValues(sft: SimpleFeatureType, options: EncodingOptions):

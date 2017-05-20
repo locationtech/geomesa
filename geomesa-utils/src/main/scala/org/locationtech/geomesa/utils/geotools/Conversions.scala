@@ -14,7 +14,7 @@ import java.util.Date
 import com.vividsolutions.jts.geom._
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator
-import org.geotools.feature.AttributeTypeBuilder
+import org.geotools.feature.{AttributeTypeBuilder, FeatureIterator}
 import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.DateTime
@@ -37,7 +37,7 @@ import scala.util.parsing.combinator.JavaTokenParsers
 
 object Conversions {
 
-  class RichSimpleFeatureIterator(iter: SimpleFeatureIterator) extends SimpleFeatureIterator
+  class RichSimpleFeatureIterator(iter: FeatureIterator[SimpleFeature]) extends SimpleFeatureIterator
       with Iterator[SimpleFeature] {
     private[this] var open = true
 
@@ -59,6 +59,7 @@ object Conversions {
   }
 
   implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
+  implicit def toRichSimpleFeatureIteratorFromFI(iter: FeatureIterator[SimpleFeature]): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
   implicit def opengisInstantToJodaInstant(instant: Instant): org.joda.time.Instant = new DateTime(instant.getPosition.getDate).toInstant
   implicit def jodaInstantToOpengisInstant(instant: org.joda.time.Instant): org.opengis.temporal.Instant = new DefaultInstant(new DefaultPosition(instant.toDate))
   implicit def jodaIntervalToOpengisPeriod(interval: org.joda.time.Interval): org.opengis.temporal.Period =

@@ -46,9 +46,9 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
         if (params.threads > 1) {
           val parfiles = params.files.par
           parfiles.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(params.threads))
-          parfiles.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+          parfiles.foreach(GeneralShapefileIngest.ingestToDataStore(_, ds, Option(params.featureName)))
         } else {
-          params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+          params.files.foreach(GeneralShapefileIngest.ingestToDataStore(_, ds, Option(params.featureName)))
         }
       })
     } else {
@@ -89,11 +89,8 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 }
 
 // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-trait IngestParams extends CatalogParam
-  with OptionalTypeNameParam
-  with OptionalFeatureSpecParam
-  with OptionalConverterConfigParam
-  with OptionalInputFormatParam {
+trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam
+  with OptionalConverterConfigParam with OptionalInputFormatParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
 }

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.utils
 
 import com.vividsolutions.jts.geom.{Coordinate, Envelope, Geometry, Point}
+import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -123,8 +124,10 @@ object KryoLazyDensityUtils {
   type DensityResult = mutable.Map[(Int, Int), Double]
   type GridIterator = (SimpleFeature) => Iterator[(Double, Double, Double)]
 
-  val DENSITY_SFT: SimpleFeatureType = SimpleFeatureTypes.createType("density", "result:String,*geom:Point:srid=4326")
+  val DENSITY_SFT: SimpleFeatureType = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
   val density_serializer: KryoFeatureSerializer  = new KryoFeatureSerializer(DENSITY_SFT, SerializationOptions.withoutId)
+
+  val DENSITY_VALUE = new ClassKey(classOf[Array[Byte]])
 
   // configuration keys
   val ENVELOPE_OPT = "envelope"
@@ -158,7 +161,7 @@ object KryoLazyDensityUtils {
     * Decodes a result feature into an iterator of (x, y, weight)
     */
   def decodeResult(gridSnap: GridSnap)(sf: SimpleFeature): Iterator[(Double, Double, Double)] = {
-    val result = sf.getAttribute(0).asInstanceOf[Array[Byte]]
+    val result = sf.getUserData.get(DENSITY_VALUE).asInstanceOf[Array[Byte]]
     val input = KryoFeatureSerializer.getInput(result, 0, result.length)
     new Iterator[(Double, Double, Double)]() {
       private var x = 0.0

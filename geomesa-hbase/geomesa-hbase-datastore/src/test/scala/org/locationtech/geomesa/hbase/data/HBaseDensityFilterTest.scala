@@ -12,9 +12,9 @@ import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
+import org.geotools.data.{Query, _}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{Query, _}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -38,10 +38,14 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
   val TEST_FAMILY = "an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
   val TEST_HINT = new Hints()
-
+  val sftName = "test_sft"
   val typeName = "HBaseDensityFilterTest"
 
-  lazy val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> typeName)
+
+  lazy val params = Map(
+    ConnectionParam.getName -> connection,
+    BigTableNameParam.getName -> sftName)
+
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
   var sft: SimpleFeatureType = _
@@ -100,6 +104,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
       density.length must beLessThan(150)
+      density.map(_._3).sum must beEqualTo(150)
     }
 
     "maintain total weight of points" in {
@@ -120,6 +125,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
       density.length must beLessThan(150)
+      density.map(_._3).sum must beEqualTo(150)
     }
 
     "maintain weights irrespective of dates" in {
@@ -141,6 +147,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
       density.length must beLessThan(150)
+      density.map(_._3).sum must beEqualTo(150)
     }
 
     "correctly bin points" in {
@@ -160,6 +167,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
       val features_list = new ListFeatureCollection(sft, toAdd)
       fs.addFeatures(features_list)
+      fs.getCount(Query.ALL) mustEqual 150
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 6, 40)"
       val density = getDensity(typeName, q, fs)
@@ -169,7 +177,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
       // should be 5 bins of 30
       compiled must haveLength(5)
-      forall(compiled)(_ mustEqual 30)
+      forall(compiled){ _ mustEqual 30 }
     }
   }
 

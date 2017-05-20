@@ -8,11 +8,16 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.util
+
+import com.google.common.collect.Lists
 import com.google.protobuf.ByteString
 import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
+import org.apache.hadoop.hbase.filter.FilterList.Operator
+import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
+import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 import org.locationtech.geomesa.hbase.driver.KryoLazyDensityDriver
@@ -22,11 +27,11 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-trait HBaseQueryPlan extends HBaseQueryPlanType {
+
+sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
   def table: TableName
   def ranges: Seq[Query]
-  // note: entriesToFeatures encapsulates ecql and transform
   def resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]
 
   override def explain(explainer: Explainer, prefix: String): Unit =
@@ -74,7 +79,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
                            hints: Hints,
                            table: TableName,
                            ranges: Seq[Scan],
-                           hbaseFilters: Seq[HFilter],
+                           remoteFilters: Seq[HFilter] = Nil,
                            resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan  {
   /**
     * Runs the query plain against the underlying database, returning the raw entries
@@ -83,9 +88,23 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
     * @return
     */
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    // TODO: Refactor this logical into HBasePlatform
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isDensityQuery) {
-      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, ranges, hbaseFilters, hints)
+      val rowRanges = Lists.newArrayList[RowRange]()
+      ranges.foreach { r =>
+        rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
+      }
+      val sortedRowRanges: util.List[RowRange] = MultiRowRangeFilter.sortAndMerge(rowRanges)
+      val mrff = new MultiRowRangeFilter(sortedRowRanges)
+
+      val filterList = new FilterList(Operator.MUST_PASS_ALL, mrff)
+      remoteFilters.foreach { filter => filterList.addFilter(filter) }
+
+      val scan = new Scan()
+      scan.setFilter(filterList)
+
+      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, scan, filterList, hints)
       val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
       val hbaseTable = ds.connection.getTable(table)
       val client = new KryoLazyDensityDriver()
