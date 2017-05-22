@@ -14,7 +14,6 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geojson.geom.GeometryJSON
 import org.json4s.{JArray, JObject, JValue}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
 import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
@@ -23,7 +22,7 @@ import scala.util.control.NonFatal
   * Query trait
   */
 sealed trait GeoJsonQuery {
-  def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter
+  def toFilter(propertyTransformer: PropertyTransformer): Filter
 }
 
 /**
@@ -251,7 +250,7 @@ object GeoJsonQuery {
     * All features
     */
   case object Include extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = Filter.INCLUDE
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = Filter.INCLUDE
 
     override val toString = "{}"
   }
@@ -263,8 +262,8 @@ object GeoJsonQuery {
     * @param geometry geometry to compare with property value
     */
   case class Intersects(prop: String, geometry: Geometry) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.intersects(ff.property(prop), ff.literal(geometry))
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.intersects(ff.property(propertyTransformer.transform(prop)), ff.literal(geometry))
 
     override def toString =
       s"""{"$prop":{"$$intersects":${printJson(geometry)}}}"""
@@ -281,11 +280,11 @@ object GeoJsonQuery {
     * @param geometry geometry to compare with property value
     */
   case class Within(prop: String, geometry: Geometry) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.within(ff.property(prop), ff.literal(geometry))
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.within(ff.property(propertyTransformer.transform(prop)), ff.literal(geometry))
 
     override def toString =
-      s"""{"$prop}":{"$$within":${printJson(geometry)}}}"""
+      s"""{"$prop":{"$$within":${printJson(geometry)}}}"""
   }
 
   object Within {
@@ -299,8 +298,8 @@ object GeoJsonQuery {
     * @param geometry geometry to compare with property value
     */
   case class Contains(prop: String, geometry: Geometry) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.contains(ff.property(prop), ff.literal(geometry))
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.contains(ff.property(propertyTransformer.transform(prop)), ff.literal(geometry))
 
     override def toString =
       s"""{"$prop":{"$$contains":${printJson(geometry)}}}"""
@@ -319,8 +318,8 @@ object GeoJsonQuery {
     * @param units    the units of distance (feet, meters, statute miles, kilometers)
     */
   case class Dwithin(prop: String, geometry: Geometry, dist: Double, units: String) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.dwithin(ff.property(prop), ff.literal(geometry), dist, units)
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.dwithin(ff.property(propertyTransformer.transform(prop)), ff.literal(geometry), dist, units)
 
     override def toString =
       s"""{"$prop":{"$$dwithin":${printJson(geometry)}, "$$dist":$dist, "$$unit":"$units"}}"""
@@ -342,8 +341,8 @@ object GeoJsonQuery {
     * @param ymax max y value
     */
   case class Bbox(prop: String, xmin: Double, ymin: Double, xmax: Double, ymax: Double) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.bbox(ff.property(prop), xmin, ymin, xmax, ymax, "4326")
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.bbox(ff.property(propertyTransformer.transform(prop)), xmin, ymin, xmax, ymax, "4326")
 
     override def toString = s"""{"$prop":{"$$bbox":[$xmin,$ymin,$xmax,$ymax]}}"""
   }
@@ -360,8 +359,18 @@ object GeoJsonQuery {
     * @param value value to compare with property value
     */
   case class Equals(prop: String, value: Any) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
-      ff.equals(ff.property(prop), ff.literal(value))
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
+      // Equals is the only property that can act on feature ids
+      if (propertyTransformer.useFid(prop)) {
+        val fids = value match {
+          case v: Iterable[_] => v.map(_.toString).toSeq
+          case v => Seq(v.toString)
+        }
+        ff.id(fids.map(ff.featureId): _*)
+      }
+      else {
+        ff.equals(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
+      }
     }
 
     override def toString = s"""{"$prop":${printJson(value)}}"""
@@ -375,11 +384,11 @@ object GeoJsonQuery {
     * @param inclusive inclusive bounds
     */
   case class LessThan(prop: String, value: Any, inclusive: Boolean) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
       if (inclusive) {
-        ff.lessOrEqual(ff.property(prop), ff.literal(value))
+        ff.lessOrEqual(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       } else {
-        ff.less(ff.property(prop), ff.literal(value))
+        ff.less(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       }
     }
 
@@ -395,11 +404,11 @@ object GeoJsonQuery {
     * @param inclusive inclusive bounds
     */
   case class GreaterThan(prop: String, value: Any, inclusive: Boolean) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
       if (inclusive) {
-        ff.greaterOrEqual(ff.property(prop), ff.literal(value))
+        ff.greaterOrEqual(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       } else {
-        ff.greater(ff.property(prop), ff.literal(value))
+        ff.greater(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       }
     }
 
@@ -413,9 +422,9 @@ object GeoJsonQuery {
     * @param children filters to intersect
     */
   case class And(children: GeoJsonQuery*) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
       import scala.collection.JavaConversions._
-      ff.and(children.map(_.toFilter(idPath, dtgPath)))
+      ff.and(children.map(_.toFilter(propertyTransformer)))
     }
 
     override def toString = children.map(_.toString).map(s => s.substring(1, s.length - 1)).mkString("{", ",", "}")
@@ -427,9 +436,9 @@ object GeoJsonQuery {
     * @param children filters to union
     */
   case class Or(children: GeoJsonQuery*) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
       import scala.collection.JavaConversions._
-      ff.or(children.map(_.toFilter(idPath, dtgPath)))
+      ff.or(children.map(_.toFilter(propertyTransformer)))
     }
 
     override def toString = children.mkString("""{"$or":[""", ",", "]}")

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.geojson.query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathAttribute
+import org.locationtech.geomesa.geojson.GeoMesaIndexPropertyTransformer
 import org.locationtech.geomesa.geojson.query.GeoJsonQuery._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -55,11 +56,11 @@ class GeoJsonQueryTest extends Specification {
     }
 
     "translate to CQL" in {
-      ECQL.toCQL(GeoJsonQuery("""{"id":"foo"}""").toFilter(None, None)) mustEqual """"$.json.id" = 'foo'"""
-      ECQL.toCQL(GeoJsonQuery("""{"id":"foo"}""").toFilter(Some(Seq(PathAttribute("id"))), None)) mustEqual "IN ('foo')"
-      ECQL.toCQL(GeoJsonQuery("""{"loc":{"$bbox":[-180,-90.0,180,90.0]}}""").toFilter(None, None)) mustEqual
+      ECQL.toCQL(GeoJsonQuery("""{"id":"foo"}""").toFilter(new GeoMesaIndexPropertyTransformer(None, None))) mustEqual """"$.json.id" = 'foo'"""
+      ECQL.toCQL(GeoJsonQuery("""{"id":"foo"}""").toFilter(new GeoMesaIndexPropertyTransformer(Some(Seq(PathAttribute("id"))), None))) mustEqual "IN ('foo')"
+      ECQL.toCQL(GeoJsonQuery("""{"loc":{"$bbox":[-180,-90.0,180,90.0]}}""").toFilter(new GeoMesaIndexPropertyTransformer(None, None))) mustEqual
         "BBOX($.json.loc, -180.0,-90.0,180.0,90.0)" // TODO this won't work with non-default geoms due to CQL parsing...
-      ECQL.toCQL(GeoJsonQuery("""{"geometry":{"$bbox":[-180,-90.0,180,90.0]}}""").toFilter(None, None)) mustEqual
+      ECQL.toCQL(GeoJsonQuery("""{"geometry":{"$bbox":[-180,-90.0,180,90.0]}}""").toFilter(new GeoMesaIndexPropertyTransformer(None, None))) mustEqual
         "BBOX(geom, -180.0,-90.0,180.0,90.0)"
     }
   }
