@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.convert.avro
 
 import org.apache.avro.generic.GenericRecord
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
-import org.locationtech.geomesa.convert.{TransformerFn, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert.{EvaluationContext, TransformerFn, TransformerFunctionFactory}
 
 class AvroPathFunctionFactory extends TransformerFunctionFactory {
 

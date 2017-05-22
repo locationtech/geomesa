@@ -9,12 +9,9 @@
 package org.locationtech.geomesa.convert.avro
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContextImpl, EvaluationContext}
+import org.locationtech.geomesa.convert.{EvaluationContext, Transformers}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class AvroTransformersTest extends Specification with AvroUtils {

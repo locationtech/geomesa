@@ -24,13 +24,15 @@ object EvaluationContext {
 
 class EvaluationContextImpl(names: IndexedSeq[String], values: Array[Any], val counter: Counter)
   extends EvaluationContext {
-  private val len = values.length
+  // check to see what global variables have been set
+  // global variables are at the end of the array
+  private val globalValuesOffset = values.takeWhile(_ == null).length
 
   def get(i: Int): Any = values(i)
   def set(i: Int, v: Any): Unit = values(i) = v
   def clear(): Unit = {
     var i: Int = 0
-    while (i < len) { values(i) = null; i += 1 }
+    while (i < globalValuesOffset) { values(i) = null; i += 1 }
   }
   def indexOf(n: String): Int = names.indexOf(n)
 }

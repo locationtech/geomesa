@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{InputStreamReader, ByteArrayInputStream}
+import java.io.{ByteArrayInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 
 import com.google.common.io.Resources
@@ -16,8 +16,7 @@ import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 import org.apache.commons.csv.CSVFormat
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.convert.Transformers.DefaultCounter
+import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverters}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -163,7 +162,7 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
       res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 2
       res(1).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
-    }
+    }//.pendingUntilFixed
 
     "handle projecting to just the attributes in the SFT (and associated input dependencies)" >> {
       // l3 has cascading dependencies
