@@ -46,7 +46,7 @@ class GeoJsonGtIndexTest extends Specification {
       result must haveLength(3)
       result must contain(f0, f1, f2)
 
-      val nameResult = index.query(name, """{ "$.properties.name" : "n1" }""").toList
+      val nameResult = index.query(name, """{ "properties.name" : "n1" }""").toList
       nameResult must haveLength(1)
       nameResult must contain(f1)
 
@@ -54,7 +54,7 @@ class GeoJsonGtIndexTest extends Specification {
       bboxResult must haveLength(2)
       bboxResult must contain(f1, f2)
 
-      val idResult0 = index.query(name, """{ "$.properties.id" : "0" }""").toList
+      val idResult0 = index.query(name, """{ "properties.id" : "0" }""").toList
       idResult0 must haveLength(1)
       idResult0 must contain(f0)
 
