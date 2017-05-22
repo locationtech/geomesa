@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.process
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
-import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.feature.{AttributeTypeBuilder, DefaultFeatureCollection}
@@ -64,10 +63,6 @@ class JoinProcess extends VectorProcess with LazyLogging {
     import scala.collection.JavaConversions._
 
     logger.trace(s"Attempting join query on ${joinAttribute.getClass.getName}")
-
-    if (primary.isInstanceOf[ReTypingFeatureCollection] || secondary.isInstanceOf[ReTypingFeatureCollection]) {
-      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
-    }
 
     require(primary.getSchema.getDescriptor(joinAttribute) != null,
       s"Attribute '$joinAttribute' does not exist in the primary feature collection")

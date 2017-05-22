@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Point
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
@@ -63,9 +62,7 @@ class KNearestNeighborSearchProcess extends LazyLogging {
     if(!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {
       logger.warn("The provided data feature collection type may not support geomesa KNN search: "+dataFeatures.getClass.getName)
     }
-    if(dataFeatures.isInstanceOf[ReTypingFeatureCollection]) {
-      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
-    }
+
     val visitor = new KNNVisitor(inputFeatures, dataFeatures, numDesired, estimatedDistance, maxSearchDistance)
     dataFeatures.accepts(visitor, new NullProgressListener)
     visitor.getResult.asInstanceOf[KNNResult].results
@@ -103,7 +100,7 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
     * Note that the results are NOT de-duplicated!
     *
     */
-  def kNNSearch(source: SimpleFeatureSource, query: Query) = {
+  def kNNSearch(source: SimpleFeatureSource, query: Query): DefaultFeatureCollection = {
     logger.debug("Running Geomesa K-Nearest Neighbor Search on source type " + source.getClass.getName)
 
     // create a new Feature collection to hold the results of the KNN search around each point

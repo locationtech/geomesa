@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.process.knn
 
-
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder

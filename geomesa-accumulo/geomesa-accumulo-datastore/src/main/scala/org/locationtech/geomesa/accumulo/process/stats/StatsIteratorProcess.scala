@@ -60,10 +60,6 @@ class StatsIteratorProcess extends LazyLogging {
 
     logger.debug("Attempting Geomesa stats iterator process on type " + features.getClass.getName)
 
-    if (features.isInstanceOf[ReTypingFeatureCollection]) {
-      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
-    }
-
     val arrayString = Option(properties).map(_.split(";")).orNull
     val visitor = new StatsVisitor(features, statString, encode, arrayString)
     features.accepts(visitor, new NullProgressListener)

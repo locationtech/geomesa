@@ -27,6 +27,7 @@ object BinaryOutputEncoder extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   val BinEncodedSft = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
+  val BIN_ATTRIBUTE_INDEX = 0 // index of 'bin' attribute in BinEncodedSft
 
   sealed trait GeometrySelector
 

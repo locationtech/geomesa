@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.data.store.{EmptyFeatureCollection, ReTypingFeatureCollection}
+import org.geotools.data.store.EmptyFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
@@ -86,6 +86,10 @@ class TubeSelectProcess extends LazyLogging {
 
     logger.debug("Tube selecting on collection type "+featureCollection.getClass.getName)
 
+    if(!featureCollection.isInstanceOf[AccumuloFeatureCollection]) {
+      logger.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
+    }
+
     // assume for now that firstFeatures is a singleton collection
     val tubeVisitor = new TubeVisitor(
                                       tubeFeatures,
@@ -96,14 +100,6 @@ class TubeSelectProcess extends LazyLogging {
                                       Option(bufferSize).getOrElse(0.0).asInstanceOf[Double],
                                       Option(maxBins).getOrElse(0).asInstanceOf[Int],
                                       Option(gapFill).map(GapFill.withName(_)).getOrElse(GapFill.NOFILL))
-
-    if(!featureCollection.isInstanceOf[AccumuloFeatureCollection]) {
-      logger.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
-    }
-
-    if(featureCollection.isInstanceOf[ReTypingFeatureCollection]) {
-      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
-    }
 
     featureCollection.accepts(tubeVisitor, new NullProgressListener)
     tubeVisitor.getResult.asInstanceOf[TubeResult].results

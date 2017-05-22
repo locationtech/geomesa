@@ -11,14 +11,13 @@ package org.locationtech.geomesa.accumulo.process
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
-import org.locationtech.geomesa.accumulo.iterators.SamplingIterator
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.utils.FeatureSampler
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
@@ -54,10 +53,6 @@ class SamplingProcess extends VectorProcess with LazyLogging {
               monitor: ProgressListener): SimpleFeatureCollection = {
 
     logger.trace(s"Attempting sampling on ${data.getClass.getName}")
-
-    if (data.isInstanceOf[ReTypingFeatureCollection]) {
-      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
-    }
 
     val visitor = new SamplingVisitor(data, samplePercent, Option(threadBy))
     data.accepts(visitor, monitor)
@@ -101,7 +96,7 @@ class SamplingVisitor(features: SimpleFeatureCollection, percent: Float, threadi
   private val nth = (1 / percent.toFloat).toInt
   private val thread = threading.map(features.getSchema.indexOf).filter(_ != -1)
 
-  private val sampling = SamplingIterator.sample(nth, thread)
+  private val sampling = FeatureSampler.sample(nth, thread)
 
   // Called for non AccumuloFeactureCollections
   override def visit(feature: Feature): Unit = {

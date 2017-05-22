@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureAttributeVisitor, FeatureCalc}
@@ -53,10 +52,6 @@ class UniqueProcess extends VectorProcess with LazyLogging {
     @DescribeParameter(name = "sortByCount", min = 0, description = "Sort by histogram counts instead of attribute values")
     sortByCount: java.lang.Boolean,
     progressListener: ProgressListener): SimpleFeatureCollection = {
-
-    if (features.isInstanceOf[ReTypingFeatureCollection]) {
-      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
-    }
 
     val attributeDescriptor = features
         .getSchema

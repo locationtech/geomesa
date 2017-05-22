@@ -50,10 +50,6 @@ class QueryProcess extends LazyLogging {
 
     logger.debug("Attempting Geomesa query on type " + features.getClass.getName)
 
-    if(features.isInstanceOf[ReTypingFeatureCollection]) {
-      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
-    }
-
     val arrayString = Option(properties).map(_.split(";")).orNull
 
     val visitor = new QueryVisitor(features, Option(filter).getOrElse(Filter.INCLUDE), arrayString)
