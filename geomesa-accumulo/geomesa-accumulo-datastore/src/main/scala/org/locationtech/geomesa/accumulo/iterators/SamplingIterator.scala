@@ -13,6 +13,7 @@ import java.util.{Map => jMap}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.factory.Hints
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.index.utils.FeatureSampler
 
 /**
   * Mixin trait to provide support for sampling features.
@@ -43,7 +44,7 @@ trait SamplingIterator {
     import SamplingIterator.{SAMPLE_BY_OPT, SAMPLE_OPT}
     val sampling = options.get(SAMPLE_OPT).map(_.toInt)
     val sampleBy = options.get(SAMPLE_BY_OPT).map(_.toInt)
-    sampling.map(SamplingIterator.sample(_, sampleBy))
+    sampling.map(FeatureSampler.sample(_, sampleBy))
   }
 }
 
@@ -64,29 +65,6 @@ object SamplingIterator {
     if (nth > 1) {
       is.addOption(SAMPLE_OPT, nth.toString)
       by.map(sft.indexOf).filter(_ != -1).foreach(i => is.addOption(SAMPLE_BY_OPT, i.toString))
-    }
-  }
-
-  /**
-    * Returns a sampling function that will indicate if a feature should be kept or discarded
-    *
-    * @param nth will keep every nth feature
-    * @param field field to use for threading of samples
-    * @return sampling function
-    */
-  def sample(nth: Int, field: Option[Int]): (SimpleFeature) => Boolean = {
-    field match {
-      case None =>
-        var i = 1
-        (_) => if (i == 1) { i += 1; true } else if (i < nth) { i += 1; false } else { i = 1; false }
-      case Some(f) =>
-        val i = scala.collection.mutable.HashMap.empty[String, Int].withDefaultValue(1)
-        (sf) => {
-          val value = sf.getAttribute(f)
-          val key = if (value == null) "" else value.toString
-          val count = i(key)
-          if (count < nth) { i(key) = count + 1; count == 1 } else { i(key) = 1; false }
-        }
     }
   }
 }

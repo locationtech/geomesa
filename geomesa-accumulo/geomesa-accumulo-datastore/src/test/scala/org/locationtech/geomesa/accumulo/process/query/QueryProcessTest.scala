@@ -109,8 +109,6 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       f must haveLength(4)
     }
 
-    import scala.collection.JavaConversions._
-
     "allow for projections in the returned result set" in {
       val features = fs.getFeatures()
 

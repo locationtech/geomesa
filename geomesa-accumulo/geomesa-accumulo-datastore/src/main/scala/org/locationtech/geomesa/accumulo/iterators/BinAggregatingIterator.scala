@@ -26,6 +26,8 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.filter.function.{BasicValues, BinaryOutputEncoder, Convert2ViewerFunction, ExtendedValues}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -356,7 +358,8 @@ object BinAggregatingIterator extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  val BIN_ATTRIBUTE_INDEX = 0 // index of 'bin' attribute in BIN_SFT
+  // need to be lazy to avoid class loading issues before init is called
+  lazy val BIN_SFT = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
   private val zeroPoint = WKTUtils.read("POINT(0 0)")
 
   val DEFAULT_PRIORITY = 25
