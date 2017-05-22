@@ -18,7 +18,9 @@ import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.impl.AbstractPointVector;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Double-precision vector for points
@@ -28,12 +30,12 @@ public class PointVector extends AbstractPointVector {
   // fields created by this vector
   public static final List<Field> fields = GeometryFields.XY_DOUBLE;
 
-  public PointVector(String name, BufferAllocator allocator) {
-    super(name, allocator);
+  public PointVector(String name, BufferAllocator allocator, @Nullable Map<String, String> metadata) {
+    super(name, allocator, metadata);
   }
 
-  public PointVector(String name, AbstractContainerVector container) {
-    super(name, container);
+  public PointVector(String name, AbstractContainerVector container, @Nullable Map<String, String> metadata) {
+    super(name, container, metadata);
   }
 
   public PointVector(FixedSizeListVector vector) {

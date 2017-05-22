@@ -29,14 +29,14 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  */
 class AvroIngestConverter(ds: DataStore, typeName: String) extends LocalIngestConverter {
 
-  var reader: AvroDataFileReader = null
+  var reader: AvroDataFileReader = _
 
   override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = {
     reader = new AvroDataFileReader(is)
     val dataSft = reader.getSft
     val sft = if (typeName == dataSft.getTypeName) dataSft else SimpleFeatureTypes.renameSft(dataSft, typeName)
     ds.createSchema(sft)
-    val features = if (dataSft == sft) { reader } else { reader.map(ScalaSimpleFeature.create(sft, _)) }
+    val features = if (dataSft == sft) { reader } else { reader.map(ScalaSimpleFeature.copy(sft, _)) }
     (sft, features)
   }
 

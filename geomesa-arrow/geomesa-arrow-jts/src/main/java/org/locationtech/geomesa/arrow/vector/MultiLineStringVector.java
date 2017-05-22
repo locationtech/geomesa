@@ -17,7 +17,9 @@ import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.impl.AbstractMultiLineStringVector;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Double-precision vector for multi-line strings
@@ -27,12 +29,12 @@ public class MultiLineStringVector extends AbstractMultiLineStringVector {
   // fields created by this vector
   public static final List<Field> fields = GeometryFields.XY_DOUBLE_LIST_2;
 
-  public MultiLineStringVector(String name, BufferAllocator allocator) {
-    super(name, allocator);
+  public MultiLineStringVector(String name, BufferAllocator allocator, @Nullable Map<String, String> metadata) {
+    super(name, allocator, metadata);
   }
 
-  public MultiLineStringVector(String name, AbstractContainerVector container) {
-    super(name, container);
+  public MultiLineStringVector(String name, AbstractContainerVector container, @Nullable Map<String, String> metadata) {
+    super(name, container, metadata);
   }
 
   public MultiLineStringVector(ListVector vector) {

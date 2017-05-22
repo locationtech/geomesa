@@ -26,19 +26,24 @@ import org.apache.arrow.vector.types.pojo.FieldType;
 import org.locationtech.geomesa.arrow.vector.GeometryVector;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractMultiPointVector implements GeometryVector<MultiPoint, ListVector> {
+
+  private static FieldType createFieldType(Map<String, String> metadata) {
+    return new FieldType(true, ArrowType.List.INSTANCE, null, metadata);
+  }
 
   private final ListVector vector;
   private final MultiPointWriter writer;
   private final MultiPointReader reader;
 
-  protected AbstractMultiPointVector(String name, BufferAllocator allocator) {
-    this(new ListVector(name, allocator, null, null));
+  protected AbstractMultiPointVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
+    this(new ListVector(name, allocator, createFieldType(metadata), null));
   }
 
-  protected AbstractMultiPointVector(String name, AbstractContainerVector container) {
-    this(container.addOrGet(name, new FieldType(true, ArrowType.List.INSTANCE, null), ListVector.class));
+  protected AbstractMultiPointVector(String name, AbstractContainerVector container, Map<String, String> metadata) {
+    this(container.addOrGet(name, createFieldType(metadata), ListVector.class));
   }
 
   protected AbstractMultiPointVector(ListVector vector) {

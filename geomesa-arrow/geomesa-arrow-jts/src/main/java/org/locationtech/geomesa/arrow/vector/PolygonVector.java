@@ -17,7 +17,9 @@ import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.impl.AbstractPolygonVector;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Double-precision vector for polygons
@@ -27,12 +29,12 @@ public class PolygonVector extends AbstractPolygonVector {
   // fields created by this vector
   public static final List<Field> fields = GeometryFields.XY_DOUBLE_LIST_2;
 
-  public PolygonVector(String name, BufferAllocator allocator) {
-    super(name, allocator);
+  public PolygonVector(String name, BufferAllocator allocator, @Nullable Map<String, String> metadata) {
+    super(name, allocator, metadata);
   }
 
-  public PolygonVector(String name, AbstractContainerVector container) {
-    super(name, container);
+  public PolygonVector(String name, AbstractContainerVector container, @Nullable Map<String, String> metadata) {
+    super(name, container, metadata);
   }
 
   public PolygonVector(ListVector vector) {

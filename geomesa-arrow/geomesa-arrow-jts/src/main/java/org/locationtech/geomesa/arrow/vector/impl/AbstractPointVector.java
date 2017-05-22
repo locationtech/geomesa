@@ -24,19 +24,24 @@ import org.apache.arrow.vector.types.pojo.FieldType;
 import org.locationtech.geomesa.arrow.vector.GeometryVector;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractPointVector implements GeometryVector<Point, FixedSizeListVector> {
+
+  private static FieldType createFieldType(Map<String, String> metadata) {
+    return new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata);
+  }
 
   private final FixedSizeListVector vector;
   private final PointWriter writer;
   private final PointReader reader;
 
-  protected AbstractPointVector(String name, BufferAllocator allocator) {
-    this(new FixedSizeListVector(name, allocator, 2, null, null));
+  protected AbstractPointVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
+    this(new FixedSizeListVector(name, allocator, createFieldType(metadata), null));
   }
 
-  protected AbstractPointVector(String name, AbstractContainerVector container) {
-    this(container.addOrGet(name, new FieldType(true, new ArrowType.FixedSizeList(2), null), FixedSizeListVector.class));
+  protected AbstractPointVector(String name, AbstractContainerVector container, Map<String, String> metadata) {
+    this(container.addOrGet(name, createFieldType(metadata), FixedSizeListVector.class));
   }
 
   protected AbstractPointVector(FixedSizeListVector vector) {
@@ -128,6 +133,31 @@ public abstract class AbstractPointVector implements GeometryVector<Point, Fixed
       } else {
         return null;
       }
+    }
+
+    /**
+     * Specialized read methods to return a single ordinate at a time. Does not check for null values.
+     * Call getCoordinateY(index), then getCoordinateX()
+     *
+     * @param index index of the ordinate to read
+     * @return y ordinate
+     */
+    public double getCoordinateY(int index) {
+      reader.setPosition(index);
+      reader.next();
+      return readOrdinal(subReader);
+
+    }
+
+    /**
+     * Gets the x ordinate associated with the last call to getCoordinateY. Behavior is not defined if access
+     * pattern is not followed.
+     *
+     * @return x ordinate
+     */
+    public double getCoordinateX() {
+      reader.next();
+      return readOrdinal(subReader);
     }
 
     protected abstract double readOrdinal(FieldReader reader);
