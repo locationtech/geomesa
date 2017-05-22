@@ -22,7 +22,6 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeForma
 import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable.StringLike
 import scala.collection.mutable
 import scala.util.Try
 import scala.util.matching.Regex
@@ -115,55 +114,6 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     def expr = tryFn | fn | wholeRecord | regexExpr | fieldLookup | column | lit
     def transformExpr: Parser[Expr] = cast2double | cast2int | cast2boolean | cast2float | cast2long | cast2string | expr
     def argument = transformExpr | string
-  }
-
-  trait Counter {
-    def incSuccess(i: Long = 1): Unit
-    def getSuccess: Long
-
-    def incFailure(i: Long = 1): Unit
-    def getFailure: Long
-
-    // For things like Avro think of this as a recordCount as well
-    def incLineCount(i: Long = 1): Unit
-    def getLineCount: Long
-    def setLineCount(i: Long)
-  }
-
-  class DefaultCounter extends Counter {
-    private var s: Long = 0
-    private var f: Long = 0
-    private var c: Long = 0
-
-    override def incSuccess(i: Long = 1): Unit = s += i
-    override def getSuccess: Long = s
-
-    override def incFailure(i: Long = 1): Unit = f += i
-    override def getFailure: Long = f
-
-    override def incLineCount(i: Long = 1) = c += i
-    override def getLineCount: Long = c
-    override def setLineCount(i: Long) = c = i
-  }
-
-  trait EvaluationContext {
-    def get(i: Int): Any
-    def set(i: Int, v: Any): Unit
-    def indexOf(n: String): Int
-    def counter: Counter
-  }
-
-  object EvaluationContext {
-    def empty: EvaluationContext = apply(IndexedSeq.empty, Array.empty, new DefaultCounter)
-    def apply(names: IndexedSeq[String], values: Array[Any], counter: Counter): EvaluationContext =
-      new EvaluationContextImpl(names, values, counter)
-  }
-
-  class EvaluationContextImpl(names: IndexedSeq[String], values: Array[Any], val counter: Counter)
-      extends EvaluationContext {
-    def get(i: Int): Any = values(i)
-    def set(i: Int, v: Any): Unit = values(i) = v
-    def indexOf(n: String): Int = names.indexOf(n)
   }
 
   sealed trait Expr {
@@ -385,14 +335,14 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
 
 object TransformerFn {
   def apply(n: String*)(f: (Array[Any]) => Any) = new TransformerFn {
-    override def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = f(args)
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = f(args)
     override def names: Seq[String] = n
   }
 }
 
 trait TransformerFn {
   def names: Seq[String]
-  def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any
+  def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any
   // some transformers cache arguments that don't change, override getInstance in order
   // to return a new transformer that can cache args
   def getInstance: TransformerFn = this
@@ -443,7 +393,7 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis")(ISODateTimeFormat.dateHourMinuteSecondMillis().withZoneUTC())
 
   case class StandardDateParser(names: String*)(format: DateTimeFormatter) extends TransformerFn {
-    override def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any =
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       format.parseDateTime(args(0).toString).toDate
   }
 
@@ -451,7 +401,7 @@ class DateFunctionFactory extends TransformerFunctionFactory {
     override val names = Seq("date")
     override def getInstance: CustomFormatDateParser = CustomFormatDateParser()
 
-    override def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       if (format == null) {
         format = DateTimeFormat.forPattern(args(0).asInstanceOf[String]).withZoneUTC()
       }
@@ -521,7 +471,7 @@ class IdFunctionFactory extends TransformerFunctionFactory {
     override val names = Seq("md5")
     override def getInstance: MD5 = new MD5()
     val hasher = Hashing.md5()
-    override def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any =
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       hasher.hashBytes(args(0).asInstanceOf[Array[Byte]]).toString
   }
 }
@@ -532,7 +482,7 @@ class LineNumberFunctionFactory extends TransformerFunctionFactory {
   case class LineNumberFn() extends TransformerFn {
     override def getInstance: LineNumberFn = LineNumberFn()
     override val names = Seq("lineNo", "lineNumber")
-    def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = ctx.counter.getLineCount
+    def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = ctx.counter.getLineCount
   }
 }
 
