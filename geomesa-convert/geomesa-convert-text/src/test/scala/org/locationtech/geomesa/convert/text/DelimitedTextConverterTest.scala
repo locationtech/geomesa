@@ -162,7 +162,7 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
       res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 2
       res(1).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
-    }//.pendingUntilFixed
+    }
 
     "handle projecting to just the attributes in the SFT (and associated input dependencies)" >> {
       // l3 has cascading dependencies
