@@ -18,7 +18,7 @@ import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.convert.{SimpleFeatureConverter, SimpleFeatureConverters, Transformers}
+import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters, Transformers}
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.tools.ConvertParameters.ConvertParameters
 import org.locationtech.geomesa.tools.export._
@@ -108,7 +108,7 @@ object ConvertCommand extends LazyLogging {
   def loadFeatureCollection(fc: java.util.Collection[SimpleFeature],
                             files: Iterable[String],
                             converter: SimpleFeatureConverter[Any],
-                            ec: Transformers.EvaluationContext,
+                            ec: EvaluationContext,
                             filter: Option[Filter],
                             maxFeatures: Option[Int]): Unit = {
     val features = files.iterator.flatMap { file =>

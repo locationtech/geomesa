@@ -16,8 +16,7 @@ import org.apache.commons.pool2.BasePooledObjectFactory
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.locationtech.geomesa.convert.Transformers.DefaultCounter
-import org.locationtech.geomesa.convert.{SimpleFeatureConverter, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.tools.Command
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

@@ -11,11 +11,9 @@ package org.locationtech.geomesa.convert.xml
 import java.io.StringWriter
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
-import javax.xml.transform.{OutputKeys, TransformerFactory, Transformer}
+import javax.xml.transform.{OutputKeys, Transformer, TransformerFactory}
 
-import org.apache.avro.generic.GenericRecord
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
-import org.locationtech.geomesa.convert.{TransformerFn, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert.{EvaluationContext, TransformerFn, TransformerFunctionFactory}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.w3c.dom.Element
 

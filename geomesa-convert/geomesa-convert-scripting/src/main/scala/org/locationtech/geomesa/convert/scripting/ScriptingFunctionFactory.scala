@@ -18,8 +18,7 @@ import com.google.common.io.Files
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, IOUtils}
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
-import org.locationtech.geomesa.convert.{TransformerFn, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert.{EvaluationContext, TransformerFn, TransformerFunctionFactory}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.collection.JavaConversions._

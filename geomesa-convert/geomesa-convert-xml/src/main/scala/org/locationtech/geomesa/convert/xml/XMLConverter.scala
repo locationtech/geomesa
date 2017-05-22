@@ -21,7 +21,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BOMInputStream
 import org.locationtech.geomesa.convert.LineMode.LineMode
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
+import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.w3c.dom.NodeList

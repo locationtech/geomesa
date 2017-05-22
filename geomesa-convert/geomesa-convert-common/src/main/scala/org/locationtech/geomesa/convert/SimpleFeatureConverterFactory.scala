@@ -314,6 +314,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     val globalKeys = globalParams.keys.toSeq
     val names = requiredFields.map(_.name) ++ globalKeys
     val values = Array.ofDim[Any](names.length)
+    // note, globalKeys are maintained even through EvaluationContext.clear()
     globalKeys.zipWithIndex.foreach { case (k, i) => values(requiredFields.length + i) = globalParams(k) }
     new EvaluationContextImpl(names, values, counter)
   }

@@ -12,8 +12,7 @@ import java.io.File
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, EvaluationContextImpl}
+import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContextImpl, SimpleFeatureConverters}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
