@@ -15,7 +15,7 @@ and untar it somewhere convenient. For example, to download and prepare the geom
     $ tar xvf geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-accumulo-dist_2.11-$VERSION
     $ ls
-    bin/  conf/  dist/  docs/  emr4/  examples/  lib/  LICENSE.txt  logs/
+    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _accumulo_install_source:
 
@@ -426,23 +426,3 @@ not take full advantage of indexing improvements in newer releases. If
 it is not feasible to reingest old data, see :ref:`update_index_format_job`
 for more information on updating its index format.
 
-Bootstrapping GeoMesa Accumulo on Elastic Map Reduce
-----------------------------------------------------
-
-A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-accumulo/geomesa-accumulo-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-accumulo/geomesa-accumulo-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
-
-.. code-block:: bash
-
-    NUM_WORKERS=2
-    CLUSTER_NAME=geomesa-emr
-    AWS_REGION=us-east-1
-    AWS_PROFILE=my_profile
-    KEYPAIR_NAME=my_keypair # a keypair in the region (for which you have the private key)
-
-    aws emr create-cluster --applications Name=Hadoop Name=ZooKeeper-Sandbox \
-        --bootstrap-actions Path=s3://elasticmapreduce-geomesa/bootstrap-geomesa.sh,Name=geomesa-accumulo \
-        --ec2-attributes KeyName=$KEYPAIR_NAME,InstanceProfile=EMR_EC2_DefaultRole \
-        --service-role EMR_DefaultRole \
-        --release-label emr-4.7.1 --name $CLUSTER_NAME \
-        --instance-groups InstanceCount=$NUM_WORKERS,InstanceGroupType=CORE,InstanceType=m3.xlarge InstanceCount=1,InstanceGroupType=MASTER,InstanceType=m3.xlarge \
-        --region $AWS_REGION --profile $AWS_PROFILE
