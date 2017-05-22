@@ -10,14 +10,8 @@
 package org.locationtech.geomesa.process
 
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
+import org.geotools.process.vector.{QueryProcess, UniqueProcess}
 import org.geotools.text.Text
-import org.locationtech.geomesa.accumulo.process._
-import org.locationtech.geomesa.accumulo.process.knn.KNearestNeighborSearchProcess
-import org.locationtech.geomesa.accumulo.process.proximity.ProximitySearchProcess
-import org.locationtech.geomesa.accumulo.process.query.QueryProcess
-import org.locationtech.geomesa.accumulo.process.stats.StatsIteratorProcess
-import org.locationtech.geomesa.accumulo.process.tube.TubeSelectProcess
-import org.locationtech.geomesa.accumulo.process.unique.UniqueProcess
 
 class ProcessFactory
     extends AnnotatedBeanProcessFactory(Text.text("GeoMesa Process Factory"), "geomesa", ProcessFactory.Processes: _*)
@@ -26,18 +20,9 @@ object ProcessFactory {
   val Processes = Seq(
     classOf[DensityProcess],
     classOf[Point2PointProcess],
-    classOf[StatsIteratorProcess],
-    classOf[TubeSelectProcess],
-    classOf[ProximitySearchProcess],
-    classOf[QueryProcess],
-    classOf[KNearestNeighborSearchProcess],
-    classOf[UniqueProcess],
+//    classOf[QueryProcess],
+//    classOf[UniqueProcess],
     classOf[HashAttributeProcess],
-    classOf[HashAttributeColorProcess],
-    classOf[SamplingProcess],
-    classOf[JoinProcess],
-    classOf[RouteSearchProcess],
-    classOf[BinConversionProcess],
-    classOf[ArrowConversionProcess]
+    classOf[HashAttributeColorProcess]
   )
 }

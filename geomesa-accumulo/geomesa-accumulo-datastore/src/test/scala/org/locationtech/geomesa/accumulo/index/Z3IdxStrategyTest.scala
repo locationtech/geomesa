@@ -21,6 +21,7 @@ import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3It
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.sfcurve.zorder.Z3
@@ -244,7 +245,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val returnedFeatures = runQuery(query)
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
@@ -269,7 +270,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val returnedFeatures = runQuery(query)
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       forall(aggregates) { a =>
         val window = a.grouped(16).map(Convert2ViewerFunction.decode(_).dtg).sliding(2).filter(_.length > 1)
@@ -298,7 +299,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val returnedFeatures = runQuery(query)
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(24).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
@@ -344,7 +345,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support sampling with bin queries" >> {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))

@@ -22,12 +22,13 @@
         <dependencySet>
             <outputDirectory>dist/gs-plugins</outputDirectory>
             <directoryMode>0755</directoryMode>
-            <fileMode>0755</fileMode>
+            <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <useStrictFiltering>true</useStrictFiltering>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-hbase-process*</include>
             </includes>
         </dependencySet>
         <dependencySet>

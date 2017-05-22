@@ -75,7 +75,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support bin queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("IN ('2', '3')"))
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
@@ -129,7 +129,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support sampling with bin queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       // important - id filters will create multiple ranges and cause multiple iterators to be created
       val query = new Query(sftName, ECQL.toFilter("dtg AFTER 2010-05-07T07:30:00.000Z"))
       query.getHints.put(BIN_TRACK, "track")

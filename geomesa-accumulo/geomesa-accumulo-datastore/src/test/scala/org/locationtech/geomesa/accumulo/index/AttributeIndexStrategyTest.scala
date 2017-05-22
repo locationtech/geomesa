@@ -118,7 +118,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support bin queries with join queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
@@ -131,7 +131,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support bin queries against index values" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_TRACK, "dtg")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
@@ -144,7 +144,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support bin queries against full values" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("name>'amy'"))
       query.getHints.put(BIN_TRACK, "count")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
@@ -157,7 +157,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support bin queries against non-default geoms with index-value track" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_GEOM, "geom2")
       query.getHints.put(BIN_TRACK, "count")
@@ -308,7 +308,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support sampling with bin queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
       // important - id filters will create multiple ranges and cause multiple iterators to be created
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"))
       query.getHints.put(BIN_TRACK, "name")
