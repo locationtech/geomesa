@@ -16,6 +16,7 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>/</outputDirectory>
+      <!--Set to 'true' to include geomesa-hbase-process jar-->
       <useProjectArtifact>false</useProjectArtifact>
       <scope></scope>
     </dependencySet>

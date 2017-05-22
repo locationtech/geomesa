@@ -17,7 +17,6 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
-import org.locationtech.geomesa.arrow.allocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -77,6 +76,8 @@ class ArrowConversionProcess extends VectorProcess with LazyLogging {
 class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchSize: Int, fids: Boolean)
     extends FeatureCalc with FeatureAttributeVisitor with Closeable with LazyLogging {
 
+  import org.locationtech.geomesa.arrow.allocator
+
   import scala.collection.JavaConversions._
 
   // for collecting results manually
@@ -86,7 +87,7 @@ class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchS
     if (dictionaryFields.nonEmpty) {
       logger.warn("Non-distributed conversion - fields will not be dictionary encoded")
     }
-    new SimpleFeatureArrowFileWriter(sft, manualBytes, Map.empty, fids, GeometryPrecision.Float)(allocator)
+    new SimpleFeatureArrowFileWriter(sft, manualBytes, Map.empty, fids, GeometryPrecision.Float)
   }
   private var manualVisit = 0L
   private var distributedVisit = false
