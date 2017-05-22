@@ -15,8 +15,7 @@ import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContextImpl, EvaluationContext}
+import org.locationtech.geomesa.convert.{EvaluationContext, EvaluationContextImpl, Transformers}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
