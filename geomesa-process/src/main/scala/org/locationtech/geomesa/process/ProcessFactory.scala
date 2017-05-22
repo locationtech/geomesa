@@ -20,8 +20,8 @@ object ProcessFactory {
   val Processes = Seq(
     classOf[DensityProcess],
     classOf[Point2PointProcess],
-//    classOf[QueryProcess],
-//    classOf[UniqueProcess],
+    classOf[QueryProcess],
+    classOf[UniqueProcess],
     classOf[HashAttributeProcess],
     classOf[HashAttributeColorProcess]
   )

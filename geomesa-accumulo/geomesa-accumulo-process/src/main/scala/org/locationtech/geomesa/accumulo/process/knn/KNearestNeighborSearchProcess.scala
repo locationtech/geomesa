@@ -12,12 +12,10 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Point
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-//import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.opengis.feature.Feature
 
@@ -59,10 +57,6 @@ class KNearestNeighborSearchProcess extends LazyLogging {
                ): SimpleFeatureCollection = {
 
     logger.debug("Attempting Geomesa K-Nearest Neighbor Search on collection type " + dataFeatures.getClass.getName)
-
-//    if(!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {
-//      logger.warn("The provided data feature collection type may not support geomesa KNN search: "+dataFeatures.getClass.getName)
-//    }
 
     val visitor = new KNNVisitor(inputFeatures, dataFeatures, numDesired, estimatedDistance, maxSearchDistance)
     dataFeatures.accepts(visitor, new NullProgressListener)

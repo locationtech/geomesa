@@ -19,7 +19,6 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-//import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.accumulo.process.tube.GapFill.GapFill
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, UniqueMultiCollection}
@@ -96,10 +95,6 @@ class TubeSelectProcess extends LazyLogging {
                                       Option(bufferSize).getOrElse(0.0).asInstanceOf[Double],
                                       Option(maxBins).getOrElse(0).asInstanceOf[Int],
                                       Option(gapFill).map(GapFill.withName(_)).getOrElse(GapFill.NOFILL))
-
-//    if(!featureCollection.isInstanceOf[AccumuloFeatureCollection]) {
-//      logger.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
-//    }
 
     featureCollection.accepts(tubeVisitor, new NullProgressListener)
     tubeVisitor.getResult.asInstanceOf[TubeResult].results

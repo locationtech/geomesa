@@ -358,8 +358,6 @@ object BinAggregatingIterator extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  // need to be lazy to avoid class loading issues before init is called
-  lazy val BIN_SFT = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
   private val zeroPoint = WKTUtils.read("POINT(0 0)")
 
   val DEFAULT_PRIORITY = 25

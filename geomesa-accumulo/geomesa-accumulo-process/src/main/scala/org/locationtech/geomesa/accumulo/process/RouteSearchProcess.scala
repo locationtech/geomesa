@@ -22,7 +22,6 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.process.vector.VectorProcess
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.util.{Converters, NullProgressListener}
-//import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{ff, orFilters}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -77,10 +76,6 @@ class RouteSearchProcess extends VectorProcess with LazyLogging {
     logger.debug(s"Route searching on collection type ${features.getClass.getName}")
 
     val bi = Option(bidirectional).getOrElse(java.lang.Boolean.FALSE)
-
-//    if (!features.isInstanceOf[AccumuloFeatureCollection]) {
-//      logger.warn(s"The provided feature collection type may not support distributed route search: ${features.getClass.getName}")
-//    }
 
     val sft = features.getSchema
 

@@ -12,13 +12,11 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.GeometryFactory
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-//import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichGeometry, _}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
@@ -52,10 +50,6 @@ class ProximitySearchProcess extends LazyLogging {
                ): SimpleFeatureCollection = {
 
     logger.debug("Attempting Geomesa Proximity Search on collection type " + dataFeatures.getClass.getName)
-
-//    if(!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {
-//      logger.warn("The provided data feature collection type may not support geomesa proximity search: "+dataFeatures.getClass.getName)
-//    }
 
     val visitor = new ProximityVisitor(inputFeatures, dataFeatures, bufferDistance)
     dataFeatures.accepts(visitor, new NullProgressListener)
