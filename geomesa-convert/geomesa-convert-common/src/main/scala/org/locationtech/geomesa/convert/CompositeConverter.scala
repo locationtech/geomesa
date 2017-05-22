@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert
 import java.io.InputStream
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.{Counter, EvaluationContext, Predicate}
+import org.locationtech.geomesa.convert.Transformers.Predicate
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
@@ -108,4 +108,6 @@ case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) e
   override def set(i: Int, v: Any): Unit = current.set(i, v)
   override def indexOf(n: String): Int = current.indexOf(n)
   override def counter: Counter = current.counter
+
+  override def clear(): Unit = contexts.foreach(_.clear())
 }

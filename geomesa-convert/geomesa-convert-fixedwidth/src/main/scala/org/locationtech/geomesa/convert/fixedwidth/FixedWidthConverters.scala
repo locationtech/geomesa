@@ -9,17 +9,17 @@
 package org.locationtech.geomesa.convert.fixedwidth
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
+import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.immutable.IndexedSeq
 
-case class FixedWidthField(name: String, transform: Transformers.Expr, s: Int, w: Int) extends Field {
-  private val e = s + w
+case class FixedWidthField(name: String, transform: Transformers.Expr, start: Int, width: Int) extends Field {
+  private val endIdx: Int = start + width
   private val mutableArray = Array.ofDim[Any](1)
   override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-    mutableArray(0) = args(0).asInstanceOf[String].substring(s, e)
+    mutableArray(0) = args(0).asInstanceOf[String].substring(start, endIdx)
     transform.eval(mutableArray)
   }
 }
