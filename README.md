@@ -150,6 +150,11 @@ Alternatively, the `build/mvn` script is a wrapper around Maven that builds the 
 
     build/mvn clean install
 
+As an additional, experimental option, the GeoMesa project can use the [Maven Incremental Module Builder](https://github.com/khmarbaise/incremental-module-builder).  This is useful for development builds.  After an initial 'mvn clean install', you can run the following command to build just what has changed.
+
+    mvn -b incremental install 
+
+
 ## Scala 2.10 Support
 
 GeoMesa uses Scala 2.11 by default. To build for Scala 2.10, run:
