@@ -19,6 +19,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.accumulo.process.tube.GapFill.GapFill
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, UniqueMultiCollection}
@@ -84,6 +85,10 @@ class TubeSelectProcess extends LazyLogging {
                ): SimpleFeatureCollection = {
 
     logger.debug("Tube selecting on collection type "+featureCollection.getClass.getName)
+
+    if(!featureCollection.isInstanceOf[AccumuloFeatureCollection]) {
+      logger.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
+    }
 
     // assume for now that firstFeatures is a singleton collection
     val tubeVisitor = new TubeVisitor(

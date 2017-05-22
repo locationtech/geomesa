@@ -21,14 +21,14 @@ class ProcessFactory
   extends AnnotatedBeanProcessFactory(
     Text.text("GeoMesa Process Factory"),
     "geomesa",
+    classOf[ArrowConversionProcess],
+    classOf[BinConversionProcess],
     classOf[KNearestNeighborSearchProcess],
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
     classOf[StatsIteratorProcess],
     classOf[TubeSelectProcess],
     classOf[UniqueProcess],
-//    classOf[ArrowConversionProcess],
-    classOf[BinConversionProcess],
     classOf[JoinProcess],
     classOf[RouteSearchProcess],
     classOf[SamplingProcess]

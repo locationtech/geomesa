@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
-import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -224,7 +224,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
     "support sampling with bin queries" in {
       val hints = binHints.updated(BIN_TRACK, "track") ++ sample20Hints.updated(SAMPLE_BY, "track")
       val resultFeatures = execute("INCLUDE", hints = hints)
-      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 
       // have to evaluate attributes before pulling into collection, as the same sf is reused
       val results = resultFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList

@@ -17,6 +17,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
+import org.locationtech.geomesa.arrow.allocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -24,7 +25,6 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.Expression
-import org.locationtech.geomesa.arrow.allocator
 
 @DescribeProcess(
   title = "Arrow Conversion",

@@ -21,7 +21,7 @@ import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3It
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
-import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.sfcurve.zorder.Z3
@@ -345,7 +345,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support sampling with bin queries" >> {
-      import org.locationtech.geomesa.index.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))

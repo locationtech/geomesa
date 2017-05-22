@@ -90,7 +90,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
         reader.sft mustEqual sft
         reader.features.toSeq must containTheSameElementsAs(features)
         reader.dictionaries.get("name:String") must beSome
-      } pendingUntilFixed "'None' is not Some"
+      }
     }
   }
 
