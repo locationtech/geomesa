@@ -16,7 +16,7 @@ import org.apache.hadoop.hbase.util.Base64
 import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory}
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -27,8 +27,6 @@ import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.SimpleFeature
 
 class HBaseSpatialRDDProvider extends SpatialRDDProvider {
-
-  import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
 
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
