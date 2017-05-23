@@ -98,19 +98,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       ds.dispose()
     }
 
-    rdd.foreachPartition { iter =>
-      val ds = DataStoreConnector.getOrFindDataStore(writeDataStoreParams).asInstanceOf[HBaseDataStore]
-      val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
-      try {
-        iter.foreach { rawFeature =>
-          FeatureUtils.copyToWriter(featureWriter, rawFeature, overrideFid = true)
-          featureWriter.write()
-        }
-      } finally {
-        CloseQuietly(featureWriter)
-        ds.dispose()
-      }
-    }
+    unsafeSave(rdd, writeDataStoreParams, writeTypeName)
   }
 
   /**
