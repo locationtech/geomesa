@@ -19,8 +19,8 @@ import org.geotools.geojson.geom.GeometryJSON
 import org.json4s.native.JsonMethods._
 import org.json4s.{JObject, _}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
-import org.locationtech.geomesa.geojson.query.GeoJsonQuery
+import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathElement}
+import org.locationtech.geomesa.geojson.query.{GeoJsonQuery, PropertyTransformer}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -43,6 +43,12 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
 
   // TODO GEOMESA-1450 support json-schema validation
   // TODO GEOMESA-1451 optimize serialization for json-schema
+
+  def getTransformer(schema:SimpleFeatureType):PropertyTransformer = {
+    val idPath = GeoJsonGtIndex.getIdPath(schema)
+    val dtgPath = GeoJsonGtIndex.getDtgPath(schema)
+    new GeoMesaIndexPropertyTransformer(idPath, dtgPath)
+  }
 
   override def createIndex(name: String, id: Option[String], dtg: Option[String], points: Boolean): Unit = {
     try {
@@ -193,10 +199,7 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
       throw new IllegalArgumentException(s"Index $name does not exist - please call 'createIndex'")
     }
 
-    val idPath = GeoJsonGtIndex.getIdPath(schema)
-    val dtgPath = GeoJsonGtIndex.getDtgPath(schema)
-
-    val filter = try { GeoJsonQuery(query).toFilter(idPath, dtgPath) } catch {
+    val filter = try { GeoJsonQuery(query).toFilter(getTransformer(schema)) } catch {
       case NonFatal(e) => throw new IllegalArgumentException("Invalid query syntax", e)
     }
     val paths = try { transform.mapValues(JsonPathParser.parse(_)) } catch {
