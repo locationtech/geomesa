@@ -1,3 +1,5 @@
+.. _GeoMesa-Process:
+
 GeoMesa Processes
 =================
 
