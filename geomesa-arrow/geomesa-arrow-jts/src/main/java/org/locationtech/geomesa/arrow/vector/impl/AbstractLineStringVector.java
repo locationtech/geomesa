@@ -11,14 +11,11 @@ package org.locationtech.geomesa.arrow.vector.impl;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
 import org.apache.arrow.vector.complex.FixedSizeListVector;
 import org.apache.arrow.vector.complex.ListVector;
-import org.apache.arrow.vector.complex.impl.UnionFixedSizeListReader;
-import org.apache.arrow.vector.complex.impl.UnionListReader;
-import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
@@ -46,12 +43,12 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
   }
 
   protected AbstractLineStringVector(ListVector vector) {
-    this.vector = vector;
     // create the fields we will write to up front
     if (vector.getDataVector().equals(BaseRepeatedValueVector.DEFAULT_DATA_VECTOR)) {
       vector.initializeChildrenFromFields(getFields());
-      this.vector.allocateNew();
+      vector.allocateNew();
     }
+    this.vector = vector;
     this.writer = createWriter(vector);
     this.reader = createReader(vector);
   }
@@ -80,17 +77,16 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
     vector.close();
   }
 
-  public static abstract class LineStringWriter implements GeometryWriter<LineString> {
+  public static abstract class LineStringWriter extends AbstractGeometryWriter<LineString> {
 
     private final ListVector.Mutator mutator;
     private final FixedSizeListVector.Mutator tupleMutator;
-    private final FieldVector.Mutator pointMutator;
 
     protected LineStringWriter(ListVector vector) {
       this.mutator = vector.getMutator();
       FixedSizeListVector tuples = (FixedSizeListVector) vector.getChildrenFromFields().get(0);
       this.tupleMutator = tuples.getMutator();
-      this.pointMutator = tuples.getChildrenFromFields().get(0).getMutator();
+      setOrdinalMutator(tuples.getChildrenFromFields().get(0).getMutator());
     }
 
     @Override
@@ -100,14 +96,12 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
         for (int i = 0; i < geom.getNumPoints(); i++) {
           Coordinate p = geom.getCoordinateN(i);
           tupleMutator.setNotNull(position + i);
-          writeOrdinal(pointMutator, (position + i) * 2, p.y);
-          writeOrdinal(pointMutator, (position + i) * 2 + 1, p.x);
+          writeOrdinal((position + i) * 2, p.y);
+          writeOrdinal((position + i) * 2 + 1, p.x);
         }
         mutator.endValue(index, geom.getNumPoints());
       }
     }
-
-    protected abstract void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal);
 
     @Override
     public void setValueCount(int count) {
@@ -115,41 +109,34 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
     }
   }
 
-  public static abstract class LineStringReader implements GeometryReader<LineString> {
+  public static abstract class LineStringReader extends AbstractGeometryReader<LineString> {
 
     private final ListVector.Accessor accessor;
-    private final UnionListReader reader;
-    private final UnionFixedSizeListReader subReader;
-    private final FieldReader ordinalReader;
+    private final UInt4Vector.Accessor offsets;
 
     public LineStringReader(ListVector vector) {
       this.accessor = vector.getAccessor();
-      this.reader = vector.getReader();
-      this.subReader = ((FixedSizeListVector) vector.getChildrenFromFields().get(0)).getReader();
-      this.ordinalReader = subReader.reader();
+      this.offsets = ((UInt4Vector) vector.getFieldInnerVectors().get(1)).getAccessor();
+      setOrdinalAccessor(vector.getChildrenFromFields().get(0).getChildrenFromFields().get(0).getAccessor());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public LineString get(int index) {
-      reader.setPosition(index);
-      if (reader.isSet()) {
-        Coordinate[] coordinates = new Coordinate[reader.size()];
+      if (accessor.isNull(index)) {
+        return null;
+      } else {
+        int offsetStart = offsets.get(index);
+        int offsetEnd = offsets.get(index + 1);
+        Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
         for (int i = 0; i < coordinates.length; i++) {
-          reader.next();
-          subReader.next();
-          double y = readOrdinal(ordinalReader);
-          subReader.next();
-          double x = readOrdinal(ordinalReader);
+          double y = readOrdinal((offsetStart + i) * 2);
+          double x = readOrdinal((offsetStart + i) * 2 + 1);
           coordinates[i] = new Coordinate(x, y);
         }
         return factory.createLineString(coordinates);
-      } else {
-        return null;
       }
     }
-
-    protected abstract double readOrdinal(FieldReader reader);
 
     @Override
     public int getValueCount() {

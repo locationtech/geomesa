@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.arrow.vector;
 
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.NullableFloat8Vector;
+import org.apache.arrow.vector.ValueVector.Accessor;
+import org.apache.arrow.vector.ValueVector.Mutator;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.ListVector;
-import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.impl.AbstractMultiLineStringVector;
 
@@ -58,25 +58,39 @@ public class MultiLineStringVector extends AbstractMultiLineStringVector {
 
   public static class MultiLineStringDoubleWriter extends MultiLineStringWriter {
 
+    private NullableFloat8Vector.Mutator mutator;
+
     public MultiLineStringDoubleWriter(ListVector vector) {
       super(vector);
     }
 
     @Override
-    protected void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal) {
-      ((NullableFloat8Vector.Mutator) mutator).set(index, ordinal);
+    protected void setOrdinalMutator(Mutator mutator) {
+      this.mutator = (NullableFloat8Vector.Mutator) mutator;
+    }
+
+    @Override
+    protected void writeOrdinal(int index, double ordinal) {
+      mutator.set(index, ordinal);
     }
   }
 
   public static class MultiLineStringDoubleReader extends MultiLineStringReader {
+
+    private NullableFloat8Vector.Accessor accessor;
 
     public MultiLineStringDoubleReader(ListVector vector) {
       super(vector);
     }
 
     @Override
-    protected double readOrdinal(FieldReader reader) {
-      return reader.readDouble();
+    protected void setOrdinalAccessor(Accessor accessor) {
+      this.accessor = (NullableFloat8Vector.Accessor) accessor;
+    }
+
+    @Override
+    protected double readOrdinal(int index) {
+      return accessor.get(index);
     }
   }
 }

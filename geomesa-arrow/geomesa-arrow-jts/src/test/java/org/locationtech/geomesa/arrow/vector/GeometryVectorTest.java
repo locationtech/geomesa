@@ -20,12 +20,6 @@ import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.junit.Assert;
 import org.junit.Test;
-import org.locationtech.geomesa.arrow.vector.floats.LineStringFloatVector;
-import org.locationtech.geomesa.arrow.vector.floats.MultiLineStringFloatVector;
-import org.locationtech.geomesa.arrow.vector.floats.MultiPointFloatVector;
-import org.locationtech.geomesa.arrow.vector.floats.PointFloatVector;
-import org.locationtech.geomesa.arrow.vector.floats.MultiPolygonFloatVector;
-import org.locationtech.geomesa.arrow.vector.floats.PolygonFloatVector;
 
 public class GeometryVectorTest {
 

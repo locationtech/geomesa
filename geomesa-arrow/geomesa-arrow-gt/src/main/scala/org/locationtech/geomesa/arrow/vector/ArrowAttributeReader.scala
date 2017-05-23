@@ -28,12 +28,12 @@ import org.locationtech.geomesa.arrow.vector.PointVector.PointDoubleReader
 import org.locationtech.geomesa.arrow.vector.PolygonVector.PolygonDoubleReader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.EncodingPrecision.EncodingPrecision
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{EncodingPrecision, SimpleFeatureEncoding}
-import org.locationtech.geomesa.arrow.vector.floats.LineStringFloatVector.LineStringFloatReader
-import org.locationtech.geomesa.arrow.vector.floats.MultiLineStringFloatVector.MultiLineStringFloatReader
-import org.locationtech.geomesa.arrow.vector.floats.MultiPointFloatVector.MultiPointFloatReader
-import org.locationtech.geomesa.arrow.vector.floats.MultiPolygonFloatVector.MultiPolygonFloatReader
-import org.locationtech.geomesa.arrow.vector.floats.PointFloatVector.PointFloatReader
-import org.locationtech.geomesa.arrow.vector.floats.PolygonFloatVector.PolygonFloatReader
+import LineStringFloatVector.LineStringFloatReader
+import MultiLineStringFloatVector.MultiLineStringFloatReader
+import MultiPointFloatVector.MultiPointFloatReader
+import MultiPolygonFloatVector.MultiPolygonFloatReader
+import PointFloatVector.PointFloatReader
+import PolygonFloatVector.PolygonFloatReader
 import org.locationtech.geomesa.arrow.vector.impl.AbstractPointVector
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
@@ -265,8 +265,7 @@ object ArrowAttributeReader {
     override def apply(i: Int): AnyRef = delegate.get(i)
 
     /**
-      * Reads the first (y) ordinal for the given point. See `readPointX` to get the corresponding x ordinal.
-      * Only valid for point vectors
+      * Reads the first (y) ordinal for the given point
       *
       * @param i index of the point to read
       * @return y ordinal
@@ -274,12 +273,12 @@ object ArrowAttributeReader {
     def readPointY(i: Int): Double = delegate.getCoordinateY(i)
 
     /**
-      * Reads the second (x) ordinal for the previously read y ordinal from `readPointY`. Behavior is not defined
-      * if the access pattern is not followed. Only valid for point vectors.
+      * Reads the second (x) ordinal for the given point
       *
+      * @param i index of the point to read
       * @return x ordinal
       */
-    def readPointX(): Double = delegate.getCoordinateX
+    def readPointX(i: Int): Double = delegate.getCoordinateX(i)
   }
 
   /**

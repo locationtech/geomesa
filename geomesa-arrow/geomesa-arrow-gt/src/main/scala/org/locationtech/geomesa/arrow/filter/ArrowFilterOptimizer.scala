@@ -118,12 +118,11 @@ object ArrowFilterOptimizer extends LazyLogging {
     override def evaluate(o: AnyRef): Boolean = {
       val arrow = o.asInstanceOf[ArrowSimpleFeature]
       val reader = arrow.getReader(i).asInstanceOf[ArrowPointReader]
-      val y = reader.readPointY(arrow.getIndex)
-      if (y >= ymin && y <= ymax) {
-        val x = reader.readPointX()
+      val index = arrow.getIndex
+      val y = reader.readPointY(index)
+      if (y < ymin || y > ymax) { false } else {
+        val x = reader.readPointX(index)
         x >= xmin && x <= xmax
-      } else {
-        false
       }
     }
   }
