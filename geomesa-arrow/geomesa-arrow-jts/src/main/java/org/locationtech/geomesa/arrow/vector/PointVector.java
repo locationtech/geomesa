@@ -63,7 +63,7 @@ public class PointVector extends AbstractPointVector {
 
     @Override
     protected void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal) {
-      ((NullableFloat8Vector.Mutator) mutator).set(index, ordinal);
+      ((NullableFloat8Vector.Mutator) mutator).setSafe(index, ordinal);
     }
   }
 

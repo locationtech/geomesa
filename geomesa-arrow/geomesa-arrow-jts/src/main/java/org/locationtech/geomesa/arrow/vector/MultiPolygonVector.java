@@ -62,7 +62,7 @@ public class MultiPolygonVector extends AbstractMultiPolygonVector {
 
     @Override
     protected void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal) {
-      ((NullableFloat8Vector.Mutator) mutator).set(index, ordinal);
+      ((NullableFloat8Vector.Mutator) mutator).setSafe(index, ordinal);
     }
   }
 
