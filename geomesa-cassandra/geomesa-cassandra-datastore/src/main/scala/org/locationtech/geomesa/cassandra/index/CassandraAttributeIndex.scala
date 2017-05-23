@@ -55,8 +55,8 @@ case object CassandraAttributeIndex
       }
       lexicoded = new String(row, offset, nullByte - offset, StandardCharsets.UTF_8)
       offset = nullByte + 1
-      if (offset < row.length) {
-        val secondaryIndexLength = getSecondaryIndexKeyLength(sft)
+      val secondaryIndexLength = getSecondaryIndexKeyLength(sft)
+      if (offset + secondaryIndexLength < row.length) {
         secondaryIndex = ByteBuffer.wrap(row, offset, secondaryIndexLength)
         offset += secondaryIndexLength
         if (offset < row.length) {
