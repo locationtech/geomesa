@@ -38,8 +38,6 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
                                    val encoding: SimpleFeatureEncoding)
                                   (implicit allocator: BufferAllocator) extends Closeable {
 
-  // TODO user data at feature and schema level
-
   private var maxIndex = underlying.getValueCapacity - 1
 
   // note: writer creates the map child vectors based on the sft, and should be instantiated before the reader

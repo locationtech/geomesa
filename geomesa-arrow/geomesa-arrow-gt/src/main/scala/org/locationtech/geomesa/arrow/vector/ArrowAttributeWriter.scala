@@ -158,12 +158,12 @@ object ArrowAttributeWriter {
             new ArrowBooleanWriter(child.getMutator)
 
           case ObjectType.LIST =>
-            // TODO
+            // TODO list types
             val child = ensureChildVector(vector, name, MinorType.LIST.getType, classOf[ListVector], metadata)
             new ArrowListWriter(vector.getWriter.list(name), bindings(1), allocator)
 
           case ObjectType.MAP =>
-            // TODO
+            // TODO map types
             val child = ensureChildVector(vector, name, MinorType.MAP.getType, classOf[NullableMapVector], metadata)
             new ArrowMapWriter(vector.getWriter.map(name), bindings(1), bindings(2), allocator)
 

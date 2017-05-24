@@ -41,8 +41,6 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
 
   import scala.collection.JavaConversions._
 
-  // TODO user data at feature and schema level
-
   private var index = 0
 
   private val arrowWriter = underlying.getWriter
