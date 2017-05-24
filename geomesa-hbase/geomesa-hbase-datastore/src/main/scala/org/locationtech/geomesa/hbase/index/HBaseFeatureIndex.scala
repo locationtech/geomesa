@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.hbase.index
 
+import com.google.common.collect.Maps
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
@@ -24,6 +26,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.slf4j.LoggerFactory
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
@@ -56,14 +59,23 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
+  private val logger = LoggerFactory.getLogger("org.locationtech.geomesa.hbase.index.HBaseFeatureIndex")
+
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     super.configure(sft, ds)
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
     val admin = ds.connection.getAdmin
     try {
       if (!admin.tableExists(name)) {
+        logger.info(s"Creating table $name")
         val descriptor = new HTableDescriptor(name)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
+        val rootDir = admin.getConfiguration.get(HConstants.HBASE_DIR)
+        // TODO: figure out if we need to discover this
+        val path = new Path(s"$rootDir/lib/geomesa-hbase-distributed-runtime.jar")
+        logger.info(s"Setting up coprocessors at $path")
+        // TODO: add all coprocessors
+        descriptor.addCoprocessor(classOf[KryoLazyDensityCoprocessor].getCanonicalName, path, Coprocessor.PRIORITY_USER, Maps.newHashMap[String, String]())
         admin.createTable(descriptor, getSplits(sft).toArray)
       }
     } finally {
