@@ -28,53 +28,9 @@
 
     <profiles>
         <profile>
-            <id>html</id>
-            <properties>
-                <target>html</target>
-            </properties>
-        </profile>
-        <profile>
-            <id>singlehtml</id>
-            <properties>
-                <target>singlehtml</target>
-            </properties>
-        </profile>
-        <profile>
-            <id>latex</id>
-            <properties>
-                <target>latex</target>
-            </properties>
-        </profile>
-        <profile>
-            <id>docs</id>
+            <id>gm-test</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <dependencies>
-                            <dependency>
-                                <groupId>ant</groupId>
-                                <artifactId>ant</artifactId>
-                                <version>${ant.version}</version>
-                            </dependency>
-                        </dependencies>
-                        <executions>
-                            <execution>
-                                <id>compile</id>
-                                <phase>compile</phase>
-                                <configuration>
-                                    <tasks>
-                                        <ant antfile="build.xml" dir="${basedir}" target="${target}">
-                                            <property name="build.directory" value="${project.build.directory}" />
-                                        </ant>
-                                    </tasks>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-resources-plugin</artifactId>
@@ -101,6 +57,54 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <id>gm-test-auto</id>
+            <properties>
+                <instanceId>cloud</instanceId>
+                <zookeepers>zoo</zookeepers>
+                <user>user</user>
+                <password>password</password>
+                <geomesa.accumulo.namespace>namespace</geomesa.accumulo.namespace>
+                <tableName>${geomesa.accumulo.namespace}.AccumuloQuickStart</tableName>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath />
+                                <argument>com.example.geomesa.accumulo.AccumuloQuickStart</argument>
+                                <argument>-instanceId</argument>
+                                <argument>${instanceId}</argument>
+                                <argument>-zookeepers</argument>
+                                <argument>${zookeepers}</argument>
+                                <argument>-user</argument>
+                                <argument>${user}</argument>
+                                <argument>-password</argument>
+                                <argument>${password}</argument>
+                                <argument>-tableName</argument>
+                                <argument>${tableName}</argument>
+                            </arguments>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
