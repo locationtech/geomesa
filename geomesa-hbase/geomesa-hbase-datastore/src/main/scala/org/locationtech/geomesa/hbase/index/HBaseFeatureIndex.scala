@@ -16,7 +16,7 @@ import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
-import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
+import org.locationtech.geomesa.hbase.coprocessor.{KryoLazyDensityCoprocessor, coprocessorList}
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
@@ -65,17 +65,38 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     super.configure(sft, ds)
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
     val admin = ds.connection.getAdmin
+    val coproUrl = ds.config.coprocessorUrl
+
+    def addCoprocessors(desc: HTableDescriptor, path: Path): Unit =
+      coprocessorList.foreach(c => addCoprocessor(c, desc, path))
+
+    def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor, path: Path): Unit ={
+      val name = clazz.getCanonicalName
+      if (!desc.getCoprocessors.contains(name)) {
+        if (!path.equals(HBaseDataStoreParams.CoprocessorUrl.sample)) {
+          desc.addCoprocessor(name, path, Coprocessor.PRIORITY_USER, null)
+        } else {
+          desc.addCoprocessor(name)
+        }
+      }
+    }
+
     try {
       if (!admin.tableExists(name)) {
         logger.info(s"Creating table $name")
         val descriptor = new HTableDescriptor(name)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
-        val rootDir = admin.getConfiguration.get(HConstants.HBASE_DIR)
-        // TODO: figure out if we need to discover this
-        val path = new Path(s"$rootDir/lib/geomesa-hbase-distributed-runtime.jar")
-        logger.info(s"Setting up coprocessors at $path")
-        // TODO: add all coprocessors
-        descriptor.addCoprocessor(classOf[KryoLazyDensityCoprocessor].getCanonicalName, path, Coprocessor.PRIORITY_USER, Maps.newHashMap[String, String]())
+        Option(admin.getConfiguration.get("hbase.coprocessor.user.region.classes")) match {
+          // if the coprocessors are installed site-wide don't register them in the table descriptor
+          case Some(value) =>
+            val installedCoprocessors = value.split(":").map(_.split(".").last).toSeq
+            coprocessorList.foreach{ c =>
+              if (!installedCoprocessors.contains(c.getCanonicalName)) {
+                addCoprocessor(c, descriptor, coproUrl)
+              }
+            }
+          case None => addCoprocessors(descriptor, coproUrl)
+        }
         admin.createTable(descriptor, getSplits(sft).toArray)
       }
     } finally {
