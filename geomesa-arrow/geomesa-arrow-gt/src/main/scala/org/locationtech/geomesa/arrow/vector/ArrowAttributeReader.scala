@@ -34,7 +34,7 @@ import MultiPointFloatVector.MultiPointFloatReader
 import MultiPolygonFloatVector.MultiPolygonFloatReader
 import PointFloatVector.PointFloatReader
 import PolygonFloatVector.PolygonFloatReader
-import org.locationtech.geomesa.arrow.vector.impl.AbstractPointVector
+import org.locationtech.geomesa.arrow.vector.impl.{AbstractLineStringVector, AbstractPointVector}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -214,13 +214,14 @@ object ArrowAttributeReader {
           case EncodingPrecision.Max => new PointDoubleReader(vector.asInstanceOf[FixedSizeListVector])
         }
         new ArrowPointReader(delegate.asInstanceOf[AbstractPointVector.PointReader])
+      } else if (binding == classOf[LineString]) {
+        val delegate = precision match {
+          case EncodingPrecision.Min => new LineStringFloatReader(vector.asInstanceOf[ListVector])
+          case EncodingPrecision.Max => new LineStringDoubleReader(vector.asInstanceOf[ListVector])
+        }
+        new ArrowLineStringReader(delegate.asInstanceOf[AbstractLineStringVector.LineStringReader])
       } else {
-        val delegate: GeometryReader[_ <: Geometry] = if (binding == classOf[LineString]) {
-          precision match {
-            case EncodingPrecision.Min => new LineStringFloatReader(vector.asInstanceOf[ListVector])
-            case EncodingPrecision.Max => new LineStringDoubleReader(vector.asInstanceOf[ListVector])
-          }
-        } else if (binding == classOf[Polygon]) {
+        val delegate: GeometryReader[_ <: Geometry] = if (binding == classOf[Polygon]) {
           precision match {
             case EncodingPrecision.Min => new PolygonFloatReader(vector.asInstanceOf[ListVector])
             case EncodingPrecision.Max => new PolygonDoubleReader(vector.asInstanceOf[ListVector])
@@ -279,6 +280,38 @@ object ArrowAttributeReader {
       * @return x ordinal
       */
     def readPointX(i: Int): Double = delegate.getCoordinateX(i)
+  }
+
+  /**
+    * Subclass with special methods for reading coordinate directly
+    */
+  class ArrowLineStringReader(delegate: AbstractLineStringVector.LineStringReader) extends ArrowAttributeReader {
+
+    override def apply(i: Int): AnyRef = delegate.get(i)
+
+    /**
+      * Gets the offsets for points in the ith line
+      *
+      * @param i index of the line to read offsets for
+      * @return (offset start, offset end)
+      */
+    def readOffsets(i: Int): (Int, Int) = (delegate.getStartOffset(i), delegate.getEndOffset(i))
+
+    /**
+      * Reads the first (y) ordinal for the given point
+      *
+      * @param offset offset, from readOffsetStart/End, of the point to read
+      * @return y ordinal
+      */
+    def readPointY(offset: Int): Double = delegate.getCoordinateY(offset)
+
+    /**
+      * Reads the second (x) ordinal for the given point
+      *
+      * @param offset offset, from readOffsetStart/End, of the point to read
+      * @return x ordinal
+      */
+    def readPointX(offset: Int): Double = delegate.getCoordinateX(offset)
   }
 
   /**

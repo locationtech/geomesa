@@ -11,14 +11,16 @@ package org.locationtech.geomesa.arrow.filter
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Polygon
+import com.vividsolutions.jts.geom.{Coordinate, Polygon}
 import org.geotools.filter.visitor.BindingFilterVisitor
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
-import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.{ArrowDateReader, ArrowPointReader}
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, ArrowDictionaryReader}
+import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.{ArrowDateReader, ArrowLineStringReader, ArrowPointReader}
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, ArrowDictionaryReader, GeometryVector}
 import org.locationtech.geomesa.filter.checkOrderUnsafe
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
+import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
@@ -70,12 +72,15 @@ object ArrowFilterOptimizer extends LazyLogging {
   }
 
   private def rewriteBBox(filter: BBOX, sft: SimpleFeatureType): Filter = {
-    // TODO handle lines, others?
-    if (sft.isPoints) {
+    if (sft.isPoints || sft.isLines) {
       val props = checkOrderUnsafe(filter.getExpression1, filter.getExpression2)
       val bbox = props.literal.evaluate(null).asInstanceOf[Polygon].getEnvelopeInternal
       val attrIndex = sft.indexOf(props.name)
-      ArrowPointBBox(attrIndex, bbox.getMinX, bbox.getMinY, bbox.getMaxX, bbox.getMaxY)
+      if (sft.isPoints) {
+        ArrowPointBBox(attrIndex, bbox.getMinX, bbox.getMinY, bbox.getMaxX, bbox.getMaxY)
+      } else {
+        ArrowLineStringBBox(attrIndex, bbox.getMinX, bbox.getMinY, bbox.getMaxX, bbox.getMaxY)
+      }
     } else {
       filter
     }
@@ -124,6 +129,42 @@ object ArrowFilterOptimizer extends LazyLogging {
         val x = reader.readPointX(index)
         x >= xmin && x <= xmax
       }
+    }
+  }
+
+  case class ArrowLineStringBBox(i: Int, xmin: Double, ymin: Double, xmax: Double, ymax: Double) extends Filter {
+    private val bboxEnvelope = new ReferencedEnvelope(xmin, xmax, ymin, ymax, CRS_EPSG_4326)
+    private val bbox = GeometryVector.factory.toGeometry(bboxEnvelope)
+
+    override def accept(visitor: FilterVisitor, extraData: AnyRef): AnyRef = extraData
+    override def evaluate(o: AnyRef): Boolean = {
+      val arrow = o.asInstanceOf[ArrowSimpleFeature]
+      val reader = arrow.getReader(i).asInstanceOf[ArrowLineStringReader]
+      val (start, end) = reader.readOffsets(arrow.getIndex)
+      var offset = start
+      val points = Array.ofDim[Coordinate](2)
+      while (offset < end) {
+        val y = reader.readPointY(offset)
+        if (y >= ymin && y <= ymax) {
+          val x = reader.readPointX(offset)
+          if (x >= xmin && x <= xmax) {
+            // we have a point in the bbox, short-circuit and return
+            return true
+          }
+          // check for intersection even if the points aren't contained in the bbox
+          points(1) = points(0)
+          points(0) = new Coordinate(x, y)
+          if (offset > start) {
+            val line = GeometryVector.factory.createLineString(points)
+            if (line.getEnvelopeInternal.intersects(bboxEnvelope) && line.intersects(bbox)) {
+              // found an intersection, short-circuit and return
+              return true
+            }
+          }
+        }
+        offset += 1
+      }
+      false
     }
   }
 

@@ -127,8 +127,7 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
         return null;
       } else {
         int offsetStart = offsets.get(index);
-        int offsetEnd = offsets.get(index + 1);
-        Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
+        Coordinate[] coordinates = new Coordinate[offsets.get(index + 1) - offsetStart];
         for (int i = 0; i < coordinates.length; i++) {
           double y = readOrdinal((offsetStart + i) * 2);
           double x = readOrdinal((offsetStart + i) * 2 + 1);
@@ -136,6 +135,22 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
         }
         return factory.createLineString(coordinates);
       }
+    }
+
+    public int getStartOffset(int index) {
+      return offsets.get(index);
+    }
+
+    public int getEndOffset(int index) {
+      return offsets.get(index + 1);
+    }
+
+    public double getCoordinateY(int offset) {
+      return readOrdinal(offset * 2);
+    }
+
+    public double getCoordinateX(int offset) {
+      return readOrdinal(offset * 2 + 1);
     }
 
     @Override
