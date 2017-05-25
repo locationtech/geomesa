@@ -109,9 +109,7 @@ if  [[ $1 = configure ]]; then
   geomesaConfigure
 elif [[ $1 = classpath ]]; then
   CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
-  for element in ${CLASSPATH//:/ } ; do
-    echo ${element}
-  done
+  echo $CLASSPATH | tr ':' '\n' | xargs ls -di | sort -u -k1,1 | awk '{print $2}' | sort
 else
   CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
   if [[ $1 = debug ]]; then
