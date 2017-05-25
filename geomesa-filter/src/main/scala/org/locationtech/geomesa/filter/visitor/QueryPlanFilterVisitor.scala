@@ -103,7 +103,7 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
     } else {
       val index = name.indexOf(':')
       if (index == -1) {
-        expression
+        super.getFactory(extraData).property(name)
       } else {
         // strip off the namespace
         super.getFactory(extraData).property(name.substring(index + 1), expression.getNamespaceContext)

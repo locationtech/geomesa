@@ -18,7 +18,7 @@ import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.Feature
@@ -63,17 +63,17 @@ class ArrowConversionProcess extends VectorProcess with LazyLogging {
         throw new IllegalArgumentException(s"Attribute $attribute doesn't exist in $sft")
       }
     }
-    val fids = Option(includeFids).forall(_.booleanValue)
+    val encoding = SimpleFeatureEncoding.min(Option(includeFids).forall(_.booleanValue))
     val batch = Option(batchSize).map(_.intValue).getOrElse(100000)
 
-    val visitor = new ArrowVisitor(sft, toEncode, batch, fids)
+    val visitor = new ArrowVisitor(sft, toEncode, batch, encoding)
     features.accepts(visitor, null)
     visitor.close()
     visitor.getResult.results
   }
 }
 
-class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchSize: Int, fids: Boolean)
+class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchSize: Int, encoding: SimpleFeatureEncoding)
     extends FeatureCalc with FeatureAttributeVisitor with Closeable with LazyLogging {
 
   import org.locationtech.geomesa.arrow.allocator
@@ -87,7 +87,7 @@ class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchS
     if (dictionaryFields.nonEmpty) {
       logger.warn("Non-distributed conversion - fields will not be dictionary encoded")
     }
-    new SimpleFeatureArrowFileWriter(sft, manualBytes, Map.empty, fids, GeometryPrecision.Float)
+    new SimpleFeatureArrowFileWriter(sft, manualBytes, Map.empty, encoding)
   }
   private var manualVisit = 0L
   private var distributedVisit = false
@@ -129,7 +129,7 @@ class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchS
 
     query.getHints.put(QueryHints.ARROW_ENCODE, true)
     query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaryFields.mkString(","))
-    query.getHints.put(QueryHints.ARROW_INCLUDE_FID, fids)
+    query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids)
     query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
 
     val features = SelfClosingIterator(source.getFeatures(query))
