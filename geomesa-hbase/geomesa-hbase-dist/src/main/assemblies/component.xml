@@ -16,6 +16,7 @@
                 <exclude>org.locationtech.geomesa:geomesa-hbase-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-hbase-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with HBase 1.2.3 which provides guava 12 -->
             </excludes>
         </dependencySet>
@@ -28,7 +29,7 @@
             <useStrictFiltering>true</useStrictFiltering>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-hbase-process*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
         <dependencySet>

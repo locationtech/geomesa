@@ -13,7 +13,7 @@
             <excludes>
                 <exclude>org.locationtech.geomesa:*:tar.gz:*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-web-core*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-process*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-stream*</exclude>
@@ -41,7 +41,7 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-accumulo-process*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
                 <include>org.locationtech.geomesa:geomesa-blobstore-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-stream-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-geojson-gs-plugin*</include>

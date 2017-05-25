@@ -54,10 +54,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-process_${scala.binary.version}</artifactId>
-            <classifier>install</classifier>
-            <version>${project.version}</version>
-            <type>tar.gz</type>
+            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
