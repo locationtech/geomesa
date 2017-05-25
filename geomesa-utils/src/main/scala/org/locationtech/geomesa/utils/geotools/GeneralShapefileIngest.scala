@@ -16,7 +16,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -35,7 +35,7 @@ object GeneralShapefileIngest extends LazyLogging {
     }
   }
 
-  def ingestToDataStore(shapefilePath: String, ds: DataStore, typeName: Option[String]): Unit = {
+  def ingestToDataStore(shapefilePath: String, ds: DataStore, typeName: Option[String]): (Long, Long) = {
     val shapefile = getShapefileDatastore(shapefilePath)
     try {
       ingestToDataStore(shapefile.getFeatureSource.getFeatures, ds, typeName)
@@ -46,34 +46,49 @@ object GeneralShapefileIngest extends LazyLogging {
     }
   }
 
-  def ingestToDataStore(features: SimpleFeatureCollection, ds: DataStore, typeName: Option[String]): Unit = {
+  def ingestToDataStore(features: SimpleFeatureCollection, ds: DataStore, typeName: Option[String]): (Long, Long) = {
     // Add the ability to rename this FT
-    val featureType: SimpleFeatureType = typeName.map { name =>
-      val sftBuilder = new SimpleFeatureTypeBuilder()
-      sftBuilder.init(features.getSchema)
-      sftBuilder.setName(name)
-      sftBuilder.buildFeatureType()
-    }.getOrElse(features.getSchema)
-
-    val featureTypeName = featureType.getName.getLocalPart
-
-    val existingSchema = Try(ds.getSchema(featureTypeName)).getOrElse(null)
-    if (existingSchema == null) {
-      ds.createSchema(featureType)
+    val featureType = {
+      val fromCollection = typeName.map { name =>
+        val sftBuilder = new SimpleFeatureTypeBuilder()
+        sftBuilder.init(features.getSchema)
+        sftBuilder.setName(name)
+        sftBuilder.buildFeatureType()
+      }.getOrElse(features.getSchema)
+      val existing = Try(ds.getSchema(fromCollection.getTypeName)).getOrElse(null)
+      if (existing != null) { existing } else {
+        ds.createSchema(fromCollection)
+        ds.getSchema(fromCollection.getTypeName)
+      }
     }
 
-    val reTypedSFC = new TypeUpdatingFeatureCollection(features, ds.getSchema(featureTypeName))
+    val retype: (SimpleFeature) => SimpleFeature = if (featureType == features.getSchema) {
+      (f) => f
+    } else {
+      (f) => {
+        val newFeature = DataUtilities.reType(featureType, f)
+        newFeature.setDefaultGeometry(f.getDefaultGeometry)
+        newFeature.getUserData.putAll(f.getUserData)
+        newFeature
+      }
+    }
 
-    WithClose(ds.getFeatureWriterAppend(featureTypeName, Transaction.AUTO_COMMIT)) { writer =>
-      SelfClosingIterator(reTypedSFC.features()).foreach { feature =>
+    var count = 0L
+    var failed = 0L
+
+    WithClose(ds.getFeatureWriterAppend(featureType.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+      SelfClosingIterator(features.features()).foreach { feature =>
         try {
-          FeatureUtils.copyToWriter(writer, feature)
+          FeatureUtils.copyToWriter(writer, retype(feature))
           writer.write()
+          count += 1
         } catch {
-          case NonFatal(e) => logger.warn(s"Error writing feature: $feature: $e", e)
+          case NonFatal(e) => logger.warn(s"Error writing feature: $feature: $e", e); failed += 1
         }
       }
     }
+
+    (count, failed)
   }
 }
 

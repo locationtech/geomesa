@@ -20,6 +20,7 @@
                 <exclude>org.locationtech.geomesa:geomesa-geojson*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-blobstore*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-compute*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-accumulo-spark-runtime*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
             </excludes>
         </dependencySet>
