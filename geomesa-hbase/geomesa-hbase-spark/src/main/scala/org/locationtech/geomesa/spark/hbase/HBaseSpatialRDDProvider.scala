@@ -36,7 +36,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
           dsParams: Map[String, String],
           origQuery: Query): SpatialRDD = {
     import org.locationtech.geomesa.index.conf.QueryHints._
-    val ds = DataStoreConnector.getOrFindDataStore(dsParams).asInstanceOf[HBaseDataStore]
+    val ds = DataStoreConnector.loadingMap.get(dsParams).asInstanceOf[HBaseDataStore]
     // force loose bbox to be false
     origQuery.getHints.put(QueryHints.LOOSE_BBOX, false)
 
@@ -88,7 +88,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     * @param writeTypeName
     */
   def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
-    val ds = DataStoreConnector.getOrFindDataStore(writeDataStoreParams).asInstanceOf[HBaseDataStore]
+    val ds = DataStoreConnector.loadingMap.get(writeDataStoreParams).asInstanceOf[HBaseDataStore]
     try {
       require(ds.getSchema(writeTypeName) != null,
         "Feature type must exist before calling save.  Call createSchema on the DataStore first.")
@@ -110,7 +110,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     */
   def unsafeSave(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
     rdd.foreachPartition { iter =>
-      val ds = DataStoreConnector.getOrFindDataStore(writeDataStoreParams).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreConnector.loadingMap.get(writeDataStoreParams).asInstanceOf[HBaseDataStore]
       val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
       try {
         iter.foreach { rawFeature =>

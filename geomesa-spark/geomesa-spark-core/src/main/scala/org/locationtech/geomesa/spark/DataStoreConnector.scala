@@ -8,39 +8,25 @@
 
 package org.locationtech.geomesa.spark
 
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.geotools.data.{DataStore, DataStoreFinder}
 
 /**
   * Caches accessing of DataStores.
+  *
   * @param writeDataStoreParams
   */
 case class DataStoreConnector(writeDataStoreParams: Map[String, String]) {
-  @transient lazy val store: DataStore = DataStoreConnector.getOrFindDataStore(this.writeDataStoreParams)
+  @transient lazy val store: DataStore = DataStoreConnector.loadingMap.get(writeDataStoreParams)
 }
 
 object DataStoreConnector {
   import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
 
-  private val writeLock = new Object
-  @volatile private var connectionMap: Map[Map[String, String], DataStore] = Map()
-
-  def getOrFindDataStore(writeDataStoreParams: Map[String, String]): DataStore = {
-    var map = connectionMap
-    map.get(writeDataStoreParams) match {
-      case None =>
-        writeLock.synchronized {
-          map = connectionMap
-          map.get(writeDataStoreParams) match {
-            case None =>
-              val ds = DataStoreFinder.getDataStore(writeDataStoreParams)
-              connectionMap += writeDataStoreParams -> ds
-              ds
-            case Some(conn) =>
-              conn
-          }
-        }
-      case Some(conn) =>
-        conn
-    }
-  }
+  val loadingMap = Caffeine.newBuilder().build[Map[String, String], DataStore](
+    new CacheLoader[Map[String, String], DataStore] {
+      override def load(key: Map[String, String]) = {
+        DataStoreFinder.getDataStore(key)
+      }
+    })
 }
