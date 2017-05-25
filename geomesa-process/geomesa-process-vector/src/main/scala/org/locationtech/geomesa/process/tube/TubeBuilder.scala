@@ -23,6 +23,10 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 
+object TubeBuilder {
+  val DefaultDtgField = "dtg"
+}
+
 /**
  * Build a tube for input to a TubeSelect by buffering and binning the input
  * tubeFeatures into SimpleFeatures that can be used as inputs to Geomesa queries
@@ -32,7 +36,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
                            val maxBins: Int) extends LazyLogging {
 
   val calc = new GeodeticCalculator()
-  val dtgField = tubeFeatures.getSchema.getDtgField.getOrElse("dtg")
+  val dtgField = tubeFeatures.getSchema.getDtgField.getOrElse(TubeBuilder.DefaultDtgField)
   val geoFac = new GeometryFactory
 
   val GEOM_PROP = "geom"
@@ -41,7 +45,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   val builder = ScalaSimpleFeatureFactory.featureBuilder(tubeType)
 
   // default to ISO 8601 date format
-  val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+  val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 
   def getGeom(sf: SimpleFeature): Geometry = sf.getAttribute(0).asInstanceOf[Geometry]
   def getStartTime(sf: SimpleFeature): Date = sf.getAttribute(1).asInstanceOf[Date]
@@ -81,7 +85,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     tubeFeatures.features().map { sf =>
       val date = sf.getAttribute(dtgField) match {
         case s: String => df.parseDateTime(s).toDate
-        case _ => sf.getAttribute(dtgField)
+        case d => d
       }
 
       if (date == null) {

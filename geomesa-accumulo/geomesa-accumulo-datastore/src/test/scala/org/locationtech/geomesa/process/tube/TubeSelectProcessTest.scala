@@ -29,9 +29,11 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class TubeSelectProcessTest extends Specification {
 
+  import TubeBuilder.DefaultDtgField
+
   sequential
 
-  val geotimeAttributes = "*geom:Point:srid=4326,dtg:Date"
+  val geotimeAttributes = s"*geom:Point:srid=4326,$DefaultDtgField:Date"
 
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
@@ -62,7 +64,7 @@ class TubeSelectProcessTest extends Specification {
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
           val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute(DefaultDtgField, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           featureCollection.add(sf)
@@ -104,7 +106,7 @@ class TubeSelectProcessTest extends Specification {
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
           val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute("dtg", new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute(DefaultDtgField, new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           featureCollection.add(sf)
@@ -151,7 +153,7 @@ class TubeSelectProcessTest extends Specification {
           val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
           i += 1
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lon%d $lat%d)"))
-          sf.setAttribute("dtg", new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute(DefaultDtgField, new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           featureCollection.add(sf)
@@ -234,7 +236,7 @@ class TubeSelectProcessTest extends Specification {
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
           val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT(40 $lat%d)"))
-          sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute(DefaultDtgField, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           featureCollection.add(sf)
@@ -243,14 +245,14 @@ class TubeSelectProcessTest extends Specification {
 
       val bLine = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "b-line")
       bLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      bLine.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      bLine.setAttribute(DefaultDtgField, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       bLine.setAttribute("type", "b")
       bLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       featureCollection.add(bLine)
 
       val bPoly = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "b-poly")
       bPoly.setDefaultGeometry(WKTUtils.read("POLYGON((40 40, 41 40, 41 41, 40 41, 40 40))"))
-      bPoly.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      bPoly.setAttribute(DefaultDtgField, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       bPoly.setAttribute("type", "b")
       bPoly.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       featureCollection.add(bPoly)
@@ -260,7 +262,7 @@ class TubeSelectProcessTest extends Specification {
       // tube features
       val aLine = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "a-line")
       aLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      aLine.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      aLine.setAttribute(DefaultDtgField, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
 //      aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       aLine.setAttribute("type", "a")
       aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
@@ -318,7 +320,7 @@ class TubeSelectProcessTest extends Specification {
       // tube features
       val aLine = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "a-line")
       aLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      aLine.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      aLine.setAttribute(DefaultDtgField, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
 //      aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       aLine.setAttribute("type", "a")
       aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
