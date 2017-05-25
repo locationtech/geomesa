@@ -12,12 +12,9 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.ZeroVector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.FixedSizeListVector;
-import org.apache.arrow.vector.complex.impl.UnionFixedSizeListReader;
-import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
@@ -74,63 +71,51 @@ public abstract class AbstractPointVector implements GeometryVector<Point, Fixed
     vector.close();
   }
 
-  public static abstract class PointWriter implements GeometryWriter<Point> {
+  public static abstract class PointWriter extends AbstractGeometryWriter<Point> {
 
     private final FixedSizeListVector.Mutator mutator;
-    private final FieldVector.Mutator pointMutator;
 
     protected PointWriter(FixedSizeListVector vector) {
       this.mutator = vector.getMutator();
-      this.pointMutator = vector.getChildrenFromFields().get(0).getMutator();
+      setOrdinalMutator(vector.getChildrenFromFields().get(0).getMutator());
     }
 
     @Override
     public void set(int index, Point geom) {
       if (geom != null) {
         mutator.setNotNull(index);
-        writeOrdinal(pointMutator, index * 2, geom.getY());
-        writeOrdinal(pointMutator, index * 2 + 1, geom.getX());
+        writeOrdinal(index * 2, geom.getY());
+        writeOrdinal(index * 2 + 1, geom.getX());
       }
     }
-
-    protected abstract void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal);
 
     @Override
     public void setValueCount(int count) {
       mutator.setValueCount(count);
-      pointMutator.setValueCount(count * 2);
     }
   }
 
-  public static abstract class PointReader implements GeometryReader<Point> {
+  public static abstract class PointReader extends AbstractGeometryReader<Point> {
 
     private static final GeometryFactory factory = new GeometryFactory();
 
-    private final UnionFixedSizeListReader reader;
-    private final FieldReader subReader;
     private final FixedSizeListVector.Accessor accessor;
 
     protected PointReader(FixedSizeListVector vector) {
-      this.reader = vector.getReader();
-      this.subReader = reader.reader();
       this.accessor = vector.getAccessor();
+      setOrdinalAccessor(vector.getChildrenFromFields().get(0).getAccessor());
     }
 
     @Override
     public Point get(int index) {
-      reader.setPosition(index);
-      if (reader.isSet()) {
-        reader.next();
-        double y = readOrdinal(subReader);
-        reader.next();
-        double x = readOrdinal(subReader);
-        return factory.createPoint(new Coordinate(x, y));
-      } else {
+      if (accessor.isNull(index)) {
         return null;
+      } else {
+        double y = readOrdinal(index * 2);
+        double x = readOrdinal(index * 2 + 1);
+        return factory.createPoint(new Coordinate(x, y));
       }
     }
-
-    protected abstract double readOrdinal(FieldReader reader);
 
     @Override
     public int getValueCount() {

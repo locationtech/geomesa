@@ -14,13 +14,11 @@ import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
 import org.apache.arrow.vector.complex.FixedSizeListVector;
 import org.apache.arrow.vector.complex.ListVector;
-import org.apache.arrow.vector.complex.impl.UnionFixedSizeListReader;
-import org.apache.arrow.vector.complex.impl.UnionListReader;
-import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
@@ -77,12 +75,11 @@ public abstract class AbstractPolygonVector implements GeometryVector<Polygon, L
     vector.close();
   }
 
-  public static abstract class PolygonWriter implements GeometryWriter<Polygon> {
+  public static abstract class PolygonWriter extends AbstractGeometryWriter<Polygon> {
 
     private final ListVector.Mutator mutator;
     private final ListVector.Mutator innerMutator;
     private final FixedSizeListVector.Mutator tupleMutator;
-    private final FieldVector.Mutator pointMutator;
 
     protected PolygonWriter(ListVector vector) {
       ListVector innerList = (ListVector) vector.getChildrenFromFields().get(0);
@@ -90,7 +87,7 @@ public abstract class AbstractPolygonVector implements GeometryVector<Polygon, L
       this.mutator = vector.getMutator();
       this.innerMutator = innerList.getMutator();
       this.tupleMutator = tuples.getMutator();
-      this.pointMutator = tuples.getChildrenFromFields().get(0).getMutator();
+      setOrdinalMutator(tuples.getChildrenFromFields().get(0).getMutator());
     }
 
     @Override
@@ -103,8 +100,8 @@ public abstract class AbstractPolygonVector implements GeometryVector<Polygon, L
           for (int j = 0; j < line.getNumPoints(); j++) {
             Coordinate p = line.getCoordinateN(j);
             tupleMutator.setNotNull(position + j);
-            writeOrdinal(pointMutator, (position + j) * 2, p.y);
-            writeOrdinal(pointMutator, (position + j) * 2 + 1, p.x);
+            writeOrdinal((position + j) * 2, p.y);
+            writeOrdinal((position + j) * 2 + 1, p.x);
           }
           innerMutator.endValue(innerIndex + i, line.getNumPoints());
         }
@@ -112,63 +109,53 @@ public abstract class AbstractPolygonVector implements GeometryVector<Polygon, L
       }
     }
 
-    protected abstract void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal);
-
     @Override
     public void setValueCount(int count) {
       mutator.setValueCount(count);
     }
   }
 
-  public static abstract class PolygonReader implements GeometryReader<Polygon> {
+  public static abstract class PolygonReader extends AbstractGeometryReader<Polygon> {
 
     private final ListVector.Accessor accessor;
-    private final UnionListReader reader;
-    private final UnionListReader innerReader;
-    private final UnionFixedSizeListReader innerInnerReader;
-    private final FieldReader ordinalReader;
+    private final UInt4Vector.Accessor outerOffsets;
+    private final UInt4Vector.Accessor offsets;
 
     public PolygonReader(ListVector vector) {
-      ListVector innerVector = (ListVector) vector.getChildrenFromFields().get(0);
       this.accessor = vector.getAccessor();
-      this.reader = vector.getReader();
-      this.innerReader = innerVector.getReader();
-      this.innerInnerReader = ((FixedSizeListVector) innerVector.getChildrenFromFields().get(0)).getReader();
-      this.ordinalReader = innerInnerReader.reader();
+      this.outerOffsets = ((UInt4Vector) vector.getFieldInnerVectors().get(1)).getAccessor();
+      FieldVector innerList = vector.getChildrenFromFields().get(0);
+      this.offsets = ((UInt4Vector) innerList.getFieldInnerVectors().get(1)).getAccessor();
+      setOrdinalAccessor(innerList.getChildrenFromFields().get(0).getChildrenFromFields().get(0).getAccessor());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Polygon get(int index) {
-      reader.setPosition(index);
-      if (reader.isSet()) {
+      if (accessor.isNull(index)) {
+        return null;
+      } else {
+        int outerOffsetStart = outerOffsets.get(index);
         LinearRing shell = null;
-        LinearRing[] holes = new LinearRing[reader.size() - 1];
-        for (int i = 0; i < holes.length + 1; i++) {
-          reader.next();
-          Coordinate[] coordinates = new Coordinate[innerReader.size()];
-          for (int j = 0; j < coordinates.length; j++) {
-            innerReader.next();
-            innerInnerReader.next();
-            double y = readOrdinal(ordinalReader);
-            innerInnerReader.next();
-            double x = readOrdinal(ordinalReader);
-            coordinates[j] = new Coordinate(x, y);
+        LinearRing[] holes = new LinearRing[outerOffsets.get(index + 1) - outerOffsetStart - 1];
+        for (int j = 0; j < holes.length + 1; j++) {
+          int offsetStart = offsets.get(outerOffsetStart + j);
+          Coordinate[] coordinates = new Coordinate[offsets.get(outerOffsetStart + j + 1) - offsetStart];
+          for (int i = 0; i < coordinates.length; i++) {
+            double y = readOrdinal((offsetStart + i) * 2);
+            double x = readOrdinal((offsetStart + i) * 2 + 1);
+            coordinates[i] = new Coordinate(x, y);
           }
           LinearRing ring = factory.createLinearRing(coordinates);
-          if (i == 0) {
+          if (j == 0) {
             shell = ring;
           } else {
-            holes[i - 1] = ring;
+            holes[j - 1] = ring;
           }
         }
         return factory.createPolygon(shell, holes);
-      } else {
-        return null;
       }
     }
-
-    protected abstract double readOrdinal(FieldReader reader);
 
     @Override
     public int getValueCount() {

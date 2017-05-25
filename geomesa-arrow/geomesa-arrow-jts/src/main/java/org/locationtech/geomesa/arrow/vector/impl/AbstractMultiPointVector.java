@@ -12,14 +12,11 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
 import org.apache.arrow.vector.complex.FixedSizeListVector;
 import org.apache.arrow.vector.complex.ListVector;
-import org.apache.arrow.vector.complex.impl.UnionFixedSizeListReader;
-import org.apache.arrow.vector.complex.impl.UnionListReader;
-import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
@@ -76,17 +73,16 @@ public abstract class AbstractMultiPointVector implements GeometryVector<MultiPo
     vector.close();
   }
 
-  public static abstract class MultiPointWriter implements GeometryWriter<MultiPoint> {
+  public static abstract class MultiPointWriter extends AbstractGeometryWriter<MultiPoint> {
 
     private final ListVector.Mutator mutator;
     private final FixedSizeListVector.Mutator tupleMutator;
-    private final FieldVector.Mutator pointMutator;
 
     protected MultiPointWriter(ListVector vector) {
       this.mutator = vector.getMutator();
       FixedSizeListVector tuples = (FixedSizeListVector) vector.getChildrenFromFields().get(0);
       this.tupleMutator = tuples.getMutator();
-      this.pointMutator = tuples.getChildrenFromFields().get(0).getMutator();
+      setOrdinalMutator(tuples.getChildrenFromFields().get(0).getMutator());
     }
 
     @Override
@@ -96,14 +92,12 @@ public abstract class AbstractMultiPointVector implements GeometryVector<MultiPo
         for (int i = 0; i < geom.getNumPoints(); i++) {
           Point p = (Point) geom.getGeometryN(i);
           tupleMutator.setNotNull(position + i);
-          writeOrdinal(pointMutator, (position + i) * 2, p.getY());
-          writeOrdinal(pointMutator, (position + i) * 2 + 1, p.getX());
+          writeOrdinal((position + i) * 2, p.getY());
+          writeOrdinal((position + i) * 2 + 1, p.getX());
         }
         mutator.endValue(index, geom.getNumPoints());
       }
     }
-
-    protected abstract void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal);
 
     @Override
     public void setValueCount(int count) {
@@ -111,41 +105,34 @@ public abstract class AbstractMultiPointVector implements GeometryVector<MultiPo
     }
   }
 
-  public static abstract class MultiPointReader implements GeometryReader<MultiPoint> {
+  public static abstract class MultiPointReader extends AbstractGeometryReader<MultiPoint> {
 
     private final ListVector.Accessor accessor;
-    private final UnionListReader reader;
-    private final UnionFixedSizeListReader subReader;
-    private final FieldReader ordinalReader;
+    private final UInt4Vector.Accessor offsets;
 
     public MultiPointReader(ListVector vector) {
       this.accessor = vector.getAccessor();
-      this.reader = vector.getReader();
-      this.subReader = ((FixedSizeListVector) vector.getChildrenFromFields().get(0)).getReader();
-      this.ordinalReader = subReader.reader();
+      this.offsets = ((UInt4Vector) vector.getFieldInnerVectors().get(1)).getAccessor();
+      setOrdinalAccessor(vector.getChildrenFromFields().get(0).getChildrenFromFields().get(0).getAccessor());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public MultiPoint get(int index) {
-      reader.setPosition(index);
-      if (reader.isSet()) {
-        Coordinate[] coordinates = new Coordinate[reader.size()];
+      if (accessor.isNull(index)) {
+        return null;
+      } else {
+        int offsetStart = offsets.get(index);
+        int offsetEnd = offsets.get(index + 1);
+        Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
         for (int i = 0; i < coordinates.length; i++) {
-          reader.next();
-          subReader.next();
-          double y = readOrdinal(ordinalReader);
-          subReader.next();
-          double x = readOrdinal(ordinalReader);
+          double y = readOrdinal((offsetStart + i) * 2);
+          double x = readOrdinal((offsetStart + i) * 2 + 1);
           coordinates[i] = new Coordinate(x, y);
         }
         return factory.createMultiPoint(coordinates);
-      } else {
-        return null;
       }
     }
-
-    protected abstract double readOrdinal(FieldReader reader);
 
     @Override
     public int getValueCount() {
