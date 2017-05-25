@@ -9,15 +9,11 @@
 package org.locationtech.geomesa.tools.ingest
 
 import java.io.File
-import java.net.URL
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
-import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
-
-import scala.collection.parallel.ForkJoinTaskSupport
 
 trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
@@ -34,48 +30,32 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
     ensureSameFs(IngestCommand.RemotePrefixes)
 
-    if (params.fmt == Shp) {
-      // If someone is ingesting file from hdfs, S3, or wasb we add the Hadoop URL Factories to the JVM.
-      if (params.files.exists(IngestCommand.isDistributedUrl)) {
-        import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
-        val factory = new FsUrlStreamHandlerFactory
-        URL.setURLStreamHandlerFactory(factory)
-      }
-
-      withDataStore((ds) => {
-        if (params.threads > 1) {
-          val parfiles = params.files.par
-          parfiles.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(params.threads))
-          parfiles.foreach(GeneralShapefileIngest.ingestToDataStore(_, ds, Option(params.featureName)))
-        } else {
-          params.files.foreach(GeneralShapefileIngest.ingestToDataStore(_, ds, Option(params.featureName)))
-        }
-      })
-    } else {
+    val ingest = if (params.fmt == Shp) {
+      new ShapefileIngest(connection, Option(params.featureName), params.files, params.threads)
+    } else if (params.spec == null && params.config == null && Seq(Csv, Tsv, Avro).contains(params.fmt)) {
       // if there is no sft and no converter passed in, try to use the auto ingest which will
       // pick up the schema from the input files themselves
-      val ingest = if (params.spec == null && params.config == null && Seq(Csv, Tsv, Avro).contains(params.fmt)) {
-        if (params.featureName == null) {
-          throw new ParameterException("Feature name is required when a schema is not specified")
-        }
-        // auto-detect the import schema
-        Command.user.info("No schema or converter defined - will attempt to detect schema from input files")
-        new AutoIngest(params.featureName, connection, params.files, params.fmt, libjarsFile, libjarsPaths, params.threads)
-      } else {
-        // validate arguments
-        if (params.config == null) {
-          throw new ParameterException("Converter Config argument is required")
-        }
-        if (params.spec == null) {
-          throw new ParameterException("SimpleFeatureType specification argument is required")
-        }
-
-        val sft = CLArgResolver.getSft(params.spec, params.featureName)
-        val converterConfig = CLArgResolver.getConfig(params.config)
-        new ConverterIngest(sft, connection, converterConfig, params.files, libjarsFile, libjarsPaths, params.threads)
+      if (params.featureName == null) {
+        throw new ParameterException("Feature name is required when a schema is not specified")
       }
-      ingest.run()
+      // auto-detect the import schema
+      Command.user.info("No schema or converter defined - will attempt to detect schema from input files")
+      new AutoIngest(params.featureName, connection, params.files, params.fmt, libjarsFile, libjarsPaths, params.threads)
+    } else {
+      // validate arguments
+      if (params.config == null) {
+        throw new ParameterException("Converter Config argument is required")
+      }
+      if (params.spec == null) {
+        throw new ParameterException("SimpleFeatureType specification argument is required")
+      }
+
+      val sft = CLArgResolver.getSft(params.spec, params.featureName)
+      val converterConfig = CLArgResolver.getConfig(params.config)
+      new ConverterIngest(sft, connection, converterConfig, params.files, libjarsFile, libjarsPaths, params.threads)
     }
+
+    ingest.run()
   }
 
   def ensureSameFs(prefixes: Seq[String]): Unit = {
