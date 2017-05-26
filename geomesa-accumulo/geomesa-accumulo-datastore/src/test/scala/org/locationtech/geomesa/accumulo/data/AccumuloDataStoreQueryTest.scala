@@ -248,6 +248,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
+    "handle 1s duration queries" in {
+      val filter = CQL.toFilter("bbox(geom,40,40,60,60) AND dtg DURING 2010-05-07T12:30:00.000Z/T1S")
+      val query = new Query(defaultSft.getTypeName, filter)
+      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+      features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+    }
+
     "handle large ranges" in {
       skipped("takes ~10 seconds")
       val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
