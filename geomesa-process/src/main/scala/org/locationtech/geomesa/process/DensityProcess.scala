@@ -14,17 +14,13 @@ import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.GeoTools
-import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.process.vector.{HeatmapSurface, VectorProcess}
+import org.geotools.process.vector.{BBOXExpandingVisitor, HeatmapSurface, VectorProcess}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.opengis.coverage.grid.GridGeometry
-import org.opengis.filter.Filter
-import org.opengis.filter.expression.Expression
-import org.opengis.filter.spatial.BBOX
 import org.opengis.util.ProgressListener
 
 /**
@@ -110,7 +106,7 @@ class DensityProcess extends VectorProcess {
     val radiusPixels: Int = math.max(0, argRadiusPixels)
     val pixelSize = if (argOutputEnv.getWidth <= 0) 0 else  argOutputWidth / argOutputEnv.getWidth
     val queryBuffer: Double = radiusPixels / pixelSize
-    val filter = targetQuery.getFilter.accept(new BBOXExpandingFilterVisitor(queryBuffer), null).asInstanceOf[Filter]
+    val filter = BBOXExpandingVisitor.expand(targetQuery.getFilter, queryBuffer)
     val invertedQuery = new Query(targetQuery)
     invertedQuery.setFilter(filter)
     invertedQuery.setProperties(null)
@@ -150,23 +146,5 @@ object DensityProcess {
       ix += 1
     }
     grid2
-  }
-}
-
-/**
- * Copied from package protected org.geotools.process.vector.BBOXExpandingFilterVisitor
- */
-class BBOXExpandingFilterVisitor(expandBy: Double) extends DuplicatingFilterVisitor {
-
-  // noinspection ScalaDeprecation
-  override def visit(filter: BBOX, extraData: AnyRef): AnyRef = {
-    val propertyName: Expression = filter.getExpression1
-    val minx = filter.getMinX
-    val miny = filter.getMinY
-    val maxx = filter.getMaxX
-    val maxy = filter.getMaxY
-    val srs = filter.getSRS
-    val f = getFactory(extraData)
-    f.bbox(propertyName, minx - expandBy, miny - expandBy, maxx + expandBy, maxy + expandBy, srs)
   }
 }
