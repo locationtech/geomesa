@@ -46,6 +46,7 @@
         <module>geomesa-web</module>
         <module>geomesa-z3</module>
         <module>docs</module>
+        <module>geomesa-parquet</module>
     </modules>
 
     <properties>
