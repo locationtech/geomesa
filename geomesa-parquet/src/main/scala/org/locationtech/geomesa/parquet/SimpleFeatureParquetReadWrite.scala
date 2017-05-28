@@ -29,3 +29,4 @@ class SimpleFeatureParquetReader(path: Path, readSupport: SimpleFeatureReadSuppo
   extends ParquetReader[SimpleFeature](path, readSupport) {
 
 }
+

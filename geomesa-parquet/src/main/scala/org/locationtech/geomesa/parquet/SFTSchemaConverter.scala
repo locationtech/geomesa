@@ -5,8 +5,12 @@ import org.apache.parquet.io.api.{Binary, PrimitiveConverter}
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.{MessageType, OriginalType, Type, Types}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.feature.AttributeTypeBuilder
+import org.geotools.feature.`type`.GeometryTypeImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -25,6 +29,24 @@ object SFTSchemaConverter {
 
     // NOTE: idField goes at the end of the record
     new MessageType(sft.getTypeName, sft.getAttributeDescriptors.map(convertField) :+ idField)
+  }
+
+  def inverse(messageType: MessageType): SimpleFeatureType = {
+    import scala.collection.JavaConversions._
+    val sftBuilder = new SftBuilder
+    val fields :+ idField = messageType.getFields.toList
+    fields.foreach { c =>
+      c.asPrimitiveType().getPrimitiveTypeName match {
+        case PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY => sftBuilder.point(c.getName)
+        case PrimitiveTypeName.INT64                => sftBuilder.date(c.getName) // TODO: need to use metadata to determine date
+        case PrimitiveTypeName.BINARY               => sftBuilder.stringType(c.getName)
+        case PrimitiveTypeName.INT32                => sftBuilder.intType(c.getName)
+        case PrimitiveTypeName.INT64                => sftBuilder.longType(c.getName)
+        case PrimitiveTypeName.DOUBLE               => sftBuilder.doubleType(c.getName)
+        case _ => throw new RuntimeException("Implement me")
+      }
+    }
+    sftBuilder.build(messageType.getName)
   }
 
   def convertField(ad: AttributeDescriptor): Type = {
