@@ -7,7 +7,7 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# Set environment variables in bin/geomesa-env.sh
+# Set environment variables in conf/geomesa-env.sh
 
 if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
   export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"

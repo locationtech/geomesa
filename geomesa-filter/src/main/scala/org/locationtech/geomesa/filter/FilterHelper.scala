@@ -43,7 +43,7 @@ object FilterHelper {
 
   // helper shim to let other classes avoid importing FilterHelper.logger
   object FilterHelperLogger extends LazyLogging {
-    def log = logger
+    private [FilterHelper] def log = logger
   }
 
   /**
@@ -270,22 +270,35 @@ object FilterHelper {
                        attribute: String,
                        intersect: Boolean = true,
                        handleExclusiveBounds: Boolean = false): FilterValues[(DateTime, DateTime)] = {
-
-    def roundSecondsUp(dt: DateTime): DateTime = dt.plusSeconds(1).withMillisOfSecond(0)
-    def roundSecondsDown(dt: DateTime): DateTime = {
-      val millis = dt.getMillisOfSecond
-      if (millis == 0) dt.minusSeconds(1) else dt.withMillisOfSecond(0)
-    }
-
     extractAttributeBounds(filter, attribute, classOf[Date]).map { bounds =>
-      def roundLo(dt: DateTime) = if (handleExclusiveBounds && !bounds.inclusive) roundSecondsUp(dt) else dt
-      def roundUp(dt: DateTime) = if (handleExclusiveBounds && !bounds.inclusive) roundSecondsDown(dt) else dt
-
-      val lower = bounds.lower.map(new DateTime(_, DateTimeZone.UTC)).map(roundLo).getOrElse(MinDateTime)
-      val upper = bounds.upper.map(new DateTime(_, DateTimeZone.UTC)).map(roundUp).getOrElse(MaxDateTime)
-
+      var lower, upper: DateTime = null
+      if (bounds.inclusive || !handleExclusiveBounds) {
+        lower = bounds.lower.map(new DateTime(_, DateTimeZone.UTC)).getOrElse(MinDateTime)
+        upper = bounds.upper.map(new DateTime(_, DateTimeZone.UTC)).getOrElse(MaxDateTime)
+      } else if (bounds.lower.isEmpty || bounds.upper.isEmpty) {
+        lower = bounds.lower.map(new DateTime(_, DateTimeZone.UTC)).map(roundSecondsUp).getOrElse(MinDateTime)
+        upper = bounds.upper.map(new DateTime(_, DateTimeZone.UTC)).map(roundSecondsDown).getOrElse(MaxDateTime)
+      } else {
+        val lo = bounds.lower.get
+        val up = bounds.upper.get
+        // check for extremely narrow filters where our rounding causes out-of-order
+        if (up.getTime - lo.getTime < 2000) {
+          lower = new DateTime(lo, DateTimeZone.UTC)
+          upper = new DateTime(up, DateTimeZone.UTC)
+        } else {
+          lower = roundSecondsUp(new DateTime(lo, DateTimeZone.UTC))
+          upper = roundSecondsDown(new DateTime(up, DateTimeZone.UTC))
+        }
+      }
       (lower, upper)
     }
+  }
+
+  private def roundSecondsUp(dt: DateTime): DateTime = dt.plusSeconds(1).withMillisOfSecond(0)
+
+  private def roundSecondsDown(dt: DateTime): DateTime = {
+    val millis = dt.getMillisOfSecond
+    if (millis == 0) dt.minusSeconds(1) else dt.withMillisOfSecond(0)
   }
 
   /**

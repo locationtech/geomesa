@@ -12,7 +12,7 @@ import java.io._
 
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
+import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

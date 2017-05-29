@@ -1,10 +1,10 @@
-/*******************************************************************************
+/***********************************************************************
 * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
-******************************************************************************/
+*************************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
 
@@ -44,10 +44,10 @@ class ArrowFileIteratorTest extends TestWithDataStore {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      val in = new ByteArrayInputStream(out.toByteArray)
-      WithClose(new SimpleFeatureArrowFileReader(in)) { reader =>
+      def in() = new ByteArrayInputStream(out.toByteArray)
+      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
         // sft name gets dropped, so we can't compare directly
-        reader.features.toSeq.map(f => (f.getID, f.getAttributes)) must
+        SelfClosingIterator(reader.features()).map(f => (f.getID, f.getAttributes)).toSeq must
             containTheSameElementsAs(features.map(f => (f.getID, f.getAttributes)))
       }
     }

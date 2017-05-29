@@ -62,7 +62,7 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     val converter = SimpleFeatureConverters.build(sft, conf)
     val filter    = GeoMesaConfigurator.getFilter(context.getConfiguration).map(ECQL.toFilter)
 
-    class MapReduceCounter extends org.locationtech.geomesa.convert.Transformers.Counter {
+    class MapReduceCounter extends org.locationtech.geomesa.convert.Counter {
       import ConverterInputFormat.{Counters => C}
 
       // Global counters for the entire job

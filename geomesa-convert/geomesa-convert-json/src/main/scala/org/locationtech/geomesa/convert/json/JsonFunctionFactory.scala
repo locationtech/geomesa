@@ -10,8 +10,7 @@ package org.locationtech.geomesa.convert.json
 
 import com.google.gson.{JsonArray, JsonElement, JsonObject, JsonPrimitive}
 import org.geotools.util.Converters
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
-import org.locationtech.geomesa.convert.{MapListParsing, TransformerFn, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert.{EvaluationContext, MapListParsing, TransformerFn, TransformerFunctionFactory}
 
 class JsonFunctionFactory extends TransformerFunctionFactory {
   private val json2string = new TransformerFn {

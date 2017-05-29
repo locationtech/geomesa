@@ -54,6 +54,10 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-blobstore-gs-plugin_${scala.binary.version}</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
@@ -72,13 +76,6 @@
             <classifier>install</classifier>
             <version>${project.version}</version>
             <type>tar.gz</type>
-        </dependency>
-
-        <!-- GeoMesa Process jar standalone since it requires WPS and we dont -->
-        <!-- want to force people to install WPS -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-process_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- Web Services (dist) -->

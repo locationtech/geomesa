@@ -248,6 +248,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
+    "handle 1s duration queries" in {
+      val filter = CQL.toFilter("bbox(geom,40,40,60,60) AND dtg DURING 2010-05-07T12:30:00.000Z/T1S")
+      val query = new Query(defaultSft.getTypeName, filter)
+      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+      features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+    }
+
     "handle large ranges" in {
       skipped("takes ~10 seconds")
       val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
@@ -385,7 +392,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "support bin queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val sft = createNewSchema(s"name:String,dtg:Date,*geom:Point:srid=4326")
 
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
@@ -403,7 +410,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "support bin queries with linestrings" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val sft = createNewSchema(s"name:String,dtgs:List[Date],dtg:Date,*geom:LineString:srid=4326")
       val dtgs1 = new java.util.ArrayList[Date]
       dtgs1.add(Converters.convert("2010-05-07T00:00:00.000Z", classOf[Date]))

@@ -17,7 +17,7 @@ import de.topobyte.osm4j.core.model.iface._
 import de.topobyte.osm4j.pbf.seq.PbfIterator
 import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
+import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

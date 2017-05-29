@@ -14,7 +14,7 @@ import com.typesafe.config.Config
 import org.apache.avro.Schema
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory}
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
+import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

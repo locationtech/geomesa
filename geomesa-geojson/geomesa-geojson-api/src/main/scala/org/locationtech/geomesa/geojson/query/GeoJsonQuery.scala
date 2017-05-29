@@ -14,9 +14,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geojson.geom.GeometryJSON
 import org.json4s.{JArray, JObject, JValue}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathElement}
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.PropertyName
 
 import scala.util.control.NonFatal
 
@@ -24,7 +22,7 @@ import scala.util.control.NonFatal
   * Query trait
   */
 sealed trait GeoJsonQuery {
-  def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter
+  def toFilter(propertyTransformer: PropertyTransformer): Filter
 }
 
 /**
@@ -53,9 +51,22 @@ object GeoJsonQuery {
 
   import org.locationtech.geomesa.filter.ff
 
-  private [query] val GeoJsonGeometryPath = Seq(PathAttribute("geometry"))
+  private[query] val defaultGeom = "geom"
 
   private val jsonGeometry = new GeometryJSON()
+
+  /**
+    * Parse a query string
+    *
+    * @param jsonValue json query value
+    * @return
+    */
+  def apply(jsonValue: JValue): GeoJsonQuery = {
+    jsonValue match {
+      case j: JObject => evaluate(j)
+      case _ => throw new IllegalArgumentException("Invalid input - expected JSON object")
+    }
+  }
 
   /**
     * Parse a query string
@@ -67,15 +78,22 @@ object GeoJsonQuery {
     import org.json4s._
     import org.json4s.native.JsonMethods._
 
-    if (query == null || query.isEmpty) { Include } else {
+    if (query == null || query.isEmpty) {
+      Include
+    } else {
       try {
-        parse(query) match {
-          case j: JObject => evaluate(j)
-          case _ => throw new IllegalArgumentException("Invalid input - expected JSON object")
-        }
+        apply(parse(query))
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid query string:\n$query", e)
       }
+    }
+  }
+
+  def checkJsonPaths(str: String): String = {
+    if (str.startsWith("$.")) {
+      JsonPathParser.print(JsonPathParser.parse(str))
+    } else {
+      str
     }
   }
 
@@ -86,10 +104,12 @@ object GeoJsonQuery {
     * @return
     */
   private def evaluate(json: JObject): GeoJsonQuery = {
-    if (json.obj.isEmpty) { Include } else {
+    if (json.obj.isEmpty) {
+      Include
+    } else {
       val predicates = json.obj.map {
         case (prop, v: JObject) =>
-          evaluatePredicate(JsonPathParser.parse(prop), v)
+          evaluatePredicate(checkJsonPaths(prop), v)
 
         case ("$or", v: JArray) =>
           val ors = v.arr.map {
@@ -99,55 +119,64 @@ object GeoJsonQuery {
           Or(ors: _*)
 
         case (prop, v: JValue) =>
-          Equals(JsonPathParser.parse(prop), v.values)
+          Equals(checkJsonPaths(prop), v.values)
       }
-      if (predicates.length > 1) { And(predicates: _*) } else { predicates.head }
+      if (predicates.length > 1) {
+        And(predicates: _*)
+      } else {
+        predicates.head
+      }
     }
   }
 
   /**
     * Evaluate a complex predicate
     *
-    * @param path path that the predicate operates on
+    * @param prop property that the predicate operates on
     * @param json predicate json object
     * @return
     */
-  private def evaluatePredicate(path: Seq[PathElement], json: JObject): GeoJsonQuery = {
+  private def evaluatePredicate(prop: String, json: JObject): GeoJsonQuery = {
     json.obj.headOption match {
       case Some(("$bbox", v: JArray)) =>
         // { "$bbox" : [-180, -90, 180, 90] }
         val List(xmin, ymin, xmax, ymax) = v.values.asInstanceOf[List[Number]]
-        Bbox(path, xmin.doubleValue, ymin.doubleValue, xmax.doubleValue, ymax.doubleValue)
+        Bbox(prop, xmin.doubleValue, ymin.doubleValue, xmax.doubleValue, ymax.doubleValue)
 
       case Some(("$intersects", v: JObject)) =>
         // { "$intersects" : { "$geometry" : { "type" : "Point", "coordinates" : [30, 10] } } }
-        Intersects(path, evaluateGeometry(v))
+        Intersects(prop, evaluateGeometry(v))
 
       case Some(("$within", v: JObject)) =>
         // { "$within" : { "$geometry" : { "type" : "Polygon", "coordinates": [ [ [0,0], [3,6], [6,1], [0,0] ] ] } } }
-        Within(path, evaluateGeometry(v))
+        Within(prop, evaluateGeometry(v))
+
+      case Some(("$dwithin", v: JObject)) =>
+        // { "$dwithin" : { "$geometry" : { "type" : "Point", "coordinates" : [30, 10] }, "$dist" : 100.50, "$unit" : "feet" } }
+        val (dist, unit) = evaluateDwithin(v)
+        Dwithin(prop, evaluateGeometry(v), dist, unit)
 
       case Some(("$contains", v: JObject)) =>
         // { "$contains" : { "$geometry" : { "type" : "Point", "coordinates" : [30, 10] } } }
-        Contains(path, evaluateGeometry(v))
+        Contains(prop, evaluateGeometry(v))
 
       case Some(("$lt", v)) =>
         // { "$lt" : 10 }
-        LessThan(path, v.values, inclusive = false)
+        LessThan(prop, v.values, inclusive = false)
 
       case Some(("$lte", v)) =>
         // { "$lte" : 10 }
-        LessThan(path, v.values, inclusive = true)
+        LessThan(prop, v.values, inclusive = true)
 
       case Some(("$gt", v)) =>
         // { "$gt" : 10 }
-        GreaterThan(path, v.values, inclusive = false)
+        GreaterThan(prop, v.values, inclusive = false)
 
       case Some(("$gte", v)) =>
         // { "$gte" : 10 }
-        GreaterThan(path, v.values, inclusive = true)
+        GreaterThan(prop, v.values, inclusive = true)
 
-      case Some((p, v)) =>
+      case Some((p, _)) =>
         throw new IllegalArgumentException(s"Invalid predicate '$p'")
 
       case None =>
@@ -171,21 +200,24 @@ object GeoJsonQuery {
   }
 
   /**
-    * Converts a json-path into a filter attribute for geojson simple features. Simple feature type
-    * is assumed to be one defined by @see GeoJsonGtIndex.spec
+    * Read a json geometry object:
+    * { "$geometry" : { "type" : "Point", "coordinates" : [30, 10] } }
     *
-    * @param path json-path
-    * @param dtgPath path of date field in the sft, if any
+    * @param json geometry object
     * @return
     */
-  private def filterAttribute(path: Seq[PathElement], dtgPath: Option[Seq[PathElement]]): PropertyName = {
-    if (path == GeoJsonGeometryPath) {
-      ff.property("geom")
-    } else if (dtgPath.exists(_ == path)) {
-      ff.property("dtg")
-    } else {
-      ff.property(JsonPathParser.print(PathAttribute("json") +: path))
-    }
+  private def evaluateDwithin(json: JObject): (Double, String) = {
+    import org.json4s._
+    implicit val formats = DefaultFormats
+    val distance = json.obj.find(_._1 == "$dist").map(_._2).getOrElse {
+      throw new IllegalArgumentException(s"Expected $$dist, got ${json.obj.map(_._1).mkString(", ")}")
+    }.extract[Double]
+
+    val unit = json.obj.find(_._1 == "$unit").map(_._2).getOrElse {
+      throw new IllegalArgumentException(s"Expected $$unit, got ${json.obj.map(_._1).mkString(", ")}")
+    }.extract[String]
+
+    (distance, unit)
   }
 
   /**
@@ -218,157 +250,170 @@ object GeoJsonQuery {
     * All features
     */
   case object Include extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = Filter.INCLUDE
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = Filter.INCLUDE
+
     override val toString = "{}"
   }
 
   /**
     * Spatial intersect
     *
-    * @param path property to evaluate
+    * @param prop     property to evaluate
     * @param geometry geometry to compare with property value
     */
-  case class Intersects(path: Seq[PathElement], geometry: Geometry) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.intersects(filterAttribute(path, None), ff.literal(geometry))
+  case class Intersects(prop: String, geometry: Geometry) extends GeoJsonQuery {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.intersects(ff.property(propertyTransformer.transform(prop)), ff.literal(geometry))
+
     override def toString =
-      s"""{"${JsonPathParser.print(path, dollar = false)}":{"$$intersects":${printJson(geometry)}}}"""
+      s"""{"$prop":{"$$intersects":${printJson(geometry)}}}"""
   }
 
   object Intersects {
-    def apply(geometry: Geometry): Intersects = Intersects(GeoJsonGeometryPath, geometry)
-    def apply(path: String, geometry: Geometry): Intersects = Intersects(JsonPathParser.parse(path), geometry)
+    def apply(geometry: Geometry): Intersects = Intersects(defaultGeom, geometry)
   }
 
   /**
     * Spatial within
     *
-    * @param path property to evaluate
+    * @param prop     property to evaluate
     * @param geometry geometry to compare with property value
     */
-  case class Within(path: Seq[PathElement], geometry: Geometry) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.within(filterAttribute(path, None), ff.literal(geometry))
+  case class Within(prop: String, geometry: Geometry) extends GeoJsonQuery {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.within(ff.property(propertyTransformer.transform(prop)), ff.literal(geometry))
+
     override def toString =
-      s"""{"${JsonPathParser.print(path, dollar = false)}":{"$$within":${printJson(geometry)}}}"""
+      s"""{"$prop":{"$$within":${printJson(geometry)}}}"""
   }
 
   object Within {
-    def apply(geometry: Geometry): Within = Within(GeoJsonGeometryPath, geometry)
-    def apply(path: String, geometry: Geometry): Within = Within(JsonPathParser.parse(path), geometry)
+    def apply(geometry: Geometry): Within = Within(defaultGeom, geometry)
   }
 
   /**
     * Spatial contains
     *
-    * @param path property to evaluate
+    * @param prop     property to evaluate
     * @param geometry geometry to compare with property value
     */
-  case class Contains(path: Seq[PathElement], geometry: Geometry) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.contains(filterAttribute(path, None), ff.literal(geometry))
+  case class Contains(prop: String, geometry: Geometry) extends GeoJsonQuery {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.contains(ff.property(propertyTransformer.transform(prop)), ff.literal(geometry))
+
     override def toString =
-      s"""{"${JsonPathParser.print(path, dollar = false)}":{"$$contains":${printJson(geometry)}}}"""
+      s"""{"$prop":{"$$contains":${printJson(geometry)}}}"""
   }
 
   object Contains {
-    def apply(geometry: Geometry): Contains = Contains(GeoJsonGeometryPath, geometry)
-    def apply(path: String, geometry: Geometry): Contains = Contains(JsonPathParser.parse(path), geometry)
+    def apply(geometry: Geometry): Contains = Contains(defaultGeom, geometry)
   }
+
+  /**
+    * Spatial dwithin
+    *
+    * @param prop     property to evaluate
+    * @param geometry geometry to compare with property value
+    * @param dist     the max distance between geometries
+    * @param units    the units of distance (feet, meters, statute miles, kilometers)
+    */
+  case class Dwithin(prop: String, geometry: Geometry, dist: Double, units: String) extends GeoJsonQuery {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.dwithin(ff.property(propertyTransformer.transform(prop)), ff.literal(geometry), dist, units)
+
+    override def toString =
+      s"""{"$prop":{"$$dwithin":${printJson(geometry)}, "$$dist":$dist, "$$unit":"$units"}}"""
+  }
+
+  object Dwithin {
+    def apply(geometry: Geometry, distance: Double, units: String): Dwithin =
+      Dwithin(defaultGeom, geometry, distance, units)
+  }
+
 
   /**
     * Spatial bounding box
     *
-    * @param path property to evaluate
+    * @param prop property to evaluate
     * @param xmin min x value
     * @param ymin min y value
     * @param xmax max x value
     * @param ymax max y value
     */
-  case class Bbox(path: Seq[PathElement], xmin: Double, ymin: Double, xmax: Double, ymax: Double) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter =
-      ff.bbox(filterAttribute(path, None), xmin, ymin, xmax, ymax, "4326")
-    override def toString = s"""{"${JsonPathParser.print(path, dollar = false)}":{"$$bbox":[$xmin,$ymin,$xmax,$ymax]}}"""
+  case class Bbox(prop: String, xmin: Double, ymin: Double, xmax: Double, ymax: Double) extends GeoJsonQuery {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
+      ff.bbox(ff.property(propertyTransformer.transform(prop)), xmin, ymin, xmax, ymax, "4326")
+
+    override def toString = s"""{"$prop":{"$$bbox":[$xmin,$ymin,$xmax,$ymax]}}"""
   }
 
   object Bbox {
     def apply(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Bbox =
-      Bbox(GeoJsonGeometryPath, xmin, ymin, xmax, ymax)
-    def apply(path: String, xmin: Double, ymin: Double, xmax: Double, ymax: Double): Bbox =
-      Bbox(JsonPathParser.parse(path), xmin, ymin, xmax, ymax)
+      Bbox(defaultGeom, xmin, ymin, xmax, ymax)
   }
 
   /**
     * Equality
     *
-    * @param path property to evaluate
+    * @param prop  property to evaluate
     * @param value value to compare with property value
     */
-  case class Equals(path: Seq[PathElement], value: Any) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
-      if (idPath.exists(_ == path)) {
+  case class Equals(prop: String, value: Any) extends GeoJsonQuery {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
+      // Equals is the only property that can act on feature ids
+      if (propertyTransformer.useFid(prop)) {
         val fids = value match {
           case v: Iterable[_] => v.map(_.toString).toSeq
           case v => Seq(v.toString)
         }
         ff.id(fids.map(ff.featureId): _*)
-      } else {
-        ff.equals(filterAttribute(path, dtgPath), ff.literal(value))
+      }
+      else {
+        ff.equals(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       }
     }
-    override def toString = s"""{"${JsonPathParser.print(path, dollar = false)}":${printJson(value)}}"""
-  }
 
-  object Equals {
-    def apply(path: String, value: Any): Equals = Equals(JsonPathParser.parse(path), value)
+    override def toString = s"""{"$prop":${printJson(value)}}"""
   }
 
   /**
     * Less than comparison
     *
-    * @param path property to evaluate
-    * @param value value to compare with property value
+    * @param prop      property to evaluate
+    * @param value     value to compare with property value
     * @param inclusive inclusive bounds
     */
-  case class LessThan(path: Seq[PathElement], value: Any, inclusive: Boolean) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
+  case class LessThan(prop: String, value: Any, inclusive: Boolean) extends GeoJsonQuery {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
       if (inclusive) {
-        ff.lessOrEqual(filterAttribute(path, dtgPath), ff.literal(value))
+        ff.lessOrEqual(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       } else {
-        ff.less(filterAttribute(path, dtgPath), ff.literal(value))
+        ff.less(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       }
     }
-    override def toString =
-      s"""{"${JsonPathParser.print(path, dollar = false)}":{"$$${if (inclusive) "lte" else "lt"}":${printJson(value)}}}"""
-  }
 
-  object LessThan {
-    def apply(path: String, value: Any, inclusive: Boolean = false): LessThan =
-      LessThan(JsonPathParser.parse(path), value, inclusive)
+    override def toString =
+      s"""{"$prop":{"$$${if (inclusive) "lte" else "lt"}":${printJson(value)}}}"""
   }
 
   /**
     * Greater than comparison
     *
-    * @param path property to evaluate
-    * @param value value to compare with property value
+    * @param prop      property to evaluate
+    * @param value     value to compare with property value
     * @param inclusive inclusive bounds
     */
-  case class GreaterThan(path: Seq[PathElement], value: Any, inclusive: Boolean) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
+  case class GreaterThan(prop: String, value: Any, inclusive: Boolean) extends GeoJsonQuery {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
       if (inclusive) {
-        ff.greaterOrEqual(filterAttribute(path, dtgPath), ff.literal(value))
+        ff.greaterOrEqual(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       } else {
-        ff.greater(filterAttribute(path, dtgPath), ff.literal(value))
+        ff.greater(ff.property(propertyTransformer.transform(prop)), ff.literal(value))
       }
     }
-    override def toString =
-      s"""{"${JsonPathParser.print(path, dollar = false)}":{"$$${if (inclusive) "gte" else "gt"}":${printJson(value)}}}"""
-  }
 
-  object GreaterThan {
-    def apply(path: String, value: Any, inclusive: Boolean = false): GreaterThan =
-      GreaterThan(JsonPathParser.parse(path), value, inclusive)
+    override def toString =
+      s"""{"$prop":{"$$${if (inclusive) "gte" else "gt"}":${printJson(value)}}}"""
   }
 
   /**
@@ -377,10 +422,11 @@ object GeoJsonQuery {
     * @param children filters to intersect
     */
   case class And(children: GeoJsonQuery*) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
       import scala.collection.JavaConversions._
-      ff.and(children.map(_.toFilter(idPath, dtgPath)))
+      ff.and(children.map(_.toFilter(propertyTransformer)))
     }
+
     override def toString = children.map(_.toString).map(s => s.substring(1, s.length - 1)).mkString("{", ",", "}")
   }
 
@@ -390,10 +436,12 @@ object GeoJsonQuery {
     * @param children filters to union
     */
   case class Or(children: GeoJsonQuery*) extends GeoJsonQuery {
-    override def toFilter(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]]): Filter = {
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
       import scala.collection.JavaConversions._
-      ff.or(children.map(_.toFilter(idPath, dtgPath)))
+      ff.or(children.map(_.toFilter(propertyTransformer)))
     }
+
     override def toString = children.mkString("""{"$or":[""", ",", "]}")
   }
+
 }

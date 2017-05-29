@@ -80,6 +80,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
   override def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I] = {
     val idBuilder = buildIdBuilder(conf)
     val fields = buildFields(conf)
+
     val userDataBuilder = buildUserDataBuilder(conf)
     val parseOpts = getParsingOptions(conf, sft)
     buildConverter(sft, conf, idBuilder, fields, userDataBuilder, parseOpts)
@@ -294,6 +295,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
    * Process a single input (e.g. line)
    */
   def processSingleInput(i: I, ec: EvaluationContext): Seq[SimpleFeature] = {
+    ec.clear()
     ec.counter.incLineCount()
 
     val attributes = try { fromInputType(i) } catch {
@@ -312,6 +314,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     val globalKeys = globalParams.keys.toSeq
     val names = requiredFields.map(_.name) ++ globalKeys
     val values = Array.ofDim[Any](names.length)
+    // note, globalKeys are maintained even through EvaluationContext.clear()
     globalKeys.zipWithIndex.foreach { case (k, i) => values(requiredFields.length + i) = globalParams(k) }
     new EvaluationContextImpl(names, values, counter)
   }

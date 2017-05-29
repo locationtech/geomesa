@@ -15,9 +15,9 @@ import com.vividsolutions.jts.geom.Geometry
 import de.topobyte.osm4j.core.model.iface._
 import de.topobyte.osm4j.core.model.util.OsmModelUtil
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
-import org.locationtech.geomesa.convert.{Field, _}
+import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert.osm.OsmAttribute.OsmAttribute
+import org.locationtech.geomesa.convert.{Field, _}
 
 object OsmAttribute extends Enumeration {
   type OsmAttribute = Value

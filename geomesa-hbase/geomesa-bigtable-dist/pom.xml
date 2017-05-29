@@ -24,6 +24,19 @@
             <artifactId>geomesa-bigtable-datastore_2.11</artifactId>
         </dependency>
 
+        <!-- gs plugin -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-bigtable-gs-plugin_${scala.binary.version}</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-process-wps_2.11</artifactId>
+        </dependency>
+
         <!-- tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -85,15 +98,6 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <scope>compile</scope>
-        </dependency>
-
-        <!-- GeoServer Plugins -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-bigtable-gs-plugin_${scala.binary.version}</artifactId>
-            <classifier>install</classifier>
-            <version>${project.version}</version>
-            <type>tar.gz</type>
         </dependency>
 
     </dependencies>
