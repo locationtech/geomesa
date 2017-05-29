@@ -329,7 +329,7 @@ location or high volume of data in general.
 
 .. note::
 
-    The heatmap style requires that ``geomesa-process`` be installed in your
+    The heatmap style requires that ``geomesa-process-wps`` be installed in your
     GeoServer, as described in :ref:`install_geomesa_process`.
 
 

@@ -1,0 +1,15 @@
+org.locationtech.geomesa.process.analytic.DensityProcess
+org.locationtech.geomesa.process.analytic.Point2PointProcess
+org.locationtech.geomesa.process.analytic.SamplingProcess
+org.locationtech.geomesa.process.analytic.StatsProcess
+org.locationtech.geomesa.process.analytic.UniqueProcess
+org.locationtech.geomesa.process.knn.KNearestNeighborSearchProcess
+org.locationtech.geomesa.process.query.JoinProcess
+org.locationtech.geomesa.process.query.ProximitySearchProcess
+org.locationtech.geomesa.process.query.QueryProcess
+org.locationtech.geomesa.process.query.RouteSearchProcess
+org.locationtech.geomesa.process.transform.ArrowConversionProcess
+org.locationtech.geomesa.process.transform.BinConversionProcess
+org.locationtech.geomesa.process.transform.HashAttributeProcess
+org.locationtech.geomesa.process.transform.HashAttributeColorProcess
+org.locationtech.geomesa.process.tube.TubeSelectProcess

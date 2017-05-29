@@ -9,14 +9,8 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.locationtech.geomesa.accumulo.process.knn.KNNVisitor
-import org.locationtech.geomesa.accumulo.process.proximity.ProximityVisitor
-import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
-import org.locationtech.geomesa.accumulo.process.stats.StatsVisitor
-import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
-import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
-import org.locationtech.geomesa.accumulo.process.{ArrowVisitor, BinVisitor, RouteVisitor, SamplingVisitor}
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
+import org.locationtech.geomesa.process.GeoMesaProcessVisitor
 import org.opengis.feature.FeatureVisitor
 import org.opengis.util.ProgressListener
 
@@ -28,16 +22,7 @@ class AccumuloFeatureCollection(source: GeoMesaFeatureSource, query: Query)
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
     visitor match {
-      case v: TubeVisitor      => v.setValue(v.tubeSelect(source, query))
-      case v: ProximityVisitor => v.setValue(v.proximitySearch(source, query))
-      case v: QueryVisitor     => v.setValue(v.query(source, query))
-      case v: StatsVisitor     => v.setValue(v.query(source, query))
-      case v: SamplingVisitor  => v.setValue(v.sample(source, query))
-      case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
-      case v: AttributeVisitor => v.setValue(v.unique(source, query))
-      case v: RouteVisitor     => v.routeSearch(source, query)
-      case v: BinVisitor       => v.binQuery(source, query)
-      case v: ArrowVisitor     => v.arrowQuery(source, query)
+      case v: GeoMesaProcessVisitor => v.execute(source, query)
       case _ => super.accepts(visitor, progress)
     }
 }

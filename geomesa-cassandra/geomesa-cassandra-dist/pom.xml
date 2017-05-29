@@ -47,6 +47,10 @@
             <version>${project.version}</version>
             <type>tar.gz</type>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
+        </dependency>
 
     </dependencies>
 
