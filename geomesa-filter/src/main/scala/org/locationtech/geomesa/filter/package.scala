@@ -402,6 +402,18 @@ package object filter {
   def andOption(filters: Seq[Filter])(implicit ff: FilterFactory): Option[Filter] =
     if (filters.size < 2) { filters.headOption } else { Some(ff.and(filters)) }
 
+  def mergeFilters(f1: Filter, f2: Filter): Filter = {
+    if (f1 == Filter.INCLUDE) {
+      f2
+    } else if (f2 == Filter.INCLUDE) {
+      f1
+    } else if (f1 == f2) {
+      f1
+    } else {
+      ff.and(f1, f2)
+    }
+  }
+
   /**
    * Checks the order of properties and literals in the expression
    *

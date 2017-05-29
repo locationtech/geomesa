@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.process.query
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
+import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.feature.{AttributeTypeBuilder, DefaultFeatureCollection}
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
@@ -96,13 +97,13 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
     }
 
     val result = if (joinFilters.isEmpty) {
-      new DefaultFeatureCollection(null, returnSft)
+      new ListFeatureCollection(returnSft)
     } else {
       val or = ff.or(joinFilters.toList)
       val filter = if (joinFilter != null && joinFilter != Filter.INCLUDE) { ff.and(or, joinFilter) } else { or }
-      val visitor = new QueryVisitor(secondary, filter)
+      val visitor = new QueryVisitor(secondary, filter, null)
       secondary.accepts(visitor, new NullProgressListener)
-      val results = visitor.getResult.asInstanceOf[QueryResult].results
+      val results = visitor.getResult.results
 
       // mappings from the secondary feature result to the return schema
       // (return sft index, result sft index, is from primary result (or secondary result))

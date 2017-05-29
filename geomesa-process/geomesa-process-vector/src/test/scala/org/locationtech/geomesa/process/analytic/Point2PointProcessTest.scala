@@ -12,13 +12,10 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 import com.vividsolutions.jts.geom.{LineString, Point}
-import org.geotools.data.DataStoreFinder
-import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.process.analytic.Point2PointProcess
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -29,50 +26,39 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class Point2PointProcessTest extends Specification {
 
-  sequential
+  val fName = "Point2PointProcess"
+  val sft = new SftBuilder().stringType("myid").point("geom", default=true).date("dtg", default = true).build(fName)
+  val sdf = new SimpleDateFormat("yyyy-MM-dd")
+  sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
+
+  val points1 = (1 to 5).map( i => WKTUtils.read(s"POINT($i $i)").asInstanceOf[Point]).zip(1 to 5).map { case (p, i) =>
+    new ScalaSimpleFeature(s"first$i", sft, Array[AnyRef]("first", p, sdf.parse(s"2015-08-$i")))
+  }
+
+  val points2 = (6 to 10).reverse.map( i => WKTUtils.read(s"POINT($i $i)").asInstanceOf[Point]).zip(1 to 5).map { case (p, i) =>
+    new ScalaSimpleFeature(s"second$i", sft, Array[AnyRef]("second", p, sdf.parse(s"2015-08-$i")))
+  }
+
+  val p2p = new Point2PointProcess
+
+  val features = new ListFeatureCollection(sft)
+
+  step {
+    features.addAll(points1 ++ points2)
+  }
 
   "Point2PointProcess" should {
-
-    val ds = DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> "Point2PointProcess",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "myuser",
-      "password"          -> "mypassword",
-      "tableName"         -> "Point2PointProcess",
-      "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
-
-    val fName = "Point2PointProcess"
-    val sft = new SftBuilder().stringType("myid").point("geom", default=true).date("dtg", default = true).build(fName)
-    ds.createSchema(sft)
-
-    val sdf = new SimpleDateFormat("yyyy-MM-dd")
-    sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
-    val points1 = (1 to 5).map( i => WKTUtils.read(s"POINT($i $i)").asInstanceOf[Point]).zip(1 to 5).map { case (p, i) =>
-      new ScalaSimpleFeature(s"first$i", sft, Array[AnyRef]("first", p, sdf.parse(s"2015-08-$i")))
-    }
-
-    val points2 = (6 to 10).reverse.map( i => WKTUtils.read(s"POINT($i $i)").asInstanceOf[Point]).zip(1 to 5).map { case (p, i) =>
-      new ScalaSimpleFeature(s"second$i", sft, Array[AnyRef]("second", p, sdf.parse(s"2015-08-$i")))
-    }
-
-    val fs = ds.getFeatureSource(fName)
-    val fc = new DefaultFeatureCollection(fName, sft)
-    fc.addAll(points1 ++ points2)
-    fs.addFeatures(fc)
-
     "properly create linestrings of groups of 2 coordinates" >> {
-      val features = ds.getFeatureSource(fName).getFeatures
-      val p2p = new Point2PointProcess
       import org.locationtech.geomesa.utils.geotools.Conversions._
-      val res = p2p.execute(features, "myid", "dtg", 2, false, true)
+      val res = p2p.execute(features, "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
       res.features.size mustEqual 8
 
-      val f1 = p2p.execute( ds.getFeatureSource(fName)
-        .getFeatures(ECQL.toFilter("myid = 'first'")), "myid", "dtg", 2, false, true).features().toSeq
+      val f1 = p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features().toSeq
       f1.length mustEqual 4
 
-      val f2 = p2p.execute( ds.getFeatureSource(fName)
-        .getFeatures(ECQL.toFilter("myid = 'second'")), "myid", "dtg", 2, false, true).features().toSeq
+      val f2 = p2p.execute(features.subCollection(ECQL.toFilter("myid = 'second'")),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features().toSeq
       f2.length mustEqual 4
 
       f1.forall( sf => sf.getAttributeCount mustEqual 4)
@@ -126,10 +112,9 @@ class Point2PointProcessTest extends Specification {
 
     "set the SFT even if the features source passed in is empty" >> {
       val filter = ECQL.toFilter("myid in ('abcdefg_not_here')")
-      val features = ds.getFeatureSource(fName).getFeatures(filter)
-      val p2p = new Point2PointProcess
       import org.locationtech.geomesa.utils.geotools.Conversions._
-      val res = p2p.execute(features, "myid", "dtg", 2, false, true)
+      val res = p2p.execute(features.subCollection(filter),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
       res.features.size mustEqual 0
       res.getSchema must not(beNull)
     }

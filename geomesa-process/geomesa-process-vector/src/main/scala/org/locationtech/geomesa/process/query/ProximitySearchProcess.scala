@@ -11,13 +11,12 @@ package org.locationtech.geomesa.process.query
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.GeometryFactory
 import org.geotools.data.Query
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichGeometry, _}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
@@ -54,43 +53,40 @@ class ProximitySearchProcess extends GeoMesaProcess with LazyLogging {
 
     val visitor = new ProximityVisitor(inputFeatures, dataFeatures, bufferDistance)
     dataFeatures.accepts(visitor, new NullProgressListener)
-    visitor.getResult.asInstanceOf[ProximityResult].results
+    visitor.getResult.results
   }
 }
 
 class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
                        dataFeatures: SimpleFeatureCollection,
-                       bufferDistance: java.lang.Double)
-    extends GeoMesaProcessVisitor with LazyLogging {
+                       bufferDistance: java.lang.Double) extends GeoMesaProcessVisitor with LazyLogging {
 
-  val geoFac = new GeometryFactory
-  val ff = CommonFactoryFinder.getFilterFactory2
+  private val geoFac = new GeometryFactory
+  private val ff = CommonFactoryFinder.getFilterFactory2
 
-  var manualFilter: Filter = _
-  val manualVisitResults = new DefaultFeatureCollection(null, dataFeatures.getSchema)
+  private lazy val manualFilter = dwithinFilters("degrees")
+  private val manualVisitResults = new ListFeatureCollection(dataFeatures.getSchema)
 
-  // Called for non AccumuloFeactureCollections - here we use degrees for our filters
-  // since we are manually evaluating them.
-  def visit(feature: Feature): Unit = {
-    manualFilter = Option(manualFilter).getOrElse(dwithinFilters("degrees"))
+  private var resultCalc = FeatureResult(manualVisitResults)
+
+  // non-optimized visit
+  // here we use degrees for our filters since we are manually evaluating them.
+  override def visit(feature: Feature): Unit = {
     val sf = feature.asInstanceOf[SimpleFeature]
-
     if (manualFilter.evaluate(sf)) {
       manualVisitResults.add(sf)
     }
   }
 
-  var resultCalc: ProximityResult = ProximityResult(manualVisitResults)
-
-  override def getResult: CalcResult = resultCalc
+  override def getResult: FeatureResult = resultCalc
 
   override def execute(source: SimpleFeatureSource, query: Query): Unit = {
-    logger.debug("Running Geomesa Proximity Search on source type "+source.getClass.getName)
-    val combinedFilter = ff.and(query.getFilter, dwithinFilters("meters"))
-    resultCalc = ProximityResult(source.getFeatures(combinedFilter))
+    logger.debug(s"Running Geomesa Proximity Search on source type ${source.getClass.getName}")
+    val combinedFilter = org.locationtech.geomesa.filter.mergeFilters(query.getFilter, dwithinFilters("meters"))
+    resultCalc = FeatureResult(source.getFeatures(combinedFilter))
   }
 
-  def dwithinFilters(requestedUnit: String): Filter = {
+  private def dwithinFilters(requestedUnit: String): Filter = {
     val geomProperty = ff.property(dataFeatures.getSchema.getGeometryDescriptor.getName)
     val geomFilters = inputFeatures.features().map { sf =>
       val dist: Double = requestedUnit match {
@@ -102,5 +98,3 @@ class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
     ff.or(geomFilters.toSeq)
   }
 }
-
-case class ProximityResult(results: SimpleFeatureCollection) extends AbstractCalcResult

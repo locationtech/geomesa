@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.query
 
-import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -35,7 +35,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
   val geoFactory = JTSFactoryFinder.getGeometryFactory
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  def getPoint(lat: Double, lon: Double, meters: Double) =
+  def getPoint(lat: Double, lon: Double, meters: Double): Point =
     GeometryUtils.farthestPoint(geoFactory.createPoint(new Coordinate(lat, lon)), meters)
 
   "GeomesaProximityQuery" should {

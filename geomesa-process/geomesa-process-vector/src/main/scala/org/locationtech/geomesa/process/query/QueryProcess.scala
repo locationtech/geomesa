@@ -10,13 +10,13 @@ package org.locationtech.geomesa.process.query
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.index.api.QueryPlanner
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -37,58 +37,73 @@ class QueryProcess extends GeoMesaProcess with LazyLogging {
                @DescribeParameter(
                  name = "filter",
                  min = 0,
-                 description = "The filter to apply to the features collection")
+                 description = "The filter to apply to the feature collection")
                filter: Filter,
 
                @DescribeParameter(
                  name = "properties",
                  min = 0,
-                 description = "The lists of properties and transform definitions to apply")
-               properties: String = null
+                 max = 128,
+                 collectionType = classOf[String],
+                 description = "The properties/transforms to apply to the feature collection")
+               properties: java.util.List[String] = null
+
              ): SimpleFeatureCollection = {
 
     logger.debug("Attempting Geomesa query on type " + features.getClass.getName)
 
-    val arrayString = Option(properties).map(_.split(";")).orNull
+    val propsArray = Option(properties).map(_.toArray(Array.empty[String])).filter(_.length > 0).orNull
 
-    val visitor = new QueryVisitor(features, Option(filter).getOrElse(Filter.INCLUDE), arrayString)
+    val visitor = new QueryVisitor(features, Option(filter).getOrElse(Filter.INCLUDE), propsArray)
     features.accepts(visitor, new NullProgressListener)
-    visitor.getResult.asInstanceOf[QueryResult].results
+    visitor.getResult.results
   }
 }
 
-class QueryVisitor(features: SimpleFeatureCollection,
-                   filter: Filter,
-                   properties: Array[String] = null) extends GeoMesaProcessVisitor with LazyLogging {
+class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties: Array[String])
+    extends GeoMesaProcessVisitor with LazyLogging {
 
-  val manualVisitResults = new DefaultFeatureCollection(null, features.getSchema)
-  val ff  = CommonFactoryFinder.getFilterFactory2
+  private val (sft, transformFeature) = if (properties == null) { (features.getSchema, null) } else {
+    val original = features.getSchema
+    val (transforms, transformSft) = QueryPlanner.buildTransformSFT(original, properties)
+    val transformSf = TransformSimpleFeature(original, transformSft, transforms)
+    (transformSft, transformSf)
+  }
 
-  // Called for non AccumuloFeactureCollections
-  def visit(feature: Feature): Unit = {
+  private val retype: (SimpleFeature) => SimpleFeature =
+    if (transformFeature == null) {
+      (sf) => sf
+    } else {
+      (sf) => {
+        transformFeature.setFeature(sf)
+        ScalaSimpleFeature.create(transformFeature.getFeatureType, transformFeature)
+      }
+    }
+
+  private val manualVisitResults = new ListFeatureCollection(sft)
+  private var resultCalc = FeatureResult(manualVisitResults)
+
+  // non-optimized visit
+  override def visit(feature: Feature): Unit = {
     // TODO:  GEOMESA-1755 Add any necessary transform support to the QueryProcess
     val sf = feature.asInstanceOf[SimpleFeature]
-    if(filter.evaluate(sf)) {
-      manualVisitResults.add(sf)
+    if (filter.evaluate(sf)) {
+      manualVisitResults.add(retype(sf))
     }
   }
 
-  var resultCalc: QueryResult = QueryResult(manualVisitResults)
-
-  override def getResult: CalcResult = resultCalc
+  override def getResult: FeatureResult = resultCalc
 
   override def execute(source: SimpleFeatureSource, query: Query): Unit = {
-    logger.debug("Running Geomesa query on source type "+source.getClass.getName)
-    val combinedFilter = ff.and(query.getFilter, filter)
-    query.setFilter(combinedFilter)
-    if (properties != null) {
+    logger.debug(s"Running Geomesa query on source type ${source.getClass.getName}")
+    query.setFilter(org.locationtech.geomesa.filter.mergeFilters(query.getFilter, filter))
+    if (properties != null && properties.length > 0) {
       if (query.getProperties != Query.ALL_PROPERTIES) {
-        logger.warn(s"Overriding inner query's properties (${query.getProperties}) with properties / transforms $properties.")
+        logger.warn(s"Overriding inner query's properties (${query.getProperties}) " +
+            s"with properties/transforms ${properties.mkString(",")}.")
       }
       query.setPropertyNames(properties)
     }
-    resultCalc = QueryResult(source.getFeatures(query))
+    resultCalc = FeatureResult(source.getFeatures(query))
   }
 }
-
-case class QueryResult(results: SimpleFeatureCollection) extends AbstractCalcResult

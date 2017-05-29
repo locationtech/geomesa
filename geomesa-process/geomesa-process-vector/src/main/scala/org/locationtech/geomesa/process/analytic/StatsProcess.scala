@@ -10,24 +10,23 @@ package org.locationtech.geomesa.process.analytic
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
-import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 
 @DescribeProcess(
-  title = "Stats Iterator Process",
-  description = "Returns stats based upon the passed in stats string"
+  title = "Stats Process",
+  description = "Gathers statistics for a data set"
 )
 class StatsProcess extends GeoMesaProcess with LazyLogging {
 
@@ -52,43 +51,41 @@ class StatsProcess extends GeoMesaProcess with LazyLogging {
                  @DescribeParameter(
                    name = "properties",
                    min = 0,
+                   max = 128,
+                   collectionType = classOf[String],
                    description = "The properties / transforms to apply before gathering stats")
-                 properties: String = null
+                 properties: java.util.List[String] = null
 
              ): SimpleFeatureCollection = {
 
-    logger.debug(s"Attempting Geomesa stats iterator process on type ${features.getClass.getName}")
+    logger.debug(s"Attempting stats iterator process on type ${features.getClass.getName}")
 
-    val arrayString = Option(properties).map(_.split(";")).orNull
-    val visitor = new StatsVisitor(features, statString, encode, arrayString)
+    val propsArray = Option(properties).map(_.toArray(Array.empty[String])).filter(_.length > 0).orNull
+
+    val visitor = new StatsVisitor(features, statString, encode, propsArray)
+
     features.accepts(visitor, new NullProgressListener)
-    visitor.getResult.asInstanceOf[StatsIteratorResult].results
+    visitor.getResult.results
   }
 }
 
-class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode: Boolean, properties: Array[String] = null)
+class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode: Boolean, properties: Array[String])
     extends GeoMesaProcessVisitor with LazyLogging {
-  val origSft = features.getSchema
 
-  lazy val (transforms, transformSFT) = QueryPlanner.buildTransformSFT(origSft, properties)
-  lazy val transformSF: TransformSimpleFeature = TransformSimpleFeature(origSft, transformSFT, transforms)
+  private val origSft = features.getSchema
 
-  lazy val statSft = if (properties == null) {
-    origSft
-  } else {
-    transformSFT
-  }
+  private lazy val (transforms, transformSFT) = QueryPlanner.buildTransformSFT(origSft, properties)
+  private lazy val transformSF: TransformSimpleFeature = TransformSimpleFeature(origSft, transformSFT, transforms)
 
-  lazy val stat: Stat = Stat(statSft, statString)
+  private lazy val statSft = if (properties == null) { origSft } else { transformSFT }
 
-  val returnSft = KryoLazyStatsUtils.StatsSft
-  val manualVisitResults: DefaultFeatureCollection = new DefaultFeatureCollection(null, returnSft)
-  var resultCalc: StatsIteratorResult = _
+  private lazy val stat: Stat = Stat(statSft, statString)
 
-  //  Called for non AccumuloFeatureCollections
+  private var resultCalc: FeatureResult = _
+
+  // non-optimized visit
   override def visit(feature: Feature): Unit = {
     val sf = feature.asInstanceOf[SimpleFeature]
-
     if (properties != null) {
       // There are transforms!
       transformSF.setFeature(sf)
@@ -98,36 +95,35 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
     }
   }
 
-  override def getResult: CalcResult = {
-    if (resultCalc == null) {
+  override def getResult: FeatureResult = {
+    if (resultCalc != null) {
+      resultCalc
+    } else {
       val stats = if (encode) {
-
         KryoLazyStatsUtils.encodeStat(stat, statSft)
       } else {
         stat.toJson
       }
 
-      val sf = new ScalaSimpleFeature("", returnSft, Array(stats, GeometryUtils.zeroPoint))
+      val sf = new ScalaSimpleFeature("", KryoLazyStatsUtils.StatsSft, Array(stats, GeometryUtils.zeroPoint))
+      val manualVisitResults = new ListFeatureCollection(KryoLazyStatsUtils.StatsSft)
       manualVisitResults.add(sf)
-      StatsIteratorResult(manualVisitResults)
-    } else {
-      resultCalc
+      FeatureResult(manualVisitResults)
     }
   }
 
   override def execute(source: SimpleFeatureSource, query: Query): Unit = {
-    logger.debug("Running Geomesa stats iterator process on source type " + source.getClass.getName)
+    logger.debug(s"Running Geomesa stats iterator process on source type ${source.getClass.getName}")
 
     if (properties != null) {
       if (query.getProperties != Query.ALL_PROPERTIES) {
-        logger.warn(s"Overriding inner query's properties (${query.getProperties}) with properties / transforms $properties.")
+        logger.warn(s"Overriding inner query's properties (${query.getProperties}) " +
+            s"with properties/transforms ${properties.mkString(",")}.")
       }
       query.setPropertyNames(properties)
     }
     query.getHints.put(QueryHints.STATS_STRING, statString)
     query.getHints.put(QueryHints.ENCODE_STATS, new java.lang.Boolean(encode))
-    resultCalc = StatsIteratorResult(source.getFeatures(query))
+    resultCalc = FeatureResult(source.getFeatures(query))
   }
 }
-
-case class StatsIteratorResult(results: SimpleFeatureCollection) extends AbstractCalcResult

@@ -11,8 +11,8 @@ package org.locationtech.geomesa.process
 import java.util.Collections
 
 import org.geotools.data.Query
-import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.feature.visitor.{FeatureAttributeVisitor, FeatureCalc}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.feature.visitor.{AbstractCalcResult, FeatureAttributeVisitor, FeatureCalc}
 import org.geotools.process.vector.VectorProcess
 import org.opengis.filter.expression.Expression
 
@@ -37,3 +37,5 @@ trait GeoMesaProcessVisitor extends FeatureCalc with FeatureAttributeVisitor {
   // hook to allow delegation from retyping feature collections
   override def getExpressions: java.util.List[Expression] = Collections.emptyList()
 }
+
+case class FeatureResult(results: SimpleFeatureCollection) extends AbstractCalcResult
