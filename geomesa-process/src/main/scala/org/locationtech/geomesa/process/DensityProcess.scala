@@ -136,20 +136,18 @@ object DensityProcess {
    * @return the flipped grid
    */
   def flipXY(grid: Array[Array[Float]]): Array[Array[Float]] = {
-    val xSize = grid.length
-    val ySize = grid(0).length
-    val grid2 = Array.ofDim[Float](ySize, xSize)
-    var ix = 0
-    while (ix < xSize) {
-      var iy = 0
-      while (iy < ySize) {
-        val iy2 = ySize - iy - 1
-        grid2(iy2)(ix) = grid(ix)(iy)
-        iy += 1
-      }
-      ix += 1
+    val length_x = grid.length
+    val length_y = grid(0).length
+
+    val res = Array.fill(length_y,length_x)(0f)
+
+    for ( x <- 0 until length_x ; y <- 0 until length_y ) {
+      val x1 = length_y - 1 - y
+      val y1 = x
+      res(x1)(y1) = grid(x)(y)
     }
-    grid2
+
+    res
   }
 }
 
