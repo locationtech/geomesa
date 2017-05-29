@@ -1,3 +1,12 @@
+/***********************************************************************
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
+
 package org.locationtech.geomesa.parquet
 
 import java.nio.ByteBuffer
@@ -40,16 +49,16 @@ object AttributeWriter {
 
   abstract class AbstractAttributeWriter(fieldName: String,
                                          fieldIndex: Int) extends AttributeWriter {
-    
+
     def write(recordConsumer: RecordConsumer, value: AnyRef): Unit
-    
+
     override def apply(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
       recordConsumer.startField(fieldName, fieldIndex)
       write(recordConsumer, value)
       recordConsumer.endField(fieldName, fieldIndex)
     }
   }
-  
+
   // NOTE: not thread safe
   class PointAttributeWriter(fieldName: String, fieldIndex: Int) extends AbstractAttributeWriter(fieldName, fieldIndex) {
     private val bytes = ByteBuffer.allocate(16)
@@ -63,7 +72,7 @@ object AttributeWriter {
       recordConsumer.addBinary(Binary.fromReusedByteBuffer(bytes))
     }
   }
-  
+
 
   class DateWriter(fieldName: String, fieldIndex: Int) extends AbstractAttributeWriter(fieldName, fieldIndex) {
     override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
@@ -100,5 +109,5 @@ object AttributeWriter {
       recordConsumer.addBinary(Binary.fromString(value.asInstanceOf[String]))
     }
   }
-  
+
 }

@@ -1,3 +1,12 @@
+/***********************************************************************
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
+
 package org.locationtech.geomesa.fs
 
 import java.text.NumberFormat
@@ -31,7 +40,7 @@ class IntraHourPartitionScheme(minuteIntervals: Int, fmt: DateTimeFormatter, sft
   private val index = sft.indexOf(partitionAttribute)
   override def getPartition(sf: SimpleFeature): Partition = {
     val instant = sf.getAttribute(index).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC)
-    val adjusted = instant.withMinute(minuteIntervals*instant.getMinute/minuteIntervals)
+    val adjusted = instant.withMinute(minuteIntervals*(instant.getMinute/minuteIntervals))
     Partition(fmt.format(adjusted))
   }
 }

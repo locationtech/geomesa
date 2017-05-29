@@ -1,3 +1,12 @@
+/***********************************************************************
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
+
 package org.locationtech.geomesa.parquet
 
 import com.vividsolutions.jts.geom.Coordinate
@@ -156,7 +165,19 @@ object SFTSchemaConverter {
       case ObjectType.DOUBLE =>
         new SimpleFeatureConverter(sf) {
           override def addInt(value: Int): Unit = {
+            sf.setAttribute(index, value.toDouble)
+          }
+
+          override def addDouble(value: Double): Unit = {
             sf.setAttribute(index, value)
+          }
+
+          override def addFloat(value: Float): Unit = {
+            sf.setAttribute(index, value.toDouble)
+          }
+
+          override def addLong(value: Long): Unit = {
+            sf.setAttribute(index, value.toDouble)
           }
         }
 

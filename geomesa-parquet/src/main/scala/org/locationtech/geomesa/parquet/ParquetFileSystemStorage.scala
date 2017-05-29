@@ -1,13 +1,22 @@
+/***********************************************************************
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
+
 package org.locationtech.geomesa.parquet
 
 import java.{io, util}
 
+import com.google.common.collect.Maps
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.parquet.format.converter.ParquetMetadataConverter
-import org.apache.parquet.hadoop.ParquetFileReader
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api.{FileSystemReader, FileSystemStorage, FileSystemStorageFactory, FileSystemWriter}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.{Failure, Success, Try}
@@ -29,22 +38,18 @@ class ParquetFileSystemStorageFactory extends FileSystemStorageFactory {
   * Created by anthony on 5/28/17.
   */
 class ParquetFileSystemStorage(root: Path, fs: FileSystem) extends FileSystemStorage {
-  var featureTypes = {
-    val iter = fs.listFiles(root, true)
-    val result = new Iterator[Try[SimpleFeatureType]] {
-      override def hasNext: Boolean = iter.hasNext
-
-      override def next(): Try[SimpleFeatureType] = {
-        val f = iter.next()
-        if (f.isDirectory) Failure(null)
-        else Try {
-          val readFooter = ParquetFileReader.readFooter(new Configuration, f.getPath, ParquetMetadataConverter.NO_FILTER)
-          val schema = readFooter.getFileMetaData.getSchema
-          SFTSchemaConverter.inverse(schema)
-        }
+  private val featureTypes = {
+    val files = fs.listStatus(root)
+    val result = Maps.newHashMap[String, SimpleFeatureType]()
+    files.map { f =>
+      if(!f.isDirectory) Failure(null)
+      else Try {
+        val in = fs.open(new Path(f.getPath, "schema.sft"))
+        val encodedSFT = in.readUTF()
+        SimpleFeatureTypes.createType(f.getPath.getName, encodedSFT)
       }
-    }.toList
-    result.collect { case Success(c) => c }.map { sft => sft.getTypeName -> sft }.toMap
+    }.collect { case Success(s) => s }.foreach { sft => result.put(sft.getTypeName, sft) }
+    result
   }
 
   override def listFeatureTypes: util.List[SimpleFeatureType] = {
@@ -52,10 +57,26 @@ class ParquetFileSystemStorage(root: Path, fs: FileSystem) extends FileSystemSto
     featureTypes.values.toList
   }
 
+  override def getFeatureType(name: String): SimpleFeatureType =  featureTypes.get(name)
+
+  private def buildPartitionList(path: Path, prefix: String): List[String] = {
+    val status = fs.listStatus(path)
+    status.flatMap { f =>
+      if(f.isDirectory) buildPartitionList(f.getPath, s"$prefix${f.getPath.getName}/")
+      else {
+        if(f.getPath.getName.equals("schema.sft")) List()
+        else List(s"$prefix${f.getPath.getName}")
+      }
+    }.toList
+  }
+
+  override def listPartitions(typeName: String): util.List[String] = {
+    import scala.collection.JavaConversions._
+    buildPartitionList(new Path(root, typeName), "")
+  }
 
   override def getReader(q: Query, part: String): FileSystemReader = {
-    val typeName = q.getTypeName
-    val sft = featureTypes(typeName)
+    val sft = featureTypes.get(q.getTypeName)
     val path = new Path(root, new Path(q.getTypeName, part))
     val support = new SimpleFeatureReadSupport(sft)
     val reader = new SimpleFeatureParquetReader(path, support)
@@ -86,8 +107,8 @@ class ParquetFileSystemStorage(root: Path, fs: FileSystem) extends FileSystemSto
   }
 
   override def getWriter(featureType: String, part: String): FileSystemWriter = new FileSystemWriter {
-    private val sft = featureTypes(featureType)
-    private val writer = new SimpleFeatureParquetWriter(new Path(root, part), new SimpleFeatureWriteSupport(sft))
+    private val sft = featureTypes.get(featureType)
+    private val writer = new SimpleFeatureParquetWriter(new Path(root, new Path(featureType, part)), new SimpleFeatureWriteSupport(sft))
 
     override def writeFeature(f: SimpleFeature): Unit = writer.write(f)
 
@@ -97,7 +118,14 @@ class ParquetFileSystemStorage(root: Path, fs: FileSystem) extends FileSystemSto
   }
 
   override def createNewFeatureType(sft: SimpleFeatureType): Unit = {
-    // TODO: should we create a single file in here with the SFT
-    fs.mkdirs(new Path(root, sft.getTypeName))
+    val path = new Path(root, sft.getTypeName)
+    fs.mkdirs(path)
+    val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+    val out = fs.create(new Path(path, "schema.sft"))
+    out.writeUTF(encoded)
+    out.hflush()
+    out.hsync()
+    out.close()
+    featureTypes.put(sft.getTypeName, sft)
   }
 }
