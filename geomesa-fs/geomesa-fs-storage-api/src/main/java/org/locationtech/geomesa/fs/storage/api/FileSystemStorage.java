@@ -10,4 +10,6 @@ public interface FileSystemStorage {
     SimpleFeatureType getSimpleFeatureType();
 
     Iterator<SimpleFeature> query(Filter f);
+
+    FileSystemWriter getWriter();
 }

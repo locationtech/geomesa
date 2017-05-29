@@ -4,7 +4,8 @@ import java.nio.file.{Files, Paths}
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.hadoop.fs.Path
-import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -57,6 +58,16 @@ class FileSystemDataStoreTest extends Specification with AllExpectations {
       "feature count must be 1" >> {
         features.length must be equalTo 1
       }
+
+      val fw = ds.getFeatureWriterAppend("test", Transaction.AUTO_COMMIT)
+      val s = fw.next()
+      s.setAttributes(sf.getAttributes)
+      s.getIdentifier.asInstanceOf[FeatureIdImpl].setID("foo")
+
+      fw.write()
+      fw.close()
+
+      "fw must not be null" >> { fw must not beNull }
     }
   }
 }

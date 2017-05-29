@@ -6,7 +6,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.parquet.format.converter.ParquetMetadataConverter
 import org.apache.parquet.hadoop.ParquetFileReader
-import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory, FileSystemWriter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -60,5 +60,16 @@ class ParquetFileSystemStorage(root: Path, fs: FileSystem) extends FileSystemSto
         staged != null
       }
     }
+  }
+
+  override def getWriter: FileSystemWriter = new FileSystemWriter {
+    // TODO: thread partition id into here
+    private val writer = new SimpleFeatureParquetWriter(root, new SimpleFeatureWriteSupport(getSimpleFeatureType))
+
+    override def writeFeature(f: SimpleFeature): Unit = writer.write(f)
+
+    override def flush(): Unit = {}
+
+    override def close(): Unit = writer.close()
   }
 }
