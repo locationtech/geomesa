@@ -69,7 +69,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
       case GeoJson | Json => new GeoJsonExporter(getWriter(params))
       case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
       case Avro           => new AvroExporter(features.getSchema, createOutputStream(params.file, null), avroCompression)
-      case Arrow          => new ArrowExporter(ds, query, createOutputStream(params.file, null))
+      case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params.file, null), ArrowExporter.queryDictionaries(ds, query))
       case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, null))
       case Null           => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here
