@@ -2,6 +2,7 @@ package org.locationtech.geomesa.fs
 
 import java.util.concurrent.atomic.AtomicLong
 
+import com.google.common.cache.{CacheBuilder, CacheLoader, RemovalListener, RemovalNotification}
 import org.apache.hadoop.fs.FileSystem
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
@@ -9,7 +10,7 @@ import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
+import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWriter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -23,10 +24,24 @@ class FileSystemFeatureStore(entry: ContentEntry,
   override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
     require(flags != 0, "no write flags set")
     require((flags | WRITER_ADD) == WRITER_ADD, "Only append supported")
-    val writer = fileSystemStorage.getWriter
-    val sft = fileSystemStorage.getSimpleFeatureType
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
       // TODO: figure out flushCount
+      val rl = new RemovalListener[String, FileSystemWriter] {
+        override def onRemoval(removalNotification: RemovalNotification[String, FileSystemWriter]): Unit = {
+          val writer = removalNotification.getValue
+          writer.flush()
+          writer.close()
+        }
+      }
+      val loader = new CacheLoader[String, FileSystemWriter] {
+        override def load(k: String): FileSystemWriter = fileSystemStorage.getWriter(k)
+      }
+      private val writers =
+        CacheBuilder.newBuilder()
+          .removalListener(rl)
+          .build[String, FileSystemWriter](loader)
+
+      private val sft = fileSystemStorage.getSimpleFeatureType
       private val flushCount = 100
       private val featureIds = new AtomicLong(0)
       private var count = 0L
@@ -42,6 +57,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
       }
 
       override def write(): Unit = {
+        val writer = writers.get(partitionScheme.getPartition(feature).name)
         writer.writeFeature(feature)
         feature = null
         count += 1
@@ -52,7 +68,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
 
       override def remove(): Unit = throw new NotImplementedError()
 
-      override def close(): Unit = writer.close()
+      override def close(): Unit = writers.invalidateAll()
 
     }
   }
@@ -62,7 +78,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
   override def getCountInternal(query: Query): Int = ???
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] =
     new DelegateSimpleFeatureReader(fileSystemStorage.getSimpleFeatureType,
-      new DelegateSimpleFeatureIterator(fileSystemStorage.query(query.getFilter)))
+      new DelegateSimpleFeatureIterator(fileSystemStorage.queryFeatureType(query.getFilter)))
 
   override def canLimit: Boolean = false
   override def canTransact: Boolean = false

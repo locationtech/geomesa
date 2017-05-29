@@ -1,15 +1,16 @@
 package org.locationtech.geomesa.fs.storage.api;
 
-import org.opengis.feature.simple.SimpleFeature;
+import org.geotools.data.Query;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
 
-import java.util.Iterator;
+import java.util.List;
 
 public interface FileSystemStorage {
-    SimpleFeatureType getSimpleFeatureType();
+    List<SimpleFeatureType> listFeatureTypes();
 
-    Iterator<SimpleFeature> query(Filter f);
+    void createNewFeatureType(SimpleFeatureType sft);
 
-    FileSystemWriter getWriter();
+    FileSystemReader getReader(Query q, String partition);
+
+    FileSystemWriter getWriter(String typeName, String partition);
 }

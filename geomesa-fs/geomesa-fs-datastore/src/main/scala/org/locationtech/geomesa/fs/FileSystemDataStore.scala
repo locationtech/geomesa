@@ -10,20 +10,28 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataAccessFactory, DataStore, DataStoreFactorySpi, Query}
+import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory}
 import org.opengis.feature.`type`.Name
+import org.opengis.feature.simple.SimpleFeatureType
 
 class FileSystemDataStore(fs: FileSystem,
                           root: Path,
-                          partitionScheme: PartitionScheme,
                           fileSystemStorage: FileSystemStorage) extends ContentDataStore {
-  private val typeNames = List(fileSystemStorage.getSimpleFeatureType.getName)
-
   import scala.collection.JavaConversions._
-  override def createTypeNames(): util.List[Name] = typeNames
+  private val featureTypes = fileSystemStorage.listFeatureTypes().map { s => s.getTypeName -> s }.toMap
+  override def createTypeNames(): util.List[Name] = featureTypes.values.map(_.getName).toList
 
-  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource =
-    new FileSystemFeatureStore(entry, Query.ALL, partitionScheme, fs, fileSystemStorage)
+  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
+    val scheme = getPartitionScheme(featureTypes(entry.getTypeName))
+    new FileSystemFeatureStore(entry, Query.ALL, scheme, fs, fileSystemStorage)
+  }
+
+
+  override def createSchema(featureType: SimpleFeatureType): Unit = super.createSchema(featureType)
+
+  private def getPartitionScheme(sft: SimpleFeatureType): PartitionScheme = ???
+
 }
 
 class FileSystemDataStoreFactory extends DataStoreFactorySpi {
@@ -38,8 +46,8 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     val storage = storageFactory.iterator().filter(_.canProcess(params)).map(_.build(params)).next()
     val fs = path.getFileSystem(new Configuration())
     // TODO: thread partitioning info through params
-    val partitionScheme = new IntraHourPartitionScheme(15, DateTimeFormatter.ofPattern("yyyy/DDD/HHmm"), storage.getSimpleFeatureType, "dtg")
-    new FileSystemDataStore(fs, path, partitionScheme, storage)
+//    val partitionScheme = new IntraHourPartitionScheme(15, DateTimeFormatter.ofPattern("yyyy/DDD/HHmm"), storage.getSimpleFeatureType, "dtg")
+    new FileSystemDataStore(fs, path, storage)
   }
 
   override def createNewDataStore(params: util.Map[String, io.Serializable]): DataStore =
