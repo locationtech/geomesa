@@ -18,6 +18,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -79,10 +80,8 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   // tubing code consisting of three attributes (geom, startTime, endTime)
   //
   // handle date parsing from input -> TODO revisit date parsing...
-  def transform(tubeFeatures: SimpleFeatureCollection,
-                dtgField: String): Iterator[SimpleFeature] = {
-    import org.locationtech.geomesa.utils.geotools.Conversions._
-    tubeFeatures.features().map { sf =>
+  def transform(tubeFeatures: SimpleFeatureCollection, dtgField: String): Iterator[SimpleFeature] = {
+    SelfClosingIterator(tubeFeatures.features).map { sf =>
       val date = sf.getAttribute(dtgField) match {
         case s: String => df.parseDateTime(s).toDate
         case d => d

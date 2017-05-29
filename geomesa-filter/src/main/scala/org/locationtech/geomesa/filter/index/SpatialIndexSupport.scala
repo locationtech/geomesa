@@ -12,6 +12,7 @@ import org.geotools.data.simple.{DelegateSimpleFeatureReader, FilteringSimpleFea
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.FilterHelper._
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.SpatialIndex
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -62,10 +63,8 @@ trait SpatialIndexSupport {
   }
 
   def or(o: Or): SimpleFeatureReader = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
-
-    val readers = o.getChildren.map(getReaderForFilter).map(_.toIterator)
-    val composed = readers.foldLeft(Iterator[SimpleFeature]())(_ ++ _)
+    val readers = o.getChildren.map(getReaderForFilter).map(SelfClosingIterator.apply(_))
+    val composed = readers.foldLeft(CloseableIterator.empty[SimpleFeature])(_ ++ _)
     reader(composed)
   }
 

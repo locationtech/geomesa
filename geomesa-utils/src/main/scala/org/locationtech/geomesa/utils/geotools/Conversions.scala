@@ -12,9 +12,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import com.vividsolutions.jts.geom._
-import org.geotools.data.FeatureReader
-import org.geotools.data.simple.SimpleFeatureIterator
-import org.geotools.feature.{AttributeTypeBuilder, FeatureIterator}
+import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.DateTime
@@ -23,7 +21,7 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.VisibilityLevel
-import org.locationtech.geomesa.utils.index.VisibilityLevel.{apply => _, _}
+import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
@@ -37,29 +35,6 @@ import scala.util.parsing.combinator.JavaTokenParsers
 
 object Conversions {
 
-  class RichSimpleFeatureIterator(iter: FeatureIterator[SimpleFeature]) extends SimpleFeatureIterator
-      with Iterator[SimpleFeature] {
-    private[this] var open = true
-
-    def isClosed = !open
-
-    def hasNext = {
-      if (isClosed) false
-      if(iter.hasNext) true else{close(); false}
-    }
-    def next() = iter.next
-    def close() { if(!isClosed) {iter.close(); open = false} }
-  }
-
-  implicit class RichSimpleFeatureReader(val r: FeatureReader[SimpleFeatureType, SimpleFeature]) extends AnyVal {
-    def toIterator: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
-      override def hasNext: Boolean = r.hasNext
-      override def next(): SimpleFeature = r.next()
-    }
-  }
-
-  implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
-  implicit def toRichSimpleFeatureIteratorFromFI(iter: FeatureIterator[SimpleFeature]): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
   implicit def opengisInstantToJodaInstant(instant: Instant): org.joda.time.Instant = new DateTime(instant.getPosition.getDate).toInstant
   implicit def jodaInstantToOpengisInstant(instant: org.joda.time.Instant): org.opengis.temporal.Instant = new DefaultInstant(new DefaultPosition(instant.toDate))
   implicit def jodaIntervalToOpengisPeriod(interval: org.joda.time.Interval): org.opengis.temporal.Period =
@@ -72,7 +47,7 @@ object Conversions {
 
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {
     def bufferMeters(meters: Double): Geometry = geom.buffer(distanceDegrees(meters))
-    def distanceDegrees(meters: Double) = GeometryUtils.distanceDegrees(geom, meters)
+    def distanceDegrees(meters: Double): Double = GeometryUtils.distanceDegrees(geom, meters)
     def safeCentroid(): Point = {
       val centroid = geom.getCentroid
       if (java.lang.Double.isNaN(centroid.getCoordinate.x) || java.lang.Double.isNaN(centroid.getCoordinate.y)) {
@@ -84,16 +59,16 @@ object Conversions {
   }
 
   implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {
-    def geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
-    def polygon = sf.getDefaultGeometry.asInstanceOf[Polygon]
-    def point = sf.getDefaultGeometry.asInstanceOf[Point]
-    def lineString = sf.getDefaultGeometry.asInstanceOf[LineString]
-    def multiPolygon = sf.getDefaultGeometry.asInstanceOf[MultiPolygon]
-    def multiPoint = sf.getDefaultGeometry.asInstanceOf[MultiPoint]
-    def multiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
+    def geometry: Geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
+    def polygon: Polygon = sf.getDefaultGeometry.asInstanceOf[Polygon]
+    def point: Point = sf.getDefaultGeometry.asInstanceOf[Point]
+    def lineString: LineString = sf.getDefaultGeometry.asInstanceOf[LineString]
+    def multiPolygon: MultiPolygon = sf.getDefaultGeometry.asInstanceOf[MultiPolygon]
+    def multiPoint: MultiPoint = sf.getDefaultGeometry.asInstanceOf[MultiPoint]
+    def multiLineString: MultiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
 
-    def get[T](i: Int) = sf.getAttribute(i).asInstanceOf[T]
-    def get[T](name: String) = sf.getAttribute(name).asInstanceOf[T]
+    def get[T](i: Int): T = sf.getAttribute(i).asInstanceOf[T]
+    def get[T](name: String): T = sf.getAttribute(name).asInstanceOf[T]
 
     def getDouble(str: String): Double = {
       val ret = sf.getAttribute(str)

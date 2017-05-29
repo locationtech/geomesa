@@ -13,6 +13,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.geotools.data.Query
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.EmptyFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
@@ -20,8 +21,10 @@ import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
-import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, UniqueMultiCollection}
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterator
 import org.opengis.feature.Feature
 import org.opengis.filter.Filter
 
@@ -146,7 +149,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
 
     val tube = tubeBuilder.createTube
 
-    val queryResults = tube.map { sf =>
+    val queryResults = CloseableIterator(tube).ciFlatMap { sf =>
       val sfMin = tubeBuilder.getStartTime(sf).getTime
       val minDate = new Date(sfMin - maxTime*1000)
 
@@ -160,16 +163,19 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
 
       // Eventually these can be combined into OR queries and the QueryPlanner can create multiple Accumulo Ranges
       // Buf for now we issue multiple queries
-      val geoms = (0 until geom.getNumGeometries).map { i => geom.getGeometryN(i) }
-      geoms.flatMap { g =>
+      val geoms = (0 until geom.getNumGeometries).toIterator.map(geom.getGeometryN)
+      SelfClosingIterator(geoms).ciFlatMap { g =>
         val geomFilter = ff.intersects(geomProperty, ff.literal(g))
         val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtg1, dtg2, filter))
-        source.getFeatures(combinedFilter).features
+        SelfClosingIterator(source.getFeatures(combinedFilter).features)
       }
     }
 
-    // Time slices may not be disjoint so we have to buffer results and dedup for now
-    resultCalc = TubeResult(new UniqueMultiCollection(source.getSchema, queryResults))
+    // Time slices may not be disjoint so we have to buffer results and dedupe for now
+    val collection = new ListFeatureCollection(source.getSchema)
+    WithClose(new DeduplicatingSimpleFeatureIterator(queryResults))(_.foreach(collection.add))
+
+    resultCalc = TubeResult(collection)
   }
 }
 

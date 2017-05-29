@@ -27,7 +27,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -73,7 +73,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   def doQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] = {
     logger.debug(s"Running query ${ECQL.toCQL(query.getFilter)} :: " +
         Option(query.getPropertyNames).map(_.mkString(",")).getOrElse("All"))
-    fs.getFeatures(query).features.toList.map { f =>
+    SelfClosingIterator(fs.getFeatures(query).features).toList.map { f =>
       logger.debug(DataUtilities.encodeFeature(f))
       f.getID.toInt
     }

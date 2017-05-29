@@ -17,6 +17,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichGeometry, _}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
@@ -88,7 +89,7 @@ class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
 
   private def dwithinFilters(requestedUnit: String): Filter = {
     val geomProperty = ff.property(dataFeatures.getSchema.getGeometryDescriptor.getName)
-    val geomFilters = inputFeatures.features().map { sf =>
+    val geomFilters = SelfClosingIterator(inputFeatures.features).map { sf =>
       val dist: Double = requestedUnit match {
         case "degrees" => sf.geometry.distanceDegrees(bufferDistance)
         case _         => bufferDistance

@@ -26,10 +26,9 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.FR
-import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
-import org.locationtech.geomesa.utils.geotools.{DFI, DFR, FR}
 import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -126,8 +125,7 @@ class StreamFeatureStore(entry: ContentEntry,
 
   override def buildFeatureType(): SimpleFeatureType = sft
 
-  override def getCountInternal(query: Query): Int =
-    getReaderInternal(query).toIterator.size
+  override def getCountInternal(query: Query): Int = SelfClosingIterator(getReaderInternal(query)).length
 
   override def getReaderInternal(query: Query): FR = getReaderForFilter(query.getFilter)
 

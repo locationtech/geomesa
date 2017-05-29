@@ -16,6 +16,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -105,14 +106,12 @@ class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
           .options(params.map { case (k, v) => k -> v.toString })
           .option("geomesa.feature", "fidOnWrite")
           .save()
-
-        import org.locationtech.geomesa.utils.geotools.Conversions._
         val filter = ff.equals(ff.property("case_number"), ff.literal(1))
         val queryOrig = new Query("chicago", filter)
-        val origResults = ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT).toIterator.toList
+        val origResults = SelfClosingIterator(ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT)).toList
 
         val query = new Query("fidOnWrite", filter)
-        val results = ds.getFeatureReader(query, Transaction.AUTO_COMMIT).toIterator.toList
+        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
         results.head.getID must be equalTo origResults.head.getID
       }

@@ -13,6 +13,7 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
 
@@ -59,14 +60,13 @@ object KNNQuery extends LazyLogging {
                    ghPQ: GeoHashSpiral,
                    sfPQ: NearestNeighbors
                  )     : NearestNeighbors = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
     if (!ghPQ.hasNext) sfPQ
     else {
         val newGH = ghPQ.next()
         // copy the query in order to pass the original to the next recursion
         val newQuery = generateKNNQuery(newGH, query, source)
 
-        val newFeatures = source.getFeatures(newQuery).features
+        val newFeatures = SelfClosingIterator(source.getFeatures(newQuery).features)
 
         // insert the SimpleFeature and its distance into sfPQ
 

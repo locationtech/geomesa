@@ -21,6 +21,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, KafkaFeatureEvent, TestLambdaFeatureListener}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -224,8 +225,7 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
 
       Thread.sleep(1000)
 
-      import org.locationtech.geomesa.utils.geotools.Conversions._
-      val features = consumerFC.getFeatures.features().toList
+      val features = SelfClosingIterator(consumerFC.getFeatures.features).toList
       features.size must be equalTo 1
       features.head.getID must be equalTo "testfilt-1"
     }
