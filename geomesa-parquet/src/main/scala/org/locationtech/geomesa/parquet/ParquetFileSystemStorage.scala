@@ -11,11 +11,11 @@ package org.locationtech.geomesa.parquet
 
 import java.{io, util}
 
-import com.google.common.collect.Maps
+import com.google.common.collect.{Iterators, Maps}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.data.Query
-import org.locationtech.geomesa.fs.storage.api.{FileSystemReader, FileSystemStorage, FileSystemStorageFactory, FileSystemWriter}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory, FileSystemWriter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -75,32 +75,31 @@ class ParquetFileSystemStorage(root: Path, fs: FileSystem) extends FileSystemSto
     buildPartitionList(new Path(root, typeName), "")
   }
 
-  override def getReader(q: Query, part: String): FileSystemReader = {
+  override def getReader(q: Query, part: String): java.util.Iterator[SimpleFeature] = {
     val sft = featureTypes.get(q.getTypeName)
     val path = new Path(root, new Path(q.getTypeName, part))
-    val support = new SimpleFeatureReadSupport(sft)
-    val reader = new SimpleFeatureParquetReader(path, support)
-    new FileSystemReader {
-      override def filterFeatures(q: Query): util.Iterator[SimpleFeature] = {
-        new util.Iterator[SimpleFeature] {
-          // TODO: push down predicates and partition pruning
-          var staged: SimpleFeature = _
+    if (!fs.exists(path)) Iterators.emptyIterator[SimpleFeature]()
+    else {
+      val support = new SimpleFeatureReadSupport(sft)
+      val reader = new SimpleFeatureParquetReader(path, support)
+      new util.Iterator[SimpleFeature] {
+        // TODO: push down predicates and partition pruning
+        var staged: SimpleFeature = _
 
-          override def next(): SimpleFeature = staged
+        override def next(): SimpleFeature = staged
 
-          override def hasNext: Boolean = {
-            staged = null
-            var cont = true
-            while(staged == null && cont) {
-              val f = reader.read()
-              if(f == null) {
-                cont = false
-              } else if(q.getFilter.evaluate(f)) {
-                staged = f
-              }
+        override def hasNext: Boolean = {
+          staged = null
+          var cont = true
+          while (staged == null && cont) {
+            val f = reader.read()
+            if (f == null) {
+              cont = false
+            } else if (q.getFilter.evaluate(f)) {
+              staged = f
             }
-            staged != null
           }
+          staged != null
         }
       }
     }

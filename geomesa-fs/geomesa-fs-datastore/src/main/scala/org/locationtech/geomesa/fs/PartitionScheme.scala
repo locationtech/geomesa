@@ -9,21 +9,22 @@
 
 package org.locationtech.geomesa.fs
 
-import java.text.NumberFormat
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
-import com.google.common.primitives.Longs
 import com.vividsolutions.jts.geom.Point
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.sfcurve.zorder.ZCurve2D
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 case class Partition(name: String)
 
 trait PartitionScheme {
   def getPartition(sf: SimpleFeature): Partition
+  def coveringPartitions(f: Filter): Seq[String]
 }
 
 class DatePartitionScheme(fmt: DateTimeFormatter, sft: SimpleFeatureType, partitionAttribute: String)
@@ -33,6 +34,8 @@ class DatePartitionScheme(fmt: DateTimeFormatter, sft: SimpleFeatureType, partit
     val instant = sf.getAttribute(index).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC)
     Partition(fmt.format(instant))
   }
+
+  override def coveringPartitions(f: Filter): Seq[String] = ???
 }
 
 class IntraHourPartitionScheme(minuteIntervals: Int, fmt: DateTimeFormatter, sft: SimpleFeatureType, partitionAttribute: String)
@@ -42,6 +45,22 @@ class IntraHourPartitionScheme(minuteIntervals: Int, fmt: DateTimeFormatter, sft
     val instant = sf.getAttribute(index).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC)
     val adjusted = instant.withMinute(minuteIntervals*(instant.getMinute/minuteIntervals))
     Partition(fmt.format(adjusted))
+  }
+
+  override def coveringPartitions(f: Filter): Seq[String] = {
+    // TODO: deal with more than just a single date range
+    val interval = FilterHelper.extractIntervals(f, partitionAttribute).values
+      .map { case (s,e) => (
+        Instant.ofEpochMilli(s.getMillis).atZone(ZoneOffset.UTC),
+        Instant.ofEpochMilli(e.getMillis).atZone(ZoneOffset.UTC)) }
+    if(interval.isEmpty) Seq.empty[String]
+    else {
+      val (start, end) = interval.head
+      start.withMinute(minuteIntervals * (start.getMinute / minuteIntervals))
+      end.withMinute(minuteIntervals * (end.getMinute / minuteIntervals))
+      val count = start.until(end, ChronoUnit.MINUTES) / minuteIntervals
+      (0 until count.toInt).map { i => start.plusMinutes(i * minuteIntervals) }.map { i => fmt.format(i) }
+    }
   }
 }
 
@@ -65,11 +84,15 @@ class DateTimeZ2PartitionScheme(minuteIntervals: Int,
     val idx = z2.toIndex(pt.getX, pt.getY)
     Partition(String.format(s"${fmt.format(adjusted)}/%0${digits}d", java.lang.Long.valueOf(idx)))
   }
+
+  override def coveringPartitions(f: Filter): Seq[String] = ???
 }
 
 class HierarchicalPartitionScheme(partitionSchemes: Seq[PartitionScheme], sep: String) extends PartitionScheme {
   override def getPartition(sf: SimpleFeature): Partition =
     Partition(partitionSchemes.map(_.getPartition(sf).name).mkString(sep))
+
+  override def coveringPartitions(f: Filter): Seq[String] = ???
 }
 
 object PartitionScheme {

@@ -9,6 +9,7 @@
 
 package org.locationtech.geomesa.fs
 
+import org.apache.hadoop.fs.FileSystem
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -16,27 +17,27 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 /**
   * Created by afox on 5/29/17.
   */
-class FileSystemFeatureIterator(sft: SimpleFeatureType, q: Query, storage: FileSystemStorage) extends java.util.Iterator[SimpleFeature] {
+class FileSystemFeatureIterator(fs: FileSystem,
+                                partitionScheme: PartitionScheme,
+                                sft: SimpleFeatureType,
+                                q: Query,
+                                storage: FileSystemStorage) extends java.util.Iterator[SimpleFeature] {
   // TODO: don't list partitions as there could be too many
-  private val partitions = storage.listPartitions(sft.getTypeName)
-  private val partitionCount = partitions.size()
-  private var curIdx = 0
-  private var cur = storage.getReader(q, partitions.get(curIdx)).filterFeatures(q)
-  private var staged: SimpleFeature = _
-
-  override def hasNext: Boolean = {
-    staged = null
-    while(curIdx < partitionCount && staged == null) {
-      if(cur.hasNext) staged = cur.next()
-      if(staged == null && !cur.hasNext) {
-        curIdx += 1
-        if(curIdx < partitionCount) {
-          cur = storage.getReader(q, partitions.get(curIdx)).filterFeatures(q)
-        }
-      }
-    }
-    staged != null
+  import scala.collection.JavaConversions._
+  private val partitions: java.util.List[String] = {
+      // Get the partitions from the partition scheme
+    // if the result is empty, then scan all partitions
+    // TODO: can we short-circuit if the query is outside the bounds
+    val res = partitionScheme.coveringPartitions(q.getFilter).toList
+    if(res.isEmpty) storage.listPartitions(sft.getTypeName)
+    else res
   }
 
-  override def next(): SimpleFeature = staged
+
+
+  private val internal = partitions.flatMap { i => storage.getReader(q, i) }.iterator
+
+  override def hasNext: Boolean = internal.hasNext
+
+  override def next(): SimpleFeature = internal.next
 }

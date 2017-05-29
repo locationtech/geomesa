@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.fs.storage.api;
 
 import org.geotools.data.Query;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
+import java.util.Iterator;
 import java.util.List;
 
 public interface FileSystemStorage {
@@ -19,7 +21,7 @@ public interface FileSystemStorage {
 
     void createNewFeatureType(SimpleFeatureType sft);
 
-    FileSystemReader getReader(Query q, String partition);
+    Iterator<SimpleFeature> getReader(Query q, String partition);
     List<String> listPartitions(String typeName);
 
     FileSystemWriter getWriter(String typeName, String partition);

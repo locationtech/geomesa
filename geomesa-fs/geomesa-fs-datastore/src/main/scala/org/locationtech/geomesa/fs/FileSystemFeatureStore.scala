@@ -21,7 +21,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWriter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 /**
   * Created by anthony on 5/28/17.
@@ -92,7 +91,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
     // the type name can sometimes be empty such as Query.ALL
     query.setTypeName(_sft.getTypeName)
     new DelegateSimpleFeatureReader(_sft,
-      new DelegateSimpleFeatureIterator(new FileSystemFeatureIterator(_sft, query, fileSystemStorage)))
+      new DelegateSimpleFeatureIterator(new FileSystemFeatureIterator(fs, partitionScheme, _sft, query, fileSystemStorage)))
   }
 
 
