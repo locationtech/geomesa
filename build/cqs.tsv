@@ -120,9 +120,9 @@ org.antlr:antlr4-runtime	4.5	compile
 org.apache.accumulo:accumulo-core	1.7.2	compile
 org.apache.accumulo:accumulo-fate	1.7.2	compile
 org.apache.accumulo:accumulo-start	1.7.2	compile
-org.apache.arrow:arrow-format	0.2.1-SNAPSHOT	compile
-org.apache.arrow:arrow-memory	0.2.1-SNAPSHOT	compile
-org.apache.arrow:arrow-vector	0.2.1-SNAPSHOT	compile
+org.apache.arrow:arrow-format	0.4.0	compile
+org.apache.arrow:arrow-memory	0.4.0	compile
+org.apache.arrow:arrow-vector	0.4.0	compile
 org.apache.avro:avro	1.7.5	compile
 org.apache.camel:camel-core	2.15.1	compile
 org.apache.camel:camel-scala	2.15.1	compile
