@@ -16,18 +16,17 @@ import org.apache.hadoop.hbase.util.Base64
 import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
+import org.locationtech.geomesa.spark.{DataStoreConnector, SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.SimpleFeature
 
 class HBaseSpatialRDDProvider extends SpatialRDDProvider {
-  import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
 
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
@@ -37,7 +36,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
           dsParams: Map[String, String],
           origQuery: Query): SpatialRDD = {
     import org.locationtech.geomesa.index.conf.QueryHints._
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[HBaseDataStore]
+    val ds = DataStoreConnector.loadingMap.get(dsParams).asInstanceOf[HBaseDataStore]
     // force loose bbox to be false
     origQuery.getHints.put(QueryHints.LOOSE_BBOX, false)
 
@@ -89,7 +88,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     * @param writeTypeName
     */
   def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
-    val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[HBaseDataStore]
+    val ds = DataStoreConnector.loadingMap.get(writeDataStoreParams).asInstanceOf[HBaseDataStore]
     try {
       require(ds.getSchema(writeTypeName) != null,
         "Feature type must exist before calling save.  Call createSchema on the DataStore first.")
@@ -97,8 +96,21 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       ds.dispose()
     }
 
+    unsafeSave(rdd, writeDataStoreParams, writeTypeName)
+  }
+
+  /**
+    * Writes this RDD to a GeoMesa table.
+    * The type must exist in the data store, and all of the features in the RDD must be of this type.
+    * This method assumes that the schema exists.
+    *
+    * @param rdd
+    * @param writeDataStoreParams
+    * @param writeTypeName
+    */
+  def unsafeSave(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
     rdd.foreachPartition { iter =>
-      val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreConnector.loadingMap.get(writeDataStoreParams).asInstanceOf[HBaseDataStore]
       val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
       try {
         iter.foreach { rawFeature =>

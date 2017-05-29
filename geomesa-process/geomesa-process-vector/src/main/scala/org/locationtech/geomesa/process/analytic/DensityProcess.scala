@@ -14,7 +14,6 @@ import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.GeoTools
-import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
@@ -23,9 +22,6 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.opengis.coverage.grid.GridGeometry
-import org.opengis.filter.Filter
-import org.opengis.filter.expression.Expression
-import org.opengis.filter.spatial.BBOX
 import org.opengis.util.ProgressListener
 
 /**
@@ -111,7 +107,7 @@ class DensityProcess extends GeoMesaProcess {
     val radiusPixels: Int = math.max(0, argRadiusPixels)
     val pixelSize = if (argOutputEnv.getWidth <= 0) 0 else  argOutputWidth / argOutputEnv.getWidth
     val queryBuffer: Double = radiusPixels / pixelSize
-    val filter = targetQuery.getFilter.accept(new BBOXExpandingFilterVisitor(queryBuffer), null).asInstanceOf[Filter]
+    val filter = BBOXExpandingVisitor.expand(targetQuery.getFilter, queryBuffer)
     val invertedQuery = new Query(targetQuery)
     invertedQuery.setFilter(filter)
     invertedQuery.setProperties(null)
@@ -137,37 +133,17 @@ object DensityProcess {
    * @return the flipped grid
    */
   def flipXY(grid: Array[Array[Float]]): Array[Array[Float]] = {
-    val xSize = grid.length
-    val ySize = grid(0).length
-    val grid2 = Array.ofDim[Float](ySize, xSize)
-    var ix = 0
-    while (ix < xSize) {
-      var iy = 0
-      while (iy < ySize) {
-        val iy2 = ySize - iy - 1
-        grid2(iy2)(ix) = grid(ix)(iy)
-        iy += 1
-      }
-      ix += 1
+    val length_x = grid.length
+    val length_y = grid(0).length
+
+    val res = Array.fill(length_y,length_x)(0f)
+
+    for ( x <- 0 until length_x ; y <- 0 until length_y ) {
+      val x1 = length_y - 1 - y
+      val y1 = x
+      res(x1)(y1) = grid(x)(y)
     }
-    grid2
-  }
-}
 
-/**
- * Copied from package protected org.geotools.process.vector.BBOXExpandingFilterVisitor
- */
-class BBOXExpandingFilterVisitor(expandBy: Double) extends DuplicatingFilterVisitor {
-
-  // noinspection ScalaDeprecation
-  override def visit(filter: BBOX, extraData: AnyRef): AnyRef = {
-    val propertyName: Expression = filter.getExpression1
-    val minx = filter.getMinX
-    val miny = filter.getMinY
-    val maxx = filter.getMaxX
-    val maxy = filter.getMaxY
-    val srs = filter.getSRS
-    val f = getFactory(extraData)
-    f.bbox(propertyName, minx - expandBy, miny - expandBy, maxx + expandBy, maxy + expandBy, srs)
+    res
   }
 }

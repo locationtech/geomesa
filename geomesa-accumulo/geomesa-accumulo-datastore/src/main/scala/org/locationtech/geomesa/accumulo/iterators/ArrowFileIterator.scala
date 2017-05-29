@@ -16,9 +16,9 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyAggregatingIterator.SFT_OPT
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator.{TRANSFORM_DEFINITIONS_OPT, TRANSFORM_SCHEMA_OPT}
-import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.arrow.io.DictionaryBuildingWriter
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
@@ -35,38 +35,35 @@ class ArrowFileIterator extends KryoLazyAggregatingIterator[ArrowFileAggregate] 
   import ArrowFileIterator.{BatchSizeKey, DictionaryKey, IncludeFidsKey, aggregateCache}
 
   var aggregate: (SimpleFeature, ArrowFileAggregate) => Unit = _
-  var underBatchSize: (ArrowFileAggregate) => Boolean = _
+  var batchSize: Int = _
 
   override def init(options: Map[String, String]): ArrowFileAggregate = {
-    underBatchSize = options.get(BatchSizeKey).map(_.toInt) match {
-      case None    => (_) => true
-      case Some(i) => (a) => a.size < i
-    }
+    batchSize = options(BatchSizeKey).toInt
     val encodedDictionaries = options(DictionaryKey)
     val dictionaries = encodedDictionaries.split(",")
-    val includeFids = options(IncludeFidsKey).toBoolean
+    val encoding = SimpleFeatureEncoding.min(options(IncludeFidsKey).toBoolean)
     val (arrowSft, arrowSftString) =
       if (hasTransform) { (transformSft, options(TRANSFORM_SCHEMA_OPT)) } else { (sft, options(SFT_OPT)) }
     aggregate = sample(options) match {
       case None       => (sf, result) => result.add(sf)
       case Some(samp) => (sf, result) => if (samp(sf)) { result.add(sf) }
     }
-    aggregateCache.getOrElseUpdate(arrowSftString + includeFids + encodedDictionaries,
-      new ArrowFileAggregate(arrowSft, dictionaries, includeFids))
+    aggregateCache.getOrElseUpdate(arrowSftString + encoding + encodedDictionaries,
+      new ArrowFileAggregate(arrowSft, dictionaries, encoding))
   }
 
-  override def notFull(result: ArrowFileAggregate): Boolean = underBatchSize(result)
+  override def notFull(result: ArrowFileAggregate): Boolean = result.size < batchSize
 
   override def aggregateResult(sf: SimpleFeature, result: ArrowFileAggregate): Unit = aggregate(sf, result)
 
   override def encodeResult(result: ArrowFileAggregate): Array[Byte] = result.encode()
 }
 
-class ArrowFileAggregate(sft: SimpleFeatureType, dictionaries: Seq[String], includeFids: Boolean) {
+class ArrowFileAggregate(sft: SimpleFeatureType, dictionaries: Seq[String], encoding: SimpleFeatureEncoding) {
 
   import org.locationtech.geomesa.arrow.allocator
 
-  private val writer = DictionaryBuildingWriter.create(sft, dictionaries, includeFids, GeometryPrecision.Float)
+  private val writer = DictionaryBuildingWriter.create(sft, dictionaries, encoding)
   private val os = new ByteArrayOutputStream()
 
   def add(sf: SimpleFeature): Unit = writer.add(sf)
@@ -104,7 +101,7 @@ object ArrowFileIterator {
     val is = new IteratorSetting(priority, "arrow-file-iter", classOf[ArrowFileIterator])
     KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     hints.getSampling.foreach(SamplingIterator.configure(is, sft, _))
-    hints.getArrowBatchSize.foreach(i => is.addOption(BatchSizeKey, i.toString))
+    is.addOption(BatchSizeKey, hints.getArrowBatchSize.map(_.toString).getOrElse(ArrowProperties.BatchSize.get))
     is.addOption(DictionaryKey, dictionaries.mkString)
     is.addOption(IncludeFidsKey, hints.isArrowIncludeFid.toString)
     hints.getTransform.foreach { case (tdef, tsft) =>

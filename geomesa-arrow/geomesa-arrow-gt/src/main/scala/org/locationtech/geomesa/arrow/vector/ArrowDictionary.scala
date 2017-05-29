@@ -48,7 +48,7 @@ class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding)
   def index(value: AnyRef): Int = {
     val result = map.get(value)
     if (result == null) {
-      map.size - 1// 'other'
+      map.size - 1 // 'other'
     } else {
       result.intValue()
     }
