@@ -17,7 +17,7 @@ import org.specs2.specification.AllExpectations
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeTest extends Specification with AllExpectations {
 
-  "DatePartitionScheme" should {
+  "PartitionScheme" should {
     import scala.collection.JavaConversions._
 
     val gf = JTSFactoryFinder.getGeometryFactory
@@ -55,5 +55,42 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       val Partition(p) = ps.getPartition(sf)
       p must be equalTo "2017/003/1015"
     }
+
+    "10 bit datetime z2 partition" >> {
+      val sf = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
+          gf.createPoint(new Coordinate(10, 10))), sft, new FeatureIdImpl("1"))
+
+      val sf2 = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
+          gf.createPoint(new Coordinate(-75, 38))), sft, new FeatureIdImpl("1"))
+
+      val ps = new DateTimeZ2PartitionScheme(5, DateTimeFormatter.ofPattern("yyyy/DDD"), 10, sft, "dtg", "geom")
+      val Partition(p) = ps.getPartition(sf)
+      p must be equalTo "2017/003/12"
+
+      val Partition(q) = ps.getPartition(sf2)
+      q must be equalTo "2017/003/03"
+
+    }
+
+    "20 bit datetime z2 partition" >> {
+      val sf = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
+          gf.createPoint(new Coordinate(10, 10))), sft, new FeatureIdImpl("1"))
+
+      val sf2 = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
+          gf.createPoint(new Coordinate(-75, 38))), sft, new FeatureIdImpl("1"))
+
+      val ps = new DateTimeZ2PartitionScheme(5, DateTimeFormatter.ofPattern("yyyy/DDD"), 20, sft, "dtg", "geom")
+      val Partition(p) = ps.getPartition(sf)
+      p must be equalTo "2017/003/049"
+
+      val Partition(q) = ps.getPartition(sf2)
+      q must be equalTo "2017/003/012"
+
+    }
+
   }
 }
