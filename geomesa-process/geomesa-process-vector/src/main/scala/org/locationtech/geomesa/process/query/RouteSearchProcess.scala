@@ -17,13 +17,12 @@ import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
-import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.util.{Converters, NullProgressListener}
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{ff, orFilters}
-import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.Feature
@@ -128,7 +127,7 @@ class RouteVisitor(routes: Seq[LineString],
                    isPoints: Boolean,
                    headingAttribute: Option[String]) extends GeoMesaProcessVisitor with LazyLogging {
 
-  private var resultCalc: RouteResult = _
+  private var resultCalc: FeatureResult = _
 
   private val routeFilter =
     orFilters(routes.map(ls => ff.dwithin(ff.property(geomAttribute), ff.literal(ls), routeBuffer, "meters")))
@@ -143,7 +142,7 @@ class RouteVisitor(routes: Seq[LineString],
   // for collecting results manually
   private var manualCollection: ListFeatureCollection = _
 
-  override def getResult: RouteResult = resultCalc
+  override def getResult: FeatureResult = resultCalc
 
   // manually called for non-accumulo feature collections
   override def visit(feature: Feature): Unit = {
@@ -151,7 +150,7 @@ class RouteVisitor(routes: Seq[LineString],
 
     if (manualCollection == null) {
       manualCollection = new ListFeatureCollection(sf.getFeatureType)
-      resultCalc = RouteResult(matchRoutes(manualCollection))
+      resultCalc = FeatureResult(matchRoutes(manualCollection))
     }
 
     if (manualRouteFilter.evaluate(sf)) {
@@ -168,7 +167,7 @@ class RouteVisitor(routes: Seq[LineString],
       }
       matchRoutes(source.getFeatures(filter))
     }
-    resultCalc = RouteResult(result)
+    resultCalc = FeatureResult(result)
   }
 
   /**
@@ -309,5 +308,3 @@ object RouteVisitor {
     }
   }
 }
-
-case class RouteResult(results: SimpleFeatureCollection) extends AbstractCalcResult

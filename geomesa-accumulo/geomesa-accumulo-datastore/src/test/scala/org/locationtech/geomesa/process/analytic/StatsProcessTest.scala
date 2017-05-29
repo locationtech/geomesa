@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.process.analytic
 
+import java.util.Collections
+
 import org.geotools.data.Query
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
@@ -213,7 +215,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
     }
 
     "return transforms stats encoded as json" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, "attr1=attr+5")
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr1)", false, Collections.singletonList("attr1=attr+5"))
       val sf = results.features().next
 
       // NB: Doubles <=> Ints:(
@@ -225,7 +227,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
       fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
 
-      val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, "attr1=attr+5")
+      val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, Collections.singletonList("attr1=attr+5"))
       val sf = results.features().next
 
       // NB: Doubles <=> Ints:(

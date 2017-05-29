@@ -211,41 +211,4 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       "'bar' must have count 1" >> { uniques.find(_.getAttribute("value") == "bar").map(_.getAttribute("count")) must beSome(1) }
     }
   }
-
-  "AttributeVisitor" should {
-
-    "combine filters appropriately" >> {
-
-      val ff  = CommonFactoryFinder.getFilterFactory2
-      val f1 = ff.equals(ff.property("test"), ff.literal("a"))
-
-      "ignore Filter.INCLUDE" >> {
-        val f2 = Filter.INCLUDE
-        val combined = AttributeVisitor.combineFilters(f1, f2)
-        combined mustEqual(f1)
-
-        val combined2 = AttributeVisitor.combineFilters(f2, f1)
-        combined2 mustEqual(f1)
-      }
-
-      "simplify same filters" >> {
-        val f2 = ff.equals(ff.property("test"), ff.literal("a"))
-        val combined = AttributeVisitor.combineFilters(f1, f2)
-        combined mustEqual(f1)
-
-        val combined2 = AttributeVisitor.combineFilters(f2, f1)
-        combined2 mustEqual(f1)
-      }
-
-      "AND different filters" >> {
-        val f2 = ff.equals(ff.property("test2"), ff.literal("a"))
-        val desired = ff.and(f1, f2)
-        val combined = AttributeVisitor.combineFilters(f1, f2)
-        combined mustEqual(desired)
-
-        val combined2 = AttributeVisitor.combineFilters(f2, f1)
-        combined2 mustEqual(desired)
-      }
-    }
-  }
 }

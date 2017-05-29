@@ -6,7 +6,6 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-
 package org.locationtech.geomesa.process.analytic
 
 import org.geotools.coverage.CoverageFactoryFinder

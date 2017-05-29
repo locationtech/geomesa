@@ -10,8 +10,8 @@ package org.locationtech.geomesa.process.analytic
 
 import java.util.Date
 
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
@@ -104,9 +104,9 @@ class Point2PointProcess extends GeoMesaProcess {
         else results.map { case (_, sf) => sf }
       }
 
-    val res = new DefaultFeatureCollection("p2p_results", sft)
-    lineFeatures.foreach(res.add)
-    res
+    import scala.collection.JavaConversions._
+
+    new ListFeatureCollection(sft, lineFeatures.toList)
   }
 
   def getDayOfYear(sortFieldIndex: Int, f: SimpleFeature): Property =

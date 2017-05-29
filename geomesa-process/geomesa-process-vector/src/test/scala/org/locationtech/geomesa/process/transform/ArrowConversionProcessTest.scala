@@ -12,26 +12,23 @@ import java.io.ByteArrayInputStream
 
 import org.apache.arrow.memory.RootAllocator
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.filter.Filter
+import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ArrowConversionProcessTest extends TestWithDataStore {
+class ArrowConversionProcessTest extends Specification {
 
   import scala.collection.JavaConversions._
 
-  sequential
-
-  override val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
-
   implicit val allocator = new RootAllocator(Long.MaxValue)
+
+  val sft = SimpleFeatureTypes.createType("arrow", "name:String,dtg:Date,*geom:Point:srid=4326")
 
   val process = new ArrowConversionProcess
 
@@ -39,7 +36,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
     ScalaSimpleFeature.create(sft, s"0$i", s"name${i % 2}", s"2017-02-20T00:00:0$i.000Z", s"POINT(40 ${50 + i})")
   }
 
-  addFeatures(features)
+  val listCollection = new ListFeatureCollection(sft, features)
 
   "ArrowConversionProcess" should {
     "encode an empty feature collection" in {
@@ -50,16 +47,8 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       }
     }
 
-    "encode an empty accumulo feature collection" in {
-      val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,20,30,30)")), null, null, null).reduce(_ ++ _)
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
-        reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()) must beEmpty
-      }
-    }
-
-    "encode an accumulo feature collection in distributed fashion" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null).reduce(_ ++ _)
+    "encode a generic feature collection" in {
+      val bytes = process.execute(listCollection, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
@@ -67,15 +56,15 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       }
     }
 
-    "encode an accumulo feature collection in distributed fashion with dictionary values" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), Seq("name"), null, null).reduce(_ ++ _)
+    "encode a generic feature collection with dictionary values" in {
+      val bytes = process.execute(listCollection, Seq("name"), null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
             containTheSameElementsAs(features)
         reader.dictionaries.get("name") must beSome
       }
-    }
+    }.pendingUntilFixed("Can't encode dictionary values for non-distributed query")
   }
 
   step {

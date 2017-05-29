@@ -62,30 +62,38 @@ class UniqueProcess extends GeoMesaProcess with LazyLogging {
     val hist = Option(histogram).exists(_.booleanValue)
     val sortBy = Option(sortByCount).exists(_.booleanValue)
 
-    val visitor = new AttributeVisitor(features, attributeDescriptor, Option(filter), hist)
+    val visitor = new AttributeVisitor(features, attributeDescriptor, Option(filter).filter(_ != Filter.INCLUDE), hist)
     features.accepts(visitor, progressListener)
     val uniqueValues = visitor.getResult.attributes
 
-    createReturnCollection(uniqueValues, attributeDescriptor.getType.getBinding, hist, Option(sort), sortBy)
+    val binding = attributeDescriptor.getType.getBinding
+    UniqueProcess.createReturnCollection(uniqueValues, binding, hist, Option(sort), sortBy)
   }
+}
+
+object UniqueProcess {
+
+  val SftName = "UniqueValue"
+  val AttributeValue = "value"
+  val AttributeCount = "count"
 
   /**
-   * Duplicates output format from geotools UniqueProcess
-   *
-   * @param uniqueValues values
-   * @param binding value binding
-   * @param histogram include counts or just values
-   * @param sort sort
-   * @param sortByCount sort by count or by value
-   * @return
-   */
+    * Duplicates output format from geotools UniqueProcess
+    *
+    * @param uniqueValues values
+    * @param binding value binding
+    * @param histogram include counts or just values
+    * @param sort sort
+    * @param sortByCount sort by count or by value
+    * @return
+    */
   def createReturnCollection(uniqueValues: Map[Any, Long],
                              binding: Class[_],
                              histogram: Boolean,
                              sort: Option[String],
                              sortByCount: Boolean): SimpleFeatureCollection = {
 
-    val ft = UniqueProcess.createUniqueSft(binding, histogram)
+    val ft = createUniqueSft(binding, histogram)
 
     val sfb = new SimpleFeatureBuilder(ft)
 
@@ -104,9 +112,9 @@ class UniqueProcess extends GeoMesaProcess with LazyLogging {
 
     // histogram includes extra 'count' attribute
     val addFn = if (histogram) (key: Any, value: Long) => {
-        sfb.add(key)
-        sfb.add(value)
-        result.add(sfb.buildFeature(null))
+      sfb.add(key)
+      sfb.add(value)
+      result.add(sfb.buildFeature(null))
     } else (key: Any, _: Long) => {
       sfb.add(key)
       result.add(sfb.buildFeature(null))
@@ -116,13 +124,6 @@ class UniqueProcess extends GeoMesaProcess with LazyLogging {
 
     result
   }
-}
-
-object UniqueProcess {
-
-  val SftName = "UniqueValue"
-  val AttributeValue = "value"
-  val AttributeCount = "count"
 
   /**
     * Based on geotools UniqueProcess simple feature type
@@ -190,11 +191,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   private val addValue: (SimpleFeature) => Unit =
     if (attributeDescriptor.isList) addMultiValue else addSingularValue
 
-  /**
-   * Called for non AccumuloFeatureCollections
-   *
-   * @param feature feature to visit
-   */
+  // non-optimized visit
   override def visit(feature: Feature): Unit = {
     val f = feature.asInstanceOf[SimpleFeature]
     if (filter.forall(_.evaluate(f))) {
@@ -206,10 +203,12 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
 
   override def execute(source: SimpleFeatureSource, query: Query): Unit = {
 
+    import org.locationtech.geomesa.filter.mergeFilters
+
     logger.debug(s"Running Geomesa histogram process on source type ${source.getClass.getName}")
 
     // combine filters from this process and any input collection
-    filter.foreach(f => query.setFilter(AttributeVisitor.combineFilters(query.getFilter, f)))
+    filter.foreach(f => query.setFilter(mergeFilters(query.getFilter, f)))
 
     val sft = source.getSchema
 
@@ -258,24 +257,14 @@ object AttributeVisitor {
 
   lazy val ff  = CommonFactoryFinder.getFilterFactory2
 
-  def combineFilters(f1: Filter, f2: Filter): Filter =
-    if (f1 == Filter.INCLUDE) {
-      f2
-    } else if (f2 == Filter.INCLUDE) {
-      f1
-    } else if (f1 == f2) {
-      f1
-    } else {
-      ff.and(f1, f2)
-    }
-
   /**
    * Returns a filter that is equivalent to Filter.INCLUDE, but against the attribute index.
    *
    * @param attribute attribute to query
    * @return
    */
-  def getIncludeAttributeFilter(attribute: String): Filter = ff.greaterOrEqual(ff.property(attribute), ff.literal(""))
+  def getIncludeAttributeFilter(attribute: String): Filter =
+    ff.greaterOrEqual(ff.property(attribute), ff.literal(""))
 }
 
 /**

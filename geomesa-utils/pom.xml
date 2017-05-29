@@ -177,10 +177,16 @@
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
-                <configuration>
-                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>src/main/resources/org/locationtech/geomesa/geomesa.properties</generateGitPropertiesFilename>
-                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <configuration>
+                            <generateGitPropertiesFile>false</generateGitPropertiesFile>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

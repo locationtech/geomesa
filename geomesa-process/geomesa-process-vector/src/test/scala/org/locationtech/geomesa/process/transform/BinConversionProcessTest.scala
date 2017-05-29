@@ -13,20 +13,19 @@ import java.util.Date
 import com.vividsolutions.jts.geom.Point
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, EncodedValues, ExtendedValues}
-import org.opengis.filter.Filter
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class BinConversionProcessTest extends TestWithDataStore {
+class BinConversionProcessTest extends Specification {
 
   import scala.collection.JavaConversions._
 
-  sequential
-
-  override val spec = "name:String,track:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326,geom2:Point:srid=4326"
+  val sft = SimpleFeatureTypes.createType("bin",
+    "name:String,track:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326,geom2:Point:srid=4326")
 
   val process = new BinConversionProcess
 
@@ -51,7 +50,7 @@ class BinConversionProcessTest extends TestWithDataStore {
   val lonlat2 = features.map(_.getAttribute("geom2").asInstanceOf[Point]).map(p => (p.getY.toFloat, p.getX.toFloat))
   val latlon2 = lonlat2.map(_.swap)
 
-  addFeatures(features)
+  val listCollection = new ListFeatureCollection(sft, features)
 
   // converts to tuples that we can compare to zipped values
   def toTuples(value: EncodedValues): Any = value match {
@@ -65,34 +64,25 @@ class BinConversionProcessTest extends TestWithDataStore {
       bytes must beEmpty
     }
 
-    "encode an accumulo feature collection in distributed fashion" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", null, null, null, "lonlat").toList
-      bytes.length must beLessThan(10)
-      val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(Convert2ViewerFunction.decode).map(toTuples)
-      decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat))
+    "encode a generic feature collection" in {
+      val bytes = process.execute(listCollection, null, null, null, null, "lonlat").toList
+      bytes must haveLength(10)
+      val decoded = bytes.map(Convert2ViewerFunction.decode).map(toTuples)
+      decoded must containTheSameElementsAs(ids.zip(dates).zip(lonlat))
     }
 
-    "encode an accumulo feature collection in distributed fashion with alternate values" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", "geom2", "dtg2", null, "lonlat").toList
-      bytes.length must beLessThan(10)
-      val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(Convert2ViewerFunction.decode).map(toTuples)
+    "encode a generic feature collection with alternate values" in {
+      val bytes = process.execute(listCollection, "name", "geom2", "dtg2", null, "lonlat").toList
+      bytes must haveLength(10)
+      val decoded = bytes.map(Convert2ViewerFunction.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates2).zip(lonlat2))
     }
 
-    "encode an accumulo feature collection in distributed fashion with labels" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", null, null, "track", "lonlat").toList
-      bytes.length must beLessThan(10)
-      val decoded = bytes.reduceLeft(_ ++ _).grouped(24).toSeq.map(Convert2ViewerFunction.decode).map(toTuples)
-      decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat).zip(tracks))
-    }
-
-    "encode an accumulo feature collection using feature id" in {
-      failure("not implemented")
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, "track", "lonlat").toList
-      bytes.length must beLessThan(10)
-      val decoded = bytes.reduceLeft(_ ++ _).grouped(24).toSeq.map(Convert2ViewerFunction.decode).map(toTuples)
+    "encode a generic feature collection with labels" in {
+      val bytes = process.execute(listCollection, null, null, null, "track", "lonlat").toList
+      bytes must haveLength(10)
+      val decoded = bytes.map(Convert2ViewerFunction.decode).map(toTuples)
       decoded must containTheSameElementsAs(ids.zip(dates).zip(lonlat).zip(tracks))
-    }.pendingUntilFixed
+    }
   }
-
 }

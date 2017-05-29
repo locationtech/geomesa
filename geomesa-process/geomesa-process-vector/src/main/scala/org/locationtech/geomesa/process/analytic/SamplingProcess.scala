@@ -10,15 +10,13 @@ package org.locationtech.geomesa.process.analytic
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.FeatureSampler
-import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
-import org.opengis.coverage.grid.GridGeometry
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.util.ProgressListener
@@ -56,49 +54,23 @@ class SamplingProcess extends GeoMesaProcess with LazyLogging {
 
     val visitor = new SamplingVisitor(data, samplePercent, Option(threadBy))
     data.accepts(visitor, monitor)
-    visitor.getResult.asInstanceOf[SamplingResult].results
-  }
-
-  /**
-    * Note that in order to pass validation, all parameters named here must also appear in the
-    * parameter list of the <tt>execute</tt> method, even if they are not used there.
-    *
-    * @param samplePercent percent of features to return, in the range (0, 1)
-    * @param threadBy threading field, used to group sampling of features
-    * @param targetQuery query to modify
-    * @param targetGridGeometry the grid geometry of the destination image
-    * @throws org.geotools.process.ProcessException if something goes wrong
-    * @return the transformed query
-    */
-  @throws(classOf[ProcessException])
-  def invertQuery(@DescribeParameter(name = "samplePercent", description = "Percent of features to return, between 0 and 1", minValue = 0, maxValue = 1)
-                  samplePercent: Float,
-                  @DescribeParameter(name = "threadBy", description = "Attribute field to link associated features for sampling", min = 0)
-                  threadBy: String,
-                  targetQuery: Query,
-                  targetGridGeometry: GridGeometry): Query = {
-    val invertedQuery = new Query(targetQuery)
-    invertedQuery.getHints.put(QueryHints.SAMPLING, samplePercent)
-    if (threadBy != null) {
-      invertedQuery.getHints.put(QueryHints.SAMPLE_BY, threadBy)
-    }
-    invertedQuery
+    visitor.getResult.results
   }
 }
 
 class SamplingVisitor(features: SimpleFeatureCollection, percent: Float, threading: Option[String])
     extends GeoMesaProcessVisitor with LazyLogging {
 
-  private val manualVisitResults = new DefaultFeatureCollection(null, features.getSchema)
+  private val manualVisitResults = new ListFeatureCollection(features.getSchema)
 
-  private var resultCalc: SamplingResult = SamplingResult(manualVisitResults)
+  private var resultCalc = FeatureResult(manualVisitResults)
 
   private val nth = (1 / percent.toFloat).toInt
   private val thread = threading.map(features.getSchema.indexOf).filter(_ != -1)
 
   private val sampling = FeatureSampler.sample(nth, thread)
 
-  // Called for non AccumuloFeactureCollections
+  // non-optimized visit
   override def visit(feature: Feature): Unit = {
     val sf = feature.asInstanceOf[SimpleFeature]
     if (sampling(sf)) {
@@ -106,12 +78,12 @@ class SamplingVisitor(features: SimpleFeatureCollection, percent: Float, threadi
     }
   }
 
-  override def getResult: CalcResult = resultCalc
+  override def getResult: FeatureResult = resultCalc
 
   override def execute(source: SimpleFeatureSource, query: Query): Unit = {
     logger.debug(s"Running Geomesa sampling process on source type ${source.getClass.getName}")
-    resultCalc = SamplingResult(source.getFeatures(query))
+    query.getHints.put(QueryHints.SAMPLING, percent)
+    threading.foreach(query.getHints.put(QueryHints.SAMPLE_BY, _))
+    resultCalc = FeatureResult(source.getFeatures(query))
   }
 }
-
-case class SamplingResult(results: SimpleFeatureCollection) extends AbstractCalcResult
