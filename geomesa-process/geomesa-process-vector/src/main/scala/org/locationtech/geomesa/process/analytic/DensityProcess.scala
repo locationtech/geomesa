@@ -17,7 +17,7 @@ import org.geotools.factory.GeoTools
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.process.vector.HeatmapSurface
+import org.geotools.process.vector.{BBOXExpandingVisitor, HeatmapSurface}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
 import org.locationtech.geomesa.process.GeoMesaProcess
