@@ -18,6 +18,7 @@ import org.apache.commons.csv.CSVFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverters}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -419,7 +420,6 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getUserData.get("my.third.key") mustEqual "2world"
     }
 
-
     "handle single quotes" >> {
 
       val data =
@@ -538,5 +538,42 @@ class DelimitedTextConverterTest extends Specification {
       SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
     }
 
+    "handle out-of-order attributes" >> {
+      import scala.collection.JavaConversions._
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "$fid",
+          |   user-data    = {
+          |     my.first.key  = "$fid",
+          |     my.second.key = "$2",
+          |     my.third.key  = "$concat"
+          |   }
+          |   fields = [
+          |     { name = "concat", transform = "concat($fid, $hello)" },
+          |     { name = "hello",  transform = "concat('hello ', $fid)" },
+          |     { name = "fid2",   transform = "$fid" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |     { name = "fid",    transform = "$1" },
+          |   ]
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType("test", "hello:String,*geom:Point:srid=4326")
+
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+
+      val converted = converter.processSingleInput("myfid,foo,45.0,55.0")
+      converted must haveLength(1)
+      converted.head.getID mustEqual "myfid"
+      converted.head.getAttributes.toSeq mustEqual Seq("hello myfid", WKTUtils.read("POINT(45 55)"))
+      converted.head.getUserData.toMap mustEqual
+          Map("my.first.key" -> "myfid", "my.second.key" -> "foo", "my.third.key" -> "myfidhello myfid")
+    }
   }
 }

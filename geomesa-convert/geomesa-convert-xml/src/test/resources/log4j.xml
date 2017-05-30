@@ -19,18 +19,9 @@
     <category name="hsqldb">
         <priority value="warn"/>
     </category>
-    <category name="org.locationtech.geomesa.convert.xml.XMLConverter">
+    <category name="org.locationtech.geomesa.convert">
         <priority value="error"/>
     </category>
-
-    <!-- un-comment the following line to enable verbose log messages
-         from the index query-planner; this can be helpful in debugging
-         query plans -->
-    <!--
-    <category name="org.locationtech.geomesa.core.index.IndexQueryPlanner">
-        <priority value="trace"/>
-    </category>
-    -->
 
     <root>
         <priority value="info"/>

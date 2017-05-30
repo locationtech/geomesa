@@ -192,6 +192,7 @@ org.geotools.xsd:gt-xsd-wfs	15.1	compile
 org.hsqldb:hsqldb	2.3.0	compile
 org.jamon:jamon-runtime	2.4.1	compile
 org.jdom:jdom	1.1.3	compile
+org.jgrapht:jgrapht-core	1.0.1	compile
 org.joda:joda-convert	1.6	compile
 org.jruby.jcodings:jcodings	1.0.8	compile
 org.jruby.joni:joni	2.1.2	compile
