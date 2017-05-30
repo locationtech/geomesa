@@ -61,7 +61,7 @@ class DefaultCounter extends Counter {
   override def incFailure(i: Long = 1): Unit = f += i
   override def getFailure: Long = f
 
-  override def incLineCount(i: Long = 1) = c += i
+  override def incLineCount(i: Long = 1): Unit = c += i
   override def getLineCount: Long = c
-  override def setLineCount(i: Long) = c = i
+  override def setLineCount(i: Long): Unit = c = i
 }

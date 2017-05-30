@@ -1111,5 +1111,29 @@ class JsonConverterTest extends Specification {
       f.get[Float]("f") mustEqual 1.023f
       f.get[Boolean]("b") mustEqual false
     }
+
+    "handle invalid input" >> {
+      val typeSft = SimpleFeatureTypes.createType("foo", "i:Long")
+
+      val json = "foobarbaz {"
+
+      val typeConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "i", json-type = "integer",  path = "$.i", transform = "$0::long" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](typeSft, typeConf)
+      val ec = converter.createEvaluationContext()
+      val features = converter.processInput(Iterator(json), ec).toList
+      features must haveLength(0)
+      ec.counter.getSuccess mustEqual 0
+      ec.counter.getFailure mustEqual 1
+    }
   }
 }
