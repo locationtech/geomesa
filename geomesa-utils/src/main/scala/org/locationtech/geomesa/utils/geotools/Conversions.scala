@@ -12,7 +12,9 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import com.vividsolutions.jts.geom._
-import org.geotools.feature.AttributeTypeBuilder
+import org.geotools.data.FeatureReader
+import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.feature.{AttributeTypeBuilder, FeatureIterator}
 import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.DateTime
@@ -34,6 +36,34 @@ import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 
 object Conversions {
+
+  @deprecated("use CloseableIterator")
+  class RichSimpleFeatureIterator(iter: FeatureIterator[SimpleFeature]) extends SimpleFeatureIterator
+      with Iterator[SimpleFeature] {
+    private[this] var open = true
+
+    def isClosed = !open
+
+    def hasNext = {
+      if (isClosed) false
+      if(iter.hasNext) true else{close(); false}
+    }
+    def next() = iter.next
+    def close() { if(!isClosed) {iter.close(); open = false} }
+  }
+
+  @deprecated("use CloseableIterator")
+  implicit class RichSimpleFeatureReader(val r: FeatureReader[SimpleFeatureType, SimpleFeature]) extends AnyVal {
+    def toIterator: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
+      override def hasNext: Boolean = r.hasNext
+      override def next(): SimpleFeature = r.next()
+    }
+  }
+
+  @deprecated("use CloseableIterator")
+  implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
+  @deprecated("use CloseableIterator")
+  implicit def toRichSimpleFeatureIteratorFromFI(iter: FeatureIterator[SimpleFeature]): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
 
   implicit def opengisInstantToJodaInstant(instant: Instant): org.joda.time.Instant = new DateTime(instant.getPosition.getDate).toInstant
   implicit def jodaInstantToOpengisInstant(instant: org.joda.time.Instant): org.opengis.temporal.Instant = new DefaultInstant(new DefaultPosition(instant.toDate))
