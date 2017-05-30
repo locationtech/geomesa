@@ -24,18 +24,20 @@ case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform {
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
                                                transform: Option[(String, SimpleFeatureType)]): Seq[HFilter] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val z2Filter = Z2Index.currentProcessingValues.map { case Z2ProcessingValues(_, bounds) =>
-      configureZ2PushDown(bounds)
+      val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard
+      configureZ2PushDown(bounds, offset)
     }
     super.createPushDownFilters(ds, sft, filter, transform) ++ z2Filter.toSeq
   }
 
-  private def configureZ2PushDown(xy: Seq[(Double, Double, Double, Double)]): HFilter = {
+  private def configureZ2PushDown(xy: Seq[(Double, Double, Double, Double)], offset: Int): HFilter = {
     val normalizedXY = xy.map { case (xmin, ymin, xmax, ymax) =>
       Array(Z2SFC.lon.normalize(xmin), Z2SFC.lat.normalize(ymin), Z2SFC.lon.normalize(xmax), Z2SFC.lat.normalize(ymax))
     }.toArray
 
-    new Z2HBaseFilter(new Z2Filter(normalizedXY, 1, 8))
+    new Z2HBaseFilter(new Z2Filter(normalizedXY, 8), offset)
   }
 }
 

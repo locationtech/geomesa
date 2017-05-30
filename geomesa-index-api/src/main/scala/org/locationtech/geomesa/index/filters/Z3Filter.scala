@@ -18,15 +18,13 @@ class Z3Filter(val xyvals: Array[Array[Int]],
                val tvals: Array[Array[Array[Int]]],
                val minEpoch: Short,
                val maxEpoch: Short,
-               val zOffset: Int,
                val zLength: Int) extends java.io.Serializable {
 
-  val rowToEpoch: (Array[Byte], Int, Int) => Short = Z3Filter.getRowToEpoch(zOffset)
-  val rowToZ: (Array[Byte], Int, Int) => Long = Z3Filter.getRowToZ(zOffset, zLength)
+  val rowToZ: (Array[Byte], Int) => Long = Z3Filter.getRowToZ(zLength)
 
-  def inBounds(buf: Array[Byte], offset: Int, length: Int): Boolean = {
-    val keyZ = rowToZ(buf, offset, length)
-    pointInBounds(keyZ) && timeInBounds(rowToEpoch(buf, offset, length), keyZ)
+  def inBounds(buf: Array[Byte], offset: Int): Boolean = {
+    val keyZ = rowToZ(buf, offset)
+    pointInBounds(keyZ) && timeInBounds(Z3Filter.rowToEpoch(buf, offset), keyZ)
   }
 
   def pointInBounds(z: Long): Boolean = {
@@ -64,39 +62,33 @@ class Z3Filter(val xyvals: Array[Array[Int]],
 }
 
 object Z3Filter {
-  def getRowToZ(offset: Int, zLength: Int): (Array[Byte], Int, Int) => Long = {
-    // account for epoch - first 2 bytes
+
+  def getRowToZ(zLength: Int): (Array[Byte], Int) => Long = {
     if (zLength == 8) {
-      (b, off, _) =>
-        val base = offset + off + 2
-        Longs.fromBytes(
-          b(base),
-          b(base+1),
-          b(base+2),
-          b(base+3),
-          b(base+4),
-          b(base+5),
-          b(base+6),
-          b(base+7))
-
-    } else if (zLength == 3) {
-      (b, off, _) =>
-        val base = offset + off + 2
-        Longs.fromBytes(b(base), b(base+1), b(base+2), 0, 0, 0, 0, 0)
-
+      zToRow8
     } else if (zLength == 4) {
-      (b, off, _) =>
-        val base = offset + off + 2
-        Longs.fromBytes(b(base), b(base+1), b(base+2), b(base+3), 0, 0, 0, 0)
-
+      zToRow4
+    } else if (zLength == 3) {
+      zToRow3
     } else {
       throw new IllegalArgumentException(s"Unhandled number of bytes for z value: $zLength")
     }
   }
 
-  def getRowToEpoch(offset: Int): (Array[Byte], Int, Int) => Short = {
-    (b, off, _) => Shorts.fromBytes(b(offset + off), b(offset+off+1))
-  }
+  // account for epoch - first 2 bytes
+  private def zToRow8(b: Array[Byte], i: Int): Long =
+    Longs.fromBytes(b(i + 2), b(i + 3), b(i + 4), b(i + 5), b(i + 6), b(i + 7), b(i + 8), b(i + 9))
+
+  // account for epoch - first 2 bytes
+  private def zToRow4(b: Array[Byte], i: Int): Long =
+    Longs.fromBytes(b(i + 2), b(i + 3), b(i + 4), b(i + 5), 0, 0, 0, 0)
+
+  // account for epoch - first 2 bytes
+  private def zToRow3(b: Array[Byte], i: Int): Long =
+    Longs.fromBytes(b(i + 2), b(i + 3), b(i + 4), 0, 0, 0, 0, 0)
+
+  def rowToEpoch(bytes: Array[Byte], offset: Int): Short =
+    Shorts.fromBytes(bytes(offset), bytes(offset + 1))
 
   def toByteArray(f: Z3Filter): Array[Byte] = {
     val boundsLength = f.xyvals.length
@@ -106,9 +98,7 @@ object Z3Filter {
         val ser = Bytes.concat(bounds.map { v => Ints.toByteArray(v) }: _*)
         Bytes.concat(Ints.toByteArray(length), ser)
       }
-    val xyz = Bytes.concat(Ints.toByteArray(boundsLength), Bytes.concat(boundsSer: _*),
-      Ints.toByteArray(f.zOffset),
-      Ints.toByteArray(f.zLength))
+    val xyz = Bytes.concat(Ints.toByteArray(boundsLength), Bytes.concat(boundsSer: _*), Ints.toByteArray(f.zLength))
 
 
     val tlength = f.tvals.length
@@ -137,7 +127,6 @@ object Z3Filter {
         buf.getInt()
       }.toArray
     }.toArray
-    val zOffset = buf.getInt
     val zLength = buf.getInt
 
     val tLength = buf.getInt
@@ -153,6 +142,6 @@ object Z3Filter {
 
     val minEpoch = buf.getShort
     val maxEpoch = buf.getShort
-    new Z3Filter(bounds, tvals, minEpoch,maxEpoch, zOffset, zLength)
+    new Z3Filter(bounds, tvals, minEpoch, maxEpoch, zLength)
   }
 }
