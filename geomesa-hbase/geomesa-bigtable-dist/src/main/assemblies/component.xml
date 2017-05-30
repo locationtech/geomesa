@@ -14,6 +14,7 @@
             <useStrictFiltering>true</useStrictFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-bigtable-gs-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
             </excludes>
         </dependencySet>
         <dependencySet>
@@ -24,6 +25,7 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-bigtable-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
         <dependencySet>

@@ -10,9 +10,9 @@
 package org.locationtech.geomesa.filter.factory
 
 import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.expression.FastPropertyName
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.spatial.BBOX
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -22,9 +22,9 @@ class FastFilterFactoryTest extends Specification {
 
   "FastFilterFactory" should {
     "create fast property names" >> {
-      val ff = new FastFilterFactory
-      ff.property("test") must beAnInstanceOf[FastPropertyName]
-      ff.bbox("geom", -180, -90, 180, 90, "EPSG:4326").getExpression1 must beAnInstanceOf[FastPropertyName]
+      val sft = SimpleFeatureTypes.createType("test", "geom:Point:srid=4326")
+      FastFilterFactory.toFilter(sft, "bbox(geom, -180, -90, 180, 90)").asInstanceOf[BBOX].getExpression1 must
+          beAnInstanceOf[FastPropertyName]
     }
     "be loadable via hints" >> {
       val hints = new Hints()
@@ -45,8 +45,8 @@ class FastFilterFactoryTest extends Specification {
       }
     }
     "create fast property names via ECQL" >> {
-      val ff = new FastFilterFactory
-      val bbox = ECQL.toFilter("bbox(geom, -180, -90, 180, 90)", ff)
+      val sft = SimpleFeatureTypes.createType("test", "geom:Point:srid=4326")
+      val bbox = FastFilterFactory.toFilter(sft, "bbox(geom, -180, -90, 180, 90)")
       bbox.asInstanceOf[BBOX].getExpression1 must beAnInstanceOf[FastPropertyName]
     }
   }

@@ -18,7 +18,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, BatchScanPlan}
-import org.locationtech.geomesa.accumulo.process.knn.TouchingGeoHashes
+import org.locationtech.geomesa.process.knn.TouchingGeoHashes
 import org.locationtech.geomesa.raster.iterators.{RasterFilteringIterator => RFI}
 import org.locationtech.geomesa.raster.{defaultResolution, lexiEncodeDoubleToString, rasterSft, rasterSftName}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}

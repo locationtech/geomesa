@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessors}
 import org.opengis.feature.simple.SimpleFeature
 
-trait SimpleFeaturePropertyAccessor extends LazyLogging {
+object SimpleFeaturePropertyAccessor extends LazyLogging {
   def getAccessor(sf: SimpleFeature, name: String): Option[PropertyAccessor] ={
     // some mojo to ensure our property accessor is picked up -
     // our accumulo iterators are not generally available in the system classloader
@@ -24,7 +24,7 @@ trait SimpleFeaturePropertyAccessor extends LazyLogging {
     Thread.currentThread.setContextClassLoader(getClass.getClassLoader)
     try {
       import scala.collection.JavaConversions._
-      PropertyAccessors.findPropertyAccessors(sf, name, null, null).find(_.canHandle(sf, name, classOf[AnyRef]))
+      PropertyAccessors.findPropertyAccessors(sf, name, null, null).headOption
     } finally {
       // reset the classloader after loading the accessors
       Thread.currentThread.setContextClassLoader(contextClassLoader)
