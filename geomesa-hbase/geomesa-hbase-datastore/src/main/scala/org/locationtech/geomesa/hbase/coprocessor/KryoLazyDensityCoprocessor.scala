@@ -41,14 +41,14 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   import KryoLazyDensityCoprocessor._
 
   private var env: RegionCoprocessorEnvironment = _
-  private var sft: SimpleFeatureType = _
+  //private var sft: SimpleFeatureType = _
 
-  def init(options: Map[String, String], sft: SimpleFeatureType): DensityResult = {
-    this.sft = sft
-    initialize(options, sft)
-  }
+//  def init(options: Map[String, String], sft: SimpleFeatureType): DensityResult = {
+//    //this.sft = sft
+//    initialize(options, sft)
+//  }
 
-  def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
+  //def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
 
   @throws[IOException]
   def start(env: CoprocessorEnvironment): Unit = {
@@ -67,6 +67,12 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   def getDensity(controller: RpcController,
                  request: KryoLazyDensityProto.DensityRequest,
                  done: RpcCallback[KryoLazyDensityProto.DensityResponse]): Unit = {
+
+    val this_grid = new KryoLazyDensityUtils {}
+    //this_grid.initialize()
+
+    def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
+
     var scanner : InternalScanner = null
     var filterList : FilterList = new FilterList()
 
@@ -91,7 +97,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       }
 
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-      val densityResult: DensityResult = this.init(options, sft)
+      val densityResult: DensityResult = this_grid.initialize(options, sft)
 
       scanList.foreach(scan => {
         scan.setFilter(filterList)
