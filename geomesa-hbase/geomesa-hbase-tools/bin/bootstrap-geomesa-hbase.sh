@@ -34,6 +34,9 @@ export PATH=\$PATH:\$GEOMESA_HOME/bin
 EOF
 
 # Copy AWS dependencies to geomesa lib dir
+# Make sure HBase is properly initialized before running this
+# script or else the configuration will not be set up
+# properly
 cp /usr/share/aws/emr/emrfs/lib/* /opt/geomesa/lib
 cp /usr/lib/hbase/conf/hbase-site.xml /opt/geomesa/conf/
 

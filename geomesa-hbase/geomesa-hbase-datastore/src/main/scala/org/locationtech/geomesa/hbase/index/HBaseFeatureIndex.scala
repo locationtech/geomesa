@@ -8,22 +8,26 @@
 
 package org.locationtech.geomesa.hbase.index
 
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
-import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
+import org.locationtech.geomesa.hbase.coprocessor.{KryoLazyDensityCoprocessor, coprocessorList}
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.slf4j.LoggerFactory
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
@@ -56,14 +60,52 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
+  private val logger = LoggerFactory.getLogger("org.locationtech.geomesa.hbase.index.HBaseFeatureIndex")
+
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     super.configure(sft, ds)
+
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
     val admin = ds.connection.getAdmin
+    val coproUrl: Option[Path] = if(!ds.config.coprocessorUrl.equals(HBaseDataStoreParams.CoprocessorUrl.sample)) {
+        Some(ds.config.coprocessorUrl)
+      } else {
+        GeoMesaSystemProperties.SystemProperty("geomesa.hbase.coprocessor.path", null).option match {
+          case Some(path) => Option(new Path(path))
+          case None       => None
+        }
+      }
+
+    def addCoprocessors(desc: HTableDescriptor): Unit =
+      coprocessorList.foreach(c => addCoprocessor(c, desc))
+
+    def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor): Unit = {
+      val name = clazz.getCanonicalName
+      if (!desc.getCoprocessors.contains(name)) { // should always be true
+        coproUrl match {
+          // TODO: Warn if the path given is different from paths registered in other coprocessors. This is to warn if another table needs updated.
+          case Some(path) => desc.addCoprocessor(name, path, Coprocessor.PRIORITY_USER, null)
+          case None       => desc.addCoprocessor(name)
+        }
+      }
+    }
+
     try {
       if (!admin.tableExists(name)) {
+        logger.info(s"Creating table $name")
         val descriptor = new HTableDescriptor(name)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
+        Option(admin.getConfiguration.get(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY)) match {
+          // if the coprocessors are installed site-wide don't register them in the table descriptor
+          case Some(value) =>
+            val installedCoprocessors = value.split(":").toSeq
+            coprocessorList.foreach { c =>
+              if (!installedCoprocessors.contains(c.getCanonicalName)) {
+                addCoprocessor(c, descriptor)
+              }
+            }
+          case None => addCoprocessors(descriptor)
+        }
         admin.createTable(descriptor, getSplits(sft).toArray)
       }
     } finally {
