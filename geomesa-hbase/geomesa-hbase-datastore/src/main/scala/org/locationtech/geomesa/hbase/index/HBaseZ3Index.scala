@@ -22,7 +22,7 @@ case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
   override protected def createPushDownFilters(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
-                                               transform: Option[(String, SimpleFeatureType)]): Seq[HFilter] = {
+                                               transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = {
     val z3Filter = Z3Index.currentProcessingValues.map { case Z3ProcessingValues(sfc, _, xy, _, times) =>
       configureZ3PushDown(sfc, xy, times)
     }
@@ -31,7 +31,7 @@ case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
 
   private def configureZ3PushDown(sfc: Z3SFC,
                                   xy: Seq[(Double, Double, Double, Double)],
-                                  times: Map[Short, Seq[(Long, Long)]]): HFilter = {
+                                  times: Map[Short, Seq[(Long, Long)]]): (Int, HFilter) = {
     // we know we're only going to scan appropriate periods, so leave out whole ones
     val wholePeriod = Seq((sfc.time.min.toLong, sfc.time.max.toLong))
     val filteredTimes = times.filter(_._2 != wholePeriod)
@@ -50,7 +50,8 @@ case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
       }.toArray
     }.toArray
 
-    new Z3HBaseFilter(new Z3Filter(normalizedXY, tOpts, minEpoch.toShort, maxEpoch.toShort, 1, 8))
+    val filter = new Z3HBaseFilter(new Z3Filter(normalizedXY, tOpts, minEpoch.toShort, maxEpoch.toShort, 1, 8))
+    (Z3HBaseFilter.Priority, filter)
   }
 }
 

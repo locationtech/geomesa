@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class JSimpleFeatureFilter extends FilterBase {
+
+    public static int Priority = 30;
+
     private final Filter localFilter;
     private final KryoBufferSimpleFeature reusable;
     private final Transformer transformer;

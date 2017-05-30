@@ -46,7 +46,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
-  case class ScanConfig(filters: Seq[HFilter],
+  case class ScanConfig(filters: Seq[(Int, HFilter)],
                         coprocessor: Option[Coprocessor],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 }
@@ -181,10 +181,12 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
       val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
       val toFeatures = resultsToFeatures(returnSchema, None, None)
-      val filterTransform: Seq[HFilter] = if (ecql.isEmpty && transform.isEmpty) { Seq.empty } else {
+      val filterTransform: Seq[(Int, HFilter)] = if (ecql.isEmpty && transform.isEmpty) { Seq.empty } else {
         // transforms and filters are applied server-side
         val remoteCQLFilter: Filter = ecql.getOrElse(Filter.INCLUDE)
-        Seq(new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, SimpleFeatureTypes.encodeType(returnSchema)))
+        val encodedSft = SimpleFeatureTypes.encodeType(returnSchema)
+        val filter = new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, encodedSft)
+        Seq((JSimpleFeatureFilter.Priority, filter))
       }
 
       val additionalFilters = createPushDownFilters(ds, sft, filter, transform)
@@ -198,7 +200,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
   protected def createPushDownFilters(ds: HBaseDataStore,
                                       sft: SimpleFeatureType,
                                       filter: HBaseFilterStrategyType,
-                                      transform: Option[(String, SimpleFeatureType)]): Seq[HFilter] = Seq.empty
+                                      transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = Seq.empty
 
   protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                       sft: SimpleFeatureType,
@@ -206,7 +208,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                                       hints: Hints,
                                       ranges: Seq[Query],
                                       table: TableName,
-                                      hbaseFilters: Seq[HFilter],
+                                      hbaseFilters: Seq[(Int, HFilter)],
                                       coprocessor: Option[Coprocessor],
                                       toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 }
