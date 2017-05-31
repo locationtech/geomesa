@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.tools.export.formats
 
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 
 object NullExporter extends FeatureExporter {
 
   override def export(features: SimpleFeatureCollection): Option[Long] = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
     var count = 0L
-    features.features().foreach(_ => count += 1)
+    SelfClosingIterator(features.features).foreach(_ => count += 1)
     Some(count)
   }
 

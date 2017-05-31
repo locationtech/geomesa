@@ -20,11 +20,11 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -86,15 +86,15 @@ class VisibilitiesTest extends Specification {
 
       "using ALL queries" in {
         val reader = unprivDS.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
-        val readFeatures = reader.toIterator.toList
+        val readFeatures = SelfClosingIterator(reader).toList
 
-        readFeatures.size must be equalTo 3
+        readFeatures must haveLength(3)
       }
 
       "using ST queries" in {
         val filter = bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326")
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 3
+        SelfClosingIterator(reader) must haveLength(3)
       }
 
       "using attribute queries" in {
@@ -103,7 +103,7 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 1
+        SelfClosingIterator(reader) must haveLength(1)
       }
 
     }
@@ -112,13 +112,13 @@ class VisibilitiesTest extends Specification {
 
       "using ALL queries" in {
         val reader = ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
-        val readFeatures = reader.toIterator.toList
-        readFeatures.size must be equalTo 6
+        val readFeatures = SelfClosingIterator(reader)
+        readFeatures must haveLength(6)
       }
       "using ST queries" in {
         val filter = bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326")
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 6
+        SelfClosingIterator(reader) must haveLength(6)
       }
 
       "using attribute queries" in {
@@ -127,7 +127,7 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 2
+        SelfClosingIterator(reader) must haveLength(2)
       }
     }
   }
@@ -186,7 +186,7 @@ class VisibilitiesTest extends Specification {
       fs.flush()
 
       "using ALL queries" in {
-        fs.getFeatures(new Query(sftName)).features().toList.size must be equalTo 5
+        SelfClosingIterator(fs.getFeatures(new Query(sftName)).features) must haveLength(5)
       }
 
       "using record id queries" in {
@@ -199,7 +199,7 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 1
+        SelfClosingIterator(reader) must haveLength(1)
       }
     }
 
@@ -218,7 +218,7 @@ class VisibilitiesTest extends Specification {
   val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
-  def getFeatures(sft: SimpleFeatureType) = (0 until 6).map { i =>
+  def getFeatures(sft: SimpleFeatureType): Seq[SimpleFeature] = (0 until 6).map { i =>
     val builder = new SimpleFeatureBuilder(sft, featureFactory)
     builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
     builder.set("dtg", "2012-01-02T05:06:07.000Z")

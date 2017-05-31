@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kafka
 
 import org.geotools.data.simple.SimpleFeatureReader
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
 
@@ -30,7 +30,7 @@ trait KafkaConsumerFeatureCache extends SpatialIndexSupport {
     if (f == Filter.INCLUDE) {
       features.size
     } else {
-      getReaderForFilter(f).toIterator.length
+      SelfClosingIterator(getReaderForFilter(f)).length
     }
   }
 

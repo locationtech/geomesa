@@ -20,7 +20,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.kafka09.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.kafka09.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.Suffixes
 import org.opengis.feature.`type`.Name
@@ -50,7 +50,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
     builder.buildFeatureType()
   }
 
-  override def getCountInternal(query: Query): Int = getReaderInternal(query).toIterator.length
+  override def getCountInternal(query: Query): Int = SelfClosingIterator(getReaderInternal(query)).length
 
   override val canFilter: Boolean = true
 

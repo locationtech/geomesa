@@ -19,7 +19,9 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportAttributes
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 
 class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[ExportAttributes], withHeader: Boolean)
@@ -33,8 +35,6 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
   }
 
   override def export(features: SimpleFeatureCollection): Option[Long] = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
-
     val sft = features.getSchema
 
     val withId = attributes.forall(_.fid)
@@ -50,19 +50,22 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
     }
 
     var count = 0L
-    features.features.foreach { sf =>
-      if (withId) {
-        printer.print(sf.getID)
-      }
-      // retrieve values by name, index doesn't always correspond correctly due to geometry being added back in
-      names.foreach(name => printer.print(stringify(sf.getAttribute(name))))
-      printer.println()
+    WithClose(CloseableIterator(features.features)) { features =>
+      features.foreach { sf =>
+        if (withId) {
+          printer.print(sf.getID)
+        }
+        // retrieve values by name, index doesn't always correspond correctly due to geometry being added back in
+        names.foreach(name => printer.print(stringify(sf.getAttribute(name))))
+        printer.println()
 
-      count += 1
-      if (count % 10000 == 0) {
-        logger.debug(s"wrote $count features")
+        count += 1
+        if (count % 10000 == 0) {
+          logger.debug(s"wrote $count features")
+        }
       }
     }
+
     logger.info(s"Exported $count features")
     Some(count)
   }

@@ -14,6 +14,7 @@ import java.util.{Collections, Date}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.AttributeSpec.ListAttributeSpec
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureSpecParser, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -86,8 +87,8 @@ object BinaryOutputEncoder extends LazyLogging {
       sort: Boolean = false): Long = {
 
     val iter = toValues(fc.getSchema, options) match {
-      case Right(toValue) => fc.features.map(toValue)
-      case Left(toValue)  => fc.features.flatMap(toValue)
+      case Right(toValue) => SelfClosingIterator(fc.features).map(toValue)
+      case Left(toValue)  => SelfClosingIterator(fc.features).flatMap(toValue)
     }
 
     // encodes the values in either 16 or 24 bytes

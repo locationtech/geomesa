@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.Z3Index
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -56,21 +56,21 @@ class ZLineTest extends Specification with TestWithDataStore {
     "return features that are contained" in {
       val filter = "bbox(geom,47,25,50,28) and dtg DURING 2015-01-01T11:00:00.000Z/2015-01-01T13:00:00.000Z"
       val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().toList
+      val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
       features must haveLength(1)
       features.head.getID mustEqual "fid1"
     }
     "return features that intersect" in {
       val filter = "bbox(geom,47.5,25,49,26) and dtg DURING 2015-01-01T11:00:00.000Z/2015-01-01T13:00:00.000Z"
       val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().toList
+      val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
       features must haveLength(1)
       features.head.getID mustEqual "fid1"
     }
     "not return features that don't intersect" in {
       val filter = "bbox(geom,45,24,46,25) and dtg DURING 2015-01-01T11:00:00.000Z/2015-01-01T13:00:00.000Z"
       val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().toList
+      val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
       features must beEmpty
     }
   }

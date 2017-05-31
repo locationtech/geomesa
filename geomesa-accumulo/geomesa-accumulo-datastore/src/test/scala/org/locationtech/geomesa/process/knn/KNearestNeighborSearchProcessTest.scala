@@ -17,6 +17,7 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -209,7 +210,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
       val knnResults =
         KNNQuery.runNewKNNQuery(fs, wideQuery, k, 5000.0, 50000.0, referenceFeature)
       val knnFeatureIDs = knnResults.getK.map { _.sf.getID }
-      val directFeatures = fs.getFeatures().features.toList
+      val directFeatures = SelfClosingIterator(fs.getFeatures().features).toList
       val sortedByDist = directFeatures.sortBy (
         a => VincentyModel.getDistanceBetweenTwoPoints(referenceFeature.point, a.point).getDistanceInMeters).take(k)
       knnFeatureIDs.equals(sortedByDist.map{_.getID}) must beTrue

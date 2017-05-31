@@ -23,6 +23,8 @@ import scala.collection.{GenTraversableOnce, Iterator}
 // A CloseableIterator is one which involves some kind of close function which should be called at the end of use.
 object CloseableIterator {
 
+  private val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
+
   // In order to use 'map' and 'flatMap', we provide an implicit promoting wrapper.
   // noinspection LanguageFeature
   implicit def iteratorToCloseable[A](iter: Iterator[A]): CloseableIterator[A] = apply(iter)
@@ -50,7 +52,7 @@ object CloseableIterator {
       override def close(): Unit = iter.close()
     }
 
-  val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
+  def empty[T]: CloseableIterator[T] = empty
 }
 
 trait CloseableIterator[+A] extends Iterator[A] with Closeable {
