@@ -149,7 +149,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
 
     val tube = tubeBuilder.createTube
 
-    val queryResults = CloseableIterator(tube).ciFlatMap { sf =>
+    val queryResults = CloseableIterator(tube).flatMap { sf =>
       val sfMin = tubeBuilder.getStartTime(sf).getTime
       val minDate = new Date(sfMin - maxTime*1000)
 
@@ -164,7 +164,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
       // Eventually these can be combined into OR queries and the QueryPlanner can create multiple Accumulo Ranges
       // Buf for now we issue multiple queries
       val geoms = (0 until geom.getNumGeometries).toIterator.map(geom.getGeometryN)
-      SelfClosingIterator(geoms).ciFlatMap { g =>
+      SelfClosingIterator(geoms).flatMap { g =>
         val geomFilter = ff.intersects(geomProperty, ff.literal(g))
         val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtg1, dtg2, filter))
         SelfClosingIterator(source.getFeatures(combinedFilter).features)
