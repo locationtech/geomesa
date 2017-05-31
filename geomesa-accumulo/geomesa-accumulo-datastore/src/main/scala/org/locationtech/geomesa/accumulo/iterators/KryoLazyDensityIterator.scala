@@ -23,24 +23,32 @@ import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
+
+import scala.collection.mutable
 
 /**
  * Density iterator - only works on kryo-encoded features
  */
-class KryoLazyDensityIterator extends KryoLazyAggregatingIterator[DensityResult] with LazyLogging with KryoLazyDensityUtils {
+class KryoLazyDensityIterator extends KryoLazyAggregatingIterator[DensityResult] with LazyLogging {
+
+  var densityUtils: KryoLazyDensityUtils = _
 
   override def init(options: Map[String, String]): DensityResult = {
-    initialize(options, sft)
+    densityUtils = new KryoLazyDensityUtils(options, sft)
+    densityUtils.newDensityResult
   }
 
-  override def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
+  override def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit =
+    densityUtils.writeGeom(sf, result)
 
-  override def encodeResult(result: DensityResult): Array[Byte] = KryoLazyDensityUtils.encodeResult(result)
+  override def encodeResult(result: DensityResult): Array[Byte] =
+    KryoLazyDensityUtils.encodeResult(result)
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
 }
 
-object KryoLazyDensityIterator extends LazyLogging with KryoLazyDensityUtils {
+object KryoLazyDensityIterator extends LazyLogging {
 
   import KryoLazyDensityUtils._
   val DEFAULT_PRIORITY = 25
