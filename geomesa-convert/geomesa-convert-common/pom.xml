@@ -36,11 +36,6 @@
             <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jgrapht</groupId>
-            <artifactId>jgrapht-core</artifactId>
-            <version>1.0.1</version>
-        </dependency>
-        <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
         </dependency>

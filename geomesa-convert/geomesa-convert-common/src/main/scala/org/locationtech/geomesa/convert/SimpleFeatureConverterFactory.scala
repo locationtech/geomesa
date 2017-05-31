@@ -15,8 +15,6 @@ import java.util.NoSuchElementException
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.jgrapht.graph.DirectedMultigraph
-import org.jgrapht.traverse.TopologicalOrderIterator
 import org.locationtech.geomesa.convert.ParseMode.ParseMode
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.convert.ValidationMode.ValidationMode
@@ -26,6 +24,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 trait Field {
   def name: String
@@ -207,6 +206,8 @@ trait SimpleFeatureConverter[I] extends Closeable {
 
 object SimpleFeatureConverter {
 
+  type Dag = scala.collection.mutable.Map[Field, scala.collection.mutable.Set[Field]]
+
   /**
     * Add the dependencies of a field to a graph
     *
@@ -214,15 +215,38 @@ object SimpleFeatureConverter {
     * @param fields field lookup map
     * @param dag graph
     */
-  def addDependencies(field: Field,
-                      fields: Map[String, Field],
-                      dag: DirectedMultigraph[Field, (String, String)]): Unit = {
-    if (dag.addVertex(field)) {
+  def addDependencies(field: Field, fields: Map[String, Field], dag: Dag): Unit = {
+    if (!dag.contains(field)) {
+      val deps = scala.collection.mutable.Set.empty[Field]
+      dag.put(field, deps)
+      // TODO detect circular deps in dependenciesOf
       Option(field.transform).toSeq.flatMap(_.dependenciesOf(fields)).flatMap(fields.get).foreach { dep =>
         addDependencies(dep, fields, dag)
-        dag.addEdge(dep, field, (dep.name, field.name))
+        deps.add(dep)
       }
     }
+  }
+
+  /**
+    * Returns vertices in topological order.
+    *
+    * Note: will cause an infinite loop if there are circular dependencies
+    *
+    * @param dag graph
+    * @return ordered vertices
+    */
+  def topologicalOrder(dag: Dag): IndexedSeq[Field] = {
+    val res = ArrayBuffer.empty[Field]
+    val remaining = dag.keys.to[scala.collection.mutable.Queue]
+    while (remaining.nonEmpty) {
+      val next = remaining.dequeue()
+      if (dag(next).forall(res.contains)) {
+        res.append(next)
+      } else {
+        remaining.enqueue(next) // put at the back of the queue
+      }
+    }
+    res.toIndexedSeq
   }
 }
 
@@ -255,10 +279,10 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     }
 
   private val requiredFields: IndexedSeq[Field] = {
-    import SimpleFeatureConverter.addDependencies
+    import SimpleFeatureConverter.{addDependencies, topologicalOrder}
 
     val fieldNameMap = inputFields.map(f => (f.name, f)).toMap
-    val dag = new DirectedMultigraph[Field, (String, String)](classOf[(String, String)])
+    val dag = scala.collection.mutable.Map.empty[Field, scala.collection.mutable.Set[Field]]
 
     // compute only the input fields that we need to deal with to populate the simple feature
     targetSFT.getAttributeDescriptors.foreach { ad =>
@@ -270,7 +294,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     others.flatMap(fieldNameMap.get).foreach(addDependencies(_, fieldNameMap, dag))
 
     // use a topological ordering to ensure that dependencies are evaluated before the fields that require them
-    new TopologicalOrderIterator(dag).toIndexedSeq
+    topologicalOrder(dag)
   }
 
   private val nfields = requiredFields.length
