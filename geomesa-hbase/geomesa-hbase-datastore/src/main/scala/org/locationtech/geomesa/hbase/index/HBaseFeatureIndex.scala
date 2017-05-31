@@ -67,7 +67,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
     val admin = ds.connection.getAdmin
-    val coproUrl: Option[Path] = Option(ds.config.coprocessorUrl).orElse{
+    val coproUrl: Option[Path] = ds.config.coprocessorUrl.orElse{
       GeoMesaSystemProperties.SystemProperty("geomesa.hbase.coprocessor.path", null).option.map(new Path(_))
     }
 
@@ -87,7 +87,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
     try {
       if (!admin.tableExists(name)) {
-        logger.info(s"Creating table $name")
+        logger.debug(s"Creating table $name")
         val descriptor = new HTableDescriptor(name)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
         Option(admin.getConfiguration.get(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY)) match {

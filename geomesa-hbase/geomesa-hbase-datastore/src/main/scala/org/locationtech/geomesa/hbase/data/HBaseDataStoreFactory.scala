@@ -76,7 +76,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       if (security) {
        Some(HBaseDataStoreFactory.buildAuthsProvider(connection, params))
       } else None
-    val coprocessorUrl = CoprocessorUrl.lookupWithDefault[Path](params)
+    val coprocessorUrl = CoprocessorUrl.lookupOpt[Path](params)
 
     val config = HBaseDataStoreConfig(catalog, remoteFilters, generateStats, audit, queryThreads, queryTimeout,
       maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl)
@@ -117,7 +117,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 object HBaseDataStoreParams {
   val BigTableNameParam    = new Param("bigtable.table.name", classOf[String], "Table name", true)
   val ConnectionParam      = new Param("connection", classOf[Connection], "Connection", false)
-  val CoprocessorUrl       = new Param("coprocessor.url", classOf[Path], "Coprocessor Url", false, Option[Path])
+  val CoprocessorUrl       = new Param("coprocessor.url", classOf[Path], "Coprocessor Url", false, null)
   val RemoteFiltersParam   = new Param("remote.filtering", classOf[java.lang.Boolean], "Remote filtering", false)
   val LooseBBoxParam       = GeoMesaDataStoreFactory.LooseBBoxParam
   val QueryThreadsParam    = GeoMesaDataStoreFactory.QueryThreadsParam
@@ -150,7 +150,7 @@ object HBaseDataStoreFactory {
                                   looseBBox: Boolean,
                                   caching: Boolean,
                                   authProvider: Option[AuthorizationsProvider],
-                                  coprocessorUrl: Path) extends GeoMesaDataStoreConfig
+                                  coprocessorUrl: Option[Path]) extends GeoMesaDataStoreConfig
 
   // check that the hbase-site.xml does not have bigtable keys
   def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean = {

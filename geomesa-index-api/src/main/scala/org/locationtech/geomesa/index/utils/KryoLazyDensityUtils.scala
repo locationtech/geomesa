@@ -39,24 +39,24 @@ class KryoLazyDensityUtils(options: Map[String, String], sft: SimpleFeatureType)
 
   def newDensityResult: DensityResult = mutable.Map.empty[(Int, Int), Double]
 
-  def weightFn(sf: SimpleFeature): Double = {
+  val weightFn: (SimpleFeature) => Double = {
     if (weightIndex == -2) {
-      1.0
+      (_) => 1.0
     } else if (weightIndex == -1) {
       val expression = ECQL.toExpression(options(WEIGHT_OPT))
-      getWeightFromExpression(expression)(sf)
+      getWeightFromExpression(expression)
     } else if (sft.getDescriptor(weightIndex).getType.getBinding == classOf[java.lang.Double]) {
-      getWeightFromDouble(weightIndex)(sf)
+      getWeightFromDouble(weightIndex)
     } else {
-      getWeightFromNonDouble(weightIndex)(sf)
+      getWeightFromNonDouble(weightIndex)
     }
   }
 
-  def writeGeom(sf: SimpleFeature, result: DensityResult): Unit = {
+  val writeGeom: (SimpleFeature, DensityResult) => Unit = {
     if (sft.isPoints) {
-      writePoint(sf, weightFn(sf), result)
+      (sf, result) => writePoint(sf, weightFn(sf), result)
     } else {
-      writeNonPoint(sf.getDefaultGeometry.asInstanceOf[Geometry], weightFn(sf), result)
+      (sf, result) => writeNonPoint(sf.getDefaultGeometry.asInstanceOf[Geometry], weightFn(sf), result)
     }
   }
 
