@@ -10,7 +10,7 @@ package org.locationtech.geomesa.api
 
 import java.lang.Iterable
 import java.util
-import java.util.{Date, List => JList}
+import java.util.Date
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.vividsolutions.jts.geom.Geometry
@@ -23,6 +23,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
@@ -53,12 +54,9 @@ abstract class BaseBigTableIndex[T](protected val ds: GeoMesaDataStore[_,_,_],
       })
 
   override def query(query: GeoMesaQuery): Iterable[T] = {
-    import org.locationtech.geomesa.utils.geotools.Conversions._
-
     import scala.collection.JavaConverters._
 
-    fs.getFeatures(query.getFilter)
-      .features()
+    SelfClosingIterator(fs.getFeatures(query.getFilter).features)
       .map { f => serde.fromBytes(f.getAttribute(1).asInstanceOf[Array[Byte]]) }
       .toIterable.asJava
   }

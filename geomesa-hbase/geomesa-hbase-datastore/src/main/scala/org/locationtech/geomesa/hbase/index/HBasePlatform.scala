@@ -27,7 +27,7 @@ trait HBasePlatform extends HBaseFeatureIndex {
                                                hints: Hints,
                                                ranges: Seq[Query],
                                                table: TableName,
-                                               hbaseFilters: Seq[HFilter],
+                                               hbaseFilters: Seq[(Int, HFilter)],
                                                coprocessor: Option[Coprocessor],
                                                toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
     coprocessor match {
@@ -45,8 +45,8 @@ trait HBasePlatform extends HBaseFeatureIndex {
     }
   }
 
-  private def configureGet(originalRanges: Seq[Query], hbaseFilters: Seq[HFilter]): Seq[Scan] = {
-    val filterList = new FilterList(hbaseFilters: _*)
+  private def configureGet(originalRanges: Seq[Query], hbaseFilters: Seq[(Int, HFilter)]): Seq[Scan] = {
+    val filterList = new FilterList(hbaseFilters.sortBy(_._1).map(_._2): _*)
     // convert Gets to Scans for Spark SQL compatibility
     originalRanges.map { r =>
       val g = r.asInstanceOf[Get]
@@ -56,8 +56,13 @@ trait HBasePlatform extends HBaseFeatureIndex {
     }
   }
 
-  private def configureMultiRowRangeFilter(ds: HBaseDataStore, originalRanges: Seq[Query], hbaseFilters: Seq[HFilter]) = {
+  private def configureMultiRowRangeFilter(ds: HBaseDataStore,
+                                           originalRanges: Seq[Query],
+                                           hbaseFilters: Seq[(Int, HFilter)]) = {
     import scala.collection.JavaConversions._
+
+    val sortedFilters = hbaseFilters.sortBy(_._1).map(_._2)
+
     val rowRanges = Lists.newArrayList[RowRange]()
     originalRanges.foreach { r =>
       rowRanges.add(new RowRange(r.asInstanceOf[Scan].getStartRow, true, r.asInstanceOf[Scan].getStopRow, false))
@@ -76,8 +81,8 @@ trait HBasePlatform extends HBaseFeatureIndex {
       // currently, this constructor will call sortAndMerge a second time
       // this is unnecessary as we have already sorted and merged above
       val mrrf = new MultiRowRangeFilter(localRanges)
-      val filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, mrrf)
-      hbaseFilters.foreach { f => filterList.addFilter(f) }
+      // note: mrrf first priority
+      val filterList = new FilterList(sortedFilters.+:(mrrf): _*)
 
       val s = new Scan()
       s.setStartRow(localRanges.head.getStartRow)

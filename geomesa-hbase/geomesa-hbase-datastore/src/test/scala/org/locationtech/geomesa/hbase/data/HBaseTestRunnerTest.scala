@@ -37,7 +37,7 @@ class HBaseTestRunnerTest extends Specification with LazyLogging {
     logger.info("Starting embedded hbase")
     cluster.getConfiguration.set("hbase.superuser", "admin")
     cluster.getConfiguration.set(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY,
-      classOf[KryoLazyDensityCoprocessor].getName)
+      classOf[KryoLazyDensityCoprocessor].getCanonicalName)
     cluster.startMiniCluster(1)
     connection = cluster.getConnection
     logger.info("Started embedded hbase")

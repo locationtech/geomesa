@@ -19,6 +19,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.joda.time.DateTime.Property
 import org.locationtech.geomesa.process.GeoMesaProcess
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.opengis.feature.simple.SimpleFeature
 
@@ -70,7 +71,7 @@ class Point2PointProcess extends GeoMesaProcess {
     val builder = new SimpleFeatureBuilder(sft)
 
     val lineFeatures =
-      data.features().toList
+      SelfClosingIterator(data.features()).toList
         .groupBy(_.get(groupingFieldIndex).asInstanceOf[String])
         .filter { case (_, coll) => coll.size > minPoints }
         .flatMap { case (group, coll) =>

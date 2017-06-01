@@ -299,7 +299,10 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     ec.counter.incLineCount()
 
     val attributes = try { fromInputType(i) } catch {
-      case e: Exception => logger.warn(s"Failed to parse input '$i'", e); Seq.empty
+      case e: Exception =>
+        logger.warn(s"Failed to parse input '$i'", e)
+        ec.counter.incFailure()
+        Seq.empty
     }
 
     val (failures, successes) = attributes.map(convert(_, ec)).partition(_ == null)

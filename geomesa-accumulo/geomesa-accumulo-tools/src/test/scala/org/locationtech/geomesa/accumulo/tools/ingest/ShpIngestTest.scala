@@ -21,7 +21,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
 import org.locationtech.geomesa.index.stats.AttributeBounds
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -75,7 +75,7 @@ class ShpIngestTest extends Specification {
 
       val fs = command.withDataStore(_.getFeatureSource("shpingest"))
 
-      fs.getFeatures.features().toList must haveLength(2)
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
       val bounds = fs.getBounds
       bounds.getMinX mustEqual minX
@@ -96,7 +96,7 @@ class ShpIngestTest extends Specification {
 
       val fs = command.withDataStore(_.getFeatureSource("changed"))
 
-      fs.getFeatures.features().toList must haveLength(2)
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
       val bounds = fs.getBounds
       bounds.getMinX mustEqual minX

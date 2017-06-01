@@ -48,7 +48,7 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
                                      hints: Hints,
                                      ranges: Seq[Query],
                                      table: TableName,
-                                     hbaseFilters: Seq[HFilter],
+                                     hbaseFilters: Seq[(Int, HFilter)],
                                      coprocessor: Option[Coprocessor],
                                      toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
     if (hbaseFilters.nonEmpty) {

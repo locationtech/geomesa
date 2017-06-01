@@ -17,9 +17,10 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
-import org.locationtech.geomesa.blob.api.handlers.{ByteArrayHandler, BlobStoreFileHandler}
+import org.locationtech.geomesa.blob.api.handlers.{BlobStoreFileHandler, ByteArrayHandler}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.filters.Filters
-import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, _}
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
@@ -71,7 +72,7 @@ abstract class GeoMesaGenericBlobStore(ds: DataStore, bs: BlobStore) extends Geo
   }
 
   override def getIds(query: Query): util.Iterator[String] = {
-    fs.getFeatures(query).features.map(_.get[String](IdFieldName))
+    SelfClosingIterator(fs.getFeatures(query).features).map(_.get[String](IdFieldName))
   }
 
   override def close(): Unit = {

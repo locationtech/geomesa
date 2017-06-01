@@ -17,7 +17,7 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.Feature
 
 import scala.collection.JavaConverters._
@@ -99,7 +99,7 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
 
     // create a new Feature collection to hold the results of the KNN search around each point
     val resultCollection = new DefaultFeatureCollection
-    val searchFeatureIterator = new RichSimpleFeatureIterator(inputFeatures.features())
+    val searchFeatureIterator = SelfClosingIterator(inputFeatures.features())
 
     // for each entry in the inputFeatures collection:
     while (searchFeatureIterator.hasNext) {

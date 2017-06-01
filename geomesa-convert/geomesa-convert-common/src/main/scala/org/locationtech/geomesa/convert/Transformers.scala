@@ -47,7 +47,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     private val OPEN_PAREN  = "("
     private val CLOSE_PAREN = ")"
 
-    def decimal     = """\d*\.\d+""".r
+    def decimal     = """-?\d*\.\d+""".r
     def string      = quotedString         ^^ { s => LitString(s)            }
     def int         = wholeNumber          ^^ { i => LitInt(i.toInt)         }
     def double      = decimal <~ "[dD]?".r ^^ { d => LitDouble(d.toDouble)   }

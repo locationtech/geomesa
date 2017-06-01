@@ -25,8 +25,10 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
+
+  sequential
+
   "SQL spatial relationships" should {
-    sequential
 
     val geomFactory = JTSFactoryFinder.getGeometryFactory
 

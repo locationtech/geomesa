@@ -14,7 +14,7 @@ import java.util.zip.Deflater
 import org.apache.avro.file.{CodecFactory, DataFileWriter}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.utils.geotools.Conversions
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -39,12 +39,10 @@ class AvroDataFileWriter(os: OutputStream,
   AvroDataFile.setMetaData(dfw, sft)
   dfw.create(schema, os)
 
-  def append(fc: SimpleFeatureCollection): Unit = {
-    import Conversions._
-    fc.features().foreach(dfw.append)
-  }
+  def append(fc: SimpleFeatureCollection): Unit =
+    SelfClosingIterator(fc.features()).foreach(dfw.append)
 
-  def append(sf: SimpleFeature): Unit =  dfw.append(sf)
+  def append(sf: SimpleFeature): Unit = dfw.append(sf)
 
   override def close(): Unit = if (dfw != null) { dfw.close() }
 

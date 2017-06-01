@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -68,7 +68,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       results must haveLength(1)
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[String, Int]].asScala).head
@@ -102,7 +102,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       results must haveLength(1)
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[String, Int]].asScala).head
@@ -133,7 +133,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and " +
           "BBOX(geom, -78.598118, 37.992204, -78.337364, 38.091238)")
 
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       results must haveLength(1)
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[String, Int]].asScala).head
@@ -154,7 +154,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 
       val results = fs.getFeatures(q)
 
-      val features = results.features().toList
+      val features = SelfClosingIterator(results.features).toList
       features must beEmpty
     }
 
@@ -175,15 +175,15 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and " +
           "BBOX(geom, -78.598118, 37.992204, -78.337364, 38.091238)")
 
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       results must haveLength(1)
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[String, Int]].asScala).head
 
-      aggregated("a") mustEqual(10)
-      aggregated("b") mustEqual(6)
-      aggregated("c") mustEqual(15)
-      aggregated("d") mustEqual(3)
+      aggregated("a") mustEqual 10
+      aggregated("b") mustEqual 6
+      aggregated("c") mustEqual 15
+      aggregated("d") mustEqual 3
     }
   }
 }
@@ -221,7 +221,7 @@ class MapAggregatingIteratorDoubleTest extends Specification with TestWithDataSt
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       results must haveLength(1)
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[Double, Int]].asScala).head

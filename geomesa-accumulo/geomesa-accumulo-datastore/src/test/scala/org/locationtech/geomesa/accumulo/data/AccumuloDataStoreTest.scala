@@ -213,7 +213,6 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }.pendingUntilFixed
 
     "create and retrieve a schema without a geometry" in {
-      import org.locationtech.geomesa.utils.geotools.Conversions._
 
       val sft = createNewSchema("name:String", dtgField = None)
 
@@ -234,11 +233,11 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val ids = fs.addFeatures(fc)
       ids.map(_.getID).find(_ != "fid1").foreach(f2.setId)
 
-      fs.getFeatures(Filter.INCLUDE).features().toList must containTheSameElementsAs(List(f, f2))
-      fs.getFeatures(ECQL.toFilter("IN('fid1')")).features().toList mustEqual List(f)
-      fs.getFeatures(ECQL.toFilter("name = 'my name'")).features().toList mustEqual List(f)
-      fs.getFeatures(ECQL.toFilter("name = 'my other name'")).features().toList mustEqual List(f2)
-      fs.getFeatures(ECQL.toFilter("name = 'false'")).features().toList must beEmpty
+      SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toList must containTheSameElementsAs(List(f, f2))
+      SelfClosingIterator(fs.getFeatures(ECQL.toFilter("IN('fid1')")).features).toList mustEqual List(f)
+      SelfClosingIterator(fs.getFeatures(ECQL.toFilter("name = 'my name'")).features).toList mustEqual List(f)
+      SelfClosingIterator(fs.getFeatures(ECQL.toFilter("name = 'my other name'")).features).toList mustEqual List(f2)
+      SelfClosingIterator(fs.getFeatures(ECQL.toFilter("name = 'false'")).features).toList must beEmpty
 
       ds.removeSchema(sft.getTypeName)
       ds.getSchema(sft.getTypeName) must beNull
@@ -253,7 +252,6 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "provide ability to write using the feature source and read what it wrote" in {
-      import org.locationtech.geomesa.utils.geotools.Conversions._
 
       // compose a CQL query that uses a reasonably-sized polygon for searching
       val cqlFilter = CQL.toFilter(s"BBOX(geom, 44.9,48.9,45.1,49.1)")
@@ -261,7 +259,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       // Let's read out what we wrote.
       val results = ds.getFeatureSource(defaultTypeName).getFeatures(query)
-      val features = results.features.toList
+      val features = SelfClosingIterator(results.features).toList
 
       "results schema should match" >> { results.getSchema mustEqual defaultSft }
       "geometry should be set" >> { forall(features)(_.getDefaultGeometry mustEqual defaultGeom) }

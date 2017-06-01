@@ -16,9 +16,8 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.locationtech.geomesa.spark.SpatialRDD
-import org.locationtech.geomesa.spark.SpatialRDDProvider
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.SimpleFeature
@@ -39,9 +38,10 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
                    query: Query): SpatialRDD = {
     val ds = DataStoreFinder.getDataStore(params)
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-    val rdd = sc.parallelize(fr.toIterator.toSeq)
+    val sft = fr.getFeatureType
+    val rdd = sc.parallelize(SelfClosingIterator(fr).toList)
     ds.dispose()
-    SpatialRDD(rdd, fr.getFeatureType)
+    SpatialRDD(rdd, sft)
   }
 
   /**

@@ -33,6 +33,8 @@ class Z3HBaseFilter(filt: Z3Filter, offset: Int) extends FilterBase with LazyLog
 }
 
 object Z3HBaseFilter extends LazyLogging {
+  val Priority = 20
+
   @throws[DeserializationException]
   def parseFrom(pbBytes: Array[Byte]): Filter = {
     logger.debug("Deserializing Z3HBaseFilter")
@@ -61,6 +63,8 @@ class Z2HBaseFilter(filt: Z2Filter, offset: Int) extends FilterBase with LazyLog
 }
 
 object Z2HBaseFilter extends LazyLogging {
+  val Priority = 20
+
   @throws[DeserializationException]
   def parseFrom(pbBytes: Array[Byte]): Filter = {
     logger.debug("Deserializing Z2HBaseFilter")
