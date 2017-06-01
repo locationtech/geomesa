@@ -37,7 +37,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService with KryoLazyDensityUtils {
+class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService {
 
   import KryoLazyDensityCoprocessor._
 
@@ -63,8 +63,10 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
     val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
     val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
+    val densityUtils = new KryoLazyDensityUtils {}
+    val densityResult: DensityResult = densityUtils.initialize(options, sft)
 
-    def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
+    def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = densityUtils.writeGeom(sf, result)
 
     val response: DensityResponse = try {
 
@@ -83,7 +85,6 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       }
 
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-      val densityResult: DensityResult = initialize(options, sft)
 
       scanList.foreach(scan => {
         scan.setFilter(filterList)

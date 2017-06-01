@@ -61,7 +61,7 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
    * We write the geometry at the center of the zbox that this row represents
    */
   override def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
-    case p: Point => writeNonPoint(p, weight, result)
+    case p: Point => writePointToResult(p, weight, result)
     case _ =>
       val row = topKey.getRowData
       val zOffset = row.offset() + 3 // two for week and 1 for split
