@@ -32,7 +32,9 @@ trait Field {
   def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transform.eval(args)
 }
 
-case class SimpleField(name: String, transform: Transformers.Expr) extends Field
+case class SimpleField(name: String, transform: Transformers.Expr) extends Field {
+  override def toString: String = s"$name = $transform"
+}
 
 object StandardOption extends Enumeration {
   type StandardOption = Value
@@ -206,24 +208,20 @@ trait SimpleFeatureConverter[I] extends Closeable {
 
 object SimpleFeatureConverter {
 
-  type Dag = scala.collection.mutable.Map[Field, scala.collection.mutable.Set[Field]]
+  type Dag = scala.collection.mutable.Map[Field, Set[Field]]
 
   /**
     * Add the dependencies of a field to a graph
     *
     * @param field field to add
-    * @param fields field lookup map
+    * @param fieldMap field lookup map
     * @param dag graph
     */
-  def addDependencies(field: Field, fields: Map[String, Field], dag: Dag): Unit = {
+  def addDependencies(field: Field, fieldMap: Map[String, Field], dag: Dag): Unit = {
     if (!dag.contains(field)) {
-      val deps = scala.collection.mutable.Set.empty[Field]
+      val deps = Option(field.transform).toSeq.flatMap(_.dependenciesOf(Set(field), fieldMap)).toSet
       dag.put(field, deps)
-      // TODO detect circular deps in dependenciesOf
-      Option(field.transform).toSeq.flatMap(_.dependenciesOf(fields)).flatMap(fields.get).foreach { dep =>
-        addDependencies(dep, fields, dag)
-        deps.add(dep)
-      }
+      deps.foreach(addDependencies(_, fieldMap, dag))
     }
   }
 
@@ -282,7 +280,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     import SimpleFeatureConverter.{addDependencies, topologicalOrder}
 
     val fieldNameMap = inputFields.map(f => (f.name, f)).toMap
-    val dag = scala.collection.mutable.Map.empty[Field, scala.collection.mutable.Set[Field]]
+    val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
 
     // compute only the input fields that we need to deal with to populate the simple feature
     targetSFT.getAttributeDescriptors.foreach { ad =>
@@ -290,8 +288,8 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     }
 
     // add id field and user data deps - these will be evaluated last so we only need to add their deps
-    val others = (userDataBuilder.values.toSeq :+ idBuilder).flatMap(_.dependenciesOf(fieldNameMap))
-    others.flatMap(fieldNameMap.get).foreach(addDependencies(_, fieldNameMap, dag))
+    val others = (userDataBuilder.values.toSeq :+ idBuilder).flatMap(_.dependenciesOf(Set.empty, fieldNameMap))
+    others.foreach(addDependencies(_, fieldNameMap, dag))
 
     // use a topological ordering to ensure that dependencies are evaluated before the fields that require them
     topologicalOrder(dag)

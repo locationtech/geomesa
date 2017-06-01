@@ -575,5 +575,59 @@ class DelimitedTextConverterTest extends Specification {
       converted.head.getUserData.toMap mustEqual
           Map("my.first.key" -> "myfid", "my.second.key" -> "foo", "my.third.key" -> "myfidhello myfid")
     }
+
+    "detect circular dependencies" >> {
+      val sft = SimpleFeatureTypes.createType("test", "hello:String,*geom:Point:srid=4326")
+
+      val conf1 = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "$1",
+          |   fields = [
+          |     { name = "hello",  transform = "concat('hello ', $hello)" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val conf2 = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "$1",
+          |   fields = [
+          |     { name = "goodbye", transform = "concat('goodbye ', $hello)" },
+          |     { name = "hello",   transform = "concat('hello ', $goodbye)" },
+          |     { name = "lat",     transform = "$3::double" },
+          |     { name = "lon",     transform = "$4::double" },
+          |     { name = "geom",    transform = "point($lat, $lon)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val conf3 = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "$1",
+          |   fields = [
+          |     { name = "nihao", transform = "concat('ni hao ', $hello)" },
+          |     { name = "hola",  transform = "concat('hola ', $nihao)" },
+          |     { name = "hello", transform = "concat('hello ', $hola)" },
+          |     { name = "geom",  transform = "point($3::double, $$4::double)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      foreach(Seq(conf1, conf2, conf3)) { conf =>
+        SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
+      }
+    }
   }
 }
