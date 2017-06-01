@@ -23,19 +23,19 @@ case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform {
   override protected def createPushDownFilters(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
-                                               transform: Option[(String, SimpleFeatureType)]): Seq[HFilter] = {
+                                               transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = {
     val z2Filter = Z2Index.currentProcessingValues.map { case Z2ProcessingValues(_, bounds) =>
       configureZ2PushDown(bounds)
     }
     super.createPushDownFilters(ds, sft, filter, transform) ++ z2Filter.toSeq
   }
 
-  private def configureZ2PushDown(xy: Seq[(Double, Double, Double, Double)]): HFilter = {
+  private def configureZ2PushDown(xy: Seq[(Double, Double, Double, Double)]): (Int, HFilter) = {
     val normalizedXY = xy.map { case (xmin, ymin, xmax, ymax) =>
       Array(Z2SFC.lon.normalize(xmin), Z2SFC.lat.normalize(ymin), Z2SFC.lon.normalize(xmax), Z2SFC.lat.normalize(ymax))
     }.toArray
 
-    new Z2HBaseFilter(new Z2Filter(normalizedXY, 1, 8))
+    (Z2HBaseFilter.Priority, new Z2HBaseFilter(new Z2Filter(normalizedXY, 1, 8)))
   }
 }
 
