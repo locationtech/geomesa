@@ -13,14 +13,12 @@ import java.nio.ByteBuffer
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import org.locationtech.sfcurve.zorder.Z2
 
-class Z2Filter(val xyvals: Array[Array[Int]],
-               val zOffset: Int,
-               val zLength: Int) extends java.io.Serializable {
+class Z2Filter(val xyvals: Array[Array[Int]], val zLength: Int) extends java.io.Serializable {
 
-  val rowToZ: (Array[Byte]) => Long = Z2Filter.getRowToZ(zOffset, zLength)
+  val rowToZ: (Array[Byte], Int) => Long = Z2Filter.getRowToZ(zLength)
 
-  def inBounds(buf: Array[Byte]): Boolean = {
-    val keyZ = rowToZ(buf)
+  def inBounds(buf: Array[Byte], offset: Int): Boolean = {
+    val keyZ = rowToZ(buf, offset)
     pointInBounds(keyZ)
   }
 
@@ -40,26 +38,26 @@ class Z2Filter(val xyvals: Array[Array[Int]],
 }
 
 object Z2Filter {
-  def getRowToZ(offset: Int, length: Int): (Array[Byte]) => Long = {
-    val z0 = offset
-    val z1 = offset + 1
-    val z2 = offset + 2
-    val z3 = offset + 3
-    val z4 = offset + 4
-    val z5 = offset + 5
-    val z6 = offset + 6
-    val z7 = offset + 7
-
+  def getRowToZ(length: Int): (Array[Byte], Int) => Long = {
     if (length == 8) {
-      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), b(z3), b(z4), b(z5), b(z6), b(z7))
-    } else if (length == 3) {
-      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), 0, 0, 0, 0, 0)
+      zToRow8
     } else if (length == 4) {
-      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), b(z3), 0, 0, 0, 0)
+      zToRow4
+    } else if (length == 3) {
+      zToRow3
     } else {
       throw new IllegalArgumentException(s"Unhandled number of bytes for z value: $length")
     }
   }
+
+  private def zToRow8(b: Array[Byte], i: Int): Long =
+    Longs.fromBytes(b(i), b(i + 1), b(i + 2), b(i + 3), b(i + 4), b(i + 5), b(i + 6), b(i + 7))
+
+  private def zToRow4(b: Array[Byte], i: Int): Long =
+    Longs.fromBytes(b(i), b(i + 1), b(i + 2), b(i + 3), 0, 0, 0, 0)
+
+  private def zToRow3(b: Array[Byte], i: Int): Long =
+    Longs.fromBytes(b(i), b(i + 1), b(i + 2), 0, 0, 0, 0, 0)
 
   def toByteArray(f: Z2Filter): Array[Byte] = {
     val boundsLength = f.xyvals.length
@@ -69,9 +67,7 @@ object Z2Filter {
         val ser = Bytes.concat(bounds.map { v => Ints.toByteArray(v) }: _*)
         Bytes.concat(Ints.toByteArray(length), ser)
       }
-    Bytes.concat(Ints.toByteArray(boundsLength), Bytes.concat(boundsSer: _*),
-      Ints.toByteArray(f.zOffset),
-      Ints.toByteArray(f.zLength))
+    Bytes.concat(Ints.toByteArray(boundsLength), Bytes.concat(boundsSer: _*), Ints.toByteArray(f.zLength))
   }
 
   def fromByteArray(a: Array[Byte]): Z2Filter = {
@@ -83,8 +79,7 @@ object Z2Filter {
         buf.getInt()
       }.toArray
     }.toArray
-    val zOffset = buf.getInt
     val zLength = buf.getInt
-    new Z2Filter(bounds, zOffset, zLength)
+    new Z2Filter(bounds, zLength)
   }
 }
