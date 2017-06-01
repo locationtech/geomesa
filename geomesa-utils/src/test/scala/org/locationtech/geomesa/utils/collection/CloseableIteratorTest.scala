@@ -96,6 +96,20 @@ class CloseableIteratorTest extends Specification with Mockito {
       val ci = CloseableIterator((1 to 50000).iterator)
       ci.flatMap(f).length should be equalTo 1
     }
+    "apply iterator with closeable" >> {
+      val closed = new CloseCounter()
+      val iter = new Iterator[String] with Closeable {
+        override def hasNext: Boolean = false
+        override def next(): String = Iterator.empty.next
+        override def close(): Unit = closed.close()
+      }
+      val closeable = SelfClosingIterator(iter)
+      closed.count mustEqual 0
+      closeable.hasNext must beFalse
+      closed.count mustEqual 1
+      closeable.close()
+      closed.count mustEqual 2
+    }
   }
 
   class CloseCounter(var count: Int = 0) extends Closeable {
