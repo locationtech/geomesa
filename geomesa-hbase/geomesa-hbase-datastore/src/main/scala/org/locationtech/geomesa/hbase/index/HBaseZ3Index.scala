@@ -26,7 +26,7 @@ case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
                                                transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val z3Filter = Z3Index.currentProcessingValues.map { case Z3ProcessingValues(sfc, _, xy, _, times) =>
-      val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard
+      val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard - note: currently sharing is always false
       configureZ3PushDown(sfc, xy, times, offset)
     }
     super.createPushDownFilters(ds, sft, filter, transform) ++ z3Filter.toSeq
