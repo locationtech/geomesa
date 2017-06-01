@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -18,7 +18,7 @@ import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
 import org.apache.hadoop.hbase.protobuf.generated.ClientProtos
 import org.apache.hadoop.hbase.protobuf.{ProtobufUtil, ResponseConverter}
-import org.apache.hadoop.hbase.regionserver.InternalScanner
+import org.apache.hadoop.hbase.regionserver.{InternalScanner, RegionScanner}
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
 import org.geotools.data.Base64
 import org.geotools.factory.Hints
@@ -33,22 +33,15 @@ import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureType
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService with KryoLazyDensityUtils {
+class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService {
 
   import KryoLazyDensityCoprocessor._
 
   private var env: RegionCoprocessorEnvironment = _
-  private var sft: SimpleFeatureType = _
-
-  def init(options: Map[String, String], sft: SimpleFeatureType): DensityResult = {
-    this.sft = sft
-    initialize(options, sft)
-  }
-
-  def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
 
   @throws[IOException]
   def start(env: CoprocessorEnvironment): Unit = {
@@ -67,47 +60,62 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   def getDensity(controller: RpcController,
                  request: KryoLazyDensityProto.DensityRequest,
                  done: RpcCallback[KryoLazyDensityProto.DensityResponse]): Unit = {
-    var scanner : InternalScanner = null
-    var filterList : FilterList = new FilterList()
+
+    val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
+    val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
+    val densityUtils = new KryoLazyDensityUtils {}
+    val densityResult: DensityResult = densityUtils.initialize(options, sft)
+
+    def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = densityUtils.writeGeom(sf, result)
 
     val response: DensityResponse = try {
-      val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
-      val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
-      var scanList : List[Scan] = List()
 
-      if (options.containsKey(SCAN_OPT)) {
-
+      val scanList: List[Scan] = if (options.containsKey(SCAN_OPT)) {
         val decoded = org.apache.hadoop.hbase.util.Base64.decode(options(SCAN_OPT))
         val clientScan = ClientProtos.Scan.parseFrom(decoded)
-        val scan = ProtobufUtil.toScan(clientScan)
-        scanList ::= scan
-
+        List(ProtobufUtil.toScan(clientScan))
       } else {
-        scanList ::= new Scan()
+        List(new Scan())
       }
 
-      if (options.containsKey(FILTER_OPT)) {
-        filterList = FilterList.parseFrom(Base64.decode(options(FILTER_OPT)))
+      val filterList: FilterList = if (options.containsKey(FILTER_OPT)) {
+        FilterList.parseFrom(Base64.decode(options(FILTER_OPT)))
+      } else {
+        new FilterList()
       }
 
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-      val densityResult: DensityResult = this.init(options, sft)
 
       scanList.foreach(scan => {
         scan.setFilter(filterList)
         // TODO: Explore use of MultiRangeFilter
-        scanner = env.getRegion.getScanner(scan)
-        val results = new java.util.ArrayList[Cell]
+        val scanner = env.getRegion.getScanner(scan)
 
-        var hasMore = false
-        do {
-          hasMore = scanner.next(results)
-          for (cell <- results) {
-            val sf = serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
-            aggregateResult(sf, densityResult)
+        try {
+          val results = new java.util.ArrayList[Cell]
+
+          def processResults() = {
+            for (cell <- results) {
+              val sf = serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
+              aggregateResult(sf, densityResult)
+            }
+            results.clear()
           }
-          results.clear()
-        } while (hasMore)
+
+          @tailrec
+          def readScanner(): Unit = {
+            if(scanner.next(results)) {
+              processResults()
+              readScanner()
+            } else {
+              processResults()
+            }
+          }
+
+          readScanner()
+        } catch {
+          case t: Throwable => throw t
+        } finally CloseQuietly(scanner)
       })
 
       val result: Array[Byte] = KryoLazyDensityUtils.encodeResult(densityResult)
@@ -120,18 +128,17 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
         throw cnfe
       case dse: DeserializationException =>
         throw dse
-    } finally CloseQuietly(scanner)
+    }
 
     done.run(response)
   }
 }
 
-object KryoLazyDensityCoprocessor extends KryoLazyDensityUtils {
+object KryoLazyDensityCoprocessor {
 
   private val SFT_OPT    = "sft"
   private val FILTER_OPT = "filter"
-  private val RANGES_OPT = "ranges"
-  private val SCAN_OPT = "scan"
+  private val SCAN_OPT   = "scan"
 
   /**
     * Creates an iterator config for the kryo density iterator
