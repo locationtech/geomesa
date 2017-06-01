@@ -78,7 +78,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
 
     val plans = getQueryPlans(sft, query, index, output)
-    var iterator = SelfClosingIterator(plans.iterator).ciFlatMap(p => p.scan(ds))
+    var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds))
 
     if (plans.exists(_.hasDuplicates)) {
       iterator = new DeduplicatingSimpleFeatureIterator(iterator)
