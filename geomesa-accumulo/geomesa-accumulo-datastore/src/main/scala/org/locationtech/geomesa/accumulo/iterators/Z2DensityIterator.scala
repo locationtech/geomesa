@@ -65,8 +65,8 @@ class Z2DensityIterator extends KryoLazyDensityIterator {
   /**
    * We write the geometry at the center of the zbox that this row represents
    */
-  def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
-    case p: Point => densityUtils.writeNonPoint(p, weight, result)
+  override def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
+    case p: Point => writeNonPoint(p, weight, result)
     case _ =>
       val row = topKey.getRowData
       val zOffset = row.offset() + zPrefix
@@ -77,7 +77,7 @@ class Z2DensityIterator extends KryoLazyDensityIterator {
       }
       val (x, y) = Z2SFC.invert(Z2(Longs.fromByteArray(zBytes)))
       val nWeight = normalizeWeight(weight)
-      densityUtils.writePointToResult(x, y, nWeight, result)
+      writePointToResult(x, y, nWeight, result)
   }
 }
 

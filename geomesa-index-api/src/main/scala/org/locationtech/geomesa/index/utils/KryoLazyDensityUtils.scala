@@ -22,43 +22,50 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 
 import scala.collection.mutable
 
-class KryoLazyDensityUtils(options: Map[String, String], sft: SimpleFeatureType) {
+trait KryoLazyDensityUtils {
 
   import KryoLazyDensityUtils._
 
-  val geomIndex: Int = Option(sft.getGeomIndex).getOrElse(-1)
-  // we snap each point into a pixel and aggregate based on that
-  val gridSnap = {
-    val bounds = options(ENVELOPE_OPT).split(",").map(_.toDouble)
-    val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
-    val Array(width, height) = options(GRID_OPT).split(",").map(_.toInt)
-    new GridSnap(envelope, width, height)
+  var geomIndex: Int = _
+  var gridSnap: GridSnap = _
+  var writeGeom: (SimpleFeature, DensityResult) => Unit = _
+
+  def initialize(options: Map[String, String], sft: SimpleFeatureType): DensityResult = {
+
+    geomIndex = Option(sft.getGeomIndex).getOrElse(-1)
+    // we snap each point into a pixel and aggregate based on that
+    gridSnap = {
+      val bounds = options(ENVELOPE_OPT).split(",").map(_.toDouble)
+      val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
+      val Array(width, height) = options(GRID_OPT).split(",").map(_.toInt)
+      new GridSnap(envelope, width, height)
+    }
+
+    // function to get the weight from the feature - defaults to 1.0 unless an attribute/exp is specified
+    val weightIndex = options.get(WEIGHT_OPT).map(sft.indexOf).getOrElse(-2)
+    val weightFn: (SimpleFeature) => Double = {
+      if (weightIndex == -2) {
+        (_) => 1.0
+      } else if (weightIndex == -1) {
+        val expression = ECQL.toExpression(options(WEIGHT_OPT))
+        getWeightFromExpression(expression)
+      } else if (sft.getDescriptor(weightIndex).getType.getBinding == classOf[java.lang.Double]) {
+        getWeightFromDouble(weightIndex)
+      } else {
+        getWeightFromNonDouble(weightIndex)
+      }
+    }
+
+    writeGeom = if (sft.isPoints) {
+        (sf, result) => writePoint(sf, weightFn(sf), result)
+      } else {
+        (sf, result) => writeNonPoint(sf.getDefaultGeometry.asInstanceOf[Geometry], weightFn(sf), result)
+      }
+
+    newDensityResult
   }
-  // function to get the weight from the feature - defaults to 1.0 unless an attribute/exp is specified
-  val weightIndex = options.get(WEIGHT_OPT).map(sft.indexOf).getOrElse(-2)
 
   def newDensityResult: DensityResult = mutable.Map.empty[(Int, Int), Double]
-
-  val weightFn: (SimpleFeature) => Double = {
-    if (weightIndex == -2) {
-      (_) => 1.0
-    } else if (weightIndex == -1) {
-      val expression = ECQL.toExpression(options(WEIGHT_OPT))
-      getWeightFromExpression(expression)
-    } else if (sft.getDescriptor(weightIndex).getType.getBinding == classOf[java.lang.Double]) {
-      getWeightFromDouble(weightIndex)
-    } else {
-      getWeightFromNonDouble(weightIndex)
-    }
-  }
-
-  val writeGeom: (SimpleFeature, DensityResult) => Unit = {
-    if (sft.isPoints) {
-      (sf, result) => writePoint(sf, weightFn(sf), result)
-    } else {
-      (sf, result) => writeNonPoint(sf.getDefaultGeometry.asInstanceOf[Geometry], weightFn(sf), result)
-    }
-  }
 
   /**
     * Gets the weight for a feature from a double attribute
@@ -103,16 +110,16 @@ class KryoLazyDensityUtils(options: Map[String, String], sft: SimpleFeatureType)
     writePointToResult(geom.safeCentroid(), weight, result)
   }
 
-  def writePointToResult(pt: Point, weight: Double, result: DensityResult): Unit =
+  protected def writePointToResult(pt: Point, weight: Double, result: DensityResult): Unit =
     writeSnappedPoint((gridSnap.i(pt.getX), gridSnap.j(pt.getY)), weight, result)
 
-  def writePointToResult(pt: Coordinate, weight: Double, result: DensityResult): Unit =
+  protected def writePointToResult(pt: Coordinate, weight: Double, result: DensityResult): Unit =
     writeSnappedPoint((gridSnap.i(pt.x), gridSnap.j(pt.y)), weight, result)
 
-  def writePointToResult(x: Double, y: Double, weight: Double, result: DensityResult): Unit =
+  protected def writePointToResult(x: Double, y: Double, weight: Double, result: DensityResult): Unit =
     writeSnappedPoint((gridSnap.i(x), gridSnap.j(y)), weight, result)
 
-  def writeSnappedPoint(xy: (Int, Int), weight: Double, result: DensityResult): Unit =
+  protected def writeSnappedPoint(xy: (Int, Int), weight: Double, result: DensityResult): Unit =
     result.update(xy, result.getOrElse(xy, 0.0) + weight)
 
 }
