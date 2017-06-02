@@ -155,7 +155,11 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
           } catch {
             case e: Exception =>
               // If there was an error creating a schema, clean up.
-              metadata.delete(sft.getTypeName)
+              try {
+                metadata.delete(sft.getTypeName)
+              } catch {
+                case e2: Throwable => e.addSuppressed(e2)
+              }
               throw e
           }
         }
