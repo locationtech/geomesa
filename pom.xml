@@ -2582,13 +2582,12 @@
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
-                            <validHeader>build/copyright/ccri-2016.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
-                            <validHeader>build/copyright/dstl-copyright.txt</validHeader>
+                            <validHeader>build/copyright/dstl-copyright-2016.txt</validHeader>
                             <validHeader>build/copyright/dstl-copyright-2017.txt</validHeader>
                             <validHeader>build/copyright/ccri-dstl-copyright.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl-copyright-2017.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-copyright-2016.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>2017</year>
