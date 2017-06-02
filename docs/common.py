@@ -130,6 +130,8 @@ rst_epilog = """
 
 .. |kafka_version| replace:: 0.8, 0.9, or 0.10
 
+.. |cassandra_version| replace:: 3.x
+
 """ % {"release": release,
        "release_1_2": release_1_2,
        "release_eclipse": release_eclipse,

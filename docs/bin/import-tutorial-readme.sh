@@ -69,6 +69,7 @@ geomesa-quickstart-hbase
 geomesa-quickstart-kafka
 geomesa-quickstart-nifi
 geomesa-quickstart-storm
+geomesa-quickstart-cassandra
     "
 else
     TUTORIALS="$@"

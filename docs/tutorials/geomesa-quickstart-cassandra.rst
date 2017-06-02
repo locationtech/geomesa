@@ -1,5 +1,5 @@
-GeoMesa Accumulo Quick Start
-============================
+GeoMesa Cassandra Quick Start
+=============================
 
 This tutorial is the fastest and easiest way to get started with
 GeoMesa. It is a good stepping-stone on the path to the other tutorials
@@ -9,13 +9,13 @@ In the spirit of keeping things simple, the code in this tutorial only
 does a few small things:
 
 1. establishes a new (static) SimpleFeatureType
-2. prepares the Accumulo table to store this type of data
-3. creates a few hundred example SimpleFeatures
-4. writes these SimpleFeatures to the Accumulo table
+2. prepares the Cassandra table to store this type of data
+3. creates 1000 SimpleFeatures
+4. writes these SimpleFeatures to the Cassandra table
 5. queries for a given geographic rectangle, time range, and attribute
    filter, writing out the entries in the result set
 
-The only dynamic element in the tutorial is the Accumulo destination;
+The only dynamic element in the tutorial is the Cassandra destination;
 that is a property that you provide on the command-line when running the
 code.
 
@@ -24,12 +24,28 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|,
--  an Accumulo user that has both create-table and write permissions,
--  the GeoMesa Accumulo distributed runtime installed for your Accumulo instance (see :ref:`install_accumulo_runtime` ),
--  a local copy of `Java JDK 8`_,
+-  an instance of Cassandra |cassandra_version| standalone or cluster,
+-  a Cassandra user that has both create-table and write permissions
+   (not needed for Cassandra standalone versions),
+-  a local copy of the `Java <http://java.oracle.com/>`__ JDK 8,
 -  Apache `Maven <http://maven.apache.org/>`__ installed, and
 -  a GitHub client installed.
+
+Create A Cassandra Namespace
+----------------------------
+
+You will need a namespace in Cassandra for the tutorial to create tables
+in. The Easiest way to do this is with the ``cqlsh`` tool provided with
+Cassandra distributions. Start cqlsh, then type:
+
+.. code-block:: bash
+
+    cqlsh>  CREATE KEYSPACE mykeyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor' : 3};
+
+This creates a key space called “mykeyspace”. This is a top-level name
+space within Cassandra and it will provide a place for GeoMesa to put
+all of its data, including data for spatial features and associated
+metadata.
 
 Download and Build the Tutorial
 -------------------------------
@@ -50,11 +66,11 @@ To build, run
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-quickstart-accumulo
+    $ mvn clean install -pl geomesa-quickstart-cassandra
 
 .. note::
 
-    Ensure that the version of Accumulo, Hadoop, etc in
+    Ensure that the version of Cassandra, Hadoop, etc in
     the root ``pom.xml`` match your environment.
 
 .. note::
@@ -77,42 +93,38 @@ On the command-line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-accumulo/target/geomesa-quickstart-accumulo-${geomesa.version}.jar \
-      com.example.geomesa.accumulo.AccumuloQuickStart \
-      -instanceId <instance>                          \
-      -zookeepers <zookeepers>                        \
-      -user <user>                                    \
-      -password <password>                            \
-      -tableName <table>
+    $ java -cp geomesa-quickstart-cassandra/target/geomesa-quickstart-cassandra-${geomesa.version}.jar \
+      com.example.geomesa.cassandra.CassandraQuickStart \
+      -contact_point <host:port>                        \
+      -keyspace <keyspace>                              \
+      -catalog_table <catalog_table>                    \
+      -username <username>                              \
+      -password <password>
 
 where you provide the following arguments:
 
--  ``<instance>`` the name of your Accumulo instance
--  ``<zookeepers>`` your Zookeeper nodes, separated by commas
--  ``<user>`` the name of an Accumulo user that has permissions to
-   create, read and write tables
--  ``<password>`` the password for the previously-mentioned Accumulo
-   user
--  ``<table>`` the name of the destination table that will accept these
-   test records; this table should either not exist or should be empty
-
-.. warning::
-
-    If you have set up the GeoMesa Accumulo distributed
-    runtime to be isolated within a namespace (see
-    :ref:`install_accumulo_runtime_namespace`) the value of ``<table>``
-    should include the namespace (e.g. ``myNamespace.geomesa``).
-
-The Accumulo QuickStart allows you to delete the created tables upon
-successful completion of the QuickStart. Use the flag ``-deleteTables``
-without an argument to specify that the tables should be deleted.
+-  ``<host:port>`` the hostname and port your Cassandra instance is
+   running on. For Cassandra standalong this is localhost:9042.\ `More
+   info on how to find this information
+   here <http://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__
+-  ``<keyspace>`` keyspace your table will be put into. `More info on
+   how to setup keyspaces
+   here <http://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__
+-  ``<catalog_table>`` the name of the destination table that will
+   accept these test records; this table should either not exist or
+   should be empty
+-  ``<user>`` (optional) the name of a Cassandra user that has
+   permissions to create, read and write tables
+-  ``<password>`` (optional) the password for the previously-mentioned
+   Cassandra user
 
 You should see output similar to the following (not including some of
 Maven's output and log4j's warnings):
 
 ::
 
-    Creating feature-type (schema):  QuickStart
+    New Cassandra host /127.0.0.1:9042 added
+    Creating feature-type (schema):  CassandraQuickStart
     Creating new features
     Inserting new features
     Submitting query
@@ -143,18 +155,28 @@ profile:
 
 .. code-block:: bash
 
-    $ mvn -Plive-test exec:exec -DinstanceId=<instance> -Dzookeepers=<zookeepers> -Duser=<user> -Dpassword=<password> -DtableName=<tableName>
+    $ mvn -pl geomesa-quckstart-cassandra -Plive-test exec:exec -Dcontact_point=<host:port> -Dkeyspace=<keyspace> -Dcatalog_table=<catalog_table> -Dusername=<username> -Dpassword=<password> 
+
+Similarly, the ``username`` and ``password`` are not required here and
+if you are using a Cassandra standalone instance with the example
+namespace setup in "`Connecting to
+Cassandra <http://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__\ "
+then you may simply run:
+
+.. code-block:: bash
+
+    $ mvn -pl geomesa-quckstart-cassandra -Plive-test exec:exec
 
 Looking at the Code
 -------------------
 
 The source code is meant to be accessible for this tutorial, but here is
-a high-level breakdown of the methods in the ``AccumuloQuickStart``
+a high-level breakdown of the methods in the ``CassandraQuickStart``
 class that are relevant:
 
 -  ``getCommonRequiredOptions`` helper code to establish the
-   command-line parser for Accumulo options
--  ``getAccumuloDataStoreConf`` create a ``HashMap`` of Accumulo
+   command-line parser for Cassandra options
+-  ``getCassandraDataStoreConf`` create a ``HashMap`` of Cassandra
    parameters that will be used to fetch a ``DataStore``
 -  ``createSimpleFeatureType`` defines the custom ``FeatureType`` used
    in the tutorial. There are five fields: Who, What, When, Where, and
@@ -162,7 +184,7 @@ class that are relevant:
 -  ``createNewFeatures`` creates a collection of new features, each of
    which is initialized to some randomized set of values
 -  ``insertFeatures`` instructs the ``DataStore`` to write the
-   collection of new features to the GeoMesa-managed Accumulo table
+   collection of new features to the GeoMesa-managed Cassandra table
 -  ``createFilter`` given a set of geometric bounds, temporal bounds,
    and an optional attribute-only expression, construct a common query
    language (CQL) filter that embodies these constraints. This filter
@@ -173,7 +195,7 @@ class that are relevant:
    queries
 -  ``main`` this is the main entry point; it collects command-line
    parameters, builds the ``DataStore``, creates and inserts new
-   records, and then kicks off a single query
+   records, and then kicks off the queries
 
 Visualize Data With GeoServer
 -----------------------------
@@ -182,11 +204,12 @@ Register the GeoMesa store with GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Log into GeoServer using your user and password credentials. Click
-"Stores" and "Add new Store". If you do not see the Accumulo Feature
+"Stores" and "Add new Store". If you do not see the Cassandra Feature
 Data Store listed under Vector Data Sources, ensure the plugin is in the
-right directory and restart GeoServer.
+right directory and restart GeoServer. For instructions on how to
+install the GeoMesa plugin for GeoServer see :ref:`install_cassandra_geoserver`.
 
-Select the ``Accumulo (GeoMesa)`` vector data source, and enter the
+Select the ``Cassandra (GeoMesa)`` vector data source, and enter the
 following parameters:
 
 Basic store info:
@@ -200,15 +223,18 @@ Connection parameters:
 
 -  these are the same parameter values that you supplied on the
    command-line when you ran the tutorial; they describe how to connect
-   to the Accumulo instance where your data reside
+   to the Cassandra instance where your data reside.
+-  the ``geomesa.cassandra.username`` and ``geomesa.cassandra.password``
+   are required fields here. If you are using the Cassandra standalone,
+   use the default value of ``cassandra`` for both.
 
-Click "Save", and GeoServer will search your Accumulo table for any
+Click "Save", and GeoServer will search your Cassandra table for any
 GeoMesa-managed feature types.
 
 Publish the layer
 ~~~~~~~~~~~~~~~~~
 
-GeoServer should recognize the ``AccumuloQuickStart`` feature type, and
+GeoServer should recognize the ``CassandraQuickStart`` feature type, and
 should present that as a layer that could be published. Click on the
 "Publish" link.
 
@@ -248,10 +274,10 @@ documentation <http://docs.geoserver.org/2.9.1/user/services/wms/time.html>`__.
 Once you press ``<Enter>``, the display will update, and you should see
 a collection of red dots similar to the following image.
 
-.. figure:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png
-   :alt: Visualizing quick-start data
+.. figure:: _static/geomesa-quickstart-hbase/geoserver-layer-preview.png
+   :alt: Visualizing quickstart data
 
-   Visualizing quick-start data
+   Visualizing quickstart data
 
 Tweaking the display
 ~~~~~~~~~~~~~~~~~~~~
@@ -274,16 +300,3 @@ Here are just a few simple ways you can play with the visualization:
    about CQL from `GeoServer's CQL
    tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.
 
-Generating Heatmaps
-~~~~~~~~~~~~~~~~~~~
-
--  To try out the DensityIterator, you can install the Heatmap SLD from
-   the :doc:`geomesa-examples-gdelt` tutorial.
--  After configuring the SLD, in the URL, change ``styles=`` to be
-   ``styles=heatmap&density=true``. Once you press ``<Enter>``, the display will
-   change to a density heat-map.
-
-.. note::
-
-    For this to work, you will have to first install the WPS module for GeoServer
-    as described in :doc:`/user/geoserver`.
