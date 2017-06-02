@@ -60,11 +60,22 @@ Register the Coprocessors
 
 GeoMesa utilizes server side processing to accelerate some queries. Currently the only processing done server side is
 density (heatmap) calculations. In order to utilize this feature the GeoMesa coprocessor must be registered on all GeoMesa tables
-or registered site-wide and the ``geomesa-hbase-distributed-runtime`` code must be available on the classpath.
-There are a two currently supported ways to register the coprocessors, which are detailed later:
+or registered site-wide and the ``geomesa-hbase-distributed-runtime`` code must be available on the classpath or at an
+HDFS url, depending on the registration method used.
+
+There are a number of ways to register the coprocessors, which are detailed later.
+
+The following ways to register coprocessors can be done anytime and constitute the 'upgrade path', however, they may
+require HBase or tables to be taken offline.
 
  * :ref:`register_site-wide` using the ``hbase-site.xml``
  * :ref:`register_per-table` using the ``hbase shell``
+
+The following ways to register coprocessors must be done **before** the tables are created.
+
+ * :ref:`classpath-auto-registration`
+ * :ref:`system-property-registration`
+ * :ref:`datastore-param-registration`
 
 There are two ways to get the coprocessor code on the classpath.
 
@@ -178,6 +189,57 @@ To verify this worked successfully, run:
     36', REPLICATION_SCOPE => '0'}
     1 row(s) in 0.1940 seconds
 
+.. _classpath-auto-registration:
+
+Classpath Auto-Registration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the ``geomesa-hbase-distributed-runtime`` JAR is available on the HBase classpath when the table is created then the
+GeoMesa coprocessors will be automatically registered for that table.
+
+.. _system-property-registration:
+
+System Property or geomesa-site.xml
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These two methods are essentially the same as they utilize the same mechanism, but two different approaches.
+
+If the Java system property ``geomesa.hbase.coprocessor.path`` is set in the environment running the GeoMesa ingest
+then the HDFS or S3 URL provided as the value will be automatically registered in the table descriptor. There are three
+to do this.
+
+ * Set the system property in your shell environment using the ``JAVA_OPTS`` environment variable.
+
+.. code-block:: bash
+
+    export JAVA_OPTS="${JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=hdfs://path/to/geomesa-runtime.jar"
+
+ * Set the system property in the ``geomesa-env.sh`` script.
+
+.. code-block:: bash
+
+    setvar CUSTOM_JAVA_OPTS "${JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=hdfs://path/to/geomesa-runtime.jar"
+
+ * Set the system property using the ``geomesa-site.xml`` configuration file.
+
+.. code-block:: xml
+
+    <property>
+        <name>geomesa.hbase.coprocessor.path</name>
+        <value>hdfs://path/to/geomesa-runtime.jar</value>
+        <description>HDFS or local path to GeoMesa-HBase Coprocessor JAR. If a local path is provided it must be the same for
+            all region server. A path provided through the DataStore parameters will always override this property.
+        </description>
+        <final>false</final>
+    </property>
+
+.. _datastore-param-registration:
+
+DataStore Param Registration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you are using GeoMesa-HBase programmatically you can use the datastore parameter ``coprocessors.url`` to set an HDFS or
+S3 path to the ``geomesa-hbase-distributed-runtime`` JAR.
 
 For more information on managing coprocessors see
 `Coprocessor Introduction <https://blogs.apache.org/hbase/entry/coprocessor_introduction>`_ on Apache's Blog.
