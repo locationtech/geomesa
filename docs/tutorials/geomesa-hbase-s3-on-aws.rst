@@ -70,7 +70,7 @@ wish to increase or decrease the number of worker nodes or change the instance t
     $ export CID=$(
     aws emr create-cluster                                                         \
     --name "GeoMesa HBase on S3"                                                   \
-    --release-label emr-5.2.0                                                      \
+    --release-label emr-5.5.0                                                      \
     --output text                                                                  \
     --use-default-roles                                                            \
     --ec2-attributes KeyName=__KEY_NAME__,SubnetId=__SUBNET_ID__                   \
@@ -125,7 +125,7 @@ can utilize it, sets up the GeoMesa coprocessor registration among other adminis
 
 .. code-block:: shell
 
-   $ sudo /opt/geomesa-hbase_2.11-${VERSION}/bin/bootstrap-geomesa-hbase-aws.sh ${VERSION}
+   $ sudo /opt/geomesa-hbase_2.11-${VERSION}/bin/bootstrap-geomesa-hbase.sh
 
 Now, log out and back in and your environment will be set up appropriately.
 
@@ -133,7 +133,9 @@ Ingest Public GDELT data
 ------------------------
 
 GeoMesa ships with predefined data models for many open spatio-temporal data sets such as GDELT.  To ingest the most recent 7 days of `GDELT
-<http://www.gdeltproject.org>`_ from Amazon's public S3 bucket:
+<http://www.gdeltproject.org>`_ from Amazon's public S3 bucket, one can copy the files locally to the cluster or use a distributed ingest:
+
+Local ingest:
 
 .. code-block:: shell
 
@@ -142,24 +144,18 @@ GeoMesa ships with predefined data models for many open spatio-temporal data set
     $ seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d" | xargs -n 1 -I{} aws s3 cp  s3://gdelt-open-data/events/{}.export.csv .
     $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt \*.csv
 
+Distributed ingest:
+
+.. code-block:: shell
+
+    $ files=$(for x in `seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d"`; do echo "s3a://gdelt-open-data/events/$x.export.csv"; done)
+    $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt $files
+
 You can then query the data using the GeoMesa command line export tool.
 
 .. code-block:: shell
 
     $ geomesa-hbase export -c geomesa.gdelt -f gdelt -m 50
-
-.. note::
-
-    Currently GeoMesa HBase does not support ingest from S3 when using EMR clusters. There is a workaround that is enabled by adding the hbase-site.xml file to the classpath by inserting it into a jar:
-
-.. code-block:: shell
-
-    $ cd /opt/geomesa
-    $ cp /etc/hbase/conf/hbase-site.xml .
-    $ jar uf lib/geomesa-hbase-tools_2.11-${VERSION}.jar hbase-site.xml
-    $ files=$(for x in `seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d"`; do echo "s3a://gdelt-open-data/events/$x.export.csv"; done)
-    $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt $files
-
 
 Setup GeoMesa and SparkSQL
 --------------------------
