@@ -24,6 +24,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 trait Field {
   def name: String
@@ -31,7 +32,9 @@ trait Field {
   def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transform.eval(args)
 }
 
-case class SimpleField(name: String, transform: Transformers.Expr) extends Field
+case class SimpleField(name: String, transform: Transformers.Expr) extends Field {
+  override def toString: String = s"$name = $transform"
+}
 
 object StandardOption extends Enumeration {
   type StandardOption = Value
@@ -125,6 +128,8 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
     logger.info(s"Using ParseMode ${opts.parseMode} with validation mode ${opts.validationMode} and validator ${opts.validator.name}")
     opts
   }
+
+  // noinspection ScalaDeprecation
   protected def getValidator(conf: Config, sft: SimpleFeatureType): SimpleFeatureValidator = {
     val validators: Seq[String] =
       if (conf.hasPath(StandardOption.Validating.path) && conf.hasPath(StandardOption.ValidatorsOpt.path)) {
@@ -152,8 +157,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
       try {
         ParseMode.withName(modeStr)
       } catch {
-        case e: NoSuchElementException =>
-          throw new IllegalArgumentException(s"Unknown parse mode $modeStr")
+        case _: NoSuchElementException => throw new IllegalArgumentException(s"Unknown parse mode $modeStr")
       }
     } else {
       ParseMode.Default
@@ -165,8 +169,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
       try {
         ValidationMode.withName(modeStr)
       } catch {
-        case e: NoSuchElementException =>
-          throw new IllegalArgumentException(s"Unknown validation mode $modeStr")
+        case _: NoSuchElementException => throw new IllegalArgumentException(s"Unknown validation mode $modeStr")
       }
     } else {
       ValidationMode.Default
@@ -203,19 +206,61 @@ trait SimpleFeatureConverter[I] extends Closeable {
   override def close(): Unit = {}
 }
 
+object SimpleFeatureConverter {
+
+  type Dag = scala.collection.mutable.Map[Field, Set[Field]]
+
+  /**
+    * Add the dependencies of a field to a graph
+    *
+    * @param field field to add
+    * @param fieldMap field lookup map
+    * @param dag graph
+    */
+  def addDependencies(field: Field, fieldMap: Map[String, Field], dag: Dag): Unit = {
+    if (!dag.contains(field)) {
+      val deps = Option(field.transform).toSeq.flatMap(_.dependenciesOf(Set(field), fieldMap)).toSet
+      dag.put(field, deps)
+      deps.foreach(addDependencies(_, fieldMap, dag))
+    }
+  }
+
+  /**
+    * Returns vertices in topological order.
+    *
+    * Note: will cause an infinite loop if there are circular dependencies
+    *
+    * @param dag graph
+    * @return ordered vertices
+    */
+  def topologicalOrder(dag: Dag): IndexedSeq[Field] = {
+    val res = ArrayBuffer.empty[Field]
+    val remaining = dag.keys.to[scala.collection.mutable.Queue]
+    while (remaining.nonEmpty) {
+      val next = remaining.dequeue()
+      if (dag(next).forall(res.contains)) {
+        res.append(next)
+      } else {
+        remaining.enqueue(next) // put at the back of the queue
+      }
+    }
+    res.toIndexedSeq
+  }
+}
+
 /**
  * Base trait to create a simple feature converter
  */
 trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLogging {
 
   def targetSFT: SimpleFeatureType
-  def inputFields: IndexedSeq[Field]
+  def inputFields: Seq[Field]
   def idBuilder: Expr
   def userDataBuilder: Map[String, Expr]
   def fromInputType(i: I): Seq[Array[Any]]
   def parseOpts: ConvertParseOpts
 
-  val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
+  private val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
     (sf: SimpleFeature, ec: EvaluationContext) => {
       val v = parseOpts.validator.validate(sf)
       if (v) {
@@ -231,24 +276,27 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
       }
     }
 
-  val fieldNameMap = inputFields.map(f => (f.name, f)).toMap
+  private val requiredFields: IndexedSeq[Field] = {
+    import SimpleFeatureConverter.{addDependencies, topologicalOrder}
 
-  // compute only the input fields that we need to deal with to populate the simple feature
-  val attrRequiredFieldsNames = targetSFT.getAttributeDescriptors.flatMap { ad =>
-    val name = ad.getLocalName
-    fieldNameMap.get(name).fold(Seq.empty[String]) { field =>
-      Seq(name) ++ Option(field.transform).map(_.dependenciesOf(fieldNameMap)).getOrElse(Seq.empty)
+    val fieldNameMap = inputFields.map(f => (f.name, f)).toMap
+    val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
+
+    // compute only the input fields that we need to deal with to populate the simple feature
+    targetSFT.getAttributeDescriptors.foreach { ad =>
+      fieldNameMap.get(ad.getLocalName).foreach(addDependencies(_, fieldNameMap, dag))
     }
-  }.toSet
 
-  val idDependencies = idBuilder.dependenciesOf(fieldNameMap)
-  val userDataDependencies = userDataBuilder.values.flatMap(_.dependenciesOf(fieldNameMap)).toSet
-  val requiredFieldsNames: Set[String] = attrRequiredFieldsNames ++ idDependencies ++ userDataDependencies
-  val requiredFields = inputFields.filter(f => requiredFieldsNames.contains(f.name))
-  val nfields = requiredFields.length
+    // add id field and user data deps - these will be evaluated last so we only need to add their deps
+    val others = (userDataBuilder.values.toSeq :+ idBuilder).flatMap(_.dependenciesOf(Set.empty, fieldNameMap))
+    others.foreach(addDependencies(_, fieldNameMap, dag))
 
-  val sftIndices = requiredFields.map(f => targetSFT.indexOf(f.name))
-  val inputFieldIndexes = mutable.HashMap.empty[String, Int] ++= requiredFields.map(_.name).zipWithIndex.toMap
+    // use a topological ordering to ensure that dependencies are evaluated before the fields that require them
+    topologicalOrder(dag)
+  }
+
+  private val nfields = requiredFields.length
+  private val sftIndices = requiredFields.map(f => targetSFT.indexOf(f.name))
 
   /**
    * Convert input values into a simple feature with attributes
