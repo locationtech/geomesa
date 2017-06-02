@@ -35,7 +35,8 @@ Prerequisites
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|,
 -  a `git <http://git-scm.com/>`__ client.
 
-In order to install the GeoMesa Kafka GeoServer plugin, follow the instructions here: :ref:`install_kafka_geoserver`.
+In order to install the GeoMesa Kafka GeoServer plugin, follow the instructions
+here: :ref:`install_kafka_geoserver`.
 
 Ensure your Kafka and Zookeeper instances are running. You can use
 Kafka's
