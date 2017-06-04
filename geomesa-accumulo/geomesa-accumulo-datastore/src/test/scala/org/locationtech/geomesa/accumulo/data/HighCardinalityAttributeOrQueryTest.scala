@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
 
@@ -13,7 +13,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
 import org.locationtech.geomesa.utils.stats.Cardinality
@@ -52,7 +52,7 @@ class HighCardinalityAttributeOrQueryTest extends Specification with TestWithDat
       def query(attrPart: String) = {
         val filterString = s"($attrPart) AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
         val filter = ECQL.toFilter(filterString)
-        val res = ds.getFeatureSource("HighCardinalityAttributeOrQueryTest").getFeatures(filter).features()
+        val res = SelfClosingIterator(ds.getFeatureSource("HighCardinalityAttributeOrQueryTest").getFeatures(filter).features)
         res.length mustEqual numFeatures
       }
 

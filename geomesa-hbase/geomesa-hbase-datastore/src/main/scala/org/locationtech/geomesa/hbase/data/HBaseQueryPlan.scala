@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
 
@@ -15,7 +15,6 @@ import com.google.protobuf.ByteString
 import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.FilterList.Operator
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
 import org.geotools.factory.Hints
@@ -79,7 +78,7 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
                            hints: Hints,
                            table: TableName,
                            ranges: Seq[Scan],
-                           remoteFilters: Seq[HFilter] = Nil,
+                           remoteFilters: Seq[(Int, HFilter)] = Nil,
                            resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan  {
   /**
     * Runs the query plain against the underlying database, returning the raw entries
@@ -96,10 +95,9 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
         rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
       }
       val sortedRowRanges: util.List[RowRange] = MultiRowRangeFilter.sortAndMerge(rowRanges)
-      val mrff = new MultiRowRangeFilter(sortedRowRanges)
-
-      val filterList = new FilterList(Operator.MUST_PASS_ALL, mrff)
-      remoteFilters.foreach { filter => filterList.addFilter(filter) }
+      val mrrf = new MultiRowRangeFilter(sortedRowRanges)
+      // note: mrrf first priority
+      val filterList = new FilterList(remoteFilters.sortBy(_._1).map(_._2).+:(mrrf): _*)
 
       val scan = new Scan()
       scan.setFilter(filterList)
@@ -113,23 +111,5 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
     } else {
       throw new NotImplementedException()
     }
-  }
-}
-
-case class GetPlan(filter: HBaseFilterStrategyType,
-                   table: TableName,
-                   ranges: Seq[Get],
-                   remoteFilters: Seq[HFilter] = Nil,
-                   resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
-  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    import scala.collection.JavaConversions._
-    val filterList = new FilterList()
-    remoteFilters.foreach { filter => filterList.addFilter(filter) }
-    ranges.foreach { range =>
-      range.setFilter(filterList)
-      ds.applySecurity(range)
-    }
-    val get = ds.connection.getTable(table)
-    SelfClosingIterator(resultsToFeatures(get.get(ranges).iterator), get.close)
   }
 }

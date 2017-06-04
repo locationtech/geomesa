@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
 
@@ -25,7 +25,7 @@ import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AttributeI
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
@@ -83,7 +83,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val cqlFilter = Filter.INCLUDE
 
       /* Let's read out what we wrote...we should only get tom and billy back out */
-      val features = fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().toSeq
+      val features = SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).toSeq
 
       features must haveSize(2)
       features.map(f => (f.getAttribute("name"), f.getAttribute("age"))) must
@@ -112,7 +112,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       }
       writer.close()
 
-      val features = fs.getFeatures(Filter.INCLUDE).features().toSeq
+      val features = SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toSeq
 
       features must haveSize(5)
 
@@ -133,7 +133,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val filter = CQL.toFilter("(age > 50 AND age < 99) or (name = 'karen')")
       fs.modifyFeatures(Array("age"), Array(60.asInstanceOf[AnyRef]), filter)
 
-      val updated = fs.getFeatures(ECQL.toFilter("age = 60")).features.toSeq
+      val updated = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("age = 60")).features).toSeq
 
       updated.map(f => (f.getAttribute("name"), f.getAttribute("age"))) must
           containTheSameElementsAs(Seq(("will", 60), ("karen", 60), ("bob", 60)))
@@ -158,7 +158,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       }
       writer.close()
 
-      val features = fs.getFeatures(Filter.INCLUDE).features().toSeq
+      val features = SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toSeq
       features must beEmpty
 
       forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))) { name =>
@@ -183,7 +183,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
         fs.addFeatures(c)
         trans.commit()
 
-        val features = fs.getFeatures(ECQL.toFilter("(age = 15) or (age = 16) or (age = 17)")).features().toSeq
+        val features = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("(age = 15) or (age = 16) or (age = 17)")).features).toSeq
         features.map(f => (f.getAttribute("name"), f.getAttribute("age"))) must
             containTheSameElementsAs(Seq(("dude1", 15), ("dude2", 16), ("dude3", 17)))
       } catch {
@@ -213,7 +213,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
         fs.removeFeatures(CQL.toFilter("name = 'dude1' or name='dude2' or name='dude3'"))
         trans.commit()
 
-        val features = fs.getFeatures(Filter.INCLUDE).features().toSeq
+        val features = SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toSeq
 
         features must haveSize(3)
         features.map(f => f.getAttribute("name")) must containTheSameElementsAs(Seq("will", "george", "sue"))
@@ -248,19 +248,19 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       writer.close()
 
       // Verify old geo bbox doesn't return them
-      val features45 = fs.getFeatures(ECQL.toFilter("BBOX(geom, 44.9,48.9,45.1,49.1)")).features().toSeq
+      val features45 = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("BBOX(geom, 44.9,48.9,45.1,49.1)")).features).toSeq
       features45.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("will", "george", "sue"))
 
       // Verify that new geometries are written with a bbox query that uses the index
-      val features50 = fs.getFeatures(ECQL.toFilter("BBOX(geom, 49.9,49.9,50.1,50.1)")).features().toSeq
+      val features50 = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("BBOX(geom, 49.9,49.9,50.1,50.1)")).features).toSeq
       features50.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("bob", "karen"))
 
       // get them all
-      val all = fs.getFeatures(ECQL.toFilter("BBOX(geom, 44.0,44.0,51.0,51.0)")).features().toSeq
+      val all = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("BBOX(geom, 44.0,44.0,51.0,51.0)")).features).toSeq
       all.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("will", "george", "sue", "bob", "karen"))
 
       // get none
-      val none = fs.getFeatures(ECQL.toFilter("BBOX(geom, 30.0,30.0,31.0,31.0)")).features().toSeq
+      val none = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("BBOX(geom, 30.0,30.0,31.0,31.0)")).features).toSeq
       none must beEmpty
     }
 
@@ -286,19 +286,19 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       writer.close()
 
       // Verify old daterange doesn't return them
-      val jan = fs.getFeatures(ECQL.toFilter("dtg DURING 2013-12-29T00:00:00Z/2014-01-04T00:00:00Z")).features().toSeq
+      val jan = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("dtg DURING 2013-12-29T00:00:00Z/2014-01-04T00:00:00Z")).features).toSeq
       jan.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("sue", "bob", "karen"))
 
       // Verify new date range returns things
-      val feb = fs.getFeatures(ECQL.toFilter("dtg DURING 2014-02-01T00:00:00Z/2014-02-03T00:00:00Z")).features().toSeq
+      val feb = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("dtg DURING 2014-02-01T00:00:00Z/2014-02-03T00:00:00Z")).features).toSeq
       feb.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("will","george"))
 
       // Verify large date range returns everything
-      val all = fs.getFeatures(ECQL.toFilter("dtg DURING 2014-01-01T00:00:00Z/2014-02-03T00:00:00Z")).features().toSeq
+      val all = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("dtg DURING 2014-01-01T00:00:00Z/2014-02-03T00:00:00Z")).features).toSeq
       all.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("will", "george", "sue", "bob", "karen"))
 
       // Verify other date range returns nothing
-      val none = fs.getFeatures(ECQL.toFilter("dtg DURING 2013-12-01T00:00:00Z/2013-12-31T00:00:00Z")).features().toSeq
+      val none = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("dtg DURING 2013-12-01T00:00:00Z/2013-12-31T00:00:00Z")).features).toSeq
       none must beEmpty
     }
 
@@ -312,10 +312,10 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       )
       addFeatures(toAdd)
 
-      val afterFilter = fs.getFeatures(ECQL.toFilter("dtg AFTER 2014-02-02T00:00:00Z")).features.toSeq
+      val afterFilter = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("dtg AFTER 2014-02-02T00:00:00Z")).features).toSeq
       afterFilter must beEmpty
 
-      val beforeFilter = fs.getFeatures(ECQL.toFilter("dtg BEFORE 2014-01-02T00:00:00Z")).features.toSeq
+      val beforeFilter = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("dtg BEFORE 2014-01-02T00:00:00Z")).features).toSeq
       beforeFilter must beEmpty
     }
 
@@ -339,7 +339,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       }
       writer.close()
 
-      val features = fs.getFeatures(Filter.INCLUDE).features().toSeq
+      val features = SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toSeq
 
       features.size mustEqual toAdd.size
 
@@ -365,10 +365,8 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       ds.queryPlanner.strategyDecider.getFilterPlan(sft, Some(ds), filter, None, None).head.index mustEqual AttributeIndex
 
-      import org.locationtech.geomesa.utils.geotools.Conversions._
-
       // Retrieve Will's ID before deletion.
-      val featuresBeforeDelete = fs.getFeatures(filter).features().toSeq
+      val featuresBeforeDelete = SelfClosingIterator(fs.getFeatures(filter).features).toSeq
 
       featuresBeforeDelete must haveSize(1)
       val willId = featuresBeforeDelete.head.getID
@@ -378,15 +376,15 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       // NB: We really need a test which reads from the attribute table directly since missing records entries
       //  will result in attribute queries
       // This verifies that 'will' has been deleted from the attribute table.
-      val attributeTableFeatures = fs.getFeatures(filter).features().toSeq
+      val attributeTableFeatures = SelfClosingIterator(fs.getFeatures(filter).features).toSeq
       attributeTableFeatures must beEmpty
 
       // This verifies that 'will' has been deleted from the record table.
-      val recordTableFeatures =fs.getFeatures(ECQL.toFilter(s"IN('$willId')")).features().toSeq
+      val recordTableFeatures = SelfClosingIterator(fs.getFeatures(ECQL.toFilter(s"IN('$willId')")).features).toSeq
       recordTableFeatures must beEmpty
 
       // This verifies that 'will' has been deleted from the ST idx table.
-      val stTableFeatures = fs.getFeatures(ECQL.toFilter("BBOX(geom, 44.0,44.0,51.0,51.0)")).features().toSeq
+      val stTableFeatures = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("BBOX(geom, 44.0,44.0,51.0,51.0)")).features).toSeq
       stTableFeatures.count(_.getID == willId) mustEqual 0
 
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
@@ -396,7 +394,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       featureCollection.add(AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("will", 56.asInstanceOf[AnyRef], date, geom), "fid1"))
       fs.addFeatures(featureCollection)
 
-      val features =fs.getFeatures(filter).features().toSeq
+      val features = SelfClosingIterator(fs.getFeatures(filter).features).toSeq
       features must haveSize(1)
     }
 

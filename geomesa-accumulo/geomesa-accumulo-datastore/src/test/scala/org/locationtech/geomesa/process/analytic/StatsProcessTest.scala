@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.process.analytic
 
@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
-import org.locationtech.geomesa.process.analytic.StatsProcess
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -28,8 +28,6 @@ import org.specs2.runner.JUnitRunner
 class StatsProcessTest extends Specification with TestWithDataStore {
 
   sequential
-
-  import org.locationtech.geomesa.utils.geotools.Conversions._
 
   override val spec = "an_id:java.lang.Integer,attr:java.lang.Long,dtg:Date,*geom:Point:srid=4326"
 
@@ -144,7 +142,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
 
     "work with non AccumuloFeatureCollections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+      SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
 
       val results = statsIteratorProcess.execute(features,
         "MinMax(attr);IteratorStackCount();Enumeration(an_id);Histogram(an_id,5,10,14)", encode = true)
@@ -183,7 +181,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
 
     "return stats encoded as json with non-Accumulo Feature collections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+      SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
 
       val results = statsIteratorProcess.execute(features, "MinMax(attr)", false)
       val sf = results.features().next
@@ -204,7 +202,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
 
     "return stats binary encoded as with non-Accumulo Feature collections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+      SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
 
       val results = statsIteratorProcess.execute(features, "MinMax(attr)", true)
       val sf = results.features().next
@@ -225,7 +223,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
 
     "return transforms stats encoded as json with non AccumuloFeatureCollections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-      fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
+      SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
 
       val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, Collections.singletonList("attr1=attr+5"))
       val sf = results.features().next

@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 
 package org.locationtech.geomesa.accumulo.iterators
@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -44,7 +44,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
     q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
     val decode = KryoLazyDensityUtils.decodeResult(geom, 500, 500)
-    fs.getFeatures(q).features().flatMap(decode).toList
+    SelfClosingIterator(fs.getFeatures(q).features).flatMap(decode).toList
   }
 
   "Z3DensityIterator" should {

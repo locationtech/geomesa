@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
 
@@ -140,17 +140,28 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
           // do this before anything else so that any modifications will be in place
           GeoMesaSchemaValidator.validate(sft)
 
-          // write out the metadata to the catalog table
-          writeMetadata(sft)
+          try {
+            // write out the metadata to the catalog table
+            writeMetadata(sft)
 
-          // reload the sft so that we have any default metadata,
-          // then copy over any additional keys that were in the original sft
-          val reloadedSft = getSchema(sft.getTypeName)
-          (sft.getUserData.keySet -- reloadedSft.getUserData.keySet)
+            // reload the sft so that we have any default metadata,
+            // then copy over any additional keys that were in the original sft
+            val reloadedSft = getSchema(sft.getTypeName)
+            (sft.getUserData.keySet -- reloadedSft.getUserData.keySet)
               .foreach(k => reloadedSft.getUserData.put(k, sft.getUserData.get(k)))
 
-          // create the tables in accumulo
-          manager.indices(reloadedSft, IndexMode.Any).foreach(_.configure(reloadedSft, this))
+            // create the tables
+            manager.indices(reloadedSft, IndexMode.Any).foreach(_.configure(reloadedSft, this))
+          } catch {
+            case e: Exception =>
+              // If there was an error creating a schema, clean up.
+              try {
+                metadata.delete(sft.getTypeName)
+              } catch {
+                case e2: Throwable => e.addSuppressed(e2)
+              }
+              throw e
+          }
         }
       } finally {
         lock.release()
@@ -288,7 +299,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
   }
 
   /**
-   * Deletes all features from the accumulo index tables and deletes metadata from the catalog.
+   * Deletes all features from the index tables and deletes metadata from the catalog.
    * If the feature type shares tables with another, this is fairly expensive,
    * proportional to the number of features. Otherwise, it is fairly cheap.
    *
@@ -447,7 +458,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
   /**
    * Gets the query plan for a given query. The query plan consists of the tables, ranges, iterators etc
-   * required to run a query against accumulo.
+   * required to run a query against the data store.
    *
    * @param query query to execute
    * @param index hint on the index to use to satisfy the query
@@ -474,7 +485,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
   // end public methods
 
   /**
-    * Acquires a distributed lock for all accumulo data stores sharing this catalog table.
+    * Acquires a distributed lock for all data stores sharing this catalog table.
     * Make sure that you 'release' the lock in a finally block.
     */
   protected def acquireCatalogLock(): Releasable = {

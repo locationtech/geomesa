@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.kafka
 
@@ -16,7 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Instant}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -250,9 +250,9 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
         11,
         Seq("lfc", "cq", "cqdd"),
         Seq(
-          f => lfc.getReaderForFilter(f).toIterator.size,
-          f => cq.geocq.queryCQ(f, false).toIterator.size,
-          f => cq.geocq.queryCQ(f, true).toIterator.size),
+          f => SelfClosingIterator(lfc.getReaderForFilter(f)).length,
+          f => SelfClosingIterator(cq.geocq.queryCQ(f, false)).length,
+          f => SelfClosingIterator(cq.geocq.queryCQ(f, true)).length),
         filters)
 
       true must equalTo(true)

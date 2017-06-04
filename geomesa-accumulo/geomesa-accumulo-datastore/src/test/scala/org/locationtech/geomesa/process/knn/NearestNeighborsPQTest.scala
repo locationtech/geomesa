@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.process.knn
 
@@ -13,7 +13,7 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -89,7 +89,7 @@ class NearestNeighborsPQTest extends Specification {
     "find things close by the equator" in {
       val equatorPQ = NearestNeighbors(equatorSF, 10)
 
-      val sfWDC = diagonalFeatureCollection.features.map {
+      val sfWDC = SelfClosingIterator(diagonalFeatureCollection.features).map {
         sf=> SimpleFeatureWithDistance(sf,equatorPQ.distance(sf))
       }.toList
 
@@ -101,7 +101,7 @@ class NearestNeighborsPQTest extends Specification {
     "find things close by Southwest Russia" in {
       val midpointPQ = NearestNeighbors(midpointSF, 10)
 
-      val sfWDC = diagonalFeatureCollection.features.map {
+      val sfWDC = SelfClosingIterator(diagonalFeatureCollection.features).map {
         sf=> SimpleFeatureWithDistance(sf,midpointPQ.distance(sf))
       }.toList
 
@@ -113,7 +113,7 @@ class NearestNeighborsPQTest extends Specification {
     "find things close by the North Pole" in {
       val polarPQ = NearestNeighbors(polarSF, 10)
 
-      val sfWDC =  diagonalFeatureCollection.features.map{
+      val sfWDC =  SelfClosingIterator(diagonalFeatureCollection.features).map{
         sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
       }.toList
 
@@ -125,7 +125,7 @@ class NearestNeighborsPQTest extends Specification {
     "find things in the north polar region" in {
       val polarPQ = NearestNeighbors(polarSF, 10)
 
-      val sfWDC = polarFeatureCollection.features.map {
+      val sfWDC = SelfClosingIterator(polarFeatureCollection.features).map {
         sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
       }.toList
 
@@ -137,7 +137,7 @@ class NearestNeighborsPQTest extends Specification {
     "find more things near the north polar region" in {
       val polarPQ = NearestNeighbors(polarSF2, 10)
 
-      val sfWDC = polarFeatureCollection.features.map {
+      val sfWDC = SelfClosingIterator(polarFeatureCollection.features).map {
         sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
       }.toList
 
@@ -149,11 +149,11 @@ class NearestNeighborsPQTest extends Specification {
     "ignore extra features that are too far away" in {
       val polarPQ = NearestNeighbors(polarSF2, 10)
 
-      val polarSFWDC = polarFeatureCollection.features.map {
+      val polarSFWDC = SelfClosingIterator(polarFeatureCollection.features).map {
         sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
       }.toList
 
-      val dSFWDC = diagonalFeatureCollection.features.map {
+      val dSFWDC = SelfClosingIterator(diagonalFeatureCollection.features).map {
         sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
       }.toList
 
@@ -167,7 +167,7 @@ class NearestNeighborsPQTest extends Specification {
 
       val polarPQ = NearestNeighbors(polarSF2, 10)
 
-      val sfWDC = polarFeatureCollection.features.map {
+      val sfWDC = SelfClosingIterator(polarFeatureCollection.features).map {
         sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
       }.toList
 
@@ -180,7 +180,7 @@ class NearestNeighborsPQTest extends Specification {
     "should produce the same results as getKNN" in {
       val polarPQ = NearestNeighbors(polarSF2, 10)
 
-      val sfWDC = polarFeatureCollection.features.map {
+      val sfWDC = SelfClosingIterator(polarFeatureCollection.features).map {
         sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
       }.toList
 

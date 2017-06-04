@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.kafka
 
@@ -12,7 +12,7 @@ import com.github.benmanes.caffeine.cache.Ticker
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Instant
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -37,7 +37,7 @@ class LiveFeatureCacheCQEngineTest extends Specification with Mockito with Simpl
       lfc.size() mustEqual 1
       lfc.getFeatureById("track0") must equalFeatureHolder(track0v0)
 
-      lfc.getReaderForFilter(wholeWorldFilter).toIterator.toList.asJava must containTheSameFeatureHoldersAs(track0v0)
+      SelfClosingIterator(lfc.getReaderForFilter(wholeWorldFilter)).toList.asJava must containTheSameFeatureHoldersAs(track0v0)
     }
 
     "handle two CreateOrUpdate messages" >> {
@@ -49,7 +49,7 @@ class LiveFeatureCacheCQEngineTest extends Specification with Mockito with Simpl
       lfc.size() mustEqual 2
       lfc.getFeatureById("track1") must equalFeatureHolder(track1v0)
 
-      lfc.getReaderForFilter(wholeWorldFilter).toIterator.toList.asJava must containTheSameFeatureHoldersAs(track0v0, track1v0)
+      SelfClosingIterator(lfc.getReaderForFilter(wholeWorldFilter)).toList.asJava must containTheSameFeatureHoldersAs(track0v0, track1v0)
     }
 
     "use the most recent version of a feature" >> {
@@ -62,7 +62,7 @@ class LiveFeatureCacheCQEngineTest extends Specification with Mockito with Simpl
       lfc.size() mustEqual 2
       lfc.getFeatureById("track0") must equalFeatureHolder(track0v1)
 
-      lfc.getReaderForFilter(wholeWorldFilter).toIterator.toList.asJava must containTheSameFeatureHoldersAs(track0v1, track1v0)
+      SelfClosingIterator(lfc.getReaderForFilter(wholeWorldFilter)).toList.asJava must containTheSameFeatureHoldersAs(track0v1, track1v0)
     }
 
     "handle a Delete message" >> {
@@ -76,7 +76,7 @@ class LiveFeatureCacheCQEngineTest extends Specification with Mockito with Simpl
       lfc.size() mustEqual 1
       lfc.getFeatureById("track0") must beNull
 
-      lfc.getReaderForFilter(wholeWorldFilter).toIterator.toList.asJava must containTheSameFeatureHoldersAs(track1v0)
+      SelfClosingIterator(lfc.getReaderForFilter(wholeWorldFilter)).toList.asJava must containTheSameFeatureHoldersAs(track1v0)
 
     }
 
@@ -113,7 +113,7 @@ class LiveFeatureCacheCQEngineTest extends Specification with Mockito with Simpl
       lfc.size() mustEqual 1
       lfc.getFeatureById("track0") must equalFeatureHolder(track0v0)
 
-      lfc.getReaderForFilter(wholeWorldFilter).toIterator.toList.asJava must containTheSameFeatureHoldersAs(track0v0)
+      SelfClosingIterator(lfc.getReaderForFilter(wholeWorldFilter)).toList.asJava must containTheSameFeatureHoldersAs(track0v0)
    }
 
 // TODO figure out why this test is failing randomly...

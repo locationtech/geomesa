@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.collection
 
@@ -23,8 +23,10 @@ import scala.collection.{GenTraversableOnce, Iterator}
 // A CloseableIterator is one which involves some kind of close function which should be called at the end of use.
 object CloseableIterator {
 
-  // In order to use 'map' and 'flatMap', we provide an implicit promoting wrapper.
+  private val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
+
   // noinspection LanguageFeature
+  // implicit promoting wrapper for convenience
   implicit def iteratorToCloseable[A](iter: Iterator[A]): CloseableIterator[A] = apply(iter)
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
@@ -50,7 +52,12 @@ object CloseableIterator {
       override def close(): Unit = iter.close()
     }
 
-  val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
+  def empty[A]: CloseableIterator[A] = empty
+
+  private def wrap[A](t: GenTraversableOnce[A]): CloseableIterator[A] = t match {
+    case c: CloseableIterator[A] => c
+    case c => CloseableIterator(c.toIterator)
+  }
 }
 
 trait CloseableIterator[+A] extends Iterator[A] with Closeable {
@@ -64,37 +71,26 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
   override def filter(p: A => Boolean): CloseableIterator[A] = CloseableIterator(super.filter(p), self.close())
 
   override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] = {
-    lazy val applied = that match {
-      case c: CloseableIterator[B] => c
-      case c => CloseableIterator(c.toIterator)
-    }
+    lazy val applied = CloseableIterator.wrap(that)
     val queue = new scala.collection.mutable.Queue[() => CloseableIterator[B]]
     queue.enqueue(() => self)
     queue.enqueue(() => applied)
     new ConcatCloseableIterator[B](queue)
   }
 
-  // NB: Since we wish to be able to close the iterator currently in use, we can't call out to super.flatMap.
-  def ciFlatMap[B](f: A => CloseableIterator[B]): CloseableIterator[B] = new SelfClosingIterator[B] {
-    private var cur: CloseableIterator[B] = if (self.hasNext) f(self.next()) else empty
+  override def flatMap[B](f: A => GenTraversableOnce[B]): CloseableIterator[B] = new CloseableIterator[B] {
+    private var cur: CloseableIterator[B] = empty
 
-    // Add in the 'SelfClosing' behavior.
-    override def hasNext: Boolean = {
-      @tailrec
-      def loopUntilHasNext: Boolean =
-        cur.hasNext || self.hasNext && {
-          if (!cur.eq(empty)) {
-            cur.close()
-          }
-          cur = f(self.next())
-          loopUntilHasNext
-        }
-
-      val iterHasNext = loopUntilHasNext
-      if (!iterHasNext) {
-        close()
+    @tailrec
+    override def hasNext: Boolean = cur.hasNext || {
+      cur.close()
+      if (self.hasNext) {
+        cur = CloseableIterator.wrap(f(self.next()))
+        hasNext
+      } else {
+        cur = empty
+        false
       }
-      iterHasNext
     }
 
     override def next(): B = (if (hasNext) cur else empty).next()
@@ -149,7 +145,7 @@ trait SelfClosingIterator[+A] extends CloseableIterator[A]
 
 object SelfClosingIterator {
 
-  def apply[A](iter: Iterator[A], closeIter: () => Unit): SelfClosingIterator[A] =
+  def apply[A](iter: Iterator[A], closeIter: => Unit = {}): SelfClosingIterator[A] =
     new SelfClosingIterator[A] {
       override def hasNext: Boolean = {
         val iterHasNext = iter.hasNext
@@ -159,12 +155,12 @@ object SelfClosingIterator {
         iterHasNext
       }
       override def next(): A = iter.next()
-      override def close(): Unit = closeIter()
+      override def close(): Unit = closeIter
     }
 
-  def apply[A](iter: Iterator[A] with Closeable): SelfClosingIterator[A] = apply(iter, iter.close)
+  def apply[A](iter: Iterator[A] with Closeable): SelfClosingIterator[A] = apply(iter, iter.close())
 
-  def apply[A](iter: CloseableIterator[A]): SelfClosingIterator[A] = apply(iter, iter.close)
+  def apply[A](iter: CloseableIterator[A]): SelfClosingIterator[A] = apply(iter, iter.close())
 
   def apply[A <: Feature, B <: FeatureType](fr: FeatureReader[B, A]): SelfClosingIterator[A] =
     apply(CloseableIterator(fr))

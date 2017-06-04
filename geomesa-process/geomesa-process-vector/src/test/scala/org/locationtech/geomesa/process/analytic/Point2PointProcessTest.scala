@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.process.analytic
 
@@ -16,6 +16,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -51,14 +52,14 @@ class Point2PointProcessTest extends Specification {
     "properly create linestrings of groups of 2 coordinates" >> {
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val res = p2p.execute(features, "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
-      res.features.size mustEqual 8
+      SelfClosingIterator(res.features) must haveLength(8)
 
-      val f1 = p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
-        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features().toSeq
+      val f1 = SelfClosingIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toSeq
       f1.length mustEqual 4
 
-      val f2 = p2p.execute(features.subCollection(ECQL.toFilter("myid = 'second'")),
-        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features().toSeq
+      val f2 = SelfClosingIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'second'")),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toSeq
       f2.length mustEqual 4
 
       f1.forall( sf => sf.getAttributeCount mustEqual 4)
@@ -112,12 +113,10 @@ class Point2PointProcessTest extends Specification {
 
     "set the SFT even if the features source passed in is empty" >> {
       val filter = ECQL.toFilter("myid in ('abcdefg_not_here')")
-      import org.locationtech.geomesa.utils.geotools.Conversions._
       val res = p2p.execute(features.subCollection(filter),
         "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
-      res.features.size mustEqual 0
       res.getSchema must not(beNull)
+      SelfClosingIterator(res.features) must haveLength(0)
     }
-
   }
 }

@@ -35,7 +35,7 @@ fi
 
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
-GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):${HBASE_CONF_DIR}:${HADOOP_CONF_DIR}"
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):${HBASE_CONF_DIR}/hbase-site.xml:${HADOOP_CONF_DIR}"
 
 # Prepend user defined directories to the classpath using java classpath syntax
 # We preprend so that they take precedence when explicitly defined by the user

@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.process.analytic
 
@@ -19,6 +19,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.joda.time.DateTime.Property
 import org.locationtech.geomesa.process.GeoMesaProcess
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.opengis.feature.simple.SimpleFeature
 
@@ -70,7 +71,7 @@ class Point2PointProcess extends GeoMesaProcess {
     val builder = new SimpleFeatureBuilder(sft)
 
     val lineFeatures =
-      data.features().toList
+      SelfClosingIterator(data.features()).toList
         .groupBy(_.get(groupingFieldIndex).asInstanceOf[String])
         .filter { case (_, coll) => coll.size > minPoints }
         .flatMap { case (group, coll) =>

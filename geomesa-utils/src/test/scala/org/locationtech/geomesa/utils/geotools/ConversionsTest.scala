@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
 
@@ -117,30 +117,5 @@ class ConversionsTest extends Specification with Mockito {
       }
     }
 
-  }
-
-  "RichSimpleFeatureIterator" should {
-
-    import scala.collection.JavaConversions._
-    def sft = SimpleFeatureTypes.createType("test", "dtg:Date,*geom:Geometry:srid=4326")
-    val sf1 = new SimpleFeatureImpl(List[AnyRef](new Date(1), WKTUtils.read("POINT(1 1)")), sft, new FeatureIdImpl("1"))
-    val sf2 = new SimpleFeatureImpl(List[AnyRef](new Date(2), WKTUtils.read("POINT(2 2)")), sft, new FeatureIdImpl("2"))
-    val df = new DefaultFeatureCollection("foo", sft)
-    df.add(sf1)
-    df.add(sf2)
-
-    "wrap SimpleFeatureIterator" >> {
-      val sfi: SimpleFeatureIterator = new SimpleFeatureIteratorImpl(df)
-      import Conversions._
-      val ids = sfi.map(_.getID)
-      ids.toSeq must containTheSameElementsAs(Seq[String]("2", "1"))
-    }
-
-    "wrap FeatureIterator[SimpleFeature]" >> {
-      val sfi: FeatureIterator[SimpleFeature] = new FeatureIteratorImpl(df)
-      import Conversions._
-      val ids = sfi.map(_.getID)
-      ids.toSeq must containTheSameElementsAs(Seq[String]("2", "1"))
-    }
   }
 }

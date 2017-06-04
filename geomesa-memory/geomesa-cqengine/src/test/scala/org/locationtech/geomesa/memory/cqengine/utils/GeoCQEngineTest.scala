@@ -1,18 +1,18 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
@@ -38,7 +38,7 @@ class GeoCQEngineTest extends Specification with LazyLogging {
       def getGeoToolsCount(filter: Filter) = feats.count(filter.evaluate)
 
       def getCQEngineCount(filter: Filter, cq: GeoCQEngine) = {
-        cq.getReaderForFilter(filter).toIterator.size
+        SelfClosingIterator(cq.getReaderForFilter(filter)).size
       }
 
       def checkFilter(filter: Filter, cq: GeoCQEngine): MatchResult[Int] = {

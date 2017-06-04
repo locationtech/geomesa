@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
 
@@ -16,6 +16,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils.decodeStat
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.stats._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -24,8 +25,6 @@ import org.specs2.runner.JUnitRunner
 class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
   sequential
-
-  import org.locationtech.geomesa.utils.geotools.Conversions._
 
   override val spec = "idt:java.lang.Integer:index=full,attr:java.lang.Long:index=join,dtg:Date,*geom:Point:srid=4326"
 
@@ -52,7 +51,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
     "work with the MinMax stat" in {
       val q = getQuery("MinMax(attr)")
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
@@ -61,7 +60,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
     "work with the IteratorStackCount stat" in {
       val q = getQuery("IteratorStackCount()")
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val isc = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[IteratorStackCount]
@@ -71,7 +70,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
     "work with the Enumeration stat" in {
       val q = getQuery("Enumeration(idt)")
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val eh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[EnumerationStat[java.lang.Integer]]
@@ -83,7 +82,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
     "work with the Histogram stat" in {
       val q = getQuery("Histogram(idt,5,10,14)", Some("idt between 10 and 14"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
@@ -97,7 +96,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
     "work with multiple stats at once" in {
       val q = getQuery("MinMax(attr);IteratorStackCount();Enumeration(idt);Histogram(idt,5,10,14)")
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val seqStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[SeqStat]
@@ -126,7 +125,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
     "work with the stidx index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("bbox(geom,-80,35,-75,40)"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
@@ -136,7 +135,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
     "work with the record index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("IN(0)"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
@@ -146,7 +145,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
     "work with the attribute partial index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("attr > 10"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
@@ -156,7 +155,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
     "work with the attribute join index" in {
       val q = getQuery("MinMax(idt)")
       q.setFilter(ECQL.toFilter("attr > 10"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Integer]]
@@ -166,7 +165,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
     "work with the attribute full index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("idt > 10"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]

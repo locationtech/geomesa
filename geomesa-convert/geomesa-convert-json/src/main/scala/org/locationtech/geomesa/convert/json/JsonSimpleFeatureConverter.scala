@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.json
 
@@ -27,7 +27,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 import scala.collection.immutable.IndexedSeq
 import scala.io.Source
-import scala.util.Try
 
 class JsonSimpleFeatureConverter(jsonConfig: Configuration,
                                  val targetSFT: SimpleFeatureType,
@@ -40,19 +39,17 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
 
   import scala.collection.JavaConversions._
 
-  override def fromInputType(i: String): Seq[Array[Any]] =
-     Try { jsonConfig.jsonProvider.parse(i) }.map { json =>
-       root.map { r => extractFromRoot(json, r) }.getOrElse(Seq(Array[Any](json)))
-     }.getOrElse(Seq(Array()))
+  override def fromInputType(i: String): Seq[Array[Any]] = {
+    val json = jsonConfig.jsonProvider.parse(i)
+    root.map(extractFromRoot(json, _)).getOrElse(Seq(Array[Any](json)))
+  }
 
   // NB:  Currently the JSON support for Converters parses the entire JSON document into memory.
   //  In the event that we wish to build SimpleFeatures from a 'feature' path and the 'root' path, we have a small issue.
   //  This solution involves handing a pointer to the feature path and the entire document.
   //  In the converter config, use 'root-path' to defined paths which reference the entire document.
-  def extractFromRoot(json: AnyRef, r: JsonPath): Seq[Array[Any]] =
-    r.read[JsonArray](json, jsonConfig).map { o =>
-      Array[Any](o, json)
-    }.toSeq
+  private def extractFromRoot(json: AnyRef, r: JsonPath): Seq[Array[Any]] =
+    r.read[JsonArray](json, jsonConfig).map(o => Array[Any](o, json)).toSeq
 
   // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
   override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] =

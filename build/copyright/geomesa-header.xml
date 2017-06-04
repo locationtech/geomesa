@@ -2,10 +2,10 @@
 <additionalHeaders>
     <geomesa_java>
         <firstLine>/***********************************************************************</firstLine>
-        <beforeEachLine>* </beforeEachLine>
-        <endLine>*************************************************************************/&#xA;</endLine>
+        <beforeEachLine> * </beforeEachLine>
+        <endLine> ***********************************************************************/&#xA;</endLine>
         <firstLineDetectionPattern>^/\*\**</firstLineDetectionPattern>
-        <lastLineDetectionPattern> *\**\*/$</lastLineDetectionPattern>
+        <lastLineDetectionPattern>/ *\**\*/$</lastLineDetectionPattern>
         <isMultiline>true</isMultiline>
         <allowBlankLines>false</allowBlankLines>
     </geomesa_java>

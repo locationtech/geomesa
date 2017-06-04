@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.process.knn
 
@@ -13,6 +13,7 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
 
@@ -59,14 +60,13 @@ object KNNQuery extends LazyLogging {
                    ghPQ: GeoHashSpiral,
                    sfPQ: NearestNeighbors
                  )     : NearestNeighbors = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
     if (!ghPQ.hasNext) sfPQ
     else {
         val newGH = ghPQ.next()
         // copy the query in order to pass the original to the next recursion
         val newQuery = generateKNNQuery(newGH, query, source)
 
-        val newFeatures = source.getFeatures(newQuery).features
+        val newFeatures = SelfClosingIterator(source.getFeatures(newQuery).features)
 
         // insert the SimpleFeature and its distance into sfPQ
 
