@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features
 
@@ -167,8 +167,13 @@ class ScalaSimpleFeature(initialId: String,
 
 object ScalaSimpleFeature {
 
-  def create(sft: SimpleFeatureType, copy: SimpleFeature): ScalaSimpleFeature =
-    new ScalaSimpleFeature(copy.getID, sft, copy.getAttributes.toArray, copy.getUserData)
+  def copy(in: SimpleFeature): ScalaSimpleFeature = copy(in.getFeatureType, in)
+
+  def copy(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature =
+    new ScalaSimpleFeature(in.getID, sft, in.getAttributes.toArray, in.getUserData)
+
+  @deprecated("use copy")
+  def create(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature = copy(sft, in)
 
   /**
    * Creates a simple feature, converting the values to the appropriate type

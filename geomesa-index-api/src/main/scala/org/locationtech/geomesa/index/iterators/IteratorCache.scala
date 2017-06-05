@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.index.iterators
 
@@ -70,10 +70,11 @@ object IteratorCache {
     * Note: need to include simple feature type in cache key,
     * as attribute name -> attribute index gets cached in the filter
     *
-    * @param spec simple feature type spec being filtered
+    * @param sft simple feature type being filtered
+    * @param spec spec string for the simple feature type
     * @param ecql ecql
     * @return
     */
-  def filter(spec: String, ecql: String): Filter =
-    filterCache.getOrElseUpdate((spec, ecql), FastFilterFactory.toFilter(ecql))
+  def filter(sft: SimpleFeatureType, spec: String, ecql: String): Filter =
+    filterCache.getOrElseUpdate((spec, ecql), FastFilterFactory.toFilter(sft, ecql))
 }

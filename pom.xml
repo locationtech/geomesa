@@ -41,6 +41,7 @@
         <module>geomesa-security</module>
         <module>geomesa-spark</module>
         <module>geomesa-stream</module>
+        <module>geomesa-test</module>
         <module>geomesa-tools</module>
         <module>geomesa-utils</module>
         <module>geomesa-web</module>
@@ -90,7 +91,7 @@
         <kafka.08.version>0.8.2.1</kafka.08.version>
         <kafka.09.version>0.9.0.1</kafka.09.version>
         <kafka.10.version>0.10.0.1</kafka.10.version>
-        <arrow.version>0.3.0</arrow.version>
+        <arrow.version>0.4.0</arrow.version>
         <netty.version>4.0.41.Final</netty.version>
 
         <!-- Recommended installation versions -->
@@ -1720,7 +1721,12 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-process_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-process-vector_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2545,16 +2551,30 @@
                 <plugin>
                     <groupId>pl.project13.maven</groupId>
                     <artifactId>git-commit-id-plugin</artifactId>
-                    <version>2.1.13</version>
+                    <version>2.2.1</version>
                     <configuration>
                         <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                         <runOnlyOnce>false</runOnlyOnce>
                         <verbose>false</verbose>
                         <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
-                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                        <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
                         <failOnNoGitDirectory>false</failOnNoGitDirectory>
                         <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                        <useNativeGit>true</useNativeGit>
+                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                        <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                        <!-- note: don't use includeProperties, it causes non-git properties to be excluded -->
+                        <excludeProperties>
+                            <excludeProperty>^git\.build\.user\.email$</excludeProperty>
+                            <excludeProperty>^git\.build\.host$</excludeProperty>
+                            <excludeProperty>^git\.remote\.origin\.url$</excludeProperty>
+                            <excludeProperty>^git\.commit\.id\.describe-short$</excludeProperty>
+                            <excludeProperty>^git\.commit\.user\.email$</excludeProperty>
+                            <excludeProperty>^git\.commit\.message\.short$</excludeProperty>
+                            <excludeProperty>^git\.commit\.id\.abbrev$</excludeProperty>
+                            <excludeProperty>^git\.build\.user\.name$</excludeProperty>
+                            <excludeProperty>^git\.closest\.tag\.commit\.count$</excludeProperty>
+                            <excludeProperty>^git\.commit\.user\.name$</excludeProperty>
+                        </excludeProperties>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -2564,13 +2584,12 @@
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
-                            <validHeader>build/copyright/ccri-2016.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
-                            <validHeader>build/copyright/dstl-copyright.txt</validHeader>
+                            <validHeader>build/copyright/dstl-copyright-2016.txt</validHeader>
                             <validHeader>build/copyright/dstl-copyright-2017.txt</validHeader>
                             <validHeader>build/copyright/ccri-dstl-copyright.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl-copyright-2017.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-copyright-2016.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>2017</year>

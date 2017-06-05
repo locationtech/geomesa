@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -127,7 +127,7 @@ case class BatchScanPlan(filter: AccumuloFilterStrategyType,
     if (ranges.isEmpty) { CloseableIterator.empty } else {
       val batchRanges = AccumuloQueryProperties.SCAN_BATCH_RANGES.option.map(_.toInt).getOrElse(Int.MaxValue)
       val batched = ranges.grouped(batchRanges)
-      SelfClosingIterator(batched).ciFlatMap { ranges =>
+      SelfClosingIterator(batched).flatMap { ranges =>
         val scanner = ds.connector.createBatchScanner(table, auths.getOrElse(ds.auths), numThreads)
         scanner.setRanges(ranges)
         configure(scanner)

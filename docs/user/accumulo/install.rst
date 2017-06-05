@@ -271,7 +271,7 @@ of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |releas
     --------------------------------------
     0 | geomesa-accumulo-gs-plugin_2.11-$VERSION
     1 | geomesa-blobstore-gs-plugin_2.11-$VERSION
-    2 | geomesa-process_2.11-$VERSION
+    2 | geomesa-process-wps_2.11-$VERSION
     3 | geomesa-stream-gs-plugin_2.11-$VERSION
 
     Module(s) to install: 0 1
@@ -403,8 +403,8 @@ A note about GeoMesa Process
 .. note::
 
     Some GeoMesa-specific WPS processes such as ``geomesa:Density``, which is used
-    in the generation of heat maps, also require ``geomesa-process-$VERSION.jar``.
-    This JAR is included in the ``geomesa-accumulo_2.11-$VERSION/dist/geoserver`` directory of the binary
+    in the generation of heat maps, also require ``geomesa-process-wps_2.11-$VERSION.jar``.
+    This JAR is included in the ``geomesa-accumulo_2.11-$VERSION/dist/gs-plugins`` directory of the binary
     distribution, or is built in the ``geomesa-process`` module of the source
     distribution.
 

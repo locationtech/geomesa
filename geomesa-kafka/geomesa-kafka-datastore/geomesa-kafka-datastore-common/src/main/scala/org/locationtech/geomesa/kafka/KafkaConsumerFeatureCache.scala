@@ -1,16 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.kafka
 
 import org.geotools.data.simple.SimpleFeatureReader
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
 
@@ -30,7 +30,7 @@ trait KafkaConsumerFeatureCache extends SpatialIndexSupport {
     if (f == Filter.INCLUDE) {
       features.size
     } else {
-      getReaderForFilter(f).toIterator.length
+      SelfClosingIterator(getReaderForFilter(f)).length
     }
   }
 

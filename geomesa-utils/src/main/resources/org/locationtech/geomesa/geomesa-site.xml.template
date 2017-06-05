@@ -266,4 +266,13 @@
         <final>false</final>
     </property>
 
+    <property>
+        <name>geomesa.hbase.coprocessor.path</name>
+        <value></value>
+        <description>HDFS or local path to GeoMesa-HBase Coprocessor JAR. If a local path is provided it must be the same for
+            all region server. A path provided through the DataStore parameters will always override this property.
+        </description>
+        <final>false</final>
+    </property>
+
 </configuration>

@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.ingest
 
@@ -29,14 +29,14 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  */
 class AvroIngestConverter(ds: DataStore, typeName: String) extends LocalIngestConverter {
 
-  var reader: AvroDataFileReader = null
+  var reader: AvroDataFileReader = _
 
   override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = {
     reader = new AvroDataFileReader(is)
     val dataSft = reader.getSft
     val sft = if (typeName == dataSft.getTypeName) dataSft else SimpleFeatureTypes.renameSft(dataSft, typeName)
     ds.createSchema(sft)
-    val features = if (dataSft == sft) { reader } else { reader.map(ScalaSimpleFeature.create(sft, _)) }
+    val features = if (dataSft == sft) { reader } else { reader.map(ScalaSimpleFeature.copy(sft, _)) }
     (sft, features)
   }
 

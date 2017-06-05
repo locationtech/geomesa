@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.export
 
@@ -69,7 +69,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
       case GeoJson | Json => new GeoJsonExporter(getWriter(params))
       case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
       case Avro           => new AvroExporter(features.getSchema, createOutputStream(params.file, null), avroCompression)
-      case Arrow          => new ArrowExporter(ds, query, createOutputStream(params.file, null))
+      case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params.file, null), ArrowExporter.queryDictionaries(ds, query))
       case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, null))
       case Null           => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here

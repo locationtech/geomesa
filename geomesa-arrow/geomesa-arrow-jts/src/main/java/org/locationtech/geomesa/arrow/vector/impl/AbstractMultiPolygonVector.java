@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.arrow.vector.impl;
 
@@ -15,41 +15,44 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
 import org.apache.arrow.vector.complex.FixedSizeListVector;
 import org.apache.arrow.vector.complex.ListVector;
-import org.apache.arrow.vector.complex.impl.UnionFixedSizeListReader;
-import org.apache.arrow.vector.complex.impl.UnionListReader;
-import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
 import org.locationtech.geomesa.arrow.vector.GeometryVector;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractMultiPolygonVector implements GeometryVector<MultiPolygon, ListVector> {
+
+  private static FieldType createFieldType(Map<String, String> metadata) {
+    return new FieldType(true, ArrowType.List.INSTANCE, null, metadata);
+  }
 
   private final ListVector vector;
   private final MultiPolygonWriter writer;
   private final MultiPolygonReader reader;
 
-  protected AbstractMultiPolygonVector(String name, BufferAllocator allocator) {
-    this(new ListVector(name, allocator, null, null));
+  protected AbstractMultiPolygonVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
+    this(new ListVector(name, allocator, createFieldType(metadata), null));
   }
 
-  protected AbstractMultiPolygonVector(String name, AbstractContainerVector container) {
-    this(container.addOrGet(name, new FieldType(true, ArrowType.List.INSTANCE, null), ListVector.class));
+  protected AbstractMultiPolygonVector(String name, AbstractContainerVector container, Map<String, String> metadata) {
+    this(container.addOrGet(name, createFieldType(metadata), ListVector.class));
   }
 
   protected AbstractMultiPolygonVector(ListVector vector) {
-    this.vector = vector;
     // create the fields we will write to up front
     if (vector.getDataVector().equals(BaseRepeatedValueVector.DEFAULT_DATA_VECTOR)) {
       vector.initializeChildrenFromFields(getFields());
-      this.vector.allocateNew();
+      vector.allocateNew();
     }
+    this.vector = vector;
     this.writer = createWriter(vector);
     this.reader = createReader(vector);
   }
@@ -78,13 +81,12 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
     vector.close();
   }
 
-  public static abstract class MultiPolygonWriter implements GeometryWriter<MultiPolygon> {
+  public static abstract class MultiPolygonWriter extends AbstractGeometryWriter<MultiPolygon> {
 
     private final ListVector.Mutator mutator;
     private final ListVector.Mutator innerMutator;
     private final ListVector.Mutator innerInnerMutator;
     private final FixedSizeListVector.Mutator tupleMutator;
-    private final FieldVector.Mutator pointMutator;
 
     protected MultiPolygonWriter(ListVector vector) {
       ListVector innerList = (ListVector) vector.getChildrenFromFields().get(0);
@@ -94,7 +96,7 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
       this.innerMutator = innerList.getMutator();
       this.innerInnerMutator = innerInnerList.getMutator();
       this.tupleMutator = tuples.getMutator();
-      this.pointMutator = tuples.getChildrenFromFields().get(0).getMutator();
+      setOrdinalMutator(tuples.getChildrenFromFields().get(0).getMutator());
     }
 
     @Override
@@ -110,8 +112,8 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
             for (int k = 0; k < line.getNumPoints(); k++) {
               Coordinate p = line.getCoordinateN(k);
               tupleMutator.setNotNull(position + k);
-              writeOrdinal(pointMutator, (position + k) * 2, p.y);
-              writeOrdinal(pointMutator, (position + k) * 2 + 1, p.x);
+              writeOrdinal((position + k) * 2, p.y);
+              writeOrdinal((position + k) * 2 + 1, p.x);
             }
             innerInnerMutator.endValue(innerInnerIndex + j, line.getNumPoints());
           }
@@ -121,54 +123,48 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
       }
     }
 
-    protected abstract void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal);
-
     @Override
     public void setValueCount(int count) {
       mutator.setValueCount(count);
     }
   }
 
-  public static abstract class MultiPolygonReader implements GeometryReader<MultiPolygon> {
+  public static abstract class MultiPolygonReader extends AbstractGeometryReader<MultiPolygon> {
 
     private final ListVector.Accessor accessor;
-    private final UnionListReader reader;
-    private final UnionListReader innerReader;
-    private final UnionListReader innerInnerReader;
-    private final UnionFixedSizeListReader innerInnerInnerReader;
-    private final FieldReader ordinalReader;
+    private final UInt4Vector.Accessor outerOuterOffsets;
+    private final UInt4Vector.Accessor outerOffsets;
+    private final UInt4Vector.Accessor offsets;
 
     public MultiPolygonReader(ListVector vector) {
-      ListVector innerVector = (ListVector) vector.getChildrenFromFields().get(0);
-      ListVector innerInnerVector = (ListVector) innerVector.getChildrenFromFields().get(0);
       this.accessor = vector.getAccessor();
-      this.reader = vector.getReader();
-      this.innerReader = innerVector.getReader();
-      this.innerInnerReader = innerInnerVector.getReader();
-      this.innerInnerInnerReader = ((FixedSizeListVector) innerInnerVector.getChildrenFromFields().get(0)).getReader();
-      this.ordinalReader = innerInnerInnerReader.reader();
+      this.outerOuterOffsets = ((UInt4Vector) vector.getFieldInnerVectors().get(1)).getAccessor();
+      FieldVector innerList = vector.getChildrenFromFields().get(0);
+      this.outerOffsets = ((UInt4Vector) innerList.getFieldInnerVectors().get(1)).getAccessor();
+      FieldVector innerInnerList = innerList.getChildrenFromFields().get(0);
+      this.offsets = ((UInt4Vector) innerInnerList.getFieldInnerVectors().get(1)).getAccessor();
+      setOrdinalAccessor(innerInnerList.getChildrenFromFields().get(0).getChildrenFromFields().get(0).getAccessor());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public MultiPolygon get(int index) {
-      reader.setPosition(index);
-      if (reader.isSet()) {
-        Polygon[] polygons = new Polygon[reader.size()];
-        for (int i = 0; i < polygons.length; i++) {
-          reader.next();
+      if (accessor.isNull(index)) {
+        return null;
+      } else {
+        int outerOuterOffsetStart = outerOuterOffsets.get(index);
+        Polygon[] polygons = new Polygon[outerOuterOffsets.get(index + 1) - outerOuterOffsetStart];
+        for (int k = 0; k < polygons.length; k++) {
+          int outerOffsetStart = outerOffsets.get(outerOuterOffsetStart + k);
           LinearRing shell = null;
-          LinearRing[] holes = new LinearRing[innerReader.size() - 1];
+          LinearRing[] holes = new LinearRing[outerOffsets.get(outerOuterOffsetStart + k + 1) - outerOffsetStart - 1];
           for (int j = 0; j < holes.length + 1; j++) {
-            innerReader.next();
-            Coordinate[] coordinates = new Coordinate[innerInnerReader.size()];
-            for (int k = 0; k < coordinates.length; k++) {
-              innerInnerReader.next();
-              innerInnerInnerReader.next();
-              double y = readOrdinal(ordinalReader);
-              innerInnerInnerReader.next();
-              double x = readOrdinal(ordinalReader);
-              coordinates[k] = new Coordinate(x, y);
+            int offsetStart = offsets.get(outerOffsetStart + j);
+            Coordinate[] coordinates = new Coordinate[offsets.get(outerOffsetStart + j + 1) - offsetStart];
+            for (int i = 0; i < coordinates.length; i++) {
+              double y = readOrdinal((offsetStart + i) * 2);
+              double x = readOrdinal((offsetStart + i) * 2 + 1);
+              coordinates[i] = new Coordinate(x, y);
             }
             LinearRing ring = factory.createLinearRing(coordinates);
             if (j == 0) {
@@ -177,15 +173,11 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
               holes[j - 1] = ring;
             }
           }
-          polygons[i] = factory.createPolygon(shell, holes);
+          polygons[k] = factory.createPolygon(shell, holes);
         }
         return factory.createMultiPolygon(polygons);
-      } else {
-        return null;
       }
     }
-
-    protected abstract double readOrdinal(FieldReader reader);
 
     @Override
     public int getValueCount() {

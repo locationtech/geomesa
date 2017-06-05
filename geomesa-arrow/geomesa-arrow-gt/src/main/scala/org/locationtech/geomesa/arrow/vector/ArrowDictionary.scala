@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.arrow.vector
 
@@ -48,7 +48,7 @@ class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding)
   def index(value: AnyRef): Int = {
     val result = map.get(value)
     if (result == null) {
-      map.size - 1// 'other'
+      map.size - 1 // 'other'
     } else {
       result.intValue()
     }

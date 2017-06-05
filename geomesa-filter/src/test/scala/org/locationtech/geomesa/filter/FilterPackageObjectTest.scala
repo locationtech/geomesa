@@ -1,14 +1,15 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.filter
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -65,6 +66,40 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
         geoms must haveLength(1)
         nongeoms must haveLength(2)
       }
+    }
+  }
+
+  "the mergeFilters function" should {
+
+    val ff  = CommonFactoryFinder.getFilterFactory2
+    val f1 = ff.equals(ff.property("test"), ff.literal("a"))
+
+    "ignore Filter.INCLUDE" >> {
+      val f2 = Filter.INCLUDE
+      val combined = mergeFilters(f1, f2)
+      combined mustEqual f1
+
+      val combined2 = mergeFilters(f2, f1)
+      combined2 mustEqual f1
+    }
+
+    "simplify same filters" >> {
+      val f2 = ff.equals(ff.property("test"), ff.literal("a"))
+      val combined = mergeFilters(f1, f2)
+      combined mustEqual f1
+
+      val combined2 = mergeFilters(f2, f1)
+      combined2 mustEqual f1
+    }
+
+    "AND different filters" >> {
+      val f2 = ff.equals(ff.property("test2"), ff.literal("a"))
+      val desired = ff.and(f1, f2)
+      val combined = mergeFilters(f1, f2)
+      combined mustEqual desired
+
+      val combined2 = mergeFilters(f2, f1)
+      combined2 mustEqual desired
     }
   }
 

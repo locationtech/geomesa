@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools
 
@@ -12,7 +12,6 @@ import java.io.File
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
-import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
@@ -33,7 +32,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
   val jsonConf  = FileUtils.readFileToString(new File(getClass.getResource("/convert/json-convert.conf").getFile))
 
   val inFormats = Seq(DataFormats.Csv, DataFormats.Tsv, DataFormats.Json)
-  val outFormats = DataFormats.values.filter(f => f != DataFormats.Null && f != DataFormats.Arrow).toSeq
+  val outFormats = DataFormats.values.filter(_ != DataFormats.Null).toSeq
 
   for (in <- inFormats; out <- outFormats) {
     logger.debug(s"Testing $in to $out converter")
@@ -76,15 +75,14 @@ class ConvertCommandTest extends Specification with LazyLogging {
       }
       "get an Exporter" in {
         withCommand { command =>
-          WithClose(ConvertCommand.getExporter(command.params, sft))(_ must not(beNull))
+          WithClose(ConvertCommand.getExporter(command.params, sft, null))(_ must not(beNull))
         }
       }
       "convert File" in {
         withCommand { command =>
-          val fc = new DefaultFeatureCollection(sft.getTypeName, sft)
           val converter = ConvertCommand.getConverter(command.params, sft)
           val ec = converter.createEvaluationContext(Map("inputFilePath" -> inputFile))
-          ConvertCommand.loadFeatureCollection(fc, Seq(inputFile), converter, ec, None, None)
+          val fc = ConvertCommand.loadFeatureCollection(Seq(inputFile), converter, ec, None, None)
           fc.size() must beEqualTo(3)
         }
       }

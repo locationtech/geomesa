@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.arrow.io
 
@@ -12,6 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import org.apache.arrow.memory.RootAllocator
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -31,18 +32,16 @@ class DictionaryBuildingWriterTest extends Specification {
   "SimpleFeatureVector" should {
     "dynamically encode dictionary values" >> {
       val out = new ByteArrayOutputStream()
-      WithClose(DictionaryBuildingWriter.create(sft, Seq("name"))) { writer =>
+      WithClose(DictionaryBuildingWriter.create(sft, Seq("name"), SimpleFeatureEncoding.max(true))) { writer =>
         features.foreach(writer.add)
         writer.encode(out)
       }
-      WithClose(new SimpleFeatureArrowFileReader(new ByteArrayInputStream(out.toByteArray))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(out.toByteArray))) { reader =>
         reader.dictionaries must haveSize(1)
-        reader.dictionaries.get("name:String") must beSome
-        reader.dictionaries("name:String").values must containTheSameElementsAs(Seq("name00", "name01"))
+        reader.dictionaries.get("name") must beSome
+        reader.dictionaries("name").values must containTheSameElementsAs(Seq("name00", "name01"))
 
-        val read = reader.features.toSeq
-        read must haveLength(10)
-        read must containTheSameElementsAs(features)
+        WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features)
       }
     }
   }

@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa
 
@@ -401,6 +401,18 @@ package object filter {
 
   def andOption(filters: Seq[Filter])(implicit ff: FilterFactory): Option[Filter] =
     if (filters.size < 2) { filters.headOption } else { Some(ff.and(filters)) }
+
+  def mergeFilters(f1: Filter, f2: Filter): Filter = {
+    if (f1 == Filter.INCLUDE) {
+      f2
+    } else if (f2 == Filter.INCLUDE) {
+      f1
+    } else if (f1 == f2) {
+      f1
+    } else {
+      ff.and(f1, f2)
+    }
+  }
 
   /**
    * Checks the order of properties and literals in the expression

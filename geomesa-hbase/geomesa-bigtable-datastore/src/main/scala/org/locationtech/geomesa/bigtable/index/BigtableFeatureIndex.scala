@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.bigtable.index
 
@@ -48,7 +48,7 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
                                      hints: Hints,
                                      ranges: Seq[Query],
                                      table: TableName,
-                                     hbaseFilters: Seq[HFilter],
+                                     hbaseFilters: Seq[(Int, HFilter)],
                                      coprocessor: Option[Coprocessor],
                                      toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
     if (hbaseFilters.nonEmpty) {

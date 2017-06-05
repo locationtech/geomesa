@@ -1,27 +1,30 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.index
 
-import com.google.common.collect.Maps
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
-import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
+import org.locationtech.geomesa.hbase.coprocessor.{KryoLazyDensityCoprocessor, coprocessorList}
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -49,13 +52,13 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
-  case class ScanConfig(filters: Seq[HFilter],
+  case class ScanConfig(filters: Seq[(Int, HFilter)],
                         coprocessor: Option[Coprocessor],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
-  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] {
+  with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] with LazyLogging {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
@@ -63,19 +66,43 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     super.configure(sft, ds)
+
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
     val admin = ds.connection.getAdmin
+    val coproUrl: Option[Path] = ds.config.coprocessorUrl.orElse{
+      GeoMesaSystemProperties.SystemProperty("geomesa.hbase.coprocessor.path", null).option.map(new Path(_))
+    }
+
+    def addCoprocessors(desc: HTableDescriptor): Unit =
+      coprocessorList.foreach(c => addCoprocessor(c, desc))
+
+    def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor): Unit = {
+      val name = clazz.getCanonicalName
+      if (!desc.getCoprocessors.contains(name)) { // should always be true
+        coproUrl match {
+          // TODO: Warn if the path given is different from paths registered in other coprocessors. This is to warn if another table needs updated.
+          case Some(path) => desc.addCoprocessor(name, path, Coprocessor.PRIORITY_USER, null)
+          case None       => desc.addCoprocessor(name)
+        }
+      }
+    }
+
     try {
       if (!admin.tableExists(name)) {
-        logger.info(s"Creating table $name")
+        logger.debug(s"Creating table $name")
         val descriptor = new HTableDescriptor(name)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
-        val rootDir = admin.getConfiguration.get(HConstants.HBASE_DIR)
-        // TODO: figure out if we need to discover this
-        val path = new Path(s"$rootDir/lib/geomesa-hbase-distributed-runtime.jar")
-        logger.info(s"Setting up coprocessors at $path")
-        // TODO: add all coprocessors
-        descriptor.addCoprocessor(classOf[KryoLazyDensityCoprocessor].getCanonicalName, path, Coprocessor.PRIORITY_USER, Maps.newHashMap[String, String]())
+        Option(admin.getConfiguration.get(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY)) match {
+          // if the coprocessors are installed site-wide don't register them in the table descriptor
+          case Some(value) =>
+            val installedCoprocessors = value.split(":").toSeq
+            coprocessorList.foreach { c =>
+              if (!installedCoprocessors.contains(c.getCanonicalName)) {
+                addCoprocessor(c, descriptor)
+              }
+            }
+          case None => addCoprocessors(descriptor)
+        }
         admin.createTable(descriptor, getSplits(sft).toArray)
       }
     } finally {
@@ -193,10 +220,12 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
 
       val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
       val toFeatures = resultsToFeatures(returnSchema, None, None)
-      val filterTransform: Seq[HFilter] = if (ecql.isEmpty && transform.isEmpty) { Seq.empty } else {
+      val filterTransform: Seq[(Int, HFilter)] = if (ecql.isEmpty && transform.isEmpty) { Seq.empty } else {
         // transforms and filters are applied server-side
         val remoteCQLFilter: Filter = ecql.getOrElse(Filter.INCLUDE)
-        Seq(new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, SimpleFeatureTypes.encodeType(returnSchema)))
+        val encodedSft = SimpleFeatureTypes.encodeType(returnSchema)
+        val filter = new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, encodedSft)
+        Seq((JSimpleFeatureFilter.Priority, filter))
       }
 
       val additionalFilters = createPushDownFilters(ds, sft, filter, transform)
@@ -210,7 +239,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
   protected def createPushDownFilters(ds: HBaseDataStore,
                                       sft: SimpleFeatureType,
                                       filter: HBaseFilterStrategyType,
-                                      transform: Option[(String, SimpleFeatureType)]): Seq[HFilter] = Seq.empty
+                                      transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = Seq.empty
 
   protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                       sft: SimpleFeatureType,
@@ -218,7 +247,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                                       hints: Hints,
                                       ranges: Seq[Query],
                                       table: TableName,
-                                      hbaseFilters: Seq[HFilter],
+                                      hbaseFilters: Seq[(Int, HFilter)],
                                       coprocessor: Option[Coprocessor],
                                       toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 }

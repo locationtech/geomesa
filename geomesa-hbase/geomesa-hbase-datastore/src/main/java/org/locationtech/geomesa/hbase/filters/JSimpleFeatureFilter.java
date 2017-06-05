@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.filters;
 
@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class JSimpleFeatureFilter extends FilterBase {
+
+    public static int Priority = 30;
+
     private final Filter localFilter;
     private final KryoBufferSimpleFeature reusable;
     private final Transformer transformer;
@@ -137,16 +140,16 @@ public class JSimpleFeatureFilter extends FilterBase {
 
     public JSimpleFeatureFilter(String sftString, String filterString, String transformString, String transformSchemaString) throws CQLException {
         this.sftString = sftString;
+        this.sft = IteratorCache.sft(sftString);
+        this.reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
+
         this.filterString = filterString;
 
         this.transformSchema = transformSchemaString;
         this.transform = transformString;
 
-        this.localFilter = buildFilter(filterString);
+        this.localFilter = buildFilter(sft, filterString);
         this.transformer = buildTransformer(transform, transformSchema);
-
-        this.sft = IteratorCache.sft(sftString);
-        reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
 
         this.localFilter.setReusableSF(reusable);
         this.transformer.setReusableSF(reusable);
@@ -166,7 +169,7 @@ public class JSimpleFeatureFilter extends FilterBase {
         this.transformSchema = transformSchema;
         this.transform = transform;
 
-        this.localFilter = buildFilter(filterString);
+        this.localFilter = buildFilter(sft, filterString);
         this.transformer = buildTransformer(transform, transformSchema);
 
         reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
@@ -241,9 +244,9 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
-    private static JSimpleFeatureFilter.Filter buildFilter(String filterString) throws CQLException {
+    private static JSimpleFeatureFilter.Filter buildFilter(SimpleFeatureType sft, String filterString) throws CQLException {
         if(!"".equals(filterString)) {
-            return new CQLFilter(FastFilterFactory.toFilter(filterString));
+            return new CQLFilter(FastFilterFactory.toFilter(sft, filterString));
         } else {
             return new IncludeFilter();
         }

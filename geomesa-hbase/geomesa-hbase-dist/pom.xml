@@ -38,6 +38,11 @@
             <artifactId>geomesa-hbase-distributed-runtime_${scala.binary.version}</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-process</artifactId>
+        </dependency>
+
         <!-- GeoServer Plugins -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -55,12 +60,9 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-process_${scala.binary.version}</artifactId>
-            <classifier>install</classifier>
-            <version>${project.version}</version>
-            <type>tar.gz</type>
+            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
         </dependency>
-    
+
         <!-- tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

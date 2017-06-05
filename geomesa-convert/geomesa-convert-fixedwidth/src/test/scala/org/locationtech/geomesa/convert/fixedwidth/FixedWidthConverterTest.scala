@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.fixedwidth
 
@@ -20,6 +20,7 @@ import org.specs2.runner.JUnitRunner
 class FixedWidthConverterTest extends Specification {
 
   sequential
+
   "FixedWidthConverter" >> {
 
     val data =
@@ -76,17 +77,12 @@ class FixedWidthConverterTest extends Specification {
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
 
-      converter must not beNull
-      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+      converter must not(beNull)
+      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).isDefined)).toList
       res.size must be equalTo 2
       res(0).getDefaultGeometry.asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(55.0, 45.0)
       res(1).getDefaultGeometry.asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(65.0, 65.0)
-
-      // This should really be set to 65.0 but there is a bug in the converters
-      // We need to build an attribute graph and evaluate them in that order GEOMESA-1833
-      //res(1).getAttribute("anotherLat").asInstanceOf[Double] must be equalTo 65.0D
-      res(1).getAttribute("anotherLat") must beNull // wrong for now
-      res(1).getAttribute("anotherLat").asInstanceOf[Double] must be equalTo 0.0D // wrong for now
+      res(1).getAttribute("anotherLat").asInstanceOf[Double] must be equalTo 65.0D
     }
 
     "process with validation on" >> {

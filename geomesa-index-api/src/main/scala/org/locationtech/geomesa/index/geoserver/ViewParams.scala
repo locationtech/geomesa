@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.index.geoserver
 
@@ -79,9 +79,11 @@ object ViewParams extends LazyLogging {
         case "ARROW_ENCODE"             => toBoolean(key, value).foreach(setHint(ARROW_ENCODE, _))
         case "ARROW_INCLUDE_FID"        => toBoolean(key, value).foreach(setHint(ARROW_INCLUDE_FID, _))
         case "ARROW_DICTIONARY_FIELDS"  => setHint(ARROW_DICTIONARY_FIELDS, value)
-        case "ARROW_DICTIONARY_COMPUTE" => toBoolean(key, value).foreach(setHint(ARROW_DICTIONARY_COMPUTE, _))
         case "ARROW_DICTIONARY_VALUES"  => setHint(ARROW_DICTIONARY_VALUES, value)
+        case "ARROW_DICTIONARY_COMPUTE" => toBoolean(key, value).foreach(setHint(ARROW_DICTIONARY_COMPUTE, _))
         case "ARROW_BATCH_SIZE"         => toInt(key, value).foreach(setHint(ARROW_BATCH_SIZE, _))
+        case "ARROW_SORT_FIELD"         => setHint(ARROW_SORT_FIELD, value)
+        case "ARROW_SORT_REVERSE"       => toBoolean(key, value).foreach(setHint(ARROW_SORT_REVERSE, _))
 
         // back-compatible check for strategy
         case "STRATEGY"        => toIndex(ds, sft, value).foreach(setHint(QUERY_INDEX, _))

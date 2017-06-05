@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.raster.iterators
 
@@ -159,7 +159,7 @@ trait HasSpatioTemporalFilter extends IteratorExtensions {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     if (options.containsKey(ST_FILTER_PROPERTY_NAME)) {
-      val filter = FastFilterFactory.toFilter(options.get(ST_FILTER_PROPERTY_NAME))
+      val filter = FastFilterFactory.toFilter(featureType, options.get(ST_FILTER_PROPERTY_NAME))
       if (filter != Filter.INCLUDE) {
         stFilter = filter
       }
@@ -178,7 +178,7 @@ trait HasFilter extends IteratorExtensions {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     if (options.containsKey(GEOMESA_ITERATORS_ECQL_FILTER)) {
-      val ecql = FastFilterFactory.toFilter(options.get(GEOMESA_ITERATORS_ECQL_FILTER))
+      val ecql = FastFilterFactory.toFilter(featureType, options.get(GEOMESA_ITERATORS_ECQL_FILTER))
       if (ecql != Filter.INCLUDE) {
         filter = ecql
       }

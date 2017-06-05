@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -112,7 +112,8 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
     } else if (hints.isArrowQuery) {
       val dictionaryFields = hints.getArrowDictionaryFields
       val providedDictionaries = hints.getArrowDictionaryEncodedValues
-      if (hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
+      if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
+          dictionaryFields.forall(providedDictionaries.contains)) {
         val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
         val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
         val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries))

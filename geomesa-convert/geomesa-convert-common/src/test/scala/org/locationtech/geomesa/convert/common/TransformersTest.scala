@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.common
 
@@ -55,23 +55,24 @@ class TransformersTest extends Specification {
           res mustEqual 1L
         }
         "allow native floats" >> {
-          val f = Transformers.parseTransform("1.0f").eval(Array(null))
-          f must beAnInstanceOf[java.lang.Float]
-          f mustEqual 1.0f
-          val F = Transformers.parseTransform("1.0F").eval(Array(null))
-          F must beAnInstanceOf[java.lang.Float]
-          F mustEqual 1.0f
+          val tests = Seq(("1.0", 1f), ("1.0", 1f), (".1", .1f), ("0.1", .1f), ("-1.0", -1f))
+          foreach(tests) { case (s, expected) =>
+            foreach(Seq("f", "F")) { suffix =>
+              val res = Transformers.parseTransform(s + suffix).eval(Array(null))
+              res must beAnInstanceOf[java.lang.Float]
+              res mustEqual expected
+            }
+          }
         }
         "allow native doubles" >> {
-          val res = Transformers.parseTransform("1.0").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Double]
-          res mustEqual 1.0d
-          val d = Transformers.parseTransform("1.0d").eval(Array(null))
-          d must beAnInstanceOf[java.lang.Double]
-          d mustEqual 1.0d
-          val D = Transformers.parseTransform("1.0D").eval(Array(null))
-          D must beAnInstanceOf[java.lang.Double]
-          D mustEqual 1.0d
+          val tests = Seq(("1.0", 1d), ("0.1", 0.1d), (".1", 0.1d), ("-1.0", -1d), ("-0.1", -0.1d))
+          foreach(tests) { case (s, expected) =>
+            foreach(Seq("", "d", "D")) { suffix =>
+              val res = Transformers.parseTransform(s + suffix).eval(Array(null))
+              res must beAnInstanceOf[java.lang.Double]
+              res mustEqual expected
+            }
+          }
         }
         "allow native booleans" >> {
           Transformers.parseTransform("false").eval(Array(null)) mustEqual false

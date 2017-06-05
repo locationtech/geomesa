@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.json
 
@@ -1110,6 +1110,30 @@ class JsonConverterTest extends Specification {
       f.get[Double]("d") mustEqual 1.7976931348623157E8
       f.get[Float]("f") mustEqual 1.023f
       f.get[Boolean]("b") mustEqual false
+    }
+
+    "handle invalid input" >> {
+      val typeSft = SimpleFeatureTypes.createType("foo", "i:Long")
+
+      val json = "foobarbaz {"
+
+      val typeConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "i", json-type = "integer",  path = "$.i", transform = "$0::long" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](typeSft, typeConf)
+      val ec = converter.createEvaluationContext()
+      val features = converter.processInput(Iterator(json), ec).toList
+      features must haveLength(0)
+      ec.counter.getSuccess mustEqual 0
+      ec.counter.getFailure mustEqual 1
     }
   }
 }

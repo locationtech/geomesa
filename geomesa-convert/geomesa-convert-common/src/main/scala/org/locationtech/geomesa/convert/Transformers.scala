@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert
 
@@ -47,7 +47,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     private val OPEN_PAREN  = "("
     private val CLOSE_PAREN = ")"
 
-    def decimal     = """\d*\.\d+""".r
+    def decimal     = """-?\d*\.\d+""".r
     def string      = quotedString         ^^ { s => LitString(s)            }
     def int         = wholeNumber          ^^ { i => LitInt(i.toInt)         }
     def double      = decimal <~ "[dD]?".r ^^ { d => LitDouble(d.toDouble)   }
@@ -118,17 +118,27 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
 
   sealed trait Expr {
     def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any
-    def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String]
+
+    /**
+      * Gets the field dependencies that this expr relies on
+      *
+      * @param stack current field stack, used to detect circular dependencies
+      * @param fieldNameMap fields lookup
+      * @return dependencies
+      */
+    def dependenciesOf(stack: Set[Field], fieldNameMap: Map[String, Field]): Set[Field]
   }
 
   sealed trait Lit[T <: Any] extends Expr {
     def value: T
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = value
-
-    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = Seq()
+    override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
+    override def toString: String = String.valueOf(value)
   }
 
-  case class LitString(value: String) extends Lit[String]
+  case class LitString(value: String) extends Lit[String] {
+    override def toString: String = s"'${String.valueOf(value)}'"
+  }
   case class LitInt(value: Integer) extends Lit[Integer]
   case class LitLong(value: Long) extends Lit[Long]
   case class LitFloat(value: java.lang.Float) extends Lit[java.lang.Float]
@@ -138,7 +148,8 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
 
   sealed trait CastExpr extends Expr {
     def e: Expr
-    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = e.dependenciesOf(fieldNameMap)
+    override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
+      e.dependenciesOf(stack, fieldMap)
   }
   case class Cast2Int(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Int =
@@ -149,6 +160,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         case long: Long     => long.toInt
         case any: Any       => any.toString.toInt
       }
+    override def toString: String = s"$e::int"
   }
   case class Cast2Long(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Long =
@@ -159,6 +171,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         case long: Long     => long
         case any: Any       => any.toString.toLong
       }
+    override def toString: String = s"$e::long"
   }
   case class Cast2Float(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Float =
@@ -169,6 +182,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         case long: Long     => long.toFloat
         case any: Any       => any.toString.toFloat
       }
+    override def toString: String = s"$e::float"
   }
   case class Cast2Double(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Double =
@@ -179,26 +193,28 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         case long: Long     => long.toDouble
         case any: Any       => any.toString.toDouble
       }
+    override def toString: String = s"$e::double"
   }
   case class Cast2Boolean(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).asInstanceOf[String].toBoolean
+    override def toString: String = s"$e::boolean"
   }
   case class Cast2String(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).toString
+    override def toString: String = s"$e::string"
   }
 
   case object WholeRecord extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = args(0)
-
-    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = Seq()
+    override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
   }
 
   case class Col(i: Int) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = args(i)
-
-    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = Seq()
+    override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
+    override def toString: String = s"$$$i"
   }
 
   case class FieldLookup(n: String) extends Expr {
@@ -209,34 +225,46 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         else         ec => ec.get(idx)
       doEval(ctx)
     }
+
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = doEval(ctx)
 
-    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] =
-      Seq(n) ++ fieldNameMap.get(n).flatMap { f => Option(f.transform).map(_.dependenciesOf(fieldNameMap)) }.getOrElse(Seq.empty)
+    override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = {
+      fieldMap.get(n) match {
+        case None => Set.empty
+        case Some(field) =>
+          if (stack.contains(field)) {
+            throw new IllegalArgumentException(s"Cyclical dependency detected in field $field")
+          } else {
+            Option(field.transform).toSeq.flatMap(_.dependenciesOf(stack + field, fieldMap)).toSet + field
+          }
+      }
+    }
+
+    override def toString: String = s"$$$n"
   }
 
   case class RegexExpr(s: String) extends Expr {
     val compiled = s.r
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = compiled
-
-    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = Seq()
+    override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
+    override def toString: String = s"$s::r"
   }
 
   case class FunctionExpr(f: TransformerFn, arguments: Array[Expr]) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       f.eval(arguments.map(_.eval(args)))
-
-    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] =
-      arguments.flatMap(_.dependenciesOf(fieldNameMap))
+    override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
+      arguments.flatMap(_.dependenciesOf(stack, fieldMap)).toSet
+    override def toString: String = s"${f.names.head}${arguments.mkString("(", ",", ")")}"
   }
 
   case class TryFunctionExpr(toTry: Expr, fallback: Expr) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       Try(toTry.eval(args)).getOrElse(fallback.eval(args))
     }
-
-    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] =
-      toTry.dependenciesOf(fieldNameMap) ++ fallback.dependenciesOf(fieldNameMap)
+    override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
+      toTry.dependenciesOf(stack, fieldMap) ++ fallback.dependenciesOf(stack, fieldMap)
+    override def toString: String = s"try($toTry,$fallback)"
   }
 
   sealed trait Predicate {

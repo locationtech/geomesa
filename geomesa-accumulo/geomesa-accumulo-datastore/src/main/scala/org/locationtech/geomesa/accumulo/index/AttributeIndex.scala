@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -208,8 +208,8 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       lazy val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
       // check to see if we can execute against the index values
       if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
-        val (iter, reduce, kvsToFeatures) = if (hints.isArrowComputeDictionaries ||
-            dictionaryFields.forall(providedDictionaries.contains)) {
+        val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
+            hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
           val iter = ArrowBatchIterator.configure(indexSft, this, ecql, dictionaries, hints, dedupe)
           val reduce = Some(ArrowBatchIterator.reduceFeatures(indexSft, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
@@ -227,8 +227,8 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         // make sure we set table sharing - required for the iterator
         transformSft.setTableSharing(sft.isTableSharing)
         // the key-value iter needs to run before the arrow iter so that the attribute is available to encode
-        val (iter, reduce, kvsToFeatures) = if (hints.isArrowComputeDictionaries ||
-            dictionaryFields.forall(providedDictionaries.contains)) {
+        val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
+            hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
           val iter = ArrowBatchIterator.configure(transformSft, this, ecql, dictionaries, hints, dedupe)
           val reduce = Some(ArrowBatchIterator.reduceFeatures(transformSft, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
@@ -346,7 +346,8 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       throw new RuntimeException("Record index does not exist for join query")
     }
     val recordIter = if (hints.isArrowQuery) {
-      if (hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
+      if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
+          dictionaryFields.forall(providedDictionaries.contains)) {
         Seq(ArrowBatchIterator.configure(sft, recordIndex, ecqlFilter, arrowDictionaries, hints, deduplicate = false))
       } else {
         Seq(ArrowFileIterator.configure(sft, recordIndex, ecqlFilter, dictionaryFields, hints, deduplicate = false))

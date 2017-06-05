@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.kafka10
 
@@ -18,7 +18,7 @@ import org.joda.time.Instant
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka._
 import org.locationtech.geomesa.kafka10.KafkaDataStoreFactoryParams._
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.{After, Specification}
 import org.specs2.runner.JUnitRunner
@@ -179,12 +179,8 @@ class ReplayKafkaDataStoreTest
     success("shutdown complete")
   }
 
-  def featuresToList(sfc: SimpleFeatureCollection): List[SimpleFeature] = {
-    val iter: RichSimpleFeatureIterator = sfc.features()
-    val features = iter.toList
-    iter.close()
-    features
-  }
+  def featuresToList(sfc: SimpleFeatureCollection): List[SimpleFeature] =
+    SelfClosingIterator(sfc.features()).toList
 
   def createDataStore: DataStore = {
     val props = Map(
