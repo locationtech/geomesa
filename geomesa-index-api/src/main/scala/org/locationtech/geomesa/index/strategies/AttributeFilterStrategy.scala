@@ -12,6 +12,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -48,7 +49,7 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
     * Compare with id lookups at 1, z2/z3 at 200-401
     */
   override def getCost(sft: SimpleFeatureType,
-                       ds: Option[DS],
+                       stats: Option[GeoMesaStats],
                        filter: FilterStrategy[DS, F, W],
                        transform: Option[SimpleFeatureType]): Long = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -56,7 +57,7 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
     filter.primary match {
       case None    => Long.MaxValue
       case Some(f) =>
-        lazy val cost = ds.flatMap(_.stats.getCount(sft, f, exact = false)).getOrElse(AttributeFilterStrategy.StaticCost)
+        lazy val cost = stats.flatMap(_.getCount(sft, f, exact = false)).getOrElse(AttributeFilterStrategy.StaticCost)
         // if there is a filter, we know it has a valid property name
         val attribute = FilterHelper.propertyNames(f, sft).head
         sft.getDescriptor(attribute).getCardinality() match {

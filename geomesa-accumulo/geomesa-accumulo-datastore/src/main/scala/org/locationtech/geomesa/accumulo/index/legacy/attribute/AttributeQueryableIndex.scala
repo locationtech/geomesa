@@ -23,6 +23,7 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -262,13 +263,13 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
   }
 
   override def getCost(sft: SimpleFeatureType,
-                       ds: Option[AccumuloDataStore],
+                       stats: Option[GeoMesaStats],
                        filter: AccumuloFilterStrategyType,
                        transform: Option[SimpleFeatureType]): Long = {
     filter.primary match {
       case None => Long.MaxValue
       case Some(f) =>
-        val statCost = for { ds <- ds; count <- ds.stats.getCount(sft, f, exact = false) } yield {
+        val statCost = for { stats <- stats; count <- stats.getCount(sft, f, exact = false) } yield {
           // account for cardinality and index coverage
           val attribute = FilterHelper.propertyNames(f, sft).head
           val descriptor = sft.getDescriptor(attribute)

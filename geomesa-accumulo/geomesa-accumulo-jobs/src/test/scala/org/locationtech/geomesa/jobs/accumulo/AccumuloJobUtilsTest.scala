@@ -13,7 +13,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

@@ -14,6 +14,7 @@ import java.util.Locale
 import org.apache.commons.codec.binary.Hex
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -129,7 +130,7 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: Wrapp
     * number of features that will have to be scanned.
     */
   def getCost(sft: SimpleFeatureType,
-              ds: Option[DS],
+              stats: Option[GeoMesaStats],
               filter: TypedFilterStrategy,
               transform: Option[SimpleFeatureType]): Long
 

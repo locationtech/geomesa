@@ -23,6 +23,7 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -244,6 +245,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
       }
     } else if (hints.isDensityQuery) {
+      // noinspection ExistsEquals
       // check to see if we can execute against the index values
       val weightIsAttribute = hints.getDensityWeight.exists(_ == attribute)
       if (filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _)) &&
@@ -403,13 +405,13 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   }
 
   override def getCost(sft: SimpleFeatureType,
-                       ds: Option[AccumuloDataStore],
+                       stats: Option[GeoMesaStats],
                        filter: AccumuloFilterStrategyType,
                        transform: Option[SimpleFeatureType]): Long = {
     filter.primary match {
       case None => Long.MaxValue
       case Some(f) =>
-        val statCost = for { ds <- ds; count <- ds.stats.getCount(sft, f, exact = false) } yield {
+        val statCost = for { stats <- stats; count <- stats.getCount(sft, f, exact = false) } yield {
           // account for cardinality and index coverage
           val attribute = FilterHelper.propertyNames(f, sft).head
           val descriptor = sft.getDescriptor(attribute)

@@ -19,12 +19,12 @@ import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
-import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, KryoLazyDensityIterator}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
-import org.locationtech.geomesa.index.api.{FilterSplitter, FilterStrategy}
+import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer, KryoLazyDensityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326

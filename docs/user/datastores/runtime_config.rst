@@ -71,6 +71,15 @@ per-query basis using the query hint ``org.locationtech.geomesa.accumulo.index.Q
 set to either ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Stats``
 or ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Index``.
 
+geomesa.strategy.decider
+++++++++++++++++++++++++
+
+This property allows for overriding strategy selection during query planning. It should specify the
+full class name for a class implementing ``org.locationtech.geomesa.index.planning.StrategyDecider``.
+The class must have a no-arg constructor.
+
+By default GeoMesa will use cost-based query planning, which should work well for most situations.
+
 geomesa.feature.id-generator
 ++++++++++++++++++++++++++++
 
