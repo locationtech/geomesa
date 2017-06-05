@@ -8,7 +8,7 @@
 #
 
 # Resolve test home
-if [ -z "${GEOMESA_TEST_HOME}" ]; then
+if [[ -z "${GEOMESA_TEST_HOME}" ]]; then
   export GEOMESA_TEST_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
 
