@@ -127,7 +127,7 @@ case class BatchScanPlan(filter: AccumuloFilterStrategyType,
     if (ranges.isEmpty) { CloseableIterator.empty } else {
       val batchRanges = AccumuloQueryProperties.SCAN_BATCH_RANGES.option.map(_.toInt).getOrElse(Int.MaxValue)
       val batched = ranges.grouped(batchRanges)
-      SelfClosingIterator(batched).ciFlatMap { ranges =>
+      SelfClosingIterator(batched).flatMap { ranges =>
         val scanner = ds.connector.createBatchScanner(table, auths.getOrElse(ds.auths), numThreads)
         scanner.setRanges(ranges)
         configure(scanner)
