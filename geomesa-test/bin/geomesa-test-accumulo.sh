@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
 # http://www.opensource.org/licenses/apache2.0.php.
 #
+
+# Resolve test home
+if [ -z "${GEOMESA_TEST_HOME}" ]; then
+  export GEOMESA_TEST_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+fi
 
 # Load common functions and setup
 . "${GEOMESA_TEST_HOME}"/bin/common-functions.sh
@@ -173,6 +178,37 @@ function setupAccumulo()  {
     AccumuloRun "config -ns ${NS} -s table.classpath.context=${NS}"
     set +x
 }
+
+function test_accumulo_vis() {
+   echo "Test Accumulo Visibilities"
+   $geomesaIngestCommand -c ${CATALOG} -s example-csv -f viscsv  -C example-csv-with-visibilities $GM_TOOLS/examples/ingest/csv/example.csv
+
+   # no auths gets no data
+   accumulo shell -u root -p secret -e "setauths -u root -s ''"
+   res=$($geomesaExportCommand -c ${CATALOG} -f viscsv | wc -l)
+   if [[ "${res}" -ne "1" ]]; then
+     echo "error vis should be 1"
+     exit 1
+   fi
+
+   # no auths gets no data
+   accumulo shell -u root -p secret -e "setauths -u root -s user"
+   res=$($geomesaExportCommand -c ${CATALOG} -f viscsv | wc -l)
+   if [[ "${res}" -ne "3" ]]; then
+     echo "error vis should be 3"
+     exit 2
+   fi
+
+   # no auths gets no data
+   accumulo shell -u root -p secret -e "setauths -u root -s user,admin"
+   res=$($geomesaExportCommand -c ${CATALOG} -f viscsv | wc -l)
+   if [[ "${res}" -ne "4" ]]; then
+     echo "error vis should be 4"
+     exit 3
+   fi
+}
+
+CATALOG="${NS}.gmtest1"
 
 # Test Sequence
 test_local_ingest

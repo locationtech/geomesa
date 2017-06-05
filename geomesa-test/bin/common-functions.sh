@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
@@ -16,7 +16,6 @@ VER_SHORT="$(echo $GMVER | sed 's/[\.\-]\|SNAPSHOT//g')" # "130m3"
 SCALAVER="%%scala.binary.version%%"
 GMTMP="geomesa-test-tmp"
 NS="gmtest${VER_SHORT}"
-CATALOG="${NS}.gmtest1"
 
 function test_local_ingest() {
     echo "Test Local Ingest"
@@ -165,38 +164,4 @@ function test_twitter() {
     c2=$($geomesaExportCommand -c ${CATALOG} -f twitter-polygon -a user_id --no-header | wc -l) && \
     test $c1 -eq $c2 && \
     test $c1 -eq $expected
-}
-
-function test_accumulo_vis() {
-   echo "Test Accumulo Visibilities"
-   $geomesaIngestCommand -c ${CATALOG} -s example-csv -f viscsv  -C example-csv-with-visibilities $GM_TOOLS/examples/ingest/csv/example.csv
-
-   # no auths gets no data
-   accumulo shell -u root -p secret -e "setauths -u root -s ''"
-   res=$($geomesaExportCommand -c ${CATALOG} -f viscsv | wc -l)
-   if [[ "${res}" -ne "1" ]]; then
-     echo "error vis should be 1"
-     exit 1
-   fi
-
-   # no auths gets no data
-   accumulo shell -u root -p secret -e "setauths -u root -s user"
-   res=$($geomesaExportCommand -c ${CATALOG} -f viscsv | wc -l)
-   if [[ "${res}" -ne "3" ]]; then
-     echo "error vis should be 3"
-     exit 2
-   fi
-
-   # no auths gets no data
-   accumulo shell -u root -p secret -e "setauths -u root -s user,admin"
-   res=$($geomesaExportCommand -c ${CATALOG} -f viscsv | wc -l)
-   if [[ "${res}" -ne "4" ]]; then
-     echo "error vis should be 4"
-     exit 3
-   fi
-}
-
-function test_hbase_vis() {
-    # TODO
-    echo "TODO"
 }
