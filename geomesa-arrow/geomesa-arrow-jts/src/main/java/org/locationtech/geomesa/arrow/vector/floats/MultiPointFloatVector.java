@@ -6,33 +6,31 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.arrow.vector;
+package org.locationtech.geomesa.arrow.vector.floats;
 
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.NullableFloat4Vector;
-import org.apache.arrow.vector.ValueVector.Accessor;
-import org.apache.arrow.vector.ValueVector.Mutator;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.ListVector;
+import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.GeometryFields;
 import org.locationtech.geomesa.arrow.vector.impl.AbstractMultiPointVector;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 
 public class MultiPointFloatVector extends AbstractMultiPointVector {
 
   // fields created by this vector
   public static final List<Field> fields = GeometryFields.XY_FLOAT_LIST;
 
-  public MultiPointFloatVector(String name, BufferAllocator allocator,@Nullable Map<String, String> metadata) {
-    super(name, allocator, metadata);
+  public MultiPointFloatVector(String name, BufferAllocator allocator) {
+    super(name, allocator);
   }
 
-  public MultiPointFloatVector(String name, AbstractContainerVector container, @Nullable Map<String, String> metadata) {
-    super(name, container, metadata);
+  public MultiPointFloatVector(String name, AbstractContainerVector container) {
+    super(name, container);
   }
 
   public MultiPointFloatVector(ListVector vector) {
@@ -56,39 +54,25 @@ public class MultiPointFloatVector extends AbstractMultiPointVector {
 
   public static class MultiPointFloatWriter extends MultiPointWriter {
 
-    private NullableFloat4Vector.Mutator mutator;
-
     public MultiPointFloatWriter(ListVector vector) {
       super(vector);
     }
 
     @Override
-    protected void setOrdinalMutator(Mutator mutator) {
-      this.mutator = (NullableFloat4Vector.Mutator) mutator;
-    }
-
-    @Override
-    protected void writeOrdinal(int index, double ordinal) {
-      mutator.set(index, (float) ordinal);
+    protected void writeOrdinal(FieldVector.Mutator mutator, int index, double ordinal) {
+      ((NullableFloat4Vector.Mutator) mutator).set(index, (float) ordinal);
     }
   }
 
   public static class MultiPointFloatReader extends MultiPointReader {
-
-    private NullableFloat4Vector.Accessor accessor;
 
     public MultiPointFloatReader(ListVector vector) {
       super(vector);
     }
 
     @Override
-    protected void setOrdinalAccessor(Accessor accessor) {
-      this.accessor = (NullableFloat4Vector.Accessor) accessor;
-    }
-
-    @Override
-    protected double readOrdinal(int index) {
-      return accessor.get(index);
+    protected double readOrdinal(FieldReader reader) {
+      return reader.readFloat();
     }
   }
 }

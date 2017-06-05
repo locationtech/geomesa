@@ -15,8 +15,7 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, NullableMapVector}
-import org.apache.arrow.vector.holders._
-import org.joda.time.{DateTimeZone, LocalDateTime}
+import org.joda.time.DateTime
 import org.locationtech.geomesa.arrow.TypeBindings
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary.HasArrowDictionary
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryReader
@@ -26,17 +25,17 @@ import org.locationtech.geomesa.arrow.vector.MultiPointVector.MultiPointDoubleRe
 import org.locationtech.geomesa.arrow.vector.MultiPolygonVector.MultiPolygonDoubleReader
 import org.locationtech.geomesa.arrow.vector.PointVector.PointDoubleReader
 import org.locationtech.geomesa.arrow.vector.PolygonVector.PolygonDoubleReader
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.EncodingPrecision.EncodingPrecision
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{EncodingPrecision, SimpleFeatureEncoding}
-import LineStringFloatVector.LineStringFloatReader
-import MultiLineStringFloatVector.MultiLineStringFloatReader
-import MultiPointFloatVector.MultiPointFloatReader
-import MultiPolygonFloatVector.MultiPolygonFloatReader
-import PointFloatVector.PointFloatReader
-import PolygonFloatVector.PolygonFloatReader
-import org.locationtech.geomesa.arrow.vector.impl.{AbstractLineStringVector, AbstractPointVector}
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision.GeometryPrecision
+import org.locationtech.geomesa.arrow.vector.floats.LineStringFloatVector.LineStringFloatReader
+import org.locationtech.geomesa.arrow.vector.floats.MultiLineStringFloatVector.MultiLineStringFloatReader
+import org.locationtech.geomesa.arrow.vector.floats.MultiPointFloatVector.MultiPointFloatReader
+import org.locationtech.geomesa.arrow.vector.floats.MultiPolygonFloatVector.MultiPolygonFloatReader
+import org.locationtech.geomesa.arrow.vector.floats.PointFloatVector.PointFloatReader
+import org.locationtech.geomesa.arrow.vector.floats.PolygonFloatVector.PolygonFloatReader
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -52,17 +51,6 @@ trait ArrowAttributeReader {
     * @return the attribute value
     */
   def apply(i: Int): AnyRef
-}
-
-trait ArrowDictionaryReader extends ArrowAttributeReader with HasArrowDictionary {
-
-  /**
-    * Gets the raw underlying value without dictionary decoding it
-    *
-    * @param i index of the feature to read
-    * @return
-    */
-  def getEncoded(i: Int): Int
 }
 
 object ArrowAttributeReader {
@@ -90,20 +78,20 @@ object ArrowAttributeReader {
     * @param sft simple feature type
     * @param vector simple feature vector to read from
     * @param dictionaries dictionaries, if any
-    * @param encoding encoding options
+    * @param precision geometry precision
     * @return sequence of readers
     */
   def apply(sft: SimpleFeatureType,
             vector: NullableMapVector,
             dictionaries: Map[String, ArrowDictionary],
-            encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.min(false)): Seq[ArrowAttributeReader] = {
+            precision: GeometryPrecision = GeometryPrecision.Double): Seq[ArrowAttributeReader] = {
     import scala.collection.JavaConversions._
     sft.getAttributeDescriptors.map { descriptor =>
-      val name = descriptor.getLocalName
+      val name = SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
       val classBinding = descriptor.getType.getBinding
       val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
       val dictionary = dictionaries.get(name).orElse(dictionaries.get(descriptor.getLocalName))
-      apply(bindings.+:(objectType), classBinding, vector.getChild(name), dictionary, encoding)
+      apply(bindings.+:(objectType), classBinding, vector.getChild(name), dictionary, precision)
     }
   }
 
@@ -114,26 +102,26 @@ object ArrowAttributeReader {
     * @param classBinding the explicit class binding of the attribute
     * @param vector the simple feature vector to read from
     * @param dictionary the dictionary for the attribute, if any
-    * @param encoding encoding options
+    * @param precision geometry precision (ignored if the attribute is not a geometry)
     * @return reader
     */
   def apply(bindings: Seq[ObjectType],
             classBinding: Class[_],
             vector: FieldVector,
             dictionary: Option[ArrowDictionary],
-            encoding: SimpleFeatureEncoding): ArrowAttributeReader = {
+            precision: GeometryPrecision): ArrowAttributeReader = {
     val accessor = vector.getAccessor
     dictionary match {
       case None =>
         bindings.head match {
-          case ObjectType.GEOMETRY => ArrowGeometryReader(vector, classBinding, encoding.geometry)
-          case ObjectType.DATE     => ArrowDateReader(vector, encoding.date)
           case ObjectType.STRING   => new ArrowStringReader(accessor.asInstanceOf[NullableVarCharVector#Accessor])
+          case ObjectType.GEOMETRY => new ArrowGeometryReader(vector, classBinding, precision)
           case ObjectType.INT      => new ArrowIntReader(accessor.asInstanceOf[NullableIntVector#Accessor])
           case ObjectType.LONG     => new ArrowLongReader(accessor.asInstanceOf[NullableBigIntVector#Accessor])
           case ObjectType.FLOAT    => new ArrowFloatReader(accessor.asInstanceOf[NullableFloat4Vector#Accessor])
           case ObjectType.DOUBLE   => new ArrowDoubleReader(accessor.asInstanceOf[NullableFloat8Vector#Accessor])
           case ObjectType.BOOLEAN  => new ArrowBooleanReader(accessor.asInstanceOf[NullableBitVector#Accessor])
+          case ObjectType.DATE     => new ArrowDateReader(accessor.asInstanceOf[NullableDateMilliVector#Accessor])
           case ObjectType.LIST     => new ArrowListReader(accessor.asInstanceOf[ListVector#Accessor], bindings(1))
           case ObjectType.MAP      => new ArrowMapReader(accessor.asInstanceOf[NullableMapVector#Accessor], bindings(1), bindings(2))
           case ObjectType.BYTES    => new ArrowByteReader(accessor.asInstanceOf[NullableVarBinaryVector#Accessor])
@@ -143,7 +131,7 @@ object ArrowAttributeReader {
         }
 
       case Some(dict) =>
-        val dictionaryType = TypeBindings(bindings, classBinding, encoding)
+        val dictionaryType = TypeBindings(bindings, classBinding, precision)
         accessor match {
           case a: NullableTinyIntVector#Accessor  => new ArrowDictionaryByteReader(a, dict, dictionaryType)
           case a: NullableSmallIntVector#Accessor => new ArrowDictionaryShortReader(a, dict, dictionaryType)
@@ -158,16 +146,12 @@ object ArrowAttributeReader {
     */
   class ArrowDictionaryByteReader(accessor: NullableTinyIntVector#Accessor,
                                   val dictionary: ArrowDictionary,
-                                  val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
-    private val holder = new NullableTinyIntHolder
+                                  val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
-      accessor.get(i, holder)
-      if (holder.isSet == 0) { null } else {
-        dictionary.lookup(holder.value)
+      if (accessor.isNull(i)) { null } else {
+        dictionary.lookup(accessor.get(i))
       }
     }
-
-    override def getEncoded(i: Int): Int = accessor.get(i)
   }
 
   /**
@@ -176,16 +160,12 @@ object ArrowAttributeReader {
     */
   class ArrowDictionaryShortReader(accessor: NullableSmallIntVector#Accessor,
                                    val dictionary: ArrowDictionary,
-                                   val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
-    private val holder = new NullableSmallIntHolder
+                                   val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
-      accessor.get(i, holder)
-      if (holder.isSet == 0) { null } else {
-        dictionary.lookup(holder.value)
+      if (accessor.isNull(i)) { null } else {
+        dictionary.lookup(accessor.get(i))
       }
     }
-
-    override def getEncoded(i: Int): Int = accessor.get(i)
   }
 
   /**
@@ -194,59 +174,10 @@ object ArrowAttributeReader {
     */
   class ArrowDictionaryIntReader(accessor: NullableIntVector#Accessor,
                                  val dictionary: ArrowDictionary,
-                                 val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
-    private val holder = new NullableIntHolder
+                                 val dictionaryType: TypeBindings) extends ArrowAttributeReader with HasArrowDictionary {
     override def apply(i: Int): AnyRef = {
-      accessor.get(i, holder)
-      if (holder.isSet == 0) { null } else {
-        dictionary.lookup(holder.value)
-      }
-    }
-
-    override def getEncoded(i: Int): Int = accessor.get(i)
-  }
-
-  object ArrowGeometryReader {
-    def apply(vector: FieldVector, binding: Class[_], precision: EncodingPrecision): ArrowAttributeReader = {
-      if (binding == classOf[Point]) {
-        val delegate = precision match {
-          case EncodingPrecision.Min => new PointFloatReader(vector.asInstanceOf[FixedSizeListVector])
-          case EncodingPrecision.Max => new PointDoubleReader(vector.asInstanceOf[FixedSizeListVector])
-        }
-        new ArrowPointReader(delegate.asInstanceOf[AbstractPointVector.PointReader])
-      } else if (binding == classOf[LineString]) {
-        val delegate = precision match {
-          case EncodingPrecision.Min => new LineStringFloatReader(vector.asInstanceOf[ListVector])
-          case EncodingPrecision.Max => new LineStringDoubleReader(vector.asInstanceOf[ListVector])
-        }
-        new ArrowLineStringReader(delegate.asInstanceOf[AbstractLineStringVector.LineStringReader])
-      } else {
-        val delegate: GeometryReader[_ <: Geometry] = if (binding == classOf[Polygon]) {
-          precision match {
-            case EncodingPrecision.Min => new PolygonFloatReader(vector.asInstanceOf[ListVector])
-            case EncodingPrecision.Max => new PolygonDoubleReader(vector.asInstanceOf[ListVector])
-          }
-        } else if (binding == classOf[MultiLineString]) {
-          precision match {
-            case EncodingPrecision.Min => new MultiLineStringFloatReader(vector.asInstanceOf[ListVector])
-            case EncodingPrecision.Max => new MultiLineStringDoubleReader(vector.asInstanceOf[ListVector])
-          }
-        } else if (binding == classOf[MultiPolygon]) {
-          precision match {
-            case EncodingPrecision.Min => new MultiPolygonFloatReader(vector.asInstanceOf[ListVector])
-            case EncodingPrecision.Max => new MultiPolygonDoubleReader(vector.asInstanceOf[ListVector])
-          }
-        } else if (binding == classOf[MultiPoint]) {
-          precision match {
-            case EncodingPrecision.Min => new MultiPointFloatReader(vector.asInstanceOf[ListVector])
-            case EncodingPrecision.Max => new MultiPointDoubleReader(vector.asInstanceOf[ListVector])
-          }
-        } else if (classOf[Geometry].isAssignableFrom(binding)) {
-          throw new NotImplementedError(s"Geometry type $binding is not supported")
-        } else {
-          throw new IllegalArgumentException(s"Expected geometry type, got $binding")
-        }
-        new ArrowGeometryReader(delegate)
+      if (accessor.isNull(i)) { null } else {
+        dictionary.lookup(accessor.get(i))
       }
     }
   }
@@ -254,64 +185,45 @@ object ArrowAttributeReader {
   /**
     * Reads geometries - delegates to our JTS geometry vectors
     */
-  class ArrowGeometryReader(delegate: GeometryReader[_ <: Geometry]) extends ArrowAttributeReader {
+  class ArrowGeometryReader(vector: FieldVector, binding: Class[_], precision: GeometryPrecision)
+      extends ArrowAttributeReader {
+    private val delegate: GeometryReader[_ <: Geometry] = if (binding == classOf[Point]) {
+      precision match {
+        case GeometryPrecision.Float  => new PointFloatReader(vector.asInstanceOf[FixedSizeListVector])
+        case GeometryPrecision.Double => new PointDoubleReader(vector.asInstanceOf[FixedSizeListVector])
+      }
+    } else if (binding == classOf[LineString]) {
+      precision match {
+        case GeometryPrecision.Float  => new LineStringFloatReader(vector.asInstanceOf[ListVector])
+        case GeometryPrecision.Double => new LineStringDoubleReader(vector.asInstanceOf[ListVector])
+      }
+    } else if (binding == classOf[Polygon]) {
+      precision match {
+        case GeometryPrecision.Float  => new PolygonFloatReader(vector.asInstanceOf[ListVector])
+        case GeometryPrecision.Double => new PolygonDoubleReader(vector.asInstanceOf[ListVector])
+      }
+    } else if (binding == classOf[MultiLineString]) {
+      precision match {
+        case GeometryPrecision.Float  => new MultiLineStringFloatReader(vector.asInstanceOf[ListVector])
+        case GeometryPrecision.Double => new MultiLineStringDoubleReader(vector.asInstanceOf[ListVector])
+      }
+    } else if (binding == classOf[MultiPolygon]) {
+      precision match {
+        case GeometryPrecision.Float  => new MultiPolygonFloatReader(vector.asInstanceOf[ListVector])
+        case GeometryPrecision.Double => new MultiPolygonDoubleReader(vector.asInstanceOf[ListVector])
+      }
+    } else if (binding == classOf[MultiPoint]) {
+      precision match {
+        case GeometryPrecision.Float  => new MultiPointFloatReader(vector.asInstanceOf[ListVector])
+        case GeometryPrecision.Double => new MultiPointDoubleReader(vector.asInstanceOf[ListVector])
+      }
+    } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      throw new NotImplementedError(s"Geometry type $binding is not supported")
+    } else {
+      throw new IllegalArgumentException(s"Expected geometry type, got $binding")
+    }
+
     override def apply(i: Int): AnyRef = delegate.get(i)
-  }
-
-  /**
-    * Subclass with special methods for reading coordinate directly
-    */
-  class ArrowPointReader(delegate: AbstractPointVector.PointReader) extends ArrowAttributeReader {
-
-    override def apply(i: Int): AnyRef = delegate.get(i)
-
-    /**
-      * Reads the first (y) ordinal for the given point
-      *
-      * @param i index of the point to read
-      * @return y ordinal
-      */
-    def readPointY(i: Int): Double = delegate.getCoordinateY(i)
-
-    /**
-      * Reads the second (x) ordinal for the given point
-      *
-      * @param i index of the point to read
-      * @return x ordinal
-      */
-    def readPointX(i: Int): Double = delegate.getCoordinateX(i)
-  }
-
-  /**
-    * Subclass with special methods for reading coordinate directly
-    */
-  class ArrowLineStringReader(delegate: AbstractLineStringVector.LineStringReader) extends ArrowAttributeReader {
-
-    override def apply(i: Int): AnyRef = delegate.get(i)
-
-    /**
-      * Gets the offsets for points in the ith line
-      *
-      * @param i index of the line to read offsets for
-      * @return (offset start, offset end)
-      */
-    def readOffsets(i: Int): (Int, Int) = (delegate.getStartOffset(i), delegate.getEndOffset(i))
-
-    /**
-      * Reads the first (y) ordinal for the given point
-      *
-      * @param offset offset, from readOffsetStart/End, of the point to read
-      * @return y ordinal
-      */
-    def readPointY(offset: Int): Double = delegate.getCoordinateY(offset)
-
-    /**
-      * Reads the second (x) ordinal for the given point
-      *
-      * @param offset offset, from readOffsetStart/End, of the point to read
-      * @return x ordinal
-      */
-    def readPointX(offset: Int): Double = delegate.getCoordinateX(offset)
   }
 
   /**
@@ -323,17 +235,9 @@ object ArrowAttributeReader {
   }
 
   class ArrowStringReader(accessor: NullableVarCharVector#Accessor) extends ArrowAttributeReader {
-    private val holder = new NullableVarCharHolder
-    private var bytes = Array.empty[Byte]
     override def apply(i: Int): AnyRef = {
-      accessor.get(i, holder)
-      if (holder.isSet == 0) { null } else {
-        val length = holder.end - holder.start
-        if (bytes.length < length) {
-          bytes = Array.ofDim(math.ceil(length * 1.3).toInt)
-        }
-        holder.buffer.getBytes(holder.start, bytes, 0, length)
-        new String(bytes, 0, length, StandardCharsets.UTF_8)
+      if (accessor.isNull(i)) { null } else {
+        new String(accessor.get(i), StandardCharsets.UTF_8)
       }
     }
   }
@@ -358,47 +262,10 @@ object ArrowAttributeReader {
     override def apply(i: Int): AnyRef = accessor.getObject(i)
   }
 
-  trait ArrowDateReader extends ArrowAttributeReader {
-    def getTime(i: Int): Long
-  }
-
-  object ArrowDateReader {
-    def apply(vector: FieldVector, precision: EncodingPrecision): ArrowDateReader = {
-      precision match {
-        case EncodingPrecision.Min => new ArrowDateSecondsReader(vector.asInstanceOf[NullableIntVector].getAccessor)
-        case EncodingPrecision.Max => new ArrowDateMillisReader(vector.asInstanceOf[NullableBigIntVector].getAccessor)
-      }
-    }
-  }
-
-  class ArrowDateMillisReader(accessor: NullableBigIntVector#Accessor) extends ArrowDateReader {
-    private val holder = new NullableBigIntHolder
+  class ArrowDateReader(accessor: NullableDateMilliVector#Accessor) extends ArrowAttributeReader {
     override def apply(i: Int): AnyRef = {
-      accessor.get(i, holder)
-      if (holder.isSet == 0) { null } else {
-        new Date(holder.value)
-      }
-    }
-    override def getTime(i: Int): Long = {
-      accessor.get(i, holder)
-      if (holder.isSet == 0) { 0L } else {
-        holder.value
-      }
-    }
-  }
-
-  class ArrowDateSecondsReader(accessor: NullableIntVector#Accessor) extends ArrowDateReader {
-    private val holder = new NullableIntHolder
-    override def apply(i: Int): AnyRef = {
-      accessor.get(i, holder)
-      if (holder.isSet == 0) { null } else {
-        new Date(holder.value * 1000L)
-      }
-    }
-    override def getTime(i: Int): Long = {
-      accessor.get(i, holder)
-      if (holder.isSet == 0) { 0L } else {
-        holder.value * 1000L
+      if (accessor.isNull(i)) { null } else {
+        new Date(accessor.get(i))
       }
     }
   }
@@ -452,7 +319,7 @@ object ArrowAttributeReader {
   private def arrowConversion(binding: ObjectType): (AnyRef)=> AnyRef = binding match {
     case ObjectType.STRING   => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.GEOMETRY => (v) => WKTUtils.read(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
-    case ObjectType.DATE     => (v) => v.asInstanceOf[LocalDateTime].toDate(DateTimeZone.UTC.toTimeZone)
+    case ObjectType.DATE     => (v) => v.asInstanceOf[DateTime].toDate
     case ObjectType.JSON     => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
     case ObjectType.UUID     => (v) => UUID.fromString(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
     case _                   => (v) => v

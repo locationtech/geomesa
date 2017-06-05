@@ -70,11 +70,10 @@ object IteratorCache {
     * Note: need to include simple feature type in cache key,
     * as attribute name -> attribute index gets cached in the filter
     *
-    * @param sft simple feature type being filtered
-    * @param spec spec string for the simple feature type
+    * @param spec simple feature type spec being filtered
     * @param ecql ecql
     * @return
     */
-  def filter(sft: SimpleFeatureType, spec: String, ecql: String): Filter =
-    filterCache.getOrElseUpdate((spec, ecql), FastFilterFactory.toFilter(sft, ecql))
+  def filter(spec: String, ecql: String): Filter =
+    filterCache.getOrElseUpdate((spec, ecql), FastFilterFactory.toFilter(ecql))
 }

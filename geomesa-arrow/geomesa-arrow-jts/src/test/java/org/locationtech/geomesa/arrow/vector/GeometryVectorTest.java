@@ -20,6 +20,12 @@ import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.geomesa.arrow.vector.floats.LineStringFloatVector;
+import org.locationtech.geomesa.arrow.vector.floats.MultiLineStringFloatVector;
+import org.locationtech.geomesa.arrow.vector.floats.MultiPointFloatVector;
+import org.locationtech.geomesa.arrow.vector.floats.PointFloatVector;
+import org.locationtech.geomesa.arrow.vector.floats.MultiPolygonFloatVector;
+import org.locationtech.geomesa.arrow.vector.floats.PolygonFloatVector;
 
 public class GeometryVectorTest {
 
@@ -33,8 +39,8 @@ public class GeometryVectorTest {
     String point3 = "POINT (30 20)";
 
     try (RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
-         PointFloatVector floats = new PointFloatVector("points", allocator, null);
-         PointVector doubles = new PointVector("points", allocator, null)) {
+         PointFloatVector floats = new PointFloatVector("points", allocator);
+         PointVector doubles = new PointVector("points", allocator)) {
 
       Field floatField = floats.getVector().getField();
       Field doubleField = doubles.getVector().getField();
@@ -83,8 +89,8 @@ public class GeometryVectorTest {
     String line3 = "LINESTRING (30 10, 10 30, 40 45, 55 60, 56 60)";
 
     try (RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
-         LineStringFloatVector floats = new LineStringFloatVector("lines", allocator, null);
-         LineStringVector doubles = new LineStringVector("lines", allocator, null)) {
+         LineStringFloatVector floats = new LineStringFloatVector("lines", allocator);
+         LineStringVector doubles = new LineStringVector("lines", allocator)) {
 
       Field floatField = floats.getVector().getField();
       Field doubleField = doubles.getVector().getField();
@@ -132,8 +138,8 @@ public class GeometryVectorTest {
     String p1 = "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))";
     String p2 = "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30), (19 36, 23 38, 22 34, 19 36))";
     try(RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
-        PolygonFloatVector floats = new PolygonFloatVector("polys", allocator, null);
-        PolygonVector doubles = new PolygonVector("polys", allocator, null)) {
+        PolygonFloatVector floats = new PolygonFloatVector("polys", allocator);
+        PolygonVector doubles = new PolygonVector("polys", allocator)) {
 
       Field floatField = floats.getVector().getField();
       Field doubleField = doubles.getVector().getField();
@@ -181,8 +187,8 @@ public class GeometryVectorTest {
     String mls1 = "MULTILINESTRING ((10 10, 20 30, 10 40), (30 40, 30 30, 40 20, 20 10), (40 50, 40 40, 50 30, 30 20))";
     String mls2 = "MULTILINESTRING ((10 10, 20 40, 10 40))";
     try(RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
-        MultiLineStringFloatVector floats = new MultiLineStringFloatVector("lines", allocator, null);
-        MultiLineStringVector doubles = new MultiLineStringVector("lines", allocator, null)) {
+        MultiLineStringFloatVector floats = new MultiLineStringFloatVector("lines", allocator);
+        MultiLineStringVector doubles = new MultiLineStringVector("lines", allocator)) {
 
       Field floatField = floats.getVector().getField();
       Field doubleField = doubles.getVector().getField();
@@ -230,8 +236,8 @@ public class GeometryVectorTest {
     String p1 = "MULTIPOINT ((10 40))";
     String p2 = "MULTIPOINT ((40 30), (20 20))";
     try (RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
-         MultiPointFloatVector floats = new MultiPointFloatVector("multipoints", allocator, null);
-         MultiPointVector doubles = new MultiPointVector("multipoints", allocator, null)) {
+         MultiPointFloatVector floats = new MultiPointFloatVector("multipoints", allocator);
+         MultiPointVector doubles = new MultiPointVector("multipoints", allocator)) {
 
       Field floatField = floats.getVector().getField();
       Field doubleField = doubles.getVector().getField();
@@ -280,8 +286,8 @@ public class GeometryVectorTest {
     String p2 = "MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20)))";
 
     try (RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
-         MultiPolygonFloatVector floats = new MultiPolygonFloatVector("multipolys", allocator, null);
-         MultiPolygonVector doubles = new MultiPolygonVector("multipolys", allocator, null)) {
+         MultiPolygonFloatVector floats = new MultiPolygonFloatVector("multipolys", allocator);
+         MultiPolygonVector doubles = new MultiPolygonVector("multipolys", allocator)) {
 
       Field floatField = floats.getVector().getField();
       Field doubleField = doubles.getVector().getField();

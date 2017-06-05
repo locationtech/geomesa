@@ -167,13 +167,8 @@ class ScalaSimpleFeature(initialId: String,
 
 object ScalaSimpleFeature {
 
-  def copy(in: SimpleFeature): ScalaSimpleFeature = copy(in.getFeatureType, in)
-
-  def copy(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature =
-    new ScalaSimpleFeature(in.getID, sft, in.getAttributes.toArray, in.getUserData)
-
-  @deprecated("use copy")
-  def create(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature = copy(sft, in)
+  def create(sft: SimpleFeatureType, copy: SimpleFeature): ScalaSimpleFeature =
+    new ScalaSimpleFeature(copy.getID, sft, copy.getAttributes.toArray, copy.getUserData)
 
   /**
    * Creates a simple feature, converting the values to the appropriate type

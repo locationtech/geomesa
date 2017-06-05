@@ -49,7 +49,7 @@ class FastPropertyTest extends Specification {
       val sf = new ScalaSimpleFeature("id", sft)
       sf.setAttributes(Array[AnyRef]("myname", "POINT(45 45)"))
 
-      val filter = FastFilterFactory.toFilter(sft, "testns:name = 'myname'")
+      val filter = ECQL.toFilter("testns:name = 'myname'", FastFilterFactory.factory)
       filter.evaluate(sf) must beTrue
     }
   }

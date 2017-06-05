@@ -52,8 +52,6 @@ object QueryHints {
   val ARROW_DICTIONARY_VALUES  = new ClassKey(classOf[java.lang.String])
   val ARROW_DICTIONARY_COMPUTE = new ClassKey(classOf[java.lang.Boolean])
   val ARROW_BATCH_SIZE         = new ClassKey(classOf[java.lang.Integer])
-  val ARROW_SORT_FIELD         = new ClassKey(classOf[java.lang.String])
-  val ARROW_SORT_REVERSE       = new ClassKey(classOf[java.lang.Boolean])
 
   // internal hints that shouldn't be set directly by users
   object Internal {
@@ -98,10 +96,6 @@ object QueryHints {
     def getArrowDictionaryEncodedValues: Map[String, Seq[AnyRef]] =
       Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap).getOrElse(Map.empty)
     def getArrowBatchSize: Option[Int] = Option(hints.get(ARROW_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue)
-    def getArrowSort: Option[(String, Boolean)] =
-      Option(hints.get(ARROW_SORT_FIELD).asInstanceOf[String]).map { field =>
-        (field, Option(hints.get(ARROW_SORT_REVERSE)).exists(_.asInstanceOf[Boolean]))
-      }
     def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsIteratorQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
     def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)

@@ -8,20 +8,23 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 import java.io.ByteArrayOutputStream
+import java.nio.channels.Channels
 import java.util.Map.Entry
 
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.arrow.vector.file.WriteChannel
+import org.apache.arrow.vector.stream.MessageSerializer
+import org.apache.arrow.vector.{VectorSchemaRoot, VectorUnloader}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyAggregatingIterator.SFT_OPT
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator.{TRANSFORM_DEFINITIONS_OPT, TRANSFORM_SCHEMA_OPT}
-import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
-import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileWriter, SimpleFeatureArrowIO}
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.arrow.ArrowEncodedSft
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.GeometryPrecision
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -32,8 +35,6 @@ import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.math.Ordering
-
 /**
   * Aggregates and returns arrow 'record batches'. An arrow file consists of metadata, n-batches, and a footer.
   * The metadata and footer are added by the reduce features step.
@@ -43,123 +44,71 @@ class ArrowBatchIterator extends KryoLazyAggregatingIterator[ArrowBatchAggregate
   import ArrowBatchIterator._
 
   var aggregate: (SimpleFeature, ArrowBatchAggregate) => Unit = _
-  var batchSize: Int = _
+  var underBatchSize: (ArrowBatchAggregate) => Boolean = _
 
   override def init(options: Map[String, String]): ArrowBatchAggregate = {
-    batchSize = options(BatchSizeKey).toInt
+    underBatchSize = options.get(BatchSizeKey).map(_.toInt) match {
+      case None    => (_) => true
+      case Some(i) => (a) => a.size < i
+    }
     val encodedDictionaries = options(DictionaryKey)
     lazy val dictionaries = decodeDictionaries(encodedDictionaries)
-    val encoding = SimpleFeatureEncoding.min(options(IncludeFidsKey).toBoolean)
+    val includeFids = options(IncludeFidsKey).toBoolean
     val (arrowSft, arrowSftString) =
       if (hasTransform) { (transformSft, options(TRANSFORM_SCHEMA_OPT)) } else { (sft, options(SFT_OPT)) }
     aggregate = sample(options) match {
       case None       => (sf, result) => result.add(sf)
       case Some(samp) => (sf, result) => if (samp(sf)) { result.add(sf) }
     }
-    val sortIndex = options.get(SortKey).map(arrowSft.indexOf).getOrElse(-1)
-    val sortReverse = options.get(SortReverseKey).exists(_.toBoolean)
-    aggregateCache.getOrElseUpdate(arrowSftString + encoding + sortIndex + sortReverse + encodedDictionaries,
-      if (sortIndex == -1) { new ArrowBatchAggregateImpl(arrowSft, dictionaries, encoding) } else {
-        new ArrowSortingBatchAggregate(arrowSft, sortIndex, sortReverse, batchSize, dictionaries, encoding) } )
+    aggregateCache.getOrElseUpdate(arrowSftString + includeFids + encodedDictionaries,
+      new ArrowBatchAggregate(arrowSft, dictionaries, includeFids))
   }
 
-  override def notFull(result: ArrowBatchAggregate): Boolean = result.size < batchSize
+  override def notFull(result: ArrowBatchAggregate): Boolean = underBatchSize(result)
 
   override def aggregateResult(sf: SimpleFeature, result: ArrowBatchAggregate): Unit = aggregate(sf, result)
 
   override def encodeResult(result: ArrowBatchAggregate): Array[Byte] = result.encode()
 }
 
-trait ArrowBatchAggregate {
-  def isEmpty: Boolean
-  def clear(): Unit
-  def add(sf: SimpleFeature): Unit
-  def size: Int
-  def encode(): Array[Byte]
-}
-
-class ArrowBatchAggregateImpl(sft: SimpleFeatureType,
-                              dictionaries: Map[String, ArrowDictionary],
-                              encoding: SimpleFeatureEncoding) extends ArrowBatchAggregate {
+class ArrowBatchAggregate(sft: SimpleFeatureType, dictionaries: Map[String, ArrowDictionary], includeFids: Boolean) {
 
   import org.locationtech.geomesa.arrow.allocator
 
+  import scala.collection.JavaConversions._
+
   private var index = 0
 
-  private val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-  private val batchWriter = new RecordBatchUnloader(vector)
+  private val vector = SimpleFeatureVector.create(sft, dictionaries, includeFids, GeometryPrecision.Float)
+  private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
+  private val unloader = new VectorUnloader(root)
+  private val os = new ByteArrayOutputStream()
 
-  override def add(sf: SimpleFeature): Unit = {
+  def add(sf: SimpleFeature): Unit = {
     vector.writer.set(index, sf)
     index += 1
   }
 
-  override def isEmpty: Boolean = index == 0
+  def isEmpty: Boolean = index == 0
 
-  override def size: Int = index
+  def size: Int = index
 
-  override def clear(): Unit = {
-    vector.clear()
+  def clear(): Unit = {
+    vector.reset()
     index = 0
   }
 
-  override def encode(): Array[Byte] = batchWriter.unload(index)
-}
-
-class ArrowSortingBatchAggregate(sft: SimpleFeatureType,
-                                 sortField: Int,
-                                 reverse: Boolean,
-                                 batchSize: Int,
-                                 dictionaries: Map[String, ArrowDictionary],
-                                 encoding: SimpleFeatureEncoding) extends ArrowBatchAggregate {
-
-  import org.locationtech.geomesa.arrow.allocator
-
-  private var index = 0
-  private val features = Array.ofDim[SimpleFeature](batchSize)
-
-  private val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-  private val batchWriter = new RecordBatchUnloader(vector)
-
-  private val ordering = new Ordering[SimpleFeature] {
-    override def compare(x: SimpleFeature, y: SimpleFeature): Int = {
-      val left = x.getAttribute(sortField).asInstanceOf[Comparable[Any]]
-      val right = y.getAttribute(sortField).asInstanceOf[Comparable[Any]]
-      left.compareTo(right)
-    }
-  }
-
-  override def add(sf: SimpleFeature): Unit = {
-    // we have to copy since the feature might be re-used
-    // TODO we could probably optimize this...
-    features(index) = ScalaSimpleFeature.copy(sf)
-    index += 1
-  }
-
-  override def isEmpty: Boolean = index == 0
-
-  override def size: Int = index
-
-  override def clear(): Unit = {
-    index = 0
-    vector.clear()
-  }
-
-  override def encode(): Array[Byte] = {
-    java.util.Arrays.sort(features, 0, index, if (reverse) { ordering.reverse } else { ordering })
-
-    var i = 0
-    while (i < index) {
-      vector.writer.set(i, features(i))
-      i += 1
-    }
-    batchWriter.unload(index)
+  def encode(): Array[Byte] = {
+    os.reset()
+    vector.writer.setValueCount(index)
+    root.setRowCount(index)
+    MessageSerializer.serialize(new WriteChannel(Channels.newChannel(os)), unloader.getRecordBatch)
+    os.toByteArray
   }
 }
 
 object ArrowBatchIterator {
 
-  import org.locationtech.geomesa.arrow.allocator
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   val DefaultPriority = 25
@@ -167,8 +116,6 @@ object ArrowBatchIterator {
   private val BatchSizeKey   = "batch"
   private val DictionaryKey  = "dict"
   private val IncludeFidsKey = "fids"
-  private val SortKey        = "sort"
-  private val SortReverseKey = "sort-rev"
 
   private val aggregateCache = new SoftThreadLocalCache[String, ArrowBatchAggregate]
 
@@ -182,13 +129,9 @@ object ArrowBatchIterator {
     val is = new IteratorSetting(priority, "arrow-batch-iter", classOf[ArrowBatchIterator])
     KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     hints.getSampling.foreach(SamplingIterator.configure(is, sft, _))
-    is.addOption(BatchSizeKey, hints.getArrowBatchSize.map(_.toString).getOrElse(ArrowProperties.BatchSize.get))
+    hints.getArrowBatchSize.foreach(i => is.addOption(BatchSizeKey, i.toString))
     is.addOption(DictionaryKey, encodeDictionaries(dictionaries))
     is.addOption(IncludeFidsKey, hints.isArrowIncludeFid.toString)
-    hints.getArrowSort.foreach { case (field, reverse) =>
-      is.addOption(SortKey, field)
-      is.addOption(SortReverseKey, reverse.toString)
-    }
     hints.getTransform.foreach { case (tdef, tsft) =>
       is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
       is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
@@ -274,26 +217,14 @@ object ArrowBatchIterator {
                      hints: Hints,
                      dictionaries: Map[String, ArrowDictionary]):
       CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = {
-    val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid)
-    val sortField = hints.getArrowSort
-    val header = new ScalaSimpleFeature("", ArrowEncodedSft,
-      Array(fileMetadata(sft, dictionaries, encoding, sortField), GeometryUtils.zeroPoint))
+    val header = new ScalaSimpleFeature("", ArrowEncodedSft)
+    header.setAttribute(0, fileMetadata(sft, dictionaries, hints.isArrowIncludeFid))
+    header.setAttribute(1, GeometryUtils.zeroPoint)
+    val footer = new ScalaSimpleFeature("", ArrowEncodedSft)
     // per arrow streaming format footer is the encoded int '0'
-    val footer = new ScalaSimpleFeature("", ArrowEncodedSft, Array(Array[Byte](0, 0, 0, 0), GeometryUtils.zeroPoint))
-    val sort: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = sortField match {
-      case None => (iter) => iter
-      case Some((attribute, reverse)) =>
-        val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
-        (iter) => {
-          import SimpleFeatureArrowIO.sortBatches
-          val sf = new ScalaSimpleFeature("", ArrowEncodedSft, Array(null, GeometryUtils.zeroPoint))
-          val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-          val sorted = sortBatches(sft, dictionaries, encoding, attribute, reverse, batchSize, bytes)
-          sorted.map { bytes => sf.setAttribute(0, bytes); sf }
-        }
-
-    }
-    (iter) => CloseableIterator(Iterator(header)) ++ sort(iter) ++ CloseableIterator(Iterator(footer))
+    footer.setAttribute(0, Array[Byte](0, 0, 0, 0))
+    footer.setAttribute(1, GeometryUtils.zeroPoint)
+    (iter) => CloseableIterator(Iterator(header)) ++ iter ++ CloseableIterator(Iterator(footer))
   }
 
   /**
@@ -301,16 +232,16 @@ object ArrowBatchIterator {
     *
     * @param sft simple feature type
     * @param dictionaries dictionaries
-    * @param encoding encoding options
-    * @param sort data is sorted or not
+    * @param includeFids include feature ids or not
     * @return
     */
   private def fileMetadata(sft: SimpleFeatureType,
                            dictionaries: Map[String, ArrowDictionary],
-                           encoding: SimpleFeatureEncoding,
-                           sort: Option[(String, Boolean)]): Array[Byte] = {
+                           includeFids: Boolean): Array[Byte] = {
+    import org.locationtech.geomesa.arrow.allocator
     val out = new ByteArrayOutputStream
-    WithClose(new SimpleFeatureArrowFileWriter(sft, out, dictionaries, encoding, sort)) { writer =>
+    val precision = GeometryPrecision.Float
+    WithClose(new SimpleFeatureArrowFileWriter(sft, out, dictionaries, includeFids, precision)) { writer =>
       writer.start()
       out.toByteArray // copy bytes before closing so we get just the header metadata
     }

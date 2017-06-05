@@ -20,7 +20,7 @@ class JsonPathFilterFunction extends FunctionExpressionImpl(
   new FunctionNameImpl("jsonPath",
     parameter("value", classOf[String]),
     parameter("path", classOf[String]))
-  ) with LazyLogging with VolatileFunction {
+  ) with SimpleFeaturePropertyAccessor with LazyLogging with VolatileFunction {
 
   override def evaluate(obj: java.lang.Object): AnyRef = {
     val sf = try {
@@ -30,7 +30,7 @@ class JsonPathFilterFunction extends FunctionExpressionImpl(
         s"Only simple features are supported. ${obj.toString}", e)
     }
     val path = getExpression(0).evaluate(null).asInstanceOf[String]
-    SimpleFeaturePropertyAccessor.getAccessor(sf, path) match {
+    getAccessor(sf, path) match {
       case Some(a) => a.get(sf, path, classOf[AnyRef])
       case None    => throw new RuntimeException(s"Can't handle property '$name' for feature type " +
         s"${sf.getFeatureType.getTypeName} ${SimpleFeatureTypes.encodeType(sf.getFeatureType)}")

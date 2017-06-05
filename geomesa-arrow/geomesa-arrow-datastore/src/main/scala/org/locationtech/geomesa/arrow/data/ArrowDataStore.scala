@@ -26,33 +26,20 @@ import org.opengis.filter.Filter
 import scala.util.Try
 import scala.util.control.NonFatal
 
-class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore with FileDataStore
+class ArrowDataStore(val url: URL) extends ContentDataStore with FileDataStore
     with HasGeoMesaMetadata[String] with HasGeoMesaStats {
 
   import org.locationtech.geomesa.arrow.allocator
-
-  private var initialized = false
-
-  // note: to avoid cache issues, don't allow writing if caching is enabled
-  private lazy val writable = !caching && Try(createOutputStream()).map(_.close()).isSuccess
-
-  private lazy val reader: SimpleFeatureArrowFileReader = {
-    initialized = true
-    if (caching) {
-      SimpleFeatureArrowFileReader.caching(createInputStream())
-    } else {
-      SimpleFeatureArrowFileReader.streaming(() => createInputStream())
-    }
-  }
 
   override val metadata: GeoMesaMetadata[String] = new NoOpMetadata()
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
+    val writable = Try(createOutputStream()).map(_.close()).isSuccess
     if (writable) {
-      new ArrowFeatureStore(entry, reader)
+      new ArrowFeatureStore(entry)
     } else {
-      new ArrowFeatureSource(entry, reader)
+      new ArrowFeatureSource(entry)
     }
   }
 
@@ -62,9 +49,6 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
   }
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
-    if (!writable) {
-      throw new IllegalArgumentException("Can't write to the provided URL, or caching is enabled")
-    }
     WithClose(createOutputStream(false)) { os =>
       WithClose(new SimpleFeatureArrowFileWriter(sft, os, Map.empty)) { writer =>
         // just write the schema/metadata
@@ -73,24 +57,21 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
     }
   }
 
-  override def dispose(): Unit = {
-    // avoid instantiating the lazy reader if it hasn't actually been used
-    if (initialized) {
-      reader.close()
-    }
-  }
-
-  // FileDataStore method
+  // FileDataStore methods
 
   override def getSchema: SimpleFeatureType = {
-    if (WithClose(createInputStream()) { _.available() < 1 }) { null } else {
-      try { reader.sft } catch {
-        case e: Exception => throw new IOException("Error reading schema", e)
+    WithClose(createInputStream()) { is =>
+      if (is.available() < 1) { null } else {
+        try {
+          WithClose(new SimpleFeatureArrowFileReader(is))(_.sft)
+        } catch {
+          case e: Exception => throw new IOException("Error reading schema", e)
+      }
       }
     }
   }
 
-  private def createInputStream(): InputStream = url.openStream()
+  private [data] def createInputStream(): InputStream = url.openStream()
 
   private [data] def createOutputStream(append: Boolean = true): OutputStream = {
     Option(DataUtilities.urlToFile(url)).map(new FileOutputStream(_, append)).getOrElse {

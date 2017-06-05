@@ -137,16 +137,16 @@ public class JSimpleFeatureFilter extends FilterBase {
 
     public JSimpleFeatureFilter(String sftString, String filterString, String transformString, String transformSchemaString) throws CQLException {
         this.sftString = sftString;
-        this.sft = IteratorCache.sft(sftString);
-        this.reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
-
         this.filterString = filterString;
 
         this.transformSchema = transformSchemaString;
         this.transform = transformString;
 
-        this.localFilter = buildFilter(sft, filterString);
+        this.localFilter = buildFilter(filterString);
         this.transformer = buildTransformer(transform, transformSchema);
+
+        this.sft = IteratorCache.sft(sftString);
+        reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
 
         this.localFilter.setReusableSF(reusable);
         this.transformer.setReusableSF(reusable);
@@ -166,7 +166,7 @@ public class JSimpleFeatureFilter extends FilterBase {
         this.transformSchema = transformSchema;
         this.transform = transform;
 
-        this.localFilter = buildFilter(sft, filterString);
+        this.localFilter = buildFilter(filterString);
         this.transformer = buildTransformer(transform, transformSchema);
 
         reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
@@ -241,9 +241,9 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
-    private static JSimpleFeatureFilter.Filter buildFilter(SimpleFeatureType sft, String filterString) throws CQLException {
+    private static JSimpleFeatureFilter.Filter buildFilter(String filterString) throws CQLException {
         if(!"".equals(filterString)) {
-            return new CQLFilter(FastFilterFactory.toFilter(sft, filterString));
+            return new CQLFilter(FastFilterFactory.toFilter(filterString));
         } else {
             return new IncludeFilter();
         }
