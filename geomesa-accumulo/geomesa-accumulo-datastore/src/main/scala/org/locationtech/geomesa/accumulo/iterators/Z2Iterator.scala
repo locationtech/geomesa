@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.google.common.primitives.Longs
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -23,18 +22,17 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
   import org.locationtech.geomesa.accumulo.iterators.Z2Iterator._
 
-  var source: SortedKeyValueIterator[Key, Value] = null
+  var source: SortedKeyValueIterator[Key, Value] = _
 
-  var keyXY: String = null
+  var keyXY: String = _
   var zOffset: Int = -1
   var zLength: Int = -1
 
-  var xyvals: Array[Array[Int]] = null
-  var rowToZ: Array[Byte] => Long = null
+  var xyvals: Array[Array[Int]] = _
   var filter: Z2Filter = _
 
-  var topKey: Key = null
-  var topValue: Value = null
+  var topKey: Key = _
+  var topValue: Value = _
   val row = new Text()
 
   override def init(source: SortedKeyValueIterator[Key, Value],
@@ -45,11 +43,9 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
     zOffset = options.get(ZOffsetKey).toInt
     zLength = options.get(ZLengthKey).toInt
 
-    rowToZ = getRowToZ(zOffset, zLength)
-
     keyXY = options.get(ZKeyXY)
     xyvals = keyXY.split(TermSeparator).map(_.split(RangeSeparator).map(_.toInt))
-    filter = new Z2Filter(xyvals, zOffset, zLength)
+    filter = new Z2Filter(xyvals, zLength)
   }
 
   override def next(): Unit = {
@@ -73,7 +69,7 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
   private def inBounds(k: Key): Boolean = {
     k.getRow(row)
-    filter.inBounds(row.getBytes)
+    filter.inBounds(row.getBytes, zOffset)
   }
 
   override def seek(range: AccRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
@@ -138,25 +134,4 @@ object Z2Iterator {
 
   private def decodeNonPoints(x: Double, y: Double): (Int, Int) =
     Z2(Z2SFC.index(x, y).z & Z2IndexV1.GEOM_Z_MASK).decode
-
-  private def getRowToZ(offset: Int, length: Int): (Array[Byte]) => Long = {
-    val z0 = offset
-    val z1 = offset + 1
-    val z2 = offset + 2
-    val z3 = offset + 3
-    val z4 = offset + 4
-    val z5 = offset + 5
-    val z6 = offset + 6
-    val z7 = offset + 7
-
-    if (length == 8) {
-      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), b(z3), b(z4), b(z5), b(z6), b(z7))
-    } else if (length == 3) {
-      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), 0, 0, 0, 0, 0)
-    } else if (length == 4) {
-      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), b(z3), 0, 0, 0, 0)
-    } else {
-      throw new IllegalArgumentException(s"Unhandled number of bytes for z value: $length")
-    }
-  }
 }

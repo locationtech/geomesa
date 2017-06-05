@@ -27,6 +27,7 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
   private var keyXY: String = _
   private var keyT: String = _
   private var filter: Z3Filter = _
+  private var zOffset: Int = -1
 
   private var topKey: Key = _
   private var topValue: Value = _
@@ -62,9 +63,9 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
 
     keyXY = options.get(ZKeyXY)
     val xyvals = keyXY.split(TermSeparator).map(_.split(RangeSeparator).map(_.toInt))
-    val zOffset = options.get(ZOffsetKey).toInt
     val zLength = options.get(ZLengthKey).toInt
-    filter = new Z3Filter(xyvals, tvals, minEpoch, maxEpoch, zOffset, zLength)
+    zOffset = options.get(ZOffsetKey).toInt
+    filter = new Z3Filter(xyvals, tvals, minEpoch, maxEpoch, zLength)
   }
 
   override def next(): Unit = {
@@ -77,8 +78,7 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     topValue = null
     while (source.hasTop) {
       source.getTopKey.getRow(row)
-      val bytes = row.getBytes
-      if (filter.inBounds(bytes, 0, bytes.length)) {
+      if (filter.inBounds(row.getBytes, zOffset)) {
         topKey = source.getTopKey
         topValue = source.getTopValue
         return
@@ -102,7 +102,7 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     val opts = Map(
       ZKeyXY     -> keyXY,
       ZKeyT      -> keyT,
-      ZOffsetKey -> filter.zOffset.toString,
+      ZOffsetKey -> zOffset.toString,
       ZLengthKey -> filter.zLength.toString
     )
     val iter = new Z3Iterator
