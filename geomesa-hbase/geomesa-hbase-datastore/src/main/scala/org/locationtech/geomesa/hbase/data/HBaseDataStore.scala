@@ -15,12 +15,17 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, LocalLocking}
+import org.locationtech.geomesa.process.GeoMesaProcessVisitor
+import org.locationtech.geomesa.process.transform.BinVisitor
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+import org.opengis.util.ProgressListener
 
 class HBaseDataStore(val connection: Connection, override val config: HBaseDataStoreConfig)
     extends HBaseDataStoreType(config) with LocalLocking {
@@ -87,6 +92,21 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
       if (auths.isEmpty) { HBaseDataStore.EmptyAuths }
       else { auths }
     }.map(new Authorizations(_))
+
+  override protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection = {
+    new HBaseFeatureCollection(source, query)
+
+  }
+}
+
+class HBaseFeatureCollection(source: GeoMesaFeatureSource, query: Query)
+  extends GeoMesaFeatureCollection(source, query) {
+
+  override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
+    visitor match {
+      case v: BinVisitor => println("Visiting!"); v.execute(source, query)
+      case _ => super.accepts(visitor, progress)
+    }
 }
 
 object HBaseDataStore {
