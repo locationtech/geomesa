@@ -42,7 +42,7 @@ trait HBasePlatform extends HBaseFeatureIndex {
 
       case Some(coprocessorConfig) =>
         // note: coprocessors don't currently handle multiRowRangeFilters, so pass the raw ranges
-        CoprocessorPlan(filter, hints, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures, coprocessorConfig)
+        CoprocessorPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures, coprocessorConfig)
     }
   }
 

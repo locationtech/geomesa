@@ -71,7 +71,6 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
 }
 
 case class CoprocessorPlan(filter: HBaseFilterStrategyType,
-                           hints: Hints,
                            table: TableName,
                            ranges: Seq[Scan],
                            remoteFilters: Seq[(Int, HFilter)] = Nil,
@@ -84,22 +83,16 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     * @return
     */
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    // TODO: Refactor this logical into HBasePlatform
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-    if (hints.isDensityQuery) {
+    // TODO: Refactor this logical into HBasePlatform?
       val (scan, filterList) = calculateScanAndFilterList(ranges, remoteFilters)
       val hbaseTable = ds.connection.getTable(table)
 
       import org.locationtech.geomesa.hbase.coprocessor._
-
       val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
 
       val result = GeoMesaCoprocessor.execute(hbaseTable, byteArray)
 
       result.map(r => coprocessorConfig.bytesToFeatures(r.toByteArray)).toIterator
-    } else {
-      throw new NotImplementedException()
-    }
   }
 
   def calculateScanAndFilterList(ranges: Seq[Scan],
