@@ -146,7 +146,8 @@ object KryoLazyDensityCoprocessor {
   }
 
   def getAggregator(options: Map[String, String]): GeoMesaHBaseAggregator = {
-    val agg = new HBaseDensityAggregator
+    val classname = options(GeoMesaHBaseAggregator.AGGREGATOR_CLASS)
+    val agg: GeoMesaHBaseAggregator = Class.forName(classname).newInstance().asInstanceOf[GeoMesaHBaseAggregator]
     agg.init(options)
     agg
   }

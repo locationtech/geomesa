@@ -54,6 +54,7 @@ object HBaseDensityAggregator {
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
 
+    is.put(GeoMesaHBaseAggregator.AGGREGATOR_CLASS, classOf[HBaseDensityAggregator].getName)
     is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.put(GRID_OPT, s"$width,$height")
     hints.getDensityWeight.foreach(is.put(WEIGHT_OPT, _))

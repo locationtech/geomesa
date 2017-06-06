@@ -15,3 +15,7 @@ trait GeoMesaHBaseAggregator {
   def aggregate(sf: SimpleFeature): Unit
   def encodeResult(): Array[Byte]
 }
+
+object GeoMesaHBaseAggregator {
+  val AGGREGATOR_CLASS = "geomesa.hbase.aggregator.class"
+}
