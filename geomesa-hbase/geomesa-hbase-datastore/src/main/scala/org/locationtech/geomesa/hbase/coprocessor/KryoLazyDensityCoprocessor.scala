@@ -18,6 +18,7 @@ import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
 import org.apache.hadoop.hbase.ipc.BlockingRpcCallback
 import org.apache.hadoop.hbase.protobuf.{ProtobufUtil, ResponseConverter}
+import org.apache.hadoop.hbase.util.Base64
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
 import org.geotools.data.Base64
 import org.geotools.factory.Hints
@@ -120,18 +121,12 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 }
 
 object KryoLazyDensityCoprocessor {
-
-
-
   /**
     * Creates an iterator config for the kryo density iterator
     */
   def configure(sft: SimpleFeatureType,
-                scan: Scan,
-                filterList: FilterList,
-                hints: Hints): Array[Byte] = {
+                hints: Hints): Map[String, String] = {
 
-    import org.apache.hadoop.hbase.util.Base64
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val is = mutable.Map.empty[String, String]
@@ -143,11 +138,11 @@ object KryoLazyDensityCoprocessor {
     is.put(GRID_OPT, s"$width,$height")
     hints.getDensityWeight.foreach(is.put(WEIGHT_OPT, _))
     is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-    is.put(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
-    is.put(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
 
-    serializeOptions(is.toMap)
+    is.toMap
   }
+
+
 
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
     val sf = new ScalaSimpleFeature("", DENSITY_SFT)

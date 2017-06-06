@@ -28,8 +28,8 @@ class HBaseTestRunnerTest extends Specification with LazyLogging {
 
   // add new tests here
   val specs = Seq(
-    new HBaseDataStoreTest,
-    new HBaseVisibilityTest,
+//    new HBaseDataStoreTest,
+//    new HBaseVisibilityTest,
     new HBaseDensityFilterTest
   )
 

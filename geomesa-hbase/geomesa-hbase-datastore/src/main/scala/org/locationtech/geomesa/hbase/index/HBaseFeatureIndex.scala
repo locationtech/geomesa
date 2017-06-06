@@ -17,6 +17,7 @@ import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
+import org.locationtech.geomesa.hbase.coprocessor.utils.GeoMesaCoprocessorConfig
 import org.locationtech.geomesa.hbase.coprocessor.{KryoLazyDensityCoprocessor, coprocessorList}
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
@@ -53,7 +54,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(filters: Seq[(Int, HFilter)],
-                        coprocessor: Option[Coprocessor],
+                        coprocessor: Option[GeoMesaCoprocessorConfig],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 }
 
@@ -210,8 +211,10 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       ScanConfig(Seq.empty, None, resultsToFeatures(sft, ecql, transform))
     } else {
 
-      val coprocessor: Option[Coprocessor] = if (hints.isDensityQuery) {
-        Some(new KryoLazyDensityCoprocessor)
+      val coprocessor: Option[GeoMesaCoprocessorConfig] = if (hints.isDensityQuery) {
+        val densityOptions = KryoLazyDensityCoprocessor.configure(sft, hints)
+
+        Some(GeoMesaCoprocessorConfig(densityOptions, KryoLazyDensityCoprocessor.bytesToFeatures))
       } else {
         None
       }
@@ -246,6 +249,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                                       ranges: Seq[Query],
                                       table: TableName,
                                       hbaseFilters: Seq[(Int, HFilter)],
-                                      coprocessor: Option[Coprocessor],
+                                      coprocessor: Option[GeoMesaCoprocessorConfig],
                                       toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 }

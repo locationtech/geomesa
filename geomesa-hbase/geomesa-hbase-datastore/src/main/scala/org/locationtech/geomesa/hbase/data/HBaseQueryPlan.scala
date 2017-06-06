@@ -19,6 +19,7 @@ import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
+import org.locationtech.geomesa.hbase.coprocessor.utils.GeoMesaCoprocessorConfig
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
@@ -71,13 +72,13 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
   }
 }
 
-case class CoprocessorPlan(sft: SimpleFeatureType,
-                           filter: HBaseFilterStrategyType,
+case class CoprocessorPlan(filter: HBaseFilterStrategyType,
                            hints: Hints,
                            table: TableName,
                            ranges: Seq[Scan],
                            remoteFilters: Seq[(Int, HFilter)] = Nil,
-                           resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan  {
+                           resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature],
+                           coprocessorConfig: GeoMesaCoprocessorConfig) extends HBaseQueryPlan  {
   /**
     * Runs the query plain against the underlying database, returning the raw entries
     *
@@ -91,9 +92,13 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
       val (scan, filterList) = calculateScanAndFilterList(ranges, remoteFilters)
       val hbaseTable = ds.connection.getTable(table)
 
-      val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.configure(sft, scan, filterList, hints)
-      val result: List[ByteString] = KryoLazyDensityCoprocessor.execute(hbaseTable, byteArray)
-      result.map(r => KryoLazyDensityCoprocessor.bytesToFeatures(r.toByteArray)).toIterator
+      import org.locationtech.geomesa.hbase.coprocessor._
+
+      val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
+
+      val result = KryoLazyDensityCoprocessor.execute(hbaseTable, byteArray)
+
+      result.map(r => coprocessorConfig.bytesToFeatures(r.toByteArray)).toIterator
     } else {
       throw new NotImplementedException()
     }
