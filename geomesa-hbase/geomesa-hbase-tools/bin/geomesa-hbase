@@ -94,6 +94,8 @@ for home in ${hadoopDirs[*]}; do
   fi
 done
 
+HADOOP_CP="${HADOOP_CP}:${HADOOP_HOME}/conf/hbase-site.xml"
+
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
