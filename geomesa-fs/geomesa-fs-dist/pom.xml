@@ -31,7 +31,7 @@
         </dependency>
 
         <!-- TODO: should hadoop be in here -->
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <scope>compile</scope>
@@ -40,7 +40,7 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-auth</artifactId>
             <scope>compile</scope>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
