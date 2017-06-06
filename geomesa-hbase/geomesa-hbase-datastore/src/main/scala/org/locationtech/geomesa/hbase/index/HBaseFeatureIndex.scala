@@ -24,12 +24,10 @@ import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.slf4j.LoggerFactory
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
@@ -61,8 +59,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
   with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query] with ClientSideFiltering[Result] with LazyLogging {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
-
-  private val logger = LoggerFactory.getLogger("org.locationtech.geomesa.hbase.index.HBaseFeatureIndex")
 
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     super.configure(sft, ds)
