@@ -19,13 +19,11 @@ import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
-import org.locationtech.geomesa.hbase.driver.KryoLazyDensityDriver
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
@@ -90,26 +88,31 @@ case class CoprocessorPlan(sft: SimpleFeatureType,
     // TODO: Refactor this logical into HBasePlatform
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isDensityQuery) {
-      val rowRanges = Lists.newArrayList[RowRange]()
-      ranges.foreach { r =>
-        rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
-      }
-      val sortedRowRanges: util.List[RowRange] = MultiRowRangeFilter.sortAndMerge(rowRanges)
-      val mrrf = new MultiRowRangeFilter(sortedRowRanges)
-      // note: mrrf first priority
-      val filterList = new FilterList(remoteFilters.sortBy(_._1).map(_._2).+:(mrrf): _*)
-
-      val scan = new Scan()
-      scan.setFilter(filterList)
-
-      val is: Map[String, String] = KryoLazyDensityCoprocessor.configure(sft, scan, filterList, hints)
-      val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.serializeOptions(is)
+      val (scan, filterList) = calculateScanAndFilterList(ranges, remoteFilters)
       val hbaseTable = ds.connection.getTable(table)
-      val client = new KryoLazyDensityDriver()
-      val result: List[ByteString] = client.kryoLazyDensityFilter(hbaseTable, byteArray)
+
+      val byteArray: Array[Byte] = KryoLazyDensityCoprocessor.configure(sft, scan, filterList, hints)
+      val result: List[ByteString] = KryoLazyDensityCoprocessor.execute(hbaseTable, byteArray)
       result.map(r => KryoLazyDensityCoprocessor.bytesToFeatures(r.toByteArray)).toIterator
     } else {
       throw new NotImplementedException()
     }
   }
+
+  def calculateScanAndFilterList(ranges: Seq[Scan],
+                                 remoteFilters: Seq[(Int, HFilter)]): (Scan, FilterList) = {
+    val rowRanges = Lists.newArrayList[RowRange]()
+    ranges.foreach { r =>
+      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
+    }
+    val sortedRowRanges: util.List[RowRange] = MultiRowRangeFilter.sortAndMerge(rowRanges)
+    val mrrf = new MultiRowRangeFilter(sortedRowRanges)
+    // note: mrrf first priority
+    val filterList = new FilterList(remoteFilters.sortBy(_._1).map(_._2).+:(mrrf): _*)
+
+    val scan = new Scan()
+    scan.setFilter(filterList)
+    (scan, filterList)
+  }
+
 }
