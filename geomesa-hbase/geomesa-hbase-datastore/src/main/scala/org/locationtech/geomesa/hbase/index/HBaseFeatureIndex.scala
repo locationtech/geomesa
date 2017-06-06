@@ -18,20 +18,18 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseDensityAggregator
+import org.locationtech.geomesa.hbase.coprocessor.coprocessorList
 import org.locationtech.geomesa.hbase.coprocessor.utils.GeoMesaCoprocessorConfig
-import org.locationtech.geomesa.hbase.coprocessor.{KryoLazyDensityCoprocessor, coprocessorList}
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.slf4j.LoggerFactory
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
@@ -212,7 +210,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       ScanConfig(Seq.empty, None, resultsToFeatures(sft, ecql, transform))
     } else {
 
-      val coprocessor: Option[GeoMesaCoprocessorConfig] = if (hints.isDensityQuery) {
+      val coprocessorConfig: Option[GeoMesaCoprocessorConfig] = if (hints.isDensityQuery) {
         val densityOptions = HBaseDensityAggregator.configure(sft, hints)
         Some(GeoMesaCoprocessorConfig(densityOptions, HBaseDensityAggregator.bytesToFeatures))
       } else {
@@ -230,7 +228,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       }
 
       val additionalFilters = createPushDownFilters(ds, sft, filter, transform)
-      ScanConfig(filterTransform ++ additionalFilters, coprocessor, toFeatures)
+      ScanConfig(filterTransform ++ additionalFilters, coprocessorConfig, toFeatures)
     }
   }
 

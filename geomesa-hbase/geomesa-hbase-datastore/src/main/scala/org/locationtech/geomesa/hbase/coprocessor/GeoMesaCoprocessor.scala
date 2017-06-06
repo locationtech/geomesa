@@ -21,18 +21,18 @@ import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor._
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.{GeoMesaHBaseAggregator, HBaseDensityAggregator}
+import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor._
+import org.locationtech.geomesa.hbase.coprocessor.aggregators.GeoMesaHBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
-import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto
-import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
+import org.locationtech.geomesa.hbase.proto.GeoMesaProto
+import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseQuietly
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 
-class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService {
+class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with CoprocessorService {
 
   private var env: RegionCoprocessorEnvironment = _
 
@@ -50,9 +50,9 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 
   def getService: Service = this
 
-  def getDensity(controller: RpcController,
-                 request: KryoLazyDensityProto.DensityRequest,
-                 done: RpcCallback[KryoLazyDensityProto.DensityResponse]): Unit = {
+  def getResult(controller: RpcController,
+                 request: GeoMesaProto.GeoMesaCoprocessorRequest,
+                 done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
     val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
     val aggregator = getAggregator(options)
 
@@ -62,7 +62,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
     val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
     val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
-    val response: DensityResponse = try {
+    val response: GeoMesaCoprocessorResponse = try {
 
       scanList.foreach(scan => {
         scan.setFilter(filterList)
@@ -97,7 +97,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
       })
 
       val result: Array[Byte] = aggregator.encodeResult()
-      DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
+      GeoMesaCoprocessorResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
     } catch {
       case ioe: IOException =>
         ResponseConverter.setControllerException(controller, ioe)
@@ -112,7 +112,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   }
 }
 
-object KryoLazyDensityCoprocessor {
+object GeoMesaCoprocessor {
   /**
     * It gives the combined result of pairs received from different region servers value of a column for a given column family for the
     * given range. In case qualifier is null, a min of all values for the given
@@ -123,17 +123,17 @@ object KryoLazyDensityCoprocessor {
     * @throws Throwable
     */
   def execute(table: Table, options: Array[Byte]): List[ByteString] = {
-    val requestArg: DensityRequest = DensityRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
+    val requestArg: GeoMesaCoprocessorRequest = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
 
     val callBack: GeoMesaHBaseCallBack = new GeoMesaHBaseCallBack()
 
-    table.coprocessorService(classOf[KryoLazyDensityService], null, null, new Call[KryoLazyDensityService, ByteString]() {
-      override def call(instance: KryoLazyDensityService): ByteString = {
+    table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, new Call[GeoMesaCoprocessorService, ByteString]() {
+      override def call(instance: GeoMesaCoprocessorService): ByteString = {
         val controller: RpcController = new GeoMesaHBaseRpcController()
-        val rpcCallback: BlockingRpcCallback[DensityResponse] =
-          new BlockingRpcCallback[DensityResponse]()
-        instance.getDensity(controller, requestArg, rpcCallback)
-        val response: DensityResponse = rpcCallback.get
+        val rpcCallback: BlockingRpcCallback[GeoMesaCoprocessorResponse] =
+          new BlockingRpcCallback[GeoMesaCoprocessorResponse]()
+        instance.getResult(controller, requestArg, rpcCallback)
+        val response: GeoMesaCoprocessorResponse = rpcCallback.get
         if (controller.failed()) {
           throw new IOException(controller.errorText())
         }

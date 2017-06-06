@@ -25,7 +25,7 @@ package object coprocessor {
   val SCAN_OPT   = "scan"
 
   lazy val coprocessorList: Seq[Class[_ <: Coprocessor]] = Seq(
-    classOf[KryoLazyDensityCoprocessor]
+    classOf[GeoMesaCoprocessor]
   )
 
   def deserializeOptions(bytes: Array[Byte]): Map[String, String] = {

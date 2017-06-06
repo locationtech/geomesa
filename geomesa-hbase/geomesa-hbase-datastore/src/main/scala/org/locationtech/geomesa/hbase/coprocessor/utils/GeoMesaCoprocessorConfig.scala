@@ -22,6 +22,3 @@ case class GeoMesaCoprocessorConfig(options: Map[String, String], bytesToFeature
            .updated(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
   }
 }
-
-object GeoMesaCoprocessorConfig {
-}

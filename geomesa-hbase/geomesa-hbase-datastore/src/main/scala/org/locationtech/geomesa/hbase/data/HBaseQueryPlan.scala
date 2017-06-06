@@ -11,20 +11,18 @@ package org.locationtech.geomesa.hbase.data
 import java.util
 
 import com.google.common.collect.Lists
-import com.google.protobuf.ByteString
 import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
 import org.locationtech.geomesa.hbase.coprocessor.utils.GeoMesaCoprocessorConfig
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
@@ -96,7 +94,7 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
 
       val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
 
-      val result = KryoLazyDensityCoprocessor.execute(hbaseTable, byteArray)
+      val result = GeoMesaCoprocessor.execute(hbaseTable, byteArray)
 
       result.map(r => coprocessorConfig.bytesToFeatures(r.toByteArray)).toIterator
     } else {
