@@ -17,6 +17,7 @@ import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
+import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseDensityAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.GeoMesaCoprocessorConfig
 import org.locationtech.geomesa.hbase.coprocessor.{KryoLazyDensityCoprocessor, coprocessorList}
 import org.locationtech.geomesa.hbase.data._
@@ -212,9 +213,8 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     } else {
 
       val coprocessor: Option[GeoMesaCoprocessorConfig] = if (hints.isDensityQuery) {
-        val densityOptions = KryoLazyDensityCoprocessor.configure(sft, hints)
-
-        Some(GeoMesaCoprocessorConfig(densityOptions, KryoLazyDensityCoprocessor.bytesToFeatures))
+        val densityOptions = HBaseDensityAggregator.configure(sft, hints)
+        Some(GeoMesaCoprocessorConfig(densityOptions, HBaseDensityAggregator.bytesToFeatures))
       } else {
         None
       }

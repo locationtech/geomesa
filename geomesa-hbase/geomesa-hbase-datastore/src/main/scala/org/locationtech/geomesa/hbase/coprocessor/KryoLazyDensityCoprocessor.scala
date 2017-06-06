@@ -17,26 +17,20 @@ import org.apache.hadoop.hbase.coprocessor.{CoprocessorException, CoprocessorSer
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
 import org.apache.hadoop.hbase.ipc.BlockingRpcCallback
-import org.apache.hadoop.hbase.protobuf.{ProtobufUtil, ResponseConverter}
-import org.apache.hadoop.hbase.util.Base64
+import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
-import org.geotools.data.Base64
-import org.geotools.factory.Hints
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor._
+import org.locationtech.geomesa.hbase.coprocessor.aggregators.{GeoMesaHBaseAggregator, HBaseDensityAggregator}
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto
 import org.locationtech.geomesa.hbase.proto.KryoLazyDensityProto._
-import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
-import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils._
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseQuietly
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor with CoprocessorService {
 
@@ -59,16 +53,14 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
   def getDensity(controller: RpcController,
                  request: KryoLazyDensityProto.DensityRequest,
                  done: RpcCallback[KryoLazyDensityProto.DensityResponse]): Unit = {
-
     val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
-    val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
-    val densityUtils = new KryoLazyDensityUtils {}
-    val densityResult: DensityResult = densityUtils.initialize(options, sft)
+    val aggregator = getAggregator(options)
+
     val scanList: List[Scan] = getScanFromOptions(options)
     val filterList: FilterList = getFilterListFromOptions(options)
-    val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
-    def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = densityUtils.writeGeom(sf, result)
+    val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
+    val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
     val response: DensityResponse = try {
 
@@ -83,7 +75,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
           def processResults() = {
             for (cell <- results) {
               val sf = serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
-              aggregateResult(sf, densityResult)
+              aggregator.aggregate(sf)
             }
             results.clear()
           }
@@ -104,7 +96,7 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
         } finally CloseQuietly(scanner)
       })
 
-      val result: Array[Byte] = KryoLazyDensityUtils.encodeResult(densityResult)
+      val result: Array[Byte] = aggregator.encodeResult()
       DensityResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
     } catch {
       case ioe: IOException =>
@@ -121,36 +113,6 @@ class KryoLazyDensityCoprocessor extends KryoLazyDensityService with Coprocessor
 }
 
 object KryoLazyDensityCoprocessor {
-  /**
-    * Creates an iterator config for the kryo density iterator
-    */
-  def configure(sft: SimpleFeatureType,
-                hints: Hints): Map[String, String] = {
-
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
-    val is = mutable.Map.empty[String, String]
-
-    val envelope = hints.getDensityEnvelope.get
-    val (width, height) = hints.getDensityBounds.get
-
-    is.put(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
-    is.put(GRID_OPT, s"$width,$height")
-    hints.getDensityWeight.foreach(is.put(WEIGHT_OPT, _))
-    is.put(SFT_OPT, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-
-    is.toMap
-  }
-
-
-
-  def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", DENSITY_SFT)
-    sf.setAttribute(0, GeometryUtils.zeroPoint)
-    sf.getUserData.put(DENSITY_VALUE, bytes)
-    sf
-  }
-
   /**
     * It gives the combined result of pairs received from different region servers value of a column for a given column family for the
     * given range. In case qualifier is null, a min of all values for the given
@@ -181,5 +143,11 @@ object KryoLazyDensityCoprocessor {
       callBack
     )
     callBack.getResult
+  }
+
+  def getAggregator(options: Map[String, String]): GeoMesaHBaseAggregator = {
+    val agg = new HBaseDensityAggregator
+    agg.init(options)
+    agg
   }
 }
