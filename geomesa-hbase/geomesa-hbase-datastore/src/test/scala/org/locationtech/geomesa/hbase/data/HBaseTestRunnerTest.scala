@@ -13,7 +13,7 @@ import org.apache.hadoop.hbase.HBaseTestingUtility
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
+import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -28,8 +28,9 @@ class HBaseTestRunnerTest extends Specification with LazyLogging {
 
   // add new tests here
   val specs = Seq(
-    new HBaseDataStoreTest,
-    new HBaseVisibilityTest,
+//    new HBaseDataStoreTest,
+//    new HBaseVisibilityTest,
+    new HBaseBinAggregatorTest,
     new HBaseDensityFilterTest
   )
 
@@ -37,7 +38,7 @@ class HBaseTestRunnerTest extends Specification with LazyLogging {
     logger.info("Starting embedded hbase")
     cluster.getConfiguration.set("hbase.superuser", "admin")
     cluster.getConfiguration.set(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY,
-      classOf[KryoLazyDensityCoprocessor].getCanonicalName)
+      classOf[GeoMesaCoprocessor].getCanonicalName)
     cluster.startMiniCluster(1)
     connection = cluster.getConnection
     logger.info("Started embedded hbase")
