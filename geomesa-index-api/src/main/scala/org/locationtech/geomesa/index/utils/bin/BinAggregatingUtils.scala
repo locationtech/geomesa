@@ -70,7 +70,7 @@ trait BinAggregatingUtils extends SamplingIterator {
         }
       }
     } else {
-      (sf) => sf.getAttribute(dtgIndex).asInstanceOf[Long]
+      (sf) => sf.getAttribute(dtgIndex).asInstanceOf[Date].getTime
       //JNH: Not sure about this!
       // Code was KryoBufferSimpleFeature.getDateAsLong(dtgIndex)
     }
