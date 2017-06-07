@@ -11,6 +11,7 @@ package org.locationtech.geomesa.kafka09
 import java.io.Serializable
 import java.{util => ju}
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.Query
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
@@ -72,7 +73,7 @@ object KafkaConsumerFeatureSource {
   lazy val wholeWorldBounds = ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), CRS_EPSG_4326)
 }
 
-object KafkaConsumerFeatureSourceFactory {
+object KafkaConsumerFeatureSourceFactory extends LazyLogging {
 
   def apply(brokers: String, zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
 
@@ -85,7 +86,13 @@ object KafkaConsumerFeatureSourceFactory {
     }
 
     val cacheCleanUpPeriod: Long = {
-      Suffixes.Time.millis(KafkaDataStoreFactoryParams.CACHE_CLEANUP_PERIOD.lookUp(params).asInstanceOf[String]).getOrElse(10000L)
+      Option(KafkaDataStoreFactoryParams.CACHE_CLEANUP_PERIOD.lookUp(params).asInstanceOf[String]) match {
+        case Some(duration) => Suffixes.Time.millis(duration).getOrElse {
+          logger.warn("Unable to parse Cache Cleanup Period. Using default of 10000")
+          10000
+        }
+        case None => 10000
+      }
     }
 
     val useCQCache: Boolean = {
