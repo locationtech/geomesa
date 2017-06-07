@@ -18,16 +18,15 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable
 
-class HBaseDensityAggregator extends GeoMesaHBaseAggregator {
-  val densityUtils = new KryoLazyDensityUtils {}
+class HBaseDensityAggregator extends GeoMesaHBaseAggregator with KryoLazyDensityUtils {
   var densityResult: DensityResult = _
 
   override def init(options: Map[String, String]): Unit = {
     val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
-    densityResult = densityUtils.initialize(options, sft)
+    densityResult = initialize(options, sft)
   }
 
-  override def aggregate(sf: SimpleFeature): Unit = densityUtils.writeGeom(sf, densityResult)
+  override def aggregate(sf: SimpleFeature): Unit = writeGeom(sf, densityResult)
 
   override def encodeResult(): Array[Byte] = KryoLazyDensityUtils.encodeResult(densityResult)
 }
