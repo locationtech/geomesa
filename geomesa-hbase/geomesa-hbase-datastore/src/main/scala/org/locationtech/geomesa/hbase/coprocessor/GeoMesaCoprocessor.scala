@@ -126,13 +126,10 @@ object GeoMesaCoprocessor {
   def execute(table: Table, options: Array[Byte]): List[ByteString] = {
     val requestArg: GeoMesaCoprocessorRequest = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
 
-    val callBack: GeoMesaHBaseCallBack = new GeoMesaHBaseCallBack()
-
-    table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, new Call[GeoMesaCoprocessorService, ByteString]() {
+    val callable = new Call[GeoMesaCoprocessorService, ByteString]() {
       override def call(instance: GeoMesaCoprocessorService): ByteString = {
         val controller: RpcController = new GeoMesaHBaseRpcController()
-        val rpcCallback: BlockingRpcCallback[GeoMesaCoprocessorResponse] =
-          new BlockingRpcCallback[GeoMesaCoprocessorResponse]()
+        val rpcCallback = new BlockingRpcCallback[GeoMesaCoprocessorResponse]()
         instance.getResult(controller, requestArg, rpcCallback)
         val response: GeoMesaCoprocessorResponse = rpcCallback.get
         if (controller.failed()) {
@@ -140,13 +137,15 @@ object GeoMesaCoprocessor {
         }
         response.getSf
       }
-    },
-      callBack
-    )
+    }
+
+    val callBack: GeoMesaHBaseCallBack = new GeoMesaHBaseCallBack()
+
+    table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, callable, callBack)
     callBack.getResult
   }
 
-  def getAggregator(options: Map[String, String]): GeoMesaHBaseAggregator = {
+  private[coprocessor] def getAggregator(options: Map[String, String]): GeoMesaHBaseAggregator = {
     val classname = options(GeoMesaHBaseAggregator.AGGREGATOR_CLASS)
     val agg: GeoMesaHBaseAggregator = Class.forName(classname).newInstance().asInstanceOf[GeoMesaHBaseAggregator]
     agg.init(options)
