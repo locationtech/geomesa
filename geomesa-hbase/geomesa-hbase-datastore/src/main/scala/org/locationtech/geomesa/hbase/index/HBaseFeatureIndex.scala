@@ -210,14 +210,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       ScanConfig(Seq.empty, None, resultsToFeatures(sft, ecql, transform))
     } else {
 
-      val coprocessorConfig: Option[GeoMesaCoprocessorConfig] =
-        if (hints.isDensityQuery) {
-          val densityOptions = HBaseDensityAggregator.configure(sft, hints)
-          Some(GeoMesaCoprocessorConfig(densityOptions, HBaseDensityAggregator.bytesToFeatures))
-        } else {
-          None
-        }
-
       val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
       val toFeatures = resultsToFeatures(returnSchema, None, None)
       val filterTransform: Seq[(Int, HFilter)] = if (ecql.isEmpty && transform.isEmpty) { Seq.empty } else {
@@ -227,6 +219,14 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
         val filter = new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, encodedSft)
         Seq((JSimpleFeatureFilter.Priority, filter))
       }
+
+      val coprocessorConfig: Option[GeoMesaCoprocessorConfig] =
+        if (hints.isDensityQuery) {
+          val densityOptions = HBaseDensityAggregator.configure(returnSchema, hints)
+          Some(GeoMesaCoprocessorConfig(densityOptions, HBaseDensityAggregator.bytesToFeatures))
+        } else {
+          None
+        }
 
       val additionalFilters = createPushDownFilters(ds, sft, filter, transform)
       ScanConfig(filterTransform ++ additionalFilters, coprocessorConfig, toFeatures)

@@ -84,15 +84,15 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     */
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     // TODO: Refactor this logical into HBasePlatform?
-      val (scan, filterList) = calculateScanAndFilterList(ranges, remoteFilters)
-      val hbaseTable = ds.connection.getTable(table)
+    val (scan, filterList) = calculateScanAndFilterList(ranges, remoteFilters)
+    val hbaseTable = ds.connection.getTable(table)
 
-      import org.locationtech.geomesa.hbase.coprocessor._
-      val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
+    import org.locationtech.geomesa.hbase.coprocessor._
+    val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
 
-      val result = GeoMesaCoprocessor.execute(hbaseTable, byteArray)
+    val result = GeoMesaCoprocessor.execute(hbaseTable, byteArray)
 
-      result.map(r => coprocessorConfig.bytesToFeatures(r.toByteArray)).toIterator
+    result.map(r => coprocessorConfig.bytesToFeatures(r.toByteArray)).toIterator
   }
 
   def calculateScanAndFilterList(ranges: Seq[Scan],

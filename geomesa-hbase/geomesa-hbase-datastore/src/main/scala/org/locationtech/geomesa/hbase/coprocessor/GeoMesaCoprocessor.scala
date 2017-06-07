@@ -37,7 +37,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
   private var env: RegionCoprocessorEnvironment = _
 
   @throws[IOException]
-  def start(env: CoprocessorEnvironment): Unit = {
+  override def start(env: CoprocessorEnvironment): Unit = {
     env match {
       case e: RegionCoprocessorEnvironment => this.env = e
       case _ => throw new CoprocessorException("Must be loaded on a table region!")
@@ -45,14 +45,14 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
   }
 
   @throws[IOException]
-  def stop(coprocessorEnvironment: CoprocessorEnvironment): Unit = {
+  override def stop(coprocessorEnvironment: CoprocessorEnvironment): Unit = {
   }
 
-  def getService: Service = this
+  override def getService: Service = this
 
   def getResult(controller: RpcController,
-                 request: GeoMesaProto.GeoMesaCoprocessorRequest,
-                 done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
+                request: GeoMesaProto.GeoMesaCoprocessorRequest,
+                done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
     val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
     val aggregator = getAggregator(options)
 
@@ -74,6 +74,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
 
           def processResults() = {
             for (cell <- results) {
+              // TODO: GEOMESA-1868 Set the Feature ID in the GeoMesa Coprocessor
               val sf = serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
               aggregator.aggregate(sf)
             }
@@ -91,9 +92,9 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
           }
 
           readScanner()
-        } catch {
-          case t: Throwable => throw t
-        } finally CloseQuietly(scanner)
+        } finally {
+          CloseQuietly(scanner)
+        }
       })
 
       val result: Array[Byte] = aggregator.encodeResult()
