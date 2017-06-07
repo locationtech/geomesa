@@ -89,9 +89,10 @@ function test_export() {
     fi
 
     # Export some formats
-    $geomesaExportCommand -c ${CATALOG} -f example-csv -F csv  > "$t/e.csv"
-    $geomesaExportCommand -c ${CATALOG} -f example-csv -F avro > "$t/e.avro"
-    $geomesaExportCommand -c ${CATALOG} -f example-csv -F tsv  > "$t/e.tsv"
+    $geomesaExportCommand -c ${CATALOG} -f example-csv -F csv   > "$t/e.csv"
+    $geomesaExportCommand -c ${CATALOG} -f example-csv -F avro  > "$t/e.avro"
+    $geomesaExportCommand -c ${CATALOG} -f example-csv -F tsv   > "$t/e.tsv"
+    $geomesaExportCommand -c ${CATALOG} -f example-csv -F arrow > "$t/e.arrow"
 
     # Reingest automatically those formats
     $geomesaIngestCommand -c ${CATALOG} -f re-avro "$t/e.avro"
