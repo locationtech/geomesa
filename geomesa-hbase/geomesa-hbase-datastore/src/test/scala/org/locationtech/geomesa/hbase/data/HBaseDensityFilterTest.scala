@@ -52,6 +52,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
   var fs: SimpleFeatureStore = _
 
   step {
+    logger.info("Starting the Density Filter Test")
     ds.getSchema(typeName) must beNull
     ds.createSchema(SimpleFeatureTypes.createType(typeName, TEST_FAMILY))
     sft = ds.getSchema(typeName)

@@ -12,47 +12,10 @@ import java.util.{Map => jMap}
 
 import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.factory.Hints
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.index.utils.FeatureSampler
-
-/**
-  * Mixin trait to provide support for sampling features.
-  *
-  * Current implementation takes every nth feature. As such, sampling
-  * percents > 0.5 will not have any effect.
-  */
-trait SamplingIterator {
-
-  /**
-    * Configure a sampling function based on the iterator configuration
-    *
-    * @param options iterator options
-    * @return sampling function, if defined
-    */
-  def sample(options: jMap[String, String]): Option[(SimpleFeature) => Boolean] = {
-    import scala.collection.JavaConverters._
-    sample(options.asScala.toMap)
-  }
-
-  /**
-    * Configure a sampling function based on the iterator configuration
-    *
-    * @param options iterator options
-    * @return sampling function, if defined
-    */
-  def sample(options: Map[String, String]): Option[(SimpleFeature) => Boolean] = {
-    import SamplingIterator.{SAMPLE_BY_OPT, SAMPLE_OPT}
-    val sampling = options.get(SAMPLE_OPT).map(_.toInt)
-    val sampleBy = options.get(SAMPLE_BY_OPT).map(_.toInt)
-    sampling.map(FeatureSampler.sample(_, sampleBy))
-  }
-}
+import org.locationtech.geomesa.index.utils.SamplingIterator._
+import org.opengis.feature.simple.SimpleFeatureType
 
 object SamplingIterator {
-
-  val SAMPLE_OPT    = "sample"
-  val SAMPLE_BY_OPT = "sample-by"
-
   def configure(is: IteratorSetting, sft: SimpleFeatureType, hints: Hints): Unit = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     hints.getSampling.foreach(configure(is, sft, _))

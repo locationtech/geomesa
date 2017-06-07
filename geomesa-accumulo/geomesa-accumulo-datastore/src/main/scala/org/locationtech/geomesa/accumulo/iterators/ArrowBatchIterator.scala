@@ -23,6 +23,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.utils.SamplingIterator
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
@@ -159,7 +160,6 @@ class ArrowSortingBatchAggregate(sft: SimpleFeatureType,
 
 object ArrowBatchIterator {
 
-  import org.locationtech.geomesa.arrow.allocator
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   val DefaultPriority = 25
@@ -310,6 +310,8 @@ object ArrowBatchIterator {
                            encoding: SimpleFeatureEncoding,
                            sort: Option[(String, Boolean)]): Array[Byte] = {
     val out = new ByteArrayOutputStream
+    import org.locationtech.geomesa.arrow.allocator
+
     WithClose(new SimpleFeatureArrowFileWriter(sft, out, dictionaries, encoding, sort)) { writer =>
       writer.start()
       out.toByteArray // copy bytes before closing so we get just the header metadata

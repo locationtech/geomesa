@@ -15,6 +15,7 @@ import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.index.utils.bin.BinSorter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -22,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class BinAggregatingIteratorTest extends Specification {
+class BinSorterTest extends Specification {
 
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
   val sft = SimpleFeatureTypes.createType(getClass.getSimpleName, spec)
