@@ -23,6 +23,7 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.iterators.ArrowBatchScan
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -205,13 +206,13 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     } else if (hints.isArrowQuery) {
       lazy val dictionaryFields = hints.getArrowDictionaryFields
       lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
-      lazy val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
+      lazy val dictionaries = ArrowBatchScan.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
       // check to see if we can execute against the index values
       if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
         val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
             hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
           val iter = ArrowBatchIterator.configure(indexSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchIterator.reduceFeatures(indexSft, hints, dictionaries)(_))
+          val reduce = Some(ArrowBatchScan.reduceFeatures(indexSft, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
         } else {
           val iter = ArrowFileIterator.configure(indexSft, this, ecql, dictionaryFields, hints, dedupe)
@@ -230,7 +231,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
             hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
           val iter = ArrowBatchIterator.configure(transformSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchIterator.reduceFeatures(transformSft, hints, dictionaries)(_))
+          val reduce = Some(ArrowBatchScan.reduceFeatures(transformSft, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
         } else {
           val iter = ArrowFileIterator.configure(transformSft, this, ecql, dictionaryFields, hints, dedupe)
@@ -339,7 +340,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
 
     lazy val dictionaryFields = hints.getArrowDictionaryFields
     lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
-    lazy val arrowDictionaries = ArrowBatchIterator.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
+    lazy val arrowDictionaries = ArrowBatchScan.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
 
     // apply any secondary filters or transforms against the record table
     val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
@@ -370,7 +371,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
     } else if (hints.isArrowQuery) {
       if (hints.isArrowComputeDictionaries) {
-        val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, arrowDictionaries)(_))
+        val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, arrowDictionaries)(_))
         (ArrowBatchIterator.kvsToFeatures(), reduce)
       } else {
         (ArrowFileIterator.kvsToFeatures(), None)
