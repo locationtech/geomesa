@@ -31,10 +31,8 @@ class HBaseBinAggregatorTest extends HBaseTest with LazyLogging {
   sequential
 
   lazy val process = new BinConversionProcess
-  //lazy val TEST_FAMILY = "an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
   lazy val TEST_HINT = new Hints()
   lazy val tableName = "bintest"
-//  lazy val typeName = "HBaseDensityFilterTest"
   val sftName = "binTest"
 
   val spec = "name:String,track:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326,geom2:Point:srid=4326"

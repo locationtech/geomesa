@@ -26,7 +26,7 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] e
 
   protected def manager: GeoMesaIndexManager[_, _, _]
 
-  var sft: SimpleFeatureType = _
+  private var sft: SimpleFeatureType = _
   private var transformSft: SimpleFeatureType = _
   private var index: GeoMesaFeatureIndex[_, _, _] = _
 

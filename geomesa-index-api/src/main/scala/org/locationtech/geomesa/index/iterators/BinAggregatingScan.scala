@@ -22,8 +22,8 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-trait BinAggregatingUtils extends AggregatingScan[ByteBufferResult] {
-  import BinAggregatingUtils.Configuration._
+trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
+  import BinAggregatingScan.Configuration._
 
   var trackIndex: Int = -1
   var geomIndex: Int = -1
@@ -198,12 +198,8 @@ trait BinAggregatingUtils extends AggregatingScan[ByteBufferResult] {
   }
 }
 
-object BinAggregatingUtils {
+object BinAggregatingScan {
   object Configuration {
-    val zeroPoint = WKTUtils.read("POINT(0 0)")
-
-    val DEFAULT_PRIORITY = 25
-
     // configuration keys
     val BatchSizeOpt  = "batch"
     val SortOpt       = "sort"
@@ -243,13 +239,13 @@ object BinAggregatingUtils {
 
     val base = AggregatingScan.configure(sft, index, filter, hints.getTransform, hints.getSampling)
     base ++ AggregatingScan.optionalMap(
-      BatchSizeOpt   -> batchSize.toString,
-      TrackOpt  -> sft.indexOf(trackId).toString,
-      GeomOpt -> sft.indexOf(geom).toString,
-      DateOpt        -> dtg.map(sft.indexOf).getOrElse(-1).toString,
+      BatchSizeOpt -> batchSize.toString,
+      TrackOpt     -> sft.indexOf(trackId).toString,
+      GeomOpt      -> sft.indexOf(geom).toString,
+      DateOpt      -> dtg.map(sft.indexOf).getOrElse(-1).toString,
       DateArrayOpt -> setDateArrayOpt,
-      LabelOpt -> label.map(sft.indexOf(_).toString),
-      SortOpt -> sort.toString
+      LabelOpt     -> label.map(sft.indexOf(_).toString),
+      SortOpt      -> sort.toString
     )
   }
 }

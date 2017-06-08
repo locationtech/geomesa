@@ -25,8 +25,9 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.filter.function.{BasicValues, BinaryOutputEncoder, Convert2ViewerFunction, ExtendedValues}
-import org.locationtech.geomesa.index.iterators.BinAggregatingUtils.Configuration._
-import org.locationtech.geomesa.index.iterators.{BinAggregatingUtils, ByteBufferResult, SamplingIterator}
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.Configuration._
+import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, ByteBufferResult, SamplingIterator}
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -37,7 +38,7 @@ import scala.util.control.NonFatal
  * Iterator that computes and aggregates 'bin' entries
  */
 class BinAggregatingIterator
-    extends BaseAggregatingIterator[ByteBufferResult] with BinAggregatingUtils {
+    extends BaseAggregatingIterator[ByteBufferResult] with BinAggregatingScan {
   override def notFull(result: ByteBufferResult): Boolean = result.buffer.position < result.buffer.limit
 }
 
@@ -143,6 +144,8 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 object BinAggregatingIterator extends LazyLogging {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
+  val DEFAULT_PRIORITY = 25
+
   /**
    * Creates an iterator config that expects entries to be precomputed bin values
    */
@@ -204,9 +207,9 @@ object BinAggregatingIterator extends LazyLogging {
                         sampling: Option[(Float, Option[String])],
                         hints: Hints,
                         priority: Int): IteratorSetting = {
-     val is = new IteratorSetting(priority, "bin-iter", clas)
+    val is = new IteratorSetting(priority, "bin-iter", clas)
     BaseAggregatingIterator.configure(is, deduplicate, None)
-    BinAggregatingUtils.configure(sft, index, filter, trackId, geom, dtg, label, batchSize, sort, hints).foreach { case (k, v) => is.addOption(k, v) }
+    BinAggregatingScan.configure(sft, index, filter, trackId, geom, dtg, label, batchSize, sort, hints).foreach { case (k, v) => is.addOption(k, v) }
     is
   }
 
@@ -228,7 +231,7 @@ object BinAggregatingIterator extends LazyLogging {
    */
   def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
     val sf = new ScalaSimpleFeature("", BinaryOutputEncoder.BinEncodedSft)
-    sf.setAttribute(1, zeroPoint)
+    sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       sf.setAttribute(BIN_ATTRIBUTE_INDEX, e.getValue.get())
       sf
@@ -339,7 +342,7 @@ object BinAggregatingIterator extends LazyLogging {
       (e: Entry[Key, Value]) => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         // set the value directly in the array, as we don't support byte arrays as properties
-        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), zeroPoint))
+        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), GeometryUtils.zeroPoint))
       }
     } else {
       val getId = index.getIdFromRow(sft)
@@ -349,7 +352,7 @@ object BinAggregatingIterator extends LazyLogging {
         val row = e.getKey.getRow
         deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
         // set the value directly in the array, as we don't support byte arrays as properties
-        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), zeroPoint))
+        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), GeometryUtils.zeroPoint))
       }
     }
 
