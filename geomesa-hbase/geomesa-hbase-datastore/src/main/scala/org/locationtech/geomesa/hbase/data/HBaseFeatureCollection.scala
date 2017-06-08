@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import org.geotools.data._
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
-import org.locationtech.geomesa.process.transform.ArrowVisitor
+import org.locationtech.geomesa.process.transform.{ArrowVisitor, BinVisitor}
 import org.opengis.feature.FeatureVisitor
 import org.opengis.util.ProgressListener
 
@@ -23,6 +23,7 @@ class HBaseFeatureCollection(source: GeoMesaFeatureSource, query: Query)
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
     visitor match {
       case v: ArrowVisitor => v.execute(source, query)
+      case v: BinVisitor => v.execute(source, query)
       case _ => super.accepts(visitor, progress)
     }
 }
