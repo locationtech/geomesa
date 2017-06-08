@@ -14,9 +14,8 @@ import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.locationtech.geomesa.hbase.coprocessor.{FILTER_OPT, SCAN_OPT}
 import org.opengis.feature.simple.SimpleFeature
 
-case class GeoMesaCoprocessorConfig(options: Map[String, String], bytesToFeatures: Array[Byte] => SimpleFeature) {
-  def configureScanAndFilter(scan: Scan,
-                             filterList: FilterList): Map[String, String] = {
+case class CoprocessorConfig(options: Map[String, String], bytesToFeatures: Array[Byte] => SimpleFeature) {
+  def configureScanAndFilter(scan: Scan, filterList: FilterList): Map[String, String] = {
     import org.apache.hadoop.hbase.util.Base64
     options.updated(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
            .updated(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))

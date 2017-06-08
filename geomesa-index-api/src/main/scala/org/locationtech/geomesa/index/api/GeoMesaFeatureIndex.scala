@@ -90,6 +90,14 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: Wrapp
   def delete(sft: SimpleFeatureType, ds: DS, shared: Boolean): Unit
 
   /**
+    * Indicates whether the ID for each feature is serialized with the feature or in the row
+    *
+    * @return
+    */
+  @deprecated
+  def serializedWithId: Boolean = false
+
+  /**
     *
     * Retrieve an ID from a row. All indices are assumed to encode the feature ID into the row key
     *

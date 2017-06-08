@@ -22,7 +22,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -43,7 +43,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
     q.getHints.put(QueryHints.DENSITY_BBOX, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
     q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
-    val decode = KryoLazyDensityUtils.decodeResult(geom, 500, 500)
+    val decode = DensityScan.decodeResult(geom, 500, 500)
     SelfClosingIterator(fs.getFeatures(q).features).flatMap(decode).toList
   }
 

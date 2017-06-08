@@ -18,7 +18,7 @@ import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.{BBOXExpandingVisitor, HeatmapSurface}
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.util.ProgressListener
@@ -53,7 +53,7 @@ class DensityProcess extends GeoMesaProcess {
     val radiusCells: Int = if (argRadiusPixels == null) 10 else argRadiusPixels
 
     val heatMap = new HeatmapSurface(radiusCells, argOutputEnv, gridWidth, gridHeight)
-    val decode = KryoLazyDensityUtils.decodeResult(argOutputEnv, gridWidth, gridHeight)
+    val decode = DensityScan.decodeResult(argOutputEnv, gridWidth, gridHeight)
 
     try {
       val features = obsFeatures.features()

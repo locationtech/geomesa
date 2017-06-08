@@ -10,27 +10,24 @@ package org.locationtech.geomesa.hbase.coprocessor
 
 import java.io._
 
+import com.google.common.primitives.Bytes
 import com.google.protobuf.{ByteString, RpcCallback, RpcController, Service}
 import org.apache.hadoop.hbase.client.coprocessor.Batch.Call
 import org.apache.hadoop.hbase.client.{Scan, Table}
 import org.apache.hadoop.hbase.coprocessor.{CoprocessorException, CoprocessorService, RegionCoprocessorEnvironment}
 import org.apache.hadoop.hbase.exceptions.DeserializationException
-import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
+import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.ipc.BlockingRpcCallback
 import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor._
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.GeoMesaHBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.CloseQuietly
+import org.locationtech.geomesa.index.iterators.AggregatingScan
+import org.locationtech.geomesa.index.iterators.AggregatingScan.DataRow
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with CoprocessorService {
 
@@ -54,51 +51,47 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
                 request: GeoMesaProto.GeoMesaCoprocessorRequest,
                 done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
     val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
-    val aggregator = getAggregator(options)
+    val aggregator = {
+      val classname = options(GeoMesaCoprocessor.AggregatorClass)
+      Class.forName(classname).newInstance().asInstanceOf[AggregatingScan[_]]
+    }
+    aggregator.init(options)
 
     val scanList: List[Scan] = getScanFromOptions(options)
     val filterList: FilterList = getFilterListFromOptions(options)
 
-    val sft = SimpleFeatureTypes.createType("input", options(SFT_OPT))
-    val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-
     val response: GeoMesaCoprocessorResponse = try {
-
-      scanList.foreach(scan => {
+      val data = CloseableIterator(scanList.iterator).flatMap { scan =>
         scan.setFilter(filterList)
         // TODO: Explore use of MultiRangeFilter
         val scanner = env.getRegion.getScanner(scan)
-
-        try {
-          val results = new java.util.ArrayList[Cell]
-
-          def processResults() = {
-            for (cell <- results) {
-              // TODO: GEOMESA-1868 Set the Feature ID in the GeoMesa Coprocessor
-              val sf = serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
-              aggregator.aggregate(sf)
-            }
+        val iterator = new Iterator[DataRow] {
+          private val results = new java.util.ArrayList[Cell]
+          private var more = scanner.next(results)
+          private var iter = results.iterator()
+          override def hasNext: Boolean = iter.hasNext || more && {
             results.clear()
+            more = scanner.next(results)
+            iter = results.iterator()
+            hasNext
           }
-
-          @tailrec
-          def readScanner(): Unit = {
-            if(scanner.next(results)) {
-              processResults()
-              readScanner()
-            } else {
-              processResults()
-            }
+          override def next(): DataRow = {
+            val cell = iter.next()
+            DataRow(cell.getRowArray, cell.getRowOffset, cell.getRowLength,
+              cell.getValueArray, cell.getValueOffset, cell.getValueLength)
           }
-
-          readScanner()
-        } finally {
-          CloseQuietly(scanner)
         }
-      })
-
-      val result: Array[Byte] = aggregator.encodeResult()
-      GeoMesaCoprocessorResponse.newBuilder.setSf(ByteString.copyFrom(result)).build
+        CloseableIterator(iterator, scanner.close())
+      }
+      val results = ArrayBuffer.empty[Array[Byte]]
+      try {
+        while (data.hasNext) {
+          results.append(aggregator.aggregate(data))
+        }
+      } finally {
+        data.close()
+      }
+      GeoMesaCoprocessorResponse.newBuilder.setSf(ByteString.copyFrom(Bytes.concat(results: _*))).build
     } catch {
       case ioe: IOException =>
         ResponseConverter.setControllerException(controller, ioe)
@@ -114,17 +107,18 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
 }
 
 object GeoMesaCoprocessor {
+
+  val AggregatorClass = "geomesa.hbase.aggregator.class"
+
   /**
-    * It gives the combined result of pairs received from different region servers value of a column for a given column family for the
-    * given range. In case qualifier is null, a min of all values for the given
-    * family is returned.
+    * Executes a geomesa coprocessor
     *
-    * @param table
-    * @return HashMap result;
-    * @throws Throwable
+    * @param table table to execute against
+    * @param options configuration options
+    * @return serialized results
     */
   def execute(table: Table, options: Array[Byte]): List[ByteString] = {
-    val requestArg: GeoMesaCoprocessorRequest = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
+    val requestArg = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
 
     val callable = new Call[GeoMesaCoprocessorService, ByteString]() {
       override def call(instance: GeoMesaCoprocessorService): ByteString = {
@@ -143,12 +137,5 @@ object GeoMesaCoprocessor {
 
     table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, callable, callBack)
     callBack.getResult
-  }
-
-  private[coprocessor] def getAggregator(options: Map[String, String]): GeoMesaHBaseAggregator = {
-    val classname = options(GeoMesaHBaseAggregator.AGGREGATOR_CLASS)
-    val agg: GeoMesaHBaseAggregator = Class.forName(classname).newInstance().asInstanceOf[GeoMesaHBaseAggregator]
-    agg.init(options)
-    agg
   }
 }

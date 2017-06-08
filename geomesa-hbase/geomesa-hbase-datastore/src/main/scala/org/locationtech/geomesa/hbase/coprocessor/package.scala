@@ -20,7 +20,7 @@ import org.geotools.data.Base64
 import scala.collection.JavaConversions._
 
 package object coprocessor {
-  val SFT_OPT    = "sft"
+
   val FILTER_OPT = "filter"
   val SCAN_OPT   = "scan"
 
