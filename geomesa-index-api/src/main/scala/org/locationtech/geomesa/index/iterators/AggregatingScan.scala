@@ -13,7 +13,6 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaIndexManager}
-import org.locationtech.geomesa.index.iterators.AggregatingScan.Configuration.CqlOpt
 import org.locationtech.geomesa.index.iterators.AggregatingScan.DataRow
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -21,7 +20,7 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] {
+trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] extends SamplingIterator {
 
   import AggregatingScan.Configuration._
 
@@ -46,7 +45,7 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] {
     sft = IteratorCache.sft(spec)
 
     index = try { manager.index(options(IndexOpt)) } catch {
-      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(IndexOpt)}")
+      case NonFatal(_) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(IndexOpt)}")
     }
 
     // noinspection ScalaDeprecation
@@ -67,9 +66,13 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] {
     }
     hasTransform = transform.isDefined
 
-    validate = options.get(CqlOpt).map(IteratorCache.filter(sft, spec, _)) match {
-      case None       => (_) => true
-      case Some(filt) => filt.evaluate(_)
+    val sampling = sample(options)
+    val cql = options.get(CqlOpt).map(IteratorCache.filter(sft, spec, _))
+    validate = (cql, sampling) match {
+      case (None, None)             => (_) => true
+      case (Some(filt), None)       => filt.evaluate(_)
+      case (None, Some(samp))       => samp.apply
+      case (Some(filt), Some(samp)) => (f) => filt.evaluate(f) && samp.apply(f)
     }
     result = initResult(sft, if (hasTransform) { Some(transformSft) } else { None }, options)
   }
@@ -126,9 +129,10 @@ object AggregatingScan {
   def configure(sft: SimpleFeatureType,
                 index: GeoMesaFeatureIndex[_, _, _],
                 filter: Option[Filter],
-                transform: Option[(String, SimpleFeatureType)]): Map[String, String] = {
+                transform: Option[(String, SimpleFeatureType)],
+                sample: Option[(Float, Option[String])]): Map[String, String] = {
     import Configuration._
-    optionalMap(
+    sample.map(SamplingIterator.configure(sft, _)).getOrElse(Map.empty) ++ optionalMap(
       SftOpt             -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
       IndexOpt           -> index.identifier,
       CqlOpt             -> filter.map(ECQL.toCQL),

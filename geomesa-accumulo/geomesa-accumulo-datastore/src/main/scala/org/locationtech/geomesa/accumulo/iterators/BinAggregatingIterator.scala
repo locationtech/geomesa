@@ -28,6 +28,7 @@ import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.filter.function.{BasicValues, BinaryOutputEncoder, Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.index.iterators.SamplingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -241,7 +242,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 
     val filter = options.contains(CQL_OPT)
     val dedupe = options.contains(DUPE_OPT)
-    val sample = options.contains(SamplingIterator.SAMPLE_BY_OPT)
+    val sample = options.contains(SamplingIterator.Configuration.SampleByOpt)
 
     val sf = new ScalaSimpleFeature("", sft)
     val gf = new GeometryFactory
@@ -447,7 +448,7 @@ object BinAggregatingIterator extends LazyLogging {
     }
     label.foreach(l => is.addOption(LABEL_OPT, sft.indexOf(l).toString))
     is.addOption(SORT_OPT, sort.toString)
-    sampling.foreach(SamplingIterator.configure(is, sft, _))
+    sampling.foreach(SamplingIterator.configure(sft, _).foreach { case (k, v) => is.addOption(k, v) })
     is
   }
 

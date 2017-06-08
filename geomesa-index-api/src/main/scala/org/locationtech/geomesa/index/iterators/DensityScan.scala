@@ -149,7 +149,8 @@ object DensityScan {
 
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
-    AggregatingScan.configure(sft, index, filter, hints.getTransform) ++ AggregatingScan.optionalMap(
+    val base = AggregatingScan.configure(sft, index, filter, hints.getTransform, hints.getSampling)
+    base ++ AggregatingScan.optionalMap(
       EnvelopeOpt -> s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}",
       GridOpt     -> s"$width,$height",
       WeightOpt   -> hints.getDensityWeight
