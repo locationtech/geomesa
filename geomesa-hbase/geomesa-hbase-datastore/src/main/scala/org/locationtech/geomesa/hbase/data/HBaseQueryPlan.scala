@@ -62,7 +62,7 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     ranges.foreach(ds.applySecurity)
     val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
-    SelfClosingIterator(resultsToFeatures(results), results.close)
+    SelfClosingIterator(resultsToFeatures(results), results.close())
   }
 }
 
@@ -70,7 +70,7 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
                            table: TableName,
                            ranges: Seq[Scan],
                            remoteFilters: Seq[(Int, HFilter)],
-                           coprocessorConfig: CoprocessorConfig) extends HBaseQueryPlan  {
+                           coprocessor: CoprocessorConfig) extends HBaseQueryPlan  {
   /**
     * Runs the query plain against the underlying database, returning the raw entries
     *
@@ -83,11 +83,11 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     val hbaseTable = ds.connection.getTable(table)
 
     import org.locationtech.geomesa.hbase.coprocessor._
-    val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
+    val byteArray = serializeOptions(coprocessor.configureScanAndFilter(scan, filterList))
 
     val result = GeoMesaCoprocessor.execute(hbaseTable, byteArray)
 
-    result.map(r => coprocessorConfig.bytesToFeatures(r.toByteArray)).toIterator
+    coprocessor.reduce(result.toIterator.map(r => coprocessor.bytesToFeatures(r.toByteArray)))
   }
 
   def calculateScanAndFilterList(ranges: Seq[Scan],

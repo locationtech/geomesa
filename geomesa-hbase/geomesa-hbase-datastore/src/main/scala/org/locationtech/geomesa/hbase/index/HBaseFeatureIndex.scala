@@ -17,7 +17,7 @@ import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseDensityAggregator
+import org.locationtech.geomesa.hbase.coprocessor.aggregators.{ArrowBatchAggregator, ArrowFileAggregator, HBaseDensityAggregator}
 import org.locationtech.geomesa.hbase.coprocessor.coprocessorList
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data._
@@ -25,6 +25,7 @@ import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.index.iterators.ArrowBatchScan
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
@@ -217,8 +218,21 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val toFeatures = resultsToFeatures(returnSchema, None, None)
 
       val coprocessor = if (hints.isDensityQuery) {
-        val densityOptions = HBaseDensityAggregator.configure(sft, filter.index, ecql, hints)
-        Some(CoprocessorConfig(densityOptions, HBaseDensityAggregator.bytesToFeatures))
+        val options = HBaseDensityAggregator.configure(sft, this, ecql, hints)
+        Some(CoprocessorConfig(options, HBaseDensityAggregator.bytesToFeatures))
+      } else if (hints.isArrowQuery) {
+        val dictionaryFields = hints.getArrowDictionaryFields
+        val providedDictionaries = hints.getArrowDictionaryEncodedValues
+        if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
+            dictionaryFields.forall(providedDictionaries.contains)) {
+          val dictionaries = ArrowBatchScan.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
+          val options = ArrowBatchAggregator.configure(sft, this, ecql, dictionaries, hints)
+          val reduce = ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries)
+          Some(CoprocessorConfig(options, ArrowBatchAggregator.bytesToFeatures, reduce))
+        } else {
+          val options = ArrowFileAggregator.configure(sft, this, ecql, dictionaryFields, hints)
+          Some(CoprocessorConfig(options, ArrowFileAggregator.bytesToFeatures))
+        }
       } else {
         None
       }

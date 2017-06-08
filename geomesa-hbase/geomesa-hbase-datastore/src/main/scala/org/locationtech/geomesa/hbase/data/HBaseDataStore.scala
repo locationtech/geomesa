@@ -15,6 +15,7 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, LocalLocking}
@@ -73,6 +74,9 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
   override def dispose(): Unit = {
     super.dispose()
   }
+
+  override protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
+    new HBaseFeatureCollection(source, query)
 
   def applySecurity(query: org.apache.hadoop.hbase.client.Query): Unit =
     authOpt.foreach(query.setAuthorizations)
