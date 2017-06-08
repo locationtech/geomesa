@@ -11,13 +11,11 @@ package org.locationtech.geomesa.hbase.data
 import java.util
 
 import com.google.common.collect.Lists
-import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
-import org.geotools.factory.Hints
-import org.locationtech.geomesa.hbase.coprocessor.utils.GeoMesaCoprocessorConfig
+import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
@@ -28,7 +26,6 @@ sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def filter: HBaseFilterStrategyType
   def table: TableName
   def ranges: Seq[Query]
-  def resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]
 
   override def explain(explainer: Explainer, prefix: String): Unit =
     HBaseQueryPlan.explain(this, explainer, prefix)
@@ -55,7 +52,6 @@ object HBaseQueryPlan {
 case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override val table: TableName = null
   override val ranges: Seq[Query] = Seq.empty
-  override val resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature] = (i) => Iterator.empty
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
@@ -73,9 +69,8 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
 case class CoprocessorPlan(filter: HBaseFilterStrategyType,
                            table: TableName,
                            ranges: Seq[Scan],
-                           remoteFilters: Seq[(Int, HFilter)] = Nil,
-                           resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature],
-                           coprocessorConfig: GeoMesaCoprocessorConfig) extends HBaseQueryPlan  {
+                           remoteFilters: Seq[(Int, HFilter)],
+                           coprocessorConfig: CoprocessorConfig) extends HBaseQueryPlan  {
   /**
     * Runs the query plain against the underlying database, returning the raw entries
     *

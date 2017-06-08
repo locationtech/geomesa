@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.hbase.index
 
 import com.google.common.collect.Lists
+import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{Get, Query, Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
-import org.apache.hadoop.hbase.{Coprocessor, TableName}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
-import org.locationtech.geomesa.hbase.coprocessor.utils.GeoMesaCoprocessorConfig
+import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
 import org.locationtech.geomesa.index.index.IndexAdapter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -29,7 +29,7 @@ trait HBasePlatform extends HBaseFeatureIndex {
                                                ranges: Seq[Query],
                                                table: TableName,
                                                hbaseFilters: Seq[(Int, HFilter)],
-                                               coprocessor: Option[GeoMesaCoprocessorConfig],
+                                               coprocessor: Option[CoprocessorConfig],
                                                toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
     coprocessor match {
       case None =>
@@ -42,7 +42,7 @@ trait HBasePlatform extends HBaseFeatureIndex {
 
       case Some(coprocessorConfig) =>
         // note: coprocessors don't currently handle multiRowRangeFilters, so pass the raw ranges
-        CoprocessorPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, toFeatures, coprocessorConfig)
+        CoprocessorPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, coprocessorConfig)
     }
   }
 
