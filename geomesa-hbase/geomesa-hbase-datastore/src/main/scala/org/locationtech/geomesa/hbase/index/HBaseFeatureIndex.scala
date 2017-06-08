@@ -17,7 +17,7 @@ import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.{ArrowBatchAggregator, ArrowFileAggregator, HBaseDensityAggregator}
+import org.locationtech.geomesa.hbase.coprocessor.aggregators.{ArrowBatchAggregator, ArrowFileAggregator, HBaseBinAggregator, HBaseDensityAggregator}
 import org.locationtech.geomesa.hbase.coprocessor.coprocessorList
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data._
@@ -233,6 +233,9 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
           val options = ArrowFileAggregator.configure(sft, this, ecql, dictionaryFields, hints)
           Some(CoprocessorConfig(options, ArrowFileAggregator.bytesToFeatures))
         }
+      } else if (hints.isBinQuery) {
+        val options = HBaseBinAggregator.configure(sft, filter.index, ecql, hints)
+        Some(CoprocessorConfig(options, HBaseBinAggregator.bytesToFeatures))
       } else {
         None
       }
