@@ -13,15 +13,12 @@ import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.HBaseFeatureIndexType
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
-import org.locationtech.geomesa.index.iterators.ArrowFileScan
+import org.locationtech.geomesa.index.iterators.{ArrowFileAggregate, ArrowFileScan}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class ArrowFileAggregator extends ArrowFileScan {
-  override protected val manager = HBaseFeatureIndex
-}
+class ArrowFileAggregator extends ArrowFileScan with HBaseAggregator[ArrowFileAggregate]
 
 object ArrowFileAggregator {
 

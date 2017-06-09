@@ -13,7 +13,6 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaIndexManager}
-import org.locationtech.geomesa.index.iterators.AggregatingScan.DataRow
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -77,13 +76,16 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] e
     result = initResult(sft, if (hasTransform) { Some(transformSft) } else { None }, options)
   }
 
-  // noinspection LanguageFeature
-  def aggregate(data: Iterator[DataRow]): Array[Byte] = {
+  /**
+    * Aggregates a batch of data. May not exhaust the underlying data
+    *
+    * @return encoded aggregate batch, or null if no results
+    */
+  def aggregate(): Array[Byte] = {
+    // noinspection LanguageFeature
     result.clear()
-    while (data.hasNext && notFull(result)) {
-      val DataRow(row, rowOffset, rowLength, value, valueOffset, valueLength) = data.next()
-      reusableSf.setBuffer(value, valueOffset, valueLength)
-      reusableSf.setId(getId(row, rowOffset, rowLength))
+    while (hasNextData && notFull(result)) {
+      nextData(setValues)
       if (validateFeature(reusableSf)) {
         // write the record to our aggregated results
         if (hasTransform) {
@@ -93,10 +95,22 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] e
         }
       }
     }
+    // noinspection LanguageFeature
     if (result.isEmpty) { null } else {
       encodeResult(result)
     }
   }
+
+  private def setValues(row: Array[Byte], rowOffset: Int, rowLength: Int,
+                        value: Array[Byte], valueOffset: Int, valueLength: Int): Unit = {
+    reusableSf.setBuffer(value, valueOffset, valueLength)
+    reusableSf.setId(getId(row, rowOffset, rowLength))
+  }
+
+  // returns true if there is more data to read
+  def hasNextData: Boolean
+  // seValues should be invoked with the underlying data
+  def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit
 
   // validate that we should aggregate this feature
   // if overridden, ensure call to super.validateFeature
@@ -151,6 +165,4 @@ object AggregatingScan {
   implicit def StringToConfig(s: String): Either[String, Option[String]] = Left(s)
   // noinspection LanguageFeature
   implicit def OptionToConfig(s: Option[String]): Either[String, Option[String]] = Right(s)
-
-  case class DataRow(row: Array[Byte], rowOffset: Int, rowLength: Int, value: Array[Byte], valueOffset: Int, valueLength: Int)
 }
