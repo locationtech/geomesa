@@ -44,7 +44,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
   lazy val params = Map(
     ConnectionParam.getName -> connection,
-    BigTableNameParam.getName -> sftName)
+    BigTableNameParam.getName -> "hbasetest")
 
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
@@ -180,6 +180,12 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       compiled must haveLength(5)
       forall(compiled){ _ mustEqual 30 }
     }
+  }
+
+  step {
+    logger.info("Cleaning up HBase Density Test")
+    ds.dispose()
+    logger.info("Finished cleaning up HBase Density Test")
   }
 
   def clearFeatures(): Unit = {
