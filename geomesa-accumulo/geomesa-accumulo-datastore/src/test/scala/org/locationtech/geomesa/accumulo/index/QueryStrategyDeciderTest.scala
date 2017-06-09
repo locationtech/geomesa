@@ -210,8 +210,8 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
           val strats = getStrategies(ff.and(Seq(like, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
           strats.head.index mustEqual AttributeIndex
-          strats.head.primary mustEqual Some(like)
-          strats.head.secondary must beSome(secondary)
+          strats.head.primary must beSome(heightFilter)
+          strats.head.secondary must beSome(ff.and(Seq(like, weightFilter, ageFilter)))
         }
       }
     }
