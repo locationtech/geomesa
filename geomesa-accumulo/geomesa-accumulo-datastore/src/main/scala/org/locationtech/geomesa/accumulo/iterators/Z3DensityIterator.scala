@@ -13,13 +13,11 @@ import java.util.{Map => jMap}
 import com.google.common.primitives.Longs
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils.DensityResult
+import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -29,16 +27,15 @@ import org.opengis.filter.Filter
  */
 class Z3DensityIterator extends KryoLazyDensityIterator {
 
-  var normalizeWeight: (Double) => Double = null
+  var normalizeWeight: (Double) => Double = _
   val zBytes = Array.fill[Byte](8)(0)
-  var sfc: Z3SFC = null
+  var sfc: Z3SFC = _
 
-  override def init(src: SortedKeyValueIterator[Key, Value],
-                    jOptions: jMap[String, String],
-                    env: IteratorEnvironment): Unit = {
+  override protected def initResult(sft: SimpleFeatureType,
+                                    transform: Option[SimpleFeatureType],
+                                    options: Map[String, String]): DensityResult = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    super.init(src, jOptions, env)
     if (sft.isPoints) {
       normalizeWeight = (weight) => weight
     } else {
@@ -55,12 +52,13 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
       }
     }
     sfc = Z3SFC(sft.getZ3Interval)
+    super.initResult(sft, transform, options)
   }
 
   /**
    * We write the geometry at the center of the zbox that this row represents
    */
-  override def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
+  override protected def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
     case p: Point => writePointToResult(p, weight, result)
     case _ =>
       val row = topKey.getRowData

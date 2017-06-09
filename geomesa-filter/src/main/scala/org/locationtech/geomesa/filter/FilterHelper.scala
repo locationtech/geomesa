@@ -594,6 +594,7 @@ case class FilterValues[T](values: Seq[T], disjoint: Boolean = false) {
   def map[U](f: T => U): FilterValues[U] = FilterValues(values.map(f), disjoint)
   def flatMap[U](f: T => GenTraversableOnce[U]): FilterValues[U] = FilterValues(values.flatMap(f), disjoint)
   def foreach[U](f: T => U): Unit = values.foreach(f)
+  def forall(p: T => Boolean): Boolean = values.forall(p)
   def filter(f: T => Boolean): FilterValues[T] = FilterValues(values.filter(f), disjoint)
   def nonEmpty: Boolean = values.nonEmpty || disjoint
   def isEmpty: Boolean = !nonEmpty
