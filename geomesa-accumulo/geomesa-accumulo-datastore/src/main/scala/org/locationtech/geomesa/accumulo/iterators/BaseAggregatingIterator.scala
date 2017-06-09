@@ -18,7 +18,6 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.iterators.BaseAggregatingIterator.{DupeOpt, MaxDupeOpt}
 import org.locationtech.geomesa.index.api.GeoMesaIndexManager
 import org.locationtech.geomesa.index.iterators.AggregatingScan
-import org.locationtech.geomesa.index.iterators.AggregatingScan.DataRow
 import org.opengis.feature.simple.SimpleFeature
 
 /**
@@ -64,17 +63,7 @@ abstract class BaseAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; def c
 
   // noinspection LanguageFeature
   def findTop(): Unit = {
-    val data = new Iterator[DataRow] {
-      override def hasNext: Boolean = source.hasTop && !currentRange.afterEndKey(source.getTopKey)
-      override def next(): DataRow = {
-        topKey = source.getTopKey
-        val value = source.getTopValue.get()
-        source.next() // Advance the source iterator
-        DataRow(topKey.getRow.getBytes, 0, topKey.getRow.getLength, value, 0, value.length)
-      }
-    }
-    val result = aggregate(data)
-
+    val result = aggregate()
     if (result == null) {
       topKey = null // hasTop will be false
       topValue = null
@@ -85,6 +74,15 @@ abstract class BaseAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; def c
       }
       topValue.set(result)
     }
+  }
+
+  override def hasNextData: Boolean = source.hasTop && !currentRange.afterEndKey(source.getTopKey)
+
+  override def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit = {
+    topKey = source.getTopKey
+    val value = source.getTopValue.get()
+    setValues(topKey.getRow.getBytes, 0, topKey.getRow.getLength, value, 0, value.length)
+    source.next() // Advance the source iterator
   }
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =

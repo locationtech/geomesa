@@ -12,18 +12,14 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.HBaseFeatureIndexType
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, ArrowFileScan}
+import org.locationtech.geomesa.index.iterators.{ArrowBatchAggregate, ArrowBatchScan}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class ArrowBatchAggregator extends ArrowBatchScan {
-  override protected val manager = HBaseFeatureIndex
-}
+class ArrowBatchAggregator extends ArrowBatchScan with HBaseAggregator[ArrowBatchAggregate]
 
 object ArrowBatchAggregator {
 

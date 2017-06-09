@@ -12,15 +12,13 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.HBaseFeatureIndexType
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
+import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class HBaseDensityAggregator extends DensityScan {
-  override protected val manager = HBaseFeatureIndex
-}
+class HBaseDensityAggregator extends DensityScan with HBaseAggregator[DensityResult]
 
 object HBaseDensityAggregator {
 

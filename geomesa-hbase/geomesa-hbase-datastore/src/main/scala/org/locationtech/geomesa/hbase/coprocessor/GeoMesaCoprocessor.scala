@@ -19,13 +19,11 @@ import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.ipc.BlockingRpcCallback
 import org.apache.hadoop.hbase.protobuf.ResponseConverter
-import org.apache.hadoop.hbase.{Cell, Coprocessor, CoprocessorEnvironment}
+import org.apache.hadoop.hbase.{Coprocessor, CoprocessorEnvironment}
+import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
-import org.locationtech.geomesa.index.iterators.AggregatingScan
-import org.locationtech.geomesa.index.iterators.AggregatingScan.DataRow
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -53,7 +51,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
     val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
     val aggregator = {
       val classname = options(GeoMesaCoprocessor.AggregatorClass)
-      Class.forName(classname).newInstance().asInstanceOf[AggregatingScan[_]]
+      Class.forName(classname).newInstance().asInstanceOf[HBaseAggregator[_]]
     }
     aggregator.init(options)
 
@@ -61,35 +59,19 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
     val filterList: FilterList = getFilterListFromOptions(options)
 
     val response: GeoMesaCoprocessorResponse = try {
-      val data = CloseableIterator(scanList.iterator).flatMap { scan =>
+      val results = ArrayBuffer.empty[Array[Byte]]
+      scanList.foreach { scan =>
         scan.setFilter(filterList)
         // TODO: Explore use of MultiRangeFilter
         val scanner = env.getRegion.getScanner(scan)
-        val iterator = new Iterator[DataRow] {
-          private val results = new java.util.ArrayList[Cell]
-          private var more = scanner.next(results)
-          private var iter = results.iterator()
-          override def hasNext: Boolean = iter.hasNext || more && {
-            results.clear()
-            more = scanner.next(results)
-            iter = results.iterator()
-            hasNext
+        aggregator.setScanner(scanner)
+        try {
+          while (aggregator.hasNextData) {
+            results.append(aggregator.aggregate())
           }
-          override def next(): DataRow = {
-            val cell = iter.next()
-            DataRow(cell.getRowArray, cell.getRowOffset, cell.getRowLength,
-              cell.getValueArray, cell.getValueOffset, cell.getValueLength)
-          }
+        } finally {
+          scanner.close()
         }
-        CloseableIterator(iterator, scanner.close())
-      }
-      val results = ArrayBuffer.empty[Array[Byte]]
-      try {
-        while (data.hasNext) {
-          results.append(aggregator.aggregate(data))
-        }
-      } finally {
-        data.close()
       }
       GeoMesaCoprocessorResponse.newBuilder.setSf(ByteString.copyFrom(Bytes.concat(results: _*))).build
     } catch {

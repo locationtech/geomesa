@@ -6,7 +6,6 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-
 package org.locationtech.geomesa.hbase.coprocessor.aggregators
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -14,15 +13,12 @@ import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.hbase.HBaseFeatureIndexType
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan
+import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, ByteBufferResult}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class HBaseBinAggregator extends BinAggregatingScan {
-  override protected val manager = HBaseFeatureIndex
-}
+class HBaseBinAggregator extends BinAggregatingScan with HBaseAggregator[ByteBufferResult]
 
 object HBaseBinAggregator {
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
