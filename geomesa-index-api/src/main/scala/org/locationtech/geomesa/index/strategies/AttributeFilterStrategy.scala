@@ -40,12 +40,12 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
   }
 
   /**
-    * Static cost - 100
+    * Static cost - equals 100, range 250
     *
     * high cardinality: / 10
-    * low cardinality: Long.MaxValue
+    * low cardinality: * 10
     *
-    * Compare with id lookups at 1, z2/z3 at 200-401
+    * Compare with id at 1, z3 at 200, z2 at 400
     */
   override def getCost(sft: SimpleFeatureType,
                        ds: Option[DS],
@@ -56,13 +56,22 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
     filter.primary match {
       case None    => Long.MaxValue
       case Some(f) =>
-        lazy val cost = ds.flatMap(_.stats.getCount(sft, f, exact = false)).getOrElse(AttributeFilterStrategy.StaticCost)
         // if there is a filter, we know it has a valid property name
         val attribute = FilterHelper.propertyNames(f, sft).head
+        val cost = ds.flatMap(_.stats.getCount(sft, f, exact = false)).getOrElse {
+          val binding = sft.getDescriptor(attribute).getType.getBinding
+          val bounds = FilterHelper.extractAttributeBounds(f, attribute, binding)
+          if (bounds.forall(b => b.lower == b.upper)) {
+            AttributeFilterStrategy.StaticEqualsCost
+          } else {
+            AttributeFilterStrategy.StaticRangeCost
+          }
+        }
+        // prioritize attributes based on cardinality hint
         sft.getDescriptor(attribute).getCardinality() match {
-          case Cardinality.HIGH    => cost / 10 // prioritize attributes marked high-cardinality
+          case Cardinality.HIGH    => cost / 10
           case Cardinality.UNKNOWN => cost
-          case Cardinality.LOW     => Long.MaxValue
+          case Cardinality.LOW     => cost * 10
         }
     }
   }
@@ -70,7 +79,8 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
 
 object AttributeFilterStrategy {
 
-  val StaticCost = 100L
+  val StaticEqualsCost = 100L
+  val StaticRangeCost  = 250L
 
   /**
     * Checks for attribute filters that we can satisfy using the attribute index strategy

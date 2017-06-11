@@ -33,6 +33,11 @@
             <classifier>data</classifier>
         </dependency>
 
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-process</artifactId>
+        </dependency>
+
         <!-- Cassandra Datastore -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
