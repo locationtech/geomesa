@@ -20,7 +20,7 @@ import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
-import org.locationtech.geomesa.index.iterators.IteratorCache
+import org.locationtech.geomesa.index.iterators.{IteratorCache, SamplingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -58,8 +58,9 @@ class KryoLazyFilterTransformIterator extends
     sft = IteratorCache.sft(spec)
 
     val index = try { AccumuloFeatureIndex.index(options.get(INDEX_OPT)) } catch {
-      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
+      case NonFatal(_) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
+    // noinspection ScalaDeprecation
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
     reusableSf = IteratorCache.serializer(spec, kryoOptions).getReusableFeature
 
@@ -81,6 +82,7 @@ class KryoLazyFilterTransformIterator extends
       case (Some(c), Some(s)) => (sf) => c.evaluate(sf) && s(sf)
     }
 
+    // noinspection ScalaDeprecation
     setId = if (index.serializedWithId || cql.isEmpty) { () => {} } else {
       val getFromRow = index.getIdFromRow(sft)
       () => {
@@ -167,7 +169,7 @@ object KryoLazyFilterTransformIterator {
         is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
         is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
       }
-      sampling.foreach(SamplingIterator.configure(is, sft, _))
+      sampling.foreach(SamplingIterator.configure(sft, _).foreach { case (k, v) => is.addOption(k, v) })
       Some(is)
     } else {
       None

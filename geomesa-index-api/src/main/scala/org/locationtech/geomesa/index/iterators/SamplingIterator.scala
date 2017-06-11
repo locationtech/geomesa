@@ -6,14 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.iterators
+package org.locationtech.geomesa.index.iterators
 
 import java.util.{Map => jMap}
 
-import org.apache.accumulo.core.client.IteratorSetting
-import org.geotools.factory.Hints
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.index.utils.FeatureSampler
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * Mixin trait to provide support for sampling features.
@@ -41,30 +39,33 @@ trait SamplingIterator {
     * @return sampling function, if defined
     */
   def sample(options: Map[String, String]): Option[(SimpleFeature) => Boolean] = {
-    import SamplingIterator.{SAMPLE_BY_OPT, SAMPLE_OPT}
-    val sampling = options.get(SAMPLE_OPT).map(_.toInt)
-    val sampleBy = options.get(SAMPLE_BY_OPT).map(_.toInt)
+    import SamplingIterator.Configuration.{SampleByOpt, SampleOpt}
+    val sampling = options.get(SampleOpt).map(_.toInt)
+    val sampleBy = options.get(SampleByOpt).map(_.toInt)
     sampling.map(FeatureSampler.sample(_, sampleBy))
   }
 }
 
 object SamplingIterator {
 
-  val SAMPLE_OPT    = "sample"
-  val SAMPLE_BY_OPT = "sample-by"
-
-  def configure(is: IteratorSetting, sft: SimpleFeatureType, hints: Hints): Unit = {
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-    hints.getSampling.foreach(configure(is, sft, _))
+  object Configuration {
+    val SampleOpt   = "sample"
+    val SampleByOpt = "sample-by"
   }
 
-  def configure(is: IteratorSetting, sft: SimpleFeatureType, sampling: (Float, Option[String])): Unit = {
+  def configure(sft: SimpleFeatureType, sampling: (Float, Option[String])): Map[String, String] = {
+    import Configuration.{SampleByOpt, SampleOpt}
     val (percent, by) = sampling
     require(percent > 0 && percent < 1f, "Sampling must be a percentage between (0, 1)")
     val nth = (1 / percent.toFloat).toInt
-    if (nth > 1) {
-      is.addOption(SAMPLE_OPT, nth.toString)
-      by.map(sft.indexOf).filter(_ != -1).foreach(i => is.addOption(SAMPLE_BY_OPT, i.toString))
+    if (nth <= 1) { Map.empty } else {
+      val sampleBy = by.map(sft.indexOf).collect {
+        case i if i != -1 => SampleByOpt -> i.toString
+      }
+      sampleBy match {
+        case None     => Map(SampleOpt -> nth.toString)
+        case Some(kv) => Map(SampleOpt -> nth.toString, kv)
+      }
     }
   }
 }

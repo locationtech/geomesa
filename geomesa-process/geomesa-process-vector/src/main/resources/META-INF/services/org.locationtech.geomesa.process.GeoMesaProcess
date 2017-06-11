@@ -2,6 +2,7 @@ org.locationtech.geomesa.process.analytic.DensityProcess
 org.locationtech.geomesa.process.analytic.Point2PointProcess
 org.locationtech.geomesa.process.analytic.SamplingProcess
 org.locationtech.geomesa.process.analytic.StatsProcess
+org.locationtech.geomesa.process.analytic.TrackLabelProcess
 org.locationtech.geomesa.process.analytic.UniqueProcess
 org.locationtech.geomesa.process.knn.KNearestNeighborSearchProcess
 org.locationtech.geomesa.process.query.JoinProcess
