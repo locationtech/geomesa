@@ -35,8 +35,9 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
   var ds: HBaseDataStore = _
 
   step {
+    logger.info("Starting HBase Arrow Test")
     import scala.collection.JavaConversions._
-    val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> "HBaseArrowTest")
+    val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> catalogTableName)
     ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
     ds.createSchema(sft)
     val writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
@@ -155,6 +156,8 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
   }
 
   step {
+    logger.info("Cleaning up HBase Arrow Test")
+    ds.dispose()
     allocator.close()
   }
 }
