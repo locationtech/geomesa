@@ -102,8 +102,8 @@ object QueryHints {
       Option(hints.get(ARROW_SORT_FIELD).asInstanceOf[String]).map { field =>
         (field, Option(hints.get(ARROW_SORT_REVERSE)).exists(_.asInstanceOf[Boolean]))
       }
-    def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
-    def getStatsIteratorQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
+    def isStatsQuery: Boolean = hints.containsKey(STATS_STRING)
+    def getStatsQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
     def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)
     def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION).asInstanceOf[String]
     def getTransformDefinition: Option[String] = Option(hints.get(Internal.TRANSFORMS).asInstanceOf[String])

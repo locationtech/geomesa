@@ -18,6 +18,7 @@ import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter =
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
+import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeature
@@ -68,9 +69,10 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
 
 case class CoprocessorPlan(filter: HBaseFilterStrategyType,
                            table: TableName,
-                           ranges: Seq[Scan],
+                           ranges: Seq[Query],
                            remoteFilters: Seq[(Int, HFilter)],
-                           coprocessor: CoprocessorConfig) extends HBaseQueryPlan  {
+                           coprocessorConfig: CoprocessorConfig) extends HBaseQueryPlan  {
+
   /**
     * Runs the query plain against the underlying database, returning the raw entries
     *
@@ -83,18 +85,22 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     val hbaseTable = ds.connection.getTable(table)
 
     import org.locationtech.geomesa.hbase.coprocessor._
-    val byteArray = serializeOptions(coprocessor.configureScanAndFilter(scan, filterList))
+    ds.applySecurity(scan)
+    val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
 
     val result = GeoMesaCoprocessor.execute(hbaseTable, byteArray)
-
-    coprocessor.reduce(result.toIterator.map(r => coprocessor.bytesToFeatures(r.toByteArray)))
+    val results = result.toIterator.filter(_.size() != 0).map(r => coprocessorConfig.bytesToFeatures(r.toByteArray))
+    coprocessorConfig.reduce(results)
   }
 
-  def calculateScanAndFilterList(ranges: Seq[Scan],
+  def calculateScanAndFilterList(ranges: Seq[Query],
                                  remoteFilters: Seq[(Int, HFilter)]): (Scan, FilterList) = {
     val rowRanges = Lists.newArrayList[RowRange]()
-    ranges.foreach { r =>
-      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
+    ranges.foreach {
+      case g: Get =>
+        rowRanges.add(new RowRange(g.getRow, true, IndexAdapter.rowFollowingRow(g.getRow), false))
+      case s: Scan =>
+        rowRanges.add(new RowRange(s.getStartRow, true, s.getStopRow, false))
     }
     val sortedRowRanges: util.List[RowRange] = MultiRowRangeFilter.sortAndMerge(rowRanges)
     val mrrf = new MultiRowRangeFilter(sortedRowRanges)

@@ -126,7 +126,7 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
     } else if (hints.isDensityQuery) {
       val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints, dedupe)
       ScanConfig(Seq(iter), FullColumnFamily, KryoLazyDensityIterator.kvsToFeatures(), None)
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, dedupe)
       val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
       ScanConfig(Seq(iter), FullColumnFamily, KryoLazyStatsIterator.kvsToFeatures(sft), reduce)

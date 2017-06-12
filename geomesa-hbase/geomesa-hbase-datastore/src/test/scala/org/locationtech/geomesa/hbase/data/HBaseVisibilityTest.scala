@@ -75,6 +75,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
   }
 
   step {
+    logger.info("Starting Visibility Test")
     adminUser = User.createUserForTesting(cluster.getConfiguration, "admin",    Array[String]("supergroup"))
     user1     = User.createUserForTesting(cluster.getConfiguration, "user1",    Array.empty[String])
     user2     = User.createUserForTesting(cluster.getConfiguration, "user2",    Array.empty[String])

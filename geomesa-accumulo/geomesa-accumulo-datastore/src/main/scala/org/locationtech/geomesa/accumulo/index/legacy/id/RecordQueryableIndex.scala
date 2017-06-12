@@ -71,7 +71,7 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
       } else if (hints.isDensityQuery) {
         val iter = KryoLazyDensityIterator.configure(sft, this, filter.secondary, hints, dupes)
         (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None)
-      } else if (hints.isStatsIteratorQuery) {
+      } else if (hints.isStatsQuery) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, dupes)
         val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
         (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce)

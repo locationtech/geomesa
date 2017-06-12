@@ -21,6 +21,6 @@ case class CoprocessorConfig(options: Map[String, String],
   def configureScanAndFilter(scan: Scan, filterList: FilterList): Map[String, String] = {
     import org.apache.hadoop.hbase.util.Base64
     options.updated(FILTER_OPT, Base64.encodeBytes(filterList.toByteArray))
-           .updated(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
+      .updated(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
   }
 }
