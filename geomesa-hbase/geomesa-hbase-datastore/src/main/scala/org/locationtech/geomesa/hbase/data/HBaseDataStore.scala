@@ -16,19 +16,16 @@ import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
-import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils._
-import org.locationtech.geomesa.process.transform.BinVisitor
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.util.ProgressListener
 
 class HBaseDataStore(val connection: Connection, override val config: HBaseDataStoreConfig)
     extends HBaseDataStoreType(config) with LocalLocking {
@@ -99,7 +96,8 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
       else { auths }
     }.map(new Authorizations(_))
 
-  override protected def createQueryPlanner(): QueryPlanner[HBaseDataStore, HBaseFeature, Mutation] = new HBaseQueryPlanner(this)
+  override protected def createQueryPlanner(): QueryPlanner[HBaseDataStore, HBaseFeature, Mutation] =
+    new HBaseQueryPlanner(this)
 }
 
 class HBaseQueryPlanner(ds: HBaseDataStore) extends HBaseQueryPlannerType(ds) {
@@ -113,6 +111,8 @@ class HBaseQueryPlanner(ds: HBaseDataStore) extends HBaseQueryPlannerType(ds) {
       BinaryOutputEncoder.BinEncodedSft
     } else if (query.getHints.isDensityQuery) {
       DensityScan.DensitySft
+    } else if (query.getHints.isStatsQuery) {
+      KryoLazyStatsUtils.StatsSft
     } else {
       query.getHints.getTransformSchema.getOrElse(baseSft)
     }

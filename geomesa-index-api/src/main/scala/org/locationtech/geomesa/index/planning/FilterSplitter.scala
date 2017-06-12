@@ -6,11 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index.api
+package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
+import org.locationtech.geomesa.index.api.{FilterPlan, FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._

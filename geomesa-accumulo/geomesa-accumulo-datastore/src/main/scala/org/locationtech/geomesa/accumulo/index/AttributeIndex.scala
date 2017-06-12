@@ -24,6 +24,7 @@ import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimar
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.AttributeIndex
 import org.locationtech.geomesa.index.iterators.ArrowBatchScan
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -280,9 +281,9 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         // have to do a join against the record table
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
-      if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
+      if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess &&
           filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
         val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
@@ -354,7 +355,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       } else {
         Seq(ArrowFileIterator.configure(sft, recordIndex, ecqlFilter, dictionaryFields, hints, deduplicate = false))
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else if (hints.isDensityQuery) {
       Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
@@ -377,7 +378,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       } else {
         (ArrowFileIterator.kvsToFeatures(), None)
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
     } else if (hints.isDensityQuery) {
       (KryoLazyDensityIterator.kvsToFeatures(), None)
@@ -405,13 +406,13 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   }
 
   override def getCost(sft: SimpleFeatureType,
-                       ds: Option[AccumuloDataStore],
+                       stats: Option[GeoMesaStats],
                        filter: AccumuloFilterStrategyType,
                        transform: Option[SimpleFeatureType]): Long = {
     filter.primary match {
       case None => Long.MaxValue
       case Some(f) =>
-        val statCost = for { ds <- ds; count <- ds.stats.getCount(sft, f, exact = false) } yield {
+        val statCost = for { stats <- stats; count <- stats.getCount(sft, f, exact = false) } yield {
           // account for cardinality and index coverage
           val attribute = FilterHelper.propertyNames(f, sft).head
           val descriptor = sft.getDescriptor(attribute)

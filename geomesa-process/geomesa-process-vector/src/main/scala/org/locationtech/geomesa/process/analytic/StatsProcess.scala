@@ -15,8 +15,8 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils

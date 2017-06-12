@@ -14,9 +14,9 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureReader
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
-import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.utils.ThreadManagement
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
