@@ -46,7 +46,6 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     val auth = conf.get("hbase.security.authentication")
     auth match{
       case "kerberos" => {
-        conf.set("hadoop.security.authentication", "Kerberos")
         UserGroupInformation.setConfiguration(conf)
         UserGroupInformation.loginUserFromKeytab(conf.get("hbase.geomesa.principal"), conf.get("hbase.geomesa.keytab"))
       }
