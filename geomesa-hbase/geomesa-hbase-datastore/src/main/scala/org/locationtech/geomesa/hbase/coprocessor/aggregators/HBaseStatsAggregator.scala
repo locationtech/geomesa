@@ -21,9 +21,7 @@ import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class HBaseStatsAggregator extends HBaseAggregator[Stat] with StatsScan {
-  override protected val manager = HBaseFeatureIndex
-}
+class HBaseStatsAggregator extends HBaseAggregator[Stat] with StatsScan
 
 object HBaseStatsAggregator {
 
