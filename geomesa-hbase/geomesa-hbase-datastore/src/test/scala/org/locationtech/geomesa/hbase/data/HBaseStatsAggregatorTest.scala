@@ -112,6 +112,35 @@ class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
       rh.count(rh.indexOf(14)) mustEqual 1
     }
 
+    "work with the Histogram and Count stats" in {
+      val q = getQuery("Histogram(idt,5,10,14);Count()", Some("idt between 10 and 14"))
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val sf = results.head
+
+      val ss = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[SeqStat]
+
+      val rh = ss.stats(0).asInstanceOf[Histogram[java.lang.Integer]]
+      rh.length mustEqual 5
+      rh.count(rh.indexOf(10)) mustEqual 1
+      rh.count(rh.indexOf(11)) mustEqual 1
+      rh.count(rh.indexOf(12)) mustEqual 1
+      rh.count(rh.indexOf(13)) mustEqual 1
+      rh.count(rh.indexOf(14)) mustEqual 1
+
+      val ch = ss.stats(1).asInstanceOf[CountStat]
+      ch.count mustEqual 5
+    }
+
+    "work with the count stat" in {
+      val q = getQuery("Count()", Some("idt between 10 and 14"))
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val sf = results.head
+
+      val ch = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[CountStat]
+
+      ch.count mustEqual 5
+    }
+
     "work with multiple stats at once" in {
       val q = getQuery("MinMax(attr);IteratorStackCount();Enumeration(idt);Histogram(idt,5,10,14)")
       val results = SelfClosingIterator(fs.getFeatures(q).features).toList
