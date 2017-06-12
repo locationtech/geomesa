@@ -60,4 +60,5 @@ class HBaseTestRunnerTest extends Specification with LazyLogging {
 trait HBaseTest extends Specification {
   var cluster: HBaseTestingUtility = _
   var connection: Connection = _
+  val catalogTableName = "hbasetest"
 }
