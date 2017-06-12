@@ -102,7 +102,9 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
             }
           case None => addCoprocessors(descriptor)
         }
+        println(s"Creating table ${name.toString} at ${new java.util.Date}")
         admin.createTable(descriptor, getSplits(sft).toArray)
+        println(s"Finished creating table ${name.toString} at ${new java.util.Date}")
       }
     } finally {
       admin.close()
