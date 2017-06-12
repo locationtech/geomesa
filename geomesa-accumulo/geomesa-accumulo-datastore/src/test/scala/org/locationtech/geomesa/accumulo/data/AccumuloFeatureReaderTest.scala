@@ -15,9 +15,9 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.ParamsAuditProvider
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.audit.{AuditReader, AuditWriter, AuditedEvent}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

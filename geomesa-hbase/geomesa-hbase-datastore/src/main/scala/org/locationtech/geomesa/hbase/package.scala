@@ -8,10 +8,11 @@
 
 package org.locationtech.geomesa
 
-import org.apache.hadoop.hbase.client.{BufferedMutator, Mutation, Result}
+import org.apache.hadoop.hbase.client.{BufferedMutator, Mutation}
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 package object hbase {
