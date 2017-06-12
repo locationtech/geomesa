@@ -111,6 +111,8 @@ class HBaseQueryPlanner(ds: HBaseDataStore) extends HBaseQueryPlannerType(ds) {
       BinaryOutputEncoder.BinEncodedSft
     } else if (query.getHints.isDensityQuery) {
       DensityScan.DensitySft
+    } else if (query.getHints.isStatsQuery) {
+      KryoLazyStatsUtils.StatsSft
     } else {
       query.getHints.getTransformSchema.getOrElse(baseSft)
     }

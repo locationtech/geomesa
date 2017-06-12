@@ -16,13 +16,10 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.commons.codec.binary.Base64
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-import org.locationtech.geomesa.index.iterators.IteratorCache
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
-import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -32,32 +29,12 @@ import org.opengis.filter.Filter
  *
  * Only works with z3IdxStrategy for now (queries that date filters)
  */
-class KryoLazyStatsIterator extends KryoLazyAggregatingIterator[Stat] {
-
-  import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator._
-
-  var serializer: StatSerializer = null
-
-  override def init(options: Map[String, String]): Stat = {
-    sft = IteratorCache.sft(options(KryoLazyAggregatingIterator.SFT_OPT))
-    val transformSchema = options.get(TRANSFORM_SCHEMA_OPT).map(IteratorCache.sft).getOrElse(sft)
-    serializer = StatSerializer(transformSchema)
-
-    Stat(transformSchema, options(STATS_STRING_KEY))
-  }
-
-  override def aggregateResult(sf: SimpleFeature, result: Stat): Unit = result.observe(sf)
-
-  override def encodeResult(result: Stat): Array[Byte] = serializer.serialize(result)
-}
+class KryoLazyStatsIterator extends BaseAggregatingIterator[Stat] with StatsScan
 
 object KryoLazyStatsIterator extends LazyLogging {
 
-  import org.locationtech.geomesa.index.conf.QueryHints.{ENCODE_STATS, STATS_STRING}
-
   val DEFAULT_PRIORITY = 30
-  val STATS_STRING_KEY = "geomesa.stats.string"
-  val STATS_FEATURE_TYPE_KEY = "geomesa.stats.featuretype"
+
   // Need a filler namespace, else geoserver throws NPE for xml output
 
   def configure(sft: SimpleFeatureType,
@@ -67,17 +44,8 @@ object KryoLazyStatsIterator extends LazyLogging {
                 deduplicate: Boolean,
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
     val is = new IteratorSetting(priority, "stats-iter", classOf[KryoLazyStatsIterator])
-    KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
-    is.addOption(STATS_STRING_KEY, hints.get(STATS_STRING).asInstanceOf[String])
-
-
-
-    val transform = hints.getTransform
-    transform.foreach { case (tdef, tsft) =>
-      is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
-      is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
-    }
-
+    BaseAggregatingIterator.configure(is, deduplicate, None)
+    StatsScan.configure(sft, index, filter, hints) .foreach { case (k, v) => is.addOption(k, v) }
     is
   }
 

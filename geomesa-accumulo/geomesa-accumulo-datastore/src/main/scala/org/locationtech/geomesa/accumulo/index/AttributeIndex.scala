@@ -281,9 +281,9 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         // have to do a join against the record table
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
-      if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
+      if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess &&
           filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
         val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
@@ -355,7 +355,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       } else {
         Seq(ArrowFileIterator.configure(sft, recordIndex, ecqlFilter, dictionaryFields, hints, deduplicate = false))
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else if (hints.isDensityQuery) {
       Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
@@ -378,7 +378,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       } else {
         (ArrowFileIterator.kvsToFeatures(), None)
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
     } else if (hints.isDensityQuery) {
       (KryoLazyDensityIterator.kvsToFeatures(), None)

@@ -130,7 +130,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
           joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
         }
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, hasDupes)
@@ -140,7 +140,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       } else {
         // check to see if we can execute against the index values
         val indexSft = IndexValueEncoder.getIndexSft(sft)
-        if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
+        if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess &&
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
           val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, hasDupes)
           val iters = visibilityIter(indexSft) :+ iter
@@ -198,7 +198,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
       throw new RuntimeException("Record index does not exist for join query")
     }
-    val recordIter = if (hints.isStatsIteratorQuery) {
+    val recordIter = if (hints.isStatsQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else {
       KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
@@ -212,7 +212,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     val (kvsToFeatures, reduce) = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
     } else {
       (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
