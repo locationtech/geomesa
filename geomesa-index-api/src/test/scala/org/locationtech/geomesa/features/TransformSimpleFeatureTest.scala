@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features
 
 import org.geotools.data.Query
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.index.api.QueryPlanner
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter

@@ -253,11 +253,11 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
     }
 
     "work with points" in {
-      val typeName = "testpoints"
+      val typeName = "vis_testpoints"
 
       val params = Map(
         ConnectionParam.getName -> user1Conn,
-        BigTableNameParam.getName -> "test_sft")
+        BigTableNameParam.getName -> catalogTableName)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull

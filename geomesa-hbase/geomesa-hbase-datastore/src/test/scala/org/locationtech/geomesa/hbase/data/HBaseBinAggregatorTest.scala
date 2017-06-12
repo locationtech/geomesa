@@ -32,7 +32,6 @@ class HBaseBinAggregatorTest extends HBaseTest with LazyLogging {
 
   lazy val process = new BinConversionProcess
   lazy val TEST_HINT = new Hints()
-  lazy val tableName = "bintest"
   val sftName = "binTest"
 
   val spec = "name:String,track:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326,geom2:Point:srid=4326"
@@ -40,7 +39,7 @@ class HBaseBinAggregatorTest extends HBaseTest with LazyLogging {
 
   lazy val params = Map(
     ConnectionParam.getName -> connection,
-    BigTableNameParam.getName -> sftName)
+    BigTableNameParam.getName -> catalogTableName)
 
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
   var fs: SimpleFeatureStore = _
@@ -108,6 +107,11 @@ class HBaseBinAggregatorTest extends HBaseTest with LazyLogging {
       val decoded = bytes.reduceLeft(_ ++ _).grouped(24).toSeq.map(Convert2ViewerFunction.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat).zip(tracks))
     }
+  }
+
+  step {
+    logger.info("Cleaning up HBase Bin Test")
+    ds.dispose()
   }
 }
 

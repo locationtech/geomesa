@@ -12,10 +12,10 @@ import com.vividsolutions.jts.geom.Envelope
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
-import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 

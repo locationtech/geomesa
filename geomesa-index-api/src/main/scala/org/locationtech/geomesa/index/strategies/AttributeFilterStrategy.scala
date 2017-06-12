@@ -12,6 +12,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -48,7 +49,7 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
     * Compare with id at 1, z3 at 200, z2 at 400
     */
   override def getCost(sft: SimpleFeatureType,
-                       ds: Option[DS],
+                       stats: Option[GeoMesaStats],
                        filter: FilterStrategy[DS, F, W],
                        transform: Option[SimpleFeatureType]): Long = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -58,7 +59,7 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
       case Some(f) =>
         // if there is a filter, we know it has a valid property name
         val attribute = FilterHelper.propertyNames(f, sft).head
-        val cost = ds.flatMap(_.stats.getCount(sft, f, exact = false)).getOrElse {
+        val cost = stats.flatMap(_.getCount(sft, f, exact = false)).getOrElse {
           val binding = sft.getDescriptor(attribute).getType.getBinding
           val bounds = FilterHelper.extractAttributeBounds(f, attribute, binding)
           if (bounds.forall(b => b.lower == b.upper)) {
