@@ -1,12 +1,12 @@
-                             Kerberos
+Kerberos
 ========
 
 GeoMesa includes initial support for HBase clusters which are authenticated using Kerberos. Currently, keytabs are supported.
 
 Kerberos functionality should be configured by appending the following properties to ``hbase-site.xml``:
 
-- ``hbase.geomesa.keytab``
-- ``hbase.geomesa.principal``
+ * ``hbase.geomesa.keytab``
+ * ``hbase.geomesa.principal``
 
 All applications will require access to ``hbase-site.xml`` on their classpath in order to obtain the correct configuration.
 
@@ -22,66 +22,70 @@ So far, it has been tested in a limited development environment with Hortonworks
 .. note::
 
     To use geomesa in a kerberized environment add the following properties
-    .. code::
-    <property>
-         <name>hbase.geomesa.principal</name>
-         <value>hbaseGeomesa/_HOST@machineName</value>
-    </property>
 
-    <property>
-         <name>hbase.geomesa.keytab</name>
-         <value>/etc/security/keytabs/hbase.geomesa.keytab</value>
-    </property>
+    .. code::
+
+        <property>
+             <name>hbase.geomesa.principal</name>
+             <value>hbaseGeomesa/_HOST@machineName</value>
+        </property>
+
+        <property>
+             <name>hbase.geomesa.keytab</name>
+             <value>/etc/security/keytabs/hbase.geomesa.keytab</value>
+        </property>
     
 Enabling Kerberos on HDP
 ------------------------
 To enable kerberos on a HDP cluster you can either
-- do it all manually (not recommended)
-- use ambari as outlined in https://docs.hortonworks.com/HDPDocuments/Ambari-2.2.0.0/bk_Ambari_Security_Guide/content/ch_configuring_amb_hdp_for_kerberos.html
-- or deploy a kerberos enabled Ambari blueprint https://cwiki.apache.org/confluence/display/AMBARI/Blueprints like
+ * do it all manually (not recommended)
+ * use ambari as outlined in https://docs.hortonworks.com/HDPDocuments/Ambari-2.2.0.0/bk_Ambari_Security_Guide/content/ch_configuring_amb_hdp_for_kerberos.html
+ * or deploy a kerberos enabled Ambari blueprint https://cwiki.apache.org/confluence/display/AMBARI/Blueprints like
 
 .. code::
-....
+
     {
-      "kerberos-env": {
-        "properties_attributes" : { },
-        "properties" : {
-          "realm" : "myOrg.com",
-          "kdc_type" : "mit-kdc",
-          "kdc_hosts" : "kdc.company.com",
-          "admin_server_host" : "kdx.company.com"
-        }
-      }
-    },
-    {
-      "krb5-conf": {
-        "properties_attributes" : { },
-        "properties" : {
-          "domains" : "",
-          "manage_krb5_conf" : "false"
-        }
-      }
-    },
-  ],
-  "host_groups" : [
-    {
-      "name" : "host_group_1",
-      "configurations" : [ ],
-      "default_password": "hadoop",
-      "components" : [
-        { "name" : "INFRA_SOLR"             , "provision_action" : "INSTALL_AND_START" },
-        ......
-        { "name" : "ZOOKEEPER_CLIENT"       , "provision_action" : "INSTALL_AND_START" }
+      [
+        {
+          "kerberos-env": {
+            "properties_attributes" : { },
+            "properties" : {
+              "realm" : "myOrg.com",
+              "kdc_type" : "mit-kdc",
+              "kdc_hosts" : "kdc.company.com",
+              "admin_server_host" : "kdx.company.com"
+            }
+          }
+        },
+        {
+          "krb5-conf": {
+            "properties_attributes" : { },
+            "properties" : {
+              "domains" : "",
+              "manage_krb5_conf" : "false"
+            }
+          }
+        },
       ],
-      "cardinality" : "1"
+      "host_groups" : [
+        {
+          "name" : "host_group_1",
+          "configurations" : [ ],
+          "default_password": "hadoop",
+          "components" : [
+            { "name" : "INFRA_SOLR"             , "provision_action" : "INSTALL_AND_START" },
+            ......
+            { "name" : "ZOOKEEPER_CLIENT"       , "provision_action" : "INSTALL_AND_START" }
+          ],
+          "cardinality" : "1"
+        }
+      ],
+      "Blueprints" : {
+        "blueprint_name" : "hdp-2.6-sandbox",
+        "stack_name" : "HDP",
+        "stack_version" : "2.6",
+        "security" : {
+          "type" : "KERBEROS"
+        }
+      }
     }
-  ],
-  "Blueprints" : {
-    "blueprint_name" : "hdp-2.6-sandbox",
-    "stack_name" : "HDP",
-    "stack_version" : "2.6",
-    "security" : {
-      "type" : "KERBEROS"
-    }
-  }
-}
