@@ -21,7 +21,7 @@ So far, it has been tested in a limited development environment with Hortonworks
 
 .. note::
 
-    To use geomesa in a kerberized environment add the following properties
+    To use GeoMesa in a Kerberized environment add the following properties to ``hbase-site.xml``:
 
     .. code::
 
@@ -34,6 +34,20 @@ So far, it has been tested in a limited development environment with Hortonworks
              <name>hbase.geomesa.keytab</name>
              <value>/etc/security/keytabs/hbase.geomesa.keytab</value>
         </property>
+
+Managing Hadoop and HBase configurations on the classpath
+---------------------------------------------------------
+
+In order to setup the GeoMesa command line tools, create symlinks of the Hadoop configuration files to ``$GEOMESA_HOME/conf/``.
+Here is an example command to help do this:
+
+    $ for i in `ls /usr/hdp/current/hadoop-client/conf`; do ln -s /usr/hdp/current/hadoop-client/conf/$i $GEOMESA_HOME/conf/`; done
+    $ ln -s  /usr/hdp/current/hbase-client/conf/hbase-site.xml $GEOMESA_HOME/conf/
+
+You can verify that the GeoMesa HBase command line tools are working by ingest a small sample file.
+
+For GeoServer, similarly, the above configuration files will need to copied or symlinked to ``geoserver/WEB-INF/classes/``.
+
     
 Enabling Kerberos on HDP
 ------------------------
