@@ -66,5 +66,5 @@ The GeoMesa age-off iterators will not full delete records until compactions occ
 data you must manually compact a table or range. When compacting an entire table you should take care not to overwhelm
 your system::
 
-    compact -t geomesa.mycatalog_mytype_z3
+    compact -t geomesa.mycatalog_mytype_z2
 
