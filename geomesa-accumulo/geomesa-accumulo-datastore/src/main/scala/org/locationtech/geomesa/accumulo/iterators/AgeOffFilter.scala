@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -11,11 +11,14 @@ package org.locationtech.geomesa.accumulo.iterators
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyAgeOffFilter.Options
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.iterators.AgeOffFilter.Options
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.util.control.NonFatal
 
 /**
   * Abstract base implementation of an iterator that ages off data based on some strategy in a SimpleFeature
@@ -26,7 +29,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   *
   * Age off iterators can be stacked but this may have performance implications
   */
-abstract class KryoLazyAgeOffFilter extends Filter {
+abstract class AgeOffFilter extends Filter {
 
   protected var spec: String = _
   protected var sft: SimpleFeatureType = _
@@ -35,7 +38,7 @@ abstract class KryoLazyAgeOffFilter extends Filter {
   protected var reuseText: Text = _
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
-    val copy = super[Filter].deepCopy(env).asInstanceOf[KryoLazyAgeOffFilter]
+    val copy = super[Filter].deepCopy(env).asInstanceOf[AgeOffFilter]
     copy.spec = spec
     copy.sft = sft
 
@@ -55,10 +58,13 @@ abstract class KryoLazyAgeOffFilter extends Filter {
     super[Filter].init(source, options, env)
 
     reuseText = new Text()
-    spec = options.get(Options.Sft)
+    spec = options.get(Options.SftOpt)
     sft = IteratorCache.sft(spec)
 
-    val kryoOptions = if (sft.getSchemaVersion < 9) SerializationOptions.none else SerializationOptions.withoutId
+    val index = try { AccumuloFeatureIndex.index(options.get(Options.IndexOpt)) } catch {
+      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(Options.IndexOpt)}")
+    }
+    val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
     val kryo = IteratorCache.serializer(spec, kryoOptions)
     reusableSF = kryo.getReusableFeature
   }
@@ -79,8 +85,9 @@ abstract class KryoLazyAgeOffFilter extends Filter {
 
 }
 
-object KryoLazyAgeOffFilter {
+object AgeOffFilter {
   object Options {
-    val Sft = "sft"
+    val SftOpt = "sft"
+    val IndexOpt = "index"
   }
 }

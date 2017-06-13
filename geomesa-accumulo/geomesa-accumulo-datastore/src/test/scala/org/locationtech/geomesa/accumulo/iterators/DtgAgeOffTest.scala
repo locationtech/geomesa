@@ -42,19 +42,22 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
   "DTGAgeOff" should {
 
     def configAgeOff(ads: AccumuloDataStore, days: Int): Unit = {
-      val is = new IteratorSetting(5, "ageoff", classOf[KryoDtgAgeOffIterator].getCanonicalName)
-      is.addOption(KryoLazyAgeOffFilter.Options.Sft, SimpleFeatureTypes.encodeType(sft, true))
-      is.addOption(KryoDtgAgeOffIterator.Options.RetentionPeriod, s"P${days}D")
 
       val tOpt = ads.connector.tableOperations()
       val reloadedSft = ads.getSchema(sft.getTypeName)
-      val tableNames = AccumuloFeatureIndex.indices(reloadedSft, IndexMode.Any).map(ads.getTableName(reloadedSft.getTypeName, _))
 
-      tableNames.foreach { t =>
-        tOpt.listIterators(t).filter(_._1 == "ageoff").foreach { case (i, e) =>
-          tOpt.removeIterator(t, i, e)
+      AccumuloFeatureIndex.indices(reloadedSft, IndexMode.Any).foreach { afi =>
+        val tableName = ads.getTableName(reloadedSft.getTypeName, afi)
+        tOpt.listIterators(tableName).filter(_._1 == "ageoff").foreach { case (i, e) =>
+          tOpt.removeIterator(tableName, i, e)
         }
-        tOpt.attachIterator(t, is)
+
+        val is = new IteratorSetting(5, "ageoff", classOf[DtgAgeOffIterator].getCanonicalName)
+        is.addOption(AgeOffFilter.Options.SftOpt, SimpleFeatureTypes.encodeType(sft, true))
+        is.addOption(DtgAgeOffIterator.Options.RetentionPeriodOpt, s"P${days}D")
+        is.addOption(AgeOffFilter.Options.IndexOpt, afi.identifier)
+
+        tOpt.attachIterator(tableName, is)
       }
     }
 

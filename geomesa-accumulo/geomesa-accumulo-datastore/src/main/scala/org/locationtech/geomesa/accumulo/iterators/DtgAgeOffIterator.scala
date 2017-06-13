@@ -1,5 +1,5 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0
 * which accompanies this distribution and is available at
@@ -13,19 +13,21 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.joda.time.format.{ISOPeriodFormat, PeriodFormatter}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.accumulo.iterators.KryoDtgAgeOffIterator._
+import org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator._
 import org.opengis.feature.simple.SimpleFeature
+
+import scala.util.control.NonFatal
 
 /**
   * Age off data based on the dtg value stored in the SimpleFeature
   */
-class KryoDtgAgeOffIterator extends KryoLazyAgeOffFilter {
+class DtgAgeOffIterator extends AgeOffFilter {
 
   private var dtgIdx: Int = -1
   private var minTs: Long = -1
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
-    val copy = super[KryoLazyAgeOffFilter].deepCopy(env).asInstanceOf[KryoDtgAgeOffIterator]
+    val copy = super[AgeOffFilter].deepCopy(env).asInstanceOf[DtgAgeOffIterator]
 
     copy.dtgIdx = dtgIdx
     copy.minTs = minTs
@@ -38,11 +40,12 @@ class KryoDtgAgeOffIterator extends KryoLazyAgeOffFilter {
                     env: IteratorEnvironment): Unit = {
     IteratorClassLoader.initClassLoader(getClass)
 
-    super[KryoLazyAgeOffFilter].init(source, options, env)
+    super[AgeOffFilter].init(source, options, env)
 
     val now = DateTime.now(DateTimeZone.UTC)
-    val retention = options.get(Options.RetentionPeriod)
-    minTs = minimumTimestamp(now, retention)
+    minTs = try { minimumTimestamp(now, options.get(Options.RetentionPeriodOpt)) }  catch {
+      case NonFatal(e) => throw new RuntimeException(s"Retention option not configured correctly: ${options.get(Options.RetentionPeriodOpt)}")
+    }
     dtgIdx = IteratorCache.dtgIndex(spec, sft)
   }
 
@@ -52,10 +55,10 @@ class KryoDtgAgeOffIterator extends KryoLazyAgeOffFilter {
   }
 }
 
-object KryoDtgAgeOffIterator {
+object DtgAgeOffIterator {
 
   object Options {
-    val RetentionPeriod = "retention"
+    val RetentionPeriodOpt = "retention"
   }
 
   val periodFormat: PeriodFormatter = ISOPeriodFormat.standard()
