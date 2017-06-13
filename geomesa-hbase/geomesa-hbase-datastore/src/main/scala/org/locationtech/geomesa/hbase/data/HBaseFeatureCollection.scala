@@ -28,8 +28,8 @@ class HBaseFeatureCollection(source: GeoMesaFeatureSource, query: Query)
       case v: ArrowVisitor     => v.execute(source, query)
       case v: BinVisitor       => v.execute(source, query)
       case v: StatsVisitor     => v.execute(source, query)
-      case _ =>
-        logger.debug("Using fallback FeatureVisitor for process execution.")
+      case v =>
+        logger.debug(s"Using fallback FeatureVisitor for process ${v.getClass.getName}.")
         super.accepts(visitor, progress)
     }
 }
