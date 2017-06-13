@@ -41,19 +41,23 @@ It should resemble something like this::
 For example, the iterator can then be configured on scan, minc, and majc scopes on the table
 "geomesa.mycatalog_mytype_z3" in the shell::
 
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.scan.ageoff=5,org.locationtech.geomesa.accumulo.iterators.KryoDtgAgeOffIterator
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.scan.ageoff.opt.retention=P3M
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.scan.ageoff.opt.sft=some_id:String,dtg:Date,geom:Point:srid=4326
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff=5,org.locationtech.geomesa.accumulo.iterators.KryoDtgAgeOffIterator
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.retention=P3M
+    config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
+                                        2_v2
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.KryoDtgAgeOffIterator
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff.opt.retention=P3M
+    config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
+                                        2_v2
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.KryoDtgAgeOffIterator
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff.opt.retention=P3M
+    config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.majc.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
 
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.minc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.KryoDtgAgeOffIterator
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.minc.ageoff.opt.retention=P3M
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.minc.ageoff.opt.sft=some_id:String,dtg:Date,geom:Point:srid=4326
+.. note::
 
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.majc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.KryoDtgAgeOffIterator
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.majc.ageoff.opt.retention=P3M
-    config -t geomesa.mycatalog_mytype_z3 -s table.iterator.majc.ageoff.opt.sft=some_id:String,dtg:Date,geom:Point:srid=4326
+    Use quotes around the entire argument to ``-s`` to handle special characters from SFT specs
 
-This configuration must be applied to other indices (i.e. records, z2, attr) in order to completely age-off data.
+This configuration must be applied to other indices (i.e. records, z3, attr) in order to completely age-off data.
 
 Forcing Deletion of Records
 ---------------------------
