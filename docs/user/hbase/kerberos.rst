@@ -34,7 +34,7 @@ So far, it has been tested in a limited development environment with Hortonworks
     </property>
     
 Enabling Kerberos on HDP
----------------------
+------------------------
 To enable kerberos on a HDP cluster you can either
 - do it all manually (not recommended)
 - use ambari as outlined in https://docs.hortonworks.com/HDPDocuments/Ambari-2.2.0.0/bk_Ambari_Security_Guide/content/ch_configuring_amb_hdp_for_kerberos.html
