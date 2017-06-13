@@ -25,6 +25,7 @@ how to configure a set of GeoMesa tables with a retention period of 3 months.
 There are two options that required to configure the iterator:
 
 * **sft** - a GeoMesa ``SimpleFeatureType`` spec string
+* **index** - the GeoMesa Index identifier (usually concatenated index name, colon, and version e.g. z2:2 or records:2)
 * **retention** - an ISO 8601 Durations (or Period) format string
 
 The sft option is a GeoMesa ``SimpleFeatureType`` spec string. You need to scan the catalog table for your to determine
@@ -42,14 +43,17 @@ For example, the iterator can then be configured on scan, minc, and majc scopes 
 "geomesa.mycatalog_mytype_z3" in the shell::
 
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.retention=P3M
     config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
                                         2_v2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff.opt.retention=P3M
     config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
                                         2_v2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
+    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff.opt.retention=P3M
     config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.majc.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
 
