@@ -28,7 +28,7 @@ sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def table: TableName
   def ranges: Seq[Query]
 
-  override def explain(explainer: Explainer, prefix: String): Unit =
+  override def explain(explainer: Explainer, prefix: String = ""): Unit =
     HBaseQueryPlan.explain(this, explainer, prefix)
 }
 
@@ -37,7 +37,8 @@ object HBaseQueryPlan {
   def explain(plan: HBaseQueryPlan, explainer: Explainer, prefix: String): Unit = {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
     explainer(s"Table: ${Option(plan.table).orNull}")
-    explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
+    explainer(s"Ranges (${plan.ranges.size}): { ${plan.ranges.take(5).map(rangeToString).mkString(", ")} }")
+    explainer(s"Filter: ${plan.filter.toString}")
     explainer.popLevel()
   }
 
@@ -112,4 +113,11 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     (scan, filterList)
   }
 
+  override def explain(explainer: Explainer, prefix: String): Unit = {
+    super.explain(explainer, prefix)
+    val filterString = remoteFilters.sortBy(_._1).map( f => s"${f._1}[${f._2.getClass.getName}]" ).mkString("{", ", ", "}")
+    explainer.pushLevel("Remote Filters: " + filterString)
+    explainer("Coprocessor Options: " + coprocessorConfig.options.map( m => s"[${m._1}:${m._2}]").mkString("{", ", ", "}"))
+    explainer.popLevel()
+  }
 }
