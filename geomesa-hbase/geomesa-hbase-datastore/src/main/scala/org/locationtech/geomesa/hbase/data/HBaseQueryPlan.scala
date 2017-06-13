@@ -117,7 +117,7 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     super.explain(explainer, prefix)
     val filterString = remoteFilters.sortBy(_._1).map( f => s"${f._1}[${f._2.getClass.getName}]" ).mkString("{", ", ", "}")
     explainer.pushLevel("Remote Filters: " + filterString)
-    explainer("Coprocessor Options: " + coprocessor.options.map( m => s"[${m._1}:${m._2}]").mkString("{", ", ", "}"))
+    explainer("Coprocessor Options: " + coprocessorConfig.options.map( m => s"[${m._1}:${m._2}]").mkString("{", ", ", "}"))
     explainer.popLevel()
   }
 }
