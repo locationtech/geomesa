@@ -312,6 +312,30 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       bin.map(_.asInstanceOf[ExtendedValues].label) must containAllOf((0 until 10).map(i => Convert2ViewerFunction.convertToLabel(s"name$i")))
     }
 
+    "optimize for bin format with transforms" >> {
+      val filter = "bbox(geom, 38, 59, 51, 61)" +
+          " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
+      val query = new Query(sftName, ECQL.toFilter(filter), Array("name", "geom"))
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 100)
+
+      val qps = ds.getQueryPlan(query)
+      forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
+
+      val returnedFeatures = runQuery(query)
+      // the same simple feature gets reused - so make sure you access in serial order
+      val aggregates = returnedFeatures.map(f =>
+        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      aggregates.size must beLessThan(10) // ensure some aggregation was done
+      val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
+      bin must haveSize(10)
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
+      bin.map(_.dtg) must
+          containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
+      forall(bin.map(_.lat))(_ mustEqual 60.0)
+      bin.map(_.lon) must containAllOf((0 until 10).map(_ + 40.0))
+    }
+
     // note: b/c sampling is per iterator, we don't get much reduction with the
     // small queries and large number of ranges in this test
 
