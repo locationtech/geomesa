@@ -46,7 +46,6 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     HBaseAdmin.checkHBaseAvailable(conf)
 
     val ret = ConnectionFactory.createConnection(conf)
-
     Runtime.getRuntime.addShutdownHook(new Thread() {
       override def run(): Unit = {
         ret.close()
@@ -54,7 +53,6 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     })
     ret
   }
-
 
   // this is a pass-through required of the ancestor interface
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
@@ -224,7 +222,7 @@ object HBaseDataStoreFactory extends LazyLogging {
         UserGroupInformation.loginUserFromKeytab(conf.get(HBaseGeoMesaPrincipal), conf.get(HBaseGeoMesaKeyTab))
 
       case _ =>
-        logger.debug(s"Hadoop is not configured to use Kerberos.  Setting 'hbase.security.authentication' was set to $auth.")
+        logger.debug(s"Hadoop is not configured to use Kerberos.  The value of the setting 'hbase.security.authentication' $auth.")
     }
   }
 
