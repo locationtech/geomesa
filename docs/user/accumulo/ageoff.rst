@@ -32,7 +32,7 @@ The sft option is a GeoMesa ``SimpleFeatureType`` spec string. You need to scan 
 the correct spec string used by your feature type. We will be using it to set the ``sft`` opt on the age-off iterator.
 It should resemble something like this::
 
-    some_id:String,dtg:Date,geom:Point:srid=4326
+    dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'
 
 .. note::
 
@@ -46,12 +46,12 @@ For example, the iterator can then be configured on scan, minc, and majc scopes 
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.retention=P3M
     config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
-                                        2_v2
+
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff.opt.retention=P3M
     config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
-                                        2_v2
+
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff.opt.retention=P3M
