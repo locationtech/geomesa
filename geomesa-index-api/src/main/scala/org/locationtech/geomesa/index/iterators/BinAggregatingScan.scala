@@ -237,7 +237,7 @@ object BinAggregatingScan {
         None
       }
 
-    val base = AggregatingScan.configure(sft, index, filter, hints.getTransform, hints.getSampling)
+    val base = AggregatingScan.configure(sft, index, filter, None, hints.getSampling) // note: don't pass transforms
     base ++ AggregatingScan.optionalMap(
       BatchSizeOpt -> batchSize.toString,
       TrackOpt     -> sft.indexOf(trackId).toString,
