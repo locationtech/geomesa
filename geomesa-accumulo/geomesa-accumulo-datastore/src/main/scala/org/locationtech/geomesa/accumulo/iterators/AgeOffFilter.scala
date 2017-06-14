@@ -14,7 +14,7 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
 import org.locationtech.geomesa.accumulo.iterators.AgeOffFilter.Options
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
@@ -33,7 +33,6 @@ abstract class AgeOffFilter extends Filter {
   protected var index: AccumuloWritableIndex = _
   protected var spec: String = _
   protected var sft: SimpleFeatureType = _
-  protected var kryo: KryoFeatureSerializer = _
   protected var reusableSF: KryoBufferSimpleFeature = _
   protected var reuseText: Text = _
 
@@ -44,8 +43,7 @@ abstract class AgeOffFilter extends Filter {
     copy.index = index
 
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
-    copy.kryo = IteratorCache.serializer(copy.spec, kryoOptions)
-    copy.reusableSF = kryo.getReusableFeature
+    copy.reusableSF = IteratorCache.serializer(copy.spec, kryoOptions).getReusableFeature
     copy.reuseText = new Text()
 
     copy
@@ -66,8 +64,7 @@ abstract class AgeOffFilter extends Filter {
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(Options.IndexOpt)}")
     }
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
-    val kryo = IteratorCache.serializer(spec, kryoOptions)
-    reusableSF = kryo.getReusableFeature
+    reusableSF = IteratorCache.serializer(spec, kryoOptions).getReusableFeature
   }
 
   override def accept(k: Key, v: Value): Boolean = {
