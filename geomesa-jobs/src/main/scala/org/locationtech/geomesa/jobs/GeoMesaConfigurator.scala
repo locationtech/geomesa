@@ -1,5 +1,6 @@
 /***********************************************************************
  * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2017 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -49,7 +50,7 @@ object GeoMesaConfigurator {
 
   // set/get the connection parameters for an input format
   def setDataStoreInParams(conf: Configuration, params: Map[String, String]): Unit =
-    params.foreach { case (key, value) => conf.set(s"$dsInParams$key", value) }
+    params.foreach { case (key, value) => if (value != null) conf.set(s"$dsInParams$key", value) }
   def getDataStoreInParams(job: Job): Map[String, String] =
     getDataStoreInParams(job.getConfiguration)
   def getDataStoreInParams(conf: Configuration): Map[String, String] =
