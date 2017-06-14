@@ -11,12 +11,15 @@ package org.locationtech.geomesa.hbase.data
 import java.io.Serializable
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
+import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, HBaseAdmin}
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.apache.hadoop.hbase.util.Bytes
+import org.apache.hadoop.security.UserGroupInformation
+import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
@@ -28,7 +31,6 @@ import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWr
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.collection.JavaConversions._
-import org.apache.hadoop.security.UserGroupInformation
 
 
 class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
@@ -38,16 +40,11 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   // TODO: investigate multiple HBase connections per jvm
   private lazy val globalConnection: Connection = {
     val conf = HBaseConfiguration.create()
-    val auth = conf.get("hbase.security.authentication")
-    auth match{
-      case "kerberos" => {
-        UserGroupInformation.setConfiguration(conf)
-        UserGroupInformation.loginUserFromKeytab(conf.get("hbase.geomesa.principal"), conf.get("hbase.geomesa.keytab"))
-      }
-      case _ => {
-        logger.debug("no kerberos detected")
-      }
-    }
+    HBaseDataStoreFactory.configureSecurity(conf)
+
+    logger.debug("Checking configuration availability.")
+    HBaseAdmin.checkHBaseAvailable(conf)
+
     val ret = ConnectionFactory.createConnection(conf)
     Runtime.getRuntime.addShutdownHook(new Thread() {
       override def run(): Unit = {
@@ -144,11 +141,14 @@ object HBaseDataStoreParams {
 
 }
 
-object HBaseDataStoreFactory {
+object HBaseDataStoreFactory extends LazyLogging {
 
   import HBaseDataStoreParams._
   val DisplayName = "HBase (GeoMesa)"
   val Description = "Apache HBase\u2122 distributed key/value store"
+
+  val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
+  val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
 
   private [geomesa] val BigTableParamCheck = "google.bigtable.instance.id"
 
@@ -203,4 +203,27 @@ object HBaseDataStoreFactory {
 
     security.getAuthorizationsProvider(params, auths)
   }
+
+  def configureSecurity(conf: Configuration): Unit = {
+    val auth = conf.get("hbase.security.authentication")
+    auth match {
+      case "kerberos" =>
+        val authMethod: AuthenticationMethod = org.apache.hadoop.security.SecurityUtil.getAuthenticationMethod(conf)
+        logger.debug(s"Auth method: $authMethod")
+
+        if (authMethod != AuthenticationMethod.KERBEROS || authMethod != AuthenticationMethod.KERBEROS_SSL) {
+          logger.warn(s"HBase is configured to used Kerberos.  The Hadoop configuration is missing or not configured to use Kerberos.")
+        }
+
+        UserGroupInformation.setConfiguration(conf)
+
+        logger.debug(s"Is Hadoop security enabled: ${UserGroupInformation.isSecurityEnabled}")
+        logger.debug(s"Using Kerberos with principal ${conf.get(HBaseGeoMesaPrincipal)} and file ${conf.get(HBaseGeoMesaKeyTab)}")
+        UserGroupInformation.loginUserFromKeytab(conf.get(HBaseGeoMesaPrincipal), conf.get(HBaseGeoMesaKeyTab))
+
+      case _ =>
+        logger.debug(s"Hadoop is not configured to use Kerberos.  The value of the setting 'hbase.security.authentication' $auth.")
+    }
+  }
+
 }
