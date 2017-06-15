@@ -22,13 +22,13 @@ how to configure a set of GeoMesa tables with a retention period of 3 months.
 
     Only ``SimpleFeatureType``s with a default date field can be used with the date-based age-off iterator
 
-There are two options that required to configure the iterator:
+There are three options that are required to configure the iterator:
 
 * **sft** - a GeoMesa ``SimpleFeatureType`` spec string
 * **index** - the GeoMesa Index identifier (usually concatenated index name, colon, and version e.g. z2:2 or records:2)
 * **retention** - an ISO 8601 Durations (or Period) format string
 
-The sft option is a GeoMesa ``SimpleFeatureType`` spec string. You need to scan the catalog table for your to determine
+The sft option is a GeoMesa ``SimpleFeatureType`` spec string. You need to scan the catalog table to determine
 the correct spec string used by your feature type. We will be using it to set the ``sft`` opt on the age-off iterator.
 It should resemble something like this::
 
@@ -36,11 +36,13 @@ It should resemble something like this::
 
 .. note::
 
-    The iterator's priority should lower than the standard GeoMesa iterators and the versioning iterator. A good starting
+    The iterator's priority should be lower than the standard GeoMesa iterators and the versioning iterator. A good starting
     place for the iterator priority is 5.
 
 For example, the iterator can then be configured on scan, minc, and majc scopes on the table
-"geomesa.mycatalog_mytype_z3" in the shell::
+"geomesa.mycatalog_mytype_z3" in the shell:
+
+.. code-block::
 
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
@@ -68,7 +70,9 @@ Forcing Deletion of Records
 
 The GeoMesa age-off iterators will not full delete records until compactions occur. To force a true deletion on disk of
 data you must manually compact a table or range. When compacting an entire table you should take care not to overwhelm
-your system::
+your system:
+
+.. code-block::
 
     compact -t geomesa.mycatalog_mytype_z2
 
