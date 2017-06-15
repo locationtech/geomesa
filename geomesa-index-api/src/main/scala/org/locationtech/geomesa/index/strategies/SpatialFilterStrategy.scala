@@ -12,6 +12,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Or}
 
@@ -40,14 +41,14 @@ trait SpatialFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatur
   }
 
   override def getCost(sft: SimpleFeatureType,
-                       ds: Option[DS],
+                       stats: Option[GeoMesaStats],
                        filter: FilterStrategy[DS, F, W],
                        transform: Option[SimpleFeatureType]): Long = {
     filter.primary match {
       case None    => Long.MaxValue
       case Some(f) =>
         // add one so that we prefer the z3 index even if geometry is the limiting factor, resulting in the same count
-        ds.flatMap(_.stats.getCount(sft, f, exact = false).map(c => if (c == 0L) 0L else c + 1L)).getOrElse(StaticCost)
+        stats.flatMap(_.getCount(sft, f, exact = false).map(c => if (c == 0L) 0L else c + 1L)).getOrElse(StaticCost)
     }
   }
 }

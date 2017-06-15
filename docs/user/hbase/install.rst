@@ -134,7 +134,7 @@ There are two ways to get the coprocessor code on the classpath.
             <configuration>
               <property>
                 <name>hbase.coprocessor.user.region.classes</name>
-                <value>org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor</value>
+                <value>org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor</value>
               </property>
             </configuration>
 
@@ -178,7 +178,7 @@ There are two ways to get the coprocessor code on the classpath.
 
         .. code-block:: bash
 
-            'coprocessor'=>'HDFS_URL|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor|PRIORITY|'
+            'coprocessor'=>'HDFS_URL|org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor|PRIORITY|'
 
         The 'value' of the ``coprocessor`` parameter has four parts, separated by ``|``, two of which, ``HDFS_URL`` and
         ``PRIORITY``, are configurable depending on your environment.
@@ -190,19 +190,19 @@ There are two ways to get the coprocessor code on the classpath.
 
         .. code-block:: bash
 
-            hbase(main):040:0> alter 'geomesa_QuickStart_id', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor||'
+            hbase(main):040:0> alter 'geomesa_QuickStart_id', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor||'
             Updating all regions with the new schema...
             22/22 regions updated.
             Done.
             0 row(s) in 5.0000 seconds
 
-            hbase(main):041:0> alter 'geomesa_QuickStart_z2', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor||'
+            hbase(main):041:0> alter 'geomesa_QuickStart_z2', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor||'
             Updating all regions with the new schema...
             4/4 regions updated.
             Done.
             0 row(s) in 2.8850 seconds
 
-            hbase(main):042:0> alter 'geomesa_QuickStart_z3', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor||'
+            hbase(main):042:0> alter 'geomesa_QuickStart_z3', METHOD => 'table_att', 'coprocessor'=>'|org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor||'
             Updating all regions with the new schema...
             4/4 regions updated.
             Done.
@@ -214,8 +214,7 @@ There are two ways to get the coprocessor code on the classpath.
 
             hbase(main):002:0> describe 'TABLE_NAME'
             Table TABLE_NAME is ENABLED
-            TABLE_NAME, {TABLE_ATTRIBUTES => {coprocessor$1 => '|org.locationtech.geomesa.hbase.coprocessor.KryoLazyDensityCoprocessor
-            ||'}
+            TABLE_NAME, {TABLE_ATTRIBUTES => {coprocessor$1 => '|org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor||'}
             COLUMN FAMILIES DESCRIPTION
             {NAME => 'm', BLOOMFILTER => 'ROW', VERSIONS => '1', IN_MEMORY => 'false', KEEP_DELETED_CELLS => 'FALSE', DATA_BLOCK_EN
             CODING => 'NONE', TTL => 'FOREVER', COMPRESSION => 'NONE', MIN_VERSIONS => '0', BLOCKCACHE => 'true', BLOCKSIZE => '655

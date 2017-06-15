@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.index.RecordIndex
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.KryoLazyDensityUtils
+import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
@@ -56,7 +56,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
     q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
     strategy.foreach(s => q.getHints.put(QueryHints.QUERY_INDEX, s))
-    val decode = KryoLazyDensityUtils.decodeResult(geom, 500, 500)
+    val decode = DensityScan.decodeResult(geom, 500, 500)
     SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(q).features).flatMap(decode).toList
   }
 

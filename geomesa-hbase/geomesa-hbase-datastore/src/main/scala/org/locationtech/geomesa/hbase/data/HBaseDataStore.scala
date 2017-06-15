@@ -12,12 +12,17 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.security.visibility.Authorizations
 import org.geotools.data.Query
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
+import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
-import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, LocalLocking}
+import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -74,6 +79,9 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
     super.dispose()
   }
 
+  override protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
+    new HBaseFeatureCollection(source, query)
+
   def applySecurity(query: org.apache.hadoop.hbase.client.Query): Unit =
     authOpt.foreach(query.setAuthorizations)
 
@@ -87,6 +95,29 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
       if (auths.isEmpty) { HBaseDataStore.EmptyAuths }
       else { auths }
     }.map(new Authorizations(_))
+
+  override protected def createQueryPlanner(): QueryPlanner[HBaseDataStore, HBaseFeature, Mutation] =
+    new HBaseQueryPlanner(this)
+}
+
+class HBaseQueryPlanner(ds: HBaseDataStore) extends HBaseQueryPlannerType(ds) {
+  // This function calculates the SimpleFeatureType of the returned SFs.
+  override protected def setReturnSft(query: Query, baseSft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.index.conf.QueryHints._
+
+    val sft = if (query.getHints.isArrowQuery) {
+      org.locationtech.geomesa.arrow.ArrowEncodedSft
+    } else if (query.getHints.isBinQuery) {
+      BinaryOutputEncoder.BinEncodedSft
+    } else if (query.getHints.isDensityQuery) {
+      DensityScan.DensitySft
+    } else if (query.getHints.isStatsQuery) {
+      KryoLazyStatsUtils.StatsSft
+    } else {
+      query.getHints.getTransformSchema.getOrElse(baseSft)
+    }
+    query.getHints.put(QueryHints.Internal.RETURN_SFT, sft)
+  }
 }
 
 object HBaseDataStore {

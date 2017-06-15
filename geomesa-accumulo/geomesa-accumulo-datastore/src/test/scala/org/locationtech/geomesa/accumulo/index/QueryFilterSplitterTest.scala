@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{decomposeAnd, decomposeOr}
-import org.locationtech.geomesa.index.api.FilterSplitter
+import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.IndexMode

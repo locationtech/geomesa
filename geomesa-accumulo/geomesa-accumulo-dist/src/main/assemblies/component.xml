@@ -15,6 +15,7 @@
                 <exclude>org.locationtech.geomesa:geomesa-web-core*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-accumulo-raster-distributed-runtime*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-stream*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-geojson*</exclude>
@@ -32,6 +33,7 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</include>
+                <include>org.locationtech.geomesa:geomesa-accumulo-raster-distributed-runtime*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -112,6 +114,13 @@
         <fileSet>
             <directory>../geomesa-accumulo-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-accumulo-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>

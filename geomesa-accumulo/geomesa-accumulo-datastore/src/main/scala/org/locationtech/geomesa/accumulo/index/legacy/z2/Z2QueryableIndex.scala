@@ -89,7 +89,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
     } else if (hints.isDensityQuery) {
       val iter = Z2DensityIterator.configure(sft, this, ecql, hints)
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, FullColumnFamily, false)
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
       (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce, FullColumnFamily, false)

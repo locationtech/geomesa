@@ -27,22 +27,16 @@ object Suffixes {
       .appendMillis().appendSuffix("ms")
       .toFormatter
 
-    def duration(s: String): Option[Duration] = {
+    def duration(s: String): Try[Duration] = {
       Try[Duration](Period.parse(s.toLowerCase, format).toStandardDuration)
         .orElse(Try(Duration.millis(s.toLong)))
-      match {
-        case Success(d) => Some(d)
-        case Failure(e) =>
-          logger.error(s"Unable to parse duration $s", e)
-          None
-      }
     }
 
-    def millis(s: String): Option[Long]  = duration(s).map(_.getMillis)
-    def seconds(s: String): Option[Long] = duration(s).map(_.getStandardSeconds)
-    def minutes(s: String): Option[Long] = duration(s).map(_.getStandardMinutes)
-    def hours(s: String): Option[Long]   = duration(s).map(_.getStandardHours)
-    def days(s: String): Option[Long]    = duration(s).map(_.getStandardDays)
+    def millis(s: String): Try[Long]  = duration(s).map(_.getMillis)
+    def seconds(s: String): Try[Long] = duration(s).map(_.getStandardSeconds)
+    def minutes(s: String): Try[Long] = duration(s).map(_.getStandardMinutes)
+    def hours(s: String): Try[Long]   = duration(s).map(_.getStandardHours)
+    def days(s: String): Try[Long]    = duration(s).map(_.getStandardDays)
   }
 
   object Memory extends LazyLogging {

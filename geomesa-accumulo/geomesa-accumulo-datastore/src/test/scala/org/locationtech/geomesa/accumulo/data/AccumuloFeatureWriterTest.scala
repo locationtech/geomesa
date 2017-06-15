@@ -38,7 +38,7 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class AccumuloFeatureWriterTest extends Specification with TestWithDataStore with BeforeExample {
 
-  override def before = clearTablesHard()
+  override def before: Unit = clearTablesHard()
 
   sequential
 
@@ -363,7 +363,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val filter = CQL.toFilter("name = 'will'")
 
-      ds.queryPlanner.strategyDecider.getFilterPlan(sft, Some(ds), filter, None, None).head.index mustEqual AttributeIndex
+      ds.getQueryPlan(new Query(sft.getTypeName, filter)).head.filter.index mustEqual AttributeIndex
 
       // Retrieve Will's ID before deletion.
       val featuresBeforeDelete = SelfClosingIterator(fs.getFeatures(filter).features).toSeq

@@ -15,8 +15,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType, TestWithDataStore}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.opengis.filter.{And, Filter}
 import org.specs2.mutable.Specification
@@ -210,8 +210,8 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
           val strats = getStrategies(ff.and(Seq(like, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
           strats.head.index mustEqual AttributeIndex
-          strats.head.primary mustEqual Some(like)
-          strats.head.secondary must beSome(secondary)
+          strats.head.primary must beSome(heightFilter)
+          strats.head.secondary must beSome(ff.and(Seq(like, weightFilter, ageFilter)))
         }
       }
     }

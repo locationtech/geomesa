@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index.api
+package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
@@ -20,7 +20,7 @@ import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
-import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
@@ -43,8 +43,6 @@ import scala.collection.JavaConverters._
  */
 class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds: DS)
     extends MethodProfiling with LazyLogging {
-
-  val strategyDecider: StrategyDecider[DS, F, W] = new StrategyDecider(ds.manager)
 
   /**
     * Plan the query, but don't execute it - used for m/r jobs and explain query
@@ -121,7 +119,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
       output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
       output(s"Original filter: ${filterToString(original.getFilter)}")
       output(s"Hints: bin[${hints.isBinQuery}] arrow[${hints.isArrowQuery}] density[${hints.isDensityQuery}] " +
-          s"stats[${hints.isStatsIteratorQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
+          s"stats[${hints.isStatsQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
       output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
       output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
@@ -129,11 +127,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
       output.pushLevel("Strategy selection:")
       val requestedIndex = requested.orElse(hints.getRequestedIndex)
       val transform = query.getHints.getTransformSchema
-      val stats = query.getHints.getCostEvaluation match {
-        case CostEvaluation.Stats => Some(ds)
-        case CostEvaluation.Index => None
-      }
-      val strategies = strategyDecider.getFilterPlan(sft, stats, query.getFilter, transform, requestedIndex, output)
+      val evaluation = query.getHints.getCostEvaluation
+      val strategies = StrategyDecider.getFilterPlan(ds, sft, query.getFilter, transform, evaluation, requestedIndex, output)
       output.popLevel()
 
       var strategyCount = 1

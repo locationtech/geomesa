@@ -75,6 +75,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
   }
 
   step {
+    logger.info("Starting Visibility Test")
     adminUser = User.createUserForTesting(cluster.getConfiguration, "admin",    Array[String]("supergroup"))
     user1     = User.createUserForTesting(cluster.getConfiguration, "user1",    Array.empty[String])
     user2     = User.createUserForTesting(cluster.getConfiguration, "user2",    Array.empty[String])
@@ -252,11 +253,11 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
     }
 
     "work with points" in {
-      val typeName = "testpoints"
+      val typeName = "vis_testpoints"
 
       val params = Map(
         ConnectionParam.getName -> user1Conn,
-        BigTableNameParam.getName -> "test_sft")
+        BigTableNameParam.getName -> catalogTableName)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull
