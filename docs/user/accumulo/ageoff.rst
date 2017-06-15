@@ -40,20 +40,25 @@ It should resemble something like this::
     place for the iterator priority is 5.
 
 For example, the iterator can then be configured on scan, minc, and majc scopes on the table
-"geomesa.mycatalog_mytype_z3" in the shell:
+"geomesa.mycatalog_mytype_z2_v2" in the shell:
 
-.. code-block::
+.. highlight:: none
 
+::
+
+    # scan time iterator config
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.retention=P3M
     config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
 
+    # minor compaction iterator config
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff.opt.retention=P3M
     config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
 
+    # major compaction iterator config
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
     config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff.opt.retention=P3M
