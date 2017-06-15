@@ -484,7 +484,7 @@ class JsonConverterTest extends Specification {
             |        id: 2,
             |        number: 456,
             |        color: "blue",
-                     "geometry": "Point ( 101 102)"
+            |        "geometry": "Point ( 101 102)"
             |      }
             |    ]
             | }
@@ -569,6 +569,46 @@ class JsonConverterTest extends Specification {
         features(1).getDefaultGeometry mustEqual WKTUtils.read("LineString ( 101 102, 200 200)")
       }
 
+      "parse last element in array" >> {
+        val jsonStr =
+          """ {
+            |    DataSource: { name: "myjson" },
+            |    Features: [
+            |      {
+            |        id: 1,
+            |        colors: [
+            |          {
+            |            "color": "green"
+            |          },
+            |          {
+            |            "color": "blue"
+            |          }
+            |        ],
+            |        "geometry": "LineString (55 56, 56 57)"
+            |      }
+            |    ]
+            | }
+          """.stripMargin
+
+        val parserConf = ConfigFactory.parseString(
+          """ {
+            |   type         = "json"
+            |   id-field     = "$id"
+            |   feature-path = "$.Features[*]"
+            |   fields = [
+            |     { name = "id",      json-type = "integer",  path = "$.id",       transform = "toString($0)" }
+            |     { name = "color",   json-type = "string",   path = "$.colors.[(@.length-1)].color",    transform = "trim($0)"     }
+            |     { name = "geom",    json-type = "geometry", path = "$.geometry",                            }
+            |   ]
+            | }
+          """.stripMargin)
+
+        val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+        val features = converter.processInput(Iterator(jsonStr)).toList
+        features must haveLength(1)
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "blue"
+      }
+
       "parse points" >> {
         val jsonStr =
           """ {
@@ -584,7 +624,7 @@ class JsonConverterTest extends Specification {
                 |        id: 2,
                 |        number: 456,
                 |        color: "blue",
-                         "geometry": "Point ( 101 102)"
+                |        "geometry": "Point ( 101 102)"
                 |      }
                 |    ]
                 | }
@@ -814,7 +854,7 @@ class JsonConverterTest extends Specification {
           |            "d": 1.1,
           |            "u": "12345678-1234-1234-1234-123456781234"
           |          },
-                     {
+          |          {
           |            "s": "s2",
           |            "i": 2,
           |            "d": 2.2,
