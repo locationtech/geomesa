@@ -26,6 +26,7 @@ object IteratorCache {
   // thread safe objects can use a concurrent hashmap
   private val sftCache = new ConcurrentHashMap[String, SimpleFeatureType]()
   private val serializerCache = new ConcurrentHashMap[(String, String), KryoFeatureSerializer]()
+  private val dtgIndexCache = new ConcurrentHashMap[String, java.lang.Integer]()
 
   // non-thread safe objects use thread-locals
   // note: treating filters as unsafe due to an abundance of caution
@@ -77,4 +78,20 @@ object IteratorCache {
     */
   def filter(sft: SimpleFeatureType, spec: String, ecql: String): Filter =
     filterCache.getOrElseUpdate((spec, ecql), FastFilterFactory.toFilter(sft, ecql))
+
+  /**
+    * Returns a cached index of the dtg field
+    *
+    * @param spec simple feature type spec
+    * @return
+    */
+  def dtgIndex(spec:String, sft: SimpleFeatureType): Int = {
+    val cached = dtgIndexCache.get(spec)
+    if (cached != null) { cached } else {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+      val idx = sft.getDtgIndex.get
+      dtgIndexCache.put(spec, idx)
+      idx
+    }
+  }
 }
