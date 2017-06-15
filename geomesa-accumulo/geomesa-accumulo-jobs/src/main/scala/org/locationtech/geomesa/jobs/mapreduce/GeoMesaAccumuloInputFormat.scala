@@ -169,7 +169,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
 
   private def init(context: JobContext) = if (sft == null) {
     val conf = context.getConfiguration
-    val params = GeoMesaConfigurator.getDataStoreInParams(conf)
+    val params = new CaseInsensitiveMap(GeoMesaConfigurator.getDataStoreInParams(conf)).asInstanceOf[java.util.Map[String, String]]
 
     // Extract password from params to see if we are using Kerberos or not
     val password = AccumuloDataStoreParams.passwordParam.lookUp(params).asInstanceOf[String]
@@ -178,7 +178,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     val ds = if (password!=null) {
 
       // Accumulo password auth
-      DataStoreFinder.getDataStore(new CaseInsensitiveMap(params).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]
+      DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
     } else {
       // Kerberos auth
