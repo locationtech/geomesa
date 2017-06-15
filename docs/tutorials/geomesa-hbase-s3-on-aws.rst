@@ -125,7 +125,7 @@ can utilize it, sets up the GeoMesa coprocessor registration among other adminis
 
 .. code-block:: shell
 
-   $ sudo /opt/geomesa-hbase_2.11-${VERSION}/bin/bootstrap-geomesa-hbase.sh
+   $ sudo /opt/geomesa-hbase_2.11-${VERSION}/bin/bootstrap-geomesa-hbase-aws.sh
 
 Now, log out and back in and your environment will be set up appropriately.
 
