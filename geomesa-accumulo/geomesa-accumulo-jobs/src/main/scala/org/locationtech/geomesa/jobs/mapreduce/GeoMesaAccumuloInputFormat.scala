@@ -1,5 +1,6 @@
 /***********************************************************************
  * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2017 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,19 +9,21 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io.{DataInput, DataOutput}
+import java.io._
 import java.net.{URL, URLClassLoader}
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.accumulo.core.client.impl.{AuthenticationTokenIdentifier, DelegationTokenImpl}
 import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.security.tokens.{KerberosToken, PasswordToken}
+import org.apache.accumulo.core.client.{ClientConfiguration, ZooKeeperInstance}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
 import org.apache.commons.collections.map.CaseInsensitiveMap
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
+import org.apache.hadoop.security.token.Token
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
@@ -65,18 +68,31 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     assert(ds != null, "Invalid data store parameters")
 
-    // set up the underlying accumulo input format
-    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
-    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
-    InputFormatBaseAdapter.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
-
+    // Set Mock or Zookeeper instance
     val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
     val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
-    if (java.lang.Boolean.valueOf(AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String])) {
+    val keytabPath = AccumuloDataStoreParams.keytabPathParam.lookUp(dsParams).asInstanceOf[String]
+    val mock = java.lang.Boolean.valueOf(AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String])
+
+    if (mock) {
       AbstractInputFormat.setMockInstance(job, instance)
     } else {
-      InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers)
+      InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers, keytabPath!=null)
     }
+
+    // Set connector info
+    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
+    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
+
+    val token = if (password != null) {
+      new PasswordToken(password.getBytes)
+    } else {
+      // Must be using Kerberos
+      // Note that setConnectorInfo will create a DelegationToken for us and add it to the Job credentials
+      new KerberosToken(user, new File(keytabPath), true)
+    }
+
+    InputFormatBaseAdapter.setConnectorInfo(job, user, token)
 
     val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
     auths.foreach(a => InputFormatBaseAdapter.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
@@ -151,9 +167,76 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
   var sft: SimpleFeatureType = null
   var table: AccumuloFeatureIndex = null
 
-  private def init(conf: Configuration) = if (sft == null) {
-    val params = GeoMesaConfigurator.getDataStoreInParams(conf)
-    val ds = DataStoreFinder.getDataStore(new CaseInsensitiveMap(params).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]
+  private def init(context: JobContext) = if (sft == null) {
+    val conf = context.getConfiguration
+    val params = new CaseInsensitiveMap(GeoMesaConfigurator.getDataStoreInParams(conf)).asInstanceOf[java.util.Map[String, String]]
+
+    // Extract password from params to see if we are using Kerberos or not
+    val password = AccumuloDataStoreParams.passwordParam.lookUp(params).asInstanceOf[String]
+
+    // Build a datastore depending on how we are authenticating
+    val ds = if (password!=null) {
+
+      // Accumulo password auth
+      DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+
+    } else {
+      // Kerberos auth
+
+      // Look for a delegation token in the context credentials (for MapReduce)
+      val contextCredentialsToken = context.getCredentials.getAllTokens find (_.getKind.toString=="ACCUMULO_AUTH_TOKEN")
+      if (contextCredentialsToken.isDefined) {
+        logger.info("Found ACCUMULO_AUTH_TOKEN in context credentials")
+      } else {
+        logger.info("Could not find ACCUMULO_AUTH_TOKEN in context credentials, will look in configuration")
+      }
+
+      // Look for a delegation token in the configuration (for Spark on YARN)
+      val serialisedToken = context.getConfiguration.get("org.locationtech.geomesa.token")
+      val configToken = if (serialisedToken!=null) {
+        logger.info("Found ACCUMULO_AUTH_TOKEN serialised in configuration")
+        val t = new Token()
+        t.decodeFromUrlString(serialisedToken)
+        Some(t)
+      } else {
+        logger.warn("Could not find ACCUMULO_AUTH_TOKEN serialised in configuration. Continuing anyway...")
+        None
+      }
+
+      // Prefer token from context credentials over configuration
+      val hadoopWrappedToken = contextCredentialsToken  orElse configToken
+
+      // Unwrap token and build connector
+      hadoopWrappedToken match {
+        case Some(hwt) => {
+          val identifier = new AuthenticationTokenIdentifier
+          val token =  try {
+            // Convert to DelegationToken.
+            // See https://github.com/apache/accumulo/blob/f81a8ec7410e789d11941351d5899b8894c6a322/core/src/main/java/org/apache/accumulo/core/client/mapreduce/lib/impl/ConfiguratorBase.java#L485-L500
+            identifier.readFields(new DataInputStream(new ByteArrayInputStream(hwt.getIdentifier)))
+            new DelegationTokenImpl(hwt.getPassword, identifier)
+          } catch {
+            case e: IOException => throw new RuntimeException("Could not construct DelegationToken from JobContext credentials", e)
+          }
+
+          // Build connector
+          val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(params).asInstanceOf[String]
+          val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(params).asInstanceOf[String]
+          val user = AccumuloDataStoreParams.userParam.lookUp(params).asInstanceOf[String]
+          val connector = new ZooKeeperInstance(new ClientConfiguration()
+            .withInstance(instance).withZkHosts(zookeepers).withSasl(true))
+            .getConnector(user, token)
+
+          // Add connector param and remove keytabPath param
+          val updatedParams = params + (AccumuloDataStoreParams.connParam.getName -> connector) - AccumuloDataStoreParams.keytabPathParam.getName
+
+          // Get datastore using updated params
+          DataStoreFinder.getDataStore(new CaseInsensitiveMap(updatedParams).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]
+        }
+        case _ => throw new IllegalArgumentException("Could not find Hadoop-wrapped Accumulo token in JobContext credentials or Hadoop configuration")
+      }
+    }
+
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     val tableName = GeoMesaConfigurator.getTable(conf)
     table = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
@@ -170,7 +253,6 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
    * location assignment of the tablets to tservers to determine the number of splits returned.
    */
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
-    init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
     // Get the appropriate number of mapper splits using the following priority
     // 1. Get splits from AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS (geomesa.mapreduce.splits.max)
@@ -221,7 +303,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
-    init(context.getConfiguration)
+    init(context)
     val reader = delegate.createRecordReader(split, context)
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
     val hasId = table.serializedWithId

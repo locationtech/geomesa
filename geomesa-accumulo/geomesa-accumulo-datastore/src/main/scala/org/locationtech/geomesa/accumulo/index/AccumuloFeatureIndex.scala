@@ -137,13 +137,6 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
   import AccumuloFeatureIndex.{AttributeColumnFamily, BinColumnFamily, FullColumnFamily}
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  /**
-    * Indicates whether the ID for each feature is serialized with the feature or in the row
-    *
-    * @return
-    */
-  def serializedWithId: Boolean
-
   protected def hasPrecomputedBins: Boolean
 
   override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {

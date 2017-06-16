@@ -12,10 +12,10 @@ import com.vividsolutions.jts.geom.Envelope
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
-import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -102,8 +102,8 @@ object QueryHints {
       Option(hints.get(ARROW_SORT_FIELD).asInstanceOf[String]).map { field =>
         (field, Option(hints.get(ARROW_SORT_REVERSE)).exists(_.asInstanceOf[Boolean]))
       }
-    def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
-    def getStatsIteratorQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
+    def isStatsQuery: Boolean = hints.containsKey(STATS_STRING)
+    def getStatsQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
     def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)
     def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION).asInstanceOf[String]
     def getTransformDefinition: Option[String] = Option(hints.get(Internal.TRANSFORMS).asInstanceOf[String])

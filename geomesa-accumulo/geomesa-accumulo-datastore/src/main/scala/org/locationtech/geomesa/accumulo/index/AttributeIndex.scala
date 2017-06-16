@@ -23,6 +23,8 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.iterators.ArrowBatchScan
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -205,13 +207,13 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     } else if (hints.isArrowQuery) {
       lazy val dictionaryFields = hints.getArrowDictionaryFields
       lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
-      lazy val dictionaries = ArrowBatchIterator.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
+      lazy val dictionaries = ArrowBatchScan.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
       // check to see if we can execute against the index values
       if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
         val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
             hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
           val iter = ArrowBatchIterator.configure(indexSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchIterator.reduceFeatures(indexSft, hints, dictionaries)(_))
+          val reduce = Some(ArrowBatchScan.reduceFeatures(indexSft, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
         } else {
           val iter = ArrowFileIterator.configure(indexSft, this, ecql, dictionaryFields, hints, dedupe)
@@ -230,7 +232,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
             hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
           val iter = ArrowBatchIterator.configure(transformSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchIterator.reduceFeatures(transformSft, hints, dictionaries)(_))
+          val reduce = Some(ArrowBatchScan.reduceFeatures(transformSft, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
         } else {
           val iter = ArrowFileIterator.configure(transformSft, this, ecql, dictionaryFields, hints, dedupe)
@@ -244,6 +246,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
       }
     } else if (hints.isDensityQuery) {
+      // noinspection ExistsEquals
       // check to see if we can execute against the index values
       val weightIsAttribute = hints.getDensityWeight.exists(_ == attribute)
       if (filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _)) &&
@@ -278,9 +281,9 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         // have to do a join against the record table
         joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
-      if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
+      if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess &&
           filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
         val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
@@ -339,7 +342,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
 
     lazy val dictionaryFields = hints.getArrowDictionaryFields
     lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
-    lazy val arrowDictionaries = ArrowBatchIterator.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
+    lazy val arrowDictionaries = ArrowBatchScan.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
 
     // apply any secondary filters or transforms against the record table
     val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
@@ -352,7 +355,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       } else {
         Seq(ArrowFileIterator.configure(sft, recordIndex, ecqlFilter, dictionaryFields, hints, deduplicate = false))
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else if (hints.isDensityQuery) {
       Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
@@ -370,12 +373,12 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
     } else if (hints.isArrowQuery) {
       if (hints.isArrowComputeDictionaries) {
-        val reduce = Some(ArrowBatchIterator.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, arrowDictionaries)(_))
+        val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, arrowDictionaries)(_))
         (ArrowBatchIterator.kvsToFeatures(), reduce)
       } else {
         (ArrowFileIterator.kvsToFeatures(), None)
       }
-    } else if (hints.isStatsIteratorQuery) {
+    } else if (hints.isStatsQuery) {
       (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
     } else if (hints.isDensityQuery) {
       (KryoLazyDensityIterator.kvsToFeatures(), None)
@@ -403,13 +406,13 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   }
 
   override def getCost(sft: SimpleFeatureType,
-                       ds: Option[AccumuloDataStore],
+                       stats: Option[GeoMesaStats],
                        filter: AccumuloFilterStrategyType,
                        transform: Option[SimpleFeatureType]): Long = {
     filter.primary match {
       case None => Long.MaxValue
       case Some(f) =>
-        val statCost = for { ds <- ds; count <- ds.stats.getCount(sft, f, exact = false) } yield {
+        val statCost = for { stats <- stats; count <- stats.getCount(sft, f, exact = false) } yield {
           // account for cardinality and index coverage
           val attribute = FilterHelper.propertyNames(f, sft).head
           val descriptor = sft.getDescriptor(attribute)
@@ -428,13 +431,18 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   }
 
   /**
-    * full index:
-    *   high cardinality - 1
-    *   unknown cardinality - 101
-    * join index:
+    * full index equals query:
     *   high cardinality - 10
+    *   unknown cardinality - 101
+    * full index range query:
+    *   high cardinality - 100
     *   unknown cardinality - 1010
-    * low cardinality - Long.MaxValue
+    * join index equals query:
+    *   high cardinality - 100
+    *   unknown cardinality - 1010
+    * join index range query:
+    *   high cardinality - 1000
+    *   unknown cardinality - 10100
     *
     * Compare with id lookups at 1, z2/z3 at 200-401
     */
@@ -451,25 +459,26 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       if bounds.nonEmpty
     } yield {
       if (bounds.disjoint) { 0L } else {
-        // join queries are much more expensive than non-join queries
-        // TODO figure out the actual cost of each additional range...I'll make it 2
-        val additionalRangeCost = 1
-        val joinCost = 10
-        val multiplier =
-          if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
-              IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
-              IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
-            1
-          } else {
-            joinCost + (additionalRangeCost * (bounds.values.length - 1))
-          }
-
         // scale attribute cost by expected cardinality
-        descriptor.getCardinality() match {
-          case Cardinality.HIGH    => 1 * multiplier
-          case Cardinality.UNKNOWN => 101 * multiplier
-          case Cardinality.LOW     => Long.MaxValue
+        val baseCost = descriptor.getCardinality() match {
+          case Cardinality.HIGH    => 10
+          case Cardinality.UNKNOWN => 101
+          case Cardinality.LOW     => 1000
         }
+        // range queries don't allow us to use our secondary z-index
+        val secondaryIndexMultiplier = {
+          val isEqualsQuery = bounds.forall(b => b.lower == b.upper)
+          if (isEqualsQuery) { 1 } else { 10 }
+        }
+        // join queries are much more expensive than non-join queries
+        val joinMultiplier = {
+          val isJoin = descriptor.getIndexCoverage == IndexCoverage.FULL ||
+            IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
+            IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)
+          if (isJoin) { 1 } else { 10 + (bounds.values.length - 1) }
+        }
+
+        baseCost * secondaryIndexMultiplier * joinMultiplier
       }
     }
     cost.getOrElse(Long.MaxValue)

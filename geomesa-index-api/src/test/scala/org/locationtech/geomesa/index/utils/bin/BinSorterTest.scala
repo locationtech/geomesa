@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.iterators
+package org.locationtech.geomesa.index.utils.bin
 
 import java.io.ByteArrayOutputStream
 import java.util.{Arrays, Date}
@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class BinAggregatingIteratorTest extends Specification {
+class BinSorterTest extends Specification {
 
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
   val sft = SimpleFeatureTypes.createType(getClass.getSimpleName, spec)

@@ -173,6 +173,17 @@
     </property>
 
     <property>
+        <name>geomesa.strategy.decider</name>
+        <value></value>
+        <description>This property allows for overriding strategy selection during query
+            planning. It should specify the full class name for a class implementing
+            `org.locationtech.geomesa.index.planning.StrategyDecider`. The class must
+            have a no-arg constructor.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
         <name>geomesa.query.timeout.millis</name>
         <value></value>
         <description>This property can be used to prevent long-running

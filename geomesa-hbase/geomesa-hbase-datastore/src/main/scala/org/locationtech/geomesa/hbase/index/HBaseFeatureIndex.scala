@@ -17,12 +17,16 @@ import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
-import org.locationtech.geomesa.hbase.coprocessor.{KryoLazyDensityCoprocessor, coprocessorList}
+import org.locationtech.geomesa.hbase.coprocessor.aggregators._
+import org.locationtech.geomesa.hbase.coprocessor.coprocessorList
+import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
+import org.locationtech.geomesa.index.iterators.ArrowBatchScan
+import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
@@ -51,7 +55,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 
   case class ScanConfig(filters: Seq[(Int, HFilter)],
-                        coprocessor: Option[Coprocessor],
+                        coprocessor: Option[CoprocessorConfig],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 }
 
@@ -208,24 +212,49 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       ScanConfig(Seq.empty, None, resultsToFeatures(sft, ecql, transform))
     } else {
 
-      val coprocessor: Option[Coprocessor] = if (hints.isDensityQuery) {
-        Some(new KryoLazyDensityCoprocessor)
+      val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
+
+      val additionalFilters = createPushDownFilters(ds, sft, filter, transform)
+      // TODO not actually used for coprocessors
+      val toFeatures = resultsToFeatures(returnSchema, None, None)
+
+      val coprocessorConfig = if (hints.isDensityQuery) {
+        val options = HBaseDensityAggregator.configure(sft, this, ecql, hints)
+        Some(CoprocessorConfig(options, HBaseDensityAggregator.bytesToFeatures))
+      } else if (hints.isArrowQuery) {
+        val dictionaryFields = hints.getArrowDictionaryFields
+        val providedDictionaries = hints.getArrowDictionaryEncodedValues
+        if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
+            dictionaryFields.forall(providedDictionaries.contains)) {
+          val dictionaries = ArrowBatchScan.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
+          val options = ArrowBatchAggregator.configure(sft, this, ecql, dictionaries, hints)
+          val reduce = ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries)
+          Some(CoprocessorConfig(options, ArrowBatchAggregator.bytesToFeatures, reduce))
+        } else {
+          val options = ArrowFileAggregator.configure(sft, this, ecql, dictionaryFields, hints)
+          Some(CoprocessorConfig(options, ArrowFileAggregator.bytesToFeatures))
+        }
+      } else if (hints.isStatsQuery) {
+        val statsOptions = HBaseStatsAggregator.configure(sft, filter.index, ecql, hints)
+        Some(CoprocessorConfig(statsOptions, HBaseStatsAggregator.bytesToFeatures, KryoLazyStatsUtils.reduceFeatures(returnSchema, hints)))
+      } else if (hints.isBinQuery) {
+        val options = HBaseBinAggregator.configure(sft, filter.index, ecql, hints)
+        Some(CoprocessorConfig(options, HBaseBinAggregator.bytesToFeatures))
       } else {
         None
       }
 
-      val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
-      val toFeatures = resultsToFeatures(returnSchema, None, None)
-      val filterTransform: Seq[(Int, HFilter)] = if (ecql.isEmpty && transform.isEmpty) { Seq.empty } else {
-        // transforms and filters are applied server-side
+      // if there is a coprocessorConfig it handles filter/transform
+      val filters = if (coprocessorConfig.isDefined || (ecql.isEmpty && transform.isEmpty)) {
+        Seq.empty
+      } else {
         val remoteCQLFilter: Filter = ecql.getOrElse(Filter.INCLUDE)
         val encodedSft = SimpleFeatureTypes.encodeType(returnSchema)
         val filter = new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, encodedSft)
         Seq((JSimpleFeatureFilter.Priority, filter))
       }
 
-      val additionalFilters = createPushDownFilters(ds, sft, filter, transform)
-      ScanConfig(filterTransform ++ additionalFilters, coprocessor, toFeatures)
+      ScanConfig(filters ++ additionalFilters, coprocessorConfig, toFeatures)
     }
   }
 
@@ -244,6 +273,6 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
                                       ranges: Seq[Query],
                                       table: TableName,
                                       hbaseFilters: Seq[(Int, HFilter)],
-                                      coprocessor: Option[Coprocessor],
+                                      coprocessor: Option[CoprocessorConfig],
                                       toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
 }

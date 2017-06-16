@@ -12,6 +12,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -51,7 +52,7 @@ trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: Wrappe
   }
 
   override def getCost(sft: SimpleFeatureType,
-                       ds: Option[DS],
+                       stats: Option[GeoMesaStats],
                        filter: FilterStrategy[DS, F, W],
                        transform: Option[SimpleFeatureType]): Long = {
     // https://geomesa.atlassian.net/browse/GEOMESA-1166
@@ -59,7 +60,7 @@ trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: Wrappe
     // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
     filter.primary match {
       case None    => Long.MaxValue
-      case Some(f) => ds.flatMap(_.stats.getCount(sft, f, exact = false)).getOrElse {
+      case Some(f) => stats.flatMap(_.getCount(sft, f, exact = false)).getOrElse {
         val names = filter.primary.map(FilterHelper.propertyNames(_, sft)).getOrElse(Seq.empty)
         if (names.contains(sft.getGeomField)) StaticCost else SpatialFilterStrategy.StaticCost + 1
       }

@@ -91,6 +91,13 @@
             </excludes>
         </fileSet>
         <fileSet>
+            <directory>../../geomesa-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
             <directory>./</directory>
             <outputDirectory>logs</outputDirectory>
             <directoryMode>0700</directoryMode>

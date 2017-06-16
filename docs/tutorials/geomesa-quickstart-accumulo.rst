@@ -103,6 +103,10 @@ where you provide the following arguments:
     :ref:`install_accumulo_runtime_namespace`) the value of ``<table>``
     should include the namespace (e.g. ``myNamespace.geomesa``).
 
+The Accumulo QuickStart allows you to delete the created tables upon
+successful completion of the QuickStart. Use the flag ``-deleteTables``
+without an argument to specify that the tables should be deleted.
+
 You should see output similar to the following (not including some of
 Maven's output and log4j's warnings):
 

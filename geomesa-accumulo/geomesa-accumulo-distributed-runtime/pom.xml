@@ -31,31 +31,13 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-raster_${scala.binary.version}</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.geotools</groupId>
-                    <artifactId>gt-epsg-hsql</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.geotools</groupId>
-                    <artifactId>gt-geotiff</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.geotools</groupId>
-                    <artifactId>gt-imageio-ext-gdal</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -64,7 +46,6 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.slf4j:*</exclude>
@@ -81,39 +62,18 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shade.com.fasterxml.jackson</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                             </transformers>
-                            <finalName>geomesa-accumulo-distributed-runtime_${scala.binary.version}-${project.version}</finalName>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <phase>package</phase>
-                        <id>geomesa-accumulo-distributed-runtime-raster</id>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.slf4j:*</exclude>
-                                </excludes>
-                            </artifactSet>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                            </transformers>
-                            <finalName>geomesa-accumulo-distributed-runtime-raster_${scala.binary.version}-${project.version}</finalName>
+                            <shadedArtifactAttached>false</shadedArtifactAttached> <!-- replaces original artifact -->
+                            <finalName>geomesa-accumulo-distributed-runtime_${scala.binary.version}-${project.version}</finalName>
                         </configuration>
                     </execution>
                 </executions>

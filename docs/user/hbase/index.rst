@@ -19,4 +19,5 @@ To get started with the HBase Data Store, try the :doc:`/tutorials/geomesa-quick
     geoserver
     heatmaps
     visibilities
+    kerberos
 

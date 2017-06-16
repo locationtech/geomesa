@@ -6,23 +6,26 @@ GeoMesa Processes
 The following analytic processes are available and optimized on GeoMesa
 data stores, found in the ``geomesa-process`` module:
 
+org.locationtech.geomesa.process.transform.ArrowConversionProcess
+org.locationtech.geomesa.process.transform.-
+
+-  ``ArrowConversionProcess`` - encodes simple features in the `Apache Arrow <https://arrow.apache.org/>`_ format
+-  ``BinConversionProcess`` - encodes simple features in a minimized 16-byte format
 -  :ref:`density_process` - computes a density heatmap for a CQL query
--  ``HashAttributeColorProcess`` and ``HashAttributeProcess`` - computes an
+-  ``HashAttributeProcess``/``HashAttributeColorProcess`` - computes an
    additional 'hash' attribute which is useful for styling.
--  ``JoinProcess`` - returns merged features from two different schemas
-   using a common attribute field
+-  ``JoinProcess`` - merges features from two different schemas using a common attribute field
 -  ``KNearestNeighborSearchProcess`` - performs a KNN search
--  ``Point2PointProcess`` - aggregates a collection of points into a
-   collection of line segments
--  ``ProximitySearchProcess`` - performs a nearest neighbor search
+-  ``Point2PointProcess`` - aggregates a collection of points into a collection of line segments
+-  ``ProximitySearchProcess`` - searches near a set input features
 -  :ref:`query_process` - performs a Geomesa optimized query using spatiotemporal indexes
+-  ``RouteSearchProcess`` - matches features traveling along a given route
 -  ``SamplingProcess`` - uses statistical sampling to reduces the features
    returned by a query
 -  :ref:`statsiterator_process` - returns various stats for a CQL query
--  ``TubeSelectProcess`` - performs a correlated search across
-   time/space dimensions
--  :ref:`unique_process` - identifies unique values for an attribute in
-   results of a CQL query
+-  ``TrackLabelProcess`` - selects the last feature in a track based on a common attribute, useful for styling
+-  ``TubeSelectProcess`` - performs a correlated search across time and space
+-  :ref:`unique_process` - identifies unique values for an attribute
 
 Where possible, the calculations are pushed out to a distributed system for faster performance. Currently
 this has been implemented in the Accumulo data store and partially in the HBase data store. Other
