@@ -24,6 +24,8 @@ import org.apache.spark.sql.types.{DataTypes, StructField, StructType, Timestamp
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -35,7 +37,7 @@ object GeoMesaSparkSQL {
   val GEOMESA_SQL_FEATURE = "geomesa.feature"
 }
 
-import GeoMesaSparkSQL._
+import org.locationtech.geomesa.spark.GeoMesaSparkSQL._
 
 // Spark DataSource for GeoMesa
 // enables loading a GeoMesa DataFrame as
@@ -201,8 +203,27 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 
   lazy val isMock = Try(params("useMock").toBoolean).getOrElse(false)
 
+  val cache = Try(params("cache").toBoolean).getOrElse(false)
+
+  val rawRDD = GeoMesaSpark(params).rdd(
+    new Configuration(), sqlContext.sparkContext, params,
+    new Query(params(GEOMESA_SQL_FEATURE)))
+
+  val encodedSFT: String = org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.encodeType(sft, true)
+
+  val indexRDD: RDD[GeoCQEngine] = if (cache) {
+    // TODO:  Implement partitioning
+    SparkUtils.index(encodedSFT, rawRDD)
+  } else {
+    null
+  }
+
   override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
-    SparkUtils.buildScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
+    if (cache) {
+      SparkUtils.buildScanInMemoryScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params, indexRDD)
+    } else {
+      SparkUtils.buildScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
+    }
   }
 
   override def unhandledFilters(filters: Array[Filter]): Array[Filter] = {
@@ -216,7 +237,55 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 object SparkUtils extends LazyLogging {
   import CaseInsensitiveMapFix._
 
+  def indexIterator(encodedSft: String): GeoCQEngine = {
+    val sft = org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.createType("", encodedSft)
+    new org.locationtech.geomesa.memory.cqengine.GeoCQEngine(sft)
+  }
+
+  def index(encodedSft: String, rdd: RDD[SimpleFeature]): RDD[GeoCQEngine] = {
+    rdd.mapPartitions {
+      iter =>
+        val engine = SparkUtils.indexIterator(encodedSft)
+        iter.foreach { engine.add }
+        Iterator(engine)
+    }
+  }
+
+
   @transient val ff = CommonFactoryFinder.getFilterFactory2
+
+  def buildScanInMemoryScan(requiredColumns: Array[String],
+                filters: Array[org.apache.spark.sql.sources.Filter],
+                filt: org.opengis.filter.Filter,
+                ctx: SparkContext,
+                schema: StructType,
+                params: Map[String, String],  indexRDD: RDD[GeoCQEngine]): RDD[Row] = {
+
+    val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l,r) }
+    val filterString = ECQL.toCQL(compiledCQL)
+    val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
+
+    type EXTRACTOR = SimpleFeature => AnyRef
+    val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
+
+    // the SFT attributes do not have the __fid__ so we have to translate accordingly
+    val extractors: Array[EXTRACTOR] = requiredColumns.map {
+      case "__fid__" => IdExtractor
+      case col       =>
+        val index = requiredAttributes.indexOf(col)
+        sf: SimpleFeature => SparkUtils.toSparkType(sf.getAttribute(index))
+    }
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
+
+    val result = indexRDD.flatMap { engine =>
+      println(s"Query enginge $engine with filter ${ECQL.toCQL(compiledCQL)}")
+      val filter = ECQL.toFilter(filterString)
+      engine.queryCQ(filter).toIterator
+
+    }.map(SparkUtils.sf2row(schema, _, extractors))
+
+    result.asInstanceOf[RDD[Row]]
+  }
 
   def buildScan(requiredColumns: Array[String],
                 filters: Array[org.apache.spark.sql.sources.Filter],

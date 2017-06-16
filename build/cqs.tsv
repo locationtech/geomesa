@@ -116,6 +116,7 @@ net.minidev:accessors-smart	1.1	compile
 net.minidev:json-smart	2.2.1	compile
 net.sf.geographiclib:GeographicLib-Java	1.44	compile
 net.sf.trove4j:trove4j	3.0.3	compile
+org.antlr:antlr4-runtime	4.5.3	compile
 org.antlr:antlr4-runtime	4.5	compile
 org.apache.accumulo:accumulo-core	1.7.2	compile
 org.apache.accumulo:accumulo-fate	1.7.2	compile

@@ -14,11 +14,12 @@ import org.apache.spark.sql.SQLTypes._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
 import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, GenericInternalRow, LeafExpression, Literal, PredicateHelper, ScalaUDF}
-import org.apache.spark.sql.catalyst.plans.logical.{Filter, LogicalPlan, Sort}
+import org.apache.spark.sql.catalyst.plans.logical.{Filter, Join, LogicalPlan, Sort}
 import org.apache.spark.sql.catalyst.rules.Rule
+import org.apache.spark.sql.execution.command.CacheTableCommand
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.types.DataType
-import org.locationtech.geomesa.spark.GeoMesaRelation
+import org.locationtech.geomesa.spark.{GeoMesaRelation, InMemoryGeoMesaRelation}
 import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{Filter => GTFilter}
 
@@ -114,7 +115,11 @@ object SQLRules extends LazyLogging {
     }
 
     override def apply(plan: LogicalPlan): LogicalPlan = {
+      println(s"Optimizer sees $plan")
       plan.transform {
+        case inner: Join =>
+          println(s" Got join $inner")
+              inner
         case sort @ Sort(_, _, _) => sort    // No-op.  Just realizing what we can do:)
         case filt @ Filter(f, lr@LogicalRelation(gmRel: GeoMesaRelation, _, _)) =>
           // TODO: deal with `or`
@@ -145,7 +150,15 @@ object SQLRules extends LazyLogging {
           } else {
             filt
           }
+
+        case cache @ CacheTableCommand(table, plan, isLazy) =>
+
+          println(s"Plan: $plan")
+          ///val cachedRelation = new InMemoryGeoMesaRelation(???, ???, ???, ???)
+
+          cache
       }
+
     }
 
   }
