@@ -144,12 +144,15 @@ object KafkaProducerFeatureStoreFactory {
 
   private[kafka10] val FeatureIds = new AtomicLong(0L)
 
-  def apply(broker: String): FeatureSourceFactory = {
+  def apply(broker: String, params: java.util.Map[String, java.io.Serializable]): FeatureSourceFactory = {
+
+    val baseConfig = KafkaDataStore.parseConfig(Option(KafkaDataStoreFactoryParams.PRODUCER_CFG_PARAM.lookUp(params).asInstanceOf[String]))
 
     val props = new ju.Properties()
     props.put(KafkaUtils10.brokerParam, broker)
     props.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
     props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
+    props.putAll(baseConfig)
 
     (entry: ContentEntry, query: Query, schemaManager: KafkaDataStoreSchemaManager) => {
       val fc = schemaManager.getFeatureConfig(entry.getTypeName)
