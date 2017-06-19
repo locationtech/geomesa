@@ -21,7 +21,8 @@ import org.geotools.feature.FeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.GeoMessage
-import org.locationtech.geomesa.kafka08.KafkaDataStore.FeatureSourceFactory
+import org.locationtech.geomesa.kafka08.KafkaDataStore.{FeatureSourceFactory, parseConfig}
+import org.locationtech.geomesa.kafka08.KafkaDataStoreFactoryParams.PRODUCER_CFG_PARAM
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -142,12 +143,15 @@ object KafkaProducerFeatureStoreFactory {
 
   private [kafka08] val FeatureIds = new AtomicLong(0L)
 
-  def apply(broker: String): FeatureSourceFactory = {
+  def apply(broker: String, params: java.util.Map[String, java.io.Serializable]): FeatureSourceFactory = {
+
+    val baseConfig = parseConfig(Option(PRODUCER_CFG_PARAM.lookUp(params).asInstanceOf[String]))
 
     val config = {
       val props = new ju.Properties()
       props.put(KafkaUtils08.brokerParam, broker)
       props.put("serializer.class", "kafka.serializer.DefaultEncoder")
+      props.putAll(baseConfig)
       new ProducerConfig(props)
     }
 

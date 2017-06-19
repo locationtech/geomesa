@@ -25,7 +25,7 @@ import scala.language.implicitConversions
   * @param autoOffsetReset what offset to reset to when there is no initial offset in ZooKeeper 
   * ("largest" or "smallest")
   */
-class KafkaConsumerFactory(brokers: String, zookeepers: String, autoOffsetReset: String) {
+class KafkaConsumerFactory(brokers: String, zookeepers: String, autoOffsetReset: String, baseProps: Properties) {
 
   import KafkaConsumerFactory._
 
@@ -40,6 +40,8 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String, autoOffsetReset:
     props.put("zookeeper.sync.time.ms", "1000")
     props.put("auto.commit.interval.ms", "1000")
     props.put("auto.offset.reset", autoOffsetReset)
+
+    props.putAll(baseProps)
 
     props
   }

@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.kafka08
 
 import java.awt.RenderingHints.Key
-import java.io.{Closeable, Serializable}
+import java.io.{Closeable, Serializable, StringReader}
+import java.util.{Collections, Properties}
 import java.{util => ju}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
@@ -83,6 +84,8 @@ object KafkaDataStoreFactoryParams {
   val ZOOKEEPERS_PARAM     = new Param("zookeepers", classOf[String], "Zookeepers", true)
   val ZK_PATH              = new Param("zkPath", classOf[String], "Zookeeper discoverable path", false,  KafkaDataStoreHelper.DefaultZkPath)
   val NAMESPACE_PARAM      = new Param("namespace", classOf[String], "Namespace", false)
+  val PRODUCER_CFG_PARAM   = new Param("producerConfig", classOf[String], "Configuration options for kafka producer, in Java properties format. Passed directly to kafka", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
+  val CONSUMER_CFG_PARAM   = new Param("consumerConfig", classOf[String], "Configuration options for kafka consumer, in Java properties format. Passed directly to kafka", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
   val TOPIC_PARTITIONS     = new Param("partitions", classOf[Integer], "Number of partitions to use in kafka topics", false)
   val TOPIC_REPLICATION    = new Param("replication", classOf[Integer], "Replication factor to use in kafka topics", false)
   val IS_PRODUCER_PARAM    = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
@@ -97,6 +100,12 @@ object KafkaDataStoreFactoryParams {
 
 object KafkaDataStore {
   type FeatureSourceFactory = (ContentEntry, Query, KafkaDataStoreSchemaManager) => ContentFeatureSource with Closeable
+
+  def parseConfig(param: Option[String]): Properties = {
+    val props = new Properties
+    param.foreach(p => props.load(new StringReader(p)))
+    props
+  }
 }
 
 /** A [[DataStoreFactorySpi]] to create a [[KafkaDataStore]] in either producer or consumer mode */
@@ -126,7 +135,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
     val isProducer = Option(IS_PRODUCER_PARAM.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
 
     if (isProducer) {
-      KafkaProducerFeatureStoreFactory(brokers)
+      KafkaProducerFeatureStoreFactory(brokers, params)
     } else {
       KafkaConsumerFeatureSourceFactory(brokers, zk, params)
     }
@@ -139,7 +148,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def getDescription: String = "Apache Kafka\u2122 distributed messaging queue"
 
   override def getParametersInfo: Array[Param] =
-    Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM, ZK_PATH, EXPIRATION_PERIOD, CLEANUP_LIVE_CACHE, CACHE_CLEANUP_PERIOD, USE_CQ_LIVE_CACHE, TOPIC_PARTITIONS, TOPIC_REPLICATION, NAMESPACE_PARAM, COLLECT_QUERY_STAT, AUTO_OFFSET_RESET)
+    Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM, ZK_PATH, EXPIRATION_PERIOD, CLEANUP_LIVE_CACHE, CACHE_CLEANUP_PERIOD, USE_CQ_LIVE_CACHE, TOPIC_PARTITIONS, TOPIC_REPLICATION, PRODUCER_CFG_PARAM, CONSUMER_CFG_PARAM, NAMESPACE_PARAM, COLLECT_QUERY_STAT, AUTO_OFFSET_RESET)
 
   override def canProcess(params: ju.Map[String, Serializable]): Boolean =
     params.containsKey(KAFKA_BROKER_PARAM.key) && params.containsKey(ZOOKEEPERS_PARAM.key)
