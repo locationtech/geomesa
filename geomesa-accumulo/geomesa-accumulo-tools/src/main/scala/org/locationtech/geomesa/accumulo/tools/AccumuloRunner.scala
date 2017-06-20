@@ -18,7 +18,7 @@ import org.locationtech.geomesa.accumulo.tools.stats._
 import org.locationtech.geomesa.accumulo.tools.status._
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
-import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
@@ -58,7 +58,9 @@ object AccumuloRunner extends Runner {
     new AccumuloStatsHistogramCommand,
     new AddIndexCommand,
     new ConvertCommand,
-    new AccumuloBinExportCommand
+    new AccumuloBinExportCommand,
+    new ConfigureCommand,
+    new ClasspathCommand
   )
 
   /**

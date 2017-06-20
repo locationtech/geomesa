@@ -6,6 +6,8 @@ Run ``geomesa-kafka`` without any arguments to produce the following usage text:
     $ geomesa-kafka
       Usage: geomesa-kafka [command] [command options]
         Commands:
+          classpath       Display the GeoMesa classpath
+          configure       Configure the local environment for GeoMesa
           convert         Convert files using GeoMesa's internal SFT converter framework
           create-schema   Create a feature definition in GeoMesa
           get-schema      Describe the attributes of a given feature in GeoMesa
@@ -31,6 +33,21 @@ run ``geomesa-kafka help <command-name>``, which for example will give you somet
 
 Command overview
 ----------------
+
+configure
+~~~~~~~~~
+
+Used to configure the current environment for using the commandline tools. This is frequently run after the tools are
+first installed to ensure the environment is configured correctly::
+
+    $ geomesa configure
+
+classpath
+~~~~~~~~~
+
+Prints out the current classpath configuration::
+
+    $ geomesa classpath
 
 create-schema
 ~~~~~~~~~~~~~
