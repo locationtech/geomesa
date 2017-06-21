@@ -11,7 +11,6 @@ package org.locationtech.geomesa.index.iterators
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date
 
-import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
@@ -198,7 +197,7 @@ trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
   }
 }
 
-object BinAggregatingScan extends LazyLogging {
+object BinAggregatingScan {
 
   object Configuration {
     // configuration keys

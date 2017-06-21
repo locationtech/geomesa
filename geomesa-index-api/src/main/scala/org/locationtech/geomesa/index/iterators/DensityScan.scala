@@ -153,7 +153,6 @@ object DensityScan {
     }
   }
 
-
   /**
     * Gets the weight for a feature from a double attribute
     */

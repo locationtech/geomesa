@@ -52,12 +52,25 @@ trait QueryRunner {
     query
   }
 
-  protected [geomesa] def optimizeFilter(sft: SimpleFeatureType, query: Query): Unit = {
+  /**
+    * Updates the filter in the query by binding values, optimizing predicates, etc
+    *
+    * @param sft simple feature type
+    * @param query query
+    */
+  private [geomesa] def optimizeFilter(sft: SimpleFeatureType, query: Query): Unit = {
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
       query.setFilter(optimizeFilter(sft, query.getFilter))
     }
   }
 
+  /**
+    * Optimizes the filter - extension point for subclasses
+    *
+    * @param sft simple feature poinnt
+    * @param filter filter
+    * @return optimized filter
+    */
   protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter = {
     // bind the literal values to the appropriate type, so that it isn't done every time the filter is evaluated
     // important: do this before running through the QueryPlanFilterVisitor, otherwise can mess with IDL handling
@@ -66,7 +79,13 @@ trait QueryRunner {
       .accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
   }
 
-  // This function calculates the SimpleFeatureType of the returned SFs.
+  /**
+    * Provides the simple feature type that will be returned from a query. Extension point for subclasses
+    *
+    * @param sft simple feature type
+    * @param hints query hints, which have been configured using @see configureQuery
+    * @return simple feature that will be returned from a query using the hints
+    */
   protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     hints.getTransformSchema.getOrElse(sft)
