@@ -55,7 +55,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
     q.getHints.put(QueryHints.DENSITY_BBOX, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
     q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
-    strategy.foreach(s => q.getHints.put(QueryHints.QUERY_INDEX, s))
+    strategy.foreach(s => q.getHints.put(QueryHints.QUERY_INDEX, s.identifier))
     val decode = DensityScan.decodeResult(geom, 500, 500)
     SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(q).features).flatMap(decode).toList
   }

@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.io.ByteArrayOutputStream
 import java.util.Date
 import java.util.Map.Entry
 
@@ -23,9 +22,8 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
-import org.locationtech.geomesa.filter.function.{BasicValues, BinaryOutputEncoder, Convert2ViewerFunction, ExtendedValues}
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan.Configuration._
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions, GeometryAttribute}
+import org.locationtech.geomesa.filter.function.{AxisOrder, BinaryOutputEncoder, Convert2ViewerFunction}
 import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, ByteBufferResult, SamplingIterator}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -142,6 +140,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 }
 
 object BinAggregatingIterator extends LazyLogging {
+
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   val DEFAULT_PRIORITY = 25
@@ -252,91 +251,14 @@ object BinAggregatingIterator extends LazyLogging {
     // don't use return sft from query hints, as it will be bin_sft
     val returnSft = hints.getTransformSchema.getOrElse(sft)
 
-    val trackIdIndex = returnSft.indexOf(hints.getBinTrackIdField)
-    val geomIndex = hints.getBinGeomField.map(returnSft.indexOf).getOrElse(returnSft.getGeomIndex)
-    val dtgIndex= hints.getBinDtgField.map(returnSft.indexOf).getOrElse(returnSft.getDtgIndex.get)
-    val labelIndexOpt= hints.getBinLabelField.map(returnSft.indexOf)
+    val trackId = Option(hints.getBinTrackIdField)
+    val geom = hints.getBinGeomField.map(GeometryAttribute(_, AxisOrder.LonLat)) // TODO check this out...
+    val dtg = hints.getBinDtgField
+    val label = hints.getBinLabelField
 
-    val isPoint = returnSft.isPoints
-    val isLineString = !isPoint && returnSft.isLines
+    val encode = BinaryOutputEncoder.encodeFeatures(returnSft, EncodingOptions(geom, dtg, trackId, label))
 
-    val encode: (SimpleFeature) => Array[Byte] = labelIndexOpt match {
-      case None if isPoint =>
-        (sf) => {
-          val trackId = getTrack(sf, trackIdIndex)
-          val (lat, lon) = getPointGeom(sf, geomIndex)
-          val dtg = getDtg(sf, dtgIndex)
-          Convert2ViewerFunction.encodeToByteArray(BasicValues(lat, lon, dtg, trackId))
-        }
-
-      case None if isLineString =>
-        val buf = new ByteArrayOutputStream()
-        (sf) => {
-          buf.reset()
-          val trackId = getTrack(sf, trackIdIndex)
-          val points = getLineGeom(sf, geomIndex)
-          val dtgs = getLineDtg(sf, dtgIndex)
-          if (points.length != dtgs.length) {
-            logger.warn(s"Mismatched geometries and dates for simple feature ${sf.getID} - skipping")
-          } else {
-            var i = 0
-            while (i < points.length) {
-              val (lat, lon) = points(i)
-              Convert2ViewerFunction.encode(BasicValues(lat, lon, dtgs(i), trackId), buf)
-              i += 1
-            }
-          }
-          buf.toByteArray
-        }
-
-      case None =>
-        (sf) => {
-          val trackId = getTrack(sf, trackIdIndex)
-          val (lat, lon) = getGenericGeom(sf, geomIndex)
-          val dtg = getDtg(sf, dtgIndex)
-          Convert2ViewerFunction.encodeToByteArray(BasicValues(lat, lon, dtg, trackId))
-        }
-
-      case Some(lblIndex) if isPoint =>
-        (sf) => {
-          val trackId = getTrack(sf, trackIdIndex)
-          val (lat, lon) = getPointGeom(sf, geomIndex)
-          val dtg = getDtg(sf, dtgIndex)
-          val label = getLabel(sf, lblIndex)
-          Convert2ViewerFunction.encodeToByteArray(ExtendedValues(lat, lon, dtg, trackId, label))
-        }
-
-      case Some(lblIndex) if isLineString =>
-        val buf = new ByteArrayOutputStream()
-        (sf) => {
-          buf.reset()
-          val trackId = getTrack(sf, trackIdIndex)
-          val points = getLineGeom(sf, geomIndex)
-          val dtgs = getLineDtg(sf, dtgIndex)
-          val label = getLabel(sf, lblIndex)
-          if (points.length != dtgs.length) {
-            logger.warn(s"Mismatched geometries and dates for simple feature ${sf.getID} - skipping")
-          } else {
-            var i = 0
-            while (i < points.length) {
-              val (lat, lon) = points(i)
-              Convert2ViewerFunction.encode(ExtendedValues(lat, lon, dtgs(i), trackId, label), buf)
-              i += 1
-            }
-          }
-          buf.toByteArray
-        }
-
-      case Some(lblIndex) =>
-        (sf) => {
-          val trackId = getTrack(sf, trackIdIndex)
-          val (lat, lon) = getGenericGeom(sf, geomIndex)
-          val dtg = getDtg(sf, dtgIndex)
-          val label = getLabel(sf, lblIndex)
-          Convert2ViewerFunction.encodeToByteArray(ExtendedValues(lat, lon, dtg, trackId, label))
-        }
-    }
-
+    // noinspection ScalaDeprecation
     if (index.serializedWithId) {
       val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
       (e: Entry[Key, Value]) => {
@@ -355,49 +277,5 @@ object BinAggregatingIterator extends LazyLogging {
         new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), GeometryUtils.zeroPoint))
       }
     }
-
-  }
-
-  private def getTrack(sf: SimpleFeature, i: Int): Int = {
-    val t = sf.getAttribute(i)
-    if (t == null) { 0 } else { t.hashCode }
-  }
-
-  // get a single geom
-  private def getPointGeom(sf: SimpleFeature, i: Int): (Float, Float) = {
-    val p = sf.getAttribute(i).asInstanceOf[Point]
-    (p.getY.toFloat, p.getX.toFloat)
-  }
-
-  // get a line geometry as an array of points
-  private def getLineGeom(sf: SimpleFeature, i: Int): Array[(Float, Float)] = {
-    val geom = sf.getAttribute(i).asInstanceOf[LineString]
-    (0 until geom.getNumPoints).map(geom.getPointN).map(p => (p.getY.toFloat, p.getX.toFloat)).toArray
-  }
-
-  // get a single geom
-  private def getGenericGeom(sf: SimpleFeature, i: Int): (Float, Float) = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-    val p = sf.getAttribute(i).asInstanceOf[Geometry].safeCentroid()
-    (p.getY.toFloat, p.getX.toFloat)
-  }
-
-  // get a single date
-  private def getDtg(sf: SimpleFeature, i: Int): Long = {
-    val date = sf.getAttribute(i).asInstanceOf[Date]
-    if (date == null) System.currentTimeMillis else date.getTime
-  }
-
-  // for line strings, we need an array of dates corresponding to the points in the line
-  private def getLineDtg(sf: SimpleFeature, i: Int): Array[Long] = {
-    import scala.collection.JavaConversions._
-    val dates = sf.getAttribute(i).asInstanceOf[java.util.List[Date]]
-    if (dates == null) Array.empty else dates.map(_.getTime).toArray
-  }
-
-  // get a label as a long
-  private def getLabel(sf: SimpleFeature, i: Int): Long = {
-    val lbl = sf.getAttribute(i)
-    if (lbl == null) 0L else Convert2ViewerFunction.convertToLabel(lbl.toString)
   }
 }

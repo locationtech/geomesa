@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.tools.data
 
+import org.geotools.data.DataStore
+import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
 import org.opengis.filter.Filter
 
-trait DeleteFeaturesCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait DeleteFeaturesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name = "delete-features"
   override def params: DeleteFeaturesParams
@@ -22,7 +23,12 @@ trait DeleteFeaturesCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCo
     val sftName = params.featureName
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     Command.user.info(s"Deleting features from $sftName with filter $filter. This may take a few moments...")
-    withDataStore(_.getFeatureSource(sftName).removeFeatures(filter))
+    withDataStore { ds =>
+      ds.getFeatureSource(sftName) match {
+        case fs: SimpleFeatureStore => fs.removeFeatures(filter)
+        case fs => throw new IllegalStateException(s"Expected SimpleFeatureStore, got ${Option(fs).map(_.getClass.getName).orNull}")
+      }
+    }
     Command.user.info("Features deleted")
   }
 }

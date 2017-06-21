@@ -21,7 +21,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 object QueryHints {
 
-  val QUERY_INDEX      = new ClassKey(classOf[GeoMesaFeatureIndex[_, _, _]])
+  val QUERY_INDEX      = new ClassKey(classOf[String])
   val COST_EVALUATION  = new ClassKey(classOf[CostEvaluation])
 
   val DENSITY_BBOX     = new ClassKey(classOf[ReferencedEnvelope])
@@ -65,8 +65,7 @@ object QueryHints {
   implicit class RichHints(val hints: Hints) extends AnyRef {
 
     def getReturnSft: SimpleFeatureType = hints.get(Internal.RETURN_SFT).asInstanceOf[SimpleFeatureType]
-    def getRequestedIndex[O <: GeoMesaDataStore[O, F, W], F <: WrappedFeature, W]: Option[GeoMesaFeatureIndex[O, F, W]] =
-      Option(hints.get(QUERY_INDEX).asInstanceOf[GeoMesaFeatureIndex[O, F, W]])
+    def getRequestedIndex: Option[String] = Option(hints.get(QUERY_INDEX).asInstanceOf[String])
     def getCostEvaluation: CostEvaluation = {
       Option(hints.get(COST_EVALUATION).asInstanceOf[CostEvaluation])
           .orElse(QueryProperties.QUERY_COST_TYPE.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
@@ -104,6 +103,8 @@ object QueryHints {
       }
     def isStatsQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
+    // noinspection ExistsEquals
+    def isStatsEncode: Boolean = Option(hints.get(ENCODE_STATS).asInstanceOf[Boolean]).exists(_ == true)
     def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)
     def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION).asInstanceOf[String]
     def getTransformDefinition: Option[String] = Option(hints.get(Internal.TRANSFORMS).asInstanceOf[String])

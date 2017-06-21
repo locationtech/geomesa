@@ -132,7 +132,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
         sf.setId(getID)
         var i = 0
         while (i < tdefs.size) {
-          sf.setAttribute(i, tdefs(i).expression.evaluate(this))
+          sf.setAttribute(i, tdefs.get(i).expression.evaluate(this))
           i += 1
         }
         serializer.serialize(sf)

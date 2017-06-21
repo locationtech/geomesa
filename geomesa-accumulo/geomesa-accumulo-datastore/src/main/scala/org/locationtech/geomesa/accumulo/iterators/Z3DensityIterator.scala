@@ -8,15 +8,14 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.{Map => jMap}
-
 import com.google.common.primitives.Longs
-import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
+import org.locationtech.geomesa.accumulo.iterators.Z2DensityIterator.TableSharingKey
 import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
@@ -27,21 +26,18 @@ import org.opengis.filter.Filter
  */
 class Z3DensityIterator extends KryoLazyDensityIterator {
 
-  var normalizeWeight: (Double) => Double = _
   val zBytes = Array.fill[Byte](8)(0)
-  var sfc: Z3SFC = _
 
   override protected def initResult(sft: SimpleFeatureType,
                                     transform: Option[SimpleFeatureType],
                                     options: Map[String, String]): DensityResult = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    if (sft.isPoints) {
-      normalizeWeight = (weight) => weight
-    } else {
+    val result = super.initResult(sft, transform, options)
+    if (sft.nonPoints) {
       // normalize the weight based on how many representations of the geometry are in our index
       // this is stored in the column qualifier
-      normalizeWeight = (weight) => {
+      val normalizeWeight: (Double) => Double = (weight) => {
         val hexCount = topKey.getColumnQualifier.toString
         val hexSeparator = hexCount.indexOf(",")
         if (hexSeparator == -1) {
@@ -50,27 +46,27 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
           weight / Integer.parseInt(hexCount.substring(0, hexSeparator), 16)
         }
       }
-    }
-    sfc = Z3SFC(sft.getZ3Interval)
-    super.initResult(sft, transform, options)
-  }
+      val baseWeight = getWeight
+      getWeight = (sf) => normalizeWeight(baseWeight(sf))
 
-  /**
-   * We write the geometry at the center of the zbox that this row represents
-   */
-  override protected def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
-    case p: Point => writePointToResult(p, weight, result)
-    case _ =>
-      val row = topKey.getRowData
-      val zOffset = row.offset() + 3 // two for week and 1 for split
-      var i = 0
-      while (i < Z3IndexV2.GEOM_Z_NUM_BYTES) {
-        zBytes(i) = row.byteAt(zOffset + i)
-        i += 1
+
+      val sfc = Z3SFC(sft.getZ3Interval)
+      // 1 for split plus optional 1 for table sharing
+      val zPrefix = if (options(TableSharingKey).toBoolean) { 2 } else { 1 }
+      writeGeom = (_, weight, result) => {
+        val row = topKey.getRowData
+        val zOffset = row.offset() + 3 // two for week and 1 for split
+        var i = 0
+        while (i < Z3IndexV2.GEOM_Z_NUM_BYTES) {
+          zBytes(i) = row.byteAt(zOffset + i)
+          i += 1
+        }
+        val (x, y, _) = sfc.invert(Z3(Longs.fromByteArray(zBytes)))
+        DensityScan.writePointToResult(x, y, weight, gridSnap, result)
       }
-      val (x, y, _) = sfc.invert(Z3(Longs.fromByteArray(zBytes)))
-      val nWeight = normalizeWeight(weight)
-      writePointToResult(x, y, nWeight, result)
+    }
+
+    result
   }
 }
 

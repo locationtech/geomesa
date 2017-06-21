@@ -14,11 +14,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -39,10 +37,8 @@ object ViewParams extends LazyLogging {
     *
     * @param sft simple feature type
     * @param query query to examine/update
-    * @param ds geomesa data store, if available - may be null
-    *           (TODO would normally use an option but scala type bounds are causing issues)
     */
-  def setHints(sft: SimpleFeatureType, query: Query, ds: GeoMesaDataStore[_, _, _]): Unit = {
+  def setHints(sft: SimpleFeatureType, query: Query): Unit = {
     val params = {
       val viewParams = query.getHints.get(Hints.VIRTUAL_TABLE_PARAMETERS).asInstanceOf[jMap[String, String]]
       Option(viewParams).map(_.toMap).getOrElse(Map.empty)
@@ -52,7 +48,8 @@ object ViewParams extends LazyLogging {
     params.foreach { case (key, value) =>
       val setHint = setQueryHint(query, key) _
       key match {
-        case "QUERY_INDEX"     => toIndex(ds, sft, value).foreach(setHint(QUERY_INDEX, _))
+        case "QUERY_INDEX"     => setHint(QUERY_INDEX, value)
+        case "STRATEGY"        => setHint(QUERY_INDEX, value) // back-compatible check for strategy
         case "COST_EVALUATION" => toCost(value).foreach(setHint(COST_EVALUATION, _))
 
         case "DENSITY_BBOX"    => toEnvelope(key, value).foreach(setHint(DENSITY_BBOX, _))
@@ -85,9 +82,6 @@ object ViewParams extends LazyLogging {
         case "ARROW_SORT_FIELD"         => setHint(ARROW_SORT_FIELD, value)
         case "ARROW_SORT_REVERSE"       => toBoolean(key, value).foreach(setHint(ARROW_SORT_REVERSE, _))
 
-        // back-compatible check for strategy
-        case "STRATEGY"        => toIndex(ds, sft, value).foreach(setHint(QUERY_INDEX, _))
-
         case _ => logger.debug(s"Ignoring view param $key=$value")
       }
     }
@@ -102,24 +96,6 @@ object ViewParams extends LazyLogging {
       logger.warn("Ignoring query hint from geoserver in favor of hint directly set in query. " +
           s"Using $name=$old and disregarding $value")
     }
-  }
-
-  private def toIndex(ds: GeoMesaDataStore[_, _, _],
-                      sft: SimpleFeatureType,
-                      name: String): Option[GeoMesaFeatureIndex[_, _, _]] = {
-    val check = name.toLowerCase(Locale.US)
-    val rawIndices = if (ds == null) { Seq.empty } else { ds.manager.indices(sft, IndexMode.Read) }
-    val indices = rawIndices.asInstanceOf[Seq[GeoMesaFeatureIndex[_ <: GeoMesaDataStore[_, _, _], _ <: WrappedFeature, _]]]
-    val value = if (check.contains(":")) {
-      indices.find(_.identifier.toLowerCase(Locale.US) == check)
-    } else {
-      indices.find(_.name.toLowerCase(Locale.US) == check)
-    }
-    if (value.isEmpty) {
-      logger.error(s"Ignoring invalid strategy name from view params: $name. Valid values " +
-          s"are ${indices.map(i => s"${i.name}, ${i.identifier}").mkString(", ")}")
-    }
-    value
   }
 
   private def toCost(name: String): Option[CostEvaluation] = {

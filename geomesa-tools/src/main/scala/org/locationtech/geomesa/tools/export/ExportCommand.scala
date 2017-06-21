@@ -14,7 +14,7 @@ import java.util.zip.{Deflater, GZIPOutputStream}
 import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.geotools.data.Query
+import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -31,7 +31,7 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
+trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodProfiling {
 
   override val name = "export"
   override def params: ExportParams
@@ -43,7 +43,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
         s"in ${timing.time}ms${count.map(" for " + _ + " features").getOrElse("")}")
   }
 
-  protected def export(ds: DS): Option[Long] = {
+  protected def export(ds: DataStore): Option[Long] = {
     import ExportCommand._
     import org.locationtech.geomesa.tools.utils.DataFormats._
 
@@ -86,15 +86,16 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
 
 object ExportCommand extends LazyLogging {
 
-  def createQuery(ds: GeoMesaDataStore[_, _, _],
+  def createQuery(ds: DataStore,
                   sft: => SimpleFeatureType,
                   fmt: DataFormat,
                   params: ExportParams): (Query, Option[ExportAttributes]) = {
+    lazy val gmds = Option(ds).collect { case d: GeoMesaDataStore[_, _, _] => d }.orNull
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
 
     val query = new Query(params.featureName, filter)
     Option(params.maxFeatures).map(Int.unbox).foreach(query.setMaxFeatures)
-    params.loadIndex(ds, IndexMode.Read).foreach { index =>
+    params.loadIndex(gmds, IndexMode.Read).foreach { index =>
       query.getHints.put(QueryHints.QUERY_INDEX, index)
       logger.debug(s"Using index ${index.identifier}")
     }
@@ -108,7 +109,7 @@ object ExportCommand extends LazyLogging {
 
     Option(params.hints).foreach { hints =>
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
-      ViewParams.setHints(sft, query, ds)
+      ViewParams.setHints(sft, query)
     }
 
     val attributes = {
