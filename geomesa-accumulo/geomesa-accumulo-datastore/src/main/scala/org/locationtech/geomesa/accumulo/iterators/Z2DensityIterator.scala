@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import com.google.common.primitives.Longs
-import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1
 import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.sfcurve.zorder.Z2
@@ -30,19 +30,16 @@ class Z2DensityIterator extends KryoLazyDensityIterator {
 
   import Z2DensityIterator.TableSharingKey
 
-  var normalizeWeight: (Double) => Double = _
   val zBytes = Array.fill[Byte](8)(0)
-  var zPrefix: Int = -1
 
   override protected def initResult(sft: SimpleFeatureType,
                                     transform: Option[SimpleFeatureType],
                                     options: Map[String, String]): DensityResult = {
-    if (sft.isPoints) {
-      normalizeWeight = (weight) => weight
-    } else {
+    val result = super.initResult(sft, transform, options)
+    if (sft.nonPoints) {
       // normalize the weight based on how many representations of the geometry are in our index
       // this is stored in the column qualifier
-      normalizeWeight = (weight) => {
+      val normalizeWeight: (Double) => Double = (weight) => {
         val hexCount = topKey.getColumnQualifier.toString
         val hexSeparator = hexCount.indexOf(",")
         if (hexSeparator == -1) {
@@ -51,29 +48,25 @@ class Z2DensityIterator extends KryoLazyDensityIterator {
           weight / Integer.parseInt(hexCount.substring(0, hexSeparator), 16)
         }
       }
+      val baseWeight = getWeight
+      getWeight = (sf) => normalizeWeight(baseWeight(sf))
+
+      // 1 for split plus optional 1 for table sharing
+      val zPrefix = if (options(TableSharingKey).toBoolean) { 2 } else { 1 }
+      writeGeom = (_, weight, result) => {
+        val row = topKey.getRowData
+        val zOffset = row.offset() + zPrefix
+        var i = 0
+        while (i < Z2IndexV1.GEOM_Z_NUM_BYTES) {
+          zBytes(i) = row.byteAt(zOffset + i)
+          i += 1
+        }
+        val (x, y) = Z2SFC.invert(Z2(Longs.fromByteArray(zBytes)))
+        DensityScan.writePointToResult(x, y, weight, gridSnap, result)
+      }
     }
 
-    // 1 for split plus optional 1 for table sharing
-    zPrefix = if (options(TableSharingKey).toBoolean) { 2 } else { 1 }
-    super.initResult(sft, transform, options)
-  }
-
-  /**
-   * We write the geometry at the center of the zbox that this row represents
-   */
-  override protected def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
-    case p: Point => writePointToResult(p, weight, result)
-    case _ =>
-      val row = topKey.getRowData
-      val zOffset = row.offset() + zPrefix
-      var i = 0
-      while (i < Z2IndexV1.GEOM_Z_NUM_BYTES) {
-        zBytes(i) = row.byteAt(zOffset + i)
-        i += 1
-      }
-      val (x, y) = Z2SFC.invert(Z2(Longs.fromByteArray(zBytes)))
-      val nWeight = normalizeWeight(weight)
-      writePointToResult(x, y, nWeight, result)
+    result
   }
 }
 

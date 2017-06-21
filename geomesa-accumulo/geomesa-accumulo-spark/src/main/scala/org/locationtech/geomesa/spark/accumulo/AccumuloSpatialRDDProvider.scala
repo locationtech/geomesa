@@ -188,7 +188,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       val featureWriter = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
       try {
         iter.foreach { rawFeature =>
-          FeatureUtils.copyToWriter(featureWriter, rawFeature, overrideFid = true)
+          FeatureUtils.copyToWriter(featureWriter, rawFeature, useProvidedFid = true)
           featureWriter.write()
         }
       } finally {

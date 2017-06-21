@@ -277,7 +277,6 @@ object AccumuloDataStore {
   * @param queryThreads number of threads used per-query
   * @param recordThreads number of threads used to join against the record table. Because record scans
   *                      are single-row ranges, increasing this too much can cause performance to decrease
-
   */
 case class AccumuloDataStoreConfig(catalog: String,
                                    defaultVisibilities: String,

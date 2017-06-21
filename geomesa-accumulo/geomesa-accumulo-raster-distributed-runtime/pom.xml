@@ -16,7 +16,7 @@
     </parent>
 
     <artifactId>geomesa-accumulo-raster-distributed-runtime_2.11</artifactId>
-    <name>GeoMesa Accumulo Distributed Runtime with Raster Support</name>
+    <name>GeoMesa Accumulo Raster Distributed Runtime</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

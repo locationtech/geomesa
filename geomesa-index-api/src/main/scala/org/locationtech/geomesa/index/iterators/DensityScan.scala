@@ -23,17 +23,15 @@ import org.opengis.filter.expression.Expression
 
 trait DensityScan extends AggregatingScan[DensityResult] {
 
-  private var geomIndex: Int = -1
   // we snap each point into a pixel and aggregate based on that
-  private var gridSnap: GridSnap = _
-  private var writeGeom: (SimpleFeature, DensityResult) => Unit = _
+  protected var gridSnap: GridSnap = _
+  protected var getWeight: (SimpleFeature) => Double = _
+  protected var writeGeom: (SimpleFeature, Double, DensityResult) => Unit = _
 
   override protected def initResult(sft: SimpleFeatureType,
                                     transform: Option[SimpleFeatureType],
                                     options: Map[String, String]): DensityResult = {
     import DensityScan.Configuration._
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    geomIndex = sft.getGeomIndex
     gridSnap = {
       val bounds = options(EnvelopeOpt).split(",").map(_.toDouble)
       val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
@@ -41,87 +39,16 @@ trait DensityScan extends AggregatingScan[DensityResult] {
       new GridSnap(envelope, width, height)
     }
 
-    // function to get the weight from the feature - defaults to 1.0 unless an attribute/exp is specified
-    val weightIndex = options.get(WeightOpt).map(sft.indexOf).getOrElse(-2)
-    val weightFn: (SimpleFeature) => Double =
-      if (weightIndex == -2) {
-        (_) => 1.0
-      } else if (weightIndex == -1) {
-        val expression = ECQL.toExpression(options(WeightOpt))
-        getWeightFromExpression(expression)
-      } else if (sft.getDescriptor(weightIndex).getType.getBinding == classOf[java.lang.Double]) {
-        getWeightFromDouble(weightIndex)
-      } else {
-        getWeightFromNonDouble(weightIndex)
-      }
-
-    writeGeom = if (sft.isPoints) {
-      (sf, result) => writePoint(sf, weightFn(sf), result)
-    } else {
-      (sf, result) => writeNonPoint(sf.getDefaultGeometry.asInstanceOf[Geometry], weightFn(sf), result)
-    }
+    getWeight = DensityScan.getWeight(sft, options.get(WeightOpt))
+    writeGeom = DensityScan.writeGeometry(sft, gridSnap)
 
     scala.collection.mutable.Map.empty[(Int, Int), Double]
   }
 
-  override protected def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
+  override protected def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit =
+    writeGeom(sf, getWeight(sf), result)
 
   override protected def encodeResult(result: DensityResult): Array[Byte] = DensityScan.encodeResult(result)
-
-  /**
-    * Gets the weight for a feature from a double attribute
-    */
-  protected def getWeightFromDouble(i: Int)(sf: SimpleFeature): Double = {
-    val d = sf.getAttribute(i).asInstanceOf[java.lang.Double]
-    if (d == null) 0.0 else d
-  }
-
-  /**
-    * Tries to convert a non-double attribute into a double
-    */
-  protected def getWeightFromNonDouble(i: Int)(sf: SimpleFeature): Double = {
-    val d = sf.getAttribute(i)
-    if (d == null) {
-      0.0
-    } else {
-      val converted = Converters.convert(d, classOf[java.lang.Double])
-      if (converted == null) 1.0 else converted
-    }
-  }
-
-  /**
-    * Evaluates an arbitrary expression against the simple feature to return a weight
-    */
-  protected def getWeightFromExpression(e: Expression)(sf: SimpleFeature): Double = {
-    val d = e.evaluate(sf, classOf[java.lang.Double])
-    if (d == null) 0.0 else d
-  }
-
-  /**
-    * Writes a density record from a feature that has a point geometry
-    */
-  protected def writePoint(sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
-    writePointToResult(sf.getAttribute(geomIndex).asInstanceOf[Point], weight, result)
-
-  /**
-    * Writes a density record from a feature that has an arbitrary geometry
-    */
-  protected def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-    writePointToResult(geom.safeCentroid(), weight, result)
-  }
-
-  protected def writePointToResult(pt: Point, weight: Double, result: DensityResult): Unit =
-    writeSnappedPoint((gridSnap.i(pt.getX), gridSnap.j(pt.getY)), weight, result)
-
-  protected def writePointToResult(pt: Coordinate, weight: Double, result: DensityResult): Unit =
-    writeSnappedPoint((gridSnap.i(pt.x), gridSnap.j(pt.y)), weight, result)
-
-  protected def writePointToResult(x: Double, y: Double, weight: Double, result: DensityResult): Unit =
-    writeSnappedPoint((gridSnap.i(x), gridSnap.j(y)), weight, result)
-
-  private def writeSnappedPoint(xy: (Int, Int), weight: Double, result: DensityResult): Unit =
-    result.update(xy, result.getOrElse(xy, 0.0) + weight)
 }
 
 object DensityScan {
@@ -201,4 +128,81 @@ object DensityScan {
       }
     }
   }
+
+  def getWeight(sft: SimpleFeatureType, weight: Option[String]): (SimpleFeature) => Double = {
+    // function to get the weight from the feature - defaults to 1.0 unless an attribute/exp is specified
+    val weightIndex = weight.map(sft.indexOf).getOrElse(-2)
+    if (weightIndex == -2) {
+      (_) => 1.0
+    } else if (weightIndex == -1) {
+      getWeightFromExpression(ECQL.toExpression(weight.get))
+    } else if (classOf[Number].isAssignableFrom(sft.getDescriptor(weightIndex).getType.getBinding)) {
+      getWeightFromNumber(weightIndex)
+    } else {
+      getWeightFromNonNumber(weightIndex)
+    }
+  }
+
+  def writeGeometry(sft: SimpleFeatureType, grid: GridSnap): (SimpleFeature, Double, DensityResult) => Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    val geomIndex = sft.getGeomIndex
+    if (sft.isPoints) {
+      (sf, weight, result) => writePoint(sf, geomIndex, weight, grid, result)
+    } else {
+      (sf, weight, result) => writeNonPoint(sf.getAttribute(geomIndex).asInstanceOf[Geometry], weight, grid, result)
+    }
+  }
+
+  /**
+    * Gets the weight for a feature from a double attribute
+    */
+  private def getWeightFromNumber(i: Int)(sf: SimpleFeature): Double = {
+    val d = sf.getAttribute(i).asInstanceOf[Number]
+    if (d == null) { 0.0 } else { d.doubleValue }
+  }
+
+  /**
+    * Tries to convert a non-double attribute into a double
+    */
+  private def getWeightFromNonNumber(i: Int)(sf: SimpleFeature): Double = {
+    val d = sf.getAttribute(i)
+    if (d == null) { 0.0 } else {
+      val converted = Converters.convert(d, classOf[java.lang.Double])
+      if (converted == null) 1.0 else converted
+    }
+  }
+
+  /**
+    * Evaluates an arbitrary expression against the simple feature to return a weight
+    */
+  private def getWeightFromExpression(e: Expression)(sf: SimpleFeature): Double = {
+    val d = e.evaluate(sf, classOf[java.lang.Double])
+    if (d == null) 0.0 else d
+  }
+
+  /**
+    * Writes a density record from a feature that has a point geometry
+    */
+  private def writePoint(sf: SimpleFeature, geomIndex: Int, weight: Double, grid: GridSnap, result: DensityResult): Unit =
+    writePointToResult(sf.getAttribute(geomIndex).asInstanceOf[Point], weight, grid, result)
+
+  /**
+    * Writes a density record from a feature that has an arbitrary geometry
+    */
+  private def writeNonPoint(geom: Geometry, weight: Double, grid: GridSnap, result: DensityResult): Unit = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    writePointToResult(geom.safeCentroid(), weight, grid, result)
+  }
+
+  private def writePointToResult(pt: Point, weight: Double, grid: GridSnap, result: DensityResult): Unit =
+    writeSnappedPoint((grid.i(pt.getX), grid.j(pt.getY)), weight, result)
+
+  private def writePointToResult(pt: Coordinate, weight: Double, grid: GridSnap, result: DensityResult): Unit =
+    writeSnappedPoint((grid.i(pt.x), grid.j(pt.y)), weight, result)
+
+  def writePointToResult(x: Double, y: Double, weight: Double, grid: GridSnap, result: DensityResult): Unit =
+    writeSnappedPoint((grid.i(x), grid.j(y)), weight, result)
+
+  private def writeSnappedPoint(xy: (Int, Int), weight: Double, result: DensityResult): Unit =
+    result.update(xy, result.getOrElse(xy, 0.0) + weight)
 }

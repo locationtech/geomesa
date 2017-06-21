@@ -338,9 +338,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
     if (config.caching) {
-      new GeoMesaFeatureStore(this, sft, createFeatureCollection) with CachingFeatureSource
+      new GeoMesaFeatureStore(this, sft, queryPlanner, createFeatureCollection) with CachingFeatureSource
     } else {
-      new GeoMesaFeatureStore(this, sft, createFeatureCollection)
+      new GeoMesaFeatureStore(this, sft, queryPlanner, createFeatureCollection)
     }
   }
 

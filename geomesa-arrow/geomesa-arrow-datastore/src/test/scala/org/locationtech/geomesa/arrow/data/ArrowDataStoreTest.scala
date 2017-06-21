@@ -53,7 +53,7 @@ class ArrowDataStoreTest extends Specification {
 
         var writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
         features0.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, overrideFid = true)
+          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
           writer.write()
         }
         writer.close()
@@ -73,7 +73,7 @@ class ArrowDataStoreTest extends Specification {
 
         writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
         features1.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, overrideFid = true)
+          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
           writer.write()
         }
         writer.close()

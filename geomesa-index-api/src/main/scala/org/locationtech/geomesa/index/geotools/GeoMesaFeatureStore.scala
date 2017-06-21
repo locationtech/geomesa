@@ -13,6 +13,8 @@ import java.util.{List => jList}
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature._
+import org.locationtech.geomesa.index.planning.QueryRunner
+import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
@@ -23,10 +25,11 @@ import org.opengis.filter.identity.FeatureId
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
-class GeoMesaFeatureStore(ds: GeoMesaDataStore[_, _, _],
+class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
                           sft: SimpleFeatureType,
+                          runner: QueryRunner,
                           collection: (Query, GeoMesaFeatureSource) => GeoMesaFeatureCollection)
-    extends GeoMesaFeatureSource(ds, sft, collection) with SimpleFeatureStore {
+    extends GeoMesaFeatureSource(ds, sft, runner, collection) with SimpleFeatureStore {
 
   private var transaction: Transaction = Transaction.AUTO_COMMIT
 
