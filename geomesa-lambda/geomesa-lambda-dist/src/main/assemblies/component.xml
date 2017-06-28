@@ -64,7 +64,7 @@
             </includes>
         </fileSet>
 
-        <!-- HBase Tools filesets -->
+        <!-- Lambda Tools filesets -->
         <fileSet>
             <directory>../geomesa-lambda-tools/bin</directory>
             <outputDirectory>bin</outputDirectory>
@@ -85,6 +85,19 @@
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
+        </fileSet>
+
+        <!-- accumulo helper files -->
+        <fileSet>
+            <directory>../../geomesa-accumulo/geomesa-accumulo-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+            <includes>
+                <include>install-hadoop-accumulo.sh</include>
+                <include>setup-namespace.sh</include>
+            </includes>
         </fileSet>
 
         <!-- Common Tools filesets -->
