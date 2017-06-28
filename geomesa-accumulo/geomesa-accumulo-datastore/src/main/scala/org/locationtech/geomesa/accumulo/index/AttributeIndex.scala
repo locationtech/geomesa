@@ -207,7 +207,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     } else if (hints.isArrowQuery) {
       lazy val dictionaryFields = hints.getArrowDictionaryFields
       lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
-      lazy val dictionaries = ArrowBatchScan.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
+      lazy val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields, providedDictionaries)
       // check to see if we can execute against the index values
       if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
         val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
@@ -342,7 +342,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
 
     lazy val dictionaryFields = hints.getArrowDictionaryFields
     lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
-    lazy val arrowDictionaries = ArrowBatchScan.createDictionaries(ds, sft, filter.filter, dictionaryFields, providedDictionaries)
+    lazy val arrowDictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields, providedDictionaries)
 
     // apply any secondary filters or transforms against the record table
     val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {

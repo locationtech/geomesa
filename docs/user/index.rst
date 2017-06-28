@@ -13,10 +13,11 @@ User Manual
    install
    datastores/index
    accumulo/index
-   kafka/index
    hbase/index
    bigtable/index
    cassandra/index
+   kafka/index
+   lambda/index
    geoserver
    blobstore
    convert/index

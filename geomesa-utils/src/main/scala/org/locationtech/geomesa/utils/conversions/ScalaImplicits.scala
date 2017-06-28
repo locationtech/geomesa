@@ -19,8 +19,8 @@ object ScalaImplicits {
     def maxOption(implicit cmp: Ordering[T]): Option[T] = if (seq.isEmpty) None else Some(seq.max)
     def maxOrElse(or: T)(implicit cmp: Ordering[T]): T = if (seq.isEmpty) or else seq.max
 
-    def sumOption(implicit num: Numeric[T]) = if (seq.isEmpty) None else Some(seq.sum)
-    def sumOrElse(or: T)(implicit num: Numeric[T]) = if (seq.isEmpty) or else seq.sum
+    def sumOption(implicit num: Numeric[T]): Option[T] = if (seq.isEmpty) None else Some(seq.sum)
+    def sumOrElse(or: T)(implicit num: Numeric[T]): T = if (seq.isEmpty) or else seq.sum
   }
 
   implicit class RichTraversableLike[+A, +Repr](val seq: TraversableLike[A, Repr]) extends AnyVal {

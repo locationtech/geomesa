@@ -226,7 +226,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
       val enumeration = try {
         // stats should always return exactly one result, even if there are no features in the table
         val encoded = reader.next.getAttribute(0).asInstanceOf[String]
-        KryoLazyStatsUtils.decodeStat(encoded, sft).asInstanceOf[EnumerationStat[Any]]
+        KryoLazyStatsUtils.decodeStat(sft)(encoded).asInstanceOf[EnumerationStat[Any]]
       } finally {
         reader.close()
       }

@@ -97,7 +97,7 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       val result = try {
         // stats should always return exactly one result, even if there are no features in the table
-        KryoLazyStatsUtils.decodeStat(reader.next.getAttribute(0).asInstanceOf[String], sft)
+        KryoLazyStatsUtils.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
       } finally {
         reader.close()
       }

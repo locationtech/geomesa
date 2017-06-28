@@ -53,6 +53,9 @@ object QueryHints {
   val ARROW_SORT_FIELD         = new ClassKey(classOf[java.lang.String])
   val ARROW_SORT_REVERSE       = new ClassKey(classOf[java.lang.Boolean])
 
+  val LAMBDA_QUERY_PERSISTENT  = new ClassKey(classOf[java.lang.Boolean])
+  val LAMBDA_QUERY_TRANSIENT   = new ClassKey(classOf[java.lang.Boolean])
+
   // internal hints that shouldn't be set directly by users
   object Internal {
     val RETURN_SFT       = new ClassKey(classOf[SimpleFeatureType])
@@ -111,5 +114,9 @@ object QueryHints {
     def getTransform: Option[(String, SimpleFeatureType)] =
       hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
+    def isLambdaQueryPersistent: Boolean =
+      Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
+    def isLambdaQueryTransient: Boolean =
+      Option(hints.get(LAMBDA_QUERY_TRANSIENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
   }
 }

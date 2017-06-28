@@ -46,7 +46,7 @@ class StatsProcess extends GeoMesaProcess with LazyLogging {
                    name = "encode",
                    min = 0,
                    description = "Return the values encoded or as json")
-                 encode: Boolean = false,
+                 encode: java.lang.Boolean = null,
 
                  @DescribeParameter(
                    name = "properties",
@@ -62,7 +62,7 @@ class StatsProcess extends GeoMesaProcess with LazyLogging {
 
     val propsArray = Option(properties).map(_.toArray(Array.empty[String])).filter(_.length > 0).orNull
 
-    val visitor = new StatsVisitor(features, statString, encode, propsArray)
+    val visitor = new StatsVisitor(features, statString, Option(encode).exists(_.booleanValue()), propsArray)
 
     features.accepts(visitor, new NullProgressListener)
     visitor.getResult.results
@@ -100,7 +100,7 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
       resultCalc
     } else {
       val stats = if (encode) {
-        KryoLazyStatsUtils.encodeStat(stat, statSft)
+        KryoLazyStatsUtils.encodeStat(statSft)(stat)
       } else {
         stat.toJson
       }
