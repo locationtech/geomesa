@@ -14,12 +14,12 @@ import org.locationtech.geomesa.accumulo.tools.RunnerWithAccumuloEnvironment
 import org.locationtech.geomesa.accumulo.tools.data._
 import org.locationtech.geomesa.accumulo.tools.stats._
 import org.locationtech.geomesa.accumulo.tools.status._
-import org.locationtech.geomesa.lambda.tools.data.{LambdaCreateSchemaCommand, LambdaDeleteFeaturesCommand, LambdaRemoveSchemaCommand}
+import org.locationtech.geomesa.lambda.tools.data._
 import org.locationtech.geomesa.lambda.tools.export.LambdaExportCommand
-import org.locationtech.geomesa.lambda.tools.stats.{LambdaStatsBoundsCommand, LambdaStatsCountCommand, LambdaStatsHistogramCommand, LambdaStatsTopKCommand}
+import org.locationtech.geomesa.lambda.tools.stats._
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
-import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.tools.status._
 
 object LambdaRunner extends RunnerWithAccumuloEnvironment {
 
@@ -45,6 +45,8 @@ object LambdaRunner extends RunnerWithAccumuloEnvironment {
     new LambdaStatsTopKCommand,
     new LambdaStatsHistogramCommand,
     new AddIndexCommand,
-    new ConvertCommand
+    new ConvertCommand,
+    new ConfigureCommand,
+    new ClasspathCommand
   )
 }
