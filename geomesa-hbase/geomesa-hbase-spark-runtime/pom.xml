@@ -151,6 +151,8 @@
                                     <exclude>com.esotericsoftware.kryo:*</exclude>
                                     <exclude>org.ow2.asm:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
+                                    <exclude>io.netty:*</exclude>
+                                    <exclude>org.json4s:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>
