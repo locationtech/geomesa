@@ -14,7 +14,7 @@ import org.locationtech.geomesa.hbase.tools.export.HBaseExportCommand
 import org.locationtech.geomesa.hbase.tools.stats._
 import org.locationtech.geomesa.hbase.tools.status._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
-import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 object BigtableRunner extends Runner {
@@ -42,7 +42,9 @@ object BigtableRunner extends Runner {
     new HBaseStatsBoundsCommand,
     new HBaseStatsCountCommand,
     new HBaseStatsTopKCommand,
-    new HBaseStatsHistogramCommand
+    new HBaseStatsHistogramCommand,
+    new ConfigureCommand,
+    new ClasspathCommand
   )
 
   override def environmentErrorInfo(): Option[String] = {
