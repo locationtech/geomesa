@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets
 import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.arrow.io.DictionaryBuildingWriter
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
@@ -25,7 +24,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, GeometryAttribute}
 import org.locationtech.geomesa.filter.function.{AxisOrder, BinaryOutputEncoder}
-import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.GeoMesaStats
@@ -109,8 +107,8 @@ class KafkaQueryRunner(features: SharedState, stats: GeoMesaStats, authProvider:
       val Some((width, height)) = hints.getDensityBounds
       densityTransform(features, sft, envelope, width, height, hints.getDensityWeight)
     } else if (hints.isStatsQuery) {
-      // TODO GEOMESA-1893 transform with stats
-      statsTransform(features, sft, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
+      statsTransform(features, hints.getTransformSchema.getOrElse(sft), hints.getTransformDefinition,
+        hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
     } else {
       hints.getTransform match {
         case None => features
@@ -281,10 +279,15 @@ class KafkaQueryRunner(features: SharedState, stats: GeoMesaStats, authProvider:
 
   private def statsTransform(features: Iterator[SimpleFeature],
                              sft: SimpleFeatureType,
+                             transform: Option[String],
                              query: String,
                              encode: Boolean): Iterator[SimpleFeature] = {
     val stat = Stat(sft, query)
-    features.foreach(stat.observe)
+    val toObserve = transform match {
+      case None        => features
+      case Some(tdefs) => projectionTransform(features, sft, tdefs)
+    }
+    toObserve.foreach(stat.observe)
     val encoded = if (encode) { KryoLazyStatsUtils.encodeStat(sft)(stat) } else { stat.toJson }
     Iterator(new ScalaSimpleFeature("stat", KryoLazyStatsUtils.StatsSft, Array(encoded, GeometryUtils.zeroPoint)))
   }
