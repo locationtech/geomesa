@@ -10,7 +10,9 @@ package org.locationtech.geomesa.filter.factory
 
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.visitor.BindingFilterVisitor
 import org.locationtech.geomesa.filter.expression._
+import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geotools.{SimpleFeaturePropertyAccessor, SimpleFeatureTypes}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
@@ -91,6 +93,16 @@ object FastFilterFactory {
     sfts.set(sft)
     try {
       ECQL.toFilter(ecql, factory)
+    } finally {
+      sfts.remove()
+    }
+  }
+
+  def optimize(sft: SimpleFeatureType, filter: Filter): Filter = {
+    sfts.set(sft)
+    try {
+      filter.accept(new BindingFilterVisitor(sft), null).asInstanceOf[Filter]
+          .accept(new QueryPlanFilterVisitor(sft), factory).asInstanceOf[Filter]
     } finally {
       sfts.remove()
     }

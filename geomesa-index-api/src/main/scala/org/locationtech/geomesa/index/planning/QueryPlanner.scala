@@ -84,10 +84,12 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
       iterator = new DeduplicatingSimpleFeatureIterator(iterator)
     }
 
-    // note: reduce must be the same across query plans
-    val reduce = plans.headOption.flatMap(_.reduce)
-    require(plans.tailOption.forall(_.reduce == reduce), "Reduce must be the same in all query plans")
-    reduce.foreach(r => iterator = r(iterator))
+    if (!query.getHints.isSkipReduce) {
+      // note: reduce must be the same across query plans
+      val reduce = plans.headOption.flatMap(_.reduce)
+      require(plans.tailOption.forall(_.reduce == reduce), "Reduce must be the same in all query plans")
+      reduce.foreach(r => iterator = r(iterator))
+    }
 
     if (query.getSortBy != null && query.getSortBy.length > 0) {
       iterator = new SortingSimpleFeatureIterator(iterator, query.getSortBy)

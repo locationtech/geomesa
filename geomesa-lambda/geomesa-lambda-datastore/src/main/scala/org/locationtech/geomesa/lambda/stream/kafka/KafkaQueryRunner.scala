@@ -75,15 +75,8 @@ class KafkaQueryRunner(features: SharedState, stats: GeoMesaStats, authProvider:
     CloseableIterator(transform(iter, sft, query.getHints, query.getFilter))
   }
 
-  override protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter = {
-    FastFilterFactory.sfts.set(sft)
-    try {
-      filter.accept(new BindingFilterVisitor(sft), null).asInstanceOf[Filter]
-          .accept(new QueryPlanFilterVisitor(sft), FastFilterFactory.factory).asInstanceOf[Filter]
-    } finally {
-      FastFilterFactory.sfts.remove()
-    }
-  }
+  override protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter =
+    FastFilterFactory.optimize(sft, filter)
 
   override protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
     if (hints.isBinQuery) {
@@ -117,7 +110,7 @@ class KafkaQueryRunner(features: SharedState, stats: GeoMesaStats, authProvider:
       densityTransform(features, sft, envelope, width, height, hints.getDensityWeight)
     } else if (hints.isStatsQuery) {
       // TODO GEOMESA-1893 transform with stats
-      statsTransform(features, sft, hints.getStatsQuery, hints.isStatsEncode)
+      statsTransform(features, sft, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
     } else {
       hints.getTransform match {
         case None => features
@@ -157,12 +150,11 @@ class KafkaQueryRunner(features: SharedState, stats: GeoMesaStats, authProvider:
     if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
         dictionaryFields.forall(providedDictionaries.contains)) {
       val dictionaries = ArrowBatchScan.createDictionaries(stats, sft, Option(filter), dictionaryFields, providedDictionaries)
-      val reduce = ArrowBatchScan.reduceFeatures(arrowSft, hints, dictionaries)
       val arrows = hints.getArrowSort match {
         case None => arrowBatchTransform(transforms, arrowSft, encoding, dictionaries, batchSize)
         case Some((sortField, reverse)) => arrowSortTransform(transforms, arrowSft, encoding, dictionaries, sortField, reverse, batchSize)
       }
-      reduce(arrows)
+      if (hints.isSkipReduce) { arrows } else { ArrowBatchScan.reduceFeatures(arrowSft, hints, dictionaries)(arrows) }
     } else {
       arrowFileTransform(transforms, arrowSft, encoding, dictionaryFields, batchSize)
     }

@@ -61,6 +61,7 @@ object QueryHints {
     val RETURN_SFT       = new ClassKey(classOf[SimpleFeatureType])
     val TRANSFORMS       = new ClassKey(classOf[String])
     val TRANSFORM_SCHEMA = new ClassKey(classOf[SimpleFeatureType])
+    val SKIP_REDUCE      = new ClassKey(classOf[java.lang.Boolean])
   }
 
   implicit class RichHints(val hints: Hints) extends AnyRef {
@@ -72,6 +73,7 @@ object QueryHints {
           .orElse(QueryProperties.QUERY_COST_TYPE.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
           .getOrElse(CostEvaluation.Stats)
     }
+    def isSkipReduce: Boolean = Option(hints.get(Internal.SKIP_REDUCE).asInstanceOf[java.lang.Boolean]).exists(_.booleanValue())
     def isBinQuery: Boolean = hints.containsKey(BIN_TRACK)
     def getBinTrackIdField: String = hints.get(BIN_TRACK).asInstanceOf[String]
     def getBinGeomField: Option[String] = Option(hints.get(BIN_GEOM).asInstanceOf[String])
@@ -97,6 +99,8 @@ object QueryHints {
       Option(hints.get(ARROW_DICTIONARY_COMPUTE).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
     def getArrowDictionaryEncodedValues: Map[String, Seq[AnyRef]] =
       Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap).getOrElse(Map.empty)
+    def setArrowDictionaryEncodedValues(values: Map[String, Seq[AnyRef]]): Unit =
+      hints.put(ARROW_DICTIONARY_VALUES, StringSerialization.encodeSeqMap(values))
     def getArrowBatchSize: Option[Int] = Option(hints.get(ARROW_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue)
     def getArrowSort: Option[(String, Boolean)] =
       Option(hints.get(ARROW_SORT_FIELD).asInstanceOf[String]).map { field =>

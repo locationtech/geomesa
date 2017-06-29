@@ -8,10 +8,13 @@
 
 package org.locationtech.geomesa.lambda
 
+import java.io.ByteArrayInputStream
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.arrow.memory.RootAllocator
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -35,6 +38,8 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
   step {
     logger.info("LambdaDataStoreTest starting")
   }
+
+  implicit val allocator = new RootAllocator(Long.MaxValue)
 
   val sft = SimpleFeatureTypes.createType("lambda", "name:String,dtg:Date,*geom:Point:srid=4326")
   val features = Seq(
@@ -63,6 +68,20 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
     bins.map(_.dtg) must containAllOf(features.map(_.getAttribute("dtg").asInstanceOf[Date].getTime))
     bins.map(_.lat) must containAllOf(Seq(50f, 51f))
     bins.map(_.lon) must containAllOf(Seq(45f, 46f))
+  }
+
+  def testArrow(ds: LambdaDataStore): MatchResult[Any] = {
+    val query = new Query(sft.getTypeName, Filter.INCLUDE)
+    query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+    query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+    query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+    // note: need to copy the features as the same object is re-used in the iterator
+    val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+    val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+    WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+      SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+          containTheSameElementsAs(features)
+    }
   }
 
   def testStats(ds: LambdaDataStore): MatchResult[Any] = {
@@ -100,13 +119,14 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
             clock.tick = clock.millis + 50
           }
         }
-        // TODO test query_persisent/transient
+
         // test queries against the transient store
         ds.transients.get(sft.getTypeName).read().toSeq must eventually(40, 100.millis)(containTheSameElementsAs(features))
         SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
             containTheSameElementsAs(features)
         testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
         testBin(ds)
+        testArrow(ds)
         testStats(ds)
 
         // persist one feature to long-term store
@@ -118,7 +138,16 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
             containTheSameElementsAs(features)
         testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
         testBin(ds)
+        testArrow(ds)
         testStats(ds)
+        // test query_persistent/query_transient hints
+        forall(Seq((features.take(1), QueryHints.LAMBDA_QUERY_TRANSIENT),
+                   (features.drop(1) , QueryHints.LAMBDA_QUERY_PERSISTENT))) {
+          case (feature, hint) =>
+            val query = new Query(sft.getTypeName)
+            query.getHints.put(hint, java.lang.Boolean.FALSE)
+            SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq mustEqual feature
+        }
 
         // persist both features to the long-term storage
         clock.tick = 151
@@ -129,6 +158,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
             containTheSameElementsAs(features)
         testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
         testBin(ds)
+        testArrow(ds)
         testStats(ds)
       } finally {
         ds.dispose()
@@ -137,6 +167,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
   }
 
   step {
+    allocator.close()
     logger.info("LambdaDataStoreTest complete")
   }
 }

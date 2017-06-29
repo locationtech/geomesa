@@ -54,12 +54,12 @@ class LambdaDataStore(val persistence: DataStore,
     }
   })
 
-  private val runner = new LambdaQueryRunner(persistence, transients)
-
   override val stats: GeoMesaStats = persistence match {
     case p: HasGeoMesaStats => new LambdaStats(p.stats, transients)
     case _ => NoopStats
   }
+
+  private val runner = new LambdaQueryRunner(persistence, transients, stats)
 
   def persist(typeName: String): Unit = transients.get(typeName).persist()
 

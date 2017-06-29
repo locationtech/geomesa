@@ -21,6 +21,7 @@ import org.locationtech.geomesa.lambda.InMemoryOffsetManager
 import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.{LambdaTest, TestClock}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
@@ -30,6 +31,8 @@ import scala.concurrent.duration.Duration
 class KafkaStoreTest extends LambdaTest with LazyLogging {
 
   sequential
+
+  skipAllUnless(SystemProperty("geomesa.lambda.kafka.test").option.exists(_.toBoolean))
 
   lazy val config = Map("bootstrap.servers" -> brokers)
 
