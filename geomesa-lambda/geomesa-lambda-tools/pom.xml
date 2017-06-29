@@ -141,7 +141,7 @@
             </resource>
         </resources>
         <plugins>
-           <!--<plugin>
+           <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
@@ -158,16 +158,16 @@
                     <classpathScope>runtime</classpathScope>
                     <arguments>
                         <argument>-classpath</argument>
-                        &lt;!&ndash; automatically creates the classpath using all project dependencies,
-                             also adding the project build directory &ndash;&gt;
+                        <!-- automatically creates the classpath using all project dependencies,
+                             also adding the project build directory -->
                         <classpath />
                         <argument>org.locationtech.geomesa.lambda.tools.LambdaRunner</argument>
                         <argument>help</argument>
-                        <argument>&#45;&#45;autocomplete-function</argument>
+                        <argument>--autocomplete-function</argument>
                         <argument>${project.build.directory}/autocomplete.sh,geomesa</argument>
                     </arguments>
                 </configuration>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
