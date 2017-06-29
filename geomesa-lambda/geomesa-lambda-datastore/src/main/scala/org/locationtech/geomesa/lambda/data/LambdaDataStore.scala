@@ -158,5 +158,10 @@ class LambdaDataStore(val persistence: DataStore,
 }
 
 object LambdaDataStore {
-  case class LambdaConfig(zookeepers: String, zkNamespace: String, partitions: Int, expiry: Duration, persist: Boolean)
+  case class LambdaConfig(zookeepers: String,
+                          zkNamespace: String,
+                          partitions: Int,
+                          expiry: Duration,
+                          visibility: Option[String],
+                          persist: Boolean)
 }

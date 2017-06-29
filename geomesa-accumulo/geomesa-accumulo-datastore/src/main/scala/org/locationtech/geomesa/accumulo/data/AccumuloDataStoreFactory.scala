@@ -131,7 +131,7 @@ object AccumuloDataStoreFactory {
       } else {
         // Otherwise must be using Kerberos authentication, in which case we explicitly enable SASL.
         // This shouldn't be required if Accumulo client.conf is set appropriately, but it doesn't seem to work.
-        new ZooKeeperInstance(clientConfiguration.withSasl((true))).getConnector(user, authToken)
+        new ZooKeeperInstance(clientConfiguration.withSasl(true)).getConnector(user, authToken)
       }
     }
   }

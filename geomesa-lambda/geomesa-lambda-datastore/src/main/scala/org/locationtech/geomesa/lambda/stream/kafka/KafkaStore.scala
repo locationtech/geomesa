@@ -31,7 +31,7 @@ import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
-import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -62,6 +62,16 @@ class KafkaStore(ds: DataStore,
   private val persistence = config.expiry match {
     case Duration.Inf => None
     case d => Some(new DataStorePersistence(ds, sft, offsetManager, state, topic, d.toMillis, config.persist))
+  }
+
+  private val setVisibility: (SimpleFeature) => (SimpleFeature) = config.visibility match {
+    case None => (f) => f
+    case Some(vis) => (f) => {
+      if (SecurityUtils.getVisibility(f) == null) {
+        SecurityUtils.setFeatureVisibility(f, vis)
+      }
+      f
+    }
   }
 
   override def createSchema(): Unit = {
@@ -99,17 +109,19 @@ class KafkaStore(ds: DataStore,
     queryRunner.runQuery(sft, query, explain)
   }
 
-  override def write(feature: SimpleFeature): Unit = {
-    val serialized = serializer.serialize(GeoMesaFeatureWriter.featureWithFid(sft, feature))
-    producer.send(new ProducerRecord(topic, KafkaStore.serializeKey(clock.millis(), MessageTypes.Write), serialized))
+  override def write(original: SimpleFeature): Unit = {
+    val feature = prepFeature(original)
+    val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Write)
+    producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
     logger.trace(s"Wrote feature to [$topic]: $feature")
   }
 
-  override def delete(feature: SimpleFeature): Unit = {
+  override def delete(original: SimpleFeature): Unit = {
     import org.locationtech.geomesa.filter.ff
     // send a message to delete from all transient stores
-    val serialized = serializer.serialize(feature)
-    producer.send(new ProducerRecord(topic, KafkaStore.serializeKey(clock.millis(), MessageTypes.Delete), serialized))
+    val feature = prepFeature(original)
+    val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Delete)
+    producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
     // also delete from persistent store
     if (config.persist) {
       val filter = ff.id(ff.featureId(feature.getID))
@@ -131,6 +143,10 @@ class KafkaStore(ds: DataStore,
     CloseWithLogging(loader)
     persistence.foreach(CloseWithLogging.apply)
   }
+
+  private def prepFeature(original: SimpleFeature): SimpleFeature =
+    setVisibility(GeoMesaFeatureWriter.featureWithFid(sft, original))
+
 }
 
 object KafkaStore {

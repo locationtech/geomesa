@@ -35,8 +35,10 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
       case NonFatal(e) =>
         throw new IllegalArgumentException(s"Couldn't parse expiry parameter: ${ExpiryParam.lookUp(params)}", e)
     }
-    val persist = Option(PersistParam.lookUp(params).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
+
     val partitions = Option(Kafka.PartitionsParam.lookUp(params).asInstanceOf[Integer]).map(_.intValue).getOrElse(1)
+    val persist = Option(PersistParam.lookUp(params).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
+    val defaultVisibility = Option(VisibilitiesParam.lookUp(params).asInstanceOf[String])
 
     val consumerConfig = parsePropertiesParam(Kafka.ConsumerParam.lookUp(params).asInstanceOf[String]) ++
         Map("bootstrap.servers" -> brokers)
@@ -47,7 +49,6 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     }
 
     // TODO GEOMESA-1891 attribute level vis
-    // TODO GEOMESA-1892 apply default visibilities/auths to kafka store
     val persistence = new AccumuloDataStoreFactory().createDataStore(filter("accumulo", params))
 
     val zkNamespace = s"gm_lambda_${persistence.config.catalog}"
@@ -59,7 +60,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
     val clock = Option(ClockParam.lookUp(params).asInstanceOf[Clock]).getOrElse(Clock.systemUTC())
 
-    val config = LambdaConfig(zk, zkNamespace, partitions, expiry, persist)
+    val config = LambdaConfig(zk, zkNamespace, partitions, expiry, defaultVisibility, persist)
 
     new LambdaDataStore(persistence, producer, consumerConfig, offsetManager, config)(clock)
   }
