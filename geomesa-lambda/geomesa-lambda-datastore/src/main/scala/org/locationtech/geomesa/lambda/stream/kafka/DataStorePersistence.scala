@@ -14,14 +14,14 @@ import java.util.concurrent.{PriorityBlockingQueue, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Transaction}
-import org.geotools.factory.Hints
-import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.util.control.NonFatal
 
 /**
   * Persists expired entries to the data store
@@ -118,7 +118,6 @@ class DataStorePersistence(ds: DataStore,
 
       logger.trace(s"Offsets to persist for [$topic:$partition]: ${toPersist.values.map(_._1).toSeq.sorted.mkString(",")}")
 
-      // TODO handle failures writing
       if (toPersist.nonEmpty) {
         if (!persistExpired) {
           logger.trace(s"Persist disabled for $topic")
@@ -131,11 +130,10 @@ class DataStorePersistence(ds: DataStore,
               toPersist.get(next.getID).foreach { case (offset, created, updated) =>
                 logger.trace(s"Persistent store modify [$topic:$partition:$offset] $updated created at " +
                     s"${new DateTime(created, DateTimeZone.UTC)}")
-                next.setAttributes(updated.getAttributes)
-                next.getUserData.putAll(updated.getUserData)
-                next.getIdentifier.asInstanceOf[FeatureIdImpl].setID(updated.getID)
-                next.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-                writer.write()
+                FeatureUtils.copyToFeature(next, updated, useProvidedFid = true)
+                try { writer.write() } catch {
+                  case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
+                }
                 toPersist.remove(updated.getID)
               }
             }
@@ -147,7 +145,9 @@ class DataStorePersistence(ds: DataStore,
                 logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated created at " +
                     s"${new DateTime(created, DateTimeZone.UTC)}")
                 FeatureUtils.copyToWriter(writer, updated, useProvidedFid = true)
-                writer.write()
+                try { writer.write() } catch {
+                  case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
+                }
               }
             }
           }
