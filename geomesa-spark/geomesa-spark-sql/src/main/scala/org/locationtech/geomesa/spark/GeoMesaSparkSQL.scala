@@ -20,7 +20,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.sources._
-import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
+import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
@@ -169,11 +169,16 @@ class GeoMesaDataSource extends DataSourceRegister
     val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions( iterRow => {
       val innerDS = DataStoreFinder.getDataStore(parameters)
       val sft = innerDS.getSchema(newFeatureName)
+      // AH: I don't believe SimpleFeatureBuilder is serializable
       val builder = new SimpleFeatureBuilder(sft)
 
+      var nameMappings: List[(String, Int)] = null
       iterRow.map { r =>
         builder.reset()
-        SparkUtils.row2Sf(sft, r, builder, fidFn(r))
+        if (nameMappings == null) {
+          nameMappings = SparkUtils.getSftRowNameMappings(sft,r)
+        }
+        SparkUtils.row2Sf(nameMappings, r, builder, fidFn(r))
       }
     })
 
@@ -235,7 +240,14 @@ object SparkUtils extends LazyLogging {
       case "__fid__" => IdExtractor
       case col       =>
         val index = requiredAttributes.indexOf(col)
-        sf: SimpleFeature => toSparkType(sf.getAttribute(index))
+        val schemaIndex = index + 1 // schema is offset by one because of __fid__
+        val fieldType = schema.fields(schemaIndex).dataType
+        sf: SimpleFeature =>
+          if ( fieldType == TimestampType ) {
+            new Timestamp(sf.getAttribute(index).asInstanceOf[Date].getTime)
+          } else {
+            sf.getAttribute(index)
+          }
     }
 
     val result = rdd.map(SparkUtils.sf2row(schema, _, extractors))
@@ -273,39 +285,18 @@ object SparkUtils extends LazyLogging {
     new GenericRowWithSchema(res, schema)
   }
 
-  // TODO: optimize so we're not type checking every value
-  def toSparkType(v: Any): AnyRef = v match {
-    case t: Date => new Timestamp(t.getTime)
-    case t       => t.asInstanceOf[AnyRef]
+
+  // Since each attribute's corresponding index in the Row is fixed. Compute the mapping once
+  def getSftRowNameMappings(sft: SimpleFeatureType, sampleRow: Row): List[(String, Int)] = {
+    sft.getAttributeDescriptors.map{ ad =>
+      val name = ad.getLocalName
+      (name, sampleRow.fieldIndex(ad.getLocalName))
+    }.toList
   }
 
-  // JNH: Fix this.  Seriously.
-  def row2Sf(sft: SimpleFeatureType, row: Row, builder: SimpleFeatureBuilder, id: String): SimpleFeature = {
-    import java.{lang => jl}
-    sft.getAttributeDescriptors.foreach {
-      ad =>
-        val name = ad.getLocalName
-        // do we need to do type mapping here?
-        val value = ad.getType.getBinding match {
-          case t if t == classOf[jl.Double]                       => row.getAs[jl.Double](name)
-          case t if t == classOf[jl.Float]                        => row.getAs[jl.Float](name)
-          case t if t == classOf[jl.Integer]                      => row.getAs[jl.Integer](name)
-          case t if t == classOf[jl.String]                       => row.getAs[jl.String](name)
-          case t if t == classOf[jl.Boolean]                      => row.getAs[jl.Boolean](name)
-          case t if t == classOf[jl.Long]                         => row.getAs[jl.Long](name)
-          case t if t == classOf[java.util.Date]                  => row.getAs[java.sql.Timestamp](name) //timestamp extends date
-          case t if t == classOf[com.vividsolutions.jts.geom.Point]            => row.getAs[Point](name)
-          case t if t == classOf[com.vividsolutions.jts.geom.MultiPoint]       => row.getAs[MultiPoint](name)
-          case t if t == classOf[com.vividsolutions.jts.geom.LineString]       => row.getAs[LineString](name)
-          case t if t == classOf[com.vividsolutions.jts.geom.MultiLineString]  => row.getAs[MultiLineString](name)
-          case t if t == classOf[com.vividsolutions.jts.geom.Polygon]          => row.getAs[Polygon](name)
-          case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon]     => row.getAs[MultiPolygon](name)
-          // JNH: Add Geometry types here.
-
-          case t if      classOf[Geometry].isAssignableFrom(t)    => SQLTypes.GeometryTypeInstance
-          case _                                                  => null
-        }
-        builder.set(name, value)
+  def row2Sf(nameMappings: List[(String, Int)], row: Row, builder: SimpleFeatureBuilder, id: String): SimpleFeature = {
+    nameMappings.foreach{ case (name, index) =>
+      builder.set(name, row.getAs[Object](index))
     }
 
     builder.userData(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
