@@ -22,7 +22,7 @@ Before you begin, you must have the following:
 
 -  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|,
 -  an Accumulo user that has both create-table and write permissions,
--  the GeoMesa Accumulo distributed runtime installed for your Accumulo instance (see :ref:`install_accumulo_runtime` ),
+-  the GeoMesa Accumulo distributed runtime installed for your Accumulo instance (see :ref:`install_accumulo_runtime`),
 -  an instance of Kafka 0.9.0.1,
 -  optionally, a GeoServer instance with the Lambda data store installed (see :ref:`install_lambda_geoserver`),
 -  a local copy of `Java JDK 8`_,
