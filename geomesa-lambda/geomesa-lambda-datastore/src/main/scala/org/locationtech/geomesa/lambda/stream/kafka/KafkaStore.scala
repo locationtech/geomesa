@@ -10,7 +10,7 @@ package org.locationtech.geomesa.lambda.stream.kafka
 
 import java.time.Clock
 import java.util.concurrent._
-import java.util.{Properties, UUID}
+import java.util.{Collections, Properties, UUID}
 
 import com.google.common.primitives.Longs
 import com.google.common.util.concurrent.MoreExecutors
@@ -236,6 +236,26 @@ object KafkaStore {
                                          manager: OffsetManager,
                                          state: SharedState) extends ConsumerRebalanceListener {
 
+    // use reflection to work with kafak 0.9 or 0.10
+    lazy val seekToBeginning: TopicPartition => Unit = {
+      val method = consumer.getClass.getDeclaredMethods.find(_.getName == "seekToBeginning").getOrElse {
+        throw new NoSuchMethodException("Couldn't find Consumer.seekToBeginning method")
+      }
+      val parameterTypes = method.getParameterTypes
+      if (parameterTypes.length != 1) {
+        throw new NoSuchMethodException("Couldn't find Consumer.seekToBeginning method with correct parameters")
+      }
+      val binding = method.getParameterTypes.apply(0)
+
+      if (binding == classOf[Array[TopicPartition]]) {
+        (tp) => method.invoke(consumer, Array(tp))
+      } else if (binding == classOf[java.util.Collection[TopicPartition]]) {
+        (tp) => method.invoke(consumer, Collections.singletonList(tp))
+      } else {
+        throw new NoSuchMethodException("Couldn't find Consumer.seekToBeginning method with correct parameters")
+      }
+    }
+
     override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
     override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
@@ -249,7 +269,7 @@ object KafkaStore {
         if (lastRead > 0) {
           consumer.seek(tp, lastRead)
         } else {
-          consumer.seekToBeginning(tp)
+          seekToBeginning(tp)
         }
       }
     }
