@@ -29,7 +29,9 @@ Run ``geomesa`` without any arguments to produce the following usage text::
       Commands:
         add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
+        classpath              Display the GeoMesa classpath
         config-table           Perform table configuration operations
+        configure              Configure the local environment for GeoMesa
         convert                Convert files using GeoMesa's internal SFT converter framework
         create-schema          Create a GeoMesa feature type
         delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
@@ -102,6 +104,24 @@ to be added as arguments to each command, if needed.
 
 Command overview
 ----------------
+Tools Configuration
+^^^^^^^^^^^^^^^^^^^
+
+configure
+~~~~~~~~~
+
+Used to configure the current environment for using the commandline tools. This is frequently run after the tools are
+first installed to ensure the environment is configured correctly::
+
+    $ geomesa configure
+
+classpath
+~~~~~~~~~
+
+Prints out the current classpath configuration::
+
+    $ geomesa classpath
+
 Creating and deleting feature types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
