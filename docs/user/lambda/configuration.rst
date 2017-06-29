@@ -26,6 +26,13 @@ geomesa.lambda.persist.interval
 This property controls how often features will be checked for expiration, and persisted to long-term storage. It
 should be specified as a duration, for example ``1 minute``. By default it is ``60 seconds``.
 
+geomesa.lambda.persist.lock.timeout
++++++++++++++++++++++++++++++++++++
+
+This property controls how long a data store instance will wait for a lock to persist features to long-term
+storage. In general, there is no need to wait for a lock, as it indicates that another instance is performing
+the writes. It should be specified as a duration, for example ``100 millis``. By default it is ``1 second``.
+
 geomesa.lambda.load.interval
 ++++++++++++++++++++++++++++
 

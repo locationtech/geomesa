@@ -52,6 +52,7 @@ class DataStorePersistence(ds: DataStore,
 
   private val frequency = SystemProperty("geomesa.lambda.persist.interval").toDuration.getOrElse(60000L)
   private val schedule = KafkaStore.executor.scheduleWithFixedDelay(this, 0L, frequency, TimeUnit.MILLISECONDS)
+  private val lockTimeout = SystemProperty("geomesa.lambda.persist.lock.timeout").toDuration.getOrElse(1000L)
 
   override def run(): Unit = {
     val expired = state.expired.filter(e => checkPartition(e._1))
@@ -60,8 +61,8 @@ class DataStorePersistence(ds: DataStore,
     expired.foreach { case (queue, partition) =>
       // if we don't get the lock just try again next run
       logger.trace(s"Acquiring lock for [$topic:$partition]")
-      offsetManager.acquireLock(topic, partition, 1000L) match {
-        case None => logger.trace(s"Could not acquire lock for [$topic:$partition] within timeout")
+      offsetManager.acquireLock(topic, partition, lockTimeout) match {
+        case None => logger.trace(s"Could not acquire lock for [$topic:$partition] within ${lockTimeout}ms")
         case Some(lock) =>
           try {
             logger.trace(s"Acquired lock for [$topic:$partition]")
