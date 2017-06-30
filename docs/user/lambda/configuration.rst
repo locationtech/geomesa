@@ -1,5 +1,5 @@
-Lambda Configuration
-====================
+Lambda Data Store Configuration
+===============================
 
 This section details Lambda specific configuration properties. For Accumulo specific properties, see
 :ref:`accumulo_config_props`. For general properties, see :ref:`geomesa_site_xml`.

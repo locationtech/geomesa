@@ -234,7 +234,7 @@ A note about Accumulo 1.8
    the published jars and distribution artifacts reflect this version.  To upgrade, build
    locally using the accumulo-1.8 profile.
 
-.. _install_geomesa_process:
+.. _install_geomesa_process_lambda:
 
 A note about GeoMesa Process
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
