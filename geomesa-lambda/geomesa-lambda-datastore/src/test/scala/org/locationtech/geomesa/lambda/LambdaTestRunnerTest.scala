@@ -29,7 +29,8 @@ class LambdaTestRunnerTest extends Specification with LazyLogging {
   // add new tests here
   val specs: Seq[LambdaTest] = Seq(
     new LambdaDataStoreTest,
-    new org.locationtech.geomesa.lambda.stream.kafka.KafkaStoreTest
+    new org.locationtech.geomesa.lambda.stream.kafka.KafkaStoreTest,
+    new ZookeeperOffsetManagerTest
   )
 
   step {
