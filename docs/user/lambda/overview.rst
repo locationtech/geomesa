@@ -17,8 +17,8 @@ Basic Architecture
 The Lambda data store consists of an in-memory cache of recent updates combined with a delegate data store for
 long-term storage. In order to synchronize across instances, every write operation sends a message to a Kafka topic.
 Each data store instance consumes the topic and loads the ``SimpleFeature`` into its in-memory cache. After
-a configurable time-to-live without any updates for a given feature, the feature will be removed from the cache
-and persisted to the delegate data store. The Lambda data store instances use Apache Zookeeper to synchronize cache
+a configurable time-to-live without any updates for a given feature, the feature will be persisted to the delegate
+data store and removed from the cache. The Lambda data store instances use Apache Zookeeper to synchronize cache
 state, ensuring a feature is only written once. Queries against the store will merge results from the cache and
 long-term storage.
 
@@ -26,10 +26,11 @@ Alternate Solutions
 -------------------
 
 If features are being added, but not subsequently updated, then an Accumulo, HBase or Cassandra data store can be
-used directly, without the added complexity of Kafka.
+used directly, without the added complexity of Kafka. The Lambda data store could still be used as an in-memory
+cache of recent features.
 
 If features don't need to be stored long-term, then the Kafka data store can be used, without the complexity of
-managing persistent features.
+managing persistent features. The Lambda data store could still be used with ``persist`` disabled.
 
 Integration with Other Data Stores
 ----------------------------------
