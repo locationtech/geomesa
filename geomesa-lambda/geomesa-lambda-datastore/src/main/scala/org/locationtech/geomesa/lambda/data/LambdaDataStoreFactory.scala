@@ -37,13 +37,14 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     }
 
     val partitions = Option(Kafka.PartitionsParam.lookUp(params).asInstanceOf[Integer]).map(_.intValue).getOrElse(1)
+    val consumers = Option(Kafka.ConsumersParam.lookUp(params).asInstanceOf[Integer]).map(_.intValue).getOrElse(1)
     val persist = Option(PersistParam.lookUp(params).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
     val defaultVisibility = Option(VisibilitiesParam.lookUp(params).asInstanceOf[String])
 
-    val consumerConfig = parsePropertiesParam(Kafka.ConsumerParam.lookUp(params).asInstanceOf[String]) ++
+    val consumerConfig = parsePropertiesParam(Kafka.ConsumerOptsParam.lookUp(params).asInstanceOf[String]) ++
         Map("bootstrap.servers" -> brokers)
     val producer = {
-      val producerConfig = parsePropertiesParam(Kafka.ProducerParam.lookUp(params).asInstanceOf[String]) ++
+      val producerConfig = parsePropertiesParam(Kafka.ProducerOptsParam.lookUp(params).asInstanceOf[String]) ++
           Map("bootstrap.servers" -> brokers)
       KafkaStore.producer(producerConfig)
     }
@@ -60,7 +61,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
     val clock = Option(ClockParam.lookUp(params).asInstanceOf[Clock]).getOrElse(Clock.systemUTC())
 
-    val config = LambdaConfig(zk, zkNamespace, partitions, expiry, defaultVisibility, persist)
+    val config = LambdaConfig(zk, zkNamespace, partitions, consumers, expiry, defaultVisibility, persist)
 
     new LambdaDataStore(persistence, producer, consumerConfig, offsetManager, config)(clock)
   }
@@ -72,29 +73,30 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
         Seq(ExpiryParam, Kafka.BrokersParam, Kafka.ZookeepersParam).forall(p => params.containsKey(p.getName))
 
   override def getParametersInfo: Array[Param] = Array(
-    LambdaDataStoreFactory.Params.Accumulo.InstanceParam,
-    LambdaDataStoreFactory.Params.Accumulo.ZookeepersParam,
-    LambdaDataStoreFactory.Params.Accumulo.CatalogParam,
-    LambdaDataStoreFactory.Params.Accumulo.UserParam,
-    LambdaDataStoreFactory.Params.Accumulo.PasswordParam,
-    LambdaDataStoreFactory.Params.Accumulo.KeytabParam,
-    LambdaDataStoreFactory.Params.Kafka.BrokersParam,
-    LambdaDataStoreFactory.Params.Kafka.ZookeepersParam,
-    LambdaDataStoreFactory.Params.ExpiryParam,
-    LambdaDataStoreFactory.Params.PersistParam,
-    LambdaDataStoreFactory.Params.AuthsParam,
-    LambdaDataStoreFactory.Params.EmptyAuthsParam,
-    LambdaDataStoreFactory.Params.Accumulo.QueryTimeoutParam,
-    LambdaDataStoreFactory.Params.Accumulo.QueryThreadsParam,
-    LambdaDataStoreFactory.Params.Accumulo.RecordThreadsParam,
-    LambdaDataStoreFactory.Params.Accumulo.WriteThreadsParam,
-    LambdaDataStoreFactory.Params.Kafka.PartitionsParam,
-    LambdaDataStoreFactory.Params.Kafka.ProducerParam,
-    LambdaDataStoreFactory.Params.Kafka.ConsumerParam,
-    LambdaDataStoreFactory.Params.VisibilitiesParam,
-    LambdaDataStoreFactory.Params.LooseBBoxParam,
-    LambdaDataStoreFactory.Params.GenerateStatsParam,
-    LambdaDataStoreFactory.Params.AuditQueriesParam
+    Accumulo.InstanceParam,
+    Accumulo.ZookeepersParam,
+    Accumulo.CatalogParam,
+    Accumulo.UserParam,
+    Accumulo.PasswordParam,
+    Accumulo.KeytabParam,
+    Kafka.BrokersParam,
+    Kafka.ZookeepersParam,
+    ExpiryParam,
+    PersistParam,
+    AuthsParam,
+    EmptyAuthsParam,
+    Accumulo.QueryTimeoutParam,
+    Accumulo.QueryThreadsParam,
+    Accumulo.RecordThreadsParam,
+    Accumulo.WriteThreadsParam,
+    Kafka.PartitionsParam,
+    Kafka.ConsumersParam,
+    Kafka.ProducerOptsParam,
+    Kafka.ConsumerOptsParam,
+    VisibilitiesParam,
+    LooseBBoxParam,
+    GenerateStatsParam,
+    AuditQueriesParam
   )
 
   override def getDisplayName: String = LambdaDataStoreFactory.DisplayName
@@ -126,11 +128,12 @@ object LambdaDataStoreFactory {
     }
 
     object Kafka {
-      val BrokersParam    = new Param("kafka.brokers", classOf[String], "Kafka brokers", true)
-      val ZookeepersParam = new Param("kafka.zookeepers", classOf[String], "Kafka zookeepers", true)
-      val PartitionsParam = new Param("kafka.partitions", classOf[Integer], "Number of partitions to use in kafka queues", false, Int.box(1))
-      val ProducerParam   = new Param("kafka.producer.options", classOf[String], "Kafka producer configuration options, in Java properties format", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
-      val ConsumerParam   = new Param("kafka.consumer.options", classOf[String], "Kafka consumer configuration options, in Java properties format'", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
+      val BrokersParam      = new Param("kafka.brokers", classOf[String], "Kafka brokers", true)
+      val ZookeepersParam   = new Param("kafka.zookeepers", classOf[String], "Kafka zookeepers", true)
+      val PartitionsParam   = new Param("kafka.partitions", classOf[Integer], "Number of partitions to use in kafka topics", false, Int.box(1))
+      val ConsumersParam    = new Param("kafka.consumers", classOf[Integer], "Number of kafka consumers used per feature type", false, Int.box(1))
+      val ProducerOptsParam = new Param("kafka.producer.options", classOf[String], "Kafka producer configuration options, in Java properties format", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
+      val ConsumerOptsParam = new Param("kafka.consumer.options", classOf[String], "Kafka consumer configuration options, in Java properties format'", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
     }
 
     val ExpiryParam        = new Param("expiry", classOf[String], "Duration before features expire from transient store. Use 'Inf' to prevent this store from participating in feature expiration", true, "1h")

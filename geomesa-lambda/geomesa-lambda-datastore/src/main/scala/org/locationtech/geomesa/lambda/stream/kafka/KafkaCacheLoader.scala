@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import java.io.Closeable
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.Consumer
@@ -45,22 +45,22 @@ class KafkaCacheLoader(offsetManager: OffsetManager,
 
   private val running = new AtomicInteger(0)
 
-  private val offsets = new ConcurrentHashMap[Int, Long]()
+  private val offsets = scala.collection.mutable.HashMap.empty[Int, Long]
 
   private val frequency = SystemProperty("geomesa.lambda.load.interval").toDuration.getOrElse(100L)
 
   private val consumers =
     KafkaStore.consumers(config, topic, offsetManager, state, parallelism).map(new ConsumerRunnable(_))
 
-  // register as a listener for offset changes
-  offsetManager.addOffsetListener(topic, this)
-
   private val schedules =
     consumers.map(KafkaStore.executor.scheduleWithFixedDelay(_, 0L, frequency, TimeUnit.MILLISECONDS))
 
+  // register as a listener for offset changes
+  offsetManager.addOffsetListener(topic, this)
+
   override def offsetChanged(partition: Int, offset: Long): Unit = {
     // remove the expired features from the cache
-    var current = offsets.get(partition)
+    var current = offsets.getOrElse(partition, 0L)
     logger.trace(s"Offsets changed for [$topic:$partition]: $current->$offset")
     if (current < offset) {
       offsets.put(partition, offset)

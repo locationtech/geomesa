@@ -58,7 +58,7 @@ class KafkaStore(ds: DataStore,
 
   private val queryRunner = new KafkaQueryRunner(state, stats, authProvider)
 
-  private val loader = new KafkaCacheLoader(offsetManager, serializer, state, consumerConfig, topic, config.partitions)
+  private val loader = new KafkaCacheLoader(offsetManager, serializer, state, consumerConfig, topic, config.consumers)
   private val persistence = config.expiry match {
     case Duration.Inf => None
     case d => Some(new DataStorePersistence(ds, sft, offsetManager, state, topic, d.toMillis, config.persist))
@@ -204,12 +204,14 @@ object KafkaStore {
                                 manager: OffsetManager,
                                 state: SharedState,
                                 parallelism: Int): Seq[Consumer[Array[Byte], Array[Byte]]] = {
+    require(parallelism > 0, "Parallelism must be greater than 0")
+
     val group = UUID.randomUUID().toString
     val topics = java.util.Arrays.asList(topic)
 
     Seq.fill(parallelism) {
       val consumer = KafkaStore.consumer(connect, group)
-      consumer.subscribe(topics, new OffsetRebalancer(consumer, manager, state))
+      consumer.subscribe(topics, new OffsetRebalanceListener(consumer, manager, state))
       consumer
     }
   }
@@ -232,9 +234,9 @@ object KafkaStore {
 
   private [kafka] def deserializeKey(key: Array[Byte]): (Long, Byte) = (Longs.fromByteArray(key), key(8))
 
-  private [kafka] class OffsetRebalancer(consumer: Consumer[Array[Byte], Array[Byte]],
-                                         manager: OffsetManager,
-                                         state: SharedState) extends ConsumerRebalanceListener {
+  private [kafka] class OffsetRebalanceListener(consumer: Consumer[Array[Byte], Array[Byte]],
+                                                manager: OffsetManager,
+                                                state: SharedState) extends ConsumerRebalanceListener {
 
     // use reflection to work with kafak 0.9 or 0.10
     lazy val seekToBeginning: TopicPartition => Unit = {

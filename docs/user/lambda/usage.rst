@@ -46,7 +46,8 @@ accumulo.queryTimeout  The max time (in sec) a query will be allowed to run befo
 accumulo.queryThreads  The number of threads to use per query
 accumulo.recordThreads The number of threads to use for record retrieval
 accumulo.writeThreads  The number of threads to use for writing records
-kafka.partitions       Number of partitions used to create new topics. This also controls the load/persist parallelism for the data store instance. You should generally set this to the number of writer instances you plan to run
+kafka.partitions       Number of partitions used to create new topics. You should generally set this to the number of writer instances you plan to run
+kafka.consumers        Number of consumers used to load data into the in-memory cache
 kafka.producer.options Java-properties-formatted string that is passed directly to the Kafka producer. See `Producer Configs <http://kafka.apache.org/090/documentation.html#producerconfigs>`_
 kafka.consumer.options Java-properties-formatted string that is passed directly to the Kafka consumer. See `New Consumer Configs <http://kafka.apache.org/090/documentation.html#newconsumerconfigs>`_
 visibilities           Visibility labels to apply to all written data
