@@ -240,7 +240,7 @@ object SparkUtils extends LazyLogging {
       case "__fid__" => IdExtractor
       case col       =>
         val index = requiredAttributes.indexOf(col)
-        val schemaIndex = index + 1 // schema is offset by one because of __fid__
+        val schemaIndex = schema.fieldIndex(col)
         val fieldType = schema.fields(schemaIndex).dataType
         sf: SimpleFeature =>
           if ( fieldType == TimestampType ) {
