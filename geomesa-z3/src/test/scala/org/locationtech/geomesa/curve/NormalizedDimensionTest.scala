@@ -9,26 +9,27 @@
 package org.locationtech.geomesa.curve
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.curve.NormalizedDimension.{NormalizedLat, NormalizedLon}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class NormalizedDimensionTest extends Specification {
 
-  val precision: Long = (1L << 31) - 1
+  val precision = 31
   val NormLat = NormalizedLat(precision)
   val NormLon = NormalizedLon(precision)
+  val maxBin = (math.pow(2, precision) - 1).toInt // note: at 31 bits this is Int.MaxValue
 
   "NormalizedDimension" should {
-
     "Round-trip normalize minimum" >> {
       NormLat.normalize(NormLat.denormalize(0)) mustEqual 0
       NormLon.normalize(NormLon.denormalize(0)) mustEqual 0
     }
 
     "Round-trip normalize maximum" >> {
-      NormLat.normalize(NormLat.denormalize(precision.toInt)) mustEqual precision
-      NormLon.normalize(NormLon.denormalize(precision.toInt)) mustEqual precision
+      NormLat.normalize(NormLat.denormalize(maxBin)) mustEqual maxBin
+      NormLon.normalize(NormLon.denormalize(maxBin)) mustEqual maxBin
     }
 
     "Normalize mininimum" >> {
@@ -37,31 +38,23 @@ class NormalizedDimensionTest extends Specification {
     }
 
     "Normalize maximum" >> {
-      NormLat.normalize(NormLat.max) mustEqual precision
-      NormLon.normalize(NormLon.max) mustEqual precision
+      NormLat.normalize(NormLat.max) mustEqual maxBin
+      NormLon.normalize(NormLon.max) mustEqual maxBin
     }
 
-    "Denormalize 0 to min (special case)" >> {
-      // this is to mirror use of Math.ceil in normalize
-      NormLat.denormalize(0) mustEqual NormLat.min
-      NormLon.denormalize(0) mustEqual NormLon.min
-    }
-
-    "Denormalize [1,precision] to bin middle" >> {
-      // for any index/bin in range [1,precision] denormalize will return value in middle
-      //   of range of coordinates that could result in index/bin from normalize call
+    "Denormalize [0,max - 1] to bin middle" >> {
+      // for any index/bin denormalize will return value in middle of range of coordinates
+      // that could result in index/bin from normalize call
       val latExtent = NormLat.max - NormLat.min
-      val latWidth = latExtent / precision
-      val epsilon = 1d / precision
-
-      NormLat.denormalize(1) must beCloseTo(NormLat.min + latWidth / 2d, epsilon)
-      NormLat.denormalize(precision.toInt) must beCloseTo(NormLat.max - latWidth / 2d, epsilon)
-
       val lonExtent = NormLon.max - NormLon.min
-      val lonWidth = lonExtent / precision
-      NormLon.denormalize(1) must beCloseTo(NormLon.min + lonWidth / 2d, epsilon)
-      NormLon.denormalize(precision.toInt) must beCloseTo(NormLon.max - lonWidth / 2d, epsilon)
-    }
+      val latWidth = latExtent / (maxBin.toLong + 1)
+      val lonWidth = lonExtent / (maxBin.toLong + 1)
 
+      NormLat.denormalize(0) mustEqual NormLat.min + latWidth / 2d
+      NormLat.denormalize(maxBin) mustEqual NormLat.max - latWidth / 2d
+
+      NormLon.denormalize(0) mustEqual NormLon.min + lonWidth / 2d
+      NormLon.denormalize(maxBin) mustEqual NormLon.max - lonWidth / 2d
+    }
   }
 }

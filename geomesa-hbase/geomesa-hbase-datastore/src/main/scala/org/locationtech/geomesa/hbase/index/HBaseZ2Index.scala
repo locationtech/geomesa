@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{Filter => HFilter}
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.Z2HBaseFilter
@@ -34,7 +34,8 @@ case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform {
 
   private def configureZ2PushDown(xy: Seq[(Double, Double, Double, Double)], offset: Int): (Int, HFilter) = {
     val normalizedXY = xy.map { case (xmin, ymin, xmax, ymax) =>
-      Array(Z2SFC.lon.normalize(xmin), Z2SFC.lat.normalize(ymin), Z2SFC.lon.normalize(xmax), Z2SFC.lat.normalize(ymax))
+      Array(LegacyZ2SFC.lon.normalize(xmin), LegacyZ2SFC.lat.normalize(ymin),
+        LegacyZ2SFC.lon.normalize(xmax), LegacyZ2SFC.lat.normalize(ymax))
     }.toArray
 
     (Z2HBaseFilter.Priority, new Z2HBaseFilter(new Z2Filter(normalizedXY, 8), offset))

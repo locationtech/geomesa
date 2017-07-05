@@ -16,7 +16,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
-import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
+import org.locationtech.geomesa.curve.{LegacyZ3SFC, TimePeriod}
 import org.locationtech.sfcurve.zorder.Z3
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -55,7 +55,7 @@ class Z3IteratorTest extends Specification {
       override def hasTop: Boolean = staged != null
     }
 
-    val sfc = Z3SFC(TimePeriod.Week)
+    val sfc = LegacyZ3SFC(TimePeriod.Week)
 
     "iterate on points" >> {
       val (xmin, ymin, tmin) = sfc.index(lx, ly, lt).decode

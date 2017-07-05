@@ -14,7 +14,7 @@ import com.google.common.primitives.{Bytes, Longs}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.QueryHints._
@@ -137,7 +137,7 @@ object Z2Index extends IndexKeySpace[Z2ProcessingValues] {
       if (geom == null) {
         throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
       }
-      val z = try { Z2SFC.index(geom.getX, geom.getY).z } catch {
+      val z = try { LegacyZ2SFC.index(geom.getX, geom.getY).z } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry: $geom", e)
       }
       Longs.toByteArray(z)
@@ -169,7 +169,7 @@ object Z2Index extends IndexKeySpace[Z2ProcessingValues] {
 
     val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
-    val zs = Z2SFC.ranges(xy, 64, rangeTarget)
+    val zs = LegacyZ2SFC.ranges(xy, 64, rangeTarget)
     zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
   }
 }

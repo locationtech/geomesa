@@ -12,7 +12,7 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC}
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -49,7 +49,7 @@ case object Z3IndexV3 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-    val sfc = Z3SFC(sft.getZ3Interval)
+    val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val splitArray = SplitArrays.apply(sft.getZShards)
 
     (wf: AccumuloFeature) => {
@@ -67,7 +67,7 @@ case object Z3IndexV3 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-    val sfc = Z3SFC(sft.getZ3Interval)
+    val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val splitArray = SplitArrays.apply(sft.getZShards)
 
     (wf: AccumuloFeature) => {

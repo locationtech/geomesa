@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatur
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{Z3DensityIterator, _}
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType}
-import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
@@ -120,7 +120,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
     val z3table = getTableName(sft.getTypeName, ds)
     val numThreads = ds.config.queryThreads
 
-    val sfc = Z3SFC(sft.getZ3Interval)
+    val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val minTime = sfc.time.min.toLong
     val maxTime = sfc.time.max.toLong
     val wholePeriod = Seq((minTime, maxTime))

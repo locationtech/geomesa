@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -61,7 +61,7 @@ class Z2DensityIterator extends KryoLazyDensityIterator {
           zBytes(i) = row.byteAt(zOffset + i)
           i += 1
         }
-        val (x, y) = Z2SFC.invert(Z2(Longs.fromByteArray(zBytes)))
+        val (x, y) = LegacyZ2SFC.invert(Z2(Longs.fromByteArray(zBytes)))
         DensityScan.writePointToResult(x, y, weight, gridSnap, result)
       }
     }

@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.factory.Hints
 import org.joda.time.DateTime
-import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC, Z3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.QueryHints._
@@ -133,7 +133,7 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.isPoints
 
   override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
-    val sfc = Z3SFC(sft.getZ3Interval)
+    val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 index requires a valid date"))
@@ -183,7 +183,7 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
       return Iterator.empty
     }
 
-    val sfc = Z3SFC(sft.getZ3Interval)
+    val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val minTime = sfc.time.min.toLong
     val maxTime = sfc.time.max.toLong
     val wholePeriod = Seq((minTime, maxTime))

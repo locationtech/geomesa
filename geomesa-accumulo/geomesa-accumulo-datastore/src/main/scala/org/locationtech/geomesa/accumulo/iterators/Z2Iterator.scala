@@ -13,7 +13,7 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRang
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.filters.Z2Filter
 import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeatureType
@@ -114,8 +114,8 @@ object Z2Iterator {
     // index space values for comparing in the iterator
     val xyOpts = if (sft.isPoints) {
       bounds.map { case (xmin, ymin, xmax, ymax) =>
-        s"${Z2SFC.lon.normalize(xmin)}$RangeSeparator${Z2SFC.lat.normalize(ymin)}$RangeSeparator" +
-            s"${Z2SFC.lon.normalize(xmax)}$RangeSeparator${Z2SFC.lat.normalize(ymax)}"
+        s"${LegacyZ2SFC.lon.normalize(xmin)}$RangeSeparator${LegacyZ2SFC.lat.normalize(ymin)}$RangeSeparator" +
+            s"${LegacyZ2SFC.lon.normalize(xmax)}$RangeSeparator${LegacyZ2SFC.lat.normalize(ymax)}"
       }
     } else {
       bounds.map { case (xmin, ymin, xmax, ymax) =>
@@ -133,5 +133,5 @@ object Z2Iterator {
   }
 
   private def decodeNonPoints(x: Double, y: Double): (Int, Int) =
-    Z2(Z2SFC.index(x, y).z & Z2IndexV1.GEOM_Z_MASK).decode
+    Z2(LegacyZ2SFC.index(x, y).z & Z2IndexV1.GEOM_Z_MASK).decode
 }

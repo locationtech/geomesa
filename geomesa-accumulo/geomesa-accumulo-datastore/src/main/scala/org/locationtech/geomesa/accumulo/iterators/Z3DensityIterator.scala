@@ -14,7 +14,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
 import org.locationtech.geomesa.accumulo.iterators.Z2DensityIterator.TableSharingKey
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.LegacyZ3SFC
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.sfcurve.zorder.Z3
@@ -50,7 +50,7 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
       getWeight = (sf) => normalizeWeight(baseWeight(sf))
 
 
-      val sfc = Z3SFC(sft.getZ3Interval)
+      val sfc = LegacyZ3SFC(sft.getZ3Interval)
       // 1 for split plus optional 1 for table sharing
       val zPrefix = if (options(TableSharingKey).toBoolean) { 2 } else { 1 }
       writeGeom = (_, weight, result) => {

@@ -331,7 +331,7 @@ object BinnedStringArray {
   val Base36Lowest  = Base36Chars.head
   val Base36Highest = Base36Chars.last
 
-  def normalize(s: String) = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", Base36Lowest.toString)
+  def normalize(s: String): String = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", Base36Lowest.toString)
 
   def normalizeBounds(bounds: (String, String)): (String, String) = {
     val length = math.max(bounds._1.length, bounds._2.length)

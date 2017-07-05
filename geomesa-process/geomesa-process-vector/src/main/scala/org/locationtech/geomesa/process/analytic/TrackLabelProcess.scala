@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.util.ProgressListener
 
 /**
- * Stripped down version of org.geotools.process.vector.HeatmapProcess
+ * Returns a single feature that is the head of a track of related simple features
  */
 @DescribeProcess(
   title = "Track Label Process",

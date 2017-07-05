@@ -21,7 +21,7 @@ import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
-import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -55,7 +55,7 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
   }
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
-  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC, splitArray: Seq[Array[Byte]])
+  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: LegacyZ3SFC, splitArray: Seq[Array[Byte]])
                               (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val numSplits = splitArray.length
     val split = splitArray(wf.idHash % numSplits)
@@ -74,7 +74,7 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
   }
 
   // split(1 byte), week (2 bytes), z value (3 bytes), id (n bytes)
-  protected def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC, splitArray: Seq[Array[Byte]])
+  protected def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: LegacyZ3SFC, splitArray: Seq[Array[Byte]])
                               (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val numSplits = splitArray.length
     val split = splitArray(wf.idHash % numSplits)
@@ -93,7 +93,7 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
   }
 
   // gets a sequence of (week, z) values that cover the geometry
-  private def zBox(sfc: Z3SFC, geom: Geometry, t: Long): Set[Long] = geom match {
+  private def zBox(sfc: LegacyZ3SFC, geom: Geometry, t: Long): Set[Long] = geom match {
     case g: Point => Set(sfc.index(g.getX, g.getY, t).z)
     case g: LineString =>
       // we flatMap bounds for each line segment so we cover a smaller area
@@ -111,7 +111,7 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
   private def minMax(a: Double, b: Double): (Double, Double) = if (a < b) (a, b) else (b, a)
 
   // gets z values that cover the bounding box
-  private def getZPrefixes(sfc: Z3SFC, xmin: Double, ymin: Double, xmax: Double, ymax: Double, t: Long): Set[Long] = {
+  private def getZPrefixes(sfc: LegacyZ3SFC, xmin: Double, ymin: Double, xmax: Double, ymax: Double, t: Long): Set[Long] = {
     sfc.ranges((xmin, xmax), (ymin, ymax), (t, t), 8 * GEOM_Z_NUM_BYTES).flatMap { range =>
       val lower = range.lower & GEOM_Z_MASK
       val upper = range.upper & GEOM_Z_MASK
