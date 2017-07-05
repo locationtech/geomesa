@@ -172,12 +172,8 @@ class GeoMesaDataSource extends DataSourceRegister
       // AH: I don't believe SimpleFeatureBuilder is serializable
       val builder = new SimpleFeatureBuilder(sft)
 
-      var nameMappings: List[(String, Int)] = null
+      val nameMappings: List[(String, Int)] = SparkUtils.getSftRowNameMappings(sft, data.schema)
       iterRow.map { r =>
-        builder.reset()
-        if (nameMappings == null) {
-          nameMappings = SparkUtils.getSftRowNameMappings(sft,r)
-        }
         SparkUtils.row2Sf(nameMappings, r, builder, fidFn(r))
       }
     })
@@ -285,16 +281,16 @@ object SparkUtils extends LazyLogging {
     new GenericRowWithSchema(res, schema)
   }
 
-
   // Since each attribute's corresponding index in the Row is fixed. Compute the mapping once
-  def getSftRowNameMappings(sft: SimpleFeatureType, sampleRow: Row): List[(String, Int)] = {
+  def getSftRowNameMappings(sft: SimpleFeatureType, schema: StructType): List[(String, Int)] = {
     sft.getAttributeDescriptors.map{ ad =>
       val name = ad.getLocalName
-      (name, sampleRow.fieldIndex(ad.getLocalName))
+      (name, schema.fieldIndex(ad.getLocalName))
     }.toList
   }
 
   def row2Sf(nameMappings: List[(String, Int)], row: Row, builder: SimpleFeatureBuilder, id: String): SimpleFeature = {
+    builder.reset()
     nameMappings.foreach{ case (name, index) =>
       builder.set(name, row.getAs[Object](index))
     }
