@@ -11,7 +11,7 @@ package org.locationtech.geomesa.memory.cqengine.datastore
 import java.util.concurrent.atomic.AtomicLong
 
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, FeatureWriter, Query}
+import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
@@ -57,4 +57,11 @@ class GeoCQEngineFeatureStore(engine: GeoCQEngine, entry: ContentEntry, query: Q
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] =
     engine.getReaderForFilter(query.getFilter)
+
+  object GeoCQEngineQueryCapabilities extends QueryCapabilities {
+    override def isUseProvidedFIDSupported = true
+  }
+
+  override def getQueryCapabilities = GeoCQEngineQueryCapabilities
+
 }
