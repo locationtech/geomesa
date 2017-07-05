@@ -112,8 +112,10 @@ object FeatureUtils {
 
   def copyToWriter(writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
                    sf: SimpleFeature,
-                   useProvidedFid: Boolean = false): SimpleFeature = {
-    val toWrite = writer.next()
+                   useProvidedFid: Boolean = false): SimpleFeature =
+    copyToFeature(writer.next(), sf, useProvidedFid)
+
+  def copyToFeature(toWrite: SimpleFeature, sf: SimpleFeature, useProvidedFid: Boolean = false): SimpleFeature = {
     toWrite.setAttributes(sf.getAttributes)
     toWrite.getUserData.putAll(sf.getUserData)
     if (useProvidedFid || jBoolean.TRUE == sf.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[jBoolean]) {
@@ -123,10 +125,9 @@ object FeatureUtils {
     toWrite
   }
 
-
   /**
     *
-    * @param sft
+    * @param sft simple feature type
     * @return
     */
   def sftReservedWords(sft: SimpleFeatureType): Seq[String] =

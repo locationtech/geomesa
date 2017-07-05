@@ -8,9 +8,10 @@ Getting Started
     :maxdepth: 1
 
     geomesa-quickstart-accumulo
+    geomesa-quickstart-hbase
     geomesa-quickstart-cassandra
     geomesa-quickstart-kafka
-    geomesa-quickstart-hbase
+    geomesa-quickstart-lambda
     geodocker-geomesa-spark-on-aws
     geomesa-hbase-s3-on-aws
     geomesa-quickstart-nifi

@@ -53,11 +53,15 @@ object QueryHints {
   val ARROW_SORT_FIELD         = new ClassKey(classOf[java.lang.String])
   val ARROW_SORT_REVERSE       = new ClassKey(classOf[java.lang.Boolean])
 
+  val LAMBDA_QUERY_PERSISTENT  = new ClassKey(classOf[java.lang.Boolean])
+  val LAMBDA_QUERY_TRANSIENT   = new ClassKey(classOf[java.lang.Boolean])
+
   // internal hints that shouldn't be set directly by users
   object Internal {
     val RETURN_SFT       = new ClassKey(classOf[SimpleFeatureType])
     val TRANSFORMS       = new ClassKey(classOf[String])
     val TRANSFORM_SCHEMA = new ClassKey(classOf[SimpleFeatureType])
+    val SKIP_REDUCE      = new ClassKey(classOf[java.lang.Boolean])
   }
 
   implicit class RichHints(val hints: Hints) extends AnyRef {
@@ -69,6 +73,7 @@ object QueryHints {
           .orElse(QueryProperties.QUERY_COST_TYPE.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
           .getOrElse(CostEvaluation.Stats)
     }
+    def isSkipReduce: Boolean = Option(hints.get(Internal.SKIP_REDUCE).asInstanceOf[java.lang.Boolean]).exists(_.booleanValue())
     def isBinQuery: Boolean = hints.containsKey(BIN_TRACK)
     def getBinTrackIdField: String = hints.get(BIN_TRACK).asInstanceOf[String]
     def getBinGeomField: Option[String] = Option(hints.get(BIN_GEOM).asInstanceOf[String])
@@ -94,6 +99,8 @@ object QueryHints {
       Option(hints.get(ARROW_DICTIONARY_COMPUTE).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
     def getArrowDictionaryEncodedValues: Map[String, Seq[AnyRef]] =
       Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap).getOrElse(Map.empty)
+    def setArrowDictionaryEncodedValues(values: Map[String, Seq[AnyRef]]): Unit =
+      hints.put(ARROW_DICTIONARY_VALUES, StringSerialization.encodeSeqMap(values))
     def getArrowBatchSize: Option[Int] = Option(hints.get(ARROW_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue)
     def getArrowSort: Option[(String, Boolean)] =
       Option(hints.get(ARROW_SORT_FIELD).asInstanceOf[String]).map { field =>
@@ -111,5 +118,9 @@ object QueryHints {
     def getTransform: Option[(String, SimpleFeatureType)] =
       hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
+    def isLambdaQueryPersistent: Boolean =
+      Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
+    def isLambdaQueryTransient: Boolean =
+      Option(hints.get(LAMBDA_QUERY_TRANSIENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
   }
 }

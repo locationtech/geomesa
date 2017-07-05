@@ -14,7 +14,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -81,6 +80,9 @@ object ViewParams extends LazyLogging {
         case "ARROW_BATCH_SIZE"         => toInt(key, value).foreach(setHint(ARROW_BATCH_SIZE, _))
         case "ARROW_SORT_FIELD"         => setHint(ARROW_SORT_FIELD, value)
         case "ARROW_SORT_REVERSE"       => toBoolean(key, value).foreach(setHint(ARROW_SORT_REVERSE, _))
+
+        case "LAMBDA_QUERY_PERSISTENT"  => toBoolean(key, value).foreach(setHint(LAMBDA_QUERY_PERSISTENT, _))
+        case "LAMBDA_QUERY_TRANSIENT"   => toBoolean(key, value).foreach(setHint(LAMBDA_QUERY_TRANSIENT, _))
 
         case _ => logger.debug(s"Ignoring view param $key=$value")
       }

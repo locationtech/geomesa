@@ -5,7 +5,7 @@
              xmlns:xlink="http://www.w3.org/1999/xlink"
              xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
 <!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'stats.xml' http://localhost:8080/geoserver/wps | json_pp -->
-  <ows:Identifier>geomesa:StatsIteratorProcess</ows:Identifier>
+  <ows:Identifier>geomesa:Stats</ows:Identifier>
   <wps:DataInputs>
     <wps:Input>
       <ows:Identifier>features</ows:Identifier>

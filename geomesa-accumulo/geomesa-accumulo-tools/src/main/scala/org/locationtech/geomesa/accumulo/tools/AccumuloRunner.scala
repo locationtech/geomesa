@@ -26,7 +26,7 @@ import scala.concurrent._
 import scala.util.Try
 import scala.xml.XML
 
-object AccumuloRunner extends Runner {
+object AccumuloRunner extends RunnerWithAccumuloEnvironment {
 
   override val name: String = "geomesa"
 
@@ -62,6 +62,9 @@ object AccumuloRunner extends Runner {
     new ConfigureCommand,
     new ClasspathCommand
   )
+}
+
+trait RunnerWithAccumuloEnvironment extends Runner {
 
   /**
     * Loads geomesa system properties from geomesa-site.xml
@@ -90,13 +93,13 @@ object AccumuloRunner extends Runner {
 
     // Error if both password and keytab supplied
     params.collect {
-      case p: AccumuloConnectionParams if (p.password != null && p.keytab != null)
+      case p: AccumuloConnectionParams if p.password != null && p.keytab != null
         => throw new com.beust.jcommander.ParameterException("Cannot specify both password and keytab")
     }
 
     // If password not supplied, and not using keytab, prompt for it
     params.collect {
-      case p: AccumuloConnectionParams if (p.password == null && p.keytab == null) => p
+      case p: AccumuloConnectionParams if p.password == null && p.keytab == null => p
     }.foreach(_.password = Prompt.readPassword())
 
     params.collect { case p: InstanceNameParams => p }.foreach { p =>
