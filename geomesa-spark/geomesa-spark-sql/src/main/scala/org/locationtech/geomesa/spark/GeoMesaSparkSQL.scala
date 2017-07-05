@@ -169,7 +169,6 @@ class GeoMesaDataSource extends DataSourceRegister
     val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions( iterRow => {
       val innerDS = DataStoreFinder.getDataStore(parameters)
       val sft = innerDS.getSchema(newFeatureName)
-      // AH: I don't believe SimpleFeatureBuilder is serializable
       val builder = new SimpleFeatureBuilder(sft)
 
       val nameMappings: List[(String, Int)] = SparkUtils.getSftRowNameMappings(sft, data.schema)
