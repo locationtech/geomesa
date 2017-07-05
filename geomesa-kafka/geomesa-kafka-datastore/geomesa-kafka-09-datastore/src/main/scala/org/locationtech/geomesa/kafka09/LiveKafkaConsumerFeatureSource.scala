@@ -16,6 +16,7 @@ import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{FeatureEvent, Query}
+
 import org.locationtech.geomesa.kafka._
 import org.locationtech.geomesa.kafka09.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.utils.geotools._
@@ -136,7 +137,7 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
       } catch {
-        case e: Throwable => logger.warn(s"Unable to read queue: ${e.getMessage}", e)
+        case NonFatal(e) => logger.warn(s"Unable to read queue: ${e.getMessage}", e)
       }
     }
 
