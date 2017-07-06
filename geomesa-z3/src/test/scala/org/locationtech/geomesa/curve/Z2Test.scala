@@ -20,10 +20,10 @@ import scala.util.Random
 class Z2Test extends Specification {
 
   val rand = new Random(-574)
-  val maxInt = Z2SFC.lon.precision.toInt
-  def nextDim() = rand.nextInt(maxInt)
+  val maxInt = Z2SFC.lon.maxIndex
+  def nextDim(): Int = rand.nextInt(maxInt)
 
-  def padTo(s: String) = (new String(Array.fill(62)('0')) + s).takeRight(62)
+  def padTo(s: String): String = (new String(Array.fill(62)('0')) + s).takeRight(62)
 
   "Z2" should {
 
@@ -46,19 +46,21 @@ class Z2Test extends Specification {
     }
 
     "apply and unapply max values" >> {
-      val Z2curve = Z2SFC
-      val (x, y) = (Z2curve.lon.precision, Z2curve.lat.precision)
-      val z = Z2(x.toInt, y.toInt)
-      z match { case Z2(zx, zy) =>
-        zx mustEqual x
-        zy mustEqual y
+      foreach(Seq(Z2SFC, LegacyZ2SFC)) { sfc =>
+        val (x, y) = (sfc.lon.maxIndex, sfc.lat.maxIndex)
+        val z = Z2(x.toInt, y.toInt)
+        z match { case Z2(zx, zy) =>
+          zx mustEqual x
+          zy mustEqual y
+        }
       }
     }
 
     "fail for out-of-bounds values" >> {
-      val sfc = Z2SFC
-      forall(Seq((-180.1, 0d), (0d, -90.1), (180.1, 0d), (0d, 90.1), (-181d, -91d), (181d, 91d))) {
-        case (x, y) => sfc.index(x, y) must throwAn[IllegalArgumentException]
+      foreach(Seq(Z2SFC, LegacyZ2SFC)) { sfc =>
+        foreach(Seq((-180.1, 0d), (0d, -90.1), (180.1, 0d), (0d, 90.1), (-181d, -91d), (181d, 91d))) {
+          case (x, y) => sfc.index(x, y) must throwAn[IllegalArgumentException]
+        }
       }
     }
 
@@ -70,11 +72,10 @@ class Z2Test extends Specification {
         0x000000000c0f02L,
         0x00000000000802L
       ) ++ (0 until 10).map(_ => nextDim().toLong)
-      splits.foreach { l =>
+      foreach(splits) { l =>
         val expected = padTo(new String(l.toBinaryString.toCharArray.flatMap(c => s"0$c")))
         padTo(Z2.split(l).toBinaryString) mustEqual expected
       }
-      success
     }
 
     "split and combine" >> {
@@ -115,29 +116,29 @@ class Z2Test extends Specification {
     }
 
     "return non-empty ranges for a number of cases" >> {
-      val sfc = Z2SFC
+      foreach(Seq(Z2SFC, LegacyZ2SFC)) { sfc =>
+        val ranges = Seq(
+          (sfc.index(-180, -90),      sfc.index(180, 90)),        // whole world
+          (sfc.index(-90, -45),       sfc.index(90, 45)),         // half world
+          (sfc.index(35, 65),         sfc.index(45, 75)),         // 10^2 degrees
+          (sfc.index(35, 55),         sfc.index(45, 75)),         // 10x20 degrees
+          (sfc.index(35, 65),         sfc.index(37, 68)),         // 2x3 degrees
+          (sfc.index(35, 65),         sfc.index(40, 70)),         // 5^2 degrees
+          (sfc.index(39.999, 60.999), sfc.index(40.001, 61.001)), // small bounds
+          (sfc.index(51.0, 51.0),     sfc.index(51.1, 51.1)),     // small bounds
+          (sfc.index(51.0, 51.0),     sfc.index(51.001, 51.001)), // small bounds
+          (sfc.index(51.0, 51.0),     sfc.index(51.0000001, 51.0000001)) // 60 bits in common
+        )
 
-      val ranges = Seq(
-        (sfc.index(-180, -90),      sfc.index(180, 90)),        // whole world
-        (sfc.index(-90, -45),       sfc.index(90, 45)),         // half world
-        (sfc.index(35, 65),         sfc.index(45, 75)),         // 10^2 degrees
-        (sfc.index(35, 55),         sfc.index(45, 75)),         // 10x20 degrees
-        (sfc.index(35, 65),         sfc.index(37, 68)),         // 2x3 degrees
-        (sfc.index(35, 65),         sfc.index(40, 70)),         // 5^2 degrees
-        (sfc.index(39.999, 60.999), sfc.index(40.001, 61.001)), // small bounds
-        (sfc.index(51.0, 51.0),     sfc.index(51.1, 51.1)),     // small bounds
-        (sfc.index(51.0, 51.0),     sfc.index(51.001, 51.001)), // small bounds
-        (sfc.index(51.0, 51.0),     sfc.index(51.0000001, 51.0000001)) // 60 bits in common
-      )
+        def print(l: Z2, u: Z2, size: Int): Unit =
+          println(s"${round(sfc.invert(l))} ${round(sfc.invert(u))}\t$size")
+        def round(z: (Double, Double)): (Double, Double) =
+          (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0)
 
-      def print(l: Z2, u: Z2, size: Int): Unit =
-        println(s"${round(sfc.invert(l))} ${round(sfc.invert(u))}\t$size")
-      def round(z: (Double, Double)): (Double, Double) =
-        (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0)
-
-      forall(ranges) { r =>
-        val ret = Z2.zranges(ZRange(r._1, r._2))
-        ret.length must beGreaterThan(0)
+        foreach(ranges) { r =>
+          val ret = Z2.zranges(ZRange(r._1, r._2))
+          ret.length must beGreaterThan(0)
+        }
       }
     }
   }

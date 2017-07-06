@@ -8,16 +8,21 @@
 
 package org.locationtech.geomesa.curve
 
+import org.locationtech.geomesa.curve.NormalizedDimension.{NormalizedLat, NormalizedLon}
 import org.locationtech.sfcurve.IndexRange
 import org.locationtech.sfcurve.zorder.{Z2, ZRange}
 
-object Z2SFC extends SpaceFillingCurve[Z2] {
+object Z2SFC extends Z2SFC(31)
 
-  private val xprec: Long = math.pow(2, 31).toLong - 1
-  private val yprec: Long = math.pow(2, 31).toLong - 1
+/**
+  * z2 space-filling curve
+  *
+  * @param precision number of bits used per dimension - note sum must be less than 64
+  */
+class Z2SFC(precision: Int) extends SpaceFillingCurve[Z2] {
 
-  override val lon  = NormalizedLon(xprec)
-  override val lat  = NormalizedLat(yprec)
+  override val lon: NormalizedDimension = NormalizedLon(precision)
+  override val lat: NormalizedDimension = NormalizedLat(precision)
 
   override def index(x: Double, y: Double): Z2 = {
     require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max,

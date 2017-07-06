@@ -12,7 +12,7 @@ import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature, EMPTY_TEXT}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
-import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC}
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -40,7 +40,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-    val sfc = Z3SFC(sft.getZ3Interval)
+    val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       (wf, i) => getPointRowKey(timeToIndex, sfc, splitArray)(wf, i).map(_.drop(1))
@@ -60,7 +60,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-    val sfc = Z3SFC(sft.getZ3Interval)
+    val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       (ftw, i) => getPointRowKey(timeToIndex, sfc, splitArray)(ftw, i).map(_.drop(1))

@@ -18,7 +18,7 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
@@ -44,7 +44,7 @@ trait Z2WritableIndex extends AccumuloFeatureIndex {
     if (geom == null) {
       throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
     }
-    val z = Z2SFC.index(geom.getX, geom.getY).z
+    val z = LegacyZ2SFC.index(geom.getX, geom.getY).z
     Seq(Bytes.concat(tableSharing, split, Longs.toByteArray(z), id))
   }
 
@@ -64,7 +64,7 @@ trait Z2WritableIndex extends AccumuloFeatureIndex {
 
   // gets a sequence of z values that cover the geometry
   private def zBox(geom: Geometry): Set[Long] = geom match {
-    case g: Point => Set(Z2SFC.index(g.getX, g.getY).z)
+    case g: Point => Set(LegacyZ2SFC.index(g.getX, g.getY).z)
     case g: LineString =>
       // we flatMap bounds for each line segment so we cover a smaller area
       (0 until g.getNumPoints).map(g.getPointN).sliding(2).flatMap { case Seq(one, two) =>
@@ -82,7 +82,7 @@ trait Z2WritableIndex extends AccumuloFeatureIndex {
 
   // gets z values that cover the bounding box
   private def getZPrefixes(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Set[Long] = {
-    Z2SFC.ranges((xmin, xmax), (ymin, ymax), 8 * GEOM_Z_NUM_BYTES).flatMap { range =>
+    LegacyZ2SFC.ranges((xmin, xmax), (ymin, ymax), 8 * GEOM_Z_NUM_BYTES).flatMap { range =>
       val lower = range.lower & GEOM_Z_MASK
       val upper = range.upper & GEOM_Z_MASK
       if (lower == upper) {

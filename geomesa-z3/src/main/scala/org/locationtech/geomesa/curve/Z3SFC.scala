@@ -8,20 +8,24 @@
 
 package org.locationtech.geomesa.curve
 
+import org.locationtech.geomesa.curve.NormalizedDimension._
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.sfcurve.IndexRange
 import org.locationtech.sfcurve.zorder.{Z3, ZRange}
 
-class Z3SFC(period: TimePeriod) extends SpaceTimeFillingCurve[Z3] {
+/**
+  * Z3 space filling curve
+  *
+  * @param period time period used to bin results
+  * @param precision bits used per dimension - note all precisions must sum to less than 64
+  */
+class Z3SFC(period: TimePeriod, precision: Int = 21) extends SpaceTimeFillingCurve[Z3] {
 
-  private val xprec: Long = math.pow(2, 21).toLong - 1
-  private val yprec: Long = math.pow(2, 21).toLong - 1
-  private val tprec: Long = math.pow(2, 20).toLong - 1
-  private val tmax: Double = BinnedTime.maxOffset(period).toDouble
+  require(precision > 0 && precision < 22, "Precision (bits) per dimension must be in [1,21]")
 
-  override val lon  = NormalizedLon(xprec)
-  override val lat  = NormalizedLat(yprec)
-  override val time = NormalizedTime(tprec, tmax)
+  override val lon: NormalizedDimension  = NormalizedLon(precision)
+  override val lat: NormalizedDimension  = NormalizedLat(precision)
+  override val time: NormalizedDimension = NormalizedTime(precision, BinnedTime.maxOffset(period).toDouble)
 
   override def index(x: Double, y: Double, t: Long): Z3 = {
     require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max && t >= time.min && t <= time.max,

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.uuid
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.{Geometry, Point, Polygon}
-import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.TimePeriod._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -19,8 +19,6 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class Z3FeatureIdGeneratorTest extends Specification {
@@ -48,7 +46,7 @@ class Z3FeatureIdGeneratorTest extends Specification {
   "Z3UuidGenerator" should {
     "create uuids with correct formats for a Point" >> {
       val id = Z3UuidGenerator.createUuid(point, time, period).toString
-      id.substring(0, 18) mustEqual "109452fb-fd80-4f78"
+      id.substring(0, 18) mustEqual "e09456f9-fc84-4f5c"
       val uuid = UUID.fromString(id)
       uuid.version() mustEqual 4
       uuid.variant() mustEqual 2
@@ -56,7 +54,7 @@ class Z3FeatureIdGeneratorTest extends Specification {
 
     "create uuids with correct formats for a Polygon" >> {
       val id = Z3UuidGenerator.createUuid(polygon.asInstanceOf[Geometry], time, period).toString
-      id.substring(0, 18) mustEqual "609452fb-fd82-4fe9"
+      id.substring(0, 18) mustEqual "909456f9-fc86-4fcd"
       val uuid = UUID.fromString(id)
       uuid.version() mustEqual 4
       uuid.variant() mustEqual 2
