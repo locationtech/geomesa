@@ -22,7 +22,6 @@ class ConverterPartitionReader(root: Path,
                                converter: SimpleFeatureConverter[_],
                                gtFilter: org.opengis.filter.Filter) extends FileSystemPartitionIterator with LazyLogging {
 
-
   private val path = new Path(root, partition.getName)
   private val fis = new FileInputStream(new File(path.toUri.toString))
   private val iter = try {
