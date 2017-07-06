@@ -35,6 +35,7 @@ object PartitionOpts {
   val DtgAttribute = "dtg-attribute"
   val GeomAttribute = "geom-attribute"
   val Z2Resolution = "z2-resolution"
+  val LeafStorage = "leaf-storage"
 
   def parseDateTimeFormat(opts: Map[String, String]): String = {
     val fmtStr = opts(DateTimeFormatOpt)
@@ -60,6 +61,9 @@ object PartitionOpts {
 
   def parseZ2Resolution(opts: Map[String, String]): Int = {
     opts(Z2Resolution).toInt
+  }
+  def parseLeafStorage(opts: Map[String, String]): Boolean = {
+    opts(LeafStorage).toBoolean
   }
 }
 
@@ -92,13 +96,14 @@ object PartitionScheme {
   // TODO delegate out, etc. make a loader, etc
   def apply(sft: SimpleFeatureType, pName: String, opts: Map[String, String]): PartitionScheme = {
     import PartitionOpts._
+    val leaf = parseLeafStorage(opts)
     pName match {
       case "datetime" =>
         val attr = parseDtgAttr(opts)
         val fmt = parseDateTimeFormat(opts)
         val su = parseStepUnit(opts)
         val s = parseStep(opts)
-        new DateTimeScheme(fmt, su, s, sft, attr)
+        new DateTimeScheme(fmt, su, s, sft, attr, leaf)
 
       case "datetime-z2" =>
         val dtgAttr = parseDtgAttr(opts)
@@ -107,12 +112,12 @@ object PartitionScheme {
         val su = parseStepUnit(opts)
         val s = parseStep(opts)
         val z2Res = parseZ2Resolution(opts)
-        new DateTimeZ2Scheme(fmt, su, s, z2Res, sft, dtgAttr, geomAttr)
+        new DateTimeZ2Scheme(fmt, su, s, z2Res, sft, dtgAttr, geomAttr, leaf)
 
       case "z2" =>
         val geomAttr = parseGeomAttr(opts)
         val z2Res = parseZ2Resolution(opts)
-        new Z2Scheme(z2Res, sft, geomAttr)
+        new Z2Scheme(z2Res, sft, geomAttr, leaf)
 
       case _ =>
         throw new IllegalArgumentException(s"Unknown scheme name $pName")
@@ -143,7 +148,8 @@ class DateTimeScheme(fmtStr: String,
                      stepUnit: ChronoUnit,
                      step: Int,
                      sft: SimpleFeatureType,
-                     dtgAttribute: String)
+                     dtgAttribute: String,
+                     leafStorage: Boolean)
   extends PartitionScheme {
   private val index = sft.indexOf(dtgAttribute)
   private val fmt = DateTimeFormatter.ofPattern(fmtStr)
@@ -175,12 +181,15 @@ class DateTimeScheme(fmtStr: String,
         DtgAttribute -> dtgAttribute,
         DateTimeFormatOpt -> fmtStr,
         StepUnitOpt -> stepUnit.toString,
-        StepOpt -> step.toString).asJava).asJava)
+        StepOpt -> step.toString,
+        LeafStorage -> leafStorage.toString).asJava).asJava)
     conf.root().render(ConfigRenderOptions.concise)
   }
 
   override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
     PartitionScheme(sft, ConfigFactory.parseString(s))
+
+  override def isLeafStorage: Boolean = leafStorage
 }
 
 object DateTimeScheme {
@@ -194,7 +203,8 @@ object DateTimeScheme {
 
 class Z2Scheme(bits: Int, // number of bits
                sft: SimpleFeatureType,
-               geomAttribute: String) extends PartitionScheme {
+               geomAttribute: String,
+               leafStorage: Boolean) extends PartitionScheme {
 
   require(bits % 2 == 0, "Resolution must be an even number")
 
@@ -237,12 +247,15 @@ class Z2Scheme(bits: Int, // number of bits
       "name" -> "z2",
       "opts" -> Map(
         GeomAttribute -> geomAttribute,
-        Z2Resolution -> bits.toString).asJava))
+        Z2Resolution -> bits.toString,
+        LeafStorage -> leafStorage.toString).asJava))
     conf.root().render(ConfigRenderOptions.concise)
   }
 
   override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
     PartitionScheme(sft, ConfigFactory.parseString(s))
+
+  override def isLeafStorage: Boolean = leafStorage
 
 }
 
@@ -252,10 +265,11 @@ class DateTimeZ2Scheme(fmtStr: String,
                        resolution: Int,
                        sft: SimpleFeatureType,
                        dtgAttribute: String,
-                       geomAttribute: String) extends PartitionScheme {
+                       geomAttribute: String,
+                       leafStorage: Boolean) extends PartitionScheme {
 
-  private val z2Scheme = new Z2Scheme(resolution, sft, geomAttribute)
-  private val dateScheme = new DateTimeScheme(fmtStr, stepUnit, step, sft, dtgAttribute)
+  private val z2Scheme = new Z2Scheme(resolution, sft, geomAttribute, leafStorage)
+  private val dateScheme = new DateTimeScheme(fmtStr, stepUnit, step, sft, dtgAttribute, leafStorage)
 
   override def getPartitionName(sf: SimpleFeature): String = {
     dateScheme.getPartitionName(sf) + "/" + z2Scheme.getPartitionName(sf)
@@ -282,10 +296,14 @@ class DateTimeZ2Scheme(fmtStr: String,
         DtgAttribute -> dtgAttribute,
         DateTimeFormatOpt -> fmtStr,
         StepUnitOpt -> stepUnit.toString,
-        StepOpt -> step.toString).asJava).asJava)
+        StepOpt -> step.toString,
+        LeafStorage -> leafStorage.toString).asJava).asJava)
     conf.root().render(ConfigRenderOptions.concise)
   }
 
   override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
     PartitionScheme(sft, ConfigFactory.parseString(s))
+
+  override def isLeafStorage: Boolean = leafStorage
+
 }

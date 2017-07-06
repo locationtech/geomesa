@@ -35,6 +35,8 @@ public interface PartitionScheme {
      */
     int maxDepth();
 
+    boolean isLeafStorage();
+
     String toString();
 
     PartitionScheme fromString(SimpleFeatureType sft, String s);

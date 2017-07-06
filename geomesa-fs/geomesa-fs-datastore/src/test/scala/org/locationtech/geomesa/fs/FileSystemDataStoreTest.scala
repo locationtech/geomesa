@@ -46,7 +46,7 @@ class FileSystemDataStoreTest extends Specification {
       val ds = DataStoreFinder.getDataStore(Map(
         "fs.path" -> dir.getPath,
         "fs.encoding" -> "parquet"))
-      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.YearMonthDay, ChronoUnit.DAYS, 1, sft, "dtg")
+      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.YearMonthDay, ChronoUnit.DAYS, 1, sft, "dtg", false)
       PartitionScheme.addToSft(sft, partitionScheme)
       ds.createSchema(sft)
 

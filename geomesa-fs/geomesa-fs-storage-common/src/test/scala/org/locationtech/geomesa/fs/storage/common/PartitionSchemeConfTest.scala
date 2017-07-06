@@ -31,6 +31,7 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
           |     dtg-attribute = dtg
           |     geom-attribute = geom
           |     z2-resolution = 10
+          |     leaf-storage = true
           |   }
           | }
         """.stripMargin

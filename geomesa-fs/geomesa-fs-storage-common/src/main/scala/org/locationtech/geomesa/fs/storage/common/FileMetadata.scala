@@ -50,16 +50,18 @@ class FileMetadata(fs: FileSystem,
     import scala.collection.JavaConverters._
     val existing = load()
     val allKeys = existing.keySet ++ toAdd.keySet()
+
+    // todo typesafe config wants java boooo
     val javaMap: java.util.Map[String, java.util.List[String]] = allKeys.toList.map { k =>
       val e: List[String] = existing.get(k).toList.flatten
       val n: List[String] = toAdd.getOrDefault(k, List.empty[String]).toList
-      k -> e.++(n).asJava
+      k -> e.++(n).distinct.asJava
     }.toMap.asJava
 
     val scalaMap: Map[String, List[String]] = allKeys.toList.map { k =>
       val e: List[String] = existing.get(k).toList.flatten
       val n: List[String] = toAdd.getOrDefault(k, List.empty[String]).toList
-      k -> e.++(n)
+      k -> e.++(n).distinct
     }.toMap
 
     val config = ConfigFactory.empty().withValue("partitions", ConfigValueFactory.fromMap(javaMap))
