@@ -65,12 +65,6 @@ class ParquetFileSystemStorage(root: Path,
         val metaPath = new Path(new Path(root, typeName), metaFileName)
         val meta = new FileMetadata(fs, metaPath, conf)
         if (!fs.exists(metaPath)) {
-//          val is = fs.create(metaPath)
-//          try {
-//            is.hflush()
-//            is.hsync()
-//            is.close()
-//          }
           val partitions =
             StorageUtils.buildPartitionList(root, fs, typeName, getPartitionScheme(typeName), dataFileExtention)
               .map(getPartition)
@@ -227,12 +221,12 @@ class ParquetFileSystemStorage(root: Path,
   def nextFile(typeName: String, partition: Partition): Path = {
     val existingFiles = getChildrenFiles(typeName, partition).map(_.getName).toSet
     var i = 0
-    def nextName = f"part_$i%04d"
+    def nextName = f"part_$i%04d.$dataFileExtention"
     var name = nextName
     while (existingFiles.contains(name)) {
       name = nextName
     }
-    new Path(partitionPath(typeName, partition), name + s".$dataFileExtention")
+    new Path(partitionPath(typeName, partition), name)
   }
   def partitionPath(typeName: String, partition: Partition): Path =
     new Path(new Path(root, typeName), partition.getName)

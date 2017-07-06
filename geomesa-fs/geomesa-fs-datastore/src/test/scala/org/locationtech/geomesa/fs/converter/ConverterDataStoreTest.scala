@@ -36,7 +36,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.partition-scheme.opts.step-unit" -> "MINUTES",
         "fs.partition-scheme.opts.step" -> "15",
         "fs.partition-scheme.opts.dtg-attribute" -> "dtg",
-        "fs.partition-scheme.opts.leaf-mode" -> "data"
+        "fs.partition-scheme.opts.leaf-storage" -> "true"
       ))
       ds must not beNull
 
@@ -64,7 +64,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.partition-scheme.opts.step-unit" -> "MINUTES",
         "fs.partition-scheme.opts.step" -> "15",
         "fs.partition-scheme.opts.dtg-attribute" -> "dtg",
-        "fs.partition-scheme.opts.leaf-mode" -> "data"
+        "fs.partition-scheme.opts.leaf-storage" -> "true"
       ))
       ds must not beNull
 
@@ -126,7 +126,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.partition-scheme.opts.step-unit" -> "MINUTES",
         "fs.partition-scheme.opts.step" -> "15",
         "fs.partition-scheme.opts.dtg-attribute" -> "dtg",
-        "fs.partition-scheme.opts.leaf-mode" -> "data"
+        "fs.partition-scheme.opts.leaf-storage" -> "true"
       ))
       ds must not beNull
 

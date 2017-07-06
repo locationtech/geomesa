@@ -49,7 +49,7 @@ class ParquetFSTest extends Specification with AllExpectations {
         "fs.path" -> tempDir.toFile.getPath
       ))
 
-      val scheme = new DateTimeZ2Scheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, 10, sft, "dtg", "geom")
+      val scheme = new DateTimeZ2Scheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, 10, sft, "dtg", "geom", false)
       fsStorage.createNewFeatureType(sft, scheme)
 
       fsStorage.listFeatureTypes().size mustEqual 1
