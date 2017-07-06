@@ -22,7 +22,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   private var messageType: MessageType = _
   private var consumer: RecordConsumer = _
   private var writers: Array[AttributeWriter] = _
-  private var idIndex: java.lang.Integer = _// put the ID at the end of the record ? Why?
+  private var idIndex: java.lang.Integer = _ // put the ID at the end of the record ? Why?
 
   override def init(configuration: Configuration): WriteContext = {
     this.sft = SimpleFeatureReadSupport.getSft(configuration)

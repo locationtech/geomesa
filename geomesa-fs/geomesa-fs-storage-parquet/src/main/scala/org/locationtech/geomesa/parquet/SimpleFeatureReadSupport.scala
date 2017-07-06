@@ -41,7 +41,7 @@ class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
 object SimpleFeatureReadSupport {
   val SftConfKey = "geomesa.sft.config"
 
-  def setSft(sft: SimpleFeatureType, conf: Configuration) = {
+  def setSft(sft: SimpleFeatureType, conf: Configuration): Unit = {
     // This must be serialized as conf due to the spec's inability to serialize user data completely
     conf.set(SftConfKey, SimpleFeatureTypes.toConfigString(sft, includeUserData = true, concise = true, includePrefix = false))
   }
