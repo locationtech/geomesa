@@ -247,7 +247,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
       prefixes.flatMap { prefix =>
         secondary.map { case (lo, hi) =>
           val start = Bytes.concat(prefix, encoded, NullByteArray, lo)
-          val end = IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded, NullByteArray, hi))
+          val end = Bytes.concat(prefix, encoded, NullByteArray, hi)
           range(start, end)
         }
       }
@@ -450,8 +450,13 @@ object AttributeIndex {
     }
     val encoded = encodeForQuery(value, sft.getDescriptor(attributeIndex))
     if (inclusive) {
-      // append secondary range, then get the next row - this will match anything with the same value, up to the secondary
-      prefixes.map(prefix => IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded, NullByteArray, secondary)))
+      if (secondary.length == 0) {
+        // use a rowFollowingPrefix to match any secondary values
+        prefixes.map(prefix => IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded, NullByteArray)))
+      } else {
+        // matches anything with the same value, up to the secondary
+        prefixes.map(prefix => Bytes.concat(prefix, encoded, NullByteArray, secondary))
+      }
     } else {
       // can't use secondary range on an exclusive upper, as there aren't any methods to calculate previous rows
       prefixes.map(prefix => Bytes.concat(prefix, encoded, NullByteArray))
