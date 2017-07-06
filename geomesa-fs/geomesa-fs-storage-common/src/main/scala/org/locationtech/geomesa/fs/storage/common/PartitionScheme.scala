@@ -65,7 +65,7 @@ object PartitionOpts {
 
 
 object PartitionScheme {
-  // Must begin with GeoMesa in order to get incoded
+  // Must begin with GeoMesa in order to be persisted
   val PartitionSchemeKey = "geomesa.fs.partition-scheme.config"
   val PartitionOptsPrefix = "fs.partition-scheme.opts."
   val PartitionSchemeParam = new Param("fs.partition-scheme.name", classOf[String], "Partition scheme name", false)
@@ -74,14 +74,16 @@ object PartitionScheme {
     sft.getUserData.put(PartitionSchemeKey, scheme.toString)
 
   def extractFromSft(sft: SimpleFeatureType): PartitionScheme = {
-    if (!sft.getUserData.containsKey(PartitionSchemeKey)) throw new IllegalArgumentException("SFT does not have partition scheme in hints")
+    if (!sft.getUserData.containsKey(PartitionSchemeKey)) {
+      throw new IllegalArgumentException("SFT does not have partition scheme in hints")
+    }
     apply(sft, sft.getUserData.get(PartitionSchemeKey).asInstanceOf[String])
   }
 
   def apply(sft: SimpleFeatureType, dsParams: util.Map[String, Serializable]): PartitionScheme = {
     val pName = PartitionSchemeParam.lookUp(dsParams).toString
     import scala.collection.JavaConversions._
-    val pOpts = dsParams.keySet.filter(_.startsWith(PartitionOptsPrefix)).map{opt =>
+    val pOpts = dsParams.keySet.filter(_.startsWith(PartitionOptsPrefix)).map { opt =>
       opt.replace(PartitionOptsPrefix, "") -> dsParams.get(opt).toString
     }.toMap
     PartitionScheme(sft, pName, pOpts)
@@ -151,21 +153,12 @@ class DateTimeScheme(fmtStr: String,
   }
 
   override def getCoveringPartitions(f: Filter): java.util.List[String] = {
-    // TODO: deal with more than just a single date range
-    val interval = FilterHelper.extractIntervals(f, dtgAttribute).values
-      .map { case (s,e) => (
-        Instant.ofEpochMilli(s.getMillis).atZone(ZoneOffset.UTC),
-        Instant.ofEpochMilli(e.getMillis).atZone(ZoneOffset.UTC)) }
-    if (interval.isEmpty) {
-      List.empty[String]
-    } else {
-      val (start, end) = interval.head
-      val count = start.until(end, stepUnit)
-      (0 until count.toInt).map { i =>
-        start.plus(step*i, stepUnit)
-      }.map { i =>
-        fmt.format(i)
-      }
+    val intervals = FilterHelper.extractIntervals(f, dtgAttribute).values.map { case (s,e) =>
+      (Instant.ofEpochMilli(s.getMillis).atZone(ZoneOffset.UTC), Instant.ofEpochMilli(e.getMillis).atZone(ZoneOffset.UTC))
+    }
+    intervals.flatMap { case (start, end) =>
+      val count = start.until(end, stepUnit).toInt
+      Seq.tabulate(count)(i => fmt.format(start.plus(step * i, stepUnit)))
     }
   }
 
@@ -272,7 +265,7 @@ class DateTimeZ2Scheme(fmtStr: String,
     import scala.collection.JavaConversions._
     val dateParts = dateScheme.getCoveringPartitions(f)
     val z2Parts = z2Scheme.getCoveringPartitions(f)
-    for { d <- dateParts; z <- z2Parts } yield s"$d/$z"
+    for { d <- dateParts; z <- z2Parts } yield { s"$d/$z" }
   }
 
   override def maxDepth(): Int = z2Scheme.maxDepth() + dateScheme.maxDepth()
@@ -296,16 +289,3 @@ class DateTimeZ2Scheme(fmtStr: String,
   override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
     PartitionScheme(sft, ConfigFactory.parseString(s))
 }
-
-// TODO fix up
-//class HierarchicalPartitionScheme(partitionSchemes: Seq[PartitionScheme], sep: String) extends PartitionScheme {
-//  override def getPartitionName(sf: SimpleFeature): String =
-//    partitionSchemes.map(_.getPartitionName(sf)).mkString(sep)
-//
-//  import scala.collection.JavaConversions._
-//  override def getCoveringPartitions(f: Filter): java.util.List[String] =
-//    partitionSchemes.flatMap(_.getCoveringPartitions(f)).distinct
-//
-//  override def maxDepth(): Int =  partitionSchemes.map(_.maxDepth()).sum
-//
-//}
