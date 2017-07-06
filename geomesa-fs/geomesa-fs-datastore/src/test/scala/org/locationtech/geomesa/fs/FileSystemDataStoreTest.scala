@@ -8,8 +8,10 @@
 
 package org.locationtech.geomesa.fs
 
+import java.io.File
 import java.time.temporal.ChronoUnit
 
+import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.commons.io.FileUtils
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -57,14 +59,17 @@ class FileSystemDataStoreTest extends Specification {
       fw.close()
 
       // Metadata, schema, and partition file checks
-      new java.io.File("/tmp/awetmpawet/test/metadata").exists() must beTrue
-      new java.io.File("/tmp/awetmpawet/test/schema.sft").exists() must beTrue
-      new java.io.File("/tmp/awetmpawet/test/2017/06/05.parquet").exists() must beTrue
-      new java.io.File("/tmp/awetmpawet/test/2017/06/05.parquet").isFile must beTrue
+      new File("/tmp/awetmpawet/test/schema.sft").exists() must beTrue
+      new File("/tmp/awetmpawet/test/2017/06/05/part_0000.parquet").exists() must beTrue
+      new File("/tmp/awetmpawet/test/2017/06/05/part_0000.parquet").isFile must beTrue
 
-      val parts = FileUtils.readLines(new java.io.File("/tmp/awetmpawet/test/metadata"))
-      parts.size mustEqual 1
-      parts.head mustEqual "2017/06/05"
+      // metadata
+      new File("/tmp/awetmpawet/test/metadata").exists() must beTrue
+      val conf = ConfigFactory.parseFile(new File("/tmp/awetmpawet/test/metadata"))
+      conf.hasPath("partitions") must beTrue
+      val p1 = conf.getConfig("partitions").getStringList("2017/06/05")
+      p1.size() mustEqual 1
+      p1.get(0) mustEqual "part_0000.parquet"
 
       ds.getTypeNames must have size 1
       val fs = ds.getFeatureSource("test")
@@ -74,7 +79,9 @@ class FileSystemDataStoreTest extends Specification {
       val features = fs.getFeatures(q).features().toList
 
       features.size mustEqual 1
-      success
+
+
+
     }
     step {
       FileUtils.deleteDirectory(new java.io.File("/tmp/awetmpawet"))

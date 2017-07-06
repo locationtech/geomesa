@@ -114,7 +114,5 @@ class ConverterStorage(root: Path,
   override def getPaths(typeName: String, partition: Partition): java.util.List[URI] =
     List(new Path(root, partition.getName).toUri)
 
-  override def notifyPartitions(`type`: String, partitionNames: util.List[String]): Unit = ???
-
   override def getMetadata(typeName: String): Metadata = ???
 }

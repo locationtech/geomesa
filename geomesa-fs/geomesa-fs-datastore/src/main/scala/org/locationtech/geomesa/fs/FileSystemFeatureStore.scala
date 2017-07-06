@@ -82,8 +82,6 @@ class FileSystemFeatureStore(entry: ContentEntry,
 
       override def close(): Unit = {
         writers.invalidateAll()
-        import scala.collection.JavaConversions._
-        storage.notifyPartitions(sft.getTypeName, partitionsWritten.toList)
       }
 
     }
