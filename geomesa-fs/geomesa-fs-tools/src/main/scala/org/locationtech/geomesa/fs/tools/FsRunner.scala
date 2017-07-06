@@ -13,7 +13,7 @@ import org.locationtech.geomesa.fs.tools.export.FsExportCommand
 import org.locationtech.geomesa.fs.tools.ingest.{FsIngestCommand, GenerateMetadataCommand}
 import org.locationtech.geomesa.fs.tools.status.{FsDescribeSchemaCommand, FsGetSftConfigCommand, FsGetTypeNamesCommand}
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
-import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
 
 object FsRunner extends Runner {
@@ -31,6 +31,8 @@ object FsRunner extends Runner {
     new FsGetSftConfigCommand,
     new GenerateAvroSchemaCommand,
     new ConvertCommand,
-    new GenerateMetadataCommand
+    new GenerateMetadataCommand,
+    new ClasspathCommand,
+    new ConfigureCommand
   )
 }
