@@ -166,12 +166,18 @@ class GeoMesaDataSource extends DataSourceRegister
     sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
     ds.createSchema(sft)
 
+    val structType = if (data.queryExecution == null) {
+      sft2StructType(sft)
+    } else {
+      data.schema
+    }
+
     val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions( iterRow => {
       val innerDS = DataStoreFinder.getDataStore(parameters)
       val sft = innerDS.getSchema(newFeatureName)
       val builder = new SimpleFeatureBuilder(sft)
 
-      val nameMappings: List[(String, Int)] = SparkUtils.getSftRowNameMappings(sft, data.schema)
+      val nameMappings: List[(String, Int)] = SparkUtils.getSftRowNameMappings(sft, structType)
       iterRow.map { r =>
         SparkUtils.row2Sf(nameMappings, r, builder, fidFn(r))
       }
