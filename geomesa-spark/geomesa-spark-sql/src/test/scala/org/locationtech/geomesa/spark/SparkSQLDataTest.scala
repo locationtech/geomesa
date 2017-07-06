@@ -13,12 +13,10 @@ import java.util.{Map => JMap}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
+import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -57,40 +55,6 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       df.createOrReplaceTempView("chicago")
 
       df.collect.length mustEqual 3
-    }
-
-    "write to geomesa" >> {
-
-      val sft = SparkSQLTestUtils.ChicagoSpec
-      ds.createSchema(sft)
-
-      val features = SparkSQLTestUtils.chicagoFeatures()
-
-      val structType = SparkSQLTestUtils.ChiStruct
-      type EXTRACTOR = SimpleFeature => AnyRef
-      val IdExtractor: SimpleFeature => AnyRef= sf => sf.getID
-      val requiredColumns = structType.fieldNames
-      val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
-      val extractors: Array[EXTRACTOR] = requiredColumns.map {
-        case "__fid__" => IdExtractor
-        case col       =>
-          val index = requiredAttributes.indexOf(col)
-          sf: SimpleFeature => SparkUtils.toSparkType(sf.getAttribute(index))
-      }
-      val rows = features.map{ sf => SparkUtils.sf2row(structType, sf, extractors) }
-      val rowsRDD = spark.sparkContext.parallelize(rows)
-
-      // Build a data frame
-      val df: DataFrame = spark.sqlContext.createDataFrame(rowsRDD,structType)
-
-      // Write to geomesa data store
-      df.write.format("geomesa").options(dsParams).option("geomesa.feature","chicago").save()
-
-      // Load from the data store to verify
-      val df2 = spark.read.format("geomesa").options(dsParams).option("geomesa.feature", "chicago").load()
-      df2.createOrReplaceTempView("chicago")
-      spark.sqlContext.sql("select * from chicago").show()
-      df2.collect.length mustEqual 6
     }
 
     "basic sql 1" >> {
@@ -142,7 +106,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val d = r.collect()
 
       d.length mustEqual 1
-      d.head.getAs[Int]("case_number") mustEqual 1
+      d.head.getAs[Int]("case_number") mustEqual 2
     }
 
     "where attr equals" >> {
@@ -158,7 +122,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val d = r.collect()
 
       d.length mustEqual 2
-      d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(1, 2))
+      d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(2, 3))
     }
 
     "where attr in" >> {
