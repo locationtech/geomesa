@@ -36,27 +36,12 @@ class FileSystemFeatureStore(entry: ContentEntry,
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
       private val typeName = query.getTypeName
-      private val rl = new RemovalListener[String, FileSystemWriter] {
-        override def onRemoval(removalNotification: RemovalNotification[String, FileSystemWriter]): Unit = {
-          val writer = removalNotification.getValue
-          writer.flush()
-          writer.close()
-        }
-      }
-      private val loader = new CacheLoader[String, FileSystemWriter] {
-        override def load(k: String): FileSystemWriter = storage.getWriter(typeName, storage.getPartition(k))
-      }
-      private val writers =
-        CacheBuilder.newBuilder()
-          .removalListener(rl)
-          .build[String, FileSystemWriter](loader)
 
-      private val partitionsWritten = mutable.HashSet.empty[String]
+      private val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
 
       private val sft = _sft
 
       private val featureIds = new AtomicLong(0)
-      private var count = 0L
       private var feature: SimpleFeature = _
 
       override def getFeatureType: SimpleFeatureType = sft
@@ -70,20 +55,19 @@ class FileSystemFeatureStore(entry: ContentEntry,
 
       override def write(): Unit = {
         val partition = storage.getPartitionScheme(typeName).getPartitionName(feature)
-        partitionsWritten += partition
-        val writer = writers.get(partition)
+        val writer = writers.getOrElseUpdate(partition, storage.getWriter(typeName, storage.getPartition(partition)))
         writer.write(feature)
-
         feature = null
-        count += 1
       }
 
       override def remove(): Unit = throw new NotImplementedError()
 
       override def close(): Unit = {
-        writers.invalidateAll()
+        writers.foreach { case (_, writer) =>
+          writer.flush()
+          writer.close()
+        }
       }
-
     }
   }
 
