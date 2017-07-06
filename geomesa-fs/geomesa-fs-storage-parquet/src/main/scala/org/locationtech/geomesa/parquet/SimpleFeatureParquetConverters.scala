@@ -18,7 +18,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * Group converter that can create simple features. Note that we should refactor
@@ -45,7 +45,7 @@ class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter
 
   // Temp placeholders
   private var curId: Binary = _
-  private var currentArr: Array[AnyRef] = new Array[AnyRef](numVals)
+  private val currentArr: Array[AnyRef] = new Array[AnyRef](numVals)
   var x: Double = _
   var y: Double = _
 
@@ -61,8 +61,9 @@ class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter
   }
 
   // Don't materialize unless we have to
-  def getCurrent = {
+  def getCurrent: SimpleFeature = {
     set(geomIdx, gf.createPoint(new Coordinate(x, y)))
+    // Must copy this because the next record may change the references in the array
     new ScalaSimpleFeature(curId.toStringUsingUTF8, sft, util.Arrays.copyOf(currentArr, currentArr.length))
   }
 
