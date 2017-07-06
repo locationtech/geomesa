@@ -98,47 +98,47 @@ object SimpleFeatureParquetConverters {
       case ObjectType.DATE =>
         new SimpleFeatureFieldConverter(parent) {
           override def addLong(value: Long): Unit = {
-            parent.current.setAttributeNoConvert(index, new Date(value))
+            parent.current.values(index) = new Date(value)
           }
         }
 
       case ObjectType.STRING =>
         new SimpleFeatureFieldConverter(parent) {
           override def addBinary(value: Binary): Unit = {
-            parent.current.setAttributeNoConvert(index, value.toStringUsingUTF8)
+            parent.current.values(index) = value.toStringUsingUTF8
           }
         }
 
       case ObjectType.INT =>
         new SimpleFeatureFieldConverter(parent) {
           override def addInt(value: Int): Unit = {
-            parent.current.setAttributeNoConvert(index, Int.box(value))
+            parent.current.values(index) = Int.box(value)
           }
         }
 
       case ObjectType.DOUBLE =>
         new SimpleFeatureFieldConverter(parent) {
           override def addInt(value: Int): Unit = {
-            parent.current.setAttributeNoConvert(index, Double.box(value.toDouble))
+            parent.current.values(index) = Double.box(value.toDouble)
           }
 
           override def addDouble(value: Double): Unit = {
-            parent.current.setAttributeNoConvert(index, Double.box(value))
+            parent.current.values(index) = Double.box(value)
           }
 
           override def addFloat(value: Float): Unit = {
-            parent.current.setAttributeNoConvert(index, Double.box(value.toDouble))
+            parent.current.values(index) = Double.box(value.toDouble)
           }
 
           override def addLong(value: Long): Unit = {
-            parent.current.setAttributeNoConvert(index, Double.box(value.toDouble))
+            parent.current.values(index) = Double.box(value.toDouble)
           }
         }
 
       case ObjectType.LONG =>
         new SimpleFeatureFieldConverter(parent) {
           override def addLong(value: Long): Unit = {
-            parent.current.setAttributeNoConvert(index, Long.box(value))
+            parent.current.values(index) = Long.box(value)
           }
         }
 
@@ -146,14 +146,14 @@ object SimpleFeatureParquetConverters {
       case ObjectType.FLOAT =>
         new SimpleFeatureFieldConverter(parent) {
           override def addFloat(value: Float): Unit = {
-            parent.current.setAttributeNoConvert(index, Float.box(value))
+            parent.current.values(index) = Float.box(value)
           }
         }
 
       case ObjectType.BOOLEAN =>
         new SimpleFeatureFieldConverter(parent) {
           override def addBoolean(value: Boolean): Unit = {
-            parent.current.setAttributeNoConvert(index, Boolean.box(value))
+            parent.current.values(index) = Boolean.box(value)
           }
         }
 
@@ -161,7 +161,7 @@ object SimpleFeatureParquetConverters {
       case ObjectType.BYTES =>
         new SimpleFeatureFieldConverter(parent) {
           override def addBinary(value: Binary): Unit = {
-            parent.current.setAttributeNoConvert(index, value.getBytes)
+            parent.current.values(index) = value.getBytes
           }
         }
 
@@ -178,7 +178,7 @@ object SimpleFeatureParquetConverters {
           override def addBinary(value: Binary): Unit = {
             val bb = ByteBuffer.wrap(value.getBytes)
             val uuid = new UUID(bb.getLong, bb.getLong)
-            parent.current.setAttributeNoConvert(index, uuid)
+            parent.current.values(index) = uuid
           }
         }
     }

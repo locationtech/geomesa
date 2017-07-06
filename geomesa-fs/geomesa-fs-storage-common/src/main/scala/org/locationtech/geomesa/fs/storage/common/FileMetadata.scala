@@ -39,7 +39,7 @@ class FileMetadata(fs: FileSystem,
     }
   }
 
-  override def addPartition(partition: String): Unit =  addPartitions(List(partition))
+  override def addPartition(partition: String): Unit = addPartitions(List(partition))
 
   override def addPartitions(toAdd: java.util.List[String]): Unit = {
     val parts = (load() ++ toAdd).distinct
