@@ -19,6 +19,7 @@
         <module>geomesa-convert</module>
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
+        <module>geomesa-fs</module>
         <module>geomesa-geojson</module>
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
@@ -40,7 +41,6 @@
         <module>geomesa-web</module>
         <module>geomesa-z3</module>
         <module>docs</module>
-        <module>geomesa-fs</module>
     </modules>
 
     <properties>

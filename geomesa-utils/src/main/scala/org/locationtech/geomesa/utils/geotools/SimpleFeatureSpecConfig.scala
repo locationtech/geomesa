@@ -56,7 +56,7 @@ object SimpleFeatureSpecConfig {
     *
     * @param sft simple feature type
     * @param includeUserData include user data
-    *   @param includePrefix include the geomesa.sfts.XXX prefix
+    * @param includePrefix include the geomesa.sfts.XXX prefix
     * @return
     */
   def toConfig(sft: SimpleFeatureType, includeUserData: Boolean, includePrefix: Boolean): Config = {
