@@ -56,9 +56,10 @@ object SimpleFeatureSpecConfig {
     *
     * @param sft simple feature type
     * @param includeUserData include user data
+    *   @param includePrefix include the geomesa.sfts.XXX prefix
     * @return
     */
-  def toConfig(sft: SimpleFeatureType, includeUserData: Boolean): Config = {
+  def toConfig(sft: SimpleFeatureType, includeUserData: Boolean, includePrefix: Boolean): Config = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     // Update "default" options (dtg and geom)
@@ -89,7 +90,12 @@ object SimpleFeatureSpecConfig {
     } else {
       base
     }
-    updated.atPath(s"${ConfigSftParsing.path}.${sft.getTypeName}")
+
+    if (includePrefix) {
+      updated.atPath(s"${ConfigSftParsing.path}.${sft.getTypeName}")
+    } else {
+      updated
+    }
   }
 
   /**
@@ -100,13 +106,16 @@ object SimpleFeatureSpecConfig {
     * @param concise concise or verbose string
     * @return
     */
-  def toConfigString(sft: SimpleFeatureType, includeUserData: Boolean, concise: Boolean): String = {
+  def toConfigString(sft: SimpleFeatureType,
+                     includeUserData: Boolean,
+                     concise: Boolean,
+                     includePrefix: Boolean): String = {
     val opts = if (concise) {
       ConfigRenderOptions.concise
     } else {
       ConfigRenderOptions.defaults().setFormatted(true).setComments(false).setOriginComments(false).setJson(false)
     }
-    toConfig(sft, includeUserData).root().render(opts)
+    toConfig(sft, includeUserData, includePrefix).root().render(opts)
   }
 
   private def parse(conf: Config): (Option[String], SimpleFeatureSpec) = {

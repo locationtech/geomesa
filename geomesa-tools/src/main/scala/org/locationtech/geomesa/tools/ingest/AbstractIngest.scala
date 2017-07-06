@@ -70,6 +70,24 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
   val ds = DataStoreFinder.getDataStore(dsParams)
 
+  // TODO modify to use dual callbacks...now we have reduce phases
+  case class MapOnlyCallback(startTime: Long,
+                             mapProgress: Float,
+                             mapPass: Long,
+                             mapFail: Long,
+                             mapDone: Boolean,
+                             allDone: Boolean)
+
+  case class MapReduceCallback(startTime: Long,
+                               mapProgress: Float,
+                               mapPass: Long,
+                               mapFail: Long,
+                               mapDone: Boolean,
+                               allDone: Boolean,
+                               reducePass: Long,
+                               reduceFail: Long,
+                               reduceDone: Boolean)
+
   // (progress, start time, pass, fail, done)
   val statusCallback: (Float, Long, Long, Long, Boolean) => Unit =
     if (dsParams.get("useMock").exists(_.toBoolean)) {

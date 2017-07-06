@@ -163,6 +163,24 @@ class ScalaSimpleFeature(initialId: String,
       getID == other.getID && getName == other.getName && java.util.Arrays.equals(values, other.getAttributes.toArray)
     case _ => false
   }
+
+  def setAttributeNoConvert(index: Int, value: Object): Unit = values(index) = value
+  def setAttributeNoConvert(name: String, value: Object): Unit = setAttributeNoConvert(sft.indexOf(name), value)
+  def setAttributeNoConvert(name: Name, value: Object): Unit = setAttributeNoConvert(name.getLocalPart, value)
+  def setAttributesNoConvert(vals: java.util.List[Object]): Unit = {
+    var i = 0
+    while (i < vals.size) {
+      values(i) = vals.get(i)
+      i += 1
+    }
+  }
+  def setAttributesNoConvert(vals: Array[Object]): Unit = {
+    var i = 0
+    while (i < vals.length) {
+      values(i) = vals(i)
+      i += 1
+    }
+  }
 }
 
 object ScalaSimpleFeature {
