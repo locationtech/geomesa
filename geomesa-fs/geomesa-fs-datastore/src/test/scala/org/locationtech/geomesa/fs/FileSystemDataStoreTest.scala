@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs
 
 import java.io.File
+import java.nio.file.Files
 import java.time.temporal.ChronoUnit
 
 import com.typesafe.config.ConfigFactory
@@ -31,12 +32,10 @@ class FileSystemDataStoreTest extends Specification {
 
   sequential
 
+  val dir = Files.createTempDirectory("fsds-test").toFile
+
   "FileSystemDataStore" should {
     "pass a test" >> {
-      // TODO use random dir path
-      val dir = new java.io.File("/tmp/awetmpawet")
-      try { dir.mkdirs()}
-
       val gf = JTSFactoryFinder.getGeometryFactory
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
@@ -59,13 +58,13 @@ class FileSystemDataStoreTest extends Specification {
       fw.close()
 
       // Metadata, schema, and partition file checks
-      new File("/tmp/awetmpawet/test/schema.sft").exists() must beTrue
-      new File("/tmp/awetmpawet/test/2017/06/05/part_0000.parquet").exists() must beTrue
-      new File("/tmp/awetmpawet/test/2017/06/05/part_0000.parquet").isFile must beTrue
+      new File(dir, "test/schema.sft").exists() must beTrue
+      new File(dir, "test/2017/06/05/part_0000.parquet").exists() must beTrue
+      new File(dir, "test/2017/06/05/part_0000.parquet").isFile must beTrue
 
       // metadata
-      new File("/tmp/awetmpawet/test/metadata").exists() must beTrue
-      val conf = ConfigFactory.parseFile(new File("/tmp/awetmpawet/test/metadata"))
+      new File(dir, "test/metadata").exists() must beTrue
+      val conf = ConfigFactory.parseFile(new File(dir, "test/metadata"))
       conf.hasPath("partitions") must beTrue
       val p1 = conf.getConfig("partitions").getStringList("2017/06/05")
       p1.size() mustEqual 1
@@ -73,7 +72,7 @@ class FileSystemDataStoreTest extends Specification {
 
       ds.getTypeNames must have size 1
       val fs = ds.getFeatureSource("test")
-      fs must not beNull
+      fs must not(beNull)
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val q = new Query("test", Filter.INCLUDE)
       val features = fs.getFeatures(q).features().toList
@@ -82,9 +81,9 @@ class FileSystemDataStoreTest extends Specification {
 
       // TODO add another to ensure metadata works when reading writing
     }
-    step {
-      FileUtils.deleteDirectory(new java.io.File("/tmp/awetmpawet"))
-    }
   }
 
+  step {
+    FileUtils.deleteDirectory(dir)
+  }
 }
