@@ -22,6 +22,8 @@ import org.geotools.data.store.DataFeatureCollection
 import org.geotools.feature.collection.SortedSimpleFeatureCollection
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.index.planning.QueryRunner
+import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
@@ -35,8 +37,9 @@ import org.opengis.util.ProgressListener
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-class GeoMesaFeatureSource(val ds: GeoMesaDataStore[_, _, _],
+class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
                            val sft: SimpleFeatureType,
+                           private [geotools] val runner: QueryRunner,
                            protected val collection: (Query, GeoMesaFeatureSource) => GeoMesaFeatureCollection)
     extends SimpleFeatureSource with LazyLogging {
 
@@ -105,22 +108,23 @@ class GeoMesaFeatureSource(val ds: GeoMesaDataStore[_, _, _],
 /**
  * Feature collection implementation
  */
-class GeoMesaFeatureCollection(private [geotools] val source: GeoMesaFeatureSource, private [geotools] val query: Query)
+class GeoMesaFeatureCollection(private [geotools] val source: GeoMesaFeatureSource,
+                               private [geotools] val query: Query)
   extends DataFeatureCollection(GeoMesaFeatureCollection.nextId) {
 
   private val open = new AtomicBoolean(false)
 
   override def getSchema: SimpleFeatureType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-    if (!open.get()) {
+    if (!open.get) {
       // once opened the query will already be configured by the query planner,
       // otherwise we have to compute it here
-      source.ds.queryPlanner.configureQuery(query, source.getSchema)
+      source.runner.configureQuery(source.getSchema, query)
     }
     query.getHints.getReturnSft
   }
 
-  override def openIterator(): java.util.Iterator[SimpleFeature] = {
+  override protected def openIterator(): java.util.Iterator[SimpleFeature] = {
     val iter = super.openIterator()
     open.set(true)
     iter
@@ -211,12 +215,12 @@ class CachingFeatureCollection(delegate: SimpleFeatureCollection) extends Simple
 
   override def features = new SimpleFeatureIterator() {
     private val iter = featureList.iterator
-    override def hasNext = iter.hasNext
-    override def next = iter.next()
-    override def close() = {}
+    override def hasNext: Boolean = iter.hasNext
+    override def next: SimpleFeature = iter.next()
+    override def close(): Unit = {}
   }
 
-  override def size = featureList.length
+  override def size: Int = featureList.length
 
   override def toArray: Array[AnyRef] = featureList.toArray
 

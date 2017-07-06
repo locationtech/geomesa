@@ -1,3 +1,5 @@
+.. _accumulo_config_props:
+
 Accumulo Configuration
 ======================
 

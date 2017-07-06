@@ -23,7 +23,6 @@ To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-qu
    geoserver
    visibilities
    data_management
-   analytic_queries
    jobs
    raster
    internals

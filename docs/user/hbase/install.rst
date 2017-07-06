@@ -235,19 +235,19 @@ There are two ways to get the coprocessor code on the classpath.
         then the HDFS or S3 URL provided as the value will be automatically registered in the table descriptor. There are three
         to do this.
 
-         * Set the system property in your shell environment using the ``JAVA_OPTS`` environment variable.
+        * Set the system property in your shell environment using the ``JAVA_TOOL_OPTIONS`` environment variable.
 
         .. code-block:: bash
 
-            export JAVA_OPTS="${JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=hdfs://path/to/geomesa-runtime.jar"
+            export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS} -Dgeomesa.hbase.coprocessor.path=hdfs://path/to/geomesa-runtime.jar"
 
-         * Set the system property in the ``geomesa-env.sh`` script.
+        * Set the system property in the ``geomesa-env.sh`` script.
 
         .. code-block:: bash
 
             setvar CUSTOM_JAVA_OPTS "${JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=hdfs://path/to/geomesa-runtime.jar"
 
-         * Set the system property using the ``geomesa-site.xml`` configuration file.
+        * Set the system property using the ``geomesa-site.xml`` configuration file.
 
         .. code-block:: xml
 

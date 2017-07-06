@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka09
 
+import java.util.Properties
 import java.util.concurrent.atomic.AtomicLong
 
 import kafka.api._
@@ -84,7 +85,7 @@ object MockMessage {
 }
 
 class MockKafkaConsumerFactory(val mk: MockKafka)
-  extends KafkaConsumerFactory("mock-broker:9092", "mock-zoo", "largest") {
+  extends KafkaConsumerFactory("mock-broker:9092", "mock-zoo", "largest", new Properties()) {
 
   import KafkaConsumerFactory._
 

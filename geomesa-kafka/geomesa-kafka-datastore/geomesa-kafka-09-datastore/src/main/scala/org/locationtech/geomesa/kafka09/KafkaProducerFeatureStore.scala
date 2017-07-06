@@ -142,12 +142,15 @@ object KafkaProducerFeatureStoreFactory {
 
   private [kafka09] val FeatureIds = new AtomicLong(0L)
 
-  def apply(broker: String): FeatureSourceFactory = {
+  def apply(broker: String, params: java.util.Map[String, java.io.Serializable]): FeatureSourceFactory = {
+
+    val baseConfig = KafkaDataStore.parseConfig(Option(KafkaDataStoreFactoryParams.PRODUCER_CFG_PARAM.lookUp(params).asInstanceOf[String]))
 
     val config = {
       val props = new ju.Properties()
       props.put(KafkaUtils09.brokerParam, broker)
       props.put("serializer.class", "kafka.serializer.DefaultEncoder")
+      props.putAll(baseConfig)
       new ProducerConfig(props)
     }
 

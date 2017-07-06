@@ -13,6 +13,7 @@ about GeoMesa data stores is described here:
     runtime_config
     explaining
     query_config
+    analytic_queries
     logging
     reserved_words
     security

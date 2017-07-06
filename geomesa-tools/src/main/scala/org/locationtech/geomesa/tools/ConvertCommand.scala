@@ -106,7 +106,7 @@ object ConvertCommand extends LazyLogging {
       val q = new Query("")
       Option(params.hints).foreach { hints =>
         q.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
-        ViewParams.setHints(sft, q, null)
+        ViewParams.setHints(sft, q)
       }
       q.getHints
     }

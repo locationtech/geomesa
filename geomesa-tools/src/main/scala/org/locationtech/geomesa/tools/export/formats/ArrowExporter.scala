@@ -12,14 +12,13 @@ import java.io._
 
 import com.beust.jcommander.ParameterException
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.data.{Query, Transaction}
+import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, SimpleFeatureArrowFileWriter, SimpleFeatureArrowIO}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -93,7 +92,7 @@ object ArrowExporter {
 
   import org.locationtech.geomesa.arrow.allocator
 
-  def queryDictionaries(ds: GeoMesaDataStore[_, _, _], query: Query): Map[String, Seq[AnyRef]] = {
+  def queryDictionaries(ds: DataStore, query: Query): Map[String, Seq[AnyRef]] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     import scala.collection.JavaConversions._
@@ -105,6 +104,7 @@ object ArrowExporter {
     }
 
     if (dictionaryFields.isEmpty || !hints.isArrowComputeDictionaries) { Map.empty } else {
+      // TODO could do a stats query?
       val dictionaryQuery = new Query(query.getTypeName, query.getFilter)
       dictionaryQuery.setPropertyNames(dictionaryFields)
       val map = dictionaryFields.map(f => f -> scala.collection.mutable.HashSet.empty[AnyRef]).toMap

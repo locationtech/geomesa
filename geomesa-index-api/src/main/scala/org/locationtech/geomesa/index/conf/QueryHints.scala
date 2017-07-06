@@ -12,8 +12,6 @@ import com.vividsolutions.jts.geom.Envelope
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -21,7 +19,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 object QueryHints {
 
-  val QUERY_INDEX      = new ClassKey(classOf[GeoMesaFeatureIndex[_, _, _]])
+  val QUERY_INDEX      = new ClassKey(classOf[String])
   val COST_EVALUATION  = new ClassKey(classOf[CostEvaluation])
 
   val DENSITY_BBOX     = new ClassKey(classOf[ReferencedEnvelope])
@@ -55,23 +53,27 @@ object QueryHints {
   val ARROW_SORT_FIELD         = new ClassKey(classOf[java.lang.String])
   val ARROW_SORT_REVERSE       = new ClassKey(classOf[java.lang.Boolean])
 
+  val LAMBDA_QUERY_PERSISTENT  = new ClassKey(classOf[java.lang.Boolean])
+  val LAMBDA_QUERY_TRANSIENT   = new ClassKey(classOf[java.lang.Boolean])
+
   // internal hints that shouldn't be set directly by users
   object Internal {
     val RETURN_SFT       = new ClassKey(classOf[SimpleFeatureType])
     val TRANSFORMS       = new ClassKey(classOf[String])
     val TRANSFORM_SCHEMA = new ClassKey(classOf[SimpleFeatureType])
+    val SKIP_REDUCE      = new ClassKey(classOf[java.lang.Boolean])
   }
 
   implicit class RichHints(val hints: Hints) extends AnyRef {
 
     def getReturnSft: SimpleFeatureType = hints.get(Internal.RETURN_SFT).asInstanceOf[SimpleFeatureType]
-    def getRequestedIndex[O <: GeoMesaDataStore[O, F, W], F <: WrappedFeature, W]: Option[GeoMesaFeatureIndex[O, F, W]] =
-      Option(hints.get(QUERY_INDEX).asInstanceOf[GeoMesaFeatureIndex[O, F, W]])
+    def getRequestedIndex: Option[String] = Option(hints.get(QUERY_INDEX).asInstanceOf[String])
     def getCostEvaluation: CostEvaluation = {
       Option(hints.get(COST_EVALUATION).asInstanceOf[CostEvaluation])
           .orElse(QueryProperties.QUERY_COST_TYPE.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
           .getOrElse(CostEvaluation.Stats)
     }
+    def isSkipReduce: Boolean = Option(hints.get(Internal.SKIP_REDUCE).asInstanceOf[java.lang.Boolean]).exists(_.booleanValue())
     def isBinQuery: Boolean = hints.containsKey(BIN_TRACK)
     def getBinTrackIdField: String = hints.get(BIN_TRACK).asInstanceOf[String]
     def getBinGeomField: Option[String] = Option(hints.get(BIN_GEOM).asInstanceOf[String])
@@ -97,6 +99,8 @@ object QueryHints {
       Option(hints.get(ARROW_DICTIONARY_COMPUTE).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
     def getArrowDictionaryEncodedValues: Map[String, Seq[AnyRef]] =
       Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap).getOrElse(Map.empty)
+    def setArrowDictionaryEncodedValues(values: Map[String, Seq[AnyRef]]): Unit =
+      hints.put(ARROW_DICTIONARY_VALUES, StringSerialization.encodeSeqMap(values))
     def getArrowBatchSize: Option[Int] = Option(hints.get(ARROW_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue)
     def getArrowSort: Option[(String, Boolean)] =
       Option(hints.get(ARROW_SORT_FIELD).asInstanceOf[String]).map { field =>
@@ -104,6 +108,8 @@ object QueryHints {
       }
     def isStatsQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
+    // noinspection ExistsEquals
+    def isStatsEncode: Boolean = Option(hints.get(ENCODE_STATS).asInstanceOf[Boolean]).exists(_ == true)
     def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)
     def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION).asInstanceOf[String]
     def getTransformDefinition: Option[String] = Option(hints.get(Internal.TRANSFORMS).asInstanceOf[String])
@@ -112,5 +118,9 @@ object QueryHints {
     def getTransform: Option[(String, SimpleFeatureType)] =
       hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
+    def isLambdaQueryPersistent: Boolean =
+      Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
+    def isLambdaQueryTransient: Boolean =
+      Option(hints.get(LAMBDA_QUERY_TRANSIENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
   }
 }

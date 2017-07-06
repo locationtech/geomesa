@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
+import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.accumulo.AccumuloQueryPlannerType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
-import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -31,8 +31,8 @@ class AccumuloQueryPlanner(ds: AccumuloDataStore) extends AccumuloQueryPlannerTy
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  override protected [geomesa] def configureQuery(original: Query, sft: SimpleFeatureType): Query = {
-    val query = super.configureQuery(original, sft)
+  override protected [geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
+    val query = super.configureQuery(sft, original)
     // add the bbox from the density query to the filter
     if (query.getHints.isDensityQuery) {
       val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
@@ -57,22 +57,20 @@ class AccumuloQueryPlanner(ds: AccumuloDataStore) extends AccumuloQueryPlannerTy
   }
 
   // This function calculates the SimpleFeatureType of the returned SFs.
-  override protected def setReturnSft(query: Query, baseSft: SimpleFeatureType): Unit = {
-    val sft = if (query.getHints.isBinQuery) {
+  override protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
+    if (hints.isBinQuery) {
       BinaryOutputEncoder.BinEncodedSft
-    } else if (query.getHints.isArrowQuery) {
+    } else if (hints.isArrowQuery) {
       org.locationtech.geomesa.arrow.ArrowEncodedSft
-    } else if (query.getHints.isDensityQuery) {
+    } else if (hints.isDensityQuery) {
       DensityScan.DensitySft
-    } else if (query.getHints.isStatsQuery) {
+    } else if (hints.isStatsQuery) {
       KryoLazyStatsUtils.StatsSft
-    } else if (query.getHints.isMapAggregatingQuery) {
-      val spec = KryoLazyMapAggregatingIterator.createMapSft(baseSft, query.getHints.getMapAggregatingAttribute)
-      SimpleFeatureTypes.createType(baseSft.getTypeName, spec)
+    } else if (hints.isMapAggregatingQuery) {
+      val spec = KryoLazyMapAggregatingIterator.createMapSft(sft, hints.getMapAggregatingAttribute)
+      SimpleFeatureTypes.createType(sft.getTypeName, spec)
     } else {
-      query.getHints.getTransformSchema.getOrElse(baseSft)
+      super.getReturnSft(sft, hints)
     }
-    query.getHints.put(QueryHints.Internal.RETURN_SFT, sft)
-    sft
   }
 }

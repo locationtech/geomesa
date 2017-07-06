@@ -59,9 +59,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
     "decode and set visibility properly" >> {
       import org.locationtech.geomesa.security._
 
-      val query = new Query(sft.getTypeName)
-
-      planner.configureQuery(query, sft) // have to do manually
+      val query = planner.configureQuery(sft, new Query(sft.getTypeName)) // have to do manually
 
       val visibilities = Array("", "USER", "ADMIN")
       val expectedVis = visibilities.map(vis => if (vis.isEmpty) None else Some(vis))

@@ -142,9 +142,9 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
 
 // @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
 trait StatsHistogramParams extends StatsParams with AttributeStatsParams {
-  @Parameter(names = Array("-b", "--bins"), description = "How many bins the data will be divided into. " +
+  @Parameter(names = Array("--bins"), description = "How many bins the data will be divided into. " +
       "For example, if you are examining a week of data, you may want to divide the date into 7 bins, one per day.")
-  var bins: Integer = null
+  var bins: Integer = _
 }
 
 object StatsHistogramCommand {

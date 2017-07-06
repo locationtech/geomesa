@@ -18,7 +18,6 @@ import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.kafka10.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.kafka10.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.kafka10.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
@@ -108,8 +107,10 @@ object KafkaConsumerFeatureSourceFactory extends LazyLogging {
       Option(KafkaDataStoreFactoryParams.AUTO_OFFSET_RESET.lookUp(params).asInstanceOf[String]).getOrElse("largest")
     }
 
+    val consumerConfig = KafkaDataStore.parseConfig(Option(KafkaDataStoreFactoryParams.CONSUMER_CFG_PARAM.lookUp(params).asInstanceOf[String]))
+
     (entry: ContentEntry, query: Query, schemaManager: KafkaDataStoreSchemaManager) => {
-      val kf = new KafkaConsumerFactory(brokers, zk, autoOffsetReset)
+      val kf = new KafkaConsumerFactory(brokers, zk, autoOffsetReset, consumerConfig)
       val fc = schemaManager.getFeatureConfig(entry.getTypeName)
 
       fc.replayConfig match {

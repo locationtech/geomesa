@@ -16,7 +16,7 @@ import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-import org.locationtech.geomesa.index.planning.QueryPlanner
+import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.ThreadManagement
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
@@ -49,7 +49,7 @@ abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long],
 object GeoMesaFeatureReader {
   def apply(sft: SimpleFeatureType,
             query: Query,
-            qp: QueryPlanner[_, _, _],
+            qp: QueryRunner,
             timeout: Option[Long],
             audit: Option[(AuditWriter, AuditProvider, String)]): GeoMesaFeatureReader = {
     val maxFeatures = if (query.isMaxFeaturesUnlimited) None else Some(query.getMaxFeatures)
@@ -67,10 +67,11 @@ object GeoMesaFeatureReader {
  */
 class GeoMesaFeatureReaderImpl(sft: SimpleFeatureType,
                                query: Query,
-                               qp: QueryPlanner[_, _, _], timeout: Option[Long], maxFeatures: Long = 0L)
-    extends GeoMesaFeatureReader(query, timeout, maxFeatures) {
+                               qp: QueryRunner,
+                               timeout: Option[Long],
+                               maxFeatures: Long = 0L) extends GeoMesaFeatureReader(query, timeout, maxFeatures) {
 
-  private val iter = qp.runQuery(sft, query, None)
+  private val iter = qp.runQuery(sft, query)
 
   override def hasNext: Boolean = iter.hasNext
   override def next(): SimpleFeature = iter.next()
@@ -82,7 +83,7 @@ class GeoMesaFeatureReaderImpl(sft: SimpleFeatureType,
  */
 class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
                                     query: Query,
-                                    qp: QueryPlanner[_, _, _],
+                                    qp: QueryRunner,
                                     timeout: Option[Long],
                                     auditWriter: AuditWriter,
                                     auditProvider: AuditProvider,
@@ -91,7 +92,7 @@ class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
     extends GeoMesaFeatureReader(query, timeout, maxFeatures) with MethodProfiling {
 
   implicit val timings = new TimingsImpl
-  private val iter = profile("planning")(qp.runQuery(sft, query, None))
+  private val iter = profile("planning")(qp.runQuery(sft, query))
 
   override def next(): SimpleFeature = profile("next")(iter.next())
   override def hasNext: Boolean = profile("hasNext")(iter.hasNext)

@@ -48,7 +48,7 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
       val transform = origQuery.getHints.getTransformSchema
       SpatialRDD(sc.emptyRDD[SimpleFeature], transform.getOrElse(sft))
     } else {
-      val query = ds.queryPlanner.configureQuery(origQuery, sft)
+      val query = ds.queryPlanner.configureQuery(sft, origQuery)
       val transform = query.getHints.getTransformSchema
       GeoMesaConfigurator.setSchema(conf, sft)
       GeoMesaConfigurator.setSerialization(conf)

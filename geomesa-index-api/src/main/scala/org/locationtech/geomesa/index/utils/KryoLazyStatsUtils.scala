@@ -24,26 +24,25 @@ object KryoLazyStatsUtils {
   /**
     * Encodes a stat as a base64 string.
     *
-    * Creates a new serializer each time, so don't call repeatedly.
-    *
-    * @param stat stat to encode
     * @param sft simple feature type of underlying schema
-    * @return base64 string
+    * @return function to encode a stat as a base64 string
     */
-  def encodeStat(stat: Stat, sft: SimpleFeatureType): String =
-    Base64.encodeBase64URLSafeString(StatSerializer(sft).serialize(stat))
+  def encodeStat(sft: SimpleFeatureType): (Stat) => String = {
+    val serializer = StatSerializer(sft)
+    (stat) => Base64.encodeBase64URLSafeString(serializer.serialize(stat))
+  }
 
   /**
     * Decodes a stat string from a result simple feature.
     *
-    * Creates a new serializer each time, so not used internally.
-    *
-    * @param encoded encoded string
     * @param sft simple feature type of the underlying schema
-    * @return stat
+    * @return function to convert an encoded encoded string to a stat
     */
-  def decodeStat(encoded: String, sft: SimpleFeatureType): Stat =
-    StatSerializer(sft).deserialize(Base64.decodeBase64(encoded))
+  def decodeStat(sft: SimpleFeatureType): (String) => Stat = {
+    val serializer = StatSerializer(sft)
+    (encoded) => serializer.deserialize(Base64.decodeBase64(encoded))
+  }
+
 
   /**
     * Reduces computed simple features which contain stat information into one on the client
@@ -52,21 +51,19 @@ object KryoLazyStatsUtils {
     * @param hints query hints that the stats are being run against
     * @return aggregated iterator of features
     */
-  def reduceFeatures(sft: SimpleFeatureType, hints: Hints)
+  def reduceFeatures(sft: SimpleFeatureType,
+                     hints: Hints)
                     (features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-    val transform = hints.getTransform
-    val serializer = transform match {
-      case Some((tdef, tsft)) => StatSerializer(tsft)
-      case None               => StatSerializer(sft)
+    val decode = hints.getTransform match {
+      case Some((tdef, tsft)) => decodeStat(tsft)
+      case None               => decodeStat(sft)
     }
 
-    val decodedStats = features.map { f =>
-      serializer.deserialize(Base64.decodeBase64(f.getAttribute(0).toString))
-    }
+    val decodedStats = features.map(f => decode(f.getAttribute(0).toString))
 
     val sum = if (decodedStats.isEmpty) {
       // create empty stat based on the original input so that we always return something
-      Stat(sft, hints.get(STATS_STRING).asInstanceOf[String])
+      Stat(sft, hints.getStatsQuery)
     } else {
       val sum = decodedStats.next()
       decodedStats.foreach(sum += _)
@@ -74,7 +71,7 @@ object KryoLazyStatsUtils {
     }
     decodedStats.close()
 
-    val stats = if (hints.containsKey(ENCODE_STATS) && hints.get(ENCODE_STATS).asInstanceOf[Boolean]) encodeStat(sum, sft) else sum.toJson
-    Iterator(new ScalaSimpleFeature("stat", StatsSft, Array(stats, GeometryUtils.zeroPoint)))
+    val stats = if (hints.isStatsEncode) { encodeStat(sft)(sum) } else { sum.toJson }
+    CloseableIterator(Iterator(new ScalaSimpleFeature("stat", StatsSft, Array(stats, GeometryUtils.zeroPoint))))
   }
 }

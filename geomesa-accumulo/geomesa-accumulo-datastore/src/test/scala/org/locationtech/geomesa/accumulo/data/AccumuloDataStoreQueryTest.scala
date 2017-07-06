@@ -27,7 +27,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints._
-import org.locationtech.geomesa.index.utils.ExplainString
+import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -401,7 +401,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       val queryPlanner = new AccumuloQueryPlanner(ds)
-      val results = queryPlanner.runQuery(sft, query, Some(Z2Index)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val results = queryPlanner.runQuery(sft, query, Some(Z2Index), ExplainNull).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
@@ -495,16 +495,16 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         res must containTheSameElementsAs(Seq("fid-1"))
       }
 
-      query.getHints.put(QUERY_INDEX, AttributeIndex)
+      query.getHints.put(QUERY_INDEX, AttributeIndex.identifier)
       expectStrategy(AttributeIndex)
 
-      query.getHints.put(QUERY_INDEX, Z2Index)
+      query.getHints.put(QUERY_INDEX, Z2Index.identifier)
       expectStrategy(Z2Index)
 
-      query.getHints.put(QUERY_INDEX, Z3Index)
+      query.getHints.put(QUERY_INDEX, Z3Index.identifier)
       expectStrategy(Z3Index)
 
-      query.getHints.put(QUERY_INDEX, RecordIndex)
+      query.getHints.put(QUERY_INDEX, RecordIndex.identifier)
       expectStrategy(RecordIndex)
 
       val viewParams =  new java.util.HashMap[String, String]

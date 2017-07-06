@@ -18,7 +18,6 @@ import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.utils.bin.BinSorter
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -199,6 +198,7 @@ trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
 }
 
 object BinAggregatingScan {
+
   object Configuration {
     // configuration keys
     val BatchSizeOpt  = "batch"
@@ -222,10 +222,9 @@ object BinAggregatingScan {
                 hints: Hints): Map[String, String] = {
     import AggregatingScan.{OptionToConfig, StringToConfig}
     import Configuration._
-
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 
     val dtgIndex = dtg.map(sft.indexOf).getOrElse(-1)

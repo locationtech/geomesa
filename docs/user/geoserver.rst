@@ -13,10 +13,11 @@ Instructions for installing the GeoMesa plugins in GeoServer are
 available by datastore:
 
  * :ref:`install_accumulo_geoserver`
- * :ref:`install_kafka_geoserver`
  * :ref:`install_hbase_geoserver`
  * :ref:`install_bigtable_geoserver`
  * :ref:`install_cassandra_geoserver`
+ * :ref:`install_kafka_geoserver`
+ * :ref:`install_lambda_geoserver`
 
 Go to your GeoServer installation at ``http://<hostname>:8080/geoserver``.
 For new installations of GeoServer, the default username is ``admin`` and
@@ -28,10 +29,11 @@ Creating a Data Store
 Specific instructions by data store:
 
  * :doc:`/user/accumulo/geoserver`
- * :doc:`/user/kafka/geoserver`
  * :doc:`/user/hbase/geoserver`
  * :doc:`/user/bigtable/geoserver`
  * :doc:`/user/cassandra/geoserver`
+ * :doc:`/user/kafka/geoserver`
+ * :doc:`/user/lambda/geoserver`
 
 Publish a GeoMesa Layer
 -----------------------

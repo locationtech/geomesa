@@ -16,6 +16,7 @@ import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{FeatureEvent, Query}
+
 import org.locationtech.geomesa.kafka._
 import org.locationtech.geomesa.kafka09.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.utils.geotools._
@@ -120,19 +121,23 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
 
   override def run(): Unit =
     while (running.get) {
-      queue.take() match {
-        case update: CreateOrUpdate =>
-          if (query.getFilter.evaluate(update.feature)) {
-            fireEvent(KafkaFeatureEvent.changed(this, update.feature))
-            featureCache.createOrUpdateFeature(update)
-          }
-        case del: Delete            =>
-          fireEvent(KafkaFeatureEvent.removed(this, featureCache.getFeatureById(del.id).sf))
-          featureCache.removeFeature(del)
-        case clr: Clear             =>
-          fireEvent(KafkaFeatureEvent.cleared(this))
-          featureCache.clear()
-        case m                      => throw new IllegalArgumentException(s"Unknown message: $m")
+      try {
+        queue.take() match {
+          case update: CreateOrUpdate =>
+            if (query.getFilter.evaluate(update.feature)) {
+              fireEvent(KafkaFeatureEvent.changed(this, update.feature))
+              featureCache.createOrUpdateFeature(update)
+            }
+          case del: Delete =>
+            fireEvent(KafkaFeatureEvent.removed(this, featureCache.getFeatureById(del.id).sf))
+            featureCache.removeFeature(del)
+          case clr: Clear =>
+            fireEvent(KafkaFeatureEvent.cleared(this))
+            featureCache.clear()
+          case m => throw new IllegalArgumentException(s"Unknown message: $m")
+        }
+      } catch {
+        case NonFatal(e) => logger.warn(s"Unable to read queue: ${e.getMessage}", e)
       }
     }
 

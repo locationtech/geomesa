@@ -8,9 +8,17 @@
 
 package org.locationtech.geomesa.utils.conf
 
-object GeoMesaSystemProperties {
+import com.typesafe.scalalogging.LazyLogging
+
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success, Try}
+
+object GeoMesaSystemProperties extends LazyLogging {
 
   case class SystemProperty(property: String, default: String = null) {
+
+    val threadLocalValue = new ThreadLocal[String]()
+
     def get: String = Option(threadLocalValue.get).getOrElse {
       ConfigLoader.Config.get(property) match {
         case Some((value, true))  => value // final value - can't be overridden
@@ -18,9 +26,15 @@ object GeoMesaSystemProperties {
         case None => sys.props.get(property).filter(_.nonEmpty).getOrElse(default)
       }
     }
+
     def option: Option[String] = Option(get)
 
-    val threadLocalValue = new ThreadLocal[String]()
+    def toDuration: Option[Long] = option.flatMap { value =>
+      Try(Duration.apply(value).toMillis) match {
+        case Success(m) => Some(m)
+        case Failure(e) => logger.warn(s"Invalid duration for property $property: $value"); None
+      }
+    }
   }
 
   // For dynamic properties that are not in geomesa-site.xml.template, this is intended

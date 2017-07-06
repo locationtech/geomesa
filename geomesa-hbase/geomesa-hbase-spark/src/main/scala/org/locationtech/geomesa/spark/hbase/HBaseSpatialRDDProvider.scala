@@ -48,8 +48,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       val transform = origQuery.getHints.getTransformSchema
       SpatialRDD(sc.emptyRDD[SimpleFeature], transform.getOrElse(sft))
     } else {
-      val query = ds.queryPlanner.configureQuery(origQuery, sft)
-      val transform = query.getHints.getTransformSchema
+      val transform = ds.queryPlanner.configureQuery(sft, origQuery).getHints.getTransformSchema
       GeoMesaConfigurator.setSchema(conf, sft)
       GeoMesaConfigurator.setSerialization(conf)
       GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)
@@ -114,7 +113,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
       try {
         iter.foreach { rawFeature =>
-          FeatureUtils.copyToWriter(featureWriter, rawFeature, overrideFid = true)
+          FeatureUtils.copyToWriter(featureWriter, rawFeature, useProvidedFid = true)
           featureWriter.write()
         }
       } finally {
