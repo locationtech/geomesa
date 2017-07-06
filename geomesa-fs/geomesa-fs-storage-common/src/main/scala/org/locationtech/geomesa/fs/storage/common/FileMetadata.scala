@@ -33,11 +33,11 @@ class FileMetadata(fs: FileSystem,
       } finally {
         in.close()
       }
-      val config = ConfigFactory.parseString(str)
-      config.getConfig("partitions").entrySet().map { e =>
+      val config = ConfigFactory.parseString(str, ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
+      val pconfig = config.getConfig("partitions")
+      pconfig.root().entrySet().map { e =>
         val key = e.getKey
-        val list = e.getValue.asInstanceOf[ConfigList].toList.map(_.toString)
-        key -> list
+        key -> pconfig.getStringList(key).toList
       }.toMap
     } else Map.empty
   }
@@ -64,7 +64,7 @@ class FileMetadata(fs: FileSystem,
 
     val config = ConfigFactory.empty().withValue("partitions", ConfigValueFactory.fromMap(javaMap))
     val out = path.getFileSystem(conf).create(path, true)
-    out.writeBytes(config.root.render())
+    out.writeBytes(config.root.render(ConfigRenderOptions.defaults().setComments(false).setFormatted(true).setJson(true).setOriginComments(false)))
     out.hflush()
     out.hsync()
     out.close()

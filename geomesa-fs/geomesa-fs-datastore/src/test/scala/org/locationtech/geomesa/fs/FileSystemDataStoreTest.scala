@@ -80,8 +80,7 @@ class FileSystemDataStoreTest extends Specification {
 
       features.size mustEqual 1
 
-
-
+      // TODO add another to ensure metadata works when reading writing
     }
     step {
       FileUtils.deleteDirectory(new java.io.File("/tmp/awetmpawet"))
