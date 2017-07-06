@@ -9,36 +9,68 @@
 package org.locationtech.geomesa.parquet
 
 import java.nio.ByteBuffer
+import java.util
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.parquet.io.api.{Binary, Converter, GroupConverter, PrimitiveConverter}
-import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
-
+/**
+  * Group converter that can create simple features. Note that we should refactor
+  * this a little more and perhaps have this store raw values and then push the
+  * conversions of SimpleFeature "types" and objects into the SimpleFeatureRecordMaterializer
+  * which will mean they are only converted and then added to simple features if a
+  * record passes the parquet filters and needs to be materialized.
+  *
+  * @param sft
+  */
 class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter {
 
   private val idConverter = new PrimitiveConverter {
     override def addBinary(value: Binary): Unit = {
-      current.getIdentifier.asInstanceOf[FeatureIdImpl].setID(value.toStringUsingUTF8)
+      curId = value
     }
   }
   private val converters = SimpleFeatureParquetConverters.converters(sft, this) :+ idConverter
 
-  var current: ScalaSimpleFeature = _
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+  private val geomIdx = sft.getGeomIndex
+  private val numVals = sft.getAttributeCount
+  private val gf = JTSFactoryFinder.getGeometryFactory
+
+  // Temp placeholders
+  private var curId: Binary = _
+  private var currentArr: Array[AnyRef] = new Array[AnyRef](numVals)
+  var x: Double = _
+  var y: Double = _
 
   override def start(): Unit = {
-    current = new ScalaSimpleFeature("", sft)
+    curId = null
+    var i = 0
+    while (i < numVals) {
+      currentArr(i) = null
+      i += 1
+    }
+    x = 0.0
+    y = 0.0
+  }
+
+  // Don't materialize unless we have to
+  def getCurrent = {
+    set(geomIdx, gf.createPoint(new Coordinate(x, y)))
+    new ScalaSimpleFeature(curId.toStringUsingUTF8, sft, util.Arrays.copyOf(currentArr, currentArr.length))
   }
 
   override def end(): Unit = { }
 
   override def getConverter(fieldIndex: Int): Converter = converters(fieldIndex)
+
+  def set(idx: Int, value: AnyRef): Unit = currentArr(idx) = value
 
 }
 
@@ -46,20 +78,16 @@ abstract class SimpleFeatureFieldConverter(parent: SimpleFeatureGroupConverter) 
 
 class PointConverter(parent: SimpleFeatureGroupConverter) extends GroupConverter {
 
-  private val gf = JTSFactoryFinder.getGeometryFactory
-  private var x: Double = _
-  private var y: Double = _
-
   private val converters = Array[PrimitiveConverter](
     // Specific to this PointConverter instance
     new PrimitiveConverter {
       override def addDouble(value: Double): Unit = {
-        x = value
+        parent.x = value
       }
     },
     new PrimitiveConverter {
       override def addDouble(value: Double): Unit = {
-        y = value
+        parent.y = value
       }
     }
   )
@@ -68,14 +96,9 @@ class PointConverter(parent: SimpleFeatureGroupConverter) extends GroupConverter
     converters(fieldIndex)
   }
 
-  override def start(): Unit = {
-    x = 0.0
-    y = 0.0
-  }
+  override def start(): Unit = { }
 
-  override def end(): Unit = {
-    parent.current.setDefaultGeometry(gf.createPoint(new Coordinate(x, y)))
-  }
+  override def end(): Unit = { }
 }
 
 object SimpleFeatureParquetConverters {
@@ -85,6 +108,9 @@ object SimpleFeatureParquetConverters {
     sft.getAttributeDescriptors.zipWithIndex.map { case (ad, idx) => converterFor(ad, idx, sfGC) }.toArray
   }
 
+  // TODO we are creating lots of objects and boxing primitives here when we may not need to
+  // unless a record is materialized so we can likely speed this up by not creating any of
+  // the true SFT types util a record passes a filter in the SimpleFeatureRecordMaterializer
   def converterFor(ad: AttributeDescriptor, index: Int, parent: SimpleFeatureGroupConverter): Converter = {
     val binding = ad.getType.getBinding
     val (objectType, _) = ObjectType.selectType(binding, ad.getUserData)
@@ -98,47 +124,49 @@ object SimpleFeatureParquetConverters {
       case ObjectType.DATE =>
         new SimpleFeatureFieldConverter(parent) {
           override def addLong(value: Long): Unit = {
-            parent.current.values(index) = new Date(value)
+            // TODO this can be optimized to set a long and not materialize date objects
+            parent.set(index, new Date(value) )
           }
         }
 
       case ObjectType.STRING =>
         new SimpleFeatureFieldConverter(parent) {
           override def addBinary(value: Binary): Unit = {
-            parent.current.values(index) = value.toStringUsingUTF8
+            parent.set(index, value.toStringUsingUTF8)
           }
         }
 
       case ObjectType.INT =>
         new SimpleFeatureFieldConverter(parent) {
           override def addInt(value: Int): Unit = {
-            parent.current.values(index) = Int.box(value)
+            parent.set(index, Int.box(value))
           }
         }
 
       case ObjectType.DOUBLE =>
         new SimpleFeatureFieldConverter(parent) {
           override def addInt(value: Int): Unit = {
-            parent.current.values(index) = Double.box(value.toDouble)
+            parent.set(index, Double.box(value.toDouble))
+
           }
 
           override def addDouble(value: Double): Unit = {
-            parent.current.values(index) = Double.box(value)
+            parent.set(index, Double.box(value))
           }
 
           override def addFloat(value: Float): Unit = {
-            parent.current.values(index) = Double.box(value.toDouble)
+            parent.set(index, Double.box(value.toDouble))
           }
 
           override def addLong(value: Long): Unit = {
-            parent.current.values(index) = Double.box(value.toDouble)
+            parent.set(index, Double.box(value.toDouble))
           }
         }
 
       case ObjectType.LONG =>
         new SimpleFeatureFieldConverter(parent) {
           override def addLong(value: Long): Unit = {
-            parent.current.values(index) = Long.box(value)
+            parent.set(index, Long.box(value))
           }
         }
 
@@ -146,14 +174,14 @@ object SimpleFeatureParquetConverters {
       case ObjectType.FLOAT =>
         new SimpleFeatureFieldConverter(parent) {
           override def addFloat(value: Float): Unit = {
-            parent.current.values(index) = Float.box(value)
+            parent.set(index, Float.box(value))
           }
         }
 
       case ObjectType.BOOLEAN =>
         new SimpleFeatureFieldConverter(parent) {
           override def addBoolean(value: Boolean): Unit = {
-            parent.current.values(index) = Boolean.box(value)
+            parent.set(index, Boolean.box(value))
           }
         }
 
@@ -161,7 +189,7 @@ object SimpleFeatureParquetConverters {
       case ObjectType.BYTES =>
         new SimpleFeatureFieldConverter(parent) {
           override def addBinary(value: Binary): Unit = {
-            parent.current.values(index) = value.getBytes
+            parent.set(index, value.getBytes)
           }
         }
 
@@ -178,7 +206,7 @@ object SimpleFeatureParquetConverters {
           override def addBinary(value: Binary): Unit = {
             val bb = ByteBuffer.wrap(value.getBytes)
             val uuid = new UUID(bb.getLong, bb.getLong)
-            parent.current.values(index) = uuid
+            parent.set(index, uuid)
           }
         }
     }

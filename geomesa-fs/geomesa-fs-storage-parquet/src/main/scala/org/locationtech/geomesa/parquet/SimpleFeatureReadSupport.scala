@@ -56,5 +56,6 @@ object SimpleFeatureReadSupport {
 class SimpleFeatureRecordMaterializer(sft: SimpleFeatureType) extends RecordMaterializer[SimpleFeature] {
   private val converter = new SimpleFeatureGroupConverter(sft)
   override def getRootConverter: GroupConverter = converter
-  override def getCurrentRecord: SimpleFeature = converter.current
+  override def getCurrentRecord: SimpleFeature = converter.getCurrent
+
 }
