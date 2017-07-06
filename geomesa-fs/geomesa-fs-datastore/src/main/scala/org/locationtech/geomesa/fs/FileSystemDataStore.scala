@@ -54,13 +54,17 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
   private val storageFactory = ServiceLoader.load(classOf[FileSystemStorageFactory])
 
   override def createDataStore(params: util.Map[String, io.Serializable]): DataStore = {
+    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
     import scala.collection.JavaConversions._
+
     val path = new Path(PathParam.lookUp(params).asInstanceOf[String])
     val encoding = EncodingParam.lookUp(params).asInstanceOf[String]
     // TODO: handle errors
 
     val conf = new Configuration()
-    val storage = storageFactory.iterator().filter(_.canProcess(params)).map(_.build(params)).next()
+    val storage = storageFactory.iterator().filter(_.canProcess(params)).map(_.build(params)).headOption.getOrElse {
+      throw new IllegalArgumentException("Can't create storage factory with the provided params")
+    }
     val fs = path.getFileSystem(conf)
 
     val readThreads = Option(ReadThreadsParam.lookUp(params)).map(_.asInstanceOf[java.lang.Integer])
