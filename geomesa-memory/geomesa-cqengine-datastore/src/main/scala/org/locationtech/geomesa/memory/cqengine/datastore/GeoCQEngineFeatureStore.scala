@@ -64,4 +64,6 @@ class GeoCQEngineFeatureStore(engine: GeoCQEngine, entry: ContentEntry, query: Q
 
   override def getQueryCapabilities = GeoCQEngineQueryCapabilities
 
+  override def canEvent: Boolean = true
+
 }
