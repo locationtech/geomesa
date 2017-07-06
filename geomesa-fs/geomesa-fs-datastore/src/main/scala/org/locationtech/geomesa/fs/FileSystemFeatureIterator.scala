@@ -18,6 +18,8 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, Partition, PartitionScheme}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.util.control.NonFatal
+
 class FileSystemFeatureIterator(fs: FileSystem,
                                 partitionScheme: PartitionScheme,
                                 sft: SimpleFeatureType,
@@ -63,7 +65,6 @@ class ThreadedReader(storage: FileSystemStorage,
   private val es = Executors.newFixedThreadPool(numThreads)
   private val latch = new CountDownLatch(partitions.size)
 
-//  private val queue = new LinkedBlockingQueue[SimpleFeature](200000)
   private val queue = new LinkedBlockingQueue[SimpleFeature](2000000)
 
   private val localQueue = new util.LinkedList[SimpleFeature]()
@@ -82,14 +83,12 @@ class ThreadedReader(storage: FileSystemStorage,
               while (reader.hasNext) {
                 count += 1
                 val next = reader.next()
-//                queue.add(next)
                 queue.add(next)
-//                while (!queue.offer(next, 3, TimeUnit.MILLISECONDS)) {}
               }
             } catch {
-              case e: Throwable => logger.error(s"Error reading partition ${reader.getPartition}", e)
+              case NonFatal(e) => logger.error(s"Error reading partition ${reader.getPartition}", e)
             } finally {
-              try { reader.close() } catch { case e: Throwable => logger.error("error closing reader", e) }
+              try { reader.close() } catch { case NonFatal(e) => logger.error("error closing reader", e) }
               logger.info(s"Partition ${reader.getPartition} produced $count records")
             }
           } finally {
@@ -106,22 +105,19 @@ class ThreadedReader(storage: FileSystemStorage,
   private var cur: SimpleFeature = _
 
   private def queueNext(): Unit = {
-    if (!started) start()
+    if (!started) {
+      start()
+    }
 
     if (numQueued > 0) {
       cur = localQueue.pop()
       numQueued -= 1
     } else {
-      while (numQueued == 0 && cur == null && (queue.size() > 0 || latch.getCount > 0)) {
-//        val tmp = queue.poll(5, TimeUnit.MILLISECONDS)
-        val tmp = queue.poll()
+      while (cur == null && (queue.size() > 0 || latch.getCount > 0)) {
+        val tmp = queue.poll(10, TimeUnit.MILLISECONDS)
         if (tmp != null) {
-          localQueue.add(tmp)
-          numQueued += 1
+          cur = tmp
           numQueued += queue.drainTo(localQueue, 10000)
-//          logger.info(s"num queued: $numQueued")
-          cur = localQueue.pop()
-          numQueued -= 1
         }
       }
     }
@@ -131,7 +127,9 @@ class ThreadedReader(storage: FileSystemStorage,
 
   override def next(): SimpleFeature = {
     if (!nextQueued) { queueNext() }
-    if (cur == null) throw new NoSuchElementException
+    if (cur == null) {
+      throw new NoSuchElementException
+    }
 
     val ret = cur
     cur = null

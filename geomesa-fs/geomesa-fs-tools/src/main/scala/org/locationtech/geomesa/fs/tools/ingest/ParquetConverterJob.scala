@@ -110,7 +110,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     }
     statusCallback(job.mapProgress(), written(job), failed(job), true)
 
-    // Do this earlier than the data copy bc its throwing errors and shit
+    // Do this earlier than the data copy bc its throwing errors
     val res = (written(job), failed(job))
 
     val ret = job.isSuccessful && {
