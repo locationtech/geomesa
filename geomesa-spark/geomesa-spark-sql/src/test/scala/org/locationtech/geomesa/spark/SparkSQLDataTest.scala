@@ -106,7 +106,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val d = r.collect()
 
       d.length mustEqual 1
-      d.head.getAs[Int]("case_number") mustEqual 2
+      d.head.getAs[Int]("case_number") mustEqual 1
     }
 
     "where attr equals" >> {
@@ -122,7 +122,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val d = r.collect()
 
       d.length mustEqual 2
-      d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(2, 3))
+      d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(1, 2))
     }
 
     "where attr in" >> {
