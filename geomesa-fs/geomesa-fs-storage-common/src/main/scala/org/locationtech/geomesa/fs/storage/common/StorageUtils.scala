@@ -20,7 +20,9 @@ object StorageUtils {
                          fileExtension: String): List[String] = {
 
     def recurse(path: Path, prefix: String, curDepth: Int, maxDepth: Int): List[String] = {
-      if (curDepth > maxDepth) return List.empty[String]
+      if (curDepth > maxDepth) {
+        return List.empty[String]
+      }
       val status = fs.listStatus(path)
       status.flatMap { f =>
         if (f.isDirectory) {
@@ -28,7 +30,9 @@ object StorageUtils {
         } else if (f.getPath.getName.endsWith(s".$fileExtension")) {
           val name = f.getPath.getName.dropRight(fileExtension.length + 1)
           List(s"$prefix$name")
-        } else List()
+        } else {
+          List()
+        }
       }
     }.toList
 

@@ -18,21 +18,24 @@ class FilteringIterator(partition: Partition,
                         gtFilter: org.opengis.filter.Filter) extends FileSystemPartitionIterator with LazyLogging {
 
   private var staged: SimpleFeature = _
+  private var done: Boolean = false
 
   override def close(): Unit = {
-    logger.info(s"Closing parquet reader for partition $partition")
+    logger.debug(s"Closing parquet reader for partition $partition")
     reader.close()
   }
 
-  override def next(): SimpleFeature = staged
+  override def next(): SimpleFeature = {
+    val res = staged
+    staged = null
+    res
+  }
 
   override def hasNext: Boolean = {
-    staged = null
-    var cont = true
-    while (staged == null && cont) {
+    while (staged == null && !done) {
       val f = reader.read()
       if (f == null) {
-        cont = false
+        done = true
       } else if (gtFilter.evaluate(f)) {
         staged = f
       }

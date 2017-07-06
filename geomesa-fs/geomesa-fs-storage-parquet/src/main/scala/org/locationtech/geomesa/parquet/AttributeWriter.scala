@@ -33,7 +33,7 @@ object AttributeWriter {
 
   def apply(descriptor: AttributeDescriptor, index: Int): AttributeWriter = {
     val name = descriptor.getLocalName
-      val classBinding = descriptor.getType.getBinding
+    val classBinding = descriptor.getType.getBinding
     val (objectType, _) = ObjectType.selectType(classBinding, descriptor.getUserData)
     objectType match {
       // TODO linestrings and polygons
