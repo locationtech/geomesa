@@ -65,26 +65,23 @@ class ParquetFileSystemStorage(root: Path,
         val metaPath = new Path(new Path(root, typeName), metaFileName)
         val meta = new FileMetadata(fs, metaPath, conf)
         if (!fs.exists(metaPath)) {
-          val is = fs.create(metaPath)
-          try {
-            is.hflush()
-            is.hsync()
-            is.close()
-          }
+//          val is = fs.create(metaPath)
+//          try {
+//            is.hflush()
+//            is.hsync()
+//            is.close()
+//          }
           val partitions =
             StorageUtils.buildPartitionList(root, fs, typeName, getPartitionScheme(typeName), dataFileExtention)
               .map(getPartition)
-              .map(_.getName)
           import scala.collection.JavaConversions._
-          meta.addPartitions(partitions)
+          import scala.collection.JavaConverters._
+          val m = partitions.map{p => p.getName -> getChildrenFiles(typeName, p).map(_.getName).asJava}.toMap
+          meta.addPartitions(m)
         }
         meta
       }
     })
-
-  override def notifyPartitions(typeName: String, partitionNames: util.List[String]): Unit = {
-    metadata(typeName).addPartitions(partitionNames)
-  }
 
   // TODO we don't necessarily want the s3 bucket path to exist...but need to verify we can write
   private val featureTypes: mutable.HashMap[String, SimpleFeatureType] = {
@@ -182,9 +179,7 @@ class ParquetFileSystemStorage(root: Path,
   override def getWriter(featureType: String, partition: Partition): FileSystemWriter = {
     new FileSystemWriter {
       private val sft = featureTypes(featureType)
-
-      // TODO in the future there may be multiple files
-      val dataPath = new Path(getPaths(sft.getTypeName, partition).get(0))
+      private val dataPath = nextFile(featureType, partition)
 
       private val sftConf = {
         val c = new Configuration(conf)
@@ -200,7 +195,8 @@ class ParquetFileSystemStorage(root: Path,
 
       override def close(): Unit = {
         CloseQuietly(writer)
-        metadata(featureType).addPartition(partition.getName)
+        import scala.collection.JavaConversions._
+        metadata(featureType).addPartition(partition.getName, List(dataPath.getName))
       }
     }
   }
@@ -228,9 +224,34 @@ class ParquetFileSystemStorage(root: Path,
 
   override def getPartition(name: String): Partition = new LeafStoragePartition(name)
 
-  import scala.collection.JavaConversions._
-  override def getPaths(typeName: String, partition: Partition): java.util.List[URI] =
-    List(new Path(new Path(root, typeName), partition.getName).suffix(s".$dataFileExtention").toUri)
+  def nextFile(typeName: String, partition: Partition): Path = {
+    val existingFiles = getChildrenFiles(typeName, partition).map(_.getName).toSet
+    var i = 0
+    def nextName = f"part_$i%04d"
+    var name = nextName
+    while (existingFiles.contains(name)) {
+      name = nextName
+    }
+    new Path(partitionPath(typeName, partition), name + s".$dataFileExtention")
+  }
+  def partitionPath(typeName: String, partition: Partition): Path =
+    new Path(new Path(root, typeName), partition.getName)
+
+  def getChildrenFiles(typeName: String, partition: Partition): List[Path] = {
+    val pp = partitionPath(typeName, partition)
+    if (fs.exists(pp)) {
+      fs.listStatus(pp).map { f => f.getPath }.toList
+    } else {
+      List.empty[Path]
+    }
+
+  }
+
+  override def getPaths(typeName: String, partition: Partition): java.util.List[URI] = {
+    import scala.collection.JavaConversions._
+    getChildrenFiles(typeName, partition).map(_.toUri)
+  }
+
 
   override def getMetadata(typeName: String): Metadata = metadata(typeName)
 }

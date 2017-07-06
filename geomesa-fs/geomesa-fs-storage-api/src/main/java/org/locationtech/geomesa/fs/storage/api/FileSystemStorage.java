@@ -27,7 +27,6 @@ public interface FileSystemStorage {
 
     Partition getPartition(String name);
     List<Partition> listPartitions(String typeName);
-    void notifyPartitions(String type, java.util.List<String> partitionNames);
 
     FileSystemPartitionIterator getPartitionReader(Query q, Partition partition);
 

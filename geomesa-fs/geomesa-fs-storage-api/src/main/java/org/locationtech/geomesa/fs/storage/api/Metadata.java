@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.fs.storage.api;
 
 public interface Metadata {
-    void addPartition(String partition);
-    void addPartitions(java.util.List<String> partitions);
+    void addPartition(String partition, java.util.List<String> files );
+    void addPartitions(java.util.Map<String, java.util.List<String>> partitions);
     java.util.List<String> getPartitions();
+    java.util.List<String> getFiles(String partition);
 }

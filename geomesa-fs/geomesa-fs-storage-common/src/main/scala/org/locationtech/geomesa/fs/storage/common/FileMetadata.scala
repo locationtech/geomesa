@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
-import java.io.IOException
 import java.util
 
+import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
@@ -23,37 +23,63 @@ class FileMetadata(fs: FileSystem,
                    path: Path,
                    conf: Configuration) extends Metadata with LazyLogging {
 
-  private var cached: List[String] = _
+  private var cached: Map[String, List[String]] = _
 
-  private def load(): List[String] = {
+  private def load(): Map[String, List[String]] = {
     if (fs.exists(path)) {
       val in = path.getFileSystem(conf).open(path)
-      try {
-        import scala.collection.JavaConversions._
-        IOUtils.readLines(in).toList
+      val str = try {
+        IOUtils.toString(in)
       } finally {
         in.close()
       }
-    } else {
-      throw new IOException(s"Unable to locate metadata file ${path.toString}")
-    }
+      val config = ConfigFactory.parseString(str)
+      config.getConfig("partitions").entrySet().map { e =>
+        val key = e.getKey
+        val list = e.getValue.asInstanceOf[ConfigList].toList.map(_.toString)
+        key -> list
+      }.toMap
+    } else Map.empty
   }
 
-  override def addPartition(partition: String): Unit = addPartitions(List(partition))
+  override def addPartition(partition: String, files: java.util.List[String]): Unit =
+    addPartitions(Map{ partition -> files})
 
-  override def addPartitions(toAdd: java.util.List[String]): Unit = {
-    val parts = (load() ++ toAdd).distinct
+  override def addPartitions(toAdd: java.util.Map[String, java.util.List[String]]): Unit = {
+    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
+    val existing = load()
+    val allKeys = existing.keySet ++ toAdd.keySet()
+    val javaMap: java.util.Map[String, java.util.List[String]] = allKeys.toList.map { k =>
+      val e: List[String] = existing.get(k).toList.flatten
+      val n: List[String] = toAdd.getOrDefault(k, List.empty[String]).toList
+      k -> e.++(n).asJava
+    }.toMap.asJava
+
+    val scalaMap: Map[String, List[String]] = allKeys.toList.map { k =>
+      val e: List[String] = existing.get(k).toList.flatten
+      val n: List[String] = toAdd.getOrDefault(k, List.empty[String]).toList
+      k -> e.++(n)
+    }.toMap
+
+    val config = ConfigFactory.empty().withValue("partitions", ConfigValueFactory.fromMap(javaMap))
     val out = path.getFileSystem(conf).create(path, true)
-    parts.foreach { p => out.writeBytes(p); out.write('\n') }
+    out.writeBytes(config.root.render())
     out.hflush()
     out.hsync()
     out.close()
-    cached = null
-    logger.info(s"wrote ${parts.size} partitions to metadata file")
+    cached = scalaMap
+    logger.info(s"wrote ${allKeys.size} partitions to metadata file")
   }
 
   override def getPartitions: java.util.List[String] = {
     if (cached == null) cached = load()
-    cached
+    cached.keys.toList
+  }
+
+  override def getFiles(partition: String): util.List[String] = {
+    if (cached == null) cached = load()
+    import scala.collection.JavaConverters._
+    cached.getOrElse(partition, List.empty[String]).asJava
   }
 }
