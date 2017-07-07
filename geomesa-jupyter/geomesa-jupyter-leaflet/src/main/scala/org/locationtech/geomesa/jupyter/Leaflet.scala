@@ -146,7 +146,8 @@ object L {
     private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
     private val builder = new SimpleFeatureBuilder(sft)
     // expensive map operation
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, r, builder, r.getAs[String](idField))).toSeq
+    private val nameMappings = SparkUtils.getSftRowNameMappings(sft, df.schema)
+    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(nameMappings, r, builder, r.getAs[String](idField))).toSeq
     private val sftLayer = SimpleFeatureLayerNonPoint(sftSeq, style)
     override def render: String = sftLayer.render
   }
@@ -157,7 +158,8 @@ object L {
     private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
     private val builder = new SimpleFeatureBuilder(sft)
     // expensive map operation
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, r, builder, r.getAs[String](idField))).toSeq
+    private val nameMappings = SparkUtils.getSftRowNameMappings(sft, df.schema)
+    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(nameMappings, r, builder, r.getAs[String](idField))).toSeq
     private val sftLayer = SimpleFeatureLayerPoint(sftSeq, style, radius)
     override def render: String = sftLayer.render
   }
