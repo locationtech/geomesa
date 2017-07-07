@@ -30,12 +30,12 @@ import scala.collection.JavaConversions._
 
 object PartitionOpts {
   val DateTimeFormatOpt = "datetime-format"
-  val StepUnitOpt = "step-unit"
-  val StepOpt = "step"
-  val DtgAttribute = "dtg-attribute"
-  val GeomAttribute = "geom-attribute"
-  val Z2Resolution = "z2-resolution"
-  val LeafStorage = "leaf-storage"
+  val StepUnitOpt       = "step-unit"
+  val StepOpt           = "step"
+  val DtgAttribute      = "dtg-attribute"
+  val GeomAttribute     = "geom-attribute"
+  val Z2Resolution      = "z2-resolution"
+  val LeafStorage       = "leaf-storage"
 
   def parseDateTimeFormat(opts: Map[String, String]): String = {
     val fmtStr = opts(DateTimeFormatOpt)
@@ -67,7 +67,7 @@ object PartitionOpts {
   }
 }
 
-object NamedPartitionSchemes {
+object CommonSchemeLoader {
   import DateTimeScheme.Formats._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
   def build(name: String, sft: SimpleFeatureType): PartitionScheme = {
@@ -83,6 +83,8 @@ object NamedPartitionSchemes {
       case z2 if z2.matches("z2-[0-9]+bit") =>
         val bits = "z2-([0-9]+)bit".r("bits").findFirstMatchIn(z2).get.group("bits").toInt
         new Z2Scheme(bits, sft, sft.getGeomField, false)
+      case _ =>
+        throw new IllegalArgumentException(s"Unable to find well known scheme(s) for argument $name")
     }
     if (schemes.length == 1) {
       schemes.head
@@ -122,22 +124,13 @@ object PartitionScheme {
   def apply(sft: SimpleFeatureType, pName: String, opts: Map[String, String]): PartitionScheme = {
     import PartitionOpts._
     val leaf = parseLeafStorage(opts)
-    pName match {
+    val schemes = pName.split('-').map {
       case "datetime" =>
         val attr = parseDtgAttr(opts)
         val fmt = parseDateTimeFormat(opts)
         val su = parseStepUnit(opts)
         val s = parseStep(opts)
         new DateTimeScheme(fmt, su, s, sft, attr, leaf)
-
-      case "datetime-z2" =>
-        val dtgAttr = parseDtgAttr(opts)
-        val geomAttr = parseGeomAttr(opts)
-        val fmt = parseDateTimeFormat(opts)
-        val su = parseStepUnit(opts)
-        val s = parseStep(opts)
-        val z2Res = parseZ2Resolution(opts)
-        new DateTimeZ2Scheme(fmt, su, s, z2Res, sft, dtgAttr, geomAttr, leaf)
 
       case "z2" =>
         val geomAttr = parseGeomAttr(opts)
@@ -146,6 +139,12 @@ object PartitionScheme {
 
       case _ =>
         throw new IllegalArgumentException(s"Unknown scheme name $pName")
+    }
+
+    if (schemes.length == 1) {
+      schemes.head
+    } else{
+      new CompositeScheme(schemes.toSeq)
     }
   }
 
@@ -161,6 +160,14 @@ object PartitionScheme {
     }.toMap
 
     apply(sft, name, opts)
+  }
+
+  def stringify(name: String, opts: util.Map[String, String]): String = {
+    import scala.collection.JavaConverters._
+    val conf = ConfigFactory.parseMap(Map(
+      "name" -> name,
+      "opts" -> opts).asJava)
+    conf.root().render(ConfigRenderOptions.concise)
   }
 
   def apply(sft: SimpleFeatureType, conf: String): PartitionScheme = {
@@ -196,25 +203,26 @@ class DateTimeScheme(fmtStr: String,
   // ? is this a good idea
   override def maxDepth(): Int = fmtStr.count(_ == '/')
 
-  override def toString: String = {
-    import PartitionOpts._
-
-    import scala.collection.JavaConverters._
-    val conf = ConfigFactory.parseMap(Map(
-      "name" -> "datetime",
-      "opts" -> Map(
-        DtgAttribute -> dtgAttribute,
-        DateTimeFormatOpt -> fmtStr,
-        StepUnitOpt -> stepUnit.toString,
-        StepOpt -> step.toString,
-        LeafStorage -> leafStorage.toString).asJava).asJava)
-    conf.root().render(ConfigRenderOptions.concise)
-  }
+  override def toString: String = PartitionScheme.stringify(name, getOptions)
 
   override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
     PartitionScheme(sft, ConfigFactory.parseString(s))
 
   override def isLeafStorage: Boolean = leafStorage
+
+  override def name(): String = "datetime"
+
+  override def getOptions: java.util.Map[String, String] = {
+    import PartitionOpts._
+
+    import scala.collection.JavaConverters._
+    Map(
+        DtgAttribute -> dtgAttribute,
+        DateTimeFormatOpt -> fmtStr,
+        StepUnitOpt -> stepUnit.toString,
+        StepOpt -> step.toString,
+        LeafStorage -> leafStorage.toString).asJava
+  }
 }
 
 object DateTimeScheme {
@@ -264,76 +272,29 @@ class Z2Scheme(bits: Int, // number of bits
 
   override def maxDepth(): Int = 1
 
-  override def toString: String = {
+  override def toString: String = PartitionScheme.stringify(name(), getOptions)
+
+  override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
+    PartitionScheme(sft, ConfigFactory.parseString(s))
+
+  override def isLeafStorage: Boolean = leafStorage
+
+  override def name(): String = "z2"
+
+  override def getOptions: util.Map[String, String] = {
     import PartitionOpts._
 
     import scala.collection.JavaConverters._
-    val conf = ConfigFactory.parseMap(Map(
-      "name" -> "z2",
-      "opts" -> Map(
+    Map(
         GeomAttribute -> geomAttribute,
         Z2Resolution -> bits.toString,
-        LeafStorage -> leafStorage.toString).asJava))
-    conf.root().render(ConfigRenderOptions.concise)
+        LeafStorage -> leafStorage.toString).asJava
   }
-
-  override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
-    PartitionScheme(sft, ConfigFactory.parseString(s))
-
-  override def isLeafStorage: Boolean = leafStorage
-
-}
-
-class DateTimeZ2Scheme(fmtStr: String,
-                       stepUnit: ChronoUnit,
-                       step: Int,
-                       resolution: Int,
-                       sft: SimpleFeatureType,
-                       dtgAttribute: String,
-                       geomAttribute: String,
-                       leafStorage: Boolean) extends PartitionScheme {
-
-  private val z2Scheme = new Z2Scheme(resolution, sft, geomAttribute, leafStorage)
-  private val dateScheme = new DateTimeScheme(fmtStr, stepUnit, step, sft, dtgAttribute, leafStorage)
-
-  override def getPartitionName(sf: SimpleFeature): String = {
-    dateScheme.getPartitionName(sf) + "/" + z2Scheme.getPartitionName(sf)
-  }
-
-  override def getCoveringPartitions(f: Filter): java.util.List[String] = {
-    import scala.collection.JavaConversions._
-    val dateParts = dateScheme.getCoveringPartitions(f)
-    val z2Parts = z2Scheme.getCoveringPartitions(f)
-    for { d <- dateParts; z <- z2Parts } yield { s"$d/$z" }
-  }
-
-  override def maxDepth(): Int = z2Scheme.maxDepth() + dateScheme.maxDepth()
-
-  override def toString: String = {
-    import PartitionOpts._
-
-    import scala.collection.JavaConverters._
-    val conf = ConfigFactory.parseMap(Map(
-      "name" -> "datetime-z2",
-      "opts" -> Map(
-        GeomAttribute -> geomAttribute,
-        Z2Resolution -> resolution.toString,
-        DtgAttribute -> dtgAttribute,
-        DateTimeFormatOpt -> fmtStr,
-        StepUnitOpt -> stepUnit.toString,
-        StepOpt -> step.toString,
-        LeafStorage -> leafStorage.toString).asJava).asJava)
-    conf.root().render(ConfigRenderOptions.concise)
-  }
-
-  override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
-    PartitionScheme(sft, ConfigFactory.parseString(s))
-
-  override def isLeafStorage: Boolean = leafStorage
-
 }
 
 class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
+
+  require(schemes.size > 1, "Must provide at least 2 schemes for a composite scheme")
 
   override def getPartitionName(sf: SimpleFeature): String = schemes.map(_.getPartitionName(sf)).mkString("/")
 
@@ -344,5 +305,15 @@ class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
 
   override def isLeafStorage: Boolean = schemes.forall(_.isLeafStorage)
 
-  override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme = ???
+  override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
+    PartitionScheme(sft, ConfigFactory.parseString(s))
+
+  override def name(): String = schemes.map(_.name()).mkString("-")
+
+  override def toString: String = {
+    PartitionScheme.stringify(name(), getOptions)
+  }
+
+  override def getOptions: util.Map[String, String] =
+    schemes.map(_.getOptions).reduceLeft(_ ++ _)
 }

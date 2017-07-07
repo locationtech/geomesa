@@ -40,7 +40,7 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
       val scheme = PartitionScheme(sft, ConfigFactory.parseString(conf))
 
       scheme must not(beNull)
-      scheme must beAnInstanceOf[DateTimeZ2Scheme]
+      scheme must beAnInstanceOf[CompositeScheme]
     }
   }
 }

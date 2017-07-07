@@ -63,7 +63,10 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
           gf.createPoint(new Coordinate(-75, 38))), sft, new FeatureIdImpl("1"))
 
-      val ps = new DateTimeZ2Scheme("yyyy/DDD", ChronoUnit.DAYS, 1, 10, sft, "dtg", "geom", true)
+      val ps = new CompositeScheme(Seq(
+        new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, sft, "dtg", true),
+        new Z2Scheme(10, sft, "geom", true)
+      ))
       ps.getPartitionName(sf) mustEqual "2017/003/0770"
       ps.getPartitionName(sf2) mustEqual "2017/003/0617"
 
@@ -78,7 +81,10 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
           gf.createPoint(new Coordinate(-75, 38))), sft, new FeatureIdImpl("1"))
 
-      val ps = new DateTimeZ2Scheme("yyyy/DDD", ChronoUnit.DAYS, 1, 20, sft, "dtg", "geom", true)
+      val ps = new CompositeScheme(Seq(
+        new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, sft, "dtg", true),
+        new Z2Scheme(20, sft, "geom", true)
+      ))
       ps.getPartitionName(sf) mustEqual "2017/003/0789456"
       ps.getPartitionName(sf2) mustEqual "2017/003/0632516"
     }
@@ -97,7 +103,10 @@ class PartitionSchemeTest extends Specification with AllExpectations {
     }
 
     "2 bit z2 with date" >> {
-      val ps = new DateTimeZ2Scheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, 2, sft, "dtg", "geom", true)
+      val ps = new CompositeScheme(Seq(
+        new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, sft, "dtg", true),
+        new Z2Scheme(2, sft, "geom", true)
+      ))
       val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 24 * 4
     }
@@ -120,7 +129,10 @@ class PartitionSchemeTest extends Specification with AllExpectations {
     }
 
     "date time test" >> {
-      val ps = new DateTimeZ2Scheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, 2, sft, "dtg", "geom", true)
+      val ps = new CompositeScheme(Seq(
+        new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, sft, "dtg", true),
+        new Z2Scheme(2, sft, "geom", true)
+      ))
       val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size mustEqual 96
       // TODO actually test the resulting values...
@@ -128,7 +140,7 @@ class PartitionSchemeTest extends Specification with AllExpectations {
 
 
     "composite scheme test" >> {
-      val ps = NamedPartitionSchemes.build("year-month-day-hour,z2-2bit", sft)
+      val ps = CommonSchemeLoader.build("year-month-day-hour,z2-2bit", sft)
       ps must beAnInstanceOf[CompositeScheme]
       val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 24 * 4

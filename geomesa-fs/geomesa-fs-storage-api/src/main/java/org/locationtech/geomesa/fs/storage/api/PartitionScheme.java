@@ -40,4 +40,7 @@ public interface PartitionScheme {
     String toString();
 
     PartitionScheme fromString(SimpleFeatureType sft, String s);
+
+    String name();
+    java.util.Map<String, String> getOptions();
 }
