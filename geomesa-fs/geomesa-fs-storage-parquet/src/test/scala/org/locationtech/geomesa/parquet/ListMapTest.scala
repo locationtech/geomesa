@@ -10,6 +10,7 @@ package org.locationtech.geomesa.parquet
 
 import java.nio.file.Files
 import java.time.Instant
+import java.util.UUID
 
 import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.apache.hadoop.conf.Configuration
@@ -157,6 +158,83 @@ class ListMapTest extends Specification {
         sf3.getAttributeCount mustEqual 3
         sf3.getID must be equalTo "3"
         sf3.get[java.util.Map[String,String]]("foobar").toMap must beEmpty
+        sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
+        sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
+      }
+      step {
+        Files.deleteIfExists(f)
+      }
+    }
+
+     "do non string list map stuff" >> {
+
+      val f = Files.createTempFile("geomesa", ".parquet")
+      val gf = JTSFactoryFinder.getGeometryFactory
+      val sft = SimpleFeatureTypes.createType("test", "foo:List[UUID],bar:Map[Int,Double],dtg:Date,*geom:Point:srid=4326")
+
+      val sftConf = {
+        val c = new Configuration()
+        SimpleFeatureReadSupport.setSft(sft, c)
+        c
+      }
+
+      "write" >> {
+        // Use GZIP in tests but snappy in prod due to license issues
+        val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf)
+          .withCompressionCodec(CompressionCodecName.GZIP).build()
+
+        val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
+        val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
+        val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
+        val u1 = UUID.fromString("00000000-0000-1111-0000-000000000000")
+        val u2 = UUID.fromString("00000000-0000-2222-0000-000000000000")
+        val u3 = UUID.fromString("00000000-0000-3333-0000-000000000000")
+
+        val sf = new ScalaSimpleFeature("1", sft, Array(List(u1, u2),Map[Int, Double](1 -> 2.0, 3 -> 6.0), d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
+        val sf2 = new ScalaSimpleFeature("2", sft, Array(null, null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
+        val sf3 = new ScalaSimpleFeature("3", sft, Array(List.empty[UUID],Map.empty[Int, Double], d3, gf.createPoint(new Coordinate(73.0, 73.0))))
+        writer.write(sf)
+        writer.write(sf2)
+        writer.write(sf3)
+        writer.close()
+        Files.size(f) must be greaterThan 0
+      }
+
+      // TODO really need to test with more maps and values and stuff
+      "read aruff" >> {
+        val reader = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
+          .withFilter(FilterCompat.NOOP)
+          .withConf(sftConf)
+          .build()
+
+        val u1 = "00000000-0000-1111-0000-000000000000"
+        val u2 = "00000000-0000-2222-0000-000000000000"
+
+        import org.locationtech.geomesa.utils.geotools.Conversions._
+        import scala.collection.JavaConversions._
+        val sf = reader.read()
+        sf.getAttributeCount mustEqual 4
+        sf.getID must be equalTo "1"
+        val u = sf.get[java.util.List[UUID]]("foo").toList.map(_.toString)
+        u must containTheSameElementsAs(Seq[String](u2, u1))
+        val m = sf.get[java.util.Map[Int, Double]]("bar").toMap
+        m must containTheSameElementsAs(Seq(1 -> 2.0, 3 -> 6.0))
+        sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
+        sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
+
+        val sf2 = reader.read()
+        sf2.getAttributeCount mustEqual 4
+        sf2.getID must be equalTo "2"
+        sf2.getAttribute("foo") must beNull
+        sf2.getAttribute("bar") must beNull
+        sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
+        sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
+
+        val sf3 = reader.read()
+        sf3.getAttributeCount mustEqual 4
+        sf3.getID must be equalTo "3"
+        sf3.get[java.util.List[_]]("foo").toList must beEmpty
+        sf3.get[java.util.Map[_,_]]("bar").toMap must beEmpty
         sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
         sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
       }

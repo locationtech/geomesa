@@ -57,5 +57,4 @@ class SimpleFeatureRecordMaterializer(sft: SimpleFeatureType) extends RecordMate
   private val converter = new SimpleFeatureGroupConverter(sft)
   override def getRootConverter: GroupConverter = converter
   override def getCurrentRecord: SimpleFeature = converter.getCurrent
-
 }

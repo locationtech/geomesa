@@ -36,7 +36,11 @@ object AttributeWriter {
   def apply(descriptor: AttributeDescriptor, index: Int): AttributeWriter = {
     val name = descriptor.getLocalName
     val classBinding = descriptor.getType.getBinding
-    val (objectType, others) = ObjectType.selectType(classBinding, descriptor.getUserData)
+    val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
+    apply(name, index, objectType, bindings)
+  }
+
+  def apply(name: String, index: Int, objectType: ObjectType, bindings: Seq[ObjectType]): AttributeWriter =
     objectType match {
       // TODO linestrings and polygons
       case ObjectType.GEOMETRY => new PointAttributeWriter(name, index)
@@ -48,12 +52,11 @@ object AttributeWriter {
       case ObjectType.STRING   => new StringWriter(name, index)
 
       // TODO implement
-      case ObjectType.LIST     => new ListWriter(name, index, others.head)
-      case ObjectType.MAP      => new MapWriter(name, index, others.head, others.last)
+      case ObjectType.LIST     => new ListWriter(name, index, bindings.head)
+      case ObjectType.MAP      => new MapWriter(name, index, bindings.head, bindings.last)
       case ObjectType.UUID     => new UUIDWriter(name, index)
 
     }
-  }
 
   abstract class AbstractAttributeWriter(fieldName: String,
                                          fieldIndex: Int) extends AttributeWriter {
@@ -123,18 +126,19 @@ object AttributeWriter {
 
   class ListWriter(fieldName: String, fieldIndex: Int, valueType: ObjectType)
     extends AbstractAttributeWriter(fieldName, fieldIndex) {
+    val elementWriter = AttributeWriter("element", 0, valueType, Seq.empty)
+
     override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
       recordConsumer.startGroup()
-      val thelist = value.asInstanceOf[List[String]]
+      val thelist = value.asInstanceOf[List[AnyRef]]
+
       if (thelist != null && thelist.nonEmpty) {
         recordConsumer.startField(fieldName, 0)
 
         thelist.foreach { e =>
           recordConsumer.startGroup()
           if (e != null) {
-            recordConsumer.startField("element", 0)
-            recordConsumer.addBinary(Binary.fromString(e))
-            recordConsumer.endField("element", 0)
+           elementWriter(recordConsumer, e)
           }
           recordConsumer.endGroup()
         }
@@ -147,24 +151,22 @@ object AttributeWriter {
 
   class MapWriter(fieldName: String, fieldIndex: Int, keyType: ObjectType, valueType: ObjectType)
     extends AbstractAttributeWriter(fieldName, fieldIndex) {
+    val keyWriter = AttributeWriter("key", 0, keyType, Seq.empty)
+    val valueWriter = AttributeWriter("value", 1, valueType, Seq.empty)
+
     override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
       recordConsumer.startGroup()
+      val themap = value.asInstanceOf[Map[AnyRef, AnyRef]]
 
-      val themap = value.asInstanceOf[Map[String, String]]
       if (themap != null && themap.nonEmpty) {
         recordConsumer.startField(fieldName, 0)
 
         themap.foreach { case (k, v) =>
           recordConsumer.startGroup()
-
-          recordConsumer.startField("key", 0)
-          recordConsumer.addBinary(Binary.fromString(k))
-          recordConsumer.endField("key", 0)
+          keyWriter(recordConsumer, k)
 
           if (v != null) {
-            recordConsumer.startField("value", 1)
-            recordConsumer.addBinary(Binary.fromString(v))
-            recordConsumer.endField("value", 1)
+            valueWriter(recordConsumer, v)
           }
 
           recordConsumer.endGroup()
