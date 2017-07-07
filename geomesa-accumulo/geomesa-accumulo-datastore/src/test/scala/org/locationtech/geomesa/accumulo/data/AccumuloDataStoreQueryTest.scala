@@ -511,19 +511,19 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, viewParams)
 
       query.getHints.remove(QUERY_INDEX)
-      viewParams.put("STRATEGY", "attr")
+      viewParams.put("QUERY_INDEX", "attr")
       expectStrategy(AttributeIndex)
 
       query.getHints.remove(QUERY_INDEX)
-      viewParams.put("STRATEGY", "Z2")
+      viewParams.put("QUERY_INDEX", "Z2")
       expectStrategy(Z2Index)
 
       query.getHints.remove(QUERY_INDEX)
-      viewParams.put("STRATEGY", "Z3")
+      viewParams.put("QUERY_INDEX", "Z3")
       expectStrategy(Z3Index)
 
       query.getHints.remove(QUERY_INDEX)
-      viewParams.put("STRATEGY", "RECORDS")
+      viewParams.put("QUERY_INDEX", "RECORDS")
       expectStrategy(RecordIndex)
 
       success
