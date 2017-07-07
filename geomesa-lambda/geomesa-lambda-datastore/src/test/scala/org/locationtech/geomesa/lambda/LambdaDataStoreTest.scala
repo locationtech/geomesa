@@ -14,6 +14,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.RootAllocator
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
@@ -140,13 +141,18 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
         testBin(ds)
         testArrow(ds)
         testStats(ds)
+
         // test query_persistent/query_transient hints
-        forall(Seq((features.take(1), QueryHints.LAMBDA_QUERY_TRANSIENT),
-                   (features.drop(1) , QueryHints.LAMBDA_QUERY_PERSISTENT))) {
-          case (feature, hint) =>
-            val query = new Query(sft.getTypeName)
-            query.getHints.put(hint, java.lang.Boolean.FALSE)
-            SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq mustEqual feature
+        forall(Seq((features.take(1), QueryHints.LAMBDA_QUERY_TRANSIENT, "LAMBDA_QUERY_TRANSIENT"),
+                   (features.drop(1) , QueryHints.LAMBDA_QUERY_PERSISTENT, "LAMBDA_QUERY_PERSISTENT"))) {
+          case (feature, hint, string) =>
+            val hints = Seq((hint, java.lang.Boolean.FALSE),
+              (Hints.VIRTUAL_TABLE_PARAMETERS, Map(string -> "false"): java.util.Map[String, String]))
+            forall(hints) { case (k, v) =>
+              val query = new Query(sft.getTypeName)
+              query.getHints.put(k, v)
+              SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq mustEqual feature
+            }
         }
 
         // persist both features to the long-term storage
