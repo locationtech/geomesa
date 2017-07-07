@@ -152,16 +152,16 @@ trait OptionalInputFormatParam extends InputFormatParam {
 }
 
 trait ConverterConfigParam {
-  def config
+  def config: String
 }
 
-trait OptionalConverterConfigParam {
+trait OptionalConverterConfigParam extends ConverterConfigParam {
   @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter",
     required = false)
   var config: String = null
 }
 
-trait RequiredConverterConfigParam {
+trait RequiredConverterConfigParam extends ConverterConfigParam {
   @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter",
     required = true)
   var config: String = null

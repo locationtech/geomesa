@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.conf
 
-import java.util
-
 import com.typesafe.config.Config
 
 object ConfConversions {
