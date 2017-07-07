@@ -9,11 +9,13 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.util.Date
+import java.nio.ByteBuffer
+import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Point
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.opengis.feature.`type`.AttributeDescriptor
 
 /**
@@ -34,7 +36,7 @@ object AttributeWriter {
   def apply(descriptor: AttributeDescriptor, index: Int): AttributeWriter = {
     val name = descriptor.getLocalName
     val classBinding = descriptor.getType.getBinding
-    val (objectType, _) = ObjectType.selectType(classBinding, descriptor.getUserData)
+    val (objectType, others) = ObjectType.selectType(classBinding, descriptor.getUserData)
     objectType match {
       // TODO linestrings and polygons
       case ObjectType.GEOMETRY => new PointAttributeWriter(name, index)
@@ -46,9 +48,9 @@ object AttributeWriter {
       case ObjectType.STRING   => new StringWriter(name, index)
 
       // TODO implement
-      case ObjectType.LIST     => throw new NotImplementedError()
-      case ObjectType.MAP      => throw new NotImplementedError()
-      case ObjectType.UUID     => throw new NotImplementedError()
+      case ObjectType.LIST     => new ListWriter(name, index, others.head)
+      case ObjectType.MAP      => new MapWriter(name, index, others.head, others.last)
+      case ObjectType.UUID     => new UUIDWriter(name, index)
 
     }
   }
@@ -118,5 +120,72 @@ object AttributeWriter {
       recordConsumer.addBinary(Binary.fromString(value.asInstanceOf[String]))
     }
   }
+
+  class ListWriter(fieldName: String, fieldIndex: Int, valueType: ObjectType)
+    extends AbstractAttributeWriter(fieldName, fieldIndex) {
+    override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
+      recordConsumer.startGroup()
+      val thelist = value.asInstanceOf[List[String]]
+      if (thelist != null && thelist.nonEmpty) {
+        recordConsumer.startField(fieldName, 0)
+
+        thelist.foreach { e =>
+          recordConsumer.startGroup()
+          if (e != null) {
+            recordConsumer.startField("element", 0)
+            recordConsumer.addBinary(Binary.fromString(e))
+            recordConsumer.endField("element", 0)
+          }
+          recordConsumer.endGroup()
+        }
+
+        recordConsumer.endField(fieldName, 0)
+      }
+      recordConsumer.endGroup()
+    }
+  }
+
+  class MapWriter(fieldName: String, fieldIndex: Int, keyType: ObjectType, valueType: ObjectType)
+    extends AbstractAttributeWriter(fieldName, fieldIndex) {
+    override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
+      recordConsumer.startGroup()
+
+      val themap = value.asInstanceOf[Map[String, String]]
+      if (themap != null && themap.nonEmpty) {
+        recordConsumer.startField(fieldName, 0)
+
+        themap.foreach { case (k, v) =>
+          recordConsumer.startGroup()
+
+          recordConsumer.startField("key", 0)
+          recordConsumer.addBinary(Binary.fromString(k))
+          recordConsumer.endField("key", 0)
+
+          if (v != null) {
+            recordConsumer.startField("value", 1)
+            recordConsumer.addBinary(Binary.fromString(v))
+            recordConsumer.endField("value", 1)
+          }
+
+          recordConsumer.endGroup()
+        }
+
+        recordConsumer.endField(fieldName, 0)
+      }
+      recordConsumer.endGroup()
+    }
+
+  }
+
+  class UUIDWriter(fieldName: String, fieldIndex: Int) extends AbstractAttributeWriter(fieldName, fieldIndex) {
+    override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
+      val uuid = value.asInstanceOf[UUID]
+      val bb = ByteBuffer.wrap(new Array[Byte](16))
+      bb.putLong(uuid.getMostSignificantBits)
+      bb.putLong(uuid.getLeastSignificantBits)
+      recordConsumer.addBinary(Binary.fromConstantByteArray(bb.array()))
+    }
+  }
+
 
 }

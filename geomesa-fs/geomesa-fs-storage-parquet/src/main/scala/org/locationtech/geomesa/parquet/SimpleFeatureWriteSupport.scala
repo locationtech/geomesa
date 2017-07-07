@@ -44,9 +44,9 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   }
 
   def writeFid(id: String): Unit = {
-    consumer.startField("fid", idIndex)
+    consumer.startField(SimpleFeatureParquetSchema.FeatureIDField, idIndex)
     consumer.addBinary(Binary.fromString(id))
-    consumer.endField("fid", idIndex)
+    consumer.endField(SimpleFeatureParquetSchema.FeatureIDField, idIndex)
   }
 
   private def writeFields(attributes: java.util.List[AnyRef]) = {

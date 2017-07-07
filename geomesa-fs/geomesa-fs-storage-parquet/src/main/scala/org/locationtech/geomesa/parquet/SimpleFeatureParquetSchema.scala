@@ -13,17 +13,20 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.{MessageType, OriginalType, Type, Types}
 import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
 object SimpleFeatureParquetSchema {
+
+  val FeatureIDField = "__fid__"
 
   def apply(sft: SimpleFeatureType): MessageType = {
     import scala.collection.JavaConversions._
     val idField =
       Types.primitive(PrimitiveTypeName.BINARY, Repetition.REPEATED)
         .as(OriginalType.UTF8)
-        .named("fid")
+        .named(FeatureIDField)
 
     // NOTE: idField goes at the end of the record
     new MessageType(sft.getTypeName, sft.getAttributeDescriptors.map(convertField) :+ idField)
@@ -34,10 +37,10 @@ object SimpleFeatureParquetSchema {
     import Type.Repetition
 
     val binding = ad.getType.getBinding
-    val (objectType, _) = ObjectType.selectType(binding, ad.getUserData)
+    val (objectType, qualObjType) = ObjectType.selectType(binding, ad.getUserData)
     objectType match {
       case ObjectType.GEOMETRY =>
-        // TODO: currently only dealing with Points packed into a 16 byte fixed array
+        // TODO: currently only dealing with Points
         Types.buildGroup(Repetition.REQUIRED)
           .primitive(DOUBLE, Repetition.REQUIRED).named("x")
           .primitive(DOUBLE, Repetition.REQUIRED).named("y")
@@ -73,20 +76,38 @@ object SimpleFeatureParquetSchema {
           .named(ad.getLocalName)
 
       case ObjectType.BYTES =>
-        // TODO:
-        null
+        Types.primitive(BINARY, Repetition.OPTIONAL)
+          .named(ad.getLocalName)
 
       case ObjectType.LIST =>
-        // TODO:
-        null
+        Types.optionalList().optionalElement(matchType(qualObjType.head))
+          .named(ad.getLocalName)
 
       case ObjectType.MAP =>
-        // TODO:
-        null
+        Types.optionalMap()
+          .key(matchType(qualObjType.head))
+          .optionalValue(matchType(qualObjType.last))
+          .named(ad.getLocalName)
 
       case ObjectType.UUID =>
-        // TODO:
-        null
+        Types.primitive(BINARY, Repetition.OPTIONAL)
+          .named(ad.getLocalName)
+    }
+
+  }
+
+  private def matchType(objType: ObjectType): PrimitiveTypeName = {
+    import PrimitiveTypeName._
+    objType match {
+      case ObjectType.DATE => INT64
+      case ObjectType.STRING => BINARY
+      case ObjectType.INT => INT32
+      case ObjectType.DOUBLE => DOUBLE
+      case ObjectType.LONG => INT64
+      case ObjectType.FLOAT => FLOAT
+      case ObjectType.BOOLEAN => BOOLEAN
+      case ObjectType.BYTES => BINARY
+      case ObjectType.UUID => BINARY
     }
   }
 

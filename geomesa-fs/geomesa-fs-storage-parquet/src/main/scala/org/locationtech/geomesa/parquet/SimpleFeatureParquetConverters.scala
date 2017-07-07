@@ -20,6 +20,8 @@ import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.mutable
+
 /**
   * Group converter that can create simple features. Note that we should refactor
   * this a little more and perhaps have this store raw values and then push the
@@ -46,7 +48,7 @@ class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter
   // Temp placeholders
   private var curId: Binary = _
   private val currentArr: Array[AnyRef] = new Array[AnyRef](numVals)
-  var x: Double = _
+  var x: Double = _ // TODO struct for non points
   var y: Double = _
 
   override def start(): Unit = {
@@ -63,7 +65,7 @@ class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter
   // Don't materialize unless we have to
   def getCurrent: SimpleFeature = {
     set(geomIdx, gf.createPoint(new Coordinate(x, y)))
-    // Must copy this because the next record may change the references in the array
+    // Deep copy array since the next record may change references in the array
     new ScalaSimpleFeature(curId.toStringUsingUTF8, sft, util.Arrays.copyOf(currentArr, currentArr.length))
   }
 
@@ -194,13 +196,77 @@ object SimpleFeatureParquetConverters {
           }
         }
 
+      // TODO support things other than strings
       case ObjectType.LIST =>
-        // TODO:
-        null
+        new GroupConverter() {
+          val values = mutable.ListBuffer.empty[String]
+
+          val conv =
+            new GroupConverter {
+              val converter =
+                new PrimitiveConverter {
+                  override def addBinary(value: Binary): Unit = {
+                    values += value.toStringUsingUTF8
+                  }
+                }
+              // better only be one field (0)
+              override def getConverter(fieldIndex: Int) = converter
+
+              override def end() = {}
+              override def start() = {}
+            }
+          override def getConverter(fieldIndex: Int) = conv
+
+          override def start() = values.clear()
+
+          override def end() = {
+            import scala.collection.JavaConverters._
+            parent.set(index, values.asJava)
+          }
+        }
 
       case ObjectType.MAP =>
-        // TODO:
-        null
+        new GroupConverter {
+          val m = mutable.HashMap.empty[String, String]
+          private var k: String = _
+          private var v: String = _
+
+          val conv =
+            new GroupConverter {
+              private val keyConverter =
+                new PrimitiveConverter {
+                  override def addBinary(value: Binary): Unit = {
+                    k = value.toStringUsingUTF8
+                  }
+                }
+
+              private val valueConverter =
+                new PrimitiveConverter {
+                  override def addBinary(value: Binary): Unit = {
+                    v = value.toStringUsingUTF8
+                  }
+                }
+
+              override def getConverter(fieldIndex: Int) =
+                if (fieldIndex == 0) {
+                  keyConverter
+                } else {
+                  valueConverter
+                }
+
+              override def end() = m += k -> v
+              override def start() = {}
+            }
+
+          override def getConverter(fieldIndex: Int) = conv
+
+          override def start() = m.clear()
+          override def end() = {
+            import scala.collection.JavaConverters._
+            parent.set(index, m.asJava)
+          }
+
+        }
 
       case ObjectType.UUID =>
         new SimpleFeatureFieldConverter(parent) {
