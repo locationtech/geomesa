@@ -14,6 +14,7 @@ import java.util.zip.{Deflater, GZIPOutputStream}
 import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
+import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
@@ -23,7 +24,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter, ShapefileExporter, _}
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
-import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand, OptionalIndexParam, TypeNameParam}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -43,11 +44,11 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
         s"in ${timing.time}ms${count.map(" for " + _ + " features").getOrElse("")}")
   }
 
-  protected def export(ds: DataStore): Option[Long] = {
+  protected def export(ds: DS): Option[Long] = {
     import ExportCommand._
     import org.locationtech.geomesa.tools.utils.DataFormats._
 
-    lazy val sft = ds.getSchema(params.featureName)
+    lazy val sft = getSchema(ds)
     val fmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
       throw new ParameterException(s"Invalid format '${params.outputFormat}'. Valid values are " +
           DataFormats.values.map(_.toString.toLowerCase).mkString("'", "', '", "'"))
@@ -55,7 +56,7 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
 
     val (query, attributes) = createQuery(ds, sft, fmt, params)
     val features = try {
-      ds.getFeatureSource(query.getTypeName).getFeatures(query)
+      getFeatureSource(ds, query.getTypeName).getFeatures(query)
     } catch {
       case NonFatal(e) =>
         throw new RuntimeException("Could not execute export query. Please ensure " +
@@ -82,6 +83,12 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
       IOUtils.closeQuietly(exporter)
     }
   }
+
+  protected def getSchema(ds: DS): SimpleFeatureType = params match {
+    case p: TypeNameParam => ds.getSchema(p.featureName)
+  }
+
+  protected def getFeatureSource(ds: DS, typeName: String): SimpleFeatureSource = ds.getFeatureSource(typeName)
 }
 
 object ExportCommand extends LazyLogging {
@@ -90,14 +97,17 @@ object ExportCommand extends LazyLogging {
                   sft: => SimpleFeatureType,
                   fmt: DataFormat,
                   params: ExportParams): (Query, Option[ExportAttributes]) = {
-    lazy val gmds = Option(ds).collect { case d: GeoMesaDataStore[_, _, _] => d }.orNull
+    val typeName = Option(params).collect { case p: TypeNameParam => p.featureName }.orNull
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
 
-    val query = new Query(params.featureName, filter)
+    val query = new Query(typeName, filter)
     Option(params.maxFeatures).map(Int.unbox).foreach(query.setMaxFeatures)
-    params.loadIndex(gmds, IndexMode.Read).foreach { index =>
-      query.getHints.put(QueryHints.QUERY_INDEX, index)
-      logger.debug(s"Using index ${index.identifier}")
+    Option(params).collect { case p: OptionalIndexParam => p }.foreach { p =>
+      val gmds = Option(ds).collect { case d: GeoMesaDataStore[_, _, _] => d }.orNull
+      p.loadIndex(gmds, IndexMode.Read).foreach { index =>
+        query.getHints.put(QueryHints.QUERY_INDEX, index)
+        logger.debug(s"Using index ${index.identifier}")
+      }
     }
 
     if (fmt == DataFormats.Arrow) {

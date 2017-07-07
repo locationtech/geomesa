@@ -144,11 +144,16 @@ object SimpleFeatureTypes {
   def encodeDescriptor(sft: SimpleFeatureType, descriptor: AttributeDescriptor): String =
     AttributeSpec(sft, descriptor).toSpec
 
-  def toConfig(sft: SimpleFeatureType, includeUserData: Boolean = true): Config =
-    SimpleFeatureSpecConfig.toConfig(sft, includeUserData)
+  def toConfig(sft: SimpleFeatureType,
+               includeUserData: Boolean = true,
+               includePrefix: Boolean = true): Config =
+    SimpleFeatureSpecConfig.toConfig(sft, includeUserData, includePrefix)
 
-  def toConfigString(sft: SimpleFeatureType, includeUserData: Boolean = true, concise: Boolean = false): String =
-    SimpleFeatureSpecConfig.toConfigString(sft, includeUserData, concise)
+  def toConfigString(sft: SimpleFeatureType,
+                     includeUserData: Boolean = true,
+                     concise: Boolean = false,
+                     includePrefix: Boolean = true): String =
+    SimpleFeatureSpecConfig.toConfigString(sft, includeUserData, concise, includePrefix)
 
   /**
     * Renames a simple feature type. Preserves user data
