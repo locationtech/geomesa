@@ -67,6 +67,31 @@ object PartitionOpts {
   }
 }
 
+object NamedPartitionSchemes {
+  import DateTimeScheme.Formats._
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+  def build(name: String, sft: SimpleFeatureType): PartitionScheme = {
+    val schemes = name.toLowerCase.split(',').map {
+      case "year-jday" =>
+        new DateTimeScheme(YearJDay, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
+      case "year-jday-hour" =>
+        new DateTimeScheme(YearJDayHour, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, false)
+      case "year-month-day" =>
+        new DateTimeScheme(YearMonthDay, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
+      case "year-month-day-hour" =>
+        new DateTimeScheme(YearMonthDayHour, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, false)
+      case z2 if z2.matches("z2-[0-9]+bit") =>
+        val bits = "z2-([0-9]+)bit".r("bits").findFirstMatchIn(z2).get.group("bits").toInt
+        new Z2Scheme(bits, sft, sft.getGeomField, false)
+    }
+    if (schemes.length == 1) {
+      schemes.head
+    } else {
+      new CompositeScheme(schemes.toSeq)
+    }
+  }
+}
+
 
 object PartitionScheme {
   // Must begin with GeoMesa in order to be persisted
@@ -306,4 +331,18 @@ class DateTimeZ2Scheme(fmtStr: String,
 
   override def isLeafStorage: Boolean = leafStorage
 
+}
+
+class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
+
+  override def getPartitionName(sf: SimpleFeature): String = schemes.map(_.getPartitionName(sf)).mkString("/")
+
+  override def getCoveringPartitions(f: Filter): util.List[String] =
+    schemes.map(_.getCoveringPartitions(f)).reduce((a, b) => for (i <- a; j <-b) yield { s"$i/$j"})
+
+  override def maxDepth(): Int = schemes.map(_.maxDepth()).sum
+
+  override def isLeafStorage: Boolean = schemes.forall(_.isLeafStorage)
+
+  override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme = ???
 }
