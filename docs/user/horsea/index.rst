@@ -121,6 +121,3 @@ Creating a Writable FileSystemDatastore
 Overlaying a Converter
 ----------------------
 
-
-
-

@@ -212,10 +212,10 @@ object SimpleFeatureParquetConverters {
       case ObjectType.LIST =>
         new GroupConverter() {
           private val values = mutable.ListBuffer.empty[AnyRef]
-
-          val conv =
+          private val conv =
             new GroupConverter {
-              private val converter = converterFor(binding.head, Seq.empty, 0, (index: Int, value: AnyRef) => values += value)
+              private val converter =
+                converterFor(binding.head, Seq.empty, 0, (index: Int, value: AnyRef) => values += value)
 
               // better only be one field (0)
               override def getConverter(fieldIndex: Int) = converter
