@@ -89,7 +89,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
         params.threads,
         new Path(params.path),
         Option(params.tempDir).map(new Path(_)),
-        params.reducers)
+        Option(params.reducers))
     ingest.run()
   }
 
@@ -101,7 +101,7 @@ class FsIngestParams extends IngestParams with FsParams {
     "Note that this may be useful when using s3 since its slow as a sink", required = false)
   var tempDir: String = _
 
-  @Parameter(names = Array("--num-reducers"), description = "Num reducers", required = true)
+  @Parameter(names = Array("--num-reducers"), description = "Num reducers (required for distributed ingest)", required = false)
   var reducers: java.lang.Integer = _
 
   @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file", required = true)
