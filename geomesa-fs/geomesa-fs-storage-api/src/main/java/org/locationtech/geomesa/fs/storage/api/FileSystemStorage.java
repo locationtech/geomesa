@@ -34,5 +34,6 @@ public interface FileSystemStorage {
 
     List<URI> getPaths(String typeName, Partition partition);
 
+    void updateMetadata(String typeName);
     Metadata getMetadata(String typeName);
 }

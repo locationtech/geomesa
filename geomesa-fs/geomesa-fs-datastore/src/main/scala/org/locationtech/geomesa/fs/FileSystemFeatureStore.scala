@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs
 
 import java.util.concurrent.atomic.AtomicLong
 
-import com.google.common.cache.{CacheBuilder, CacheLoader, RemovalListener, RemovalNotification}
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.FileSystem
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
@@ -19,15 +19,14 @@ import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWriter}
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.mutable
 
 class FileSystemFeatureStore(entry: ContentEntry,
                              query: Query,
                              fs: FileSystem,
                              storage: FileSystemStorage,
-                             readThreads: Int) extends ContentFeatureStore(entry, query) {
+                             readThreads: Int) extends ContentFeatureStore(entry, query) with LazyLogging {
   private val _sft = storage.getFeatureType(entry.getTypeName)
 
   override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
@@ -65,7 +64,12 @@ class FileSystemFeatureStore(entry: ContentEntry,
       override def close(): Unit = {
         writers.foreach { case (_, writer) =>
           writer.flush()
-          writer.close()
+          CloseWithLogging(writer)
+        }
+        try {
+          storage.updateMetadata(typeName)
+        } catch {
+          case e: Throwable => logger.error(s"Error updating metadata for type $typeName")
         }
       }
     }

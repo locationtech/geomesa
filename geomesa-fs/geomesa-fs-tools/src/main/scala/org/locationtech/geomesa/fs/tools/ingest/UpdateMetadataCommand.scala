@@ -14,19 +14,20 @@ import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
 
-class GenerateMetadataCommand extends FsDataStoreCommand {
-  override val name: String = "gen-metadata"
-  override val params = new GenMetaCommands
+class UpdateMetadataCommand extends FsDataStoreCommand {
+  override val name: String = "update-metadata"
+  override val params = new UpdateMetadataParams
 
   override def execute(): Unit = {
     withDataStore(addMetadata)
   }
 
   def addMetadata(ds: FileSystemDataStore): Unit = {
-    val partitions = ds.storage.getMetadata(params.featureName).getPartitions
-    Command.user.info(s"Generated metadata file with ${partitions.size} partitions")
+    ds.storage.updateMetadata(params.featureName)
+    val m = ds.storage.getMetadata(params.featureName)
+    Command.user.info(s"Updated metadata. Found ${m.getNumPartitions} partitions and ${m.getNumStorageFiles} files")
   }
 }
 
 @Parameters(commandDescription = "Generate the metadata file")
-class GenMetaCommands extends FsParams with RequiredTypeNameParam
+class UpdateMetadataParams extends FsParams with RequiredTypeNameParam

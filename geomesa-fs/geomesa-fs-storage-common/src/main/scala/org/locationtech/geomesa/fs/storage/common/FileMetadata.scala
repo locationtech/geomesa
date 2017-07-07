@@ -19,6 +19,8 @@ import org.locationtech.geomesa.fs.storage.api.Metadata
 
 import scala.collection.JavaConversions._
 
+
+// TODO GEOMESA-1913 Use atomic file writing for metadata
 class FileMetadata(fs: FileSystem,
                    path: Path,
                    conf: Configuration) extends Metadata with LazyLogging {
@@ -84,4 +86,8 @@ class FileMetadata(fs: FileSystem,
     import scala.collection.JavaConverters._
     cached.getOrElse(partition, List.empty[String]).asJava
   }
+
+  override def getNumStorageFiles: Int = cached.entrySet().flatMap(_.getValue).size
+
+  override def getNumPartitions: Int = cached.keys.size
 }

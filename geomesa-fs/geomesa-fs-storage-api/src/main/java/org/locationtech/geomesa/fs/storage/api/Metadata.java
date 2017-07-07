@@ -13,4 +13,6 @@ public interface Metadata {
     void addPartitions(java.util.Map<String, java.util.List<String>> partitions);
     java.util.List<String> getPartitions();
     java.util.List<String> getFiles(String partition);
+    int getNumStorageFiles();
+    int getNumPartitions();
 }

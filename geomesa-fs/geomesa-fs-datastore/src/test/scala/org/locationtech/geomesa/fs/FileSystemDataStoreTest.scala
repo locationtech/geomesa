@@ -60,8 +60,8 @@ class FileSystemDataStoreTest extends Specification {
 
       // Metadata, schema, and partition file checks
       new File(dir, "test/schema.sft").exists() must beTrue
-      new File(dir, "test/2017/06/05/part_0000.parquet").exists() must beTrue
-      new File(dir, "test/2017/06/05/part_0000.parquet").isFile must beTrue
+      new File(dir, "test/2017/06/05/0000.parquet").exists() must beTrue
+      new File(dir, "test/2017/06/05/0000.parquet").isFile must beTrue
 
       // metadata
       new File(dir, "test/metadata").exists() must beTrue
@@ -69,7 +69,7 @@ class FileSystemDataStoreTest extends Specification {
       conf.hasPath("partitions") must beTrue
       val p1 = conf.getConfig("partitions").getStringList("2017/06/05")
       p1.size() mustEqual 1
-      p1.get(0) mustEqual "part_0000.parquet"
+      p1.get(0) mustEqual "0000.parquet"
 
       ds.getTypeNames must have size 1
       val fs = ds.getFeatureSource("test")

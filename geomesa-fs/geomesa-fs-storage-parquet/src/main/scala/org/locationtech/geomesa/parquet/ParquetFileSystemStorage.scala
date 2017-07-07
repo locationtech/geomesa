@@ -71,13 +71,7 @@ class ParquetFileSystemStorage(root: Path,
         val metaPath = new Path(new Path(root, typeName), metaFileName)
         val meta = new FileMetadata(fs, metaPath, conf)
         if (!fs.exists(metaPath)) {
-          val partitions =
-            StorageUtils.buildPartitionList(root, fs, typeName, getPartitionScheme(typeName), dataFileExtention)
-              .map(getPartition)
-          import scala.collection.JavaConversions._
-          import scala.collection.JavaConverters._
-          val m = partitions.map{p => p.getName -> getChildrenFiles(typeName, p).map(_.getName).asJava}.toMap
-          meta.addPartitions(m)
+          meta.addPartitions(listStorageFiles(typeName))
         }
         meta
       }
@@ -113,22 +107,6 @@ class ParquetFileSystemStorage(root: Path,
   }
 
   override def getFeatureType(name: String): SimpleFeatureType =  featureTypes(name)
-
-  private def buildPartitionList(path: Path, prefix: String, curDepth: Int, maxDepth: Int): List[String] = {
-    if (curDepth > maxDepth) return List.empty[String]
-    val status = fs.listStatus(path)
-    status.flatMap { f =>
-      if (f.isDirectory) {
-        buildPartitionList(f.getPath,  s"$prefix${f.getPath.getName}/", curDepth + 1, maxDepth)
-      } else {
-        if (f.getPath.getName.equals("schema.sft")) List()
-        else {
-          val name = f.getPath.getName.dropRight(dataFileExtention.length + 1)
-          List(s"$prefix$name")
-        }
-      }
-    }.toList
-  }
 
   override def listPartitions(typeName: String): util.List[Partition] = {
     import scala.collection.JavaConversions._
@@ -196,11 +174,7 @@ class ParquetFileSystemStorage(root: Path,
 
       override def flush(): Unit = {}
 
-      override def close(): Unit = {
-        CloseQuietly(writer)
-        import scala.collection.JavaConversions._
-        metadata(featureType).addPartition(partition.getName, List(dataPath.getName))
-      }
+      override def close(): Unit = CloseQuietly(writer)
     }
   }
 
@@ -227,27 +201,35 @@ class ParquetFileSystemStorage(root: Path,
 
   override def getPartition(name: String): Partition = new LeafStoragePartition(name)
 
-  def nextFile(typeName: String, partition: Partition): Path = {
+  private def nextFile(typeName: String, partition: Partition): Path = {
     val existingFiles = getChildrenFiles(typeName, partition).map(_.getName).toSet
     var i = 0
-    def nextName = f"part_$i%04d.$dataFileExtention"
+    def nextName = f"$i%04d.$dataFileExtention"
     var name = nextName
     while (existingFiles.contains(name)) {
       name = nextName
     }
     new Path(partitionPath(typeName, partition), name)
   }
-  def partitionPath(typeName: String, partition: Partition): Path =
+
+  private def partitionPath(typeName: String, partition: Partition): Path =
     new Path(new Path(root, typeName), partition.getName)
 
-  def getChildrenFiles(typeName: String, partition: Partition): List[Path] = {
+  private def listStorageFiles(typeName: String): util.Map[String, util.List[String]] = {
+    val partitions =
+      StorageUtils.buildPartitionList(root, fs, typeName, getPartitionScheme(typeName), dataFileExtention)
+        .map(getPartition)
+    import scala.collection.JavaConverters._
+    partitions.map{p => p.getName -> getChildrenFiles(typeName, p).map(_.getName).asJava}.toMap.asJava
+  }
+
+  private def getChildrenFiles(typeName: String, partition: Partition): List[Path] = {
     val pp = partitionPath(typeName, partition)
     if (fs.exists(pp)) {
       fs.listStatus(pp).map { f => f.getPath }.toList
     } else {
       List.empty[Path]
     }
-
   }
 
   override def getPaths(typeName: String, partition: Partition): java.util.List[URI] = {
@@ -255,8 +237,10 @@ class ParquetFileSystemStorage(root: Path,
     getChildrenFiles(typeName, partition).map(_.toUri)
   }
 
-
   override def getMetadata(typeName: String): Metadata = metadata(typeName)
+
+  override def updateMetadata(typeName: String): Unit = metadata(typeName).addPartitions(listStorageFiles(typeName))
+
 }
 
 object ParquetFileSystemStorage {

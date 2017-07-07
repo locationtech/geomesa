@@ -25,9 +25,11 @@ import org.apache.hadoop.tools.{DistCp, DistCpOptions}
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.util.ContextUtil
 import org.apache.parquet.hadoop.{ParquetOutputCommitter, ParquetOutputFormat}
+import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
@@ -52,6 +54,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     libjarsPaths: Iterator[() => Seq[File]],
     statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {
 
+    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
     val job = Job.getInstance(new Configuration, "GeoMesa Parquet Ingest")
 
     JobUtils.setLibJars(job.getConfiguration, readLibJars(libjarsFile), defaultSearchPath ++ libjarsPaths)
@@ -115,6 +118,12 @@ class ParquetConverterJob(sft: SimpleFeatureType,
 
     val ret = job.isSuccessful && {
       if (tempPath.isDefined) distCopy(tempPath.get, dsPath, sft, job.getConfiguration) else true
+    } && {
+      Command.user.info("Attempting to update metadata")
+      Thread.sleep(5000)
+      ds.storage.updateMetadata(typeName)
+      Command.user.info("Metadata Updated")
+      true
     }
 
     if (!ret) {
