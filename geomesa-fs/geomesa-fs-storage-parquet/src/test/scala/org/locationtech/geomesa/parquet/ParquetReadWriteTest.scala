@@ -18,6 +18,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.hadoop.ParquetReader
+import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
@@ -55,7 +56,9 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
 
     "write parquet files" >> {
 
-      val writer = new SimpleFeatureParquetWriter(new Path(f.toUri), sftConf)
+      // Use GZIP in tests but snappy in prod due to license issues
+      val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf)
+        .withCompressionCodec(CompressionCodecName.GZIP).build()
 
       val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
       val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))

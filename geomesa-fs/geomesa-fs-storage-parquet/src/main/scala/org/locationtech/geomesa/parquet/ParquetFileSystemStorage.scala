@@ -21,6 +21,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.hadoop.ParquetReader
+import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.{FileMetadata, LeafStoragePartition, StorageUtils}
@@ -42,6 +43,11 @@ class ParquetFileSystemStorageFactory extends FileSystemStorageFactory {
     val path = params.get("fs.path").asInstanceOf[String]
     val root = new Path(path)
     val conf = new Configuration
+    if (params.containsKey("parquet.compression")) {
+      conf.set("parquet.compression", params.get("parquet.compression").asInstanceOf[String])
+    } else if (System.getProperty("parquet.compression") != null) {
+      conf.set("parquet.compression", System.getProperty("parquet.compression"))
+    }
     new ParquetFileSystemStorage(root, root.getFileSystem(conf), conf)
   }
 }
@@ -178,10 +184,13 @@ class ParquetFileSystemStorage(root: Path,
       private val sftConf = {
         val c = new Configuration(conf)
         SimpleFeatureReadSupport.setSft(sft, c)
+        if (conf.get("parquet.compression") == null) {
+          conf.set("parquet.compression", CompressionCodecName.SNAPPY.name())
+        }
         c
       }
 
-      private val writer = new SimpleFeatureParquetWriter(dataPath, sftConf)
+      private val writer = SimpleFeatureParquetWriter.builder(dataPath, sftConf).build()
 
       override def write(f: SimpleFeature): Unit = writer.write(f)
 

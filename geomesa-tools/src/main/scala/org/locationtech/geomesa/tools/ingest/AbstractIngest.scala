@@ -70,24 +70,8 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
   val ds = DataStoreFinder.getDataStore(dsParams)
 
-  // TODO modify to use dual callbacks...now we have reduce phases
-  case class MapOnlyCallback(startTime: Long,
-                             mapProgress: Float,
-                             mapPass: Long,
-                             mapFail: Long,
-                             mapDone: Boolean,
-                             allDone: Boolean)
-
-  case class MapReduceCallback(startTime: Long,
-                               mapProgress: Float,
-                               mapPass: Long,
-                               mapFail: Long,
-                               mapDone: Boolean,
-                               allDone: Boolean,
-                               reducePass: Long,
-                               reduceFail: Long,
-                               reduceDone: Boolean)
-
+  // TODO GEOMESA-192 modify to use dual callbacks...now we have reduce phases for some ingest
+  // and we need to have additional bars for that. Maybe like Steps with progress, like spark.
   // (progress, start time, pass, fail, done)
   val statusCallback: (Float, Long, Long, Long, Boolean) => Unit =
     if (dsParams.get("useMock").exists(_.toBoolean)) {

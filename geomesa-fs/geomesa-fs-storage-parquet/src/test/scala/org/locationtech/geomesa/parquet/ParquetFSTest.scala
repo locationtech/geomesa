@@ -46,7 +46,8 @@ class ParquetFSTest extends Specification with AllExpectations {
       val parquetFactory = new ParquetFileSystemStorageFactory
 
       val fsStorage = parquetFactory.build(Map(
-        "fs.path" -> tempDir.toFile.getPath
+        "fs.path" -> tempDir.toFile.getPath,
+        "parquet.compression" -> "gzip"
       ))
 
       val scheme = new DateTimeZ2Scheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, 10, sft, "dtg", "geom", false)

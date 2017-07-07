@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.tools.ingest
 
 import java.io.File
+import java.util
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.ConfigFactory
@@ -65,6 +66,19 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
     }).getOrElse(throw new ParameterException("Partition Scheme argument is required"))
     PartitionScheme.addToSft(sft, scheme)
 
+    // Can use this to set things like compression and summary levels for parquet in the sft user data
+    // to be picked up by the ingest job
+    params.storageOpts.foreach { s =>
+      try {
+        val arr = s.split("=", 1)
+        val (k, v) = (arr(0), arr(1))
+        sft.getUserData.put(k,v)
+      } catch {
+        case e: Throwable =>
+          throw new ParameterException(s"Unable to parse storage opt $s")
+      }
+    }
+
     val ingest =
       new ParquetConverterIngest(sft,
         connection,
@@ -92,4 +106,7 @@ class FsIngestParams extends IngestParams with FsParams {
 
   @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file", required = true)
   var scheme: java.lang.String = _
+
+  @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", required = false)
+  var storageOpts: java.util.List[java.lang.String] = new util.ArrayList[String]()
 }

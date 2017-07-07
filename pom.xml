@@ -1986,7 +1986,13 @@
                 <groupId>org.apache.parquet</groupId>
                 <artifactId>parquet-hadoop</artifactId>
                 <version>${parquet.version}</version>
-            </dependency>
+                 <exclusions>
+                    <exclusion>
+                        <groupId>org.xerial.snappy</groupId>
+                        <artifactId>snappy-java</artifactId>
+                    </exclusion>
+                </exclusions>
+           </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-core-asl</artifactId>

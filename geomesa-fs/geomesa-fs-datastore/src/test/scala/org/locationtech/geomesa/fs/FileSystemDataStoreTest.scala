@@ -45,7 +45,8 @@ class FileSystemDataStoreTest extends Specification {
       import scala.collection.JavaConversions._
       val ds = DataStoreFinder.getDataStore(Map(
         "fs.path" -> dir.getPath,
-        "fs.encoding" -> "parquet"))
+        "fs.encoding" -> "parquet",
+        "parquet.compression" -> "gzip"))
       val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.YearMonthDay, ChronoUnit.DAYS, 1, sft, "dtg", false)
       PartitionScheme.addToSft(sft, partitionScheme)
       ds.createSchema(sft)
