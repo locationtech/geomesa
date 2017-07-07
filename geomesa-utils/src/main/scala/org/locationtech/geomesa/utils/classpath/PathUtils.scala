@@ -12,6 +12,7 @@ import java.io._
 import java.nio.charset.StandardCharsets
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.regex.Pattern
 import java.util.zip.GZIPInputStream
 
 import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2Utils}
@@ -21,8 +22,12 @@ import org.apache.commons.compress.compressors.xz.{XZCompressorInputStream, XZUt
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.io.{BufferedSource, Source}
+import scala.util.Try
 
 object PathUtils {
+
+  private val uriRegex = Pattern.compile("""\w+://.*""")
+  private val hadoopAvailable = Try(Class.forName("org.apache.hadoop.conf.Configuration")).isSuccess
 
   def interpretPath(path: String): List[File] = {
     val firstWildcard = path.indexOf('*')
@@ -58,19 +63,27 @@ object PathUtils {
     }
   }
 
-  def getInputStream(f: File): InputStream = {
-    val path = f.getPath
-    path match {
-      case _ if GzipUtils.isCompressedFilename(path)  =>
-        new GZIPInputStream(new BufferedInputStream(new FileInputStream(f)))
-      case _ if BZip2Utils.isCompressedFilename(path) =>
-        new BZip2CompressorInputStream(new BufferedInputStream(new FileInputStream(f)))
-      case _ if XZUtils.isCompressedFilename(path)    =>
-        new XZCompressorInputStream(new BufferedInputStream(new FileInputStream(f)))
-      case _ =>
-        new BufferedInputStream(new FileInputStream(f))
+  /**
+    * Gets an input stream for a file path, which may be local or distributed.
+    * Note: does not support wildcards
+    *
+    * Examples:
+    *   /usr/lib/foo
+    *   file:///usr/lib/foo
+    *   hdfs://localhost:9000/usr/lib/foo
+    *
+    * @param path path to the input file
+    * @return input stream
+    */
+  def getInputStream(path: String): InputStream = {
+    if (uriRegex.matcher(path).matches() && hadoopAvailable) {
+      new HadoopDelegate().getInputStream(path)
+    } else {
+      getInputStream(new File(path))
     }
   }
+
+  def getInputStream(f: File): InputStream = handleCompression(new FileInputStream(f), f.getPath)
 
   def handleCompression(is: InputStream, filename: String): InputStream = {
     if (GzipUtils.isCompressedFilename(filename)) {
@@ -88,24 +101,37 @@ object PathUtils {
     Source.fromInputStream(getInputStream(f), StandardCharsets.UTF_8.displayName)
 
   def deleteRecursively(f: Path): Unit = Files.walkFileTree(f, new DeleteFileVisitor)
-}
 
-class DeleteFileVisitor extends FileVisitor[Path] {
-  import FileVisitResult.CONTINUE
-
-  override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = CONTINUE
-
-  override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
-    if (!attrs.isDirectory) {
-      Files.delete(file)
+  /**
+    * Delegate allows us to avoid a runtime dependency on hadoop
+    */
+  class HadoopDelegate {
+    def getInputStream(path: String): InputStream = {
+      val p = new org.apache.hadoop.fs.Path(path)
+      val fs = p.getFileSystem(new org.apache.hadoop.conf.Configuration())
+      handleCompression(fs.open(p), path)
     }
-    CONTINUE
   }
 
-  override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = CONTINUE
+  /**
+    * File visitor to delete nested paths
+    */
+  class DeleteFileVisitor extends FileVisitor[Path] {
 
-  override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
-    Files.delete(dir)
-    CONTINUE
+    override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = FileVisitResult.CONTINUE
+
+    override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+      if (!attrs.isDirectory) {
+        Files.delete(file)
+      }
+      FileVisitResult.CONTINUE
+    }
+
+    override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = FileVisitResult.CONTINUE
+
+    override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
+      Files.delete(dir)
+      FileVisitResult.CONTINUE
+    }
   }
 }
