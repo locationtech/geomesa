@@ -117,41 +117,40 @@ class ParquetFileSystemStorage(root: Path,
   override def getPartitionReader(q: Query, partition: Partition): FileSystemPartitionIterator = {
     val sft = featureTypes(q.getTypeName)
 
-    // TODO in the future there may be multiple files
-    val path = new Path(getPaths(sft.getTypeName, partition).get(0))
+    import org.locationtech.geomesa.index.conf.QueryHints._
+    QueryPlanner.setQueryTransforms(q, sft)
 
-    if (!fs.exists(path)) {
-      new EmptyFsIterator(partition)
+    val transformSft = q.getHints.getTransformSchema.getOrElse(sft)
+
+    // TODO: push down predicates and partition pruning
+    // TODO ensure that transforms are pushed to the ColumnIO in parquet.
+    // TODO: Push down full filter that can't be managed
+    val fc = new FilterConverter(transformSft).convert(q.getFilter)
+    val parquetFilter =
+      fc._1
+        .map(FilterCompat.get)
+        .getOrElse(FilterCompat.NOOP)
+
+    logger.info(s"Parquet filter: $parquetFilter and modified gt filter ${fc._2}")
+
+    import scala.collection.JavaConversions._
+    val iters = getPaths(sft.getTypeName, partition).toIterator.map(u => new Path(u)).map { path =>
+      if (!fs.exists(path)) {
+        new EmptyFsIterator(partition)
+      }
+      else {
+        val support = new SimpleFeatureReadSupport
+        SimpleFeatureReadSupport.setSft(transformSft, conf)
+
+        conf.set("parquet.filter.dictionary.enabled", "true")
+        val builder = ParquetReader.builder[SimpleFeature](support, path)
+          .withFilter(parquetFilter)
+          .withConf(conf)
+
+        new FilteringIterator(partition, builder, fc._2)
+      }
     }
-    else {
-      import org.locationtech.geomesa.index.conf.QueryHints._
-      QueryPlanner.setQueryTransforms(q, sft)
-
-      val transformSft = q.getHints.getTransformSchema.getOrElse(sft)
-
-      val support = new SimpleFeatureReadSupport
-      SimpleFeatureReadSupport.setSft(transformSft, conf)
-
-      // TODO: push down predicates and partition pruning
-      // TODO ensure that transforms are pushed to the ColumnIO in parquet.
-      // TODO: Push down full filter that can't be managed
-      val fc = new FilterConverter(transformSft).convert(q.getFilter)
-      val parquetFilter =
-        fc._1
-       .map(FilterCompat.get)
-       .getOrElse(FilterCompat.NOOP)
-
-      logger.info(s"Parquet filter: $parquetFilter and modified gt filter ${fc._2}")
-
-      logger.info(s"Opening reader for partition $partition")
-      conf.set("parquet.filter.dictionary.enabled", "true")
-      val reader = ParquetReader.builder[SimpleFeature](support, path)
-        .withFilter(parquetFilter)
-        .withConf(conf)
-        .build()
-
-      new FilteringIterator(partition, reader, fc._2)
-    }
+    new MultiIterator(partition, iters)
   }
 
   override def getWriter(featureType: String, partition: Partition): FileSystemWriter = {
@@ -207,6 +206,7 @@ class ParquetFileSystemStorage(root: Path,
     def nextName = f"$i%04d.$dataFileExtention"
     var name = nextName
     while (existingFiles.contains(name)) {
+      i += 1
       name = nextName
     }
     new Path(partitionPath(typeName, partition), name)

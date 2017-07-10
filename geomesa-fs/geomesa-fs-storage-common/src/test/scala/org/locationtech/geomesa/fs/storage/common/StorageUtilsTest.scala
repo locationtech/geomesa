@@ -39,7 +39,7 @@ class StorageUtilsTest extends Specification with AllExpectations {
       val fs = root.getFileSystem(new Configuration)
       val typeName = "mytype"
       val sft = SimpleFeatureTypes.createType(typeName, "age:Int,date:Date,*geom:Point:srid=4326")
-      val scheme = new DateTimeScheme(DateTimeScheme.Formats.YearMonthDayHour, ChronoUnit.HOURS, 1, sft, "date", true)
+      val scheme = new DateTimeScheme(DateTimeScheme.Formats.Hourly, ChronoUnit.HOURS, 1, sft, "date", true)
       val list = StorageUtils.buildPartitionList(new Path("/tmp/flkjsdfg/"), fs, typeName, scheme, "parquet")
       list.size mustEqual 7
       val expected = List(

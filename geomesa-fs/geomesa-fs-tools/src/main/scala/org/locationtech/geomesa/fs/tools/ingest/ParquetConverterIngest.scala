@@ -25,12 +25,12 @@ class ParquetConverterIngest(sft: SimpleFeatureType,
                              numLocalThreads: Int,
                              dsPath: Path,
                              tempPath: Option[Path],
-                             reducers: Option[Int])
+                             reducers: Option[java.lang.Integer])
   extends ConverterIngest(sft, dsParams, converterConfig, inputs, libjarsFile, libjarsPaths, numLocalThreads) {
 
   override def runDistributedJob(statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {
     if (reducers.isEmpty) {
-      throw new ParameterException("Must provide num-reducers for distributed ingest")
+      throw new ParameterException("Must provide num-reducers argument for distributed ingest")
     }
     val job = new ParquetConverterJob(sft, converterConfig, dsPath, tempPath, reducers.get)
     job.run(dsParams, sft.getTypeName, inputs, libjarsFile, libjarsPaths, statusCallback)

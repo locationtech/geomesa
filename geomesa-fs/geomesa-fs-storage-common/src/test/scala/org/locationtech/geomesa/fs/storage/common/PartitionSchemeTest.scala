@@ -7,7 +7,7 @@
  ***********************************************************************/
 
 
-package org.locationtech.geomesa.fs
+package org.locationtech.geomesa.fs.storage.common
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -19,7 +19,6 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.common._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -138,12 +137,12 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       // TODO actually test the resulting values...
     }
 
-
-    "composite scheme test" >> {
-      val ps = CommonSchemeLoader.build("year-month-day-hour,z2-2bit", sft)
+    "composite scheme test hourly,z2-2bit" >> {
+      val ps = CommonSchemeLoader.build("hourly,z2-2bit", sft)
       ps must beAnInstanceOf[CompositeScheme]
       val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 24 * 4
     }
+
   }
 }

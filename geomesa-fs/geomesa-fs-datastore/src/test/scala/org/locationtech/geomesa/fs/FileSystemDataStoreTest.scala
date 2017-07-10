@@ -47,7 +47,7 @@ class FileSystemDataStoreTest extends Specification {
         "fs.path" -> dir.getPath,
         "fs.encoding" -> "parquet",
         "parquet.compression" -> "gzip"))
-      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.YearMonthDay, ChronoUnit.DAYS, 1, sft, "dtg", false)
+      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily, ChronoUnit.DAYS, 1, sft, "dtg", false)
       PartitionScheme.addToSft(sft, partitionScheme)
       ds.createSchema(sft)
 

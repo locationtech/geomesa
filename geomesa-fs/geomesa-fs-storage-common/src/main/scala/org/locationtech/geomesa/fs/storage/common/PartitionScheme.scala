@@ -71,18 +71,33 @@ object CommonSchemeLoader {
   import DateTimeScheme.Formats._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
   def build(name: String, sft: SimpleFeatureType): PartitionScheme = {
-    val schemes = name.toLowerCase.split(',').map {
-      case "year-jday" =>
-        new DateTimeScheme(YearJDay, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
-      case "year-jday-hour" =>
-        new DateTimeScheme(YearJDayHour, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, false)
-      case "year-month-day" =>
-        new DateTimeScheme(YearMonthDay, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
-      case "year-month-day-hour" =>
-        new DateTimeScheme(YearMonthDayHour, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, false)
+    val schemes = name.toLowerCase.split(PartitionScheme.SchemeSeparator).map {
+
+      case "julian-minute" =>
+        new DateTimeScheme(JulianMinute, ChronoUnit.MINUTES, 1, sft, sft.getDtgField.get, false)
+
+      case "julian-hourly" =>
+        new DateTimeScheme(JulianHourly, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, false)
+
+      case "julian-daily" =>
+        new DateTimeScheme(JulianDay, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
+
+      case "minute" =>
+        new DateTimeScheme(Minute, ChronoUnit.MINUTES, 1, sft, sft.getDtgField.get, false)
+
+      case "hourly" =>
+        new DateTimeScheme(Hourly, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, false)
+
+      case "daily" =>
+        new DateTimeScheme(Daily, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
+
+      case "montly" =>
+        new DateTimeScheme(Monthly, ChronoUnit.MONTHS, 1, sft, sft.getDtgField.get, false)
+
       case z2 if z2.matches("z2-[0-9]+bit") =>
         val bits = "z2-([0-9]+)bit".r("bits").findFirstMatchIn(z2).get.group("bits").toInt
         new Z2Scheme(bits, sft, sft.getGeomField, false)
+
       case _ =>
         throw new IllegalArgumentException(s"Unable to find well known scheme(s) for argument $name")
     }
@@ -96,6 +111,9 @@ object CommonSchemeLoader {
 
 
 object PartitionScheme {
+
+  val SchemeSeparator = ","
+
   // Must begin with GeoMesa in order to be persisted
   val PartitionSchemeKey = "geomesa.fs.partition-scheme.config"
   val PartitionOptsPrefix = "fs.partition-scheme.opts."
@@ -124,7 +142,7 @@ object PartitionScheme {
   def apply(sft: SimpleFeatureType, pName: String, opts: Map[String, String]): PartitionScheme = {
     import PartitionOpts._
     val leaf = parseLeafStorage(opts)
-    val schemes = pName.split('-').map {
+    val schemes = pName.split(SchemeSeparator).map {
       case "datetime" =>
         val attr = parseDtgAttr(opts)
         val fmt = parseDateTimeFormat(opts)
@@ -150,23 +168,23 @@ object PartitionScheme {
 
   // TODO meh this sucks
   def apply(sft: SimpleFeatureType, conf: Config): PartitionScheme = {
-    if (!conf.hasPath("name")) throw new IllegalArgumentException("config must have name for scheme")
-    if (!conf.hasPath("opts")) throw new IllegalArgumentException("config must have opts for scheme")
+    if (!conf.hasPath("scheme")) throw new IllegalArgumentException("config must have a scheme")
+    if (!conf.hasPath("options")) throw new IllegalArgumentException("config must have options for scheme")
 
-    val name = conf.getString("name")
-    val optConf = conf.getConfig("opts")
-    val opts = conf.getConfig("opts").entrySet().map { e =>
+    val schemeName = conf.getString("scheme")
+    val optConf = conf.getConfig("options")
+    val opts = conf.getConfig("options").entrySet().map { e =>
         e.getKey -> optConf.getString(e.getKey)
     }.toMap
 
-    apply(sft, name, opts)
+    apply(sft, schemeName, opts)
   }
 
-  def stringify(name: String, opts: util.Map[String, String]): String = {
+  def stringify(schemeName: String, opts: util.Map[String, String]): String = {
     import scala.collection.JavaConverters._
     val conf = ConfigFactory.parseMap(Map(
-      "name" -> name,
-      "opts" -> opts).asJava)
+      "scheme" -> schemeName,
+      "options" -> opts).asJava)
     conf.root().render(ConfigRenderOptions.concise)
   }
 
@@ -217,20 +235,25 @@ class DateTimeScheme(fmtStr: String,
 
     import scala.collection.JavaConverters._
     Map(
-        DtgAttribute -> dtgAttribute,
+        DtgAttribute      -> dtgAttribute,
         DateTimeFormatOpt -> fmtStr,
-        StepUnitOpt -> stepUnit.toString,
-        StepOpt -> step.toString,
-        LeafStorage -> leafStorage.toString).asJava
+        StepUnitOpt       -> stepUnit.toString,
+        StepOpt           -> step.toString,
+        LeafStorage       -> leafStorage.toString).asJava
   }
 }
 
 object DateTimeScheme {
   object Formats {
-    val YearJDay = "yyyy/DDD"
-    val YearJDayHour = "yyyy/DDD/HH"
-    val YearMonthDay = "yyyy/MM/dd"
-    val YearMonthDayHour = "yyyy/MM/dd/HH"
+    val JulianDay    = "yyyy/DDD"
+    val JulianHourly = "yyyy/DDD/HH"
+    val JulianMinute = "yyyy/DDD/HH/mm"
+
+    val Monthly      = "yyyy/MM"
+    val Daily        = "yyyy/MM/dd"
+    val Hourly       = "yyyy/MM/dd/HH"
+    val Minute       = "yyyy/MM/dd/HH/mm"
+
   }
 }
 
@@ -308,7 +331,7 @@ class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
   override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
     PartitionScheme(sft, ConfigFactory.parseString(s))
 
-  override def name(): String = schemes.map(_.name()).mkString("-")
+  override def name(): String = schemes.map(_.name()).mkString(PartitionScheme.SchemeSeparator)
 
   override def toString: String = {
     PartitionScheme.stringify(name(), getOptions)

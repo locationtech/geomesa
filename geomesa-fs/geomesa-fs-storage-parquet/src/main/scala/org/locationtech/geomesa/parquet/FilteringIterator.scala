@@ -11,11 +11,20 @@ package org.locationtech.geomesa.parquet
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.parquet.hadoop.ParquetReader
 import org.locationtech.geomesa.fs.storage.api.{FileSystemPartitionIterator, Partition}
+import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.SimpleFeature
 
+
+
 class FilteringIterator(partition: Partition,
-                        reader: ParquetReader[SimpleFeature],
+                        builder: ParquetReader.Builder[SimpleFeature],
                         gtFilter: org.opengis.filter.Filter) extends FileSystemPartitionIterator with LazyLogging {
+
+
+  private lazy val reader: ParquetReader[SimpleFeature] = {
+    logger.info(s"Opening reader for partition $partition")
+    builder.build()
+  }
 
   private var staged: SimpleFeature = _
   private var done: Boolean = false
@@ -44,6 +53,44 @@ class FilteringIterator(partition: Partition,
   }
 
   override def getPartition: Partition = partition
+}
+
+
+class MultiIterator(partition: Partition,
+                    itrs: Iterator[FileSystemPartitionIterator])
+  extends FileSystemPartitionIterator with LazyLogging {
+
+  private var cur: FileSystemPartitionIterator = _
+
+  override def getPartition: Partition = partition
+
+  override def close(): Unit = {
+    if (cur != null) {
+      CloseQuietly(cur)
+    }
+  }
+
+  override def next(): SimpleFeature = {
+    hasNext()
+    cur.next()
+  }
+
+  private def loadNext() = {
+    if (cur != null) {
+      CloseQuietly(cur)
+    }
+    if (itrs.hasNext) {
+      cur = itrs.next()
+    }
+  }
+
+  override def hasNext: Boolean = {
+    if (cur == null || !cur.hasNext) {
+      loadNext()
+    }
+    cur != null && cur.hasNext
+  }
+
 }
 
 class EmptyFsIterator(partition: Partition) extends FileSystemPartitionIterator {

@@ -23,8 +23,8 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
       val conf =
         """
           | {
-          |   name = "datetime-z2"
-          |   opts = {
+          |   scheme = "datetime,z2"
+          |   options = {
           |     datetime-format = "yyyy/DDD/HH"
           |     step-unit = HOURS
           |     step = 1
