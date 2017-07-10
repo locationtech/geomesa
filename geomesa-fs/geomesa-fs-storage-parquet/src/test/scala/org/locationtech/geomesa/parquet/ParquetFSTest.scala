@@ -52,7 +52,7 @@ class ParquetFSTest extends Specification with AllExpectations {
 
       val scheme = new CompositeScheme(Seq(
         new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, sft, "dtg", false),
-        new Z2Scheme(10, sft, "geom", true)
+        new Z2Scheme(10, sft, "geom", false)
       ))
       fsStorage.createNewFeatureType(sft, scheme)
 
