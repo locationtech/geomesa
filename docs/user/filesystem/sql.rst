@@ -25,7 +25,16 @@ GDELT SimpleFeatureType and converter to ingest a year or so of data:
     . /etc/hadoop/conf/yarn-env.sh
     export HADOOP_CONF_DIR=/etc/hadoop/conf
 
-    bin/geomesa-fs ingest -e parquet --partition-scheme daily,z2-2bit -p s3a://ccri-data/tmp/hulbert/3 \
+.. note::
+
+    We use a temp directory on EMR that utilizes HDFS as intermediate storage to speed up output of parquet files. This
+    is recommended my many vendors including HortonWorks Data Platform.
+
+.. code-block:: bash
+
+    bin/geomesa-fs ingest \
+    -e parquet --partition-scheme daily,z2-2bit -p s3a://ccri-data/tmp/hulbert/3 \
+    --temp-path hdfs:///tmp/geomesa/1 \
     -C gdelt -s gdelt \
     --num-reducers 60 s3a://gdelt-open-data/events/2017*
 
@@ -53,7 +62,7 @@ For example if you are using Amazon EMR with Spark 2.1.1 you can start up a shel
     . /etc/hadoop/conf/hadoop-env.sh
     . /etc/hadoop/conf/yarn-env.sh
     export HADOOP_CONF_DIR=/etc/hadoop/conf
-    spark-shell --jars $GEOMESA_FS_HOME/dist/spark/geomesa-fs-spark-runtime_2.11-$VERSION.jar
+    spark-shell --jars $GEOMESA_FS_HOME/dist/spark/geomesa-fs-spark-runtime_2.11-$VERSION.jar --driver-memory 3g
 
 This will create a new spark shell from which you can load a GeoMesa FileSystem datastore from S3 or HDFS. A common
 usage pattern is to keep parquet files in S3 so they can be elastically queried with EMR and Spark. For example if you
@@ -67,7 +76,9 @@ have ingested Twitter data into S3 you can query it with SQL in the spark shell:
       .load()
     dataFrame.createOrReplaceTempView("gdelt")
 
-    // Select
-    spark.sql("select eventCode, count(eventCode) from gdelt where dtg >= cast('2017-06-01' as timestamp)" +
-              "and dtg <= cast('2017-06-31' as timestamp) group by eventcode").show()
+    // Select the top event codes
+    spark.sql("SELECT eventCode, count(*) as count FROM gdelt " +
+              "WHERE dtg >= cast('2017-06-01T00:00:00.000' as timestamp) " +
+              "AND dtg <= cast('2017-06-30T00:00:00.000' as timestamp) " +
+              "GROUP BY eventcode ORDER by count DESC").show()
 

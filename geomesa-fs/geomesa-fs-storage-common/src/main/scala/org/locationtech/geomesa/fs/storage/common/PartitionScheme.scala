@@ -91,7 +91,7 @@ object CommonSchemeLoader {
       case "daily" =>
         new DateTimeScheme(Daily, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
 
-      case "montly" =>
+      case "monthly" =>
         new DateTimeScheme(Monthly, ChronoUnit.MONTHS, 1, sft, sft.getDtgField.get, false)
 
       case z2 if z2.matches("z2-[0-9]+bit") =>
