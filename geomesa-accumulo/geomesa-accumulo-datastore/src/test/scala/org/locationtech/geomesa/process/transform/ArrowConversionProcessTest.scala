@@ -43,7 +43,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
 
   "ArrowConversionProcess" should {
     "encode an empty feature collection" in {
-      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null).reduce(_ ++ _)
+      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()) must beEmpty
@@ -51,7 +51,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
     }
 
     "encode an empty accumulo feature collection" in {
-      val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,20,30,30)")), null, null, null).reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,20,30,30)")), null, null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()) must beEmpty
@@ -59,7 +59,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
     }
 
     "encode an accumulo feature collection in distributed fashion" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null).reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
@@ -68,7 +68,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
     }
 
     "encode an accumulo feature collection in distributed fashion with dictionary values" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), Seq("name"), null, null).reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), Seq("name"), null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
