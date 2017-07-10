@@ -22,10 +22,10 @@ FileSystem
 GeoMesa FSDS can utilize any filesystem that implements the Hadoop FileSystem API. The most common filesystems used
 with GeoMesa FSDS are:
 
-* HDFS - Hadoop Distributed File System
-* S3 - Amazon Simple Storage
-* GCS - Google Cloud Storage
-* WASB - Windows Azure Blob Store
+* **HDFS** - Hadoop Distributed File System
+* **S3** - Amazon Simple Storage
+* **GCS** - Google Cloud Storage
+* **WASB** - Windows Azure Blob Store
 
 Choosing a filesystem depends generally on cost and performance requirements. One thing to note is that S3, GCS, and
 WASB are all "cloud-native" storage meaning that they are built into Amazon, Google, and Microsoft Azure cloud
@@ -61,10 +61,10 @@ Storage Formats
 ---------------
 
 * **Apache Parquet** - Apache Parquet is the leading interoperable columnar format in the Hadoop ecosystem. It provides
-efficient compression, storage, and query of structured data. Apache Parquet is currently the only format that can be
-used for writing data into the FileSystem datastore.
+  efficient compression, storage, and query of structured data. Apache Parquet is currently the only format that can be
+  used for writing data into the FileSystem datastore.
 
 * **Converter Storage** - The converter storage format is a synthetic format which allows you to overlay a GeoMesa converter
-on top of a filesystem using a defined partition scheme. This allows you to utilize existing data storage layouts of
-data stored in JSON, CSV, TSV, Avro, or other formats. Converters are pluggable allowing users to expose their own
-custom storage formats if desired.
+  on top of a filesystem using a defined partition scheme. This allows you to utilize existing data storage layouts of
+  data stored in JSON, CSV, TSV, Avro, or other formats. Converters are pluggable allowing users to expose their own
+  custom storage formats if desired.

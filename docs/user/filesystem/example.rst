@@ -8,8 +8,8 @@ folder which contains an example csv file that we will ingest:
 .. code-block:: bash
 
     $ cd /tmp/
-    $ tar xvf ~/Downloads/geomesa-fs-dist_2.11-1.3.2.tar.gz
-    $ cd /tmp/geomesa-fs_2.11-1.3.2-SNAPSHOT
+    $ tar xvf ~/Downloads/geomesa-fs-dist_2.11-$VERSION.tar.gz
+    $ cd /tmp/geomesa-fs_2.11-$VERSION
 
     $ cat examples/ingest/csv/example.csv
     ID,Name,Age,LastSeen,Friends,Lon,Lat,Vis

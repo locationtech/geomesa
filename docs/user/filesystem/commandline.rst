@@ -23,8 +23,8 @@ To install the command line tools simply untar the distribution tarball:
 .. code-block:: bash
 
     # If building from source
-    tar xvf geomesa-fs/geomesa-fs-dist/target/geomesa-fs_2.11-1.3.2-dist.tar.gz
-    export GEOMESA_FS_HOME=/path/to/geomesa-fs_2.11-1.3.2
+    tar xvf geomesa-fs/geomesa-fs-dist/target/geomesa-fs_2.11-$VERSION-dist.tar.gz
+    export GEOMESA_FS_HOME=/path/to/geomesa-fs_2.11-$VERSION
 
 After untaring the archive you'll need to either define the standard Hadoop environmental variables or install hadoop
 using the ``bin/install-hadoop.sh`` script provided in the tarball. Note that you will need the proper Yarn/Hadoop
