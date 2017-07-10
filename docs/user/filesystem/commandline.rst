@@ -143,15 +143,15 @@ Export GeoMesa features. Commonly used arguments to control export are:
 Example export commands::
 
     $ geomesa-fs export  \
-      -p 's3a://mybucket/datastores/myd's \
-      -e parquet
+      -p 's3a://mybucket/datastores/myds' \
+      -e parquet \
       -f test_feature
 
     $ geomesa-fs \
       -p 's3a://mybucket/datastores/myds' \
       -e parquet \
       -f test_feature \
-      -F TSV
+      -F TSV \
       -q "dtg >= '2016-01-02' and dtg < '2016-01-10' and bbox(geom, -5, -5, 50, 50)"
 
 version
