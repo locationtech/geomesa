@@ -14,8 +14,9 @@ import java.util.{Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
+import com.vividsolutions.jts.index.strtree.{AbstractNode, Boundable, STRtree}
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.SparkContext
+import org.apache.spark.{HashPartitioner, SparkContext}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
@@ -31,6 +32,7 @@ import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 import scala.util.Try
 
 object GeoMesaSparkSQL {
@@ -199,7 +201,9 @@ case class GeoMesaRelation(sqlContext: SQLContext,
                            params: Map[String, String],
                            filt: org.opengis.filter.Filter = org.opengis.filter.Filter.INCLUDE,
                            props: Option[Seq[String]] = None,
-                           var indexRDD: RDD[GeoCQEngine] = null)
+                           var indexRDD: RDD[GeoCQEngine] = null,
+                           var partitionedRDD: RDD[(Int,Iterable[SimpleFeature])] = null,
+                           var indexPartRDD: RDD[(Int, GeoCQEngine)] = null)
   extends BaseRelation with PrunedFilteredScan {
 
   lazy val isMock = Try(params("useMock").toBoolean).getOrElse(false)
@@ -211,6 +215,14 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   val indexGeom = Try(params("indexGeom").toBoolean).getOrElse(false)
 
   val numPartitions = Try(params("partitions").toInt).getOrElse(4)
+
+  val spatiallyPartition = Try(params("spatial").toBoolean).getOrElse(false)
+
+  val partitionStrategy = Try(params("strategy").toString).getOrElse("EQUAL")
+
+  // Control partitioning strategies that require a sample of the data
+  val sampleSize = Try(params("sampleSize").toInt).getOrElse(100)
+  val thresholdMultiplier = Try(params("threshold").toDouble).getOrElse(0.3)
 
   lazy val rawRDD: SpatialRDD = buildRawRDD
 
@@ -228,16 +240,44 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 
   val encodedSFT: String = org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.encodeType(sft, true)
 
-  if (indexRDD == null && cache) {
-    // TODO:  Implement partitioning
-    indexRDD = SparkUtils.index(encodedSFT, rawRDD, indexId, indexGeom)
-  } else {
-    null
+  if (partitionedRDD == null && spatiallyPartition) {
+    val bounds = SparkUtils.getBound(rawRDD)
+    val partitionEnvelopes = partitionStrategy match {
+      case "EQUAL" => SparkUtils.equalPartitioning(bounds, numPartitions)
+      case "RTREE" => SparkUtils.rtreePartitioning(rawRDD, numPartitions, sampleSize, thresholdMultiplier)
+      case "COVER" => ???
+    }
+
+
+    // Print in WKT for QGIS debugging
+    var i = 0
+    partitionEnvelopes.foreach { env =>
+      println(s"$i:POLYGON((${env.getMinX} ${env.getMinY}, ${env.getMinX} ${env.getMaxY}, " +
+        s"${env.getMaxX} ${env.getMaxY}, ${env.getMaxX} ${env.getMinY},${env.getMinX} ${env.getMinY}))")
+      i+=1
+    }
+
+    partitionedRDD = SparkUtils.spatiallyPartition(partitionEnvelopes, rawRDD, numPartitions)
+
+  }
+
+  if (indexRDD == null && indexPartRDD == null && cache) {
+    if (spatiallyPartition) {
+      println("*** Indexing spatially partitioned RDD ***")
+      indexPartRDD = SparkUtils.indexPartitioned(encodedSFT, partitionedRDD, indexId, indexGeom)
+    } else {
+      println("*** Indexing raw RDD ***")
+      indexRDD = SparkUtils.index(encodedSFT, rawRDD, indexId, indexGeom)
+    }
   }
 
   override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
     if (cache) {
-      SparkUtils.buildScanInMemoryScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params, indexRDD)
+      if (spatiallyPartition) {
+        SparkUtils.buildScanInMemoryPartScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params, indexPartRDD)
+      } else {
+        SparkUtils.buildScanInMemoryScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params, indexRDD)
+      }
     } else {
       SparkUtils.buildScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
     }
@@ -266,6 +306,164 @@ object SparkUtils extends LazyLogging {
         engine.addAll(iter.toList)
         Iterator(engine)
     }
+  }
+
+  def indexPartitioned(encodedSft: String,
+                       rdd: RDD[(Int, Iterable[SimpleFeature])],
+                       indexId: Boolean,
+                       indexGeom: Boolean): RDD[(Int, GeoCQEngine)] = {
+
+    // TODO: This gets hit on every query. Sad
+    rdd.mapValues { iter =>
+        val engine = SparkUtils.indexIterator(encodedSft, indexId, indexGeom)
+        engine.addAll(iter)
+        println("building cqengine on partition")
+        engine
+    }
+  }
+
+  // Maps a SimpleFeature to the id of the envelope that contains it
+  // Will duplicate features that belong to more than one envelope
+  // Returns -1 if no match was found
+  def gridIdMapper(sf: SimpleFeature, envelopes: List[Envelope]): List[(Int, SimpleFeature)] = {
+    var result = new ListBuffer[(Int, SimpleFeature)]
+    val geom = sf.getDefaultGeometry.asInstanceOf[Geometry]
+    envelopes.indices.foreach { index =>
+      if (envelopes(index).contains(geom.getEnvelopeInternal)) {
+        val pair = (index, sf)
+        result += pair
+      }
+    }
+    if (result.isEmpty) {
+      val pair = (-1, sf)
+      result += pair
+    }
+    result.toList
+  }
+
+  def spatiallyPartition(envelopes: List[Envelope], rdd: RDD[SimpleFeature], numPartitions: Int): RDD[(Int, Iterable[SimpleFeature])] = {
+    val keyedRdd = rdd.flatMap { gridIdMapper( _, envelopes)}
+    keyedRdd.groupByKey(new HashPartitioner(numPartitions))
+  }
+
+  def getBound(rdd: RDD[SimpleFeature]): Envelope = {
+    rdd.aggregate[Envelope](new Envelope())(
+      (env: Envelope, sf: SimpleFeature) => {
+        env.expandToInclude(sf.getDefaultGeometry.asInstanceOf[Geometry].getCoordinate)
+        env
+      },
+      (env1: Envelope, env2: Envelope) => {
+        env1.expandToInclude(env2)
+        env1
+      }
+    )
+  }
+
+  def equalPartitioning(bound: Envelope, numPartitions: Int): List[Envelope] = {
+    // Compute bounds of each partition
+    val partitionsPerDim = Math.sqrt(numPartitions).toInt
+    val partitionWidth = bound.getWidth / partitionsPerDim
+    val partitionHeight = bound.getHeight / partitionsPerDim
+    val minX = bound.getMinX
+    val minY = bound.getMinY
+    val partitionEnvelopes: ListBuffer[Envelope] = ListBuffer()
+
+    // Build partitions
+    for (xIndex <- 0 until partitionsPerDim) {
+      val xPartitionStart = minX + (xIndex * partitionWidth)
+      val xPartitionEnd = xPartitionStart + partitionWidth
+      for (yIndex <- 0 until partitionsPerDim) {
+        val yPartitionStart = minY + (yIndex * partitionHeight)
+        val yPartitionEnd = yPartitionStart+ partitionHeight
+        partitionEnvelopes += new Envelope(xPartitionStart, xPartitionEnd, yPartitionStart, yPartitionEnd)
+      }
+    }
+    partitionEnvelopes.toList
+  }
+
+  // Constructs an RTree based on a sample of the data and returns its bounds as envelopes
+  // returns one less envelope than requested to account for the catch-all envelope
+  def rtreePartitioning(rawRDD: RDD[SimpleFeature], numPartitions: Int, sampleSize: Int, thresholdMultiplier: Double): List[Envelope] = {
+    val sample = rawRDD.takeSample(withReplacement = false, sampleSize)
+    val rtree = new STRtree()
+
+    sample.foreach{ sf =>
+      rtree.insert(sf.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, sf)
+    }
+    val envelopes: java.util.List[Envelope] = new java.util.ArrayList[Envelope]()
+
+    // get rtree envelopes, limited to those containing reasonable size
+    val reasonableSize = sampleSize / numPartitions
+    val threshold = (reasonableSize*thresholdMultiplier).toInt
+    val minSize = reasonableSize - threshold
+    val maxSize = reasonableSize + threshold
+    rtree.build()
+    queryBoundary(rtree.getRoot, envelopes, minSize, maxSize)
+
+    // check if any envelopes intersect
+    envelopes.foreach { env1 =>
+      envelopes.foreach {env2 =>
+        if (env1.intersects(env2) && !env1.equals(env2)) {
+          println (s"rtree envelopes $env1 and $env2 intersect")
+        }
+      }
+    }
+    envelopes.take(numPartitions-1).toList
+  }
+
+  // Helper method to get the envelopes of an RTree
+  def queryBoundary(node: AbstractNode, boundaries: java.util.List[Envelope], minSize: Int, maxSize: Int): Int =  {
+    // get node's immediate children
+    val childBoundables: java.util.List[_] = node.getChildBoundables
+
+    // check if the are all leaf nodes
+    var flagLeafnode = true
+    var i = 0
+    while ( { i < childBoundables.size && flagLeafnode}) {
+      val childBoundable = childBoundables.get(i).asInstanceOf[Boundable]
+      if (childBoundable.isInstanceOf[AbstractNode]) {
+        flagLeafnode = false
+      }
+      i += 1
+    }
+
+    // if they are all leafs, return their count
+    if (flagLeafnode) {
+      childBoundables.size
+    } else {
+      // if not, recurse on each one and total their counts
+      var nodeCount = 0
+      for ( i <- 0 until childBoundables.size ) {
+        val childBoundable = childBoundables.get(i).asInstanceOf[Boundable]
+        childBoundable match {
+          case (child: AbstractNode) =>
+            val childSize = queryBoundary(child, boundaries, minSize, maxSize)
+            // if returned size is reasonable, add it to boundaries
+            if (childSize < maxSize && childSize > minSize) {
+
+              // check that child's children are not already in the boundaries
+              var alreadyAdded = false
+              if (node.getLevel != 1) {
+                child.getChildBoundables.asInstanceOf[java.util.List[AbstractNode]].foreach { c =>
+                  alreadyAdded = alreadyAdded || boundaries.contains(c.getBounds.asInstanceOf[Envelope])
+                }
+              }
+              if (!alreadyAdded) {
+                boundaries.add(child.getBounds.asInstanceOf[Envelope])
+              }
+            }
+            nodeCount += childSize
+          case (_) => nodeCount += 1 // negligible
+        }
+      }
+      nodeCount
+    }
+  }
+
+  def coverPartitioning(dataRDD: RDD[SimpleFeature], coverRDD: RDD[SimpleFeature], numPartitions: Int): List[Envelope] = {
+    coverRDD.map {
+      _.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
+    }.collect().toList
   }
 
 
@@ -302,10 +500,51 @@ object SparkUtils extends LazyLogging {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
 
     val result = indexRDD.flatMap { engine =>
-      println(s"Query enginge $engine with filter ${ECQL.toCQL(compiledCQL)}")
+      println(s"Query engine $engine with filter ${ECQL.toCQL(compiledCQL)}")
       val filter = ECQL.toFilter(filterString)
       engine.queryCQ(filter).toIterator
 
+    }.map(SparkUtils.sf2row(schema, _, extractors))
+
+    result.asInstanceOf[RDD[Row]]
+  }
+  def buildScanInMemoryPartScan(requiredColumns: Array[String],
+                                filters: Array[org.apache.spark.sql.sources.Filter],
+                                filt: org.opengis.filter.Filter,
+                                ctx: SparkContext,
+                                schema: StructType,
+                                params: Map[String, String],  indexPartRDD: RDD[(Int, GeoCQEngine)]): RDD[Row] = {
+
+    val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l,r) }
+    val filterString = ECQL.toCQL(compiledCQL)
+    val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
+
+    type EXTRACTOR = SimpleFeature => AnyRef
+    val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
+
+    // TODO: Extract extractor logic to simplify the three scan methods
+    // the SFT attributes do not have the __fid__ so we have to translate accordingly
+    val extractors: Array[EXTRACTOR] = requiredColumns.map {
+      case "__fid__" => IdExtractor
+      case col       =>
+        val index = requiredAttributes.indexOf(col)
+        val schemaIndex = schema.fieldIndex(col)
+        val fieldType = schema.fields(schemaIndex).dataType
+        sf: SimpleFeature =>
+          if ( fieldType == TimestampType ) {
+            new Timestamp(sf.getAttribute(index).asInstanceOf[Date].getTime)
+          } else {
+            sf.getAttribute(index)
+          }
+    }
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
+
+    // TODO: Could derive key from query and go straight to that partition
+    // TODO: Could keep track of which keys are empty partitions and skip those
+
+    val result = indexPartRDD.flatMap { case (key, engine) =>
+      val filter = ECQL.toFilter(filterString)
+      engine.queryCQ(filter).toIterator
     }.map(SparkUtils.sf2row(schema, _, extractors))
 
     result.asInstanceOf[RDD[Row]]
