@@ -21,31 +21,23 @@ your Hadoop installations into GeoServer's ``WEB-INF/lib`` directory:
 
 (Note the versions may vary depending on your installation.)
 
-.. tabs::
+  * hadoop-annotations-2.7.3.jar
+  * hadoop-auth-2.7.3.jar
+  * hadoop-common-2.7.3.jar
+  * hadoop-mapreduce-client-core-2.7.3.jar
+  * hadoop-yarn-api-2.7.3.jar
+  * hadoop-yarn-common-2.7.3.jar
+  * commons-configuration-1.6.jar
 
-    .. group-tab:: Standard
-
-        * hadoop-annotations-2.7.3.jar
-        * hadoop-auth-2.7.3.jar
-        * hadoop-common-2.7.3.jar
-        * hadoop-mapreduce-client-core-2.7.3.jar
-        * hadoop-yarn-api-2.7.3.jar
-        * hadoop-yarn-common-2.7.3.jar
-        * commons-configuration-1.6.jar
-
-        You can use the bundled ``$GEOMESA_FS_HOME/bin/install-hadoop.sh`` script to install these JARs.
+You can use the bundled ``$GEOMESA_FS_HOME/bin/install-hadoop.sh`` script to install these JARs.
 
 The FileSystem data store requires the configuration file ``core-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
-doesn't exist). Utilizing a symbolic link will be use full here so any changes are reflected in GeoServer.
+doesn't exist). Utilizing a symbolic link will be useful here so any changes are reflected in GeoServer.
 
-.. tabs::
+.. code-block:: bash
 
-    .. group-tab:: Standard
-
-        .. code-block:: bash
-
-            $ ln -s /path/to/core-site.xml /path/to/geoserver/WEB-INF/classes/core-site.xml
+    $ ln -s /path/to/core-site.xml /path/to/geoserver/WEB-INF/classes/core-site.xml
 
 Restart GeoServer after the JARs are installed.
 
@@ -62,7 +54,7 @@ above "FileSystem (GeoMesa)" should be included in the list
 under **Vector Data Sources**. If you do not see this, check that you unpacked the
 plugin JARs into in the right directory and restart GeoServer.
 
-On the "Add Store" page, select "FileSystem (GeoMesa)". The HBase data store takes a single parameter:
+On the "Add Store" page, select "FileSystem (GeoMesa)". The data store requires two parameters:
 
 * **fs.encoding** - the encoding of the files you have stored (e.g. parquet)
 * **fs.path** - the path to the root of the datastore (e.g. s3a://mybucket/datastores/testds)

@@ -31,7 +31,7 @@ Choosing a filesystem depends generally on cost and performance requirements. On
 WASB are all "cloud-native" storage meaning that they are built into Amazon, Google, and Microsoft Azure cloud
 platforms. These cloud-native filesystems are scaled separately from the compute nodes which generally provides a more
 cost efficient storage solution. In general their price per GigaByte of storage is lower then using HDFS though they
-may be slightly more latent. They also have the ability to persist data when after you turn off all your compute nodes.
+may be slightly more latent. They also have the ability to persist data after you turn off all your compute nodes.
 
 Any of the filesystems mentioned about are good choices for the FSDS. If you have more questions about making a choice
 contact the GeoMesa team.
@@ -44,7 +44,7 @@ the data is queried. Most OLAP queries in GeoMesa contain a date range and geome
 can aide in finding the files satisfy the query. There are two main partition schmes used with GeoMesa FSDS:
 
 * **Date** - partition data by a Date attribute
-* **Geometry (Z2)** - partition data by its geometric coordinates using a Z2 space filling curve
+* **Geometry (Z2)** - partition data by its geometric coordinates using a Z2 space-filling curve
 * **Combined Date and Geometry** - partition data using a combined data-time scheme
 
 The partition scheme must be provided at ingest time. Examples of common schemes are:
@@ -53,8 +53,8 @@ The partition scheme must be provided at ingest time. Examples of common schemes
 * **Daily** - Store a single file for each day of the year
 * **Day with Z2** - Store a file each day for each region of the world (at some precision of geometry)
 
-More information on defining partition schemes can be found in the link (commandline tools) and
-partition schemes documentation.
+More information on defining partition schemes can be found in :ref:`fsds_partition_schemes` and
+:ref:`fsds_ingest_command`.
 
 
 Storage Formats
