@@ -13,6 +13,7 @@ import java.io.File
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest.ConverterIngest
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -28,7 +29,7 @@ class ParquetConverterIngest(sft: SimpleFeatureType,
                              reducers: Option[java.lang.Integer])
   extends ConverterIngest(sft, dsParams, converterConfig, inputs, libjarsFile, libjarsPaths, numLocalThreads) {
 
-  override def runDistributedJob(statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {
+  override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
     if (reducers.isEmpty) {
       throw new ParameterException("Must provide num-reducers argument for distributed ingest")
     }

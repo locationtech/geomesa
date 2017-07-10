@@ -12,15 +12,18 @@ import java.io.File
 import java.util
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
+import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.common.{PartitionOpts, PartitionScheme}
 import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.ingest._
-import org.locationtech.geomesa.tools.utils.CLArgResolver
+import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 // TODO we need multi threaded ingest for this
 class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStoreCommand {
@@ -35,33 +38,28 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
   )
 
   override def execute(): Unit = {
-
     // validate arguments
     if (params.config == null) {
-      throw new ParameterException("Converter Config argument is required")
+      throw new ParameterException("Converter config argument is required")
     }
     if (params.spec == null) {
       throw new ParameterException("SimpleFeatureType specification argument is required")
     }
-
-    if (params.scheme == null) {
-      throw new ParameterException("Partition Scheme argument is required")
+    if (params.fmt == DataFormats.Shp) {
+      // TODO
+      throw new ParameterException("Shapefile ingest is not currently supported for FileDataStore")
     }
 
-    val sft = CLArgResolver.getSft(params.spec, params.featureName)
-    val converterConfig = CLArgResolver.getConfig(params.config)
+    super.execute()
+  }
 
-    var scheme = PartitionSchemeArgResolver.getArg(SchemeArgs(params.scheme, sft)) match {
-      case Right(scheme) => scheme
-      case Left(e)    => throw new ParameterException(e)
-    }
-
-    scheme = if (scheme.isLeafStorage != params.leafStorage) {
-      val name = scheme.name()
-      val opts = scheme.getOptions.updated(PartitionOpts.LeafStorage, params.leafStorage.toString)
-      PartitionScheme.apply(sft, name, opts.toMap)
-    } else {
-      scheme
+  override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
+    val scheme = PartitionSchemeArgResolver.getArg(SchemeArgs(params.scheme, sft)) match {
+      case Left(e) => throw new ParameterException(e)
+      case Right(s) if s.isLeafStorage == params.leafStorage => s
+      case Right(s) =>
+        val opts = s.getOptions.updated(PartitionOpts.LeafStorage, params.leafStorage.toString).toMap
+        PartitionScheme.apply(sft, s.name(), opts)
     }
 
     PartitionScheme.addToSft(sft, scheme)
@@ -70,17 +68,14 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
     // to be picked up by the ingest job
     params.storageOpts.foreach { s =>
       try {
-        val arr = s.split("=", 1)
-        val (k, v) = (arr(0), arr(1))
+        val Array(k, v) = s.split("=", 1)
         sft.getUserData.put(k,v)
       } catch {
-        case e: Throwable =>
-          throw new ParameterException(s"Unable to parse storage opt $s")
+        case NonFatal(e) => throw new ParameterException(s"Unable to parse storage opt $s")
       }
     }
 
-    val ingest =
-      new ParquetConverterIngest(sft,
+    new ParquetConverterIngest(sft,
         connection,
         converterConfig,
         params.files,
@@ -90,9 +85,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
         new Path(params.path),
         Option(params.tempDir).map(new Path(_)),
         Option(params.reducers))
-    ingest.run()
   }
-
 }
 
 @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
