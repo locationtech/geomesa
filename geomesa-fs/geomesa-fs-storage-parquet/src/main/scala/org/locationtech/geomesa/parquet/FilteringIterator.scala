@@ -81,6 +81,8 @@ class MultiIterator(partition: Partition,
     }
     if (itrs.hasNext) {
       cur = itrs.next()
+    } else {
+      cur = null
     }
   }
 
