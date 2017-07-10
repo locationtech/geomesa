@@ -1,3 +1,5 @@
+.. _fsds_partition_schemes:
+
 Partition Schemes
 =================
 
@@ -60,13 +62,13 @@ The datetime scheme is indicated by the key ``name = "datetime"`` and uses the f
 .. code-block:: json
 
     {
-      "scheme" : "datetime,z2"
+      "scheme" : "datetime,z2",
       "options" : {
         "datetime-format" : "yyyy/dd/HH",
         "step-unit" : "HOURS",
         "step" : "1",
-        "dtg-attribute" = "dtg",
-        "leaf-storage" = true,
+        "dtg-attribute" : "dtg",
+        "leaf-storage" : true
       }
     }
 
@@ -83,11 +85,11 @@ The z2 scheme is indicate by the key ``name = "z2"`` and uses the following opti
 .. code-block:: json
 
     {
-      "scheme" : "z2"
+      "scheme" : "z2",
       "options" : {
-        "geom-attribute" = "geom",
-        "z2-resolution" = 2,
-        "leaf-storage" = false,
+        "geom-attribute" : "geom",
+        "z2-resolution" : 2,
+        "leaf-storage" : false
       }
     }
 
@@ -100,14 +102,14 @@ from the datetime and z2 schemes.
 .. code-block:: json
 
     {
-      "scheme" : "datetime,z2"
+      "scheme" : "datetime,z2",
       "options" : {
         "datetime-format" : "yyyy/dd/HH",
         "step-unit" : "HOURS",
-        "step" : "1",
-        "dtg-attribute" = "dtg",
-        "geom-attribute" = "geom",
-        "z2-resolution" = 2,
-        "leaf-storage" = true,
+        "step" : 1,
+        "dtg-attribute" : "dtg",
+        "geom-attribute" : "geom",
+        "z2-resolution" : 2,
+        "leaf-storage" : true
       }
     }
