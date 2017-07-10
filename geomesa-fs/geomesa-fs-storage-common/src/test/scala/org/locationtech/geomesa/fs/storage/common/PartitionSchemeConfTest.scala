@@ -17,7 +17,7 @@ import org.specs2.specification.AllExpectations
 
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeConfTest extends Specification with AllExpectations {
-
+  sequential
   "PartitionScheme" should {
     "load from conf" >> {
       val conf =
@@ -41,6 +41,19 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
 
       scheme must not(beNull)
       scheme must beAnInstanceOf[CompositeScheme]
+    }
+
+    "load, serialize, deserialize" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      val scheme = CommonSchemeLoader.build("daily,z2-2bit", sft)
+      scheme must beAnInstanceOf[CompositeScheme]
+
+      val schemeStr = scheme.toString
+
+      val scheme2 = PartitionScheme.apply(sft, schemeStr)
+      scheme2 must beAnInstanceOf[CompositeScheme]
+
+
     }
   }
 }

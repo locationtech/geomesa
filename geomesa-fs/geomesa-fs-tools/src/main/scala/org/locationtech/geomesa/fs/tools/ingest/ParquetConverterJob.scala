@@ -33,7 +33,7 @@ import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
-import org.locationtech.geomesa.parquet.{SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
+import org.locationtech.geomesa.parquet.{PartitionFileUtils, SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -312,19 +312,21 @@ class SchemeOutputFormat extends ParquetOutputFormat[SimpleFeature] {
       var sentToParquet: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, "sentToParquet")
 
       override def write(key: Void, value: SimpleFeature): Unit = {
-        val basePath = name + "/" + partitionScheme.getPartitionName(value) // TODO once this is done we need to fix up these file names to do parts or something?
+        val curDir = name + "/" + partitionScheme.getPartitionName(value)
 
         def initWriter() = {
           val committer = getOutputCommitter(context).asInstanceOf[FileOutputCommitter]
-          val file = new Path(committer.getWorkPath, basePath + extension)
+          val dirPath = new Path(committer.getWorkPath, curDir)
+          // TODO combine this with the same code in ParquetFileSystemStorage
+          val file = new PartitionFileUtils(dirPath.getFileSystem(context.getConfiguration), "parquet").nextFile(dirPath)
           logger.info(s"Creating Date scheme record writer at path ${file.toString}")
-          curPartition = basePath
+          curPartition = curDir
           writer = getRecordWriter(context, file)
         }
 
         if (writer == null) {
           initWriter()
-        } else if (basePath != curPartition) {
+        } else if (curDir != curPartition) {
           writer.close(context)
           logger.info(s"Closing writer for $curPartition")
           initWriter()

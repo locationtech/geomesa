@@ -68,11 +68,14 @@ class ParquetFileSystemStorage(root: Path,
   private def metadata(typeName: String) =
     ParquetFileSystemStorage.MetadataCache.get((root, typeName), new Callable[Metadata] {
       override def call(): Metadata = {
+        val start = System.currentTimeMillis()
         val metaPath = new Path(new Path(root, typeName), metaFileName)
         val meta = new FileMetadata(fs, metaPath, conf)
         if (!fs.exists(metaPath)) {
           meta.addPartitions(listStorageFiles(typeName))
         }
+        val end = System.currentTimeMillis()
+        logger.info(s"Loaded metadata in ${end-start}ms")
         meta
       }
     })
@@ -106,7 +109,7 @@ class ParquetFileSystemStorage(root: Path,
     featureTypes.values.toList
   }
 
-  override def getFeatureType(name: String): SimpleFeatureType =  featureTypes(name)
+  override def getFeatureType(name: String): SimpleFeatureType = featureTypes(name)
 
   override def listPartitions(typeName: String): util.List[Partition] = {
     import scala.collection.JavaConversions._
@@ -226,7 +229,7 @@ class ParquetFileSystemStorage(root: Path,
   private def getChildrenFiles(typeName: String, partition: Partition): List[Path] = {
     val pp = partitionPath(typeName, partition)
     if (fs.exists(pp)) {
-      fs.listStatus(pp).map { f => f.getPath }.toList
+      fs.listStatus(pp).map { f => f.getPath }.filter(_.getName.endsWith(dataFileExtention)).toList
     } else {
       List.empty[Path]
     }
