@@ -22,6 +22,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
+import org.apache.spark.storage.StorageLevel
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
@@ -258,16 +259,19 @@ case class GeoMesaRelation(sqlContext: SQLContext,
     }
 
     partitionedRDD = SparkUtils.spatiallyPartition(partitionEnvelopes, rawRDD, numPartitions)
-
+    partitionedRDD.persist(StorageLevel.MEMORY_ONLY)
   }
 
   if (indexRDD == null && indexPartRDD == null && cache) {
     if (spatiallyPartition) {
       println("*** Indexing spatially partitioned RDD ***")
       indexPartRDD = SparkUtils.indexPartitioned(encodedSFT, partitionedRDD, indexId, indexGeom)
+      partitionedRDD.unpersist() // make this call blocking?
+      indexPartRDD.persist(StorageLevel.MEMORY_ONLY)
     } else {
       println("*** Indexing raw RDD ***")
       indexRDD = SparkUtils.index(encodedSFT, rawRDD, indexId, indexGeom)
+      indexRDD.persist(StorageLevel.MEMORY_ONLY)
     }
   }
 
@@ -313,11 +317,9 @@ object SparkUtils extends LazyLogging {
                        indexId: Boolean,
                        indexGeom: Boolean): RDD[(Int, GeoCQEngine)] = {
 
-    // TODO: This gets hit on every query. Sad
     rdd.mapValues { iter =>
         val engine = SparkUtils.indexIterator(encodedSft, indexId, indexGeom)
         engine.addAll(iter)
-        println("building cqengine on partition")
         engine
     }
   }
@@ -343,7 +345,13 @@ object SparkUtils extends LazyLogging {
 
   def spatiallyPartition(envelopes: List[Envelope], rdd: RDD[SimpleFeature], numPartitions: Int): RDD[(Int, Iterable[SimpleFeature])] = {
     val keyedRdd = rdd.flatMap { gridIdMapper( _, envelopes)}
-    keyedRdd.groupByKey(new HashPartitioner(numPartitions))
+    val partitioned = keyedRdd.groupByKey(new HashPartitioner(numPartitions))
+    partitioned.foreachPartition{ iter =>
+      iter.foreach{ case (key, features) =>
+        println(s"partition $key has ${features.size} features")
+      }
+    }
+    partitioned
   }
 
   def getBound(rdd: RDD[SimpleFeature]): Envelope = {
