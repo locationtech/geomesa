@@ -87,7 +87,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   } else None // not using Kerberos
 
   // Start thread (if it exists)
-  kerberosRenewerThread.map( _.start() )
+  kerberosRenewerThread.foreach( _.start() )
 
   // some convenience operations
 
@@ -270,9 +270,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override def dispose(): Unit = {
     super.dispose()
-    kerberosRenewerThread.map( t => {
+    kerberosRenewerThread.foreach( t => {
       logger.info("Stopping Kerberos renewer thread")
-      t.interrupt
+      t.interrupt()
     })
   }
 }
