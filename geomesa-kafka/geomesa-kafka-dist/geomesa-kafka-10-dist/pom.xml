@@ -21,6 +21,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jopt-simple.version>4.9</jopt-simple.version>
         <kafka.maj.version>10</kafka.maj.version>
         <kafka.version>${kafka.10.version}</kafka.version>
         <zkclient.version>0.8</zkclient.version>
