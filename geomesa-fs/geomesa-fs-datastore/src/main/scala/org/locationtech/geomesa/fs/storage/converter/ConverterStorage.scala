@@ -18,7 +18,7 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver, SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.fs.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.{LeafStoragePartition, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.common.{StoragePartition, PartitionScheme}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -108,7 +108,7 @@ class ConverterStorage(root: Path,
 
   override def getPartitionScheme(typeName: String): PartitionScheme = partitionScheme
 
-  override def getPartition(name: String): Partition = new LeafStoragePartition(name)
+  override def getPartition(name: String): Partition = new StoragePartition(name)
 
   import scala.collection.JavaConversions._
   override def getPaths(typeName: String, partition: Partition): java.util.List[URI] =

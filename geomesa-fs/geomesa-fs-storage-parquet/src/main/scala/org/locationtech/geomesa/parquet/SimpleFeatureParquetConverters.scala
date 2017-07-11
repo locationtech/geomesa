@@ -30,8 +30,6 @@ import scala.collection.mutable
   * conversions of SimpleFeature "types" and objects into the SimpleFeatureRecordMaterializer
   * which will mean they are only converted and then added to simple features if a
   * record passes the parquet filters and needs to be materialized.
-  *
-  * @param sft
   */
 class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter {
 
@@ -218,16 +216,16 @@ object SimpleFeatureParquetConverters {
                 converterFor(binding.head, Seq.empty, 0, (index: Int, value: AnyRef) => values += value)
 
               // better only be one field (0)
-              override def getConverter(fieldIndex: Int) = converter
+              override def getConverter(fieldIndex: Int): Converter = converter
 
-              override def end() = {}
-              override def start() = {}
+              override def end(): Unit = {}
+              override def start(): Unit = {}
             }
-          override def getConverter(fieldIndex: Int) = conv
+          override def getConverter(fieldIndex: Int): GroupConverter = conv
 
-          override def start() = values.clear()
+          override def start(): Unit = values.clear()
 
-          override def end() = {
+          override def end(): Unit = {
             import scala.collection.JavaConverters._
             set(index, values.asJava)
           }
@@ -246,21 +244,21 @@ object SimpleFeatureParquetConverters {
               private val valueConverter =
                 converterFor(binding.last, Seq.empty, 0, (index: Int, value: AnyRef) => v = value)
 
-              override def getConverter(fieldIndex: Int) =
+              override def getConverter(fieldIndex: Int): Converter =
                 if (fieldIndex == 0) {
                   keyConverter
                 } else {
                   valueConverter
                 }
 
-              override def end() = m += k -> v
-              override def start() = {}
+              override def end(): Unit = m += k -> v
+              override def start(): Unit = {}
             }
 
-          override def getConverter(fieldIndex: Int) = conv
+          override def getConverter(fieldIndex: Int): GroupConverter = conv
 
-          override def start() = m.clear()
-          override def end() = {
+          override def start(): Unit = m.clear()
+          override def end(): Unit = {
             import scala.collection.JavaConverters._
             set(index, m.asJava)
           }

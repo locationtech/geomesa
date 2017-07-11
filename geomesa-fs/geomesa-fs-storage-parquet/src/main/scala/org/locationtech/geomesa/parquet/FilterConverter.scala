@@ -29,6 +29,7 @@ class FilterConverter(sft: SimpleFeatureType) {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
   protected val geomAttr: String = sft.getGeomField
   protected val dtgAttrOpt: Option[String] = sft.getDtgField
+  private val ff = CommonFactoryFinder.getFilterFactory2
 
   /**
     * Convert a geotools filter into a parquet filter and new partial geotools filter
@@ -47,9 +48,6 @@ class FilterConverter(sft: SimpleFeatureType) {
       (None, f)
     }
   }
-
-
-  private val ff = CommonFactoryFinder.getFilterFactory2
 
   // TODO do this in the single walk
   // TODO optimize by removing superfluous Filter.INCLUDE trees (collapse and/ors of Filter.INCLUDE)
@@ -79,7 +77,6 @@ class FilterConverter(sft: SimpleFeatureType) {
       case _ => f
     }
   }
-
 
   protected def dtgFilter(f: org.opengis.filter.Filter): Option[FilterPredicate] = {
     dtgAttrOpt.map { dtgAttr =>

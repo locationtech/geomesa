@@ -43,28 +43,12 @@ object PartitionOpts {
     fmtStr
   }
 
-  def parseDtgAttr(opts: Map[String, String]): String = {
-    opts(DtgAttribute)
-  }
-
-  def parseGeomAttr(opts: Map[String, String]): String = {
-    opts(GeomAttribute)
-  }
-
-  def parseStepUnit(opts: Map[String, String]): ChronoUnit = {
-    ChronoUnit.valueOf(opts(StepUnitOpt).toUpperCase)
-  }
-
-  def parseStep(opts: Map[String, String]): Int = {
-    opts(StepOpt).toInt
-  }
-
-  def parseZ2Resolution(opts: Map[String, String]): Int = {
-    opts(Z2Resolution).toInt
-  }
-  def parseLeafStorage(opts: Map[String, String]): Boolean = {
-    opts(LeafStorage).toBoolean
-  }
+  def parseDtgAttr(opts: Map[String, String]): String      = opts(DtgAttribute)
+  def parseGeomAttr(opts: Map[String, String]): String     =  opts(GeomAttribute)
+  def parseStepUnit(opts: Map[String, String]): ChronoUnit = ChronoUnit.valueOf(opts(StepUnitOpt).toUpperCase)
+  def parseStep(opts: Map[String, String]): Int            = opts(StepOpt).toInt
+  def parseZ2Resolution(opts: Map[String, String]): Int    = opts(Z2Resolution).toInt
+  def parseLeafStorage(opts: Map[String, String]): Boolean = opts(LeafStorage).toBoolean
 }
 
 object CommonSchemeLoader {
@@ -109,7 +93,6 @@ object CommonSchemeLoader {
   }
 }
 
-
 object PartitionScheme {
 
   val SchemeSeparator = ","
@@ -143,14 +126,14 @@ object PartitionScheme {
     import PartitionOpts._
     val leaf = parseLeafStorage(opts)
     val schemes = pName.split(SchemeSeparator).map {
-      case "datetime" =>
+      case DateTimeScheme.Name =>
         val attr = parseDtgAttr(opts)
         val fmt = parseDateTimeFormat(opts)
         val su = parseStepUnit(opts)
         val s = parseStep(opts)
         new DateTimeScheme(fmt, su, s, sft, attr, leaf)
 
-      case "z2" =>
+      case Z2Scheme.Name =>
         val geomAttr = parseGeomAttr(opts)
         val z2Res = parseZ2Resolution(opts)
         new Z2Scheme(z2Res, sft, geomAttr, leaf)
@@ -161,7 +144,7 @@ object PartitionScheme {
 
     if (schemes.length == 1) {
       schemes.head
-    } else{
+    } else {
       new CompositeScheme(schemes.toSeq)
     }
   }
@@ -228,7 +211,7 @@ class DateTimeScheme(fmtStr: String,
 
   override def isLeafStorage: Boolean = leafStorage
 
-  override def name(): String = "datetime"
+  override def name(): String = DateTimeScheme.Name
 
   override def getOptions: java.util.Map[String, String] = {
     import PartitionOpts._
@@ -244,6 +227,9 @@ class DateTimeScheme(fmtStr: String,
 }
 
 object DateTimeScheme {
+  val Name = "datetime"
+
+  // TODO enumeration and fix match statement above to match it
   object Formats {
     val JulianDay    = "yyyy/DDD"
     val JulianHourly = "yyyy/DDD/HH"
@@ -276,11 +262,14 @@ class Z2Scheme(bits: Int, // number of bits
   }
 
   override def getCoveringPartitions(f: Filter): java.util.List[String] = {
-    // TODO trim ranges based on files that actually exist...
     val geometries: FilterValues[Geometry] = {
       // TODO support something other than point geoms
       val extracted = extractGeometries(f, geomAttribute, true)
-      if (extracted.nonEmpty) { extracted } else { FilterValues(Seq(WholeWorldPolygon)) }
+      if (extracted.nonEmpty) {
+        extracted
+      } else {
+        FilterValues(Seq(WholeWorldPolygon))
+      }
     }
 
     if (geometries.disjoint) {
@@ -302,17 +291,19 @@ class Z2Scheme(bits: Int, // number of bits
 
   override def isLeafStorage: Boolean = leafStorage
 
-  override def name(): String = "z2"
+  override def name(): String = Z2Scheme.Name
 
   override def getOptions: util.Map[String, String] = {
     import PartitionOpts._
-
     import scala.collection.JavaConverters._
-    Map(
-        GeomAttribute -> geomAttribute,
+    Map(GeomAttribute -> geomAttribute,
         Z2Resolution -> bits.toString,
         LeafStorage -> leafStorage.toString).asJava
   }
+}
+
+object Z2Scheme {
+  val Name = "z2"
 }
 
 class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
@@ -333,10 +324,7 @@ class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
 
   override def name(): String = schemes.map(_.name()).mkString(PartitionScheme.SchemeSeparator)
 
-  override def toString: String = {
-    PartitionScheme.stringify(name(), getOptions)
-  }
+  override def toString: String = PartitionScheme.stringify(name(), getOptions)
 
-  override def getOptions: util.Map[String, String] =
-    schemes.map(_.getOptions).reduceLeft(_ ++ _)
+  override def getOptions: util.Map[String, String] = schemes.map(_.getOptions).reduceLeft(_ ++ _)
 }

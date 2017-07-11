@@ -24,7 +24,7 @@ import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.{FileMetadata, LeafStoragePartition, StorageUtils}
+import org.locationtech.geomesa.fs.storage.common.{FileMetadata, StoragePartition, StorageUtils}
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseQuietly
@@ -201,7 +201,7 @@ class ParquetFileSystemStorage(root: Path,
     org.locationtech.geomesa.fs.storage.common.PartitionScheme(sft, ConfigFactory.parseString(conf))
   }
 
-  override def getPartition(name: String): Partition = new LeafStoragePartition(name)
+  override def getPartition(name: String): Partition = new StoragePartition(name)
 
   private def nextFile(typeName: String, partition: Partition): Path = {
     val existingFiles = getChildrenFiles(typeName, partition).map(_.getName).toSet

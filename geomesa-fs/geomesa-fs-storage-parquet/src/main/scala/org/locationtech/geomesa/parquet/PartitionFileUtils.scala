@@ -16,7 +16,7 @@ class PartitionFileUtils(fs: FileSystem,
                          ext: String) extends LazyLogging {
 
   def nextFile(dir: Path): Path = {
-    val existingFiles = getChildrenFile(dir)
+    val existingFiles = getChildrenFile(dir).map(_.getName)
     var i = 0
     def nextName = f"$i%04d.$ext"
     var name = nextName
@@ -28,11 +28,11 @@ class PartitionFileUtils(fs: FileSystem,
     new Path(dir, name)
   }
 
-  def getChildrenFile(path: Path): List[Path] = {
+  def getChildrenFile(path: Path): Seq[Path] = {
     if (fs.exists(path)) {
-      fs.listStatus(path).map { f => f.getPath }.filter(_.getName.endsWith(ext)).toList
+      fs.listStatus(path).map { f => f.getPath }.filter(_.getName.endsWith(ext)).toSeq
     } else {
-      List.empty[Path]
+      Seq.empty[Path]
     }
   }
 

@@ -54,7 +54,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
     var len = attributes.size()
     while (i < len) {
       writers(i)(consumer, attributes.get(i))
-      i+=1
+      i += 1
     }
   }
 }
