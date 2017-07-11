@@ -26,6 +26,7 @@ with GeoMesa FSDS are:
 * **S3** - Amazon Simple Storage
 * **GCS** - Google Cloud Storage
 * **WASB** - Windows Azure Blob Store
+* **Local** - Locally Mounted File System (e.g. local disk or NFS)
 
 Choosing a filesystem depends generally on cost and performance requirements. One thing to note is that S3, GCS, and
 WASB are all "cloud-native" storage meaning that they are built into Amazon, Google, and Microsoft Azure cloud
