@@ -9,9 +9,13 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.io.IOException
+import java.lang.InterruptedException
+
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
@@ -57,6 +61,33 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   private val statsTable = GeoMesaFeatureIndex.formatSharedTableName(config.catalog, "stats")
   override val stats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
+
+  // If on a secured cluster, create a thread to periodically renew Kerberos tgt
+  private val kerberosRenewerThread : Option[Thread] = if (UserGroupInformation.isSecurityEnabled) {
+    logger.info("Creating thread to periodically renew TGT from keytab")
+    Some(new Thread(new Runnable {
+      def run() {
+        while (true) {
+          try {
+            logger.info("Checking whether TGT needs renewing...")
+            UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
+          } catch {
+            case iox: IOException => logger.warn("Error checking and renewing tgt: " + iox.toString)
+          }
+
+          try {
+            // Sleep for 10 mins
+            Thread.sleep(10*60*1000)
+          } catch {
+            case ie: InterruptedException => logger.info("Kerberos renewer thread stopping"); return
+          }
+        }
+      }
+    }))
+  } else None // not using Kerberos
+
+  // Start thread (if it exists)
+  kerberosRenewerThread.map( _.start() )
 
   // some convenience operations
 
@@ -235,6 +266,14 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     } finally {
       lock.release()
     }
+  }
+
+  override def dispose(): Unit = {
+    super.dispose()
+    kerberosRenewerThread.map( t => {
+      logger.info("Stopping Kerberos renewer thread")
+      t.interrupt
+    })
   }
 }
 
