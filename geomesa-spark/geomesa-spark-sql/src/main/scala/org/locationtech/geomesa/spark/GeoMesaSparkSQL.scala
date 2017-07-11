@@ -246,7 +246,6 @@ case class GeoMesaRelation(sqlContext: SQLContext,
     val partitionEnvelopes = partitionStrategy match {
       case "EQUAL" => SparkUtils.equalPartitioning(bounds, numPartitions)
       case "RTREE" => SparkUtils.rtreePartitioning(rawRDD, numPartitions, sampleSize, thresholdMultiplier)
-      case "COVER" => ???
     }
 
 
@@ -264,12 +263,10 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 
   if (indexRDD == null && indexPartRDD == null && cache) {
     if (spatiallyPartition) {
-      println("*** Indexing spatially partitioned RDD ***")
       indexPartRDD = SparkUtils.indexPartitioned(encodedSFT, partitionedRDD, indexId, indexGeom)
       partitionedRDD.unpersist() // make this call blocking?
       indexPartRDD.persist(StorageLevel.MEMORY_ONLY)
     } else {
-      println("*** Indexing raw RDD ***")
       indexRDD = SparkUtils.index(encodedSFT, rawRDD, indexId, indexGeom)
       indexRDD.persist(StorageLevel.MEMORY_ONLY)
     }
@@ -327,6 +324,7 @@ object SparkUtils extends LazyLogging {
   // Maps a SimpleFeature to the id of the envelope that contains it
   // Will duplicate features that belong to more than one envelope
   // Returns -1 if no match was found
+  // TODO: Filter duplicates when querying
   def gridIdMapper(sf: SimpleFeature, envelopes: List[Envelope]): List[(Int, SimpleFeature)] = {
     var result = new ListBuffer[(Int, SimpleFeature)]
     val geom = sf.getDefaultGeometry.asInstanceOf[Geometry]
@@ -424,7 +422,7 @@ object SparkUtils extends LazyLogging {
     // get node's immediate children
     val childBoundables: java.util.List[_] = node.getChildBoundables
 
-    // check if the are all leaf nodes
+    // True if current node is leaf
     var flagLeafnode = true
     var i = 0
     while ( { i < childBoundables.size && flagLeafnode}) {
@@ -435,21 +433,17 @@ object SparkUtils extends LazyLogging {
       i += 1
     }
 
-    // if they are all leafs, return their count
     if (flagLeafnode) {
       childBoundables.size
     } else {
-      // if not, recurse on each one and total their counts
       var nodeCount = 0
       for ( i <- 0 until childBoundables.size ) {
         val childBoundable = childBoundables.get(i).asInstanceOf[Boundable]
         childBoundable match {
           case (child: AbstractNode) =>
             val childSize = queryBoundary(child, boundaries, minSize, maxSize)
-            // if returned size is reasonable, add it to boundaries
+            // check boundary for size and existence in chosen boundaries
             if (childSize < maxSize && childSize > minSize) {
-
-              // check that child's children are not already in the boundaries
               var alreadyAdded = false
               if (node.getLevel != 1) {
                 child.getChildBoundables.asInstanceOf[java.util.List[AbstractNode]].foreach { c =>
@@ -461,7 +455,7 @@ object SparkUtils extends LazyLogging {
               }
             }
             nodeCount += childSize
-          case (_) => nodeCount += 1 // negligible
+          case (_) => nodeCount += 1 // negligible difference but accurate
         }
       }
       nodeCount
@@ -477,22 +471,14 @@ object SparkUtils extends LazyLogging {
 
   @transient val ff = CommonFactoryFinder.getFilterFactory2
 
-  def buildScanInMemoryScan(requiredColumns: Array[String],
-                filters: Array[org.apache.spark.sql.sources.Filter],
-                filt: org.opengis.filter.Filter,
-                ctx: SparkContext,
-                schema: StructType,
-                params: Map[String, String],  indexRDD: RDD[GeoCQEngine]): RDD[Row] = {
-
-    val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l,r) }
-    val filterString = ECQL.toCQL(compiledCQL)
+  // the SFT attributes do not have the __fid__ so we have to translate accordingly
+  def getExtractors(requiredColumns: Array[String], schema: StructType): Array[SimpleFeature => AnyRef] = {
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
 
     type EXTRACTOR = SimpleFeature => AnyRef
     val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
 
-    // the SFT attributes do not have the __fid__ so we have to translate accordingly
-    val extractors: Array[EXTRACTOR] = requiredColumns.map {
+    requiredColumns.map {
       case "__fid__" => IdExtractor
       case col       =>
         val index = requiredAttributes.indexOf(col)
@@ -505,10 +491,53 @@ object SparkUtils extends LazyLogging {
             sf.getAttribute(index)
           }
     }
+  }
+
+  def buildScan(requiredColumns: Array[String],
+                filters: Array[org.apache.spark.sql.sources.Filter],
+                filt: org.opengis.filter.Filter,
+                ctx: SparkContext,
+                schema: StructType,
+                params: Map[String, String]): RDD[Row] = {
+    logger.debug(
+      s"""Building scan, filt = $filt,
+         |filters = ${filters.mkString(",")},
+         |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
+    val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l,r) }
+    logger.debug(s"compiledCQL = $compiledCQL")
+
+    val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
+    val rdd = GeoMesaSpark(params).rdd(
+      new Configuration(), ctx, params,
+      new Query(params(GEOMESA_SQL_FEATURE), compiledCQL, requiredAttributes))
+
+    val extractors = getExtractors(requiredColumns, schema)
+    val result = rdd.map(SparkUtils.sf2row(schema, _, extractors))
+    result.asInstanceOf[RDD[Row]]
+  }
+
+  def buildScanInMemoryScan(requiredColumns: Array[String],
+                filters: Array[org.apache.spark.sql.sources.Filter],
+                filt: org.opengis.filter.Filter,
+                ctx: SparkContext,
+                schema: StructType,
+                params: Map[String, String],  indexRDD: RDD[GeoCQEngine]): RDD[Row] = {
+
+    logger.debug(
+      s"""Building in-memory scan, filt = $filt,
+         |filters = ${filters.mkString(",")},
+         |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
+    val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l,r) }
+    logger.debug(s"compiledCQL = $compiledCQL")
+    val filterString = ECQL.toCQL(compiledCQL)
+    logger.debug(s"filterString = $filterString")
+
+
+    val extractors = getExtractors(requiredColumns, schema)
+
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
 
     val result = indexRDD.flatMap { engine =>
-      println(s"Query engine $engine with filter ${ECQL.toCQL(compiledCQL)}")
       val filter = ECQL.toFilter(filterString)
       engine.queryCQ(filter).toIterator
 
@@ -523,75 +552,28 @@ object SparkUtils extends LazyLogging {
                                 schema: StructType,
                                 params: Map[String, String],  indexPartRDD: RDD[(Int, GeoCQEngine)]): RDD[Row] = {
 
+    logger.debug(
+      s"""Building partitioned in-memory scan, filt = $filt,
+         |filters = ${filters.mkString(",")},
+         |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
     val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l,r) }
+    logger.debug(s"compiledCQL = $compiledCQL")
     val filterString = ECQL.toCQL(compiledCQL)
-    val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
+    logger.debug(s"filterString = $filterString")
 
-    type EXTRACTOR = SimpleFeature => AnyRef
-    val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
-
-    // TODO: Extract extractor logic to simplify the three scan methods
-    // the SFT attributes do not have the __fid__ so we have to translate accordingly
-    val extractors: Array[EXTRACTOR] = requiredColumns.map {
-      case "__fid__" => IdExtractor
-      case col       =>
-        val index = requiredAttributes.indexOf(col)
-        val schemaIndex = schema.fieldIndex(col)
-        val fieldType = schema.fields(schemaIndex).dataType
-        sf: SimpleFeature =>
-          if ( fieldType == TimestampType ) {
-            new Timestamp(sf.getAttribute(index).asInstanceOf[Date].getTime)
-          } else {
-            sf.getAttribute(index)
-          }
-    }
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
 
     // TODO: Could derive key from query and go straight to that partition
     // TODO: Could keep track of which keys are empty partitions and skip those
+
+    val extractors = getExtractors(requiredColumns, schema)
+
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
 
     val result = indexPartRDD.flatMap { case (key, engine) =>
       val filter = ECQL.toFilter(filterString)
       engine.queryCQ(filter).toIterator
     }.map(SparkUtils.sf2row(schema, _, extractors))
 
-    result.asInstanceOf[RDD[Row]]
-  }
-
-  def buildScan(requiredColumns: Array[String],
-                filters: Array[org.apache.spark.sql.sources.Filter],
-                filt: org.opengis.filter.Filter,
-                ctx: SparkContext,
-                schema: StructType,
-                params: Map[String, String]): RDD[Row] = {
-    logger.debug(s"""Building scan, filt = $filt, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}""")
-    val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l,r) }
-    logger.debug(s"compiledCQL = $compiledCQL")
-
-    val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
-    val rdd = GeoMesaSpark(params).rdd(
-      new Configuration(), ctx, params,
-      new Query(params(GEOMESA_SQL_FEATURE), compiledCQL, requiredAttributes))
-
-    type EXTRACTOR = SimpleFeature => AnyRef
-    val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
-
-    // the SFT attributes do not have the __fid__ so we have to translate accordingly
-    val extractors: Array[EXTRACTOR] = requiredColumns.map {
-      case "__fid__" => IdExtractor
-      case col       =>
-        val index = requiredAttributes.indexOf(col)
-        val schemaIndex = schema.fieldIndex(col)
-        val fieldType = schema.fields(schemaIndex).dataType
-        sf: SimpleFeature =>
-          if ( fieldType == TimestampType ) {
-            new Timestamp(sf.getAttribute(index).asInstanceOf[Date].getTime)
-          } else {
-            sf.getAttribute(index)
-          }
-    }
-
-    val result = rdd.map(SparkUtils.sf2row(schema, _, extractors))
     result.asInstanceOf[RDD[Row]]
   }
 

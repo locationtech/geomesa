@@ -16,10 +16,9 @@ import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
 import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, GenericInternalRow, LeafExpression, Literal, PredicateHelper, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical.{Filter, Join, LogicalPlan, Sort}
 import org.apache.spark.sql.catalyst.rules.Rule
-import org.apache.spark.sql.execution.command.CacheTableCommand
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.types.DataType
-import org.locationtech.geomesa.spark.{GeoMesaRelation, InMemoryGeoMesaRelation}
+import org.locationtech.geomesa.spark.GeoMesaRelation
 import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{Filter => GTFilter}
 
@@ -150,15 +149,7 @@ object SQLRules extends LazyLogging {
           } else {
             filt
           }
-
-        case cache @ CacheTableCommand(table, plan, isLazy) =>
-
-          println(s"Plan: $plan")
-          ///val cachedRelation = new InMemoryGeoMesaRelation(???, ???, ???, ???)
-
-          cache
       }
-
     }
 
   }
