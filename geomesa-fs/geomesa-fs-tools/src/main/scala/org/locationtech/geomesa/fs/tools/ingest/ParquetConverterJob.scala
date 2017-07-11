@@ -31,9 +31,10 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
+import org.locationtech.geomesa.fs.storage.common.StorageUtils
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
-import org.locationtech.geomesa.parquet.{PartitionFileUtils, SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
+import org.locationtech.geomesa.parquet.{SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -82,7 +83,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
 
     // Parquet Options
     val summaryLevel = Option(sft.getUserData.get(ParquetOutputFormat.JOB_SUMMARY_LEVEL).asInstanceOf[String])
-      .getOrElse(ParquetOutputFormat.JobSummaryLevel.ALL.toString)
+      .getOrElse(ParquetOutputFormat.JobSummaryLevel.NONE.toString)
     job.getConfiguration.set(ParquetOutputFormat.JOB_SUMMARY_LEVEL, summaryLevel)
     Command.user.info(s"Parquet metadata summary level is $summaryLevel")
 
@@ -302,7 +303,7 @@ class SchemeOutputFormat extends ParquetOutputFormat[SimpleFeature] {
 
     val sft = ParquetConverterJob.getSimpleFeatureType(context.getConfiguration)
     val name = sft.getTypeName
-
+    val conf = context.getConfiguration
     new RecordWriter[Void, SimpleFeature] with LazyLogging {
 
       private val partitionScheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft)
@@ -312,21 +313,22 @@ class SchemeOutputFormat extends ParquetOutputFormat[SimpleFeature] {
       var sentToParquet: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, "sentToParquet")
 
       override def write(key: Void, value: SimpleFeature): Unit = {
-        val curDir = name + "/" + partitionScheme.getPartitionName(value)
+        val keyPartition = partitionScheme.getPartitionName(value)
 
         def initWriter() = {
           val committer = getOutputCommitter(context).asInstanceOf[FileOutputCommitter]
-          val dirPath = new Path(committer.getWorkPath, curDir)
+          val root = committer.getWorkPath
+          val fs = root.getFileSystem(conf)
           // TODO combine this with the same code in ParquetFileSystemStorage
-          val file = new PartitionFileUtils(dirPath.getFileSystem(context.getConfiguration), "parquet").nextFile(dirPath)
+          val file = StorageUtils.nextFile(fs, root, name, keyPartition, partitionScheme.isLeafStorage, "parquet")
           logger.info(s"Creating Date scheme record writer at path ${file.toString}")
-          curPartition = curDir
+          curPartition = keyPartition
           writer = getRecordWriter(context, file)
         }
 
         if (writer == null) {
           initWriter()
-        } else if (curDir != curPartition) {
+        } else if (keyPartition != curPartition) {
           writer.close(context)
           logger.info(s"Closing writer for $curPartition")
           initWriter()

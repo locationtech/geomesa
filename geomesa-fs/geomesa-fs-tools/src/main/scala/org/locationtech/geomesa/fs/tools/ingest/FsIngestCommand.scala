@@ -14,7 +14,7 @@ import java.util
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.common.PartitionScheme
+import org.locationtech.geomesa.fs.storage.common.{PartitionOpts, PartitionScheme}
 import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.CLArgResolver
@@ -51,10 +51,19 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
     val sft = CLArgResolver.getSft(params.spec, params.featureName)
     val converterConfig = CLArgResolver.getConfig(params.config)
 
-    val scheme = PartitionSchemeArgResolver.getArg(SchemeArgs(params.scheme, sft)) match {
+    var scheme = PartitionSchemeArgResolver.getArg(SchemeArgs(params.scheme, sft)) match {
       case Right(scheme) => scheme
       case Left(e)    => throw new ParameterException(e)
     }
+
+    scheme = if (scheme.isLeafStorage != params.leafStorage) {
+      val name = scheme.name()
+      val opts = scheme.getOptions.updated(PartitionOpts.LeafStorage, params.leafStorage.toString)
+      PartitionScheme.apply(sft, name, opts.toMap)
+    } else {
+      scheme
+    }
+
     PartitionScheme.addToSft(sft, scheme)
 
     // Can use this to set things like compression and summary levels for parquet in the sft user data
@@ -97,6 +106,9 @@ class FsIngestParams extends IngestParams with FsParams {
 
   @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file", required = true)
   var scheme: java.lang.String = _
+
+  @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", required = false, arity = 1)
+  var leafStorage: java.lang.Boolean = true
 
   @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", required = false)
   var storageOpts: java.util.List[java.lang.String] = new util.ArrayList[String]()

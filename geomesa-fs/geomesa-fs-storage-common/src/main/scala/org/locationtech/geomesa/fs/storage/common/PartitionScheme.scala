@@ -44,7 +44,7 @@ object PartitionOpts {
   }
 
   def parseDtgAttr(opts: Map[String, String]): String      = opts(DtgAttribute)
-  def parseGeomAttr(opts: Map[String, String]): String     =  opts(GeomAttribute)
+  def parseGeomAttr(opts: Map[String, String]): String     = opts(GeomAttribute)
   def parseStepUnit(opts: Map[String, String]): ChronoUnit = ChronoUnit.valueOf(opts(StepUnitOpt).toUpperCase)
   def parseStep(opts: Map[String, String]): Int            = opts(StepOpt).toInt
   def parseZ2Resolution(opts: Map[String, String]): Int    = opts(Z2Resolution).toInt
@@ -58,29 +58,29 @@ object CommonSchemeLoader {
     val schemes = name.toLowerCase.split(PartitionScheme.SchemeSeparator).map {
 
       case "julian-minute" =>
-        new DateTimeScheme(JulianMinute, ChronoUnit.MINUTES, 1, sft, sft.getDtgField.get, false)
+        new DateTimeScheme(JulianMinute, ChronoUnit.MINUTES, 1, sft, sft.getDtgField.get, true)
 
       case "julian-hourly" =>
-        new DateTimeScheme(JulianHourly, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, false)
+        new DateTimeScheme(JulianHourly, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, true)
 
       case "julian-daily" =>
-        new DateTimeScheme(JulianDay, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
+        new DateTimeScheme(JulianDay, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, true)
 
       case "minute" =>
-        new DateTimeScheme(Minute, ChronoUnit.MINUTES, 1, sft, sft.getDtgField.get, false)
+        new DateTimeScheme(Minute, ChronoUnit.MINUTES, 1, sft, sft.getDtgField.get, true)
 
       case "hourly" =>
-        new DateTimeScheme(Hourly, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, false)
+        new DateTimeScheme(Hourly, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, true)
 
       case "daily" =>
-        new DateTimeScheme(Daily, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, false)
+        new DateTimeScheme(Daily, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, true)
 
       case "monthly" =>
-        new DateTimeScheme(Monthly, ChronoUnit.MONTHS, 1, sft, sft.getDtgField.get, false)
+        new DateTimeScheme(Monthly, ChronoUnit.MONTHS, 1, sft, sft.getDtgField.get, true)
 
       case z2 if z2.matches("z2-[0-9]+bit") =>
         val bits = "z2-([0-9]+)bit".r("bits").findFirstMatchIn(z2).get.group("bits").toInt
-        new Z2Scheme(bits, sft, sft.getGeomField, false)
+        new Z2Scheme(bits, sft, sft.getGeomField, true)
 
       case _ =>
         throw new IllegalArgumentException(s"Unable to find well known scheme(s) for argument $name")
@@ -309,6 +309,7 @@ object Z2Scheme {
 class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
 
   require(schemes.size > 1, "Must provide at least 2 schemes for a composite scheme")
+  require(schemes.map(_.isLeafStorage).distinct.size == 1, "All schemes must share the same value for isLeafStorage")
 
   override def getPartitionName(sf: SimpleFeature): String = schemes.map(_.getPartitionName(sf)).mkString("/")
 
@@ -317,7 +318,7 @@ class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
 
   override def maxDepth(): Int = schemes.map(_.maxDepth()).sum
 
-  override def isLeafStorage: Boolean = schemes.forall(_.isLeafStorage)
+  override def isLeafStorage: Boolean = schemes.head.isLeafStorage
 
   override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
     PartitionScheme(sft, ConfigFactory.parseString(s))

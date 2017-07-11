@@ -84,7 +84,7 @@ class ConverterStorage(root: Path,
   override def getWriter(typeName: String, partition: Partition): FileSystemWriter =
     throw new UnsupportedOperationException("Cannot append to converter datastore")
 
-  override def getPartitionReader(q: Query, partition: Partition): FileSystemPartitionIterator =
+  override def getPartitionReader(typeName: String, q: Query, partition: Partition): FileSystemPartitionIterator =
     new ConverterPartitionReader(root, partition, sft, converter, q.getFilter)
 
   private def buildPartitionList(path: Path, prefix: String, curDepth: Int): List[String] = {

@@ -28,7 +28,7 @@ public interface FileSystemStorage {
     Partition getPartition(String name);
     List<Partition> listPartitions(String typeName);
 
-    FileSystemPartitionIterator getPartitionReader(Query q, Partition partition);
+    FileSystemPartitionIterator getPartitionReader(String typeName, Query q, Partition partition);
 
     FileSystemWriter getWriter(String typeName, Partition partition);
 

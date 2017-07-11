@@ -117,8 +117,8 @@ class ParquetFileSystemStorage(root: Path,
   }
 
   // TODO ask the parition manager the geometry is fully covered?
-  override def getPartitionReader(q: Query, partition: Partition): FileSystemPartitionIterator = {
-    val sft = featureTypes(q.getTypeName)
+  override def getPartitionReader(typeName: String, q: Query, partition: Partition): FileSystemPartitionIterator = {
+    val sft = featureTypes(typeName)
 
     import org.locationtech.geomesa.index.conf.QueryHints._
     QueryPlanner.setQueryTransforms(q, sft)
@@ -158,8 +158,9 @@ class ParquetFileSystemStorage(root: Path,
 
   override def getWriter(featureType: String, partition: Partition): FileSystemWriter = {
     new FileSystemWriter {
-      private val sft = featureTypes(featureType)
-      private val dataPath = nextFile(featureType, partition)
+      private val sft      = featureTypes(featureType)
+      private val leaf     = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft).isLeafStorage
+      private val dataPath = StorageUtils.nextFile(fs, root, featureType, partition.getName, leaf, dataFileExtention)
 
       private val sftConf = {
         val c = new Configuration(conf)
@@ -203,41 +204,28 @@ class ParquetFileSystemStorage(root: Path,
 
   override def getPartition(name: String): Partition = new StoragePartition(name)
 
-  private def nextFile(typeName: String, partition: Partition): Path = {
-    val existingFiles = getChildrenFiles(typeName, partition).map(_.getName).toSet
-    var i = 0
-    def nextName = f"$i%04d.$dataFileExtention"
-    var name = nextName
-    while (existingFiles.contains(name)) {
-      i += 1
-      name = nextName
-    }
-    new Path(partitionPath(typeName, partition), name)
-  }
-
-  private def partitionPath(typeName: String, partition: Partition): Path =
-    new Path(new Path(root, typeName), partition.getName)
-
   private def listStorageFiles(typeName: String): util.Map[String, util.List[String]] = {
+    val scheme = getPartitionScheme(typeName)
     val partitions =
-      StorageUtils.buildPartitionList(root, fs, typeName, getPartitionScheme(typeName), dataFileExtention)
+      StorageUtils.buildPartitionList(root, fs, typeName, scheme, StorageUtils.SequenceLength, dataFileExtention)
         .map(getPartition)
     import scala.collection.JavaConverters._
-    partitions.map{p => p.getName -> getChildrenFiles(typeName, p).map(_.getName).asJava}.toMap.asJava
-  }
-
-  private def getChildrenFiles(typeName: String, partition: Partition): List[Path] = {
-    val pp = partitionPath(typeName, partition)
-    if (fs.exists(pp)) {
-      fs.listStatus(pp).map { f => f.getPath }.filter(_.getName.endsWith(dataFileExtention)).toList
-    } else {
-      List.empty[Path]
-    }
+    partitions.map { p =>
+      val files = StorageUtils.listFiles(fs, root, typeName, p, scheme.isLeafStorage, dataFileExtention).map(_.getName).asJava
+      p.getName -> files
+    }.toMap.asJava
   }
 
   override def getPaths(typeName: String, partition: Partition): java.util.List[URI] = {
+    val scheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(featureTypes(typeName))
+    val baseDir = if (scheme.isLeafStorage) {
+      StorageUtils.partitionPath(root, typeName, partition.getName).getParent
+    } else {
+      StorageUtils.partitionPath(root, typeName, partition.getName)
+    }
     import scala.collection.JavaConversions._
-    getChildrenFiles(typeName, partition).map(_.toUri)
+    val files = metadata(typeName).getFiles(partition.getName)
+    files.map(new Path(baseDir, _)).map(_.toUri)
   }
 
   override def getMetadata(typeName: String): Metadata = metadata(typeName)

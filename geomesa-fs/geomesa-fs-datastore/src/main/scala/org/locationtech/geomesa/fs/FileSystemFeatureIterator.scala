@@ -33,7 +33,7 @@ class FileSystemFeatureIterator(fs: FileSystem,
     if (partitions.isEmpty) {
       CloseableEmptyIterator
     } else {
-      new ThreadedReader(storage, partitions, q, readThreads)
+      new ThreadedReader(storage, partitions, sft.getTypeName, q, readThreads)
     }
 
   override def hasNext: Boolean = iter.hasNext
@@ -49,6 +49,7 @@ object CloseableEmptyIterator extends java.util.Iterator[SimpleFeature] with Aut
 
 class ThreadedReader(storage: FileSystemStorage,
                      partitions: Seq[Partition],
+                     typeName: String,
                      q: Query,
                      numThreads: Int)
   extends java.util.Iterator[SimpleFeature] with AutoCloseable with LazyLogging {
@@ -61,7 +62,7 @@ class ThreadedReader(storage: FileSystemStorage,
   // However, if you are doing lots of filtering it appears that bumping the threads up high
   // can be very useful. Seems possibly numcores/2 might is a good setting (which is a standard idea)
 
-  logger.info(s"Threading the read of ${partitions.size} partitions with $numThreads reader threads (and 1 writer thread)")
+  logger.debug(s"Threading the read of ${partitions.size} partitions with $numThreads reader threads (and 1 writer thread)")
   private val es = Executors.newFixedThreadPool(numThreads)
   private val latch = new CountDownLatch(partitions.size)
 
@@ -77,9 +78,9 @@ class ThreadedReader(storage: FileSystemStorage,
         override def run(): Unit = {
           try { // For the latch must be careful with the threads and wrap this separately
             var count = 0
-            val reader = storage.getPartitionReader(q, p)
+            val reader = storage.getPartitionReader(typeName, q, p)
             try {
-              logger.info(s"Reading partition of ${reader.getPartition}")
+              logger.debug(s"Reading partition of ${reader.getPartition}")
               while (reader.hasNext) {
                 count += 1
                 val next = reader.next()
@@ -89,7 +90,7 @@ class ThreadedReader(storage: FileSystemStorage,
               case NonFatal(e) => logger.error(s"Error reading partition ${reader.getPartition}", e)
             } finally {
               try { reader.close() } catch { case NonFatal(e) => logger.error("error closing reader", e) }
-              logger.info(s"Partition ${reader.getPartition} produced $count records")
+              logger.debug(s"Partition ${reader.getPartition} produced $count records")
             }
           } finally {
             latch.countDown()

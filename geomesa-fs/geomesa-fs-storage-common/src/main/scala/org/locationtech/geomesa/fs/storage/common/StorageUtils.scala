@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme
+import org.locationtech.geomesa.fs.storage.api.{Partition, PartitionScheme}
 
 object StorageUtils {
 
@@ -17,9 +17,9 @@ object StorageUtils {
                          fs: FileSystem,
                          typeName: String,
                          partitionScheme: PartitionScheme,
+                         fileSequenceLength: Int,
                          fileExtension: String): List[String] = {
 
-    // For leaf storage
     def recurseBucket(path: Path, prefix: String, curDepth: Int, maxDepth: Int): List[String] = {
       if (curDepth > maxDepth) {
         return List.empty[String]
@@ -37,7 +37,6 @@ object StorageUtils {
       }
     }.toList
 
-    // For leaf storage
     def recurseLeaf(path: Path, prefix: String, curDepth: Int, maxDepth: Int): List[String] = {
       if (curDepth > maxDepth) {
         return List.empty[String]
@@ -47,7 +46,8 @@ object StorageUtils {
         if (f.isDirectory) {
           recurseLeaf(f.getPath, s"$prefix${f.getPath.getName}/", curDepth + 1, maxDepth)
         } else if (f.getPath.getName.endsWith(s".$fileExtension")) {
-          val name = f.getPath.getName.dropRight(fileExtension.length + 1)
+          val lenToDrop = fileSequenceLength + 1 + fileExtension.length
+          val name = f.getPath.getName.dropRight(lenToDrop)
           List(s"$prefix$name")
         } else {
           List()
@@ -62,5 +62,72 @@ object StorageUtils {
     }
 
   }
+
+  def listFiles(fs: FileSystem, dir: Path, ext: String): Seq[Path] = {
+    if (fs.exists(dir)) {
+      fs.listStatus(dir).map { f => f.getPath }.filter(_.getName.endsWith(ext)).toSeq
+    } else {
+      Seq.empty[Path]
+    }
+  }
+
+  def listFiles(fs: FileSystem,
+                root: Path,
+                typeName: String,
+                partition: Partition,
+                isLeafStorage: Boolean,
+                ext: String): Seq[Path] = {
+    val pp = partitionPath(root, typeName, partition.getName)
+    val dir = if (isLeafStorage) pp.getParent else pp
+    val files = listFiles(fs, dir, ext)
+    if (isLeafStorage) files.filter(_.getName.startsWith(partition.getName.split('/').last)) else files
+  }
+
+  def partitionPath(root: Path, typeName: String, partitionName: String): Path =
+    new Path(new Path(root, typeName), partitionName)
+
+
+  val SequenceLength = 5
+  def formatLeafFile(prefix: String, i: Int, ext: String): String = f"${prefix}_$i%04d.$ext"
+  def formatBucketFile(i: Int, ext: String): String = f"$i%04d.$ext"
+
+  def nextFile(fs: FileSystem,
+               root: Path,
+               typeName: String,
+               partitionName: String,
+               isLeafStorage: Boolean,
+               extension: String): Path = {
+
+    val components = partitionName.split('/')
+    val baseFileName = components.last
+
+    if (isLeafStorage) {
+      val dir = partitionPath(root, typeName, partitionName).getParent
+      val existingFiles = listFiles(fs, dir, extension).map(_.getName)
+
+      var i = 0
+      var name = formatLeafFile(baseFileName, i, extension)
+      while (existingFiles.contains(name)) {
+        i += 1
+        name = formatLeafFile(baseFileName, i, extension)
+      }
+
+      new Path(dir, name)
+    } else {
+      val dir = partitionPath(root, typeName, partitionName)
+      val existingFiles = listFiles(fs, dir, extension).map(_.getName)
+
+      var i = 0
+      var name = formatBucketFile(i, extension)
+      while (existingFiles.contains(name)) {
+        i += 1
+        name = formatBucketFile(i, extension)
+      }
+
+      new Path(dir, name)
+    }
+  }
+
+
 
 }
