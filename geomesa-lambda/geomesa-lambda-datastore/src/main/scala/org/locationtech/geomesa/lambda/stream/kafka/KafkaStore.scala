@@ -9,11 +9,9 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import java.time.Clock
-import java.util.concurrent._
-import java.util.{Collections, Properties, UUID}
+import java.util.{Properties, UUID}
 
 import com.google.common.primitives.Longs
-import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
 import kafka.common.TopicAlreadyMarkedForDeletionException
@@ -50,18 +48,20 @@ class KafkaStore(ds: DataStore,
                 (implicit clock: Clock = Clock.systemUTC())
     extends TransientStore with LazyLogging {
 
+  private val expire = config.expiry != Duration.Inf
+
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
-  private val state = new SharedState(config.partitions)
+  private val state = new SharedState(topic, config.partitions, expire)
 
   private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
   private val queryRunner = new KafkaQueryRunner(state, stats, authProvider)
 
   private val loader = new KafkaCacheLoader(offsetManager, serializer, state, consumerConfig, topic, config.consumers)
-  private val persistence = config.expiry match {
-    case Duration.Inf => None
-    case d => Some(new DataStorePersistence(ds, sft, offsetManager, state, topic, d.toMillis, config.persist))
+
+  private val persistence = if (!expire) { None } else {
+    Some(new DataStorePersistence(ds, sft, offsetManager, state, topic, config.expiry.toMillis, config.persist))
   }
 
   private val setVisibility: (SimpleFeature) => (SimpleFeature) = config.visibility match {
@@ -73,6 +73,9 @@ class KafkaStore(ds: DataStore,
       f
     }
   }
+
+  // register as a listener for offset changes
+  offsetManager.addOffsetListener(topic, state)
 
   override def createSchema(): Unit = {
     KafkaStore.withZk(config.zookeepers) { zk =>
@@ -142,6 +145,7 @@ class KafkaStore(ds: DataStore,
   override def close(): Unit = {
     CloseWithLogging(loader)
     persistence.foreach(CloseWithLogging.apply)
+    offsetManager.removeOffsetListener(topic, state)
   }
 
   private def prepFeature(original: SimpleFeature): SimpleFeature =
@@ -150,11 +154,6 @@ class KafkaStore(ds: DataStore,
 }
 
 object KafkaStore {
-
-  private [stream] val executor =
-    MoreExecutors.getExitingScheduledExecutorService(
-      Executors.newScheduledThreadPool(2).asInstanceOf[ScheduledThreadPoolExecutor])
-  sys.addShutdownHook { executor.shutdownNow(); executor.awaitTermination(1, TimeUnit.SECONDS) }
 
   object MessageTypes {
     val Write:  Byte = 0
@@ -202,8 +201,8 @@ object KafkaStore {
   private [kafka] def consumers(connect: Map[String, String],
                                 topic: String,
                                 manager: OffsetManager,
-                                state: SharedState,
-                                parallelism: Int): Seq[Consumer[Array[Byte], Array[Byte]]] = {
+                                parallelism: Int,
+                                callback: (Int, Long) => Unit): Seq[Consumer[Array[Byte], Array[Byte]]] = {
     require(parallelism > 0, "Parallelism must be greater than 0")
 
     val group = UUID.randomUUID().toString
@@ -211,7 +210,7 @@ object KafkaStore {
 
     Seq.fill(parallelism) {
       val consumer = KafkaStore.consumer(connect, group)
-      consumer.subscribe(topics, new OffsetRebalanceListener(consumer, manager, state))
+      consumer.subscribe(topics, new OffsetRebalanceListener(consumer, manager, callback))
       consumer
     }
   }
@@ -236,27 +235,7 @@ object KafkaStore {
 
   private [kafka] class OffsetRebalanceListener(consumer: Consumer[Array[Byte], Array[Byte]],
                                                 manager: OffsetManager,
-                                                state: SharedState) extends ConsumerRebalanceListener {
-
-    // use reflection to work with kafak 0.9 or 0.10
-    lazy val seekToBeginning: TopicPartition => Unit = {
-      val method = consumer.getClass.getDeclaredMethods.find(_.getName == "seekToBeginning").getOrElse {
-        throw new NoSuchMethodException("Couldn't find Consumer.seekToBeginning method")
-      }
-      val parameterTypes = method.getParameterTypes
-      if (parameterTypes.length != 1) {
-        throw new NoSuchMethodException("Couldn't find Consumer.seekToBeginning method with correct parameters")
-      }
-      val binding = method.getParameterTypes.apply(0)
-
-      if (binding == classOf[Array[TopicPartition]]) {
-        (tp) => method.invoke(consumer, Array(tp))
-      } else if (binding == classOf[java.util.Collection[TopicPartition]]) {
-        (tp) => method.invoke(consumer, Collections.singletonList(tp))
-      } else {
-        throw new NoSuchMethodException("Couldn't find Consumer.seekToBeginning method with correct parameters")
-      }
-    }
+                                                callback: (Int, Long) => Unit) extends ConsumerRebalanceListener {
 
     override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
@@ -265,14 +244,17 @@ object KafkaStore {
 
       topicPartitions.foreach { tp =>
         // ensure we have queues for each partition
-        state.ensurePartition(tp.partition)
         // read our last committed offsets and seek to them
+        KafkaConsumerVersions.pause(consumer, tp)
         val lastRead = manager.getOffset(tp.topic(), tp.partition())
         if (lastRead > 0) {
           consumer.seek(tp, lastRead)
+          callback.apply(tp.partition, lastRead)
         } else {
-          seekToBeginning(tp)
+          KafkaConsumerVersions.seekToBeginning(consumer, tp)
+          callback.apply(tp.partition, consumer.position(tp))
         }
+        KafkaConsumerVersions.resume(consumer, tp)
       }
     }
   }
