@@ -10,16 +10,15 @@ package org.locationtech.geomesa.lambda.stream.kafka
 
 import java.io.Closeable
 import java.time.Clock
-import java.util.concurrent.{PriorityBlockingQueue, TimeUnit}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Transaction}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 
@@ -51,14 +50,16 @@ class DataStorePersistence(ds: DataStore,
     extends Runnable with Closeable with LazyLogging {
 
   private val frequency = SystemProperty("geomesa.lambda.persist.interval").toDuration.getOrElse(60000L)
-  private val schedule = KafkaStore.executor.scheduleWithFixedDelay(this, 0L, frequency, TimeUnit.MILLISECONDS)
   private val lockTimeout = SystemProperty("geomesa.lambda.persist.lock.timeout").toDuration.getOrElse(1000L)
 
+  private val executor = Executors.newSingleThreadScheduledExecutor()
+  private val schedule = executor.scheduleWithFixedDelay(this, frequency, frequency, TimeUnit.MILLISECONDS)
+
   override def run(): Unit = {
-    val expired = state.expired.filter(e => checkPartition(e._1))
-    logger.trace(s"Found ${expired.length} partition(s) with expired entries in [$topic]")
+    val expired = state.expired(clock.millis() - ageOffMillis)
+    logger.trace(s"Found partition(s) with expired entries in [$topic]: ${expired.mkString(",")}")
     // lock per-partition to allow for multiple write threads
-    expired.foreach { case (queue, partition) =>
+    expired.foreach { partition =>
       // if we don't get the lock just try again next run
       logger.trace(s"Acquiring lock for [$topic:$partition]")
       offsetManager.acquireLock(topic, partition, lockTimeout) match {
@@ -66,7 +67,7 @@ class DataStorePersistence(ds: DataStore,
         case Some(lock) =>
           try {
             logger.trace(s"Acquired lock for [$topic:$partition]")
-            persist(partition, queue, clock.millis() - ageOffMillis)
+            persist(partition, clock.millis() - ageOffMillis)
           } finally {
             lock.release()
             logger.trace(s"Released lock for [$topic:$partition]")
@@ -75,36 +76,20 @@ class DataStorePersistence(ds: DataStore,
     }
   }
 
-  private def checkPartition(expiry: PriorityBlockingQueue[(Long, Long, SimpleFeature)]): Boolean = {
-    expiry.peek() match {
-      case null => false
-      case (_, created, _) => (clock.millis() - ageOffMillis) > created
-    }
-  }
-
-  private def persist(partition: Int, queue: PriorityBlockingQueue[(Long, Long, SimpleFeature)], expiry: Long): Unit = {
+  private def persist(partition: Int, expiry: Long): Unit = {
     import org.locationtech.geomesa.filter.ff
 
-    val expired = scala.collection.mutable.Queue.empty[(Long, Long, SimpleFeature)]
-
-    var loop = true
-    while (loop) {
-      queue.poll() match {
-        case null => loop = false
-        case f if f._2 > expiry => queue.offer(f); loop = false
-        case f => expired += f
-      }
-    }
+    val expired = state.expired(partition, expiry)
 
     logger.trace(s"Found expired entries for [$topic:$partition]:\n\t" +
-        expired.map { case (o, created, f) => s"offset $o: $f created at ${new DateTime(created, DateTimeZone.UTC)}" }.mkString("\n\t"))
+        expired.map { case (o, f) => s"offset $o: $f" }.mkString("\n\t"))
 
     if (expired.nonEmpty) {
       var lastOffset = offsetManager.getOffset(topic, partition)
       logger.trace(s"Last persisted offsets for [$topic:$partition]: $lastOffset")
       // check that features haven't been persisted yet, haven't been deleted, and have no additional updates pending
       val toPersist = {
-        val latest = expired.filter { case (offset, _, f) =>
+        val latest = expired.filter { case (offset, f) =>
           if (lastOffset <= offset) {
             // update the offsets we will write
             lastOffset = offset + 1L
@@ -114,7 +99,7 @@ class DataStorePersistence(ds: DataStore,
             false
           }
         }
-        scala.collection.mutable.Map(latest.map(f => (f._3.getID,  f)): _*)
+        scala.collection.mutable.Map(latest.map(f => (f._2.getID,  f)): _*)
       }
 
       logger.trace(s"Offsets to persist for [$topic:$partition]: ${toPersist.values.map(_._1).toSeq.sorted.mkString(",")}")
@@ -128,9 +113,8 @@ class DataStorePersistence(ds: DataStore,
           WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
             while (writer.hasNext) {
               val next = writer.next()
-              toPersist.get(next.getID).foreach { case (offset, created, updated) =>
-                logger.trace(s"Persistent store modify [$topic:$partition:$offset] $updated created at " +
-                    s"${new DateTime(created, DateTimeZone.UTC)}")
+              toPersist.get(next.getID).foreach { case (offset, updated) =>
+                logger.trace(s"Persistent store modify [$topic:$partition:$offset] $updated")
                 FeatureUtils.copyToFeature(next, updated, useProvidedFid = true)
                 try { writer.write() } catch {
                   case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
@@ -142,9 +126,8 @@ class DataStorePersistence(ds: DataStore,
           // if any weren't updates, add them as inserts
           if (toPersist.nonEmpty) {
             WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-              toPersist.values.foreach { case (offset, created, updated) =>
-                logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated created at " +
-                    s"${new DateTime(created, DateTimeZone.UTC)}")
+              toPersist.values.foreach { case (offset, updated) =>
+                logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated")
                 FeatureUtils.copyToWriter(writer, updated, useProvidedFid = true)
                 try { writer.write() } catch {
                   case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
@@ -159,5 +142,9 @@ class DataStorePersistence(ds: DataStore,
     }
   }
 
-  override def close(): Unit = schedule.cancel(true)
+  override def close(): Unit = {
+    schedule.cancel(true)
+    executor.shutdownNow()
+    executor.awaitTermination(1, TimeUnit.SECONDS)
+  }
 }
