@@ -76,6 +76,22 @@ class ArrowConversionProcessTest extends TestWithDataStore {
         reader.dictionaries.get("name") must beSome
       }
     }
+
+    "sort and encode an accumulo feature collection in distributed fashion" in {
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, "dtg", null, null).reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
+      }
+    }
+
+    "reverse sort and encode an accumulo feature collection in distributed fashion" in {
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, "dtg", Boolean.box(true), null).reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features.reverse
+      }
+    }
   }
 
   step {
