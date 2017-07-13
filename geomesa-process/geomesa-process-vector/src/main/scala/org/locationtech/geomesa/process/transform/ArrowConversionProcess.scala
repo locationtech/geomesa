@@ -44,6 +44,10 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               dictionaryFields: java.util.List[String],
               @DescribeParameter(name = "includeFids", description = "Include feature IDs in arrow file", min = 0)
               includeFids: java.lang.Boolean,
+              @DescribeParameter(name = "sortField", description = "Attribute to sort by", min = 0)
+              sortField: String,
+              @DescribeParameter(name = "sortReverse", description = "Reverse the default sort order", min = 0)
+              sortReverse: java.lang.Boolean,
               @DescribeParameter(name = "batchSize", description = "Number of features to include in each record batch", min = 0)
               batchSize: java.lang.Integer
              ): java.util.Iterator[Array[Byte]] = {
@@ -62,16 +66,22 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
       }
     }
     val encoding = SimpleFeatureEncoding.min(Option(includeFids).forall(_.booleanValue))
+    val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(100000)
 
-    val visitor = new ArrowVisitor(sft, toEncode, batch, encoding)
+    val visitor = new ArrowVisitor(sft, toEncode, encoding, Option(sortField), reverse, batch)
     features.accepts(visitor, null)
     visitor.close()
     visitor.getResult.results
   }
 }
 
-class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchSize: Int, encoding: SimpleFeatureEncoding)
+class ArrowVisitor(sft: SimpleFeatureType,
+                   dictionaryFields: Seq[String],
+                   encoding: SimpleFeatureEncoding,
+                   sortField: Option[String],
+                   sortReverse: Option[Boolean],
+                   batchSize: Int)
     extends GeoMesaProcessVisitor with Closeable with LazyLogging {
 
   import org.locationtech.geomesa.arrow.allocator
@@ -84,6 +94,9 @@ class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchS
   private lazy val manualWriter = {
     if (dictionaryFields.nonEmpty) {
       logger.warn("Non-distributed conversion - fields will not be dictionary encoded")
+    }
+    if (sortField.isDefined) {
+      logger.warn("Non-distributed conversion - results will not be sorted")
     }
     new SimpleFeatureArrowFileWriter(sft, manualBytes, Map.empty, encoding)
   }
@@ -129,6 +142,8 @@ class ArrowVisitor(sft: SimpleFeatureType, dictionaryFields: Seq[String], batchS
     query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaryFields.mkString(","))
     query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids)
     query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
+    sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
+    sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
 
     val features = SelfClosingIterator(source.getFeatures(query))
     result ++= features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
