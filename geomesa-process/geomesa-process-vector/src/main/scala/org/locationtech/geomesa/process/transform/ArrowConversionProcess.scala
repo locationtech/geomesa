@@ -40,10 +40,12 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
   def execute(
               @DescribeParameter(name = "features", description = "Input feature collection to encode")
               features: SimpleFeatureCollection,
-              @DescribeParameter(name = "dictionaryFields", description = "Attributes to dictionary encode", min = 0, max = 128, collectionType = classOf[String])
-              dictionaryFields: java.util.List[String],
               @DescribeParameter(name = "includeFids", description = "Include feature IDs in arrow file", min = 0)
               includeFids: java.lang.Boolean,
+              @DescribeParameter(name = "dictionaryFields", description = "Attributes to dictionary encode", min = 0, max = 128, collectionType = classOf[String])
+              dictionaryFields: java.util.List[String],
+              @DescribeParameter(name = "useCachedDictionaries", description = "Include feature IDs in arrow file", min = 0)
+              useCachedDictionaries: java.lang.Boolean,
               @DescribeParameter(name = "sortField", description = "Attribute to sort by", min = 0)
               sortField: String,
               @DescribeParameter(name = "sortReverse", description = "Reverse the default sort order", min = 0)
@@ -65,11 +67,12 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
         throw new IllegalArgumentException(s"Attribute $attribute doesn't exist in $sft")
       }
     }
+    val cacheDictionaries = Option(useCachedDictionaries).map(_.booleanValue())
     val encoding = SimpleFeatureEncoding.min(Option(includeFids).forall(_.booleanValue))
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(100000)
 
-    val visitor = new ArrowVisitor(sft, toEncode, encoding, Option(sortField), reverse, batch)
+    val visitor = new ArrowVisitor(sft, toEncode, encoding, cacheDictionaries, Option(sortField), reverse, batch)
     features.accepts(visitor, null)
     visitor.close()
     visitor.getResult.results
@@ -79,6 +82,7 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
 class ArrowVisitor(sft: SimpleFeatureType,
                    dictionaryFields: Seq[String],
                    encoding: SimpleFeatureEncoding,
+                   cacheDictionaries: Option[Boolean],
                    sortField: Option[String],
                    sortReverse: Option[Boolean],
                    batchSize: Int)
@@ -142,6 +146,7 @@ class ArrowVisitor(sft: SimpleFeatureType,
     query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaryFields.mkString(","))
     query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids)
     query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
+    cacheDictionaries.foreach(query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, _))
     sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
     sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
 
