@@ -27,7 +27,7 @@ class InMemoryOffsetManager extends OffsetManager {
   override def setOffset(topic: String, partition: Int, offset: Long): Unit = {
     offsets.synchronized {
       offsets.put((topic, partition), offset)
-      listeners.synchronized(listeners.getOrElse(topic, Set.empty)).foreach(_.offsetChanged(partition, offset))
+      listeners.synchronized(listeners.getOrElse(topic, Set.empty)).par.foreach(_.offsetChanged(partition, offset))
     }
   }
 
