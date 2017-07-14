@@ -9,7 +9,7 @@
 package org.apache.spark.sql
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.apache.spark.sql.SQLTypes._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
@@ -18,7 +18,7 @@ import org.apache.spark.sql.catalyst.plans.logical.{Filter, Join, LogicalPlan, S
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.types.DataType
-import org.locationtech.geomesa.spark.GeoMesaRelation
+import org.locationtech.geomesa.spark.{GeoMesaRelation, SparkUtils}
 import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{Filter => GTFilter}
 
@@ -113,6 +113,13 @@ object SQLRules extends LazyLogging {
       }
     }
 
+    private def extractGridId(envelopes: List[Envelope], e: org.apache.spark.sql.catalyst.expressions.Expression): Option[List[Int]] = e match {
+      case And(l, r) => extractGridId(envelopes, l).orElse(extractGridId(envelopes, r))
+      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(SparkUtils.gridIdMapper(geom, envelopes))
+      case GeometryLiteral(_,geom) => Some(SparkUtils.gridIdMapper(geom, envelopes))
+      case _ => None
+    }
+
     override def apply(plan: LogicalPlan): LogicalPlan = {
       println(s"Optimizer sees $plan")
       plan.transform {
@@ -136,8 +143,16 @@ object SQLRules extends LazyLogging {
               }
           }
 
+          val partitionHints = if (gmRel.spatiallyPartition) {
+            val hint = scalaUDFs.flatMap{e => extractGridId(gmRel.partitionEnvelopes, e) }.flatten
+            println(s"\t setting partition hint to $hint")
+            hint
+          } else {
+            null
+          }
+
           if (gtFilters.nonEmpty) {
-            val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt))
+            val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt), partitionHints = partitionHints)
             val newrel = lr.copy(expectedOutputAttributes = Some(lr.output), relation = relation)
 
             if (sFilters.nonEmpty) {

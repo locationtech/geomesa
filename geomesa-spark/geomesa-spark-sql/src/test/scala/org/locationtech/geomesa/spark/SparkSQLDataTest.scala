@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.spark
 
+import java.util
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -36,6 +37,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
 
     var df: DataFrame = null
     var dfIndexed: DataFrame = null
+    var dfPartitioned: DataFrame = null
 
     // before
     step {
@@ -59,7 +61,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       df.collect.length mustEqual 3
     }
 
-    "ingest into in-memory" >> {
+    "create indexed relation" >> {
       dfIndexed = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -73,6 +75,28 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       dfIndexed.collect.length mustEqual 3
     }
 
+    "create spatially partitioned relation" >> {
+      dfPartitioned = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("cache", "true")
+        .option("spatial","true")
+          .option("strategy", "RTREE")
+        .load()
+      logger.info(df.schema.treeString)
+
+      dfPartitioned.createOrReplaceTempView("chicagoPartitioned")
+
+      // Filter if features belonged to multiple partition envelopes
+      // TODO: Better way
+      val hashSet = new util.HashSet[String]()
+      dfPartitioned.collect.foreach{ row =>
+        hashSet.add(row.getAs[String]("__fid__"))
+      }
+      hashSet.size() mustEqual 3
+    }
+
     "handle projections on in-memory store" >> {
       val r = sc.sql("select geom from chicagoIndexed where case_number = 1")
       val d = r.collect
@@ -83,7 +107,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       row.fieldIndex("geom") mustEqual 0
     }
 
-    "basic sql in-memory" >> {
+    "basic sql indexed" >> {
       val r = sc.sql("select * from chicagoIndexed where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")
       val d = r.collect
 
@@ -91,7 +115,14 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       d.head.getAs[Point]("geom") mustEqual createPoint(new Coordinate(-76.5, 38.5))
     }
 
+    "basic sql partitioned" >> {
+      sc.sql("select * from chicagoPartitioned").show()
+      val r = sc.sql("select * from chicagoPartitioned where st_equals(geom, st_geomFromWKT('POINT(-77 38)'))")
+      val d = r.collect
 
+      d.length mustEqual 1
+      d.head.getAs[Point]("geom") mustEqual createPoint(new Coordinate(-77, 38))
+    }
 
     "basic sql 1" >> {
       val r = sc.sql("select * from chicago where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")

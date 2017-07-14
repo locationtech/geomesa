@@ -203,6 +203,7 @@ case class GeoMesaRelation(sqlContext: SQLContext,
                            params: Map[String, String],
                            filt: org.opengis.filter.Filter = org.opengis.filter.Filter.INCLUDE,
                            props: Option[Seq[String]] = None,
+                           var partitionHints : Seq[Int] = null,
                            var indexRDD: RDD[GeoCQEngineDataStore] = null,
                            var partitionedRDD: RDD[(Int,Iterable[SimpleFeature])] = null,
                            var indexPartRDD: RDD[(Int, GeoCQEngineDataStore)] = null)
@@ -221,6 +222,8 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   val spatiallyPartition = Try(params("spatial").toBoolean).getOrElse(false)
 
   val partitionStrategy = Try(params("strategy").toString).getOrElse("EQUAL")
+
+  var partitionEnvelopes: List[Envelope] = null
 
   // Control partitioning strategies that require a sample of the data
   val sampleSize = Try(params("sampleSize").toInt).getOrElse(100)
@@ -244,7 +247,7 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 
   if (partitionedRDD == null && spatiallyPartition) {
     val bounds = SparkUtils.getBound(rawRDD)
-    val partitionEnvelopes = partitionStrategy match {
+    partitionEnvelopes = partitionStrategy match {
       case "EQUAL" => SparkUtils.equalPartitioning(bounds, numPartitions)
       case "RTREE" => SparkUtils.rtreePartitioning(rawRDD, numPartitions, sampleSize, thresholdMultiplier)
     }
@@ -276,7 +279,8 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
     if (cache) {
       if (spatiallyPartition) {
-        SparkUtils.buildScanInMemoryPartScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params, indexPartRDD)
+        SparkUtils.buildScanInMemoryPartScan(requiredColumns, filters, filt,
+                                              sqlContext.sparkContext, schema, params, partitionHints, indexPartRDD)
       } else {
         SparkUtils.buildScanInMemoryScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params, indexRDD)
       }
@@ -345,6 +349,21 @@ object SparkUtils extends LazyLogging {
     if (result.isEmpty) {
       val pair = (-1, sf)
       result += pair
+    }
+    result.toList
+  }
+
+  // Maps a geometry to the id of the envelope that contains it
+  // Used to derive partition hints
+  def gridIdMapper(geom: Geometry, envelopes: List[Envelope]): List[Int] = {
+    var result = new ListBuffer[Int]
+    envelopes.indices.foreach { index =>
+      if (envelopes(index).contains(geom.getEnvelopeInternal)) {
+        result += index
+      }
+    }
+    if (result.isEmpty) {
+      result += -1
     }
     result.toList
   }
@@ -560,6 +579,7 @@ object SparkUtils extends LazyLogging {
                                 ctx: SparkContext,
                                 schema: StructType,
                                 params: Map[String, String],
+                                partitionHints: Seq[Int],
                                 indexPartRDD: RDD[(Int, GeoCQEngineDataStore)]): RDD[Row] = {
 
     logger.debug(
@@ -572,7 +592,14 @@ object SparkUtils extends LazyLogging {
     logger.debug(s"filterString = $filterString")
 
 
-    // TODO: Could derive key from query and go straight to that partition
+    // If keys were derived from query, go straight to those partitions
+    val reducedRdd = if (partitionHints != null) {
+      indexPartRDD.filter {case (key, _) => partitionHints.contains(key) }
+    } else {
+      indexPartRDD
+    }
+
+
     // TODO: Could keep track of which keys are empty partitions and skip those
 
     val extractors = getExtractors(requiredColumns, schema)
