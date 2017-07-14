@@ -5,18 +5,18 @@ GeoMesa provides many ways to optimize your data storage. You can add additional
 certain queries, disable indices to speed up ingestion, pre-split tables for optimal data
 distribution and migrate data between tables or environments.
 
+.. _accumulo_attribute_indices:
 
-.. _attribute_indices:
+Accumulo Attribute Indices
+--------------------------
 
-Attribute Indices
------------------
+See :ref:`attribute_indices` for an overview of attribute indices. The Accumulo data store extends the
+normal attribute indices with an additional 'join' format that stores less data.
 
-Some queries are slow to answer using the default indices. For example, with twitter data you
-might want to return all tweets for a given user. To speed up this type of query, any
-attribute in your simple feature type may be indexed individually.
+.. warning::
 
-Attribute indices may be one of two types: join or full.
-
+    Accumulo data stores use the reduced 'join' format by default. In order to use 'full' indices,
+    the keyword ``full`` must be used in the ``SimpleFeatureType`` as described below.
 
 Join Indices
 ^^^^^^^^^^^^
@@ -31,97 +31,16 @@ a query with only the data in the join index. In general, this means that the qu
 returning the properties for the default date, default geometry and the attribute being queried.
 In addition, any CQL filters must only operate on those three attributes as well.
 
+The keyword ``join`` may be used in place of ``true`` when specifying an attribute index in the
+``SimpleFeatureType``. Note that join indices are the default in the Accumulo data store.
 
 Full Indices
 ^^^^^^^^^^^^
 
-Full indices store the full simple feature. This takes up the most space, but allows for any
-query to be answered without joining against the record table.
-
-
-Cardinality Hints
-^^^^^^^^^^^^^^^^^
-
-GeoMesa has a query planner that tries to find the best strategy for answering a given query. In
-general, this means using the index that will filter the result set the most, before considering
-the entire query filter on the reduced data set. For simple queries, there is often only one
-suitable index. However, for mixed queries, there can be multiple options.
-
-For example, given the query ``bbox(geom, -120, -60, 120, 60) AND IN('id-01')``, we could try to
-execute against the geohash index using the bounding box, or we could try to execute against the
-record index using the feature ID. In this case, we know that the ID filter will match at most one
-record, while the bbox filter could match many records, so we will choose the record index.
-
-In order to force GeoMesa to always use the attribute index when available, you may specify
-an attribute as having a high cardinality - i.e. having many distinct values. This implies
-that a query against that attribute will return relatively few records. If a query contains
-a filter against a high-cardinality attribute, the attribute index will always be used first.
-
-Note that technically you may also specify attributes as low-cardinality - but in that case
-it is better to just not index the attribute at all.
-
-
-Adding Attribute Indices
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-To index an attribute, add an ``index`` hint to the attribute descriptor with a value of ``join`` or
-``full``. The string ``true`` is also allowed for legacy reasons, and is equivalent to join. To set
-the cardinality of an attribute, use the hint ``cardinality`` with a value of ``high`` or ``low``.
-
-Setting the hint can be done in multiple ways. If you are using a string to indicate your simple feature type
-(e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
-the hint to the attribute to be indexed, like so:
-
-.. code-block:: java
-
-    // append the hint after the attribute type, separated by a colon
-    String spec = "name:String:index=full:cardinality=high,age:Int:index=join," +
-        "dtg:Date,*geom:Point:srid=4326"
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-
-If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
-you may set the hint directly in the feature type:
-
-.. code-block:: java
-
-    // set the hint directly
-    SimpleFeatureType sft = ...
-    sft.getDescriptor("name").getUserData().put("index", "join");
-    sft.getDescriptor("name").getUserData().put("cardinality", "high");
-
-If you are using TypeSafe configuration files to define your simple feature type, you may include the hint in
-the attribute field:
-
-.. code-block:: javascript
-
-    geomesa {
-      sfts {
-        "mySft" = {
-          attributes = [
-            { name = name, type = String, index = full, cardinality = high }
-            { name = age,  type = Int,    index = join                     }
-            { name = dtg,  type = Date                                     }
-            { name = geom, type = Point,  srid = 4326                      }
-          ]
-        }
-      }
-    }
-
-If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
-
-.. code-block:: scala
-
-    // scala example
-    import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
-    import org.locationtech.geomesa.utils.stats.Cardinality
-
-    val sft = new SftBuilder()
-        .stringType("name", Opts(index = true, cardinality = Cardinality.HIGH))
-        .intType("age", Opts(index = true))
-        .date("dtg")
-        .geometry("geom", default = true)
-        .build("mySft")
-
+Full indices store the full simple feature. This takes up the most space on disk, but allows for any query to
+be answered without joining against the record table. This is the only option for non-Accumulo data stores.
+To use a full index, the keyword ``full`` must be used in place of ``true`` when specifying an attribute
+index in the ``SimpleFeatureType``.  Note that join indices are the default in the Accumulo data store.
 
 .. _index_upgrades:
 

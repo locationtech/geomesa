@@ -68,8 +68,8 @@ Space-filling curves can also work with higher-resolution maps, like the one sho
 
 Each point in this curve can be assigned a sequential value, letting GeoMesa represent what might have been a latitude-longitude pair as a single integer. This is great for representing two-dimensional data in a one-dimensional key, as is the case with a key-value datastore. Even more significantly, these space-filling curves can be adapted for *n* dimensions, letting GeoMesa linearize  *n* dimensions of data in a single dimension. 
 
-GeoMesa’s Index
----------------
+GeoMesa Indexing Key
+--------------------
 
 The basic principle of GeoMesa’s index is to represent the three dimensions of longitude, latitude, and time with a three-dimensional space filling curve, using the values of the points along this curve as the key. This lets it store a record in a key-value store with a key that represents the three data dimensions that we most often use for queries. 
 
