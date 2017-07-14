@@ -35,6 +35,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
     var sc: SQLContext = null
 
     var df: DataFrame = null
+    var dfIndexed: DataFrame = null
 
     // before
     step {
@@ -50,13 +51,47 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .format("geomesa")
         .options(dsParams)
         .option("geomesa.feature", "chicago")
-        .option("cache", "true")
         .load()
       logger.info(df.schema.treeString)
+
       df.createOrReplaceTempView("chicago")
 
       df.collect.length mustEqual 3
     }
+
+    "ingest into in-memory" >> {
+      dfIndexed = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("cache", "true")
+        .load()
+      logger.info(df.schema.treeString)
+
+      dfIndexed.createOrReplaceTempView("chicagoIndexed")
+
+      dfIndexed.collect.length mustEqual 3
+    }
+
+    "handle projections on in-memory store" >> {
+      val r = sc.sql("select geom from chicagoIndexed where case_number = 1")
+      val d = r.collect
+      d.length mustEqual 1
+
+      val row = d(0)
+      row.schema.fieldNames.length mustEqual 1
+      row.fieldIndex("geom") mustEqual 0
+    }
+
+    "basic sql in-memory" >> {
+      val r = sc.sql("select * from chicagoIndexed where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")
+      val d = r.collect
+
+      d.length mustEqual 1
+      d.head.getAs[Point]("geom") mustEqual createPoint(new Coordinate(-76.5, 38.5))
+    }
+
+
 
     "basic sql 1" >> {
       val r = sc.sql("select * from chicago where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")
