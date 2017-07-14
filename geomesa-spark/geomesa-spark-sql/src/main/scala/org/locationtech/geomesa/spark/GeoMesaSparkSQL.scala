@@ -607,7 +607,7 @@ object SparkUtils extends LazyLogging {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
 
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
-    val result = indexPartRDD.flatMap { case (key, engine) =>
+    val result = reducedRdd.flatMap { case (key, engine) =>
         val cqlFilter = ECQL.toFilter(filterString)
         val query = new Query(params(GEOMESA_SQL_FEATURE), cqlFilter, requiredAttributes)
         val fr = engine.getFeatureReader(query, Transaction.AUTO_COMMIT)
