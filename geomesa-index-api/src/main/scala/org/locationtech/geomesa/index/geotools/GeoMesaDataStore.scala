@@ -107,7 +107,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     *
     * @return iterator version
     */
-  protected def getIteratorVersion: String = GeoMesaProperties.ProjectVersion
+  protected def getIteratorVersion: Set[String] = Set.empty
 
   // methods from org.geotools.data.DataStore
 
@@ -481,7 +481,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     *
     * @return (client version, iterator version)
     */
-  def getVersion: (String, String) = (GeoMesaProperties.ProjectVersion, getIteratorVersion)
+  def getVersion: (String, Set[String]) = (GeoMesaProperties.ProjectVersion, getIteratorVersion)
 
   // end public methods
 
@@ -541,10 +541,10 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     */
   private def checkProjectVersion(): Unit = {
     if (projectVersionCheck.get() < System.currentTimeMillis()) {
-      val (clientVersion, iteratorVersion) = getVersion
-      if (iteratorVersion != clientVersion) {
+      val (clientVersion, iteratorVersions) = getVersion
+      if (iteratorVersions.exists(_ != clientVersion)) {
         val versionMsg = "Configured server-side iterators do not match client version - " +
-            s"client version: $clientVersion, server version: $iteratorVersion"
+            s"client version: $clientVersion, server versions: ${iteratorVersions.mkString(", ")}"
         logger.warn(versionMsg)
       }
       projectVersionCheck.set(System.currentTimeMillis() + 3600000) // 1 hour
