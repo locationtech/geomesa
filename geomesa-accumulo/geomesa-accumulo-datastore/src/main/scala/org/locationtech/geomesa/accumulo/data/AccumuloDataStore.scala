@@ -10,7 +10,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.io.IOException
-import java.lang.InterruptedException
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TableOperations
@@ -63,31 +63,22 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override val stats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
-  private val kerberosRenewerThread : Option[Thread] = if (UserGroupInformation.isSecurityEnabled) {
-    logger.info("Creating thread to periodically renew TGT from keytab")
-    Some(new Thread(new Runnable {
-      def run() {
-        while (true) {
+  val kerberosTgtRenewer : Option[ScheduledExecutorService] = if (UserGroupInformation.isSecurityEnabled) {
+    val executor = Executors.newSingleThreadScheduledExecutor()
+    executor.scheduleAtFixedRate(
+      new Runnable {
+        def run(): Unit = {
           try {
-            logger.info("Checking whether TGT needs renewing...")
+            logger.info("Checking whether TGT needs renewing for " + UserGroupInformation.getCurrentUser.toString)
+            logger.debug("Logged in from keytab? " + UserGroupInformation.getCurrentUser.isFromKeytab.toString)
             UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
           } catch {
-            case iox: IOException => logger.warn("Error checking and renewing tgt: " + iox.toString)
-          }
-
-          try {
-            // Sleep for 10 mins
-            Thread.sleep(10*60*1000)
-          } catch {
-            case ie: InterruptedException => logger.info("Kerberos renewer thread stopping"); return
+            case iox: IOException => logger.warn("Error checking and renewing TGT: " + iox.toString)
           }
         }
-      }
-    }))
-  } else None // not using Kerberos
-
-  // Start thread (if it exists)
-  kerberosRenewerThread.foreach( _.start() )
+      }, 0, 10, TimeUnit.MINUTES)
+    Some(executor)
+  } else None
 
   // some convenience operations
 
@@ -270,11 +261,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override def dispose(): Unit = {
     super.dispose()
-    kerberosRenewerThread.foreach( t => {
-      logger.info("Stopping Kerberos renewer thread")
-      t.interrupt()
-    })
+    kerberosTgtRenewer.foreach( _.shutdown() )
   }
+
 }
 
 object AccumuloDataStore {
