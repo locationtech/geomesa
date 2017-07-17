@@ -165,84 +165,64 @@ trait KryoSimpleFeatureDeserialization extends SimpleFeatureSerializer {
 
   import KryoFeatureSerializer._
 
-  private[kryo] def deserializeSft: SimpleFeatureType
+  private [kryo] def deserializeSft: SimpleFeatureType
 
   private val cacheKey = CacheKeyGenerator.cacheKey(deserializeSft)
   private val numAttributes = deserializeSft.getAttributeCount
 
+  private val immutable = options.immutable
+  private val withoutId = options.withoutId
+  private val withoutUserData = !options.withUserData
+
   private val readers = getReaders(cacheKey, deserializeSft)
 
-  private lazy val lazyUserData: (Input) => jMap[AnyRef, AnyRef] = if (options.withUserData) {
-    (input) => KryoUserDataSerialization.deserialize(input)
-  } else {
-    (input) => new jHashMap[AnyRef, AnyRef]
+  def getReusableFeature: KryoBufferSimpleFeature = {
+    val readUserData: (Input) => jMap[AnyRef, AnyRef] = if (withoutUserData) {
+      (input) => new jHashMap[AnyRef, AnyRef]
+    } else {
+      (input) => KryoUserDataSerialization.deserialize(input)
+    }
+    new KryoBufferSimpleFeature(deserializeSft, readers, readUserData, options)
   }
 
-  def getReusableFeature: KryoBufferSimpleFeature =
-    new KryoBufferSimpleFeature(deserializeSft, readers, lazyUserData, options)
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
 
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = doReadFromBytes(bytes, 0, bytes.length)
   override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    doReadFromBytes(bytes, offset, length)
-  override def deserialize(in: InputStream): SimpleFeature = doReadFromStream(in)
+    readFeature(getInput(bytes, offset, length))
 
-  private val doReadFromBytes: (Array[Byte], Int, Int) => SimpleFeature =
-    if (options.withUserData) readFromBytesWithUserData else readFromBytes
-  private val doReadFromStream: (InputStream) => SimpleFeature =
-    if (options.withUserData) readFromStreamWithUserData else readFromStream
+  override def deserialize(in: InputStream): SimpleFeature = readFeature(getInput(in))
 
-  protected[kryo] def readFromBytes(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
-    val input = getInput(bytes, offset, length)
-    readFeature(input)
-  }
-
-  protected[kryo] def readFromStream(stream: InputStream): SimpleFeature = {
-    val input = getInput(stream)
-    readFeature(input)
-  }
-
-  protected[kryo] def readFromBytesWithUserData(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
-    val input = getInput(bytes, offset, length)
-    val sf = readFeature(input)
-    // skip offset data
-    var i = 0
-    while (i < numAttributes) {
-      input.readInt(true)
-      i += 1
-    }
-    val ud = KryoUserDataSerialization.deserialize(input)
-    sf.getUserData.putAll(ud)
-    sf
-  }
-
-  protected[kryo] def readFromStreamWithUserData(stream: InputStream): SimpleFeature = {
-    val input = getInput(stream)
-    val sf = readFeature(input)
-    // skip offset data
-    var i = 0
-    while (i < numAttributes) {
-      input.readInt(true)
-      i += 1
-    }
-    val ud = KryoUserDataSerialization.deserialize(input)
-    sf.getUserData.putAll(ud)
-    sf
-  }
-
-  protected[kryo] def readFeature(input: Input): SimpleFeature = {
+  private def readFeature(input: Input): SimpleFeature = {
     val offset = input.position()
     if (input.readInt(true) == 1) {
       throw new IllegalArgumentException("Can't process features serialized with an older version")
     }
+
     val limit = offset + input.readInt() // read the start of the offsets - we'll stop reading when we hit this
-    val id = if (options.withoutId) { "" } else { input.readString() }
+    val id = if (withoutId) { "" } else { input.readString() }
     val attributes = Array.ofDim[AnyRef](numAttributes)
     var i = 0
     while (i < numAttributes && input.position < limit) {
       attributes(i) = readers(i)(input)
       i += 1
     }
-    new ScalaSimpleFeature(id, deserializeSft, attributes)
+
+    val userData = if (withoutUserData) { null } else {
+      // skip offset data
+      var i = 0
+      while (i < numAttributes) {
+        input.readInt(true)
+        i += 1
+      }
+      KryoUserDataSerialization.deserialize(input)
+    }
+
+    if (immutable) {
+      // TODO collection attributes (lists, maps, byte arrays) are still mutable...
+      new ImmutableSimpleFeature(deserializeSft, id, attributes, userData)
+    } else {
+      new ScalaSimpleFeature(id, deserializeSft, attributes, userData)
+    }
   }
 }
 
