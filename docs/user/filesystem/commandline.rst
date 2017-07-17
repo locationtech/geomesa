@@ -87,6 +87,16 @@ If you are not using one of these data types you can provide a file containing y
 the GeoMesa tools to reference the schema configuration by name (see :ref:`fsds_partition_schemes`). Schemas files
 can also be stored in a remote filesystem such as HDFS, S3, GCS, or WASB.
 
+Commonly used arguments for ingest are:
+
+* ``-p`` - Root path for storage (e.g. s3a://bucket/datastores/myds)
+* ``-e``` - Encoding to use for file storage (e.g. parquet)
+* ``--partition-scheme`` - Common partition scheme name (e.g. daily,z2) or path to a file containing a scheme config
+* ``--temp-dir`` - A temp dir in HDFS to use when doing S3 ingest (can speed up writes for parquet)
+* ``--num-reducers`` - The number of reducers to use when performing distributed ingest (try to set to num-partitions / 2)
+* ``-C`` - Path to a converter or named convert available in the environment
+* ``-s`` - Path to a SimpleFeatureType config or named type available in the environment
+
 For example lets say we have all our data for 2016 stored in an S3 bucket::
 
     geomesa-fs ingest \
@@ -95,6 +105,7 @@ For example lets say we have all our data for 2016 stored in an S3 bucket::
       --partition-scheme daily,z2-2bits \
       -s s3a://mybucket/schemas/my-config.conf \
       -C s3a://mybucket/schemas/my-config.conf \
+      --temp-dir hdfs://namenode:port/tmp/gm/1 \
       --num-reducers 20 \
       's3a://mybucket/data/2016/*'
 
