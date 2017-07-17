@@ -39,17 +39,17 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         gf.createPoint(new Coordinate(10, 10))), sft, new FeatureIdImpl("1"))
 
     "partition based on date" >> {
-      val ps = new DateTimeScheme("yyyy-MM-dd", ChronoUnit.DAYS, 1, sft, "dtg", true)
+      val ps = new DateTimeScheme("yyyy-MM-dd", ChronoUnit.DAYS, 1, "dtg", true)
       ps.getPartitionName(sf) mustEqual "2017-01-03"
     }
 
     "partition based on date with slash delimiter" >> {
-      val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, sft, "dtg", true)
+      val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, "dtg", true)
       ps.getPartitionName(sf) mustEqual "2017/003/10"
     }
 
     "partition based on date with slash delimiter" >> {
-      val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, sft, "dtg", true)
+      val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, "dtg", true)
       ps.getPartitionName(sf) mustEqual "2017/003/10"
     }
 
@@ -63,8 +63,8 @@ class PartitionSchemeTest extends Specification with AllExpectations {
           gf.createPoint(new Coordinate(-75, 38))), sft, new FeatureIdImpl("1"))
 
       val ps = new CompositeScheme(Seq(
-        new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, sft, "dtg", true),
-        new Z2Scheme(10, sft, "geom", true)
+        new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, "dtg", true),
+        new Z2Scheme(10, "geom", true)
       ))
       ps.getPartitionName(sf) mustEqual "2017/003/0770"
       ps.getPartitionName(sf2) mustEqual "2017/003/0617"
@@ -81,44 +81,44 @@ class PartitionSchemeTest extends Specification with AllExpectations {
           gf.createPoint(new Coordinate(-75, 38))), sft, new FeatureIdImpl("1"))
 
       val ps = new CompositeScheme(Seq(
-        new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, sft, "dtg", true),
-        new Z2Scheme(20, sft, "geom", true)
+        new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, "dtg", true),
+        new Z2Scheme(20, "geom", true)
       ))
       ps.getPartitionName(sf) mustEqual "2017/003/0789456"
       ps.getPartitionName(sf2) mustEqual "2017/003/0632516"
     }
 
     "return correct date partitions" >> {
-      val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, sft, "dtg", true)
+      val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true)
       val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 24
 
     }
 
     "2 bit datetime z2 partition" >> {
-      val ps = new Z2Scheme(2, sft, "geom", true)
+      val ps = new Z2Scheme(2, "geom", true)
       val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 4
     }
 
     "2 bit z2 with date" >> {
       val ps = new CompositeScheme(Seq(
-        new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, sft, "dtg", true),
-        new Z2Scheme(2, sft, "geom", true)
+        new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true),
+        new Z2Scheme(2, "geom", true)
       ))
       val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 24 * 4
     }
 
     "2 bit with filter" >> {
-      val ps = new Z2Scheme(2, sft, "geom", true)
+      val ps = new Z2Scheme(2, "geom", true)
       ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -180, -90, 180, 90, 'EPSG:4326')")).size mustEqual 4
       ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -1, -1, 1, 1, 'EPSG:4326')")).size mustEqual 4
       ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -10, 5, 10, 6, 'EPSG:4326')")).size mustEqual 2
     }
 
     "4 bit with filter" >> {
-      val ps = new Z2Scheme(4, sft, "geom", true)
+      val ps = new Z2Scheme(4, "geom", true)
       ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -180, -90, 180, 90, 'EPSG:4326')")).size mustEqual 16
       ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -1, -1, 1, 1, 'EPSG:4326')")).size mustEqual 4
       ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -10, 5, 10, 6, 'EPSG:4326')")).size mustEqual 2
@@ -129,8 +129,8 @@ class PartitionSchemeTest extends Specification with AllExpectations {
 
     "date time test" >> {
       val ps = new CompositeScheme(Seq(
-        new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, sft, "dtg", true),
-        new Z2Scheme(2, sft, "geom", true)
+        new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true),
+        new Z2Scheme(2, "geom", true)
       ))
       val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size mustEqual 96

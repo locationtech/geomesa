@@ -15,7 +15,7 @@ import java.time.{Instant, ZoneOffset}
 import java.util
 import java.util.Date
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.curve.Z2SFC
@@ -58,29 +58,29 @@ object CommonSchemeLoader {
     val schemes = name.toLowerCase.split(PartitionScheme.SchemeSeparator).map {
 
       case "julian-minute" =>
-        new DateTimeScheme(JulianMinute, ChronoUnit.MINUTES, 1, sft, sft.getDtgField.get, true)
+        new DateTimeScheme(JulianMinute, ChronoUnit.MINUTES, 1, sft.getDtgField.get, true)
 
       case "julian-hourly" =>
-        new DateTimeScheme(JulianHourly, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, true)
+        new DateTimeScheme(JulianHourly, ChronoUnit.HOURS, 1, sft.getDtgField.get, true)
 
       case "julian-daily" =>
-        new DateTimeScheme(JulianDay, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, true)
+        new DateTimeScheme(JulianDay, ChronoUnit.DAYS, 1, sft.getDtgField.get, true)
 
       case "minute" =>
-        new DateTimeScheme(Minute, ChronoUnit.MINUTES, 1, sft, sft.getDtgField.get, true)
+        new DateTimeScheme(Minute, ChronoUnit.MINUTES, 1, sft.getDtgField.get, true)
 
       case "hourly" =>
-        new DateTimeScheme(Hourly, ChronoUnit.HOURS, 1, sft, sft.getDtgField.get, true)
+        new DateTimeScheme(Hourly, ChronoUnit.HOURS, 1, sft.getDtgField.get, true)
 
       case "daily" =>
-        new DateTimeScheme(Daily, ChronoUnit.DAYS, 1, sft, sft.getDtgField.get, true)
+        new DateTimeScheme(Daily, ChronoUnit.DAYS, 1, sft.getDtgField.get, true)
 
       case "monthly" =>
-        new DateTimeScheme(Monthly, ChronoUnit.MONTHS, 1, sft, sft.getDtgField.get, true)
+        new DateTimeScheme(Monthly, ChronoUnit.MONTHS, 1, sft.getDtgField.get, true)
 
       case z2 if z2.matches("z2-[0-9]+bit") =>
         val bits = "z2-([0-9]+)bit".r("bits").findFirstMatchIn(z2).get.group("bits").toInt
-        new Z2Scheme(bits, sft, sft.getGeomField, true)
+        new Z2Scheme(bits, sft.getGeomField, true)
 
       case _ =>
         throw new IllegalArgumentException(s"Unable to find well known scheme(s) for argument $name")
@@ -131,12 +131,12 @@ object PartitionScheme {
         val fmt = parseDateTimeFormat(opts)
         val su = parseStepUnit(opts)
         val s = parseStep(opts)
-        new DateTimeScheme(fmt, su, s, sft, attr, leaf)
+        new DateTimeScheme(fmt, su, s, attr, leaf)
 
       case Z2Scheme.Name =>
         val geomAttr = parseGeomAttr(opts)
         val z2Res = parseZ2Resolution(opts)
-        new Z2Scheme(z2Res, sft, geomAttr, leaf)
+        new Z2Scheme(z2Res, geomAttr, leaf)
 
       case _ =>
         throw new IllegalArgumentException(s"Unknown scheme name $pName")
@@ -163,6 +163,11 @@ object PartitionScheme {
     apply(sft, schemeName, opts)
   }
 
+  def toConfig(scheme: PartitionScheme): Config =
+    ConfigFactory.empty()
+      .withValue("scheme", ConfigValueFactory.fromAnyRef(scheme.name))
+      .withValue("options", ConfigValueFactory.fromMap(scheme.getOptions))
+
   def stringify(schemeName: String, opts: util.Map[String, String]): String = {
     import scala.collection.JavaConverters._
     val conf = ConfigFactory.parseMap(Map(
@@ -180,14 +185,12 @@ object PartitionScheme {
 class DateTimeScheme(fmtStr: String,
                      stepUnit: ChronoUnit,
                      step: Int,
-                     sft: SimpleFeatureType,
                      dtgAttribute: String,
                      leafStorage: Boolean)
   extends PartitionScheme {
-  private val index = sft.indexOf(dtgAttribute)
   private val fmt = DateTimeFormatter.ofPattern(fmtStr)
   override def getPartitionName(sf: SimpleFeature): String = {
-    val instant = sf.getAttribute(index).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC)
+    val instant = sf.getAttribute(dtgAttribute).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC)
     fmt.format(instant)
   }
 
@@ -244,7 +247,6 @@ object DateTimeScheme {
 }
 
 class Z2Scheme(bits: Int, // number of bits
-               sft: SimpleFeatureType,
                geomAttribute: String,
                leafStorage: Boolean) extends PartitionScheme {
 
@@ -253,10 +255,9 @@ class Z2Scheme(bits: Int, // number of bits
   // note: z2sfc resolution is per dimension
   private val z2 = new Z2SFC(bits / 2)
   private val digits = math.ceil(math.log10(math.pow(2, bits))).toInt
-  private val geomAttrIndex = sft.indexOf(geomAttribute)
 
   override def getPartitionName(sf: SimpleFeature): String = {
-    val pt = sf.getAttribute(geomAttrIndex).asInstanceOf[Point]
+    val pt = sf.getAttribute(geomAttribute).asInstanceOf[Point]
     val idx = z2.index(pt.getX, pt.getY).z
     idx.formatted(s"%0${digits}d")
   }

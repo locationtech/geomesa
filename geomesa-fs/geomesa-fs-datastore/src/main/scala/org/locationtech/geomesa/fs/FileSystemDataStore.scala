@@ -37,9 +37,8 @@ class FileSystemDataStore(fs: FileSystem,
   }
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
-    val sft =
-      storage.listFeatureTypes().find { f => f.getTypeName.equals(entry.getTypeName) }
-        .getOrElse(throw new RuntimeException(s"Could not find feature type ${entry.getTypeName}"))
+    storage.listFeatureTypes().find { f => f.getTypeName.equals(entry.getTypeName) }
+      .getOrElse(throw new RuntimeException(s"Could not find feature type ${entry.getTypeName}"))
     new FileSystemFeatureStore(entry, Query.ALL, fs, storage, readThreads)
   }
 
@@ -59,7 +58,6 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
     val path = new Path(PathParam.lookUp(params).asInstanceOf[String])
     val encoding = EncodingParam.lookUp(params).asInstanceOf[String]
-    // TODO: handle errors
 
     val conf = new Configuration()
     val storage = storageFactory.iterator().filter(_.canProcess(params)).map(_.build(params)).headOption.getOrElse {

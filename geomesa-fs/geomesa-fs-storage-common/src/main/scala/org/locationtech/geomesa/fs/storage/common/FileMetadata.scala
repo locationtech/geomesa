@@ -9,85 +9,141 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import java.util
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
 
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.locationtech.geomesa.fs.storage.api.Metadata
+import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 
 // TODO GEOMESA-1913 Use atomic file writing for metadata
-class FileMetadata(fs: FileSystem,
-                   path: Path,
-                   conf: Configuration) extends Metadata with LazyLogging {
+class FileMetadata protected[FileMetadata] (fs: FileSystem,
+                                            path: Path,
+                                            sft: SimpleFeatureType,
+                                            partitionScheme: PartitionScheme,
+                                            encoding: String,
+                                            partitions: Map[String, List[String]],
+                                            conf: Configuration) extends Metadata with LazyLogging {
 
-  private var cached: Map[String, List[String]] = _
+  private val writeLock = new ReentrantLock()
 
-  private def load(): Map[String, List[String]] = {
-    if (fs.exists(path)) {
-      val in = path.getFileSystem(conf).open(path)
-      val str = try {
-        IOUtils.toString(in)
-      } finally {
-        in.close()
-      }
-      val config = ConfigFactory.parseString(str, ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
+  private val internalPartitions: ConcurrentHashMap[String, scala.collection.mutable.Set[String]] =
+    new ConcurrentHashMap[String, scala.collection.mutable.Set[String]]()
+  partitions.keys.foreach(k => addPartition(k, partitions(k)))
+
+  override def addPartition(partition: String, files: java.util.List[String]): Unit = {
+    internalPartitions.putIfAbsent(partition, mutable.Set.empty[String])
+    internalPartitions.get(partition).addAll(files)
+    save()
+  }
+
+  override def addPartitions(toAdd: java.util.Map[String, java.util.List[String]]): Unit = {
+    toAdd.entrySet().foreach { e =>
+      internalPartitions.putIfAbsent(e.getKey, mutable.Set.empty[String])
+      internalPartitions.get(e.getKey).addAll(e.getValue)
+    }
+    save()
+  }
+
+  private def partitionsForConf: util.Map[String, util.List[String]] = {
+    val ret = new util.HashMap[String, util.List[String]]()
+    internalPartitions.keysIterator.foreach { k =>
+      ret.put(k, new java.util.ArrayList[String](internalPartitions.get(k)))
+    }
+    ret
+  }
+
+  private def save(): Unit = {
+    writeLock.lock()
+    try {
+      val config = ConfigFactory.empty()
+        .withValue("featureType", SimpleFeatureTypes.toConfig(sft, includePrefix = false, includeUserData = true).root())
+        .withValue("encoding", ConfigValueFactory.fromAnyRef(encoding))
+        .withValue("partitionScheme", PartitionScheme.toConfig(partitionScheme).root())
+        .withValue("partitions", ConfigValueFactory.fromMap(partitionsForConf))
+
+      val out = path.getFileSystem(conf).create(path, true)
+      out.writeBytes(config.root.render(ConfigRenderOptions.defaults().setComments(false).setFormatted(true).setJson(true).setOriginComments(false)))
+      out.hflush()
+      out.hsync()
+      out.close()
+    } finally {
+      writeLock.unlock()
+    }
+  }
+
+  override def getPartitions: java.util.List[String] = new java.util.ArrayList[String](internalPartitions.keys().toList)
+
+  override def getFiles(partition: String): util.List[String] =
+    Collections.unmodifiableList(internalPartitions.get(partition).toList)
+
+  override def getNumStorageFiles: Int = internalPartitions.entrySet().flatMap(_.getValue).size
+
+  override def getNumPartitions: Int = internalPartitions.keys.size
+
+  override def getEncoding: String = encoding
+
+  override def getPartitionScheme: PartitionScheme = partitionScheme
+
+  override def getSimpleFeatureType: SimpleFeatureType = sft
+
+  override def addFile(partition: String, filename: String): Unit = {
+    internalPartitions.putIfAbsent(partition, mutable.Set.empty[String])
+    internalPartitions.get(partition).add(filename)
+    save()
+  }
+
+}
+
+object FileMetadata {
+
+  def create(fs: FileSystem,
+             path: Path,
+             sft: SimpleFeatureType,
+             encoding: String,
+             partitionScheme: PartitionScheme,
+             conf: Configuration): FileMetadata = {
+    val m = new FileMetadata(fs, path, sft, partitionScheme, encoding, Map.empty, conf)
+    m.save()
+    m
+  }
+
+  def read(fs: FileSystem, path: Path, conf: Configuration): FileMetadata = {
+    val in = fs.open(path)
+    val config = try {
+      ConfigFactory.parseString(IOUtils.toString(in), ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
+    } finally {
+      in.close()
+    }
+
+    // Load SFT
+    val sft = SimpleFeatureTypes.createType(config.getConfig("featureType"), path = None)
+
+    // Load encoding
+    val encoding = config.getString("encoding")
+
+    // Load partition scheme
+    val scheme = PartitionScheme(sft, config.getConfig("partitionScheme"))
+
+    // Load Partitions
+    val partitions = {
       val pconfig = config.getConfig("partitions")
       pconfig.root().entrySet().map { e =>
         val key = e.getKey
         key -> pconfig.getStringList(key).toList
       }.toMap
-    } else Map.empty
+    }
+
+    new FileMetadata(fs, path, sft, scheme, encoding, partitions, conf)
   }
-
-  override def addPartition(partition: String, files: java.util.List[String]): Unit =
-    addPartitions(Map{ partition -> files})
-
-  override def addPartitions(toAdd: java.util.Map[String, java.util.List[String]]): Unit = {
-    import scala.collection.JavaConversions._
-    import scala.collection.JavaConverters._
-    val existing = load()
-    val allKeys = existing.keySet ++ toAdd.keySet()
-
-    // todo typesafe config wants java boooo
-    val javaMap: java.util.Map[String, java.util.List[String]] = allKeys.toList.map { k =>
-      val e: List[String] = existing.get(k).toList.flatten
-      val n: List[String] = toAdd.getOrDefault(k, List.empty[String]).toList
-      k -> e.++(n).distinct.asJava
-    }.toMap.asJava
-
-    val scalaMap: Map[String, List[String]] = allKeys.toList.map { k =>
-      val e: List[String] = existing.get(k).toList.flatten
-      val n: List[String] = toAdd.getOrDefault(k, List.empty[String]).toList
-      k -> e.++(n).distinct
-    }.toMap
-
-    val config = ConfigFactory.empty().withValue("partitions", ConfigValueFactory.fromMap(javaMap))
-    val out = path.getFileSystem(conf).create(path, true)
-    out.writeBytes(config.root.render(ConfigRenderOptions.defaults().setComments(false).setFormatted(true).setJson(true).setOriginComments(false)))
-    out.hflush()
-    out.hsync()
-    out.close()
-    cached = scalaMap
-    logger.info(s"wrote ${allKeys.size} partitions to metadata file")
-  }
-
-  override def getPartitions: java.util.List[String] = {
-    if (cached == null) cached = load()
-    cached.keys.toList
-  }
-
-  override def getFiles(partition: String): util.List[String] = {
-    if (cached == null) cached = load()
-    import scala.collection.JavaConverters._
-    cached.getOrElse(partition, List.empty[String]).asJava
-  }
-
-  override def getNumStorageFiles: Int = cached.entrySet().flatMap(_.getValue).size
-
-  override def getNumPartitions: Int = cached.keys.size
 }

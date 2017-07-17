@@ -19,7 +19,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.{CompositeScheme, DateTimeScheme, Z2Scheme}
+import org.locationtech.geomesa.fs.storage.common.{CompositeScheme, DateTimeScheme, PartitionScheme, Z2Scheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -51,9 +51,10 @@ class ParquetFSTest extends Specification with AllExpectations {
       ))
 
       val scheme = new CompositeScheme(Seq(
-        new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, sft, "dtg", false),
-        new Z2Scheme(10, sft, "geom", false)
+        new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", false),
+        new Z2Scheme(10, "geom", false)
       ))
+      PartitionScheme.addToSft(sft, scheme)
       fsStorage.createNewFeatureType(sft, scheme)
 
       fsStorage.listFeatureTypes().size mustEqual 1

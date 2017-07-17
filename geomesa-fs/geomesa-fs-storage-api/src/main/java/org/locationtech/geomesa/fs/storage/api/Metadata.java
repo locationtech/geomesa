@@ -8,11 +8,19 @@
 
 package org.locationtech.geomesa.fs.storage.api;
 
+import org.opengis.feature.simple.SimpleFeatureType;
+
 public interface Metadata {
+    void addFile(String partition, String filename);
     void addPartition(String partition, java.util.List<String> files);
     void addPartitions(java.util.Map<String, java.util.List<String>> partitions);
     java.util.List<String> getPartitions();
     java.util.List<String> getFiles(String partition);
     int getNumStorageFiles();
     int getNumPartitions();
+
+    String getEncoding();
+    PartitionScheme getPartitionScheme();
+    SimpleFeatureType getSimpleFeatureType();
+
 }

@@ -33,6 +33,7 @@ import scala.collection.JavaConversions._
 class BucketVsLeafStorageTest extends Specification {
 
   sequential
+
   "DataStores" should {
     val tempDir = Files.createTempDirectory("geomesa")
     val gf = JTSFactoryFinder.getGeometryFactory
@@ -64,7 +65,7 @@ class BucketVsLeafStorageTest extends Specification {
 
       "in one scheme" >> {
         val sft = mkSft("leaf-one")
-        val scheme = new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, sft, "dtg", true)
+        val scheme = new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", true)
         PartitionScheme.addToSft(sft, scheme)
         ds.createSchema(sft)
         ds.getTypeNames.length mustEqual 1
@@ -123,8 +124,8 @@ class BucketVsLeafStorageTest extends Specification {
       "in two schemes" >> {
         val sft = mkSft("leaf-two")
         val scheme = new CompositeScheme(Seq(
-          new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, sft, "dtg", true),
-          new Z2Scheme(2, sft, "geom", true))
+          new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", true),
+          new Z2Scheme(2, "geom", true))
         )
         PartitionScheme.addToSft(sft, scheme)
         ds.createSchema(sft)
@@ -170,7 +171,7 @@ class BucketVsLeafStorageTest extends Specification {
     "store data in buckets" >> {
       "in one scheme" >> {
         val sft = mkSft("bucket-one")
-        val scheme = new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, sft, "dtg", false)
+        val scheme = new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", false)
         PartitionScheme.addToSft(sft, scheme)
         ds.createSchema(sft)
         ds.getTypeNames.toSeq must contain("bucket-one")
@@ -226,8 +227,8 @@ class BucketVsLeafStorageTest extends Specification {
         val typeName = "bucket-two"
         val sft = mkSft(typeName)
         val scheme = new CompositeScheme(Seq(
-          new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, sft, "dtg", false),
-          new Z2Scheme(2, sft, "geom", false))
+          new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", false),
+          new Z2Scheme(2, "geom", false))
         )
         PartitionScheme.addToSft(sft, scheme)
         ds.createSchema(sft)

@@ -66,10 +66,11 @@ class ConverterStorage(root: Path,
                        partitionScheme: PartitionScheme,
                        sft: SimpleFeatureType,
                        converter: SimpleFeatureConverter[_]) extends FileSystemStorage {
-  override def listFeatureTypes(): util.List[SimpleFeatureType] = {
-    import scala.collection.JavaConverters._
-    List(sft).asJava
-  }
+  import scala.collection.JavaConversions._
+
+  override def listTypeNames(): util.List[String] = List(sft.getTypeName)
+
+  override def listFeatureTypes(): util.List[SimpleFeatureType] = List(sft)
 
   override def createNewFeatureType(sft: SimpleFeatureType, partitionScheme: PartitionScheme): Unit =
     throw new UnsupportedOperationException("Cannot create new feature type on existing DB")
@@ -99,10 +100,8 @@ class ConverterStorage(root: Path,
     }.toList
   }
 
-  override def listPartitions(typeName: String): util.List[Partition] = {
-    import scala.collection.JavaConversions._
+  override def listPartitions(typeName: String): util.List[Partition] =
     buildPartitionList(root, "", 0).map(getPartition)
-  }
 
   override def getFileSystemRoot(typeName: String): URI = root.toUri
 
@@ -110,11 +109,13 @@ class ConverterStorage(root: Path,
 
   override def getPartition(name: String): Partition = new StoragePartition(name)
 
-  import scala.collection.JavaConversions._
   override def getPaths(typeName: String, partition: Partition): java.util.List[URI] =
     List(new Path(root, partition.getName).toUri)
 
-  override def getMetadata(typeName: String): Metadata = ???
+  override def getMetadata(typeName: String): Metadata =
+    throw new UnsupportedOperationException("Cannot append to converter datastore")
 
-  override def updateMetadata(typeName: String): Unit = {}
+  override def updateMetadata(typeName: String): Unit =
+    throw new UnsupportedOperationException("Cannot append to converter datastore")
+
 }

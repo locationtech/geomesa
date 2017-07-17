@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public interface FileSystemStorage {
+    List<String> listTypeNames();
     List<SimpleFeatureType> listFeatureTypes();
     SimpleFeatureType getFeatureType(String typeName);
 

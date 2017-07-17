@@ -22,32 +22,36 @@ import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.{DateTimeScheme, PartitionScheme}
+import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FileSystemDataStoreTest extends Specification {
 
   sequential
 
-  val dir = Files.createTempDirectory("fsds-test").toFile
 
   "FileSystemDataStore" should {
-    "pass a test" >> {
-      val gf = JTSFactoryFinder.getGeometryFactory
+    val gf = JTSFactoryFinder.getGeometryFactory
+    val dir = Files.createTempDirectory("fsds-test").toFile
+
+    "create a DS" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily, ChronoUnit.DAYS, 1, "dtg", false)
 
       val sf = new ScalaSimpleFeature("1", sft, Array("test", Integer.valueOf(100),
-        ISODateTimeFormat.dateTime().parseDateTime("2017-06-05T04:03:02.0001Z").toDate, gf.createPoint(new Coordinate(10, 10))))
+        ISODateTimeFormat.dateTime().parseDateTime("2017-06-05T04:03:02.0001Z").toDate,
+        gf.createPoint(new Coordinate(10, 10))))
 
-      import scala.collection.JavaConversions._
       val ds = DataStoreFinder.getDataStore(Map(
         "fs.path" -> dir.getPath,
         "fs.encoding" -> "parquet",
         "parquet.compression" -> "gzip"))
-      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily, ChronoUnit.DAYS, 1, sft, "dtg", false)
       PartitionScheme.addToSft(sft, partitionScheme)
       ds.createSchema(sft)
 
@@ -58,18 +62,18 @@ class FileSystemDataStoreTest extends Specification {
       fw.write()
       fw.close()
 
-      // Metadata, schema, and partition file checks
-      new File(dir, "test/schema.sft").exists() must beTrue
-      new File(dir, "test/2017/06/05/0000.parquet").exists() must beTrue
-      new File(dir, "test/2017/06/05/0000.parquet").isFile must beTrue
-
       // metadata
-      new File(dir, "test/metadata").exists() must beTrue
-      val conf = ConfigFactory.parseFile(new File(dir, "test/metadata"))
+      new File(dir, "test/metadata.json").exists() must beTrue
+
+      val conf = ConfigFactory.parseFile(new File(dir, "test/metadata.json"))
       conf.hasPath("partitions") must beTrue
       val p1 = conf.getConfig("partitions").getStringList("2017/06/05")
       p1.size() mustEqual 1
       p1.get(0) mustEqual "0000.parquet"
+
+      // Metadata, schema, and partition file checks
+      new File(dir, "test/2017/06/05/0000.parquet").exists() must beTrue
+      new File(dir, "test/2017/06/05/0000.parquet").isFile must beTrue
 
       ds.getTypeNames must have size 1
       val fs = ds.getFeatureSource("test")
@@ -79,12 +83,41 @@ class FileSystemDataStoreTest extends Specification {
       val features = fs.getFeatures(q).features().toList
 
       features.size mustEqual 1
+    }
 
-      // TODO add another to ensure metadata works when reading writing
+    "create a second ds with the same path" >> {
+      // Load a new datastore to read metadata and stuff
+      val ds2 = DataStoreFinder.getDataStore(Map(
+        "fs.path" -> dir.getPath,
+        "fs.encoding" -> "parquet")).asInstanceOf[FileSystemDataStore]
+      ds2.getTypeNames.toList must containTheSameElementsAs(Seq("test"))
+
+      import org.locationtech.geomesa.utils.geotools.Conversions._
+      val fs = ds2.getFeatureSource("test").getFeatures(Filter.INCLUDE).features().toList
+
+      fs.size mustEqual 1
+      fs.head.getAttributes.toList must containTheSameElementsAs(
+        List("test",
+          Integer.valueOf(100),
+          ISODateTimeFormat.dateTime().parseDateTime("2017-06-05T04:03:02.0001Z").toDate,
+          gf.createPoint(new Coordinate(10, 10))))
+    }
+
+    "call create schema on existing type" >> {
+      val ds2 = DataStoreFinder.getDataStore(Map(
+        "fs.path" -> dir.getPath,
+        "fs.encoding" -> "parquet")).asInstanceOf[FileSystemDataStore]
+      val sameSft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily, ChronoUnit.DAYS, 1, "dtg", false)
+
+      PartitionScheme.addToSft(sameSft, partitionScheme)
+
+      ds2.createSchema(sameSft) must not(throwA[Throwable])
+    }
+
+    step {
+      FileUtils.deleteDirectory(dir)
     }
   }
 
-  step {
-    FileUtils.deleteDirectory(dir)
-  }
 }
