@@ -25,7 +25,7 @@ import org.apache.hadoop.tools.{DistCp, DistCpOptions}
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.util.ContextUtil
 import org.apache.parquet.hadoop.{ParquetOutputCommitter, ParquetOutputFormat}
-import org.geotools.data.DataStoreFinder
+import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -227,6 +227,7 @@ class IngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritab
   private var partitionScheme: PartitionScheme = _
 
   var written: Counter = _
+  var failed: Counter = _
 
   override def setup(context: Context): Unit = {
     super.setup(context)
@@ -235,15 +236,23 @@ class IngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritab
     partitionScheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft)
 
     written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
+    failed = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
   }
 
   override def map(key: LongWritable, sf: SimpleFeature, context: Context): Unit = {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     context.getCounter("geomesa", "map").increment(1)
     // partitionKey is important because this needs to be correct for the parquet file
-    val partitionKey = new Text(partitionScheme.getPartitionName(sf))
-    context.write(partitionKey, new BytesWritable(serializer.serialize(sf)))
-    written.increment(1)
+    try {
+      val partitionKey = new Text(partitionScheme.getPartitionName(sf))
+      context.write(partitionKey, new BytesWritable(serializer.serialize(sf)))
+      written.increment(1)
+    } catch {
+      case e: Throwable =>
+        logger.error(s"Failed to write '${DataUtilities.encodeFeature(sf)}'", e)
+        failed.increment(1)
+    }
+
   }
 }
 
