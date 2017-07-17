@@ -540,14 +540,14 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     * successful checks for 10 minutes.
     */
   private def checkProjectVersion(): Unit = {
-    if (projectVersionCheck.get() < System.currentTimeMillis()) {
+    if (projectVersionCheck.get() > System.currentTimeMillis()) {
+      projectVersionCheck.set(System.currentTimeMillis() + 3600000) // 1 hour
       val (clientVersion, iteratorVersions) = getVersion
       if (iteratorVersions.exists(_ != clientVersion)) {
         val versionMsg = "Configured server-side iterators do not match client version - " +
             s"client version: $clientVersion, server versions: ${iteratorVersions.mkString(", ")}"
         logger.warn(versionMsg)
       }
-      projectVersionCheck.set(System.currentTimeMillis() + 3600000) // 1 hour
     }
   }
 }
