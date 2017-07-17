@@ -1,5 +1,7 @@
-GeoMesa Index Structure
-=======================
+.. _index_overview:
+
+Index Overview
+==============
 
 GeoMesa uses a number of different indices in order to satisfy various search predicates:
 
