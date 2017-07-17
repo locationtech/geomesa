@@ -201,33 +201,38 @@ object ArrowBatchScan {
     * @param filter full filter for the query being run, used if querying enumeration values
     * @param attributes names of attributes to dictionary encode
     * @param provided provided dictionary values, if any, keyed by attribute name
+    * @param useCached use cached stats for dictionary values, or do a query to determine exact values
     * @return
     */
   def createDictionaries(stats: GeoMesaStats,
                          sft: SimpleFeatureType,
                          filter: Option[Filter],
                          attributes: Seq[String],
-                         provided: Map[String, Seq[AnyRef]]): Map[String, ArrowDictionary] = {
+                         provided: Map[String, Seq[AnyRef]],
+                         useCached: Boolean): Map[String, ArrowDictionary] = {
     def name(i: Int): String = sft.getDescriptor(i).getLocalName
 
     if (attributes.isEmpty) { Map.empty } else {
       // note: sort values to return same dictionary cache
       val providedDictionaries = provided.map { case (k, v) => k -> ArrowDictionary.create(sort(v)) }
       val toLookup = attributes.filterNot(provided.contains)
-      val lookedUpDictionaries = if (toLookup.isEmpty) { Map.empty } else {
+      val queriedDictionaries = if (toLookup.isEmpty) { Map.empty } else {
         // use topk if available, otherwise run a live stats query to get the dictionary values
-        val read = stats.getStats[TopK[AnyRef]](sft, toLookup).map { k =>
-          name(k.attribute) -> ArrowDictionary.create(sort(k.topK(1000).map(_._1)))
-        }.toMap
-        val toQuery = toLookup.filterNot(read.contains)
-        val queried = if (toQuery.isEmpty) { Map.empty } else {
-          val query = Stat.SeqStat(toQuery.map(Stat.Enumeration))
+        val cached = if (useCached) {
+          stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => name(k.attribute) -> k).toMap
+        } else {
+          Map.empty[String, TopK[AnyRef]]
+        }
+        if (toLookup.forall(cached.contains)) {
+          cached.map { case (name, k) => name -> ArrowDictionary.create(sort(k.topK(1000).map(_._1))) }
+        } else {
+          // if we have to run a query, might as well generate all values
+          val query = Stat.SeqStat(toLookup.map(Stat.Enumeration))
           val enumerations = stats.runStats[EnumerationStat[String]](sft, query, filter.getOrElse(Filter.INCLUDE))
           enumerations.map { e => name(e.attribute) -> ArrowDictionary.create(sort(e.values.toSeq)) }.toMap
         }
-        queried ++ read
       }
-      providedDictionaries ++ lookedUpDictionaries
+      providedDictionaries ++ queriedDictionaries
     }
   }
 

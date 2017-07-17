@@ -147,7 +147,8 @@ class KafkaQueryRunner(features: SharedState, stats: GeoMesaStats, authProvider:
 
     if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
         dictionaryFields.forall(providedDictionaries.contains)) {
-      val dictionaries = ArrowBatchScan.createDictionaries(stats, sft, Option(filter), dictionaryFields, providedDictionaries)
+      val dictionaries = ArrowBatchScan.createDictionaries(stats, sft, Option(filter), dictionaryFields,
+        providedDictionaries, hints.isArrowCachedDictionaries)
       val arrows = hints.getArrowSort match {
         case None => arrowBatchTransform(transforms, arrowSft, encoding, dictionaries, batchSize)
         case Some((sortField, reverse)) => arrowSortTransform(transforms, arrowSft, encoding, dictionaries, sortField, reverse, batchSize)

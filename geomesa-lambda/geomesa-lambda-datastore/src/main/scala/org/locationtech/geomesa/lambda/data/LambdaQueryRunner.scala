@@ -76,7 +76,8 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
       if (query.getHints.getArrowSort.isDefined || query.getHints.isArrowComputeDictionaries ||
           dictionaryFields.forall(providedDictionaries.contains)) {
         val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE).map(FastFilterFactory.optimize(sft, _))
-        val dictionaries = ArrowBatchScan.createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries)
+        val dictionaries = ArrowBatchScan.createDictionaries(stats, sft, filter, dictionaryFields,
+          providedDictionaries, query.getHints.isArrowCachedDictionaries)
         // set the merged dictionaries in the query where they'll be picked up by our delegates
         query.getHints.setArrowDictionaryEncodedValues(dictionaries.map { case (k, v) => (k, v.values) })
         query.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)

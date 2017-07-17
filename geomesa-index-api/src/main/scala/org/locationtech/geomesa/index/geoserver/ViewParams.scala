@@ -77,6 +77,7 @@ object ViewParams extends LazyLogging {
         case "ARROW_DICTIONARY_FIELDS"  => setHint(ARROW_DICTIONARY_FIELDS, value)
         case "ARROW_DICTIONARY_VALUES"  => setHint(ARROW_DICTIONARY_VALUES, value)
         case "ARROW_DICTIONARY_COMPUTE" => toBoolean(key, value).foreach(setHint(ARROW_DICTIONARY_COMPUTE, _))
+        case "ARROW_DICTIONARY_CACHED"  => toBoolean(key, value).foreach(setHint(ARROW_DICTIONARY_CACHED, _))
         case "ARROW_BATCH_SIZE"         => toInt(key, value).foreach(setHint(ARROW_BATCH_SIZE, _))
         case "ARROW_SORT_FIELD"         => setHint(ARROW_SORT_FIELD, value)
         case "ARROW_SORT_REVERSE"       => toBoolean(key, value).foreach(setHint(ARROW_SORT_REVERSE, _))
