@@ -27,9 +27,9 @@ object VisibilityEvaluator {
   // copied from org.apache.accumulo.core.security.Authorizations
   private val validAuthChars = {
     val chars = Array.fill[Boolean](256)(false)
-    Range('a', 'z').foreach(chars(_) = true)
-    Range('A', 'Z').foreach(chars(_) = true)
-    Range('0', '9').foreach(chars(_) = true)
+    Range.inclusive('a', 'z').foreach(chars(_) = true)
+    Range.inclusive('A', 'Z').foreach(chars(_) = true)
+    Range.inclusive('0', '9').foreach(chars(_) = true)
     Seq('_', '-', ':', '.', '/').foreach(chars(_) = true)
     chars
   }

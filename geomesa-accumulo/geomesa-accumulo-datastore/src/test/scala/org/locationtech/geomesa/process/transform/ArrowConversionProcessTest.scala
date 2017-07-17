@@ -29,21 +29,21 @@ class ArrowConversionProcessTest extends TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=true,team:String,dtg:Date,*geom:Point:srid=4326"
 
   implicit val allocator = new RootAllocator(Long.MaxValue)
 
   val process = new ArrowConversionProcess
 
   val features = (0 until 10).map { i =>
-    ScalaSimpleFeature.create(sft, s"0$i", s"name${i % 2}", s"2017-02-20T00:00:0$i.000Z", s"POINT(40 ${50 + i})")
+    ScalaSimpleFeature.create(sft, s"0$i", s"name${i % 2}", s"team$i", s"2017-02-20T00:00:0$i.000Z", s"POINT(40 ${50 + i})")
   }
 
   addFeatures(features)
 
   "ArrowConversionProcess" should {
     "encode an empty feature collection" in {
-      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null).reduce(_ ++ _)
+      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()) must beEmpty
@@ -51,7 +51,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
     }
 
     "encode an empty accumulo feature collection" in {
-      val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,20,30,30)")), null, null, null).reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,20,30,30)")), null, null, null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()) must beEmpty
@@ -59,7 +59,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
     }
 
     "encode an accumulo feature collection in distributed fashion" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null).reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
@@ -67,13 +67,43 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       }
     }
 
-    "encode an accumulo feature collection in distributed fashion with dictionary values" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), Seq("name"), null, null).reduce(_ ++ _)
+    "encode an accumulo feature collection in distributed fashion with cached dictionary values" in {
+      val filter = ECQL.toFilter("name = 'name0'")
+      val bytes = process.execute(fs.getFeatures(filter), null, Seq("name"), null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-            containTheSameElementsAs(features)
-        reader.dictionaries.get("name") must beSome
+            containTheSameElementsAs(features.filter(filter.evaluate))
+        // verify all cached values were used for the dictionary
+        reader.dictionaries.mapValues(_.values) mustEqual Map("name" -> Seq("name0", "name1"))
+      }
+    }
+
+    "encode an accumulo feature collection in distributed fashion with calculated dictionary values" in {
+      val filter = ECQL.toFilter("name = 'name0'")
+      val bytes = process.execute(fs.getFeatures(filter), null, Seq("name"), false, null, null, null).reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+            containTheSameElementsAs(features.filter(filter.evaluate))
+        // verify only exact values were used for the dictionary
+        reader.dictionaries.mapValues(_.values) mustEqual Map("name" -> Seq("name0"))
+      }
+    }
+
+    "sort and encode an accumulo feature collection in distributed fashion" in {
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, "dtg", null, null).reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
+      }
+    }
+
+    "reverse sort and encode an accumulo feature collection in distributed fashion" in {
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, "dtg", Boolean.box(true), null).reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features.reverse
       }
     }
   }

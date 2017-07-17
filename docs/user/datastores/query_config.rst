@@ -71,9 +71,9 @@ QueryHints.LOOSE_BBOX ``Boolean`` ``true`` or ``false``
 
         query.getHints.put(QueryHints.LOOSE_BBOX, false)
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=LOOSE_BBOX:false``
+        ...&viewparams=LOOSE_BBOX:false
 
 Exact Counts
 ------------
@@ -102,9 +102,9 @@ QueryHints.EXACT_COUNT ``Boolean`` ``true`` or ``false``
 
         query.getHints.put(QueryHints.EXACT_COUNT, true)
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=EXACT_COUNT:true``
+        ...&viewparams=EXACT_COUNT:true
 
 Query Index
 -----------
@@ -136,9 +136,9 @@ QueryHints.QUERY_INDEX ``GeoMesaFeatureIndex`` index name, or name:version
 
         query.getHints.put(QueryHints.QUERY_INDEX, Z2Index)
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=QUERY_INDEX:z2``
+        ...&viewparams=QUERY_INDEX:z2
 
 Query Planning
 --------------
@@ -170,6 +170,6 @@ QueryHints.COST_EVALUATION ``CostEvaluation`` ``stats`` or ``index``
 
         query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=COST_EVALUATION:index``
+        ...&viewparams=COST_EVALUATION:index

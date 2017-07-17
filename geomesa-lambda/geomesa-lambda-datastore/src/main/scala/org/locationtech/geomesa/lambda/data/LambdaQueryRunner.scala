@@ -37,9 +37,10 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
   // TODO pass explain through?
 
   override def runQuery(sft: SimpleFeatureType, query: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
-    if (query.getHints.isLambdaQueryPersistent && query.getHints.isLambdaQueryTransient) {
+    val hints = configureQuery(sft, query).getHints // configure the query so we get viewparams, transforms, etc
+    if (hints.isLambdaQueryPersistent && hints.isLambdaQueryTransient) {
       runMergedQuery(sft, query, explain)
-    } else if (query.getHints.isLambdaQueryPersistent) {
+    } else if (hints.isLambdaQueryPersistent) {
       SelfClosingIterator(persistence.getFeatureReader(query, Transaction.AUTO_COMMIT))
     } else {
       // ensure that we still audit the query
@@ -64,24 +65,24 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
   }
 
   private def runMergedQuery(sft: SimpleFeatureType, query: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
-    val hints = configureQuery(sft, query).getHints // configure the query so we get transforms, etc
-    if (hints.isStatsQuery) {
+    if (query.getHints.isStatsQuery) {
       // do the reduce here, as we can't merge json stats
-      hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-      KryoLazyStatsUtils.reduceFeatures(sft, hints)(standardQuery(sft, query, explain))
+      query.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
+      KryoLazyStatsUtils.reduceFeatures(sft, query.getHints)(standardQuery(sft, query, explain))
     } else if (query.getHints.isArrowQuery) {
       // calculate merged dictionaries up front if required
-      val dictionaryFields = hints.getArrowDictionaryFields
-      val providedDictionaries = hints.getArrowDictionaryEncodedValues
-      if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
+      val dictionaryFields = query.getHints.getArrowDictionaryFields
+      val providedDictionaries = query.getHints.getArrowDictionaryEncodedValues
+      if (query.getHints.getArrowSort.isDefined || query.getHints.isArrowComputeDictionaries ||
           dictionaryFields.forall(providedDictionaries.contains)) {
         val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE).map(FastFilterFactory.optimize(sft, _))
-        val dictionaries = ArrowBatchScan.createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries)
+        val dictionaries = ArrowBatchScan.createDictionaries(stats, sft, filter, dictionaryFields,
+          providedDictionaries, query.getHints.isArrowCachedDictionaries)
         // set the merged dictionaries in the query where they'll be picked up by our delegates
-        hints.setArrowDictionaryEncodedValues(dictionaries.map { case (k, v) => (k, v.values) })
-        hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-        val arrowSft = hints.getTransformSchema.getOrElse(sft)
-        ArrowBatchScan.reduceFeatures(arrowSft, hints, dictionaries)(standardQuery(sft, query, explain))
+        query.getHints.setArrowDictionaryEncodedValues(dictionaries.map { case (k, v) => (k, v.values) })
+        query.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
+        val arrowSft = query.getHints.getTransformSchema.getOrElse(sft)
+        ArrowBatchScan.reduceFeatures(arrowSft, query.getHints, dictionaries)(standardQuery(sft, query, explain))
       } else {
         standardQuery(sft, query, explain)
       }

@@ -14,6 +14,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.RootAllocator
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
@@ -109,57 +110,81 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
     "write and read features" in {
       val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[LambdaDataStore]
       ds must not(beNull)
+
       try {
         ds.createSchema(sft)
         ds.getSchema(sft.getTypeName) mustEqual sft
-        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          features.foreach { feature =>
-            FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
-            writer.write()
-            clock.tick = clock.millis + 50
+
+        // note: instantiate after creating the schema so it's not cached as missing
+        val readOnly = DataStoreFinder.getDataStore(dsParams ++ Map("expiry" -> "Inf")).asInstanceOf[LambdaDataStore]
+        readOnly must not(beNull)
+
+        try {
+          readOnly.getSchema(sft.getTypeName) mustEqual sft
+
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
+              writer.write()
+              clock.tick = clock.millis + 50
+            }
           }
+
+          // test queries against the transient store
+          forall(Seq(ds, readOnly)) { store =>
+            store.transients.get(sft.getTypeName).read().toSeq must
+                eventually(40, 100.millis)(containTheSameElementsAs(features))
+            SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+                containTheSameElementsAs(features)
+          }
+          testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
+          testBin(ds)
+          testArrow(ds)
+          testStats(ds)
+
+          // persist one feature to long-term store
+          clock.tick = 101
+          ds.persist(sft.getTypeName)
+          // test mixed queries against both stores
+          forall(Seq(ds, readOnly)) { store =>
+            store.transients.get(sft.getTypeName).read().toSeq must eventually(40, 100.millis)(beEqualTo(features.drop(1)))
+            SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+                containTheSameElementsAs(features)
+          }
+          testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
+          testBin(ds)
+          testArrow(ds)
+          testStats(ds)
+
+          // test query_persistent/query_transient hints
+          forall(Seq((features.take(1), QueryHints.LAMBDA_QUERY_TRANSIENT, "LAMBDA_QUERY_TRANSIENT"),
+                     (features.drop(1) , QueryHints.LAMBDA_QUERY_PERSISTENT, "LAMBDA_QUERY_PERSISTENT"))) {
+            case (feature, hint, string) =>
+              val hints = Seq((hint, java.lang.Boolean.FALSE),
+                (Hints.VIRTUAL_TABLE_PARAMETERS, Map(string -> "false"): java.util.Map[String, String]))
+              forall(hints) { case (k, v) =>
+                val query = new Query(sft.getTypeName)
+                query.getHints.put(k, v)
+                SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq mustEqual feature
+              }
+          }
+
+          // persist both features to the long-term storage
+          clock.tick = 151
+          ds.persist(sft.getTypeName)
+          // test queries against the persistent store
+          forall(Seq(ds, readOnly)) { store =>
+            store.transients.get(sft.getTypeName).read() must eventually(40, 100.millis)(beEmpty)
+            SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+                containTheSameElementsAs(features)
+          }
+          testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
+          testBin(ds)
+          testArrow(ds)
+          testStats(ds)
+        } finally {
+          readOnly.dispose()
         }
-
-        // test queries against the transient store
-        ds.transients.get(sft.getTypeName).read().toSeq must eventually(40, 100.millis)(containTheSameElementsAs(features))
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
-            containTheSameElementsAs(features)
-        testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
-        testBin(ds)
-        testArrow(ds)
-        testStats(ds)
-
-        // persist one feature to long-term store
-        clock.tick = 101
-        ds.persist(sft.getTypeName)
-        ds.transients.get(sft.getTypeName).read().toSeq must eventually(40, 100.millis)(beEqualTo(features.drop(1)))
-        // test mixed queries against both stores
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
-            containTheSameElementsAs(features)
-        testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
-        testBin(ds)
-        testArrow(ds)
-        testStats(ds)
-        // test query_persistent/query_transient hints
-        forall(Seq((features.take(1), QueryHints.LAMBDA_QUERY_TRANSIENT),
-                   (features.drop(1) , QueryHints.LAMBDA_QUERY_PERSISTENT))) {
-          case (feature, hint) =>
-            val query = new Query(sft.getTypeName)
-            query.getHints.put(hint, java.lang.Boolean.FALSE)
-            SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq mustEqual feature
-        }
-
-        // persist both features to the long-term storage
-        clock.tick = 151
-        ds.persist(sft.getTypeName)
-        ds.transients.get(sft.getTypeName).read() must eventually(40, 100.millis)(beEmpty)
-        // test queries against the persistent store
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
-            containTheSameElementsAs(features)
-        testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
-        testBin(ds)
-        testArrow(ds)
-        testStats(ds)
       } finally {
         ds.dispose()
       }
