@@ -48,11 +48,9 @@ class KafkaStore(ds: DataStore,
                 (implicit clock: Clock = Clock.systemUTC())
     extends TransientStore with LazyLogging {
 
-  private val expire = config.expiry != Duration.Inf
-
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
-  private val state = new SharedState(topic, config.partitions, expire)
+  private val state = new SharedState(topic, config.partitions)
 
   private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
@@ -60,7 +58,7 @@ class KafkaStore(ds: DataStore,
 
   private val loader = new KafkaCacheLoader(offsetManager, serializer, state, consumerConfig, topic, config.consumers)
 
-  private val persistence = if (!expire) { None } else {
+  private val persistence = if (config.expiry == Duration.Inf) { None } else {
     Some(new DataStorePersistence(ds, sft, offsetManager, state, topic, config.expiry.toMillis, config.persist))
   }
 

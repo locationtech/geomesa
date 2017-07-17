@@ -24,7 +24,7 @@ class ZookeeperOffsetManagerTest extends LambdaTest with LazyLogging {
   "ZookeeperOffsetManager" should {
     "store and retrieve offsets" in {
       val manager = new ZookeeperOffsetManager(zookeepers, "ZookeeperOffsetManagerTest")
-      forall(0 until 3)(i => manager.getOffset("foo", i) mustEqual 0L)
+      forall(0 until 3)(i => manager.getOffset("foo", i) mustEqual -1L)
       (0 until 3).foreach(i => manager.setOffset("foo", i, i))
       forall(0 until 3)(i => manager.getOffset("foo", i) mustEqual i)
     }
