@@ -102,7 +102,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         scanner.close()
       }
     }
-    getTypeNames.flatMap(getAllTableNames).toSet.flatMap(getVersions)
+    getTypeNames.toSet.flatMap(getAllTableNames).flatMap(getVersions)
   }
 
   override def getQueryPlan(query: Query,
