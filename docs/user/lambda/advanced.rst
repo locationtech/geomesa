@@ -33,15 +33,18 @@ set to the number of writer threads being used, and adjust up or down as needed.
 
 Any data store instances used only for reads (e.g. GeoServer) should generally disable writing by setting the
 ``expiry`` parameter to ``Inf``. Note that there must be at least one data store instance with a valid ``expiry``,
-or features will never be persisted to long-term storage and removed from memory.
+or features will never be removed from memory and persisted to long-term storage.
 
 Manual Persistence
 ------------------
 
 Instead of allowing features to be persisted to long-term storage automatically, you may instead control exactly
-when features are written. To do this, set the ``persist`` parameter to ``false`` and the ``expiry`` parameter to
-``Inf``. Write and remove features from the Lambda data store using ``SimpleFeatureWriter``\ s as usual to
+when features are written. To do this, set the ``persist`` parameter to ``false`` on all data store instances.
+Write and remove features from the Lambda data store using ``SimpleFeatureWriter``\ s as usual to
 add and delete them from the in-memory cache. With ``persist`` disabled, this will not affect long-term storage.
+Note that data stores will still expire features from memory - this is required to clean up internal state.
+Make sure that the ``expiry`` parameter is set high enough that it won't remove features that you still want
+available in memory.
 
 To write features to long-term storage, instantiate an instance of the delegate data store (``AccumuloDataStore``)
 using the same connection parameters as for the Lambda store. Any features written to the delegate store will
