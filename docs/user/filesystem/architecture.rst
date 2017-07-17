@@ -5,8 +5,7 @@ The GeoMesa FileSystem Datastore (GeoMesa FSDS) takes advantage of the performan
 cloud-native and distributed filesystems to scale bulk analytic queries. The FSDS is a good choice for doing bulk egress
 queries or large analytic jobs using frameworks such as Spark SQL and MapReduce. The FSDS differs from other queries
 in that ingest latency is traded for high-throughput query. The FSDS pairs well with low-latency ingest systems such as
-HBase or Kafka via the GeoMesa Lambda datastore to provide an optimal pairing of "hot", "warm" storage options.
-
+HBase or Kafka to provide an optimal pairing of "hot", "warm" storage options.
 
 The GeoMesa FSDS consists of a few primary components:
 
@@ -35,7 +34,7 @@ cost efficient storage solution. In general their price per GigaByte of storage 
 may be slightly more latent. They also have the ability to persist data after you turn off all your compute nodes.
 
 Any of the filesystems mentioned about are good choices for the FSDS. If you have more questions about making a choice
-contact the GeoMesa team.
+contact the `GeoMesa team <http://www.geomesa.org/community/>`__
 
 Partition Schemes
 -----------------
