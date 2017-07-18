@@ -63,10 +63,13 @@ class ParquetFileSystemStorage(root: Path,
                                dsParams: util.Map[String, io.Serializable]) extends FileSystemStorage with LazyLogging {
 
   private val typeNames: mutable.ListBuffer[String] = {
+    val s = System.currentTimeMillis
     val b = mutable.ListBuffer.empty[String]
     if (fs.exists(root)) {
       fs.listStatus(root).filter(_.isDirectory).map(_.getPath.getName).foreach(b += _)
     }
+    val e = System.currentTimeMillis
+    logger.info(s"Type loading took ${e-s}ms")
     b
   }
 
@@ -82,7 +85,7 @@ class ParquetFileSystemStorage(root: Path,
         val metadata = FileMetadata.read(fs, metaFile, conf)
 
         val end = System.currentTimeMillis()
-        logger.info(s"Loaded metadata in ${end-start}ms for type $typeName")
+        logger.debug(s"Loaded metadata in ${end-start}ms for type $typeName")
         metadata
       }
     })
@@ -132,7 +135,7 @@ class ParquetFileSystemStorage(root: Path,
         .map(FilterCompat.get)
         .getOrElse(FilterCompat.NOOP)
 
-    logger.info(s"Parquet filter: $parquetFilter and modified gt filter ${fc._2}")
+    logger.debug(s"Parquet filter: $parquetFilter and modified gt filter ${fc._2}")
 
     import scala.collection.JavaConversions._
     val iters = getPaths(sft.getTypeName, partition).toIterator.map(u => new Path(u)).map { path =>

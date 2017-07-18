@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
+import java.io.InputStreamReader
 import java.util
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -15,7 +16,6 @@ import java.util.concurrent.locks.ReentrantLock
 
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme}
@@ -36,9 +36,11 @@ class FileMetadata protected[FileMetadata] (fs: FileSystem,
 
   private val writeLock = new ReentrantLock()
 
-  private val internalPartitions: ConcurrentHashMap[String, scala.collection.mutable.Set[String]] =
-    new ConcurrentHashMap[String, scala.collection.mutable.Set[String]]()
-  partitions.keys.foreach(k => addPartition(k, partitions(k)))
+  private val internalPartitions: ConcurrentHashMap[String, scala.collection.mutable.Set[String]] = {
+    val m = new ConcurrentHashMap[String, scala.collection.mutable.Set[String]]()
+    partitions.keys.foreach { k => m.put(k, scala.collection.mutable.Set[String](partitions(k): _*)) }
+    m
+  }
 
   override def addPartition(partition: String, files: java.util.List[String]): Unit = {
     internalPartitions.putIfAbsent(partition, mutable.Set.empty[String])
@@ -104,7 +106,7 @@ class FileMetadata protected[FileMetadata] (fs: FileSystem,
 
 }
 
-object FileMetadata {
+object FileMetadata extends LazyLogging {
 
   def create(fs: FileSystem,
              path: Path,
@@ -118,15 +120,18 @@ object FileMetadata {
   }
 
   def read(fs: FileSystem, path: Path, conf: Configuration): FileMetadata = {
-    val in = fs.open(path)
+    val in = new InputStreamReader(fs.open(path))
     val config = try {
-      ConfigFactory.parseString(IOUtils.toString(in), ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
+      ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
     } finally {
       in.close()
     }
 
     // Load SFT
+    val s = System.currentTimeMillis
     val sft = SimpleFeatureTypes.createType(config.getConfig("featureType"), path = None)
+    val e = System.currentTimeMillis
+    logger.debug(s"SFT creation took ${e-s}ms")
 
     // Load encoding
     val encoding = config.getString("encoding")
