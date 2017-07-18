@@ -63,22 +63,26 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override val stats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
-  val kerberosTgtRenewer : Option[ScheduledExecutorService] = if (UserGroupInformation.isSecurityEnabled) {
-    val executor = Executors.newSingleThreadScheduledExecutor()
-    executor.scheduleAtFixedRate(
-      new Runnable {
-        def run(): Unit = {
-          try {
-            logger.info("Checking whether TGT needs renewing for " + UserGroupInformation.getCurrentUser.toString)
-            logger.debug("Logged in from keytab? " + UserGroupInformation.getCurrentUser.isFromKeytab.toString)
-            UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
-          } catch {
-            case iox: IOException => logger.warn("Error checking and renewing TGT: " + iox.toString)
+  val kerberosTgtRenewer: Option[ScheduledExecutorService] = try {
+    if (UserGroupInformation.isSecurityEnabled) {
+      val executor = Executors.newSingleThreadScheduledExecutor()
+      executor.scheduleAtFixedRate(
+        new Runnable {
+          def run(): Unit = {
+            try {
+              logger.info("Checking whether TGT needs renewing for " + UserGroupInformation.getCurrentUser.toString)
+              logger.debug("Logged in from keytab? " + UserGroupInformation.getCurrentUser.isFromKeytab.toString)
+              UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
+            } catch {
+              case iox: IOException => logger.warn("Error checking and renewing TGT: " + iox.toString)
+            }
           }
-        }
-      }, 0, 10, TimeUnit.MINUTES)
-    Some(executor)
-  } else None
+        }, 0, 10, TimeUnit.MINUTES)
+      Some(executor)
+    } else { None }
+  } catch {
+    case NonFatal(e) => logger.error("Error checking for hadoop security", e); None
+  }
 
   // some convenience operations
 
