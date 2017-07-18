@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantLock
 
 import com.typesafe.scalalogging.LazyLogging
@@ -17,6 +18,7 @@ import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.control.NonFatal
 
 /**
   * Locally cached features
@@ -32,6 +34,7 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
 
   // array, indexed by partition, of queues of (offset, create time, feature), sorted by offset
   private val queues = ArrayBuffer.fill(partitions)((new ReentrantLock, new java.util.ArrayDeque[(Long, Long, SimpleFeature)]))
+  private val offsets = ArrayBuffer.fill(partitions)(new AtomicLong(-1L))
 
   private val debug = logger.underlying.isDebugEnabled()
 
@@ -44,6 +47,7 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
   def partitionAssigned(partition: Int, offset: Long): Unit = synchronized {
     while (queues.length <= partition) {
       queues += ((new ReentrantLock, new java.util.ArrayDeque[(Long, Long, SimpleFeature)]))
+      offsets += new AtomicLong(-1L)
     }
   }
 
@@ -74,12 +78,16 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
     * @param created time feature was created
     */
   def add(f: SimpleFeature, partition: Int, offset: Long, created: Long): Unit = {
-    logger.trace(s"Adding [$partition:$offset] $f created at ${new DateTime(created, DateTimeZone.UTC)}")
-    features.put(f.getID, f)
-    val (lock, queue) = queues(partition)
-    lock.lock()
-    try { queue.addLast((offset, created, f)) } finally {
-      lock.unlock()
+    if (offsets(partition).get < offset) {
+      logger.trace(s"Adding [$partition:$offset] $f created at ${new DateTime(created, DateTimeZone.UTC)}")
+      features.put(f.getID, f)
+      val (lock, queue) = queues(partition)
+      lock.lock()
+      try { queue.addLast((offset, created, f)) } finally {
+        lock.unlock()
+      }
+    } else {
+      logger.trace(s"Ignoring [$partition:$offset] $f created at ${new DateTime(created, DateTimeZone.UTC)}")
     }
   }
 
@@ -123,31 +131,40 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
     *
     * @param partition partition
     * @param expiry expiry
-    * @return expired features, ordered by offset
+    * @return (maxExpiredOffset, (offset, expired feature)), ordered by offset
     */
   def expired(partition: Int, expiry: Long): (Long, Seq[(Long, SimpleFeature)]) = {
     val expired = ArrayBuffer.empty[(Long, SimpleFeature)]
     val (lock, queue) = this.queues(partition)
+
     var loop = true
     while (loop) {
       lock.lock()
-      queue.poll() match {
-        case null => lock.unlock(); loop = false
-        case f if f._2 > expiry => try { queue.addFirst(f) } finally { lock.unlock() }; loop = false
-        case (offset, _, feature) => lock.unlock(); expired += ((offset, feature))
+      try {
+        val poll = queue.poll()
+        if (poll == null) {
+          lock.unlock()
+          loop = false
+        } else if (poll._2 > expiry) {
+          queue.addFirst(poll)
+          lock.unlock()
+          loop = false
+        } else {
+          lock.unlock()
+          expired += ((poll._1, poll._3))
+        }
+      } catch {
+        case NonFatal(e) => lock.unlock(); throw e
       }
     }
+
     logger.debug(s"Checking [$topic:$partition] for expired entries: found ${expired.size} expired and ${queue.size} remaining")
-    // return expired features from the cache if there aren't any more recent updates
-    var max = -1L
-    val latest = expired.filter { case (offset, feature) =>
-      if (offset > max) {
-        max = offset
-      }
-      // only remove from feature cache (and persist) if there haven't been additional updates
-      features.remove(feature.getID, feature)
-    }
-    (max, latest)
+
+    val maxExpiredOffset = if (expired.isEmpty) { -1L } else { expired(expired.length - 1)._1 }
+
+    // only remove from feature cache (and persist) if there haven't been additional updates
+    val latest = expired.filter { case (_, feature) => features.remove(feature.getID, feature) }
+    (maxExpiredOffset, latest)
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {
@@ -159,15 +176,32 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
       (features.size, queue.size, System.currentTimeMillis())
     }
 
-    // note: only remove from feature cache if there haven't been additional updates
     var loop = true
     while (loop) {
       lock.lock()
-      queue.poll() match {
-        case null => lock.unlock(); loop = false
-        case f if f._1 > offset => try { queue.addFirst(f) } finally { lock.unlock() }; loop = false
-        case (_, _, feature) => lock.unlock(); features.remove(feature.getID, feature)
+      try {
+        val poll = queue.poll()
+        if (poll == null) {
+          lock.unlock()
+          loop = false
+        } else if (poll._1 > offset) {
+          queue.addFirst(poll)
+          lock.unlock()
+          loop = false
+        } else {
+          lock.unlock()
+          // only remove from feature cache if there haven't been additional updates
+          features.remove(poll._3.getID, poll._3)
+        }
+      } catch {
+        case NonFatal(e) => lock.unlock(); throw e
       }
+    }
+
+    // update the valid offset
+    var last = offsets(partition).get
+    while(last < offset && !offsets(partition).compareAndSet(last, offset)) {
+      last = offsets(partition).get
     }
 
     logger.debug(s"Size of cached state for [$topic:$partition]: features (total): " +
