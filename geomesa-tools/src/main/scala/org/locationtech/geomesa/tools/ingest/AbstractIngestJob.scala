@@ -22,6 +22,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.opengis.feature.simple.SimpleFeature
 
@@ -42,7 +43,7 @@ abstract class AbstractIngestJob {
           paths: Seq[String],
           libjarsFile: String,
           libjarsPaths: Iterator[() => Seq[File]],
-          statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {
+          statusCallback: StatusCallback): (Long, Long) = {
 
     val job = Job.getInstance(new Configuration, "GeoMesa Tools Ingest")
 
@@ -68,13 +69,16 @@ abstract class AbstractIngestJob {
     job.submit()
     Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
+    def counters = Seq(("ingested", written(job)), ("failed", failed(job)))
+
     while (!job.isComplete) {
       if (job.getStatus.getState != JobStatus.State.PREP) {
-        statusCallback(job.mapProgress(), written(job), failed(job), false) // we don't have any reducers, just track mapper progress
+        // we don't have any reducers, just track mapper progress
+        statusCallback("", job.mapProgress(), counters, done = false)
       }
       Thread.sleep(1000)
     }
-    statusCallback(job.mapProgress(), written(job), failed(job), true)
+    statusCallback("", job.mapProgress(), counters, done = true)
 
     if (!job.isSuccessful) {
       Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")

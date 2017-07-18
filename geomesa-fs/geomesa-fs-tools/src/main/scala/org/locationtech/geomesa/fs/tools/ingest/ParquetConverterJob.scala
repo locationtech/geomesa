@@ -36,6 +36,7 @@ import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.parquet.{SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
 import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -49,11 +50,11 @@ class ParquetConverterJob(sft: SimpleFeatureType,
                           reducers: Int) extends ConverterIngestJob(sft, converterConfig) with LazyLogging {
 
   override def run(dsParams: Map[String, String],
-    typeName: String,
-    paths: Seq[String],
-    libjarsFile: String,
-    libjarsPaths: Iterator[() => Seq[File]],
-    statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {
+                   typeName: String,
+                   paths: Seq[String],
+                   libjarsFile: String,
+                   libjarsPaths: Iterator[() => Seq[File]],
+                   statusCallback: StatusCallback): (Long, Long) = {
 
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
     val job = Job.getInstance(new Configuration, "GeoMesa Parquet Ingest")
@@ -106,20 +107,36 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     job.submit()
     Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
+    def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
+    def reduceCounters = Seq(("ingested", reduced(job)))
+
+    val stageCount = if (tempPath.isDefined) { "3" } else { "2" }
+
+    var mapping = true
     while (!job.isComplete) {
       if (job.getStatus.getState != JobStatus.State.PREP) {
-        statusCallback(job.mapProgress(), written(job), failed(job), false)
+        if (mapping) {
+          val mapProgress = job.mapProgress()
+          if (mapProgress < 1f) {
+            statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = false)
+          } else {
+            statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = true)
+            statusCallback.reset()
+            mapping = false
+          }
+        } else {
+          statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = false)
+        }
       }
       Thread.sleep(1000)
     }
-    statusCallback(job.mapProgress(), written(job), failed(job), true)
+    statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = true)
 
     // Do this earlier than the data copy bc its throwing errors
     val res = (written(job), failed(job))
 
-    val ret = job.isSuccessful && {
-      if (tempPath.isDefined) distCopy(tempPath.get, dsPath, sft, job.getConfiguration) else true
-    } && {
+    val ret = job.isSuccessful &&
+        tempPath.forall(tp => distCopy(tp, dsPath, sft, job.getConfiguration, statusCallback)) && {
       Command.user.info("Attempting to update metadata")
       Thread.sleep(5000)
       ds.storage.updateMetadata(typeName)
@@ -134,19 +151,31 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     res
   }
 
-  def distCopy(srcRoot: Path, dest: Path, sft: SimpleFeatureType, conf: Configuration): Boolean = {
+  def distCopy(srcRoot: Path, dest: Path, sft: SimpleFeatureType, conf: Configuration, statusCallback: StatusCallback): Boolean = {
     val typeName = sft.getTypeName
     val typePath = new Path(srcRoot, typeName)
     val destTypePath = new Path(dest, typeName)
 
-    Command.user.info(s"Attempting to distcp $typePath to $destTypePath")
+    statusCallback.reset()
 
+    Command.user.info("Submitting distcp job - please wait...")
     val opts = new DistCpOptions(List(typePath), destTypePath)
     opts.setAppend(false)
     opts.setOverwrite(true)
     val job = new DistCp(new Configuration, opts).execute()
 
-    val success = job.waitForCompletion(true)
+    Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
+
+    // distCp has no reduce phase
+    while (!job.isComplete) {
+      if (job.getStatus.getState != JobStatus.State.PREP) {
+          statusCallback("DistCp (stage 3/3): ", job.mapProgress(), Seq.empty, done = false)
+      }
+      Thread.sleep(1000)
+    }
+    statusCallback("DistCp (stage 3/3): ", job.mapProgress(), Seq.empty, done = true)
+
+    val success = job.isSuccessful
     if (success) {
       Command.user.info(s"Successfully copied data to $dest")
     } else {
@@ -186,6 +215,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     }
   }
 
+  def reduced(job: Job): Long = job.getCounters.findCounter(GeoMesaOutputFormat.Counters.Group, "reduced").getValue
 }
 
 object ParquetConverterJob {
