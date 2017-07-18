@@ -146,7 +146,7 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
           lock.unlock()
           loop = false
         } else if (poll._2 > expiry) {
-          queue.addFirst(poll)
+          queue.addFirst(poll) // note: add back to the queue before unlocking
           lock.unlock()
           loop = false
         } else {
@@ -185,7 +185,7 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
           lock.unlock()
           loop = false
         } else if (poll._1 > offset) {
-          queue.addFirst(poll)
+          queue.addFirst(poll) // note: add back to the queue before unlocking
           lock.unlock()
           loop = false
         } else {
