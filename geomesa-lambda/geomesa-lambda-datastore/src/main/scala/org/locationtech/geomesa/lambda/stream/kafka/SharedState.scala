@@ -133,7 +133,7 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
       lock.lock()
       queue.poll() match {
         case null => lock.unlock(); loop = false
-        case f if f._2 > expiry => queue.addFirst(f); lock.unlock(); loop = false
+        case f if f._2 > expiry => try { queue.addFirst(f) } finally { lock.unlock() }; loop = false
         case (offset, _, feature) => lock.unlock(); expired += ((offset, feature))
       }
     }
@@ -165,7 +165,7 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
       lock.lock()
       queue.poll() match {
         case null => lock.unlock(); loop = false
-        case f if f._1 > offset => queue.addFirst(f); lock.unlock(); loop = false
+        case f if f._1 > offset => try { queue.addFirst(f) } finally { lock.unlock() }; loop = false
         case (_, _, feature) => lock.unlock(); features.remove(feature.getID, feature)
       }
     }
