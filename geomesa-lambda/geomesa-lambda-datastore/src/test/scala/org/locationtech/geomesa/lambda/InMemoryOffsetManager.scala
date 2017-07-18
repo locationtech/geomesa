@@ -22,7 +22,7 @@ class InMemoryOffsetManager extends OffsetManager {
   private val listeners = scala.collection.mutable.Map.empty[String, Set[OffsetListener]]
 
   override def getOffset(topic: String, partition: Int): Long =
-    offsets.synchronized(offsets.get((topic, partition))).getOrElse(0L)
+    offsets.synchronized(offsets.get((topic, partition))).getOrElse(-1L)
 
   override def setOffset(topic: String, partition: Int, offset: Long): Unit = {
     offsets.synchronized {

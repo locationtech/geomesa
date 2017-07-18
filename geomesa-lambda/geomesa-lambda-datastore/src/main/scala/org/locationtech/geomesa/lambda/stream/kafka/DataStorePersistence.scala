@@ -79,66 +79,56 @@ class DataStorePersistence(ds: DataStore,
   private def persist(partition: Int, expiry: Long): Unit = {
     import org.locationtech.geomesa.filter.ff
 
-    val expired = state.expired(partition, expiry)
+    val (nextOffset, expired) = state.expired(partition, expiry)
 
     logger.trace(s"Found expired entries for [$topic:$partition]:\n\t" +
         expired.map { case (o, f) => s"offset $o: $f" }.mkString("\n\t"))
 
+    val lastOffset = offsetManager.getOffset(topic, partition)
+    logger.trace(s"Last persisted offsets for [$topic:$partition]: $lastOffset")
+
     if (expired.nonEmpty) {
-      var lastOffset = offsetManager.getOffset(topic, partition)
-      logger.trace(s"Last persisted offsets for [$topic:$partition]: $lastOffset")
-      // check that features haven't been persisted yet, haven't been deleted, and have no additional updates pending
-      val toPersist = {
-        val latest = expired.filter { case (offset, f) =>
-          if (lastOffset <= offset) {
-            // update the offsets we will write
-            lastOffset = offset + 1L
-            // ensure not deleted and no additional updates pending
-            f.eq(state.get(f.getID))
-          } else {
-            false
-          }
-        }
-        scala.collection.mutable.Map(latest.map(f => (f._2.getID,  f)): _*)
-      }
+      // check that features haven't been persisted yet
+      val toPersist = scala.collection.mutable.Map(expired.collect { case (o, f) if o > lastOffset => f.getID -> (o, f) }: _*)
 
       logger.trace(s"Offsets to persist for [$topic:$partition]: ${toPersist.values.map(_._1).toSeq.sorted.mkString(",")}")
 
-      if (toPersist.nonEmpty) {
-        if (!persistExpired) {
-          logger.trace(s"Persist disabled for $topic")
-        } else {
-          // do an update query first
-          val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)
-          WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
-            while (writer.hasNext) {
-              val next = writer.next()
-              toPersist.get(next.getID).foreach { case (offset, updated) =>
-                logger.trace(s"Persistent store modify [$topic:$partition:$offset] $updated")
-                FeatureUtils.copyToFeature(next, updated, useProvidedFid = true)
-                try { writer.write() } catch {
-                  case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
-                }
-                toPersist.remove(updated.getID)
+      if (!persistExpired) {
+        logger.trace(s"Persist disabled for $topic")
+      } else {
+        // do an update query first
+        val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)
+        WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
+          while (writer.hasNext) {
+            val next = writer.next()
+            toPersist.get(next.getID).foreach { case (offset, updated) =>
+              logger.trace(s"Persistent store modify [$topic:$partition:$offset] $updated")
+              FeatureUtils.copyToFeature(next, updated, useProvidedFid = true)
+              try { writer.write() } catch {
+                case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
               }
+              toPersist.remove(updated.getID)
             }
           }
-          // if any weren't updates, add them as inserts
-          if (toPersist.nonEmpty) {
-            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-              toPersist.values.foreach { case (offset, updated) =>
-                logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated")
-                FeatureUtils.copyToWriter(writer, updated, useProvidedFid = true)
-                try { writer.write() } catch {
-                  case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
-                }
+        }
+        // if any weren't updates, add them as inserts
+        if (toPersist.nonEmpty) {
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            toPersist.values.foreach { case (offset, updated) =>
+              logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated")
+              FeatureUtils.copyToWriter(writer, updated, useProvidedFid = true)
+              try { writer.write() } catch {
+                case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
               }
             }
           }
         }
-        logger.trace(s"Committing offset [$topic:$partition:$lastOffset]")
-        offsetManager.setOffset(topic, partition, lastOffset)
       }
+    }
+
+    if (nextOffset > lastOffset) {
+      logger.trace(s"Committing offset [$topic:$partition:$nextOffset]")
+      offsetManager.setOffset(topic, partition, nextOffset)
     }
   }
 
