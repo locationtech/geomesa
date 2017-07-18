@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
-import java.util.Comparator
-import java.util.concurrent.{ConcurrentHashMap, PriorityBlockingQueue}
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
 
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.{DateTime, DateTimeZone}
@@ -31,9 +31,21 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
   // if partitions are added at runtime, we may have synchronization issues...
 
   // array, indexed by partition, of queues of (offset, create time, feature), sorted by offset
-  private val expiry = ArrayBuffer.fill(partitions)(newQueue)
+  private val queues = ArrayBuffer.fill(partitions)((new ReentrantLock, new java.util.ArrayDeque[(Long, Long, SimpleFeature)]))
 
   private val debug = logger.underlying.isDebugEnabled()
+
+  /**
+    * Initialize this cached state for a given partition and offset
+    *
+    * @param partition partition
+    * @param offset offset
+    */
+  def partitionAssigned(partition: Int, offset: Long): Unit = synchronized {
+    while (queues.length <= partition) {
+      queues += ((new ReentrantLock, new java.util.ArrayDeque[(Long, Long, SimpleFeature)]))
+    }
+  }
 
   /**
     * Returns the most recent version of a feature in this cache, by feature ID
@@ -64,7 +76,11 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
   def add(f: SimpleFeature, partition: Int, offset: Long, created: Long): Unit = {
     logger.trace(s"Adding [$partition:$offset] $f created at ${new DateTime(created, DateTimeZone.UTC)}")
     features.put(f.getID, f)
-    expiry(partition).offer((offset, created, f))
+    val (lock, queue) = queues(partition)
+    lock.lock()
+    try { queue.addLast((offset, created, f)) } finally {
+      lock.unlock()
+    }
   }
 
   /**
@@ -81,18 +97,6 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
   }
 
   /**
-    * Initialize this cached state for a given partition and offset
-    *
-    * @param partition partition
-    * @param offset offset
-    */
-  def partitionAssigned(partition: Int, offset: Long): Unit = synchronized {
-    while (expiry.length <= partition) {
-      expiry += newQueue
-    }
-  }
-
-  /**
     * Thread safe check for any expired features
     *
     * @param expiry expiry
@@ -101,8 +105,11 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
   def expired(expiry: Long): Seq[Int] = {
     val result = ArrayBuffer.empty[Int]
     var i = 0
-    while (i < this.expiry.length) {
-      this.expiry(i).peek match {
+    while (i < this.queues.length) {
+      val (lock, queue) = queues(i)
+      lock.lock()
+      val peek = try { queue.peek } finally { lock.unlock() }
+      peek match {
         case null => // no-op
         case (_, created, _) => if (expiry > created) { result += i }
       }
@@ -112,9 +119,7 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
   }
 
   /**
-    * Retrieves and removes any expired entries.
-    *
-    * Thread safe for different partitions, but not for a single partition
+    * Thread safe check to retrieve and remove any expired entries.
     *
     * @param partition partition
     * @param expiry expiry
@@ -122,13 +127,14 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
     */
   def expired(partition: Int, expiry: Long): (Long, Seq[(Long, SimpleFeature)]) = {
     val expired = ArrayBuffer.empty[(Long, SimpleFeature)]
-    val queue = this.expiry(partition)
+    val (lock, queue) = this.queues(partition)
     var loop = true
     while (loop) {
+      lock.lock()
       queue.poll() match {
-        case null => loop = false
-        case f if f._2 > expiry => queue.offer(f); loop = false
-        case (offset, _, feature) => expired += ((offset, feature))
+        case null => lock.unlock(); loop = false
+        case f if f._2 > expiry => queue.addFirst(f); lock.unlock(); loop = false
+        case (offset, _, feature) => lock.unlock(); expired += ((offset, feature))
       }
     }
     logger.debug(s"Checking [$topic:$partition] for expired entries: found ${expired.size} expired and ${queue.size} remaining")
@@ -145,7 +151,7 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {
-    val queue = expiry(partition)
+    val (lock, queue) = queues(partition)
 
     // remove the expired features from the cache
     val (featureSize, queueSize, start) = if (!debug) { (0, 0, 0L) } else {
@@ -153,14 +159,14 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
       (features.size, queue.size, System.currentTimeMillis())
     }
 
+    // note: only remove from feature cache if there haven't been additional updates
     var loop = true
     while (loop) {
+      lock.lock()
       queue.poll() match {
-        case null => loop = false
-        case f if f._1 > offset => queue.offer(f); loop = false
-        case (_, _, feature) =>
-          // only remove from feature cache if there haven't been additional updates
-          features.remove(feature.getID, feature)
+        case null => lock.unlock(); loop = false
+        case f if f._1 > offset => queue.addFirst(f); lock.unlock(); loop = false
+        case (_, _, feature) => lock.unlock(); features.remove(feature.getID, feature)
       }
     }
 
@@ -171,13 +177,4 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
 
   // debug message
   private def diff(original: Int, updated: Int): String = f"$updated%d (${updated - original}%+d)"
-
-  private def newQueue = new PriorityBlockingQueue[(Long, Long, SimpleFeature)](1000, SharedState.OffsetComparator)
-}
-
-object SharedState {
-  private val OffsetComparator = new Comparator[(Long, Long, SimpleFeature)]() {
-    override def compare(o1: (Long, Long, SimpleFeature), o2: (Long, Long, SimpleFeature)): Int =
-      java.lang.Long.compare(o1._1, o2._1)
-  }
 }
