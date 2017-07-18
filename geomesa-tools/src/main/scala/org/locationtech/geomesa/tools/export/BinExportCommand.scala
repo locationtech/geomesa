@@ -11,7 +11,7 @@ package org.locationtech.geomesa.tools.export
 import com.beust.jcommander.Parameter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.export.BinExportCommand.BinExportParams
-import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
+import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 @deprecated("ExportCommand")
@@ -31,10 +31,12 @@ trait BinExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand
     d.params.maxFeatures  = params.maxFeatures
     d.params.noHeader     = params.noHeader
     d.params.outputFormat = params.outputFormat
-    d.params.catalog      = params.catalog
     d.params.cqlFilter    = params.cqlFilter
-    d.params.featureName  = params.featureName
-    d.params.index        = params.index
+
+    Option(d.params).collect { case p: CatalogParam => p }.foreach(_.catalog = params.catalog)
+    Option(d.params).collect { case p: RequiredTypeNameParam => p }.foreach(_.featureName = params.featureName)
+    Option(d.params).collect { case p: OptionalTypeNameParam => p }.foreach(_.featureName = params.featureName)
+    Option(d.params).collect { case p: OptionalIndexParam => p }.foreach(_.index = params.index)
 
     d.params.hints = new java.util.HashMap[String, String]()
     Option(params.hints).foreach(d.params.hints.putAll)
@@ -49,7 +51,7 @@ trait BinExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand
 
 object BinExportCommand {
 
-  trait BinExportParams extends ExportParams {
+  trait BinExportParams extends ExportParams with CatalogParam with RequiredTypeNameParam with OptionalIndexParam {
     @Parameter(names = Array("--id-attribute"), description = "Name of the id attribute to export")
     var idAttribute: String = _
 

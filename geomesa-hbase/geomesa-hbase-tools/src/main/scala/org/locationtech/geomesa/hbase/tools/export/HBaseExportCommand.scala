@@ -11,7 +11,7 @@ package org.locationtech.geomesa.hbase.tools.export
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.tools.{CatalogParam, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{CatalogParam, OptionalIndexParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
 
 class HBaseExportCommand extends ExportCommand[HBaseDataStore] with HBaseDataStoreCommand {
@@ -19,4 +19,4 @@ class HBaseExportCommand extends ExportCommand[HBaseDataStore] with HBaseDataSto
 }
 
 @Parameters(commandDescription = "Export features from a GeoMesa data store")
-class HBaseExportParams extends ExportParams with CatalogParam with RequiredTypeNameParam
+class HBaseExportParams extends ExportParams with CatalogParam with RequiredTypeNameParam with OptionalIndexParam

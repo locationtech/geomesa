@@ -29,6 +29,8 @@ User Manual
    spark/index
    stream
    web_data
+   filesystem/index
+
 
 Appendix
 --------
