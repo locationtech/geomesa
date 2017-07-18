@@ -50,7 +50,7 @@ class KafkaStore(ds: DataStore,
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
-  private val state = new SharedState(topic, config.partitions)
+  private val state = SharedState(topic)
 
   private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.builder.withUserData.immutable.build())
 
@@ -245,12 +245,12 @@ object KafkaStore {
         // read our last committed offsets and seek to them
         KafkaConsumerVersions.pause(consumer, tp)
         val lastRead = manager.getOffset(tp.topic(), tp.partition())
-        if (lastRead > 0) {
-          consumer.seek(tp, lastRead)
+        if (lastRead > -1) {
+          consumer.seek(tp, lastRead + 1)
           callback.apply(tp.partition, lastRead)
         } else {
           KafkaConsumerVersions.seekToBeginning(consumer, tp)
-          callback.apply(tp.partition, consumer.position(tp))
+          callback.apply(tp.partition, consumer.position(tp) - 1)
         }
         KafkaConsumerVersions.resume(consumer, tp)
       }
