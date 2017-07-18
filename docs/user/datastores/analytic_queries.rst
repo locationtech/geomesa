@@ -48,9 +48,9 @@ at 10%, you will get back anywhere from 1 to 5 features, depending on how your d
         query.getHints.put(QueryHints.SAMPLING, 0.1f)
         query.getHints().put(QueryHints.SAMPLE_BY, "track");
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=SAMPLING:0.1``
+        ...&viewparams=SAMPLING:0.1
 
 Density Query
 -------------

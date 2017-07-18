@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.ingest
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.tools.utils.DataFormats._
 
 /**
@@ -47,7 +48,7 @@ class AutoIngest(typeName: String,
     }
   }
 
-  override def runDistributedJob(statusCallback: (Float, Long, Long, Boolean) => Unit): (Long, Long) = {
+  override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
     format match {
       case Avro      => new AvroIngestJob(typeName).run(dsParams, typeName, inputs, libjarsFile, libjarsPaths, statusCallback)
       case Tsv | Csv => new DelimitedIngestJob(typeName, format).run(dsParams, typeName, inputs, libjarsFile, libjarsPaths, statusCallback)

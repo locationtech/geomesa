@@ -88,5 +88,9 @@ class VisibilityEvaluatorTest extends Specification {
       VisibilityEvaluator.parse("(user&admin)|test").evaluate(Seq(admin)) must beFalse
       VisibilityEvaluator.parse("(user&admin)|test").evaluate(Seq()) must beFalse
     }
+
+    "parse z and 9" >> {
+      VisibilityEvaluator.parse("zZ9") mustEqual VisibilityValue("zZ9".getBytes(StandardCharsets.UTF_8))
+    }
   }
 }

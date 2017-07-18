@@ -9,9 +9,13 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.io.IOException
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
@@ -57,6 +61,24 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   private val statsTable = GeoMesaFeatureIndex.formatSharedTableName(config.catalog, "stats")
   override val stats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
+
+  // If on a secured cluster, create a thread to periodically renew Kerberos tgt
+  val kerberosTgtRenewer : Option[ScheduledExecutorService] = if (UserGroupInformation.isSecurityEnabled) {
+    val executor = Executors.newSingleThreadScheduledExecutor()
+    executor.scheduleAtFixedRate(
+      new Runnable {
+        def run(): Unit = {
+          try {
+            logger.info("Checking whether TGT needs renewing for " + UserGroupInformation.getCurrentUser.toString)
+            logger.debug("Logged in from keytab? " + UserGroupInformation.getCurrentUser.isFromKeytab.toString)
+            UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
+          } catch {
+            case iox: IOException => logger.warn("Error checking and renewing TGT: " + iox.toString)
+          }
+        }
+      }, 0, 10, TimeUnit.MINUTES)
+    Some(executor)
+  } else None
 
   // some convenience operations
 
@@ -239,6 +261,12 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       lock.release()
     }
   }
+
+  override def dispose(): Unit = {
+    super.dispose()
+    kerberosTgtRenewer.foreach( _.shutdown() )
+  }
+
 }
 
 object AccumuloDataStore {

@@ -320,7 +320,11 @@ div.admonition.warning, div.admonition.note {
   color: #bbb;
 }
 
-.rst-content .highlighted{
+.rst-content .section ul:last-child, .rst-content .toctree-wrapper ul:last-child {
+  margin-bottom: 24px !important;
+}
+
+.rst-content .highlighted {
   background: #c9781d !important;
   display:inline-block;
   font-weight:bold;

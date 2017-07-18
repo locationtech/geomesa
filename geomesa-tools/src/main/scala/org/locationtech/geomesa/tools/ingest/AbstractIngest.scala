@@ -21,7 +21,7 @@ import org.joda.time.format.PeriodFormatterBuilder
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.stats.CountingInputStream
-import org.locationtech.geomesa.utils.text.TextTools._
+import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -66,22 +66,9 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     * @param statusCallback for reporting status
     * @return (success, failures) counts
     */
-  def runDistributedJob(statusCallback: (Float, Long, Long, Boolean) => Unit): (Long, Long)
+  def runDistributedJob(statusCallback: StatusCallback): (Long, Long)
 
-  val ds = DataStoreFinder.getDataStore(dsParams)
-
-  // (progress, start time, pass, fail, done)
-  val statusCallback: (Float, Long, Long, Long, Boolean) => Unit =
-    if (dsParams.get("useMock").exists(_.toBoolean)) {
-      val progress = printProgress(System.err, buildString('\u26AC', 60), ' ', _: Char) _
-      var state = false
-      (p, s, pass, fail, d) => {
-        state = !state
-        if (state) progress('\u15e7')(p, s, pass, fail, d) else progress('\u2b58')(p, s, pass, fail, d)
-      }
-    } else {
-      printProgress(System.err, buildString(' ', 60), '\u003d', '\u003e')
-    }
+  protected val ds = DataStoreFinder.getDataStore(dsParams)
 
   /**
    * Main method to kick off ingestion
@@ -158,29 +145,40 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
     def progress(): Float = bytesRead.get() / totalLength
 
-    Command.user.info(s"Ingesting ${getPlural(numFiles, "file")} with ${getPlural(numLocalThreads, "thread")}")
+    Command.user.info(s"Ingesting ${TextTools.getPlural(numFiles, "file")} with ${TextTools.getPlural(numLocalThreads, "thread")}")
 
     val start = System.currentTimeMillis()
+    val statusCallback = createCallback()
     val es = Executors.newFixedThreadPool(numLocalThreads)
     files.foreach(f => es.submit(new LocalIngestWorker(f)))
     es.shutdown()
 
+    def counters = Seq(("ingested", written.get()), ("failed", failed.get()))
+
     while (!es.isTerminated) {
       Thread.sleep(1000)
-      statusCallback(progress(), start, written.get(), failed.get(), false)
+      statusCallback("", progress(), counters, done = false)
     }
-    statusCallback(progress(), start, written.get(), failed.get(), true)
+    statusCallback("", progress(), counters, done = true)
 
-    Command.user.info(s"Local ingestion complete in ${getTime(start)}")
+    Command.user.info(s"Local ingestion complete in ${TextTools.getTime(start)}")
     Command.user.info(getStatInfo(written.get, failed.get))
   }
 
   private def runDistributed(): Unit = {
     val start = System.currentTimeMillis()
-    val status = statusCallback(_: Float, start, _: Long, _: Long, _: Boolean)
-    val (success, failed) = runDistributedJob(status)
-    Command.user.info(s"Distributed ingestion complete in ${getTime(start)}")
+    val statusCallback = createCallback()
+    val (success, failed) = runDistributedJob(statusCallback)
+    Command.user.info(s"Distributed ingestion complete in ${TextTools.getTime(start)}")
     Command.user.info(getStatInfo(success, failed))
+  }
+
+  private def createCallback(): StatusCallback = {
+    if (dsParams.get("useMock").exists(_.toBoolean)) {
+      new PrintProgress(System.err, TextTools.buildString('\u26AC', 60), ' ', '\u15e7', '\u2b58')
+    } else {
+      new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
+    }
   }
 }
 
@@ -202,58 +200,74 @@ object AbstractIngest {
   }
 
   /**
-   * Prints progress using the provided output stream. Progress will be overwritten using '\r', and will only
-   * include a line feed if done == true
-   */
-  def printProgress(out: PrintStream,
-                    emptyBar: String,
-                    replacement: Char,
-                    indicator: Char)(progress: Float, start: Long, pass: Long, fail: Long, done: Boolean): Unit = {
-    val percent = f"${(progress * 100).toInt}%3d"
-    val info = s" $percent% complete $pass ingested $fail failed in ${getTime(start)}"
-
-    // Figure out if and how much the progress bar should be scaled to accommodate smaller terminals
-    val scaleFactor: Float = {
-      val tWidth = terminalWidth()
-      // Sanity check as jline may not be correct. We also don't scale up, ~112 := scaleFactor = 1.0f
-      if (tWidth > info.length + 3 && tWidth < emptyBar.length + info.length + 2) {
-        // Screen Width 80 yields scaleFactor of .46
-        (tWidth - info.length - 2) / emptyBar.length // -2 is for brackets around bar
-      } else {
-        1.0f
-      }
-    }
-
-    val scaledLen: Int = (emptyBar.length * scaleFactor).toInt
-    val numDone = (scaledLen * progress).toInt
-    val bar = if (numDone < 1) {
-      emptyBar.substring(emptyBar.length - scaledLen)
-    } else if (numDone >= scaledLen) {
-      buildString(replacement, scaledLen)
-    } else {
-      val doneStr = buildString(replacement, numDone - 1) // -1 for indicator
-      val doStr = emptyBar.substring(emptyBar.length - (scaledLen - numDone))
-      s"$doneStr$indicator$doStr"
-    }
-
-    // use \r to replace current line
-    // trailing space separates cursor
-    out.print(s"\r[$bar]$info")
-    if (done) {
-      out.println()
-    }
-  }
-
-  /**
    * Gets status as a string
    */
   def getStatInfo(successes: Long, failures: Long): String = {
     val failureString = if (failures == 0) {
       "with no failures"
     } else {
-      s"and failed to ingest ${getPlural(failures, "feature")}"
+      s"and failed to ingest ${TextTools.getPlural(failures, "feature")}"
     }
-    s"Ingested ${getPlural(successes, "feature")} $failureString."
+    s"Ingested ${TextTools.getPlural(successes, "feature")} $failureString."
+  }
+
+  sealed trait StatusCallback {
+    def reset(): Unit
+    def apply(prefix: String, progress: Float, counters: Seq[(String, Long)], done: Boolean): Unit
+  }
+
+  /**
+    * Prints progress using the provided output stream. Progress will be overwritten using '\r', and will only
+    * include a line feed if done == true
+    */
+  class PrintProgress(out: PrintStream, emptyBar: String, replacement: Char, indicator: Char, toggle: Char)
+      extends StatusCallback {
+
+    private var toggled = false
+    private var start = System.currentTimeMillis()
+
+    override def reset(): Unit = start = System.currentTimeMillis()
+
+    override def apply(prefix: String, progress: Float, counters: Seq[(String, Long)], done: Boolean): Unit = {
+      val percent = f"${(progress * 100).toInt}%3d"
+      val counterString = if (counters.isEmpty) { "" } else {
+        counters.map { case (label, count) => s"$count $label"}.mkString(" ", " ", "")
+      }
+      val info = s" $percent% complete$counterString in ${TextTools.getTime(start)}"
+
+      // Figure out if and how much the progress bar should be scaled to accommodate smaller terminals
+      val scaleFactor: Float = {
+        val tWidth = terminalWidth()
+        // Sanity check as jline may not be correct. We also don't scale up, ~112 := scaleFactor = 1.0f
+        if (tWidth > info.length + 3 && tWidth < emptyBar.length + info.length + 2 + prefix.length) {
+          // Screen Width 80 yields scaleFactor of .46
+          (tWidth - info.length - 2 - prefix.length) / emptyBar.length // -2 is for brackets around bar
+        } else {
+          1.0f
+        }
+      }
+
+      val scaledLen = (emptyBar.length * scaleFactor).toInt
+      val numDone = (scaledLen * progress).toInt
+      val bar = if (numDone < 1) {
+        emptyBar.substring(emptyBar.length - scaledLen)
+      } else if (numDone >= scaledLen) {
+        TextTools.buildString(replacement, scaledLen)
+      } else {
+        val doneStr = TextTools.buildString(replacement, numDone - 1) // -1 for indicator
+        val doStr = emptyBar.substring(emptyBar.length - (scaledLen - numDone))
+        val i = if (toggled) { toggle } else { indicator }
+        toggled = !toggled
+        s"$doneStr$i$doStr"
+      }
+
+      // use \r to replace current line
+      // trailing space separates cursor
+      out.print(s"\r$prefix[$bar]$info")
+      if (done) {
+        out.println()
+      }
+    }
   }
 }
 

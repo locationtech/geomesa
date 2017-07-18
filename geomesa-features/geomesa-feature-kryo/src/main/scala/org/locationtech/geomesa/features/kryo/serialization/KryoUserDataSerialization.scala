@@ -34,16 +34,22 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
   }
 
   override def deserialize(in: Input): java.util.Map[AnyRef, AnyRef] = {
-    var toRead = in.readInt()
-    val map = new java.util.HashMap[AnyRef, AnyRef](toRead)
+    val size = in.readInt()
+    val map = new java.util.HashMap[AnyRef, AnyRef](size)
+    deserialize(in, size, map)
+    map
+  }
 
-    while (toRead > 0) {
+  override def deserialize(in: Input, map: java.util.Map[AnyRef, AnyRef]): Unit =
+    deserialize(in, in.readInt(), map)
+
+  private def deserialize(in: Input, size: Int, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+    var remaining = size
+    while (remaining > 0) {
       val key = read(in, Class.forName(in.readString()))
       val value = read(in, Class.forName(in.readString()))
       map.put(key, value)
-      toRead -= 1
+      remaining -= 1
     }
-
-    map
   }
 }

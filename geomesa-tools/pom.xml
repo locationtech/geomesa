@@ -45,10 +45,6 @@
             <artifactId>geomesa-convert-all_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-          <groupId>org.locationtech.geomesa</groupId>
-          <artifactId>geomesa-convert-osm_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
         </dependency>

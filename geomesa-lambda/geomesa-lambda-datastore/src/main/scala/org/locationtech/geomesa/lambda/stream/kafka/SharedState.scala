@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import java.util.Comparator
-import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, PriorityBlockingQueue}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -22,7 +21,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Locally cached features
   */
-class SharedState(topic: String, partitions: Int, expire: Boolean) extends OffsetListener with LazyLogging {
+class SharedState(topic: String, partitions: Int) extends OffsetListener with LazyLogging {
 
   // map of feature id -> current feature
   private val features = new ConcurrentHashMap[String, SimpleFeature]
@@ -30,11 +29,6 @@ class SharedState(topic: String, partitions: Int, expire: Boolean) extends Offse
   // technically we should synchronize all access to the following arrays, since we expand them if needed;
   // however, in normal use it will be created up front and then only read.
   // if partitions are added at runtime, we may have synchronization issues...
-
-  // array, indexed by partition, of maps of offset -> feature, for all features we have added
-  private val offsets = ArrayBuffer.fill(partitions)(new ConcurrentHashMap[Long, SimpleFeature])
-  // last offset that hasn't been expired
-  private val validOffsets = ArrayBuffer.fill(partitions)(new AtomicLong(-1L))
 
   // array, indexed by partition, of queues of (offset, create time, feature), sorted by offset
   private val expiry = ArrayBuffer.fill(partitions)(newQueue)
@@ -68,17 +62,9 @@ class SharedState(topic: String, partitions: Int, expire: Boolean) extends Offse
     * @param created time feature was created
     */
   def add(f: SimpleFeature, partition: Int, offset: Long, created: Long): Unit = {
-    val valid = validOffsets(partition).get
-    if (valid <= offset) {
-      logger.trace(s"Adding [$partition:$offset] $f created at ${new DateTime(created, DateTimeZone.UTC)}")
-      features.put(f.getID, f)
-      offsets(partition).put(offset, f)
-      if (expire) {
-        expiry(partition).offer((offset, created, f))
-      }
-    } else {
-      logger.trace(s"Ignoring [$partition:$offset] $f created at ${new DateTime(created, DateTimeZone.UTC)}, valid offset is $valid")
-    }
+    logger.trace(s"Adding [$partition:$offset] $f created at ${new DateTime(created, DateTimeZone.UTC)}")
+    features.put(f.getID, f)
+    expiry(partition).offer((offset, created, f))
   }
 
   /**
@@ -103,11 +89,6 @@ class SharedState(topic: String, partitions: Int, expire: Boolean) extends Offse
   def partitionAssigned(partition: Int, offset: Long): Unit = synchronized {
     while (expiry.length <= partition) {
       expiry += newQueue
-      offsets += new ConcurrentHashMap[Long, SimpleFeature]
-      validOffsets += new AtomicLong(-1L)
-    }
-    if (validOffsets(partition).get < offset) {
-      validOffsets(partition).set(offset)
     }
   }
 
@@ -139,8 +120,8 @@ class SharedState(topic: String, partitions: Int, expire: Boolean) extends Offse
     * @param expiry expiry
     * @return expired features, ordered by offset
     */
-  def expired(partition: Int, expiry: Long): Seq[(Long, SimpleFeature)] = {
-    val expired = scala.collection.mutable.Queue.empty[(Long, SimpleFeature)]
+  def expired(partition: Int, expiry: Long): (Long, Seq[(Long, SimpleFeature)]) = {
+    val expired = ArrayBuffer.empty[(Long, SimpleFeature)]
     val queue = this.expiry(partition)
     var loop = true
     while (loop) {
@@ -151,41 +132,41 @@ class SharedState(topic: String, partitions: Int, expire: Boolean) extends Offse
       }
     }
     logger.debug(s"Checking [$topic:$partition] for expired entries: found ${expired.size} expired and ${queue.size} remaining")
-    expired
+    // return expired features from the cache if there aren't any more recent updates
+    var max = -1L
+    val latest = expired.filter { case (offset, feature) =>
+      if (offset > max) {
+        max = offset
+      }
+      // only remove from feature cache (and persist) if there haven't been additional updates
+      features.remove(feature.getID, feature)
+    }
+    (max, latest)
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {
-    var current = validOffsets(partition).get
-    // ensure that we are operating on a valid range of offsets
-    while (!validOffsets(partition).compareAndSet(current, offset)) {
-      current = validOffsets(partition).get
-    }
-    val partitionOffsets = offsets(partition)
+    val queue = expiry(partition)
 
     // remove the expired features from the cache
-    if (current == -1L) {
-      logger.debug(s"Setting initial offset [$topic:$partition:$offset]")
-    } else {
-      val (featureSize, offsetSize, start) = if (!debug) { (0, 0, 0L) } else {
-        logger.debug(s"Offsets changed for [$topic:$partition]: $current->$offset")
-        (features.size, partitionOffsets.size, System.currentTimeMillis())
-      }
-      while (current < offset) {
-        val feature = partitionOffsets.remove(current)
-        if (feature == null) {
-          logger.trace(s"Tried to remove [$partition:$current], but it was not present in the offsets map")
-        } else if (feature.eq(features.get(feature.getID))) {
-          // ^ only remove from feature cache if there haven't been additional updates
-          features.remove(feature.getID)
-          // note: don't remove from expiry queue, it requires a synchronous traversal
-          // instead, allow persistence run to remove
-        }
-        current += 1L
-      }
-      logger.debug(s"Size of cached state for [$topic:$partition]: features (total): " +
-          s"${diff(featureSize, features.size)}, offsets: ${diff(offsetSize, partitionOffsets.size)} in " +
-          s"${System.currentTimeMillis() - start}ms")
+    val (featureSize, queueSize, start) = if (!debug) { (0, 0, 0L) } else {
+      logger.debug(s"Offsets changed for [$topic:$partition]: -> $offset")
+      (features.size, queue.size, System.currentTimeMillis())
     }
+
+    var loop = true
+    while (loop) {
+      queue.poll() match {
+        case null => loop = false
+        case f if f._1 > offset => queue.offer(f); loop = false
+        case (_, _, feature) =>
+          // only remove from feature cache if there haven't been additional updates
+          features.remove(feature.getID, feature)
+      }
+    }
+
+    logger.debug(s"Size of cached state for [$topic:$partition]: features (total): " +
+        s"${diff(featureSize, features.size)}, offsets: ${diff(queueSize, queue.size)} in " +
+        s"${System.currentTimeMillis() - start}ms")
   }
 
   // debug message

@@ -8,7 +8,8 @@ about GeoMesa data stores is described here:
 .. toctree::
     :maxdepth: 1
 
-    index_structure
+    index_overview
+    index_basics
     index_config
     runtime_config
     explaining
@@ -18,6 +19,8 @@ about GeoMesa data stores is described here:
     reserved_words
     security
     authorizations
+
+
 
 Specific back-end implementations are described in the following chapters:
 

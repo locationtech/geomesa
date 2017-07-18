@@ -115,7 +115,8 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
       val providedDictionaries = hints.getArrowDictionaryEncodedValues
       if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
           dictionaryFields.forall(providedDictionaries.contains)) {
-        val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields, providedDictionaries)
+        val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
+          providedDictionaries, hints.isArrowCachedDictionaries)
         val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
         val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries))
         ScanConfig(Seq(iter), FullColumnFamily, ArrowBatchIterator.kvsToFeatures(), reduce)

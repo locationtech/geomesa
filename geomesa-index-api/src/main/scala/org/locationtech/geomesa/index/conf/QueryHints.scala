@@ -49,6 +49,7 @@ object QueryHints {
   val ARROW_DICTIONARY_FIELDS  = new ClassKey(classOf[java.lang.String])
   val ARROW_DICTIONARY_VALUES  = new ClassKey(classOf[java.lang.String])
   val ARROW_DICTIONARY_COMPUTE = new ClassKey(classOf[java.lang.Boolean])
+  val ARROW_DICTIONARY_CACHED  = new ClassKey(classOf[java.lang.Boolean])
   val ARROW_BATCH_SIZE         = new ClassKey(classOf[java.lang.Integer])
   val ARROW_SORT_FIELD         = new ClassKey(classOf[java.lang.String])
   val ARROW_SORT_REVERSE       = new ClassKey(classOf[java.lang.Boolean])
@@ -97,6 +98,8 @@ object QueryHints {
       Option(hints.get(ARROW_DICTIONARY_FIELDS).asInstanceOf[String]).toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
     def isArrowComputeDictionaries: Boolean =
       Option(hints.get(ARROW_DICTIONARY_COMPUTE).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
+    def isArrowCachedDictionaries: Boolean =
+      Option(hints.get(ARROW_DICTIONARY_CACHED).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
     def getArrowDictionaryEncodedValues: Map[String, Seq[AnyRef]] =
       Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap).getOrElse(Map.empty)
     def setArrowDictionaryEncodedValues(values: Map[String, Seq[AnyRef]]): Unit =

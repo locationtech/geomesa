@@ -48,19 +48,17 @@ class KafkaStore(ds: DataStore,
                 (implicit clock: Clock = Clock.systemUTC())
     extends TransientStore with LazyLogging {
 
-  private val expire = config.expiry != Duration.Inf
-
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
-  private val state = new SharedState(topic, config.partitions, expire)
+  private val state = new SharedState(topic, config.partitions)
 
-  private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
+  private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.builder.withUserData.immutable.build())
 
   private val queryRunner = new KafkaQueryRunner(state, stats, authProvider)
 
   private val loader = new KafkaCacheLoader(offsetManager, serializer, state, consumerConfig, topic, config.consumers)
 
-  private val persistence = if (!expire) { None } else {
+  private val persistence = if (config.expiry == Duration.Inf) { None } else {
     Some(new DataStorePersistence(ds, sft, offsetManager, state, topic, config.expiry.toMillis, config.persist))
   }
 
@@ -188,8 +186,8 @@ object KafkaStore {
   def consumer(connect: Map[String, String], group: String): Consumer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.consumer.ConsumerConfig._
     val props = new Properties()
-    connect.foreach { case (k, v) => props.put(k, v) }
     props.put(GROUP_ID_CONFIG, group)
+    connect.foreach { case (k, v) => props.put(k, v) }
     props.put(ENABLE_AUTO_COMMIT_CONFIG, "false")
     props.put(AUTO_OFFSET_RESET_CONFIG, "earliest")
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
