@@ -42,7 +42,7 @@ object AttributeWriter {
 
   def apply(name: String, index: Int, objectType: ObjectType, bindings: Seq[ObjectType]): AttributeWriter =
     objectType match {
-      // TODO linestrings and polygons
+      // TODO linestrings and polygons https://geomesa.atlassian.net/browse/GEOMESA-1936
       case ObjectType.GEOMETRY => new PointAttributeWriter(name, index)
       case ObjectType.DATE     => new DateWriter(name, index)
       case ObjectType.DOUBLE   => new DoubleWriter(name, index)
@@ -50,8 +50,6 @@ object AttributeWriter {
       case ObjectType.INT      => new IntegerWriter(name, index)
       case ObjectType.LONG     => new LongWriter(name, index)
       case ObjectType.STRING   => new StringWriter(name, index)
-
-      // TODO implement
       case ObjectType.LIST     => new ListWriter(name, index, bindings.head)
       case ObjectType.MAP      => new MapWriter(name, index, bindings.head, bindings.last)
       case ObjectType.UUID     => new UUIDWriter(name, index)
@@ -72,7 +70,6 @@ object AttributeWriter {
     }
   }
 
-  // NOTE: not thread safe
   class PointAttributeWriter(fieldName: String, fieldIndex: Int) extends AbstractAttributeWriter(fieldName, fieldIndex) {
     override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
       val pt = value.asInstanceOf[Point]
@@ -86,7 +83,6 @@ object AttributeWriter {
       recordConsumer.endGroup()
     }
   }
-
 
   class DateWriter(fieldName: String, fieldIndex: Int) extends AbstractAttributeWriter(fieldName, fieldIndex) {
     override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {

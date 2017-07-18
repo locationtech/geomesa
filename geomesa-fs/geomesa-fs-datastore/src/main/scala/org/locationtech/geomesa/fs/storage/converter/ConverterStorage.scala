@@ -18,7 +18,7 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver, SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.fs.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.{StoragePartition, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.common.PartitionScheme
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -73,7 +73,7 @@ class ConverterStorage(root: Path,
   override def listFeatureTypes(): util.List[SimpleFeatureType] = List(sft)
 
   override def createNewFeatureType(sft: SimpleFeatureType, partitionScheme: PartitionScheme): Unit =
-    throw new UnsupportedOperationException("Cannot create new feature type on existing DB")
+    throw new UnsupportedOperationException("Converter Storage does not support creation of new feature types")
 
   override def getFeatureType(name: String): SimpleFeatureType =
     if (sft.getTypeName != name) {
@@ -82,10 +82,10 @@ class ConverterStorage(root: Path,
       sft
     }
 
-  override def getWriter(typeName: String, partition: Partition): FileSystemWriter =
-    throw new UnsupportedOperationException("Cannot append to converter datastore")
+  override def getWriter(typeName: String, partition: String): FileSystemWriter =
+    throw new UnsupportedOperationException("Converter Storage does not support feature writing")
 
-  override def getPartitionReader(typeName: String, q: Query, partition: Partition): FileSystemPartitionIterator =
+  override def getPartitionReader(typeName: String, q: Query, partition: String): FileSystemPartitionIterator =
     new ConverterPartitionReader(root, partition, sft, converter, q.getFilter)
 
   private def buildPartitionList(path: Path, prefix: String, curDepth: Int): List[String] = {
@@ -100,17 +100,12 @@ class ConverterStorage(root: Path,
     }.toList
   }
 
-  override def listPartitions(typeName: String): util.List[Partition] =
-    buildPartitionList(root, "", 0).map(getPartition)
-
-  override def getFileSystemRoot(typeName: String): URI = root.toUri
+  override def listPartitions(typeName: String): util.List[String] = buildPartitionList(root, "", 0)
 
   override def getPartitionScheme(typeName: String): PartitionScheme = partitionScheme
 
-  override def getPartition(name: String): Partition = new StoragePartition(name)
-
-  override def getPaths(typeName: String, partition: Partition): java.util.List[URI] =
-    List(new Path(root, partition.getName).toUri)
+  override def getPaths(typeName: String, partition: String): java.util.List[URI] =
+    List(new Path(root, partition).toUri)
 
   override def getMetadata(typeName: String): Metadata =
     throw new UnsupportedOperationException("Cannot append to converter datastore")

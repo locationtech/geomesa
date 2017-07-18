@@ -3,9 +3,10 @@ FileSystem Datastore Architecture
 
 The GeoMesa FileSystem Datastore (GeoMesa FSDS) takes advantage of the performance characteristics of modern
 cloud-native and distributed filesystems to scale bulk analytic queries. The FSDS is a good choice for doing bulk egress
-queries or large analytic jobs using frameworks such as Spark SQL and MapReduce. The FSDS differs from other queries
-in that ingest latency is traded for high-throughput query. The FSDS pairs well with low-latency ingest systems such as
-HBase or Kafka to provide an optimal pairing of "hot", "warm" storage options.
+queries or large analytic jobs using frameworks such as Spark SQL and MapReduce. The FSDS differs from other datastores
+in that ingest and point query latencies are traded for high-throughput query performance. The FSDS pairs well with
+low-latency ingest and cache-based datastores systems such as HBase or Kafka to provide an optimal pairing of "hot" and
+"warm" storage options. This pairing is commonly known as a Lambda Architecture.
 
 The GeoMesa FSDS consists of a few primary components:
 
@@ -30,8 +31,8 @@ with GeoMesa FSDS are:
 Choosing a filesystem depends generally on cost and performance requirements. One thing to note is that S3, GCS, and
 WASB are all "cloud-native" storage meaning that they are built into Amazon, Google, and Microsoft Azure cloud
 platforms. These cloud-native filesystems are scaled separately from the compute nodes which generally provides a more
-cost efficient storage solution. In general their price per GigaByte of storage is lower then using HDFS though they
-may be slightly more latent. They also have the ability to persist data after you turn off all your compute nodes.
+cost efficient storage solution. Compared to HDFS, their price per GigaByte of storage is lower but their latency is
+higher. They also have the ability to persist data after you turn off all your compute nodes.
 
 Any of the filesystems mentioned about are good choices for the FSDS. If you have more questions about making a choice
 contact the `GeoMesa team <http://www.geomesa.org/community/>`__
@@ -41,7 +42,7 @@ Partition Schemes
 
 The partition scheme defines how data is stored within the filesystem. The scheme is important because it defines how
 the data is queried. Most OLAP queries in GeoMesa contain a date range and geometric predicate and the partition scheme
-can aide in finding the files satisfy the query. There are two main partition schmes used with GeoMesa FSDS:
+can aid in finding the files satisfy the query. There are two main partition schmes used with GeoMesa FSDS:
 
 * **Date** - partition data by a Date attribute
 * **Geometry (Z2)** - partition data by its geometric coordinates using a Z2 space-filling curve

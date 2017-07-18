@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs
 
 import org.geotools.data.Query
-import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, Partition}
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -17,7 +17,7 @@ object FsQueryPlanning {
 
   def getPartitionsForQuery(storage: FileSystemStorage,
                             sft: SimpleFeatureType,
-                            q: Query): Seq[Partition] = {
+                            q: Query): Seq[String] = {
     import scala.collection.JavaConversions._
 
     // Get the partitions from the partition scheme
@@ -29,7 +29,7 @@ object FsQueryPlanning {
     }
     else {
       val partitionScheme = storage.getPartitionScheme(sft.getTypeName)
-      val coveringPartitions = partitionScheme.getCoveringPartitions(q.getFilter).map(storage.getPartition)
+      val coveringPartitions = partitionScheme.getCoveringPartitions(q.getFilter)
       if (coveringPartitions.isEmpty) {
         storagePartitions //TODO should this ever happen?
       } else {

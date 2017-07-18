@@ -13,16 +13,16 @@ import java.io.{File, FileInputStream}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.convert.SimpleFeatureConverter
-import org.locationtech.geomesa.fs.storage.api.{FileSystemPartitionIterator, Partition}
+import org.locationtech.geomesa.fs.storage.api.FileSystemPartitionIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class ConverterPartitionReader(root: Path,
-                               partition: Partition,
+                               partition: String,
                                sft: SimpleFeatureType,
                                converter: SimpleFeatureConverter[_],
                                gtFilter: org.opengis.filter.Filter) extends FileSystemPartitionIterator with LazyLogging {
 
-  private val path = new Path(root, partition.getName)
+  private val path = new Path(root, partition)
   private val fis = new FileInputStream(new File(path.toUri.toString))
   private val iter = try {
     converter.process(fis)
@@ -71,5 +71,5 @@ class ConverterPartitionReader(root: Path,
     cur != null
   }
 
-  override def getPartition: Partition = partition
+  override def getPartition: String = partition
 }

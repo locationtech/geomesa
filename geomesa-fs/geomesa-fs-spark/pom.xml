@@ -43,8 +43,7 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
         </dependency>
-
-
+        
         <!-- test dependencies -->
         <dependency>
             <groupId>org.specs2</groupId>

@@ -6,7 +6,6 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-
 package org.locationtech.geomesa.fs
 
 import java.util
@@ -15,7 +14,7 @@ import java.util.concurrent._
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.FileSystem
 import org.geotools.data.Query
-import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, Partition, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, PartitionScheme}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
@@ -31,7 +30,7 @@ class FileSystemFeatureIterator(fs: FileSystem,
 
   private val iter: java.util.Iterator[SimpleFeature] with AutoCloseable =
     if (partitions.isEmpty) {
-      CloseableEmptyIterator
+      JavaCloseableIterator
     } else {
       new ThreadedReader(storage, partitions, sft.getTypeName, q, readThreads)
     }
@@ -41,21 +40,21 @@ class FileSystemFeatureIterator(fs: FileSystem,
   override def close(): Unit = iter.close()
 }
 
-object CloseableEmptyIterator extends java.util.Iterator[SimpleFeature] with AutoCloseable  {
+object JavaCloseableIterator extends java.util.Iterator[SimpleFeature] with AutoCloseable  {
   override def next(): SimpleFeature = throw new NoSuchElementException
   override def hasNext: Boolean = false
   override def close(): Unit = {}
 }
 
 class ThreadedReader(storage: FileSystemStorage,
-                     partitions: Seq[Partition],
+                     partitions: Seq[String],
                      typeName: String,
                      q: Query,
                      numThreads: Int)
   extends java.util.Iterator[SimpleFeature] with AutoCloseable with LazyLogging {
 
   // Need to do more tuning here. On a local system 1 thread (so basic producer/consumer) was best
-  // because Parquet is also threading the reads underneath i think. using prod/cons pattern was
+  // because Parquet is also threading the reads underneath I think. using prod/cons pattern was
   // about 30% faster but increasing beyond 1 thread slowed things down. This could be due to the
   // cost of serializing simple features though. need to investigate more.
   //

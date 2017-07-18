@@ -64,7 +64,7 @@
             </includes>
         </fileSet>
 
-        <!-- Accumulo Tools filesets -->
+        <!-- FileSystem Tools filesets -->
         <fileSet>
             <directory>../geomesa-fs-tools/bin</directory>
             <outputDirectory>bin</outputDirectory>

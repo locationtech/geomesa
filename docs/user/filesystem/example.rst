@@ -17,7 +17,7 @@ folder which contains an example csv file that we will ingest:
     26236,Hermione,25,2015-06-07,"Edward, Bill, Harry","accio->10",40.232,-53.2356,user
     3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort","potions->10",3,-62.23,user&admin
 
-As you can see there are 3 records in the file. GeoMesa ships with a pre-installed SimpleFeatureType and converter
+As you can see, there are 3 records in the file. GeoMesa ships with a pre-installed SimpleFeatureType and converter
 for this example file which can be found in the ``conf/application.conf`` file. Running ``bin/geomesa-fs env`` will
 show that there is an ``example-csv`` type and converter installed along with many other types including twitter, gdelt,
 osm, etc:

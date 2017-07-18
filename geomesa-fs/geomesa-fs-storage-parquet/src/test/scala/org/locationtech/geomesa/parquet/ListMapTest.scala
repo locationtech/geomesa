@@ -71,6 +71,7 @@ class ListMapTest extends Specification {
           .build()
 
         import org.locationtech.geomesa.utils.geotools.Conversions._
+
         import scala.collection.JavaConversions._
         val sf = reader.read()
         sf.getAttributeCount mustEqual 3
@@ -138,6 +139,7 @@ class ListMapTest extends Specification {
           .build()
 
         import org.locationtech.geomesa.utils.geotools.Conversions._
+
         import scala.collection.JavaConversions._
         val sf = reader.read()
         sf.getAttributeCount mustEqual 3
@@ -211,6 +213,7 @@ class ListMapTest extends Specification {
         val u2 = "00000000-0000-2222-0000-000000000000"
 
         import org.locationtech.geomesa.utils.geotools.Conversions._
+
         import scala.collection.JavaConversions._
         val sf = reader.read()
         sf.getAttributeCount mustEqual 4

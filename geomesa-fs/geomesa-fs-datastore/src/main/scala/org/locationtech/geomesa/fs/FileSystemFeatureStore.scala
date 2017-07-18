@@ -54,7 +54,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
 
       override def write(): Unit = {
         val partition = storage.getPartitionScheme(typeName).getPartitionName(feature)
-        val writer = writers.getOrElseUpdate(partition, storage.getWriter(typeName, storage.getPartition(partition)))
+        val writer = writers.getOrElseUpdate(partition, storage.getWriter(typeName, partition))
         writer.write(feature)
         feature = null
       }
@@ -79,7 +79,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
   override def buildFeatureType(): SimpleFeatureType = _sft
   override def getCountInternal(query: Query): Int = ???
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    // TODO the type name can sometimes be empty such as Query.ALL
+    // The type name can sometimes be empty such as Query.ALL
     query.setTypeName(_sft.getTypeName)
     new DelegateSimpleFeatureReader(_sft,
       new DelegateSimpleFeatureIterator(

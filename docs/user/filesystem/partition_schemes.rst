@@ -77,7 +77,7 @@ The datetime scheme is indicated by the key ``name = "datetime"`` and uses the f
     {
       "scheme" : "datetime,z2",
       "options" : {
-        "datetime-format" : "yyyy/dd/HH",
+        "datetime-format" : "yyyy/MM/dd/HH",
         "step-unit" : "HOURS",
         "step" : "1",
         "dtg-attribute" : "dtg",
@@ -117,7 +117,7 @@ from the datetime and z2 schemes.
     {
       "scheme" : "datetime,z2",
       "options" : {
-        "datetime-format" : "yyyy/dd/HH",
+        "datetime-format" : "yyyy/MM/dd/HH",
         "step-unit" : "HOURS",
         "step" : 1,
         "dtg-attribute" : "dtg",

@@ -25,7 +25,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-
 // TODO GEOMESA-1913 Use atomic file writing for metadata
 class FileMetadata protected[FileMetadata] (fs: FileSystem,
                                             path: Path,

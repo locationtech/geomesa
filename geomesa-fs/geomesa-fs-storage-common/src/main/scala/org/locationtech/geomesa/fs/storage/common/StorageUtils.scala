@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.locationtech.geomesa.fs.storage.api.{Partition, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 
 object StorageUtils {
 
@@ -74,13 +74,13 @@ object StorageUtils {
   def listFiles(fs: FileSystem,
                 root: Path,
                 typeName: String,
-                partition: Partition,
+                partition: String,
                 isLeafStorage: Boolean,
                 ext: String): Seq[Path] = {
-    val pp = partitionPath(root, typeName, partition.getName)
+    val pp = partitionPath(root, typeName, partition)
     val dir = if (isLeafStorage) pp.getParent else pp
     val files = listFiles(fs, dir, ext)
-    if (isLeafStorage) files.filter(_.getName.startsWith(partition.getName.split('/').last)) else files
+    if (isLeafStorage) files.filter(_.getName.startsWith(partition.split('/').last)) else files
   }
 
   def partitionPath(root: Path, typeName: String, partitionName: String): Path =
@@ -127,7 +127,5 @@ object StorageUtils {
       new Path(dir, name)
     }
   }
-
-
 
 }

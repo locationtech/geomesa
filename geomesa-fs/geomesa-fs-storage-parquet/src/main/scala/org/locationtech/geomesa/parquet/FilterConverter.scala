@@ -145,11 +145,9 @@ class FilterConverter(sft: SimpleFeatureType) {
 
       case _ =>
         None
-      // TODO geotools based UDFs?
     }
   }
 
-  // TODO I hate types
   def filter(objectType: ObjectType,
              binop: org.opengis.filter.BinaryComparisonOperator,
              name: String, value: AnyRef): Option[FilterPredicate] =

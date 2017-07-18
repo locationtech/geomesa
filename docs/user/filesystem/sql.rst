@@ -28,7 +28,7 @@ GDELT SimpleFeatureType and converter to ingest a year or so of data:
 .. note::
 
     We use a temp directory on EMR that utilizes HDFS as intermediate storage to speed up output of parquet files. This
-    is recommended my many vendors including HortonWorks Data Platform.
+    is recommended by many vendors including HortonWorks Data Platform.
 
 .. code-block:: bash
 
@@ -66,7 +66,7 @@ For example if you are using Amazon EMR with Spark 2.1.1 you can start up a shel
 
 This will create a new spark shell from which you can load a GeoMesa FileSystem datastore from S3 or HDFS. A common
 usage pattern is to keep parquet files in S3 so they can be elastically queried with EMR and Spark. For example if you
-have ingested Twitter data into S3 you can query it with SQL in the spark shell::
+have ingested GDELT data into S3 you can query it with SQL in the spark shell::
 
     val dataFrame = spark.read
       .format("geomesa")

@@ -78,7 +78,7 @@ Prints out the current classpath configuration::
 ingest
 ~~~~~~
 
-Ingest files into a GeoMesa FS Datastore. Note that a "datastore" is simply a path in the filesystem. All data and
+Ingests files into a GeoMesa FS Datastore. Note that a "datastore" is simply a path in the filesystem. All data and
 metadata will be stored in the filesystem under the hierarchy of the root path. Before ingesting data you will need
 to define a SimpleFeatureType schema and a GeoMesa converter for your data. Many default type schemas and converters
 for formats such as gdelt, twitter, etc. are provided in the conf directory of GeoMesa.
@@ -130,8 +130,8 @@ decide to insert new files.
 
 Notice that the bucket "directory structure" includes year, month, day and then a 0,1,2,3 representing a quadrant of the
 Z2 Space Filling Curve with 2bit resolution (i.e. 0 = lower left, 1 = lower right, 2 = upper left, 3 = upper right).
-Note that in our example Jan 1 and Jan 2 both do not have all four quadrants represented. This means that the input
-dataset for that day didn't have any data in that region of the world. If additional data were ingested the directory
+Note that in our example January 1st and 2nd both do not have all four quadrants represented. This means that the input
+dataset for that day didn't have any data in that region of the world. If additional data were ingested, the directory
 and a corresponding file would be created.
 
 update-metadata

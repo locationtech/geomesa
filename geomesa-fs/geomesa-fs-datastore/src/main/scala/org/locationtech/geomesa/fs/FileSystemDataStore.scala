@@ -45,7 +45,6 @@ class FileSystemDataStore(fs: FileSystem,
   override def createSchema(sft: SimpleFeatureType): Unit = {
     storage.createNewFeatureType(sft, PartitionScheme.extractFromSft(sft))
   }
-
 }
 
 class FileSystemDataStoreFactory extends DataStoreFactorySpi {
@@ -54,6 +53,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
   override def createDataStore(params: util.Map[String, io.Serializable]): DataStore = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
+
     import scala.collection.JavaConversions._
 
     val path = new Path(PathParam.lookUp(params).asInstanceOf[String])
@@ -101,7 +101,7 @@ object FileSystemDataStoreParams {
   val SftNameParam         = new Param("fs.options.sft.name", classOf[String], "SimpleFeatureType Name", false)
   val SftConfigParam       = new Param("fs.options.sft.conf", classOf[String], "SimpleFeatureType Typesafe Config", false)
 
-  val ReadThreadsParam     = new Param("read-threads", classOf[java.lang.Integer], "Read Threads", false, 4)
+  val ReadThreadsParam     = new Param("fs.read-threads", classOf[java.lang.Integer], "Read Threads", false, 4)
 
   val NamespaceParam       = new Param("namespace", classOf[String], "Namespace", false)
 }

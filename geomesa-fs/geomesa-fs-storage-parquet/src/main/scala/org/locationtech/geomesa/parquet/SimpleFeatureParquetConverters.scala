@@ -69,10 +69,7 @@ class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter
   override def getConverter(fieldIndex: Int): Converter = converters(fieldIndex)
 
   def set(idx: Int, value: AnyRef): Unit = currentArr(idx) = value
-
 }
-
-//abstract class SimpleFeatureFieldConverter(set: Setter) extends PrimitiveConverter
 
 class PointConverter(index: Int, set: Setter) extends GroupConverter {
 

@@ -149,7 +149,6 @@ object PartitionScheme {
     }
   }
 
-  // TODO meh this sucks
   def apply(sft: SimpleFeatureType, conf: Config): PartitionScheme = {
     if (!conf.hasPath("scheme")) throw new IllegalArgumentException("config must have a scheme")
     if (!conf.hasPath("options")) throw new IllegalArgumentException("config must have options for scheme")
@@ -204,7 +203,8 @@ class DateTimeScheme(fmtStr: String,
     }
   }
 
-  // ? is this a good idea
+  // TODO This may not be the best way to calculate max depth...
+  // especially if we are going to use other separators
   override def maxDepth(): Int = fmtStr.count(_ == '/')
 
   override def toString: String = PartitionScheme.stringify(name, getOptions)
@@ -232,7 +232,7 @@ class DateTimeScheme(fmtStr: String,
 object DateTimeScheme {
   val Name = "datetime"
 
-  // TODO enumeration and fix match statement above to match it
+  // TODO create enumeration and fix match statement above to match it
   object Formats {
     val JulianDay    = "yyyy/DDD"
     val JulianHourly = "yyyy/DDD/HH"
@@ -242,11 +242,10 @@ object DateTimeScheme {
     val Daily        = "yyyy/MM/dd"
     val Hourly       = "yyyy/MM/dd/HH"
     val Minute       = "yyyy/MM/dd/HH/mm"
-
   }
 }
 
-class Z2Scheme(bits: Int, // number of bits
+class Z2Scheme(bits: Int,
                geomAttribute: String,
                leafStorage: Boolean) extends PartitionScheme {
 
@@ -296,6 +295,7 @@ class Z2Scheme(bits: Int, // number of bits
 
   override def getOptions: util.Map[String, String] = {
     import PartitionOpts._
+
     import scala.collection.JavaConverters._
     Map(GeomAttribute -> geomAttribute,
         Z2Resolution -> bits.toString,

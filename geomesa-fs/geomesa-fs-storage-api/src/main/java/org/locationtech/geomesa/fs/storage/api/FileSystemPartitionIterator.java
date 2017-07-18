@@ -14,5 +14,5 @@ import org.opengis.feature.simple.SimpleFeature;
 import java.util.Iterator;
 
 public interface FileSystemPartitionIterator extends Iterator<SimpleFeature>, AutoCloseable {
-    Partition getPartition();
+    String getPartition();
 }

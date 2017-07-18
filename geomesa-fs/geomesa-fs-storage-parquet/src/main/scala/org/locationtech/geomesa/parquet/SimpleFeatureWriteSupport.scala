@@ -51,7 +51,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
 
   private def writeFields(attributes: java.util.List[AnyRef]) = {
     var i = 0
-    var len = attributes.size()
+    val len = attributes.size()
     while (i < len) {
       writers(i)(consumer, attributes.get(i))
       i += 1

@@ -41,7 +41,6 @@ class ParquetFSTest extends Specification with AllExpectations {
 
     val tempDir = Files.createTempDirectory("geomesa")
 
-
     "create an fs" >> {
       val parquetFactory = new ParquetFileSystemStorageFactory
 
@@ -69,18 +68,20 @@ class ParquetFSTest extends Specification with AllExpectations {
       List[SimpleFeature](sf1, sf2, sf3)
         .zip(partitions)
         .groupBy(_._2)
-        .foreach { case (partition, features) => val writer = fsStorage.getWriter(sft.getTypeName, fsStorage.getPartition(partition))
+        .foreach { case (partition, features) => val writer = fsStorage.getWriter(sft.getTypeName, partition)
           features.map(_._1).foreach(writer.write)
           writer.close()
         }
 
-      val reader3 = fsStorage.getPartitionReader(sft.getTypeName, new Query("test", ff.equals(ff.property("name"), ff.literal("third"))), fsStorage.getPartition(partitions(2)))
+      val reader3 = fsStorage.getPartitionReader(sft.getTypeName,
+        new Query("test", ff.equals(ff.property("name"), ff.literal("third"))), partitions(2))
       val features3 = reader3.toList
       features3.size mustEqual 1
       features3.head.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
       reader3.close()
 
-      val reader1 = fsStorage.getPartitionReader(sft.getTypeName, new Query("test", ff.equals(ff.property("name"), ff.literal("first"))), fsStorage.getPartition(partitions(0)))
+      val reader1 = fsStorage.getPartitionReader(sft.getTypeName,
+        new Query("test", ff.equals(ff.property("name"), ff.literal("first"))), partitions(0))
       val features1 = reader1.toList
       features1.size mustEqual 1
       features1.head.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263

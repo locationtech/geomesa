@@ -22,7 +22,7 @@ import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.hadoop.ParquetReader
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.{FileMetadata, PartitionScheme, StoragePartition, StorageUtils}
+import org.locationtech.geomesa.fs.storage.common.{FileMetadata, PartitionScheme, StorageUtils}
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage._
 import org.locationtech.geomesa.utils.io.CloseQuietly
@@ -114,13 +114,11 @@ class ParquetFileSystemStorage(root: Path,
 
   override def listFeatureTypes: util.List[SimpleFeatureType] = typeNames.map(getFeatureType)
 
-  override def listPartitions(typeName: String): util.List[Partition] = {
-    import scala.collection.JavaConversions._
-    metadata(typeName).getPartitions.map(getPartition)
-  }
+  override def listPartitions(typeName: String): util.List[String] =
+    metadata(typeName).getPartitions
 
   // TODO ask the parition manager the geometry is fully covered?
-  override def getPartitionReader(typeName: String, q: Query, partition: Partition): FileSystemPartitionIterator = {
+  override def getPartitionReader(typeName: String, q: Query, partition: String): FileSystemPartitionIterator = {
     val sft = metadata(typeName).getSimpleFeatureType
 
     import org.locationtech.geomesa.index.conf.QueryHints._
@@ -128,9 +126,6 @@ class ParquetFileSystemStorage(root: Path,
 
     val transformSft = q.getHints.getTransformSchema.getOrElse(sft)
 
-    // TODO: push down predicates and partition pruning
-    // TODO ensure that transforms are pushed to the ColumnIO in parquet.
-    // TODO: Push down full filter that can't be managed
     val fc = new FilterConverter(transformSft).convert(q.getFilter)
     val parquetFilter =
       fc._1
@@ -159,7 +154,7 @@ class ParquetFileSystemStorage(root: Path,
     new MultiIterator(partition, iters)
   }
 
-  override def getWriter(typeName: String, partition: Partition): FileSystemWriter = {
+  override def getWriter(typeName: String, partition: String): FileSystemWriter = {
     new FileSystemWriter {
       private val meta = metadata(typeName)
       private val sft = meta.getSimpleFeatureType
@@ -170,9 +165,9 @@ class ParquetFileSystemStorage(root: Path,
         c
       }
       private val leaf = meta.getPartitionScheme.isLeafStorage
-      private val dataPath = StorageUtils.nextFile(fs, root, typeName, partition.getName, leaf, FileExtension)
+      private val dataPath = StorageUtils.nextFile(fs, root, typeName, partition, leaf, FileExtension)
       private val writer = SimpleFeatureParquetWriter.builder(dataPath, sftConf).build()
-      meta.addFile(partition.getName, dataPath.getName)
+      meta.addFile(partition, dataPath.getName)
 
       override def write(f: SimpleFeature): Unit = writer.write(f)
 
@@ -182,34 +177,29 @@ class ParquetFileSystemStorage(root: Path,
     }
   }
 
-  override def getFileSystemRoot(typeName: String): URI = root.toUri
-
   override def getPartitionScheme(typeName: String): PartitionScheme =
     metadata(typeName).getPartitionScheme
-
-  override def getPartition(name: String): Partition = new StoragePartition(name)
 
   private def listStorageFiles(typeName: String): util.Map[String, util.List[String]] = {
     val scheme = getPartitionScheme(typeName)
     val partitions =
       StorageUtils.buildPartitionList(root, fs, typeName, scheme, StorageUtils.SequenceLength, FileExtension)
-        .map(getPartition)
     import scala.collection.JavaConverters._
     partitions.map { p =>
       val files = StorageUtils.listFiles(fs, root, typeName, p, scheme.isLeafStorage, FileExtension).map(_.getName).asJava
-      p.getName -> files
+      p -> files
     }.toMap.asJava
   }
 
-  override def getPaths(typeName: String, partition: Partition): java.util.List[URI] = {
+  override def getPaths(typeName: String, partition: String): java.util.List[URI] = {
     val scheme = metadata(typeName).getPartitionScheme
     val baseDir = if (scheme.isLeafStorage) {
-      StorageUtils.partitionPath(root, typeName, partition.getName).getParent
+      StorageUtils.partitionPath(root, typeName, partition).getParent
     } else {
-      StorageUtils.partitionPath(root, typeName, partition.getName)
+      StorageUtils.partitionPath(root, typeName, partition)
     }
     import scala.collection.JavaConversions._
-    val files = metadata(typeName).getFiles(partition.getName)
+    val files = metadata(typeName).getFiles(partition)
     files.map(new Path(baseDir, _)).map(_.toUri)
   }
 
