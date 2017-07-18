@@ -53,7 +53,7 @@ object LambdaFeatureWriter {
     override def hasNext: Boolean = features.hasNext
 
     override def next(): SimpleFeature = {
-      feature = features.next()
+      feature = ScalaSimpleFeature.copy(features.next())
       feature
     }
 

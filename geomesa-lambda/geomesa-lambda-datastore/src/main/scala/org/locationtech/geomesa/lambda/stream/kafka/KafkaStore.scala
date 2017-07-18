@@ -54,7 +54,7 @@ class KafkaStore(ds: DataStore,
 
   private val state = new SharedState(topic, config.partitions, expire)
 
-  private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
+  private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.builder.withUserData.immutable.build())
 
   private val queryRunner = new KafkaQueryRunner(state, stats, authProvider)
 
