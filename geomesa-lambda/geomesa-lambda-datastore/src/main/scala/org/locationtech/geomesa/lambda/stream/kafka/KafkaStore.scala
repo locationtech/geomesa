@@ -188,8 +188,8 @@ object KafkaStore {
   def consumer(connect: Map[String, String], group: String): Consumer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.consumer.ConsumerConfig._
     val props = new Properties()
-    connect.foreach { case (k, v) => props.put(k, v) }
     props.put(GROUP_ID_CONFIG, group)
+    connect.foreach { case (k, v) => props.put(k, v) }
     props.put(ENABLE_AUTO_COMMIT_CONFIG, "false")
     props.put(AUTO_OFFSET_RESET_CONFIG, "earliest")
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
