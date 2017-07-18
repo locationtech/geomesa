@@ -18,7 +18,6 @@ import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.mutable.ArrayBuffer
-import scala.util.control.NonFatal
 
 /**
   * Locally cached features
@@ -140,21 +139,19 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
     var loop = true
     while (loop) {
       lock.lock()
-      try {
-        val poll = queue.poll()
-        if (poll == null) {
+      val poll = queue.poll()
+      if (poll == null) {
+        lock.unlock()
+        loop = false
+      } else if (poll._2 > expiry) {
+        // note: add back to the queue before unlocking
+        try { queue.addFirst(poll) } finally {
           lock.unlock()
-          loop = false
-        } else if (poll._2 > expiry) {
-          queue.addFirst(poll) // note: add back to the queue before unlocking
-          lock.unlock()
-          loop = false
-        } else {
-          lock.unlock()
-          expired += ((poll._1, poll._3))
         }
-      } catch {
-        case NonFatal(e) => lock.unlock(); throw e
+        loop = false
+      } else {
+        lock.unlock()
+        expired += ((poll._1, poll._3))
       }
     }
 
@@ -179,22 +176,20 @@ class SharedState(topic: String, partitions: Int) extends OffsetListener with La
     var loop = true
     while (loop) {
       lock.lock()
-      try {
-        val poll = queue.poll()
-        if (poll == null) {
+      val poll = queue.poll()
+      if (poll == null) {
+        lock.unlock()
+        loop = false
+      } else if (poll._1 > offset) {
+        // note: add back to the queue before unlocking
+        try { queue.addFirst(poll) } finally {
           lock.unlock()
-          loop = false
-        } else if (poll._1 > offset) {
-          queue.addFirst(poll) // note: add back to the queue before unlocking
-          lock.unlock()
-          loop = false
-        } else {
-          lock.unlock()
-          // only remove from feature cache if there haven't been additional updates
-          features.remove(poll._3.getID, poll._3)
         }
-      } catch {
-        case NonFatal(e) => lock.unlock(); throw e
+        loop = false
+      } else {
+        lock.unlock()
+        // only remove from feature cache if there haven't been additional updates
+        features.remove(poll._3.getID, poll._3)
       }
     }
 
