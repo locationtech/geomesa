@@ -13,8 +13,8 @@ import java.util.{Collections, Date}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.AttributeSpec.ListAttributeSpec
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureSpecParser, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -84,11 +84,24 @@ object BinaryOutputEncoder extends LazyLogging {
       fc: SimpleFeatureCollection,
       output: OutputStream,
       options: EncodingOptions,
-      sort: Boolean = false): Long = {
+      sort: Boolean = false): Long = encodeFeatureIterator(fc.features(), fc.getSchema, output, options, sort)
 
-    val iter = toValues(fc.getSchema, options) match {
-      case Right(toValue) => SelfClosingIterator(fc.features).map(toValue)
-      case Left(toValue)  => SelfClosingIterator(fc.features).flatMap(toValue)
+  /**
+    * Encodes a feature iterator to bin format. Features are written to the output stream.
+    *
+    * @param sfi feature iterator to encode
+    * @param output output stream to write to
+    * @param options fields, etc to encode
+    * @param sort sort results before returning
+    */
+  def encodeFeatureIterator(sfi: SimpleFeatureIterator,
+                            sft: SimpleFeatureType,
+                            output: OutputStream,
+                            options: EncodingOptions,
+                            sort: Boolean = false): Long = {
+    val iter: CloseableIterator[ValuesToEncode] = toValues(sft, options) match {
+      case Right(toValue) => SelfClosingIterator(sfi).map(toValue)
+      case Left(toValue)  => SelfClosingIterator(sfi).flatMap(toValue)
     }
 
     // encodes the values in either 16 or 24 bytes
