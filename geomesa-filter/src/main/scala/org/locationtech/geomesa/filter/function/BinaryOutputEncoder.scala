@@ -90,6 +90,7 @@ object BinaryOutputEncoder extends LazyLogging {
     * Encodes a feature iterator to bin format. Features are written to the output stream.
     *
     * @param sfi feature iterator to encode
+    * @param sft the SimpleFeatureType
     * @param output output stream to write to
     * @param options fields, etc to encode
     * @param sort sort results before returning
