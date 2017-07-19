@@ -100,9 +100,11 @@ class DataStorePersistence(ds: DataStore,
       if (!persistExpired) {
         logger.trace(s"Persist disabled for $topic")
       } else {
+        var start = System.currentTimeMillis()
         // do an update query first
         val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)
         WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
+          var count = 0L
           while (writer.hasNext) {
             val next = writer.next()
             toPersist.get(next.getID).foreach { case (offset, updated) =>
@@ -113,10 +115,14 @@ class DataStorePersistence(ds: DataStore,
               }
               toPersist.remove(updated.getID)
             }
+            count += 1
           }
+          logger.debug(s"Wrote $count updated features to persistent storage in ${System.currentTimeMillis() - start}ms")
         }
         // if any weren't updates, add them as inserts
+        start = System.currentTimeMillis()
         if (toPersist.nonEmpty) {
+          val count = toPersist.size
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             toPersist.values.foreach { case (offset, updated) =>
               logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated")
@@ -126,6 +132,7 @@ class DataStorePersistence(ds: DataStore,
               }
             }
           }
+          logger.debug(s"Wrote $count new features to persistent storage in ${System.currentTimeMillis() - start}ms")
         }
       }
     }
