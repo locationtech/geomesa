@@ -88,7 +88,8 @@ for more detail.
 
 ::
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s geolife -C geolife /path/to/Geolife\ Trajectories\ 1.3/Data/**/*.plt
+    geomesa ingest -u USERNAME -c CATALOGNAME -s geolife -C geolife \
+      --threads 4 /path/to/Geolife\ Trajectories\ 1.3/Data/**/*.plt
 
 
 Any errors in ingestion will be logged to ``$GEOMESA_ACCUMULO_HOME/logs``.
