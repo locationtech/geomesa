@@ -17,6 +17,7 @@ import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.common.errors.WakeupException
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.lambda.stream.OffsetManager
+import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.WritableFeatureCache
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
@@ -30,13 +31,13 @@ import scala.util.control.NonFatal
   *
   * @param offsetManager offset manager
   * @param serializer feature serializer
-  * @param state shared state
+  * @param cache shared state
   * @param config kafka consumer config
   * @param topic kafka topic
   */
 class KafkaCacheLoader(offsetManager: OffsetManager,
                        serializer: KryoFeatureSerializer,
-                       state: SharedState,
+                       cache: WritableFeatureCache,
                        config: Map[String, String],
                        topic: String,
                        parallelism: Int) extends Closeable with LazyLogging {
@@ -47,7 +48,7 @@ class KafkaCacheLoader(offsetManager: OffsetManager,
 
   private val executor = Executors.newScheduledThreadPool(parallelism)
 
-  private val consumers = KafkaStore.consumers(config, topic, offsetManager, parallelism, state.partitionAssigned)
+  private val consumers = KafkaStore.consumers(config, topic, offsetManager, parallelism, cache.partitionAssigned)
 
   private val schedules = consumers.map { c =>
     executor.scheduleWithFixedDelay(new ConsumerRunnable(c), frequency, frequency, TimeUnit.MILLISECONDS)
@@ -77,8 +78,8 @@ class KafkaCacheLoader(offsetManager: OffsetManager,
           val (time, action) = KafkaStore.deserializeKey(record.key)
           val feature = serializer.deserialize(record.value)
           action match {
-            case MessageTypes.Write  => state.add(feature, record.partition, record.offset, time)
-            case MessageTypes.Delete => state.delete(feature, record.partition, record.offset, time)
+            case MessageTypes.Write  => cache.add(feature, record.partition, record.offset, time)
+            case MessageTypes.Delete => cache.delete(feature, record.partition, record.offset, time)
             case _ => logger.error(s"Unhandled message type: $action")
           }
         }

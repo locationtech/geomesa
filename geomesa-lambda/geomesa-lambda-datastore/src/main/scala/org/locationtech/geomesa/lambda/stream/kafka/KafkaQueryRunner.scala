@@ -28,6 +28,7 @@ import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
+import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ReadableFeatureCache
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
@@ -37,7 +38,7 @@ import org.opengis.filter.{Filter, Id}
 
 import scala.math.Ordering
 
-class KafkaQueryRunner(features: SharedState, stats: GeoMesaStats, authProvider: Option[AuthorizationsProvider])
+class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, authProvider: Option[AuthorizationsProvider])
     extends QueryRunner {
 
   import KafkaQueryRunner.{authVisibilityCheck, noAuthVisibilityCheck}

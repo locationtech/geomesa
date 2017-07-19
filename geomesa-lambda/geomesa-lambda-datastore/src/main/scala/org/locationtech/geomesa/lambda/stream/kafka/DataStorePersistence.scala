@@ -15,6 +15,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Transaction}
 import org.locationtech.geomesa.lambda.stream.OffsetManager
+import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ExpiringFeatureCache
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -34,7 +35,7 @@ import scala.util.control.NonFatal
   * @param ds data store to write to
   * @param sft simple feature type
   * @param offsetManager offset manager
-  * @param state shared state
+  * @param cache shared state
   * @param topic kafka topic
   * @param ageOffMillis age off for expiring features
   * @param clock clock used for checking expiration
@@ -42,7 +43,7 @@ import scala.util.control.NonFatal
 class DataStorePersistence(ds: DataStore,
                            sft: SimpleFeatureType,
                            offsetManager: OffsetManager,
-                           state: SharedState,
+                           cache: ExpiringFeatureCache,
                            topic: String,
                            ageOffMillis: Long,
                            persistExpired: Boolean)
@@ -56,7 +57,7 @@ class DataStorePersistence(ds: DataStore,
   private val schedule = executor.scheduleWithFixedDelay(this, frequency, frequency, TimeUnit.MILLISECONDS)
 
   override def run(): Unit = {
-    val expired = state.expired(clock.millis() - ageOffMillis)
+    val expired = cache.expired(clock.millis() - ageOffMillis)
     logger.trace(s"Found partition(s) with expired entries in [$topic]: ${expired.mkString(",")}")
     // lock per-partition to allow for multiple write threads
     expired.foreach { partition =>
@@ -79,7 +80,7 @@ class DataStorePersistence(ds: DataStore,
   private def persist(partition: Int, expiry: Long): Unit = {
     import org.locationtech.geomesa.filter.ff
 
-    val (nextOffset, expired) = state.expired(partition, expiry)
+    val (nextOffset, expired) = cache.expired(partition, expiry)
 
     logger.trace(s"Found expired entries for [$topic:$partition]:\n\t" +
         expired.map { case (o, f) => s"offset $o: $f" }.mkString("\n\t"))
