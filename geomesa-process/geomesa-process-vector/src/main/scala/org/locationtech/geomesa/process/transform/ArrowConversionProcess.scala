@@ -44,7 +44,7 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               includeFids: java.lang.Boolean,
               @DescribeParameter(name = "dictionaryFields", description = "Attributes to dictionary encode", min = 0, max = 128, collectionType = classOf[String])
               dictionaryFields: java.util.List[String],
-              @DescribeParameter(name = "useCachedDictionaries", description = "Include feature IDs in arrow file", min = 0)
+              @DescribeParameter(name = "useCachedDictionaries", description = "Use cached top-k stats (if available), or run a dynamic stats query to build dictionaries", min = 0)
               useCachedDictionaries: java.lang.Boolean,
               @DescribeParameter(name = "sortField", description = "Attribute to sort by", min = 0)
               sortField: String,
