@@ -80,7 +80,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       Some(executor)
     } else { None }
   } catch {
-    case NonFatal(e) => logger.error("Error checking for hadoop security", e); None
+    case e: Throwable => logger.error("Error checking for hadoop security", e); None
   }
 
   // some convenience operations
