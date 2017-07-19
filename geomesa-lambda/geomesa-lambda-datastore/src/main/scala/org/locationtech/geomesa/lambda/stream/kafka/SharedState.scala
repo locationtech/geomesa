@@ -182,7 +182,8 @@ object SharedState extends LazyLogging {
       val maxExpiredOffset = if (expired.isEmpty) { -1L } else { expired(expired.length - 1)._1 }
 
       // only remove from feature cache (and persist) if there haven't been additional updates
-      val latest = expired.filter { case (_, feature) => features.remove(feature.getID, feature) }
+      val latest = expired.filter { case (_, feature) => remove(feature) }
+
       (maxExpiredOffset, latest)
     }
 
@@ -216,7 +217,7 @@ object SharedState extends LazyLogging {
         } else {
           lock.unlock()
           // only remove from feature cache if there haven't been additional updates
-          features.remove(poll._3.getID, poll._3)
+          remove(poll._3)
         }
       }
 
@@ -229,6 +230,14 @@ object SharedState extends LazyLogging {
       logger.debug(s"Size of cached state for [$topic:$partition]: features (total): " +
           s"${diff(featureSize, features.size)}, offsets: ${diff(queueSize, queue.size)} in " +
           s"${System.currentTimeMillis() - start}ms")
+    }
+
+    // conditionally removes the simple feature from the feature cache if it is the latest version
+    private def remove(feature: SimpleFeature): Boolean = {
+      // note: there isn't an atomic remove that checks identity, so check first and then do an equality remove
+      // there is a small chance that the feature will be updated in between the identity and equality checks,
+      // and removed incorrectly, however the alternative is full synchronization on inserts and deletes
+      feature.eq(features.get(feature.getID)) && features.remove(feature.getID, feature)
     }
 
     // debug message
