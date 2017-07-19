@@ -55,12 +55,13 @@ Monitoring State
 
 The state of a Lambda data store can be monitored by enabling logging on the following classes:
 
-================================================================= ========= ===========================================
+================================================================= ========= ===============================================
 Class                                                             Level     Info
-================================================================= ========= ===========================================
-org.locationtech.geomesa.lambda.stream.kafka.DataStorePersistence ``trace`` Features written to long-term storage
-org.locationtech.geomesa.lambda.stream.kafka.KafkaStore           ``trace`` Features written to Kafka
-org.locationtech.geomesa.lambda.stream.kafka.KafkaCacheLoader     ``trace`` Features read from Kafka
-org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``trace`` Features added/removed from in-memory cache
+================================================================= ========= ===============================================
+org.locationtech.geomesa.lambda.stream.kafka.DataStorePersistence ``debug`` Count of features written to long-term storage
+org.locationtech.geomesa.lambda.stream.kafka.DataStorePersistence ``trace`` All features written to long-term storage
+org.locationtech.geomesa.lambda.stream.kafka.KafkaStore           ``trace`` All features written to Kafka
+org.locationtech.geomesa.lambda.stream.kafka.KafkaCacheLoader     ``trace`` All features read from Kafka
 org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``debug`` Size of in-memory cache
-================================================================= ========= ===========================================
+org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``trace`` All features added/removed from in-memory cache
+================================================================= ========= ===============================================
