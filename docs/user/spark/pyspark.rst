@@ -6,11 +6,9 @@ GeoMesa provides support for working with data stored in Accumulo using the Spar
 Prerequisites
 ^^^^^^^^^^^^^
 
-`Spark`_ 2.0 should be installed.
-
-`Python`_ 2.7 or 3.x should be installed.
-
-`pip`_ or ``pip3`` should be installed.
+* `Spark`_ 2.0 should be installed.
+* `Python`_ 2.7 or 3.x should be installed.
+* `pip`_ or ``pip3`` should be installed.
 
 Installation
 ^^^^^^^^^^^^
@@ -26,7 +24,7 @@ The ``geomesa_pyspark`` package is not available for download. Build the artifac
 Using Geomesa PySpark
 ^^^^^^^^^^^^^^^^^^^^^
 
-You may then access Spark using a Yarn master by default. Importantly because of the way the ``geomesa_pyspark`` library interacts with the underlying Java libraries, you must set up the GeoMesa configuration before referencing the ``pyspark`` library.
+You may then access Spark using a Yarn master by default. Importantly, because of the way the ``geomesa_pyspark`` library interacts with the underlying Java libraries, you must set up the GeoMesa configuration before referencing the ``pyspark`` library.
 
 .. code-block:: python
 
