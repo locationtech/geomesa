@@ -61,6 +61,6 @@ Class                                                             Level     Info
 org.locationtech.geomesa.lambda.stream.kafka.DataStorePersistence ``trace`` Features written to long-term storage
 org.locationtech.geomesa.lambda.stream.kafka.KafkaStore           ``trace`` Features written to Kafka
 org.locationtech.geomesa.lambda.stream.kafka.KafkaCacheLoader     ``trace`` Features read from Kafka
-org.locationtech.geomesa.lambda.stream.kafka.SharedState          ``trace`` Features added/removed from in-memory cache
-org.locationtech.geomesa.lambda.stream.kafka.SharedState          ``debug`` Size of in-memory cache
+org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``trace`` Features added/removed from in-memory cache
+org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``debug`` Size of in-memory cache
 ================================================================= ========= ===========================================
