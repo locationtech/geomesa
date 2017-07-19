@@ -9,7 +9,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.IOException
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import org.apache.accumulo.core.client._
@@ -70,11 +69,11 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         new Runnable {
           def run(): Unit = {
             try {
-              logger.info("Checking whether TGT needs renewing for " + UserGroupInformation.getCurrentUser.toString)
-              logger.debug("Logged in from keytab? " + UserGroupInformation.getCurrentUser.isFromKeytab.toString)
+              logger.info(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
+              logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
               UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
             } catch {
-              case iox: IOException => logger.warn("Error checking and renewing TGT: " + iox.toString)
+              case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
             }
           }
         }, 0, 10, TimeUnit.MINUTES)
