@@ -15,7 +15,7 @@ Prerequisites
 Installation
 ^^^^^^^^^^^^
 
-The ``geomesa_pyspark`` package is not available for download. Build the artifact locally with the profile ``-Ppython``. Then install using ``pip`` or ``pip3`` as below. You will also need to put the geomesa-accumulo-spark-runtime jar in a convenient location. This jar bundles together the client libraries for GeoMesa Spark.
+The ``geomesa_pyspark`` package is not available for download. Build the artifact locally with the profile ``-Ppython``. Then install using ``pip`` or ``pip3`` as below. You will also need to put the geomesa-accumulo-spark-runtime JAR in a convenient location. This JAR bundles together the client libraries for GeoMesa Spark.
 
 .. code-block:: bash
 
@@ -49,7 +49,7 @@ You may then access Spark using a Yarn master by default. Importantly because of
         .getOrCreate()
     )
 
-At this point you are ready to create a dict of connection parameters to your accumulo data store and get a spatial data frame.
+At this point you are ready to create a dict of connection parameters to your Accumulo data store and get a spatial data frame.
 
 .. code-block:: python
 
@@ -84,7 +84,7 @@ You can terminate the Spark job on YARN using ``spark.stop()``.
 Jupyter
 ^^^^^^^
 
-To use the ``geomesa_pyspark`` package within Jupyter, one only needs a Python2 or Python3 kernel, which is provided by default. Substitute the appropriate Spark home and runtime jar paths in the above code blocks. Be sure the GeoMesa Accumulo client and server side versions match.
+To use the ``geomesa_pyspark`` package within Jupyter, you only needs a Python2 or Python3 kernel, which is provided by default. Substitute the appropriate Spark home and runtime JAR paths in the above code blocks. Be sure the GeoMesa Accumulo client and server side versions match, as described in :doc:`/user/accumulo/install`.
 
 .. _pip: https://packaging.python.org/tutorials/installing-packages/
 .. _Python: https://www.python.org/
