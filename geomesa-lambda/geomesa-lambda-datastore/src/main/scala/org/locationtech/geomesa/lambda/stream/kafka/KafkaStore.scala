@@ -50,16 +50,16 @@ class KafkaStore(ds: DataStore,
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
-  private val state = new SharedState(topic, config.partitions)
+  private val cache = new KafkaFeatureCache(topic)
 
   private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.builder.withUserData.immutable.build())
 
-  private val queryRunner = new KafkaQueryRunner(state, stats, authProvider)
+  private val queryRunner = new KafkaQueryRunner(cache, stats, authProvider)
 
-  private val loader = new KafkaCacheLoader(offsetManager, serializer, state, consumerConfig, topic, config.consumers)
+  private val loader = new KafkaCacheLoader(offsetManager, serializer, cache, consumerConfig, topic, config.consumers)
 
   private val persistence = if (config.expiry == Duration.Inf) { None } else {
-    Some(new DataStorePersistence(ds, sft, offsetManager, state, topic, config.expiry.toMillis, config.persist))
+    Some(new DataStorePersistence(ds, sft, offsetManager, cache, topic, config.expiry.toMillis, config.persist))
   }
 
   private val setVisibility: (SimpleFeature) => (SimpleFeature) = config.visibility match {
@@ -73,7 +73,7 @@ class KafkaStore(ds: DataStore,
   }
 
   // register as a listener for offset changes
-  offsetManager.addOffsetListener(topic, state)
+  offsetManager.addOffsetListener(topic, cache)
 
   override def createSchema(): Unit = {
     KafkaStore.withZk(config.zookeepers) { zk =>
@@ -143,7 +143,7 @@ class KafkaStore(ds: DataStore,
   override def close(): Unit = {
     CloseWithLogging(loader)
     persistence.foreach(CloseWithLogging.apply)
-    offsetManager.removeOffsetListener(topic, state)
+    offsetManager.removeOffsetListener(topic, cache)
   }
 
   private def prepFeature(original: SimpleFeature): SimpleFeature =
@@ -245,12 +245,12 @@ object KafkaStore {
         // read our last committed offsets and seek to them
         KafkaConsumerVersions.pause(consumer, tp)
         val lastRead = manager.getOffset(tp.topic(), tp.partition())
-        if (lastRead > 0) {
-          consumer.seek(tp, lastRead)
+        if (lastRead > -1) {
+          consumer.seek(tp, lastRead + 1)
           callback.apply(tp.partition, lastRead)
         } else {
           KafkaConsumerVersions.seekToBeginning(consumer, tp)
-          callback.apply(tp.partition, consumer.position(tp))
+          callback.apply(tp.partition, consumer.position(tp) - 1)
         }
         KafkaConsumerVersions.resume(consumer, tp)
       }
