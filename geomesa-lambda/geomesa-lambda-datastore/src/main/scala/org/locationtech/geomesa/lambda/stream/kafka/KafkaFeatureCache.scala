@@ -175,9 +175,11 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
 
   // conditionally removes the simple feature from the feature cache if it is the latest version
   private def remove(feature: SimpleFeature): Boolean = {
-    // note: there isn't an atomic remove that checks identity, so check first and then do an equality remove
+    // note: there isn't an atomic remove that checks identity, so check first and then do an equality remove.
     // there is a small chance that the feature will be updated in between the identity and equality checks,
-    // and removed incorrectly, however the alternative is full synchronization on inserts and deletes
+    // and removed incorrectly, however the alternative is full synchronization on inserts and deletes.
+    // also, with standard usage patterns of many updates and only a few writes, the first check (which is
+    // cheaper) will be false, and we can short-circuit the second check
     feature.eq(features.get(feature.getID)) && features.remove(feature.getID, feature)
   }
 
