@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -73,7 +74,7 @@ class ConverterIngest(sft: SimpleFeatureType,
       }
     }
 
-  override def runDistributedJob(statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {
+  override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
     val job = new ConverterIngestJob(sft, converterConfig)
     job.run(dsParams, sft.getTypeName, inputs, libjarsFile, libjarsPaths, statusCallback)
   }

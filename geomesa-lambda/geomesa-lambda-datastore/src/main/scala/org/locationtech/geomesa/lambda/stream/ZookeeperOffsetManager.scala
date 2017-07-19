@@ -39,7 +39,7 @@ class ZookeeperOffsetManager(zookeepers: String, namespace: String = "geomesa") 
 
   override def getOffset(topic: String, partition: Int): Long = {
     val path = ZookeeperOffsetManager.offsetsPath(topic, partition)
-    if (client.checkExists().forPath(path) == null) { 0L } else {
+    if (client.checkExists().forPath(path) == null) { -1L } else {
       ZookeeperOffsetManager.deserializeOffsets(client.getData.forPath(path))
     }
   }

@@ -16,9 +16,9 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.{ImmutableSimpleFeature, ScalaSimpleFeature}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, SimpleFeatureTypes}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -62,6 +62,39 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       deserialized.getAttributes.dropRight(1) mustEqual sf.getAttributes.dropRight(1)
       arrayEquals(sf.getAttributes.last, "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE))
       arrayEquals(deserialized.getAttributes.last, sf.getAttributes.last)
+    }
+
+    "correctly deserialize immutable features" in {
+      val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326,bytes:Bytes"
+      val sft = SimpleFeatureTypes.createType("testType", spec)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
+
+      sf.setAttribute("a", "1")
+      sf.setAttribute("b", "1.0")
+      sf.setAttribute("c", "5.37")
+      sf.setAttribute("d", "-100")
+      sf.setAttribute("e", UUID.randomUUID())
+      sf.setAttribute("f", "mystring")
+      sf.setAttribute("g", java.lang.Boolean.FALSE)
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+      sf.setAttribute("bytes", "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE))
+
+      val serializer = new KryoFeatureSerializer(sft, SerializationOptions.immutable)
+      val serialized = serializer.serialize(sf)
+      val deserialized = serializer.deserialize(serialized)
+
+      deserialized.getID mustEqual sf.getID
+      deserialized.getAttributes.dropRight(1) mustEqual sf.getAttributes.dropRight(1)
+      arrayEquals(sf.getAttributes.last, "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE))
+      arrayEquals(deserialized.getAttributes.last, sf.getAttributes.last)
+
+      deserialized must beAnInstanceOf[ImmutableSimpleFeature]
+      deserialized.getIdentifier must beAnInstanceOf[ImmutableFeatureId]
+      deserialized.setAttribute(0, 2) must throwAn[UnsupportedOperationException]
+      deserialized.setAttribute("a", 2) must throwAn[UnsupportedOperationException]
+      deserialized.setAttributes(Array.empty[AnyRef]) must throwAn[UnsupportedOperationException]
+      deserialized.setAttributes(Seq.empty[AnyRef]) must throwAn[UnsupportedOperationException]
     }
 
     "correctly serialize and deserialize different geometries" in {

@@ -125,4 +125,4 @@ hadoopCDH="0"
 # Add additional options after {$JAVA_OPTS} to preserve current JAVA_OPTS.
 # Replace {$JAVA_OPTS} to use different java options.
 #
-# setvar CUSTOM_JAVA_OPTS "{$JAVA_OPTS}"
+# setvar CUSTOM_JAVA_OPTS "${JAVA_OPTS}"

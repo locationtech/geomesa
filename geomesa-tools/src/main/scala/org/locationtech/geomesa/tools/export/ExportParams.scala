@@ -34,7 +34,7 @@ trait FileExportParams extends OptionalCqlFilterParam {
   var hints: java.util.Map[String, String] = _
 }
 
-trait DataExportParams extends FileExportParams {
+trait ExportParams extends FileExportParams {
   @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
     "(comma-separated)...Comma-separated expressions with each in the format " +
     "attribute[=filter_function_expression]|derived-attribute=filter_function_expression|'id'. " +
@@ -42,6 +42,3 @@ trait DataExportParams extends FileExportParams {
       "to attributes, literals and filter functions, i.e. can be nested")
   var attributes: java.util.List[String] = _
 }
-
-// export from a datastore
-trait ExportParams extends DataExportParams with CatalogParam with RequiredTypeNameParam with OptionalIndexParam
