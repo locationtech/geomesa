@@ -255,8 +255,8 @@ You cannot mix target files (e.g. local and HDFS).
 
     The header, if present, is not parsed by ``ingest`` for information. It is assumed that all lines are valid entries.
 
-Converters and SFTs are specified in HOCON format (https://github.com/typesafehub/config/blob/master/HOCON.md) and
-loaded using the `TypeSafe configuration library <https://github.com/typesafehub/config>`__.
+Converters and SFTs are specified in the `HOCON <https://github.com/typesafehub/config/blob/master/HOCON.md>`__ format
+and loaded using the `TypeSafe configuration library <https://github.com/typesafehub/config>`__.
 They can be referenced by name using the ``-s`` and ``-C`` args.
 
 To define new converters for the users can package a ``reference.conf`` file inside a jar and drop it in the
@@ -318,7 +318,7 @@ the ``application.conf`` file::
 The SFT and Converter can be referenced by name and the following commands can ingest the file::
 
     $ geomesa ingest -u username -p password \
-      -c geomesa_catalog -i instance \
+      -c geomesa_catalog -i instance --threads 1 \
       -s renegades -C renegades-csv example.csv
     # use the Hadoop file system instead
     $ geomesa ingest -u username -p password \
