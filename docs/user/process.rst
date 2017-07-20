@@ -6,9 +6,6 @@ GeoMesa Processes
 The following analytic processes are available and optimized on GeoMesa
 data stores, found in the ``geomesa-process`` module:
 
-org.locationtech.geomesa.process.transform.ArrowConversionProcess
-org.locationtech.geomesa.process.transform.-
-
 -  ``ArrowConversionProcess`` - encodes simple features in the `Apache Arrow <https://arrow.apache.org/>`_ format
 -  ``BinConversionProcess`` - encodes simple features in a minimized 16-byte format
 -  :ref:`density_process` - computes a density heatmap for a CQL query
