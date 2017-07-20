@@ -53,6 +53,7 @@
 
         <!-- this must remain outside of version specific scala profiles for sbt/ivy -->
         <scala.binary.version>2.11</scala.binary.version>
+        <scala.version>2.11.7</scala.version>
 
         <scala.xml.version>1.0.5</scala.xml.version>
         <scala.parsers.version>1.0.5</scala.parsers.version>
@@ -127,9 +128,6 @@
             <activation>
                 <property><name>!scala-2.10</name></property>
             </activation>
-            <properties>
-                <scala.version>2.11.7</scala.version>
-            </properties>
             <build>
                 <plugins>
                     <plugin>
