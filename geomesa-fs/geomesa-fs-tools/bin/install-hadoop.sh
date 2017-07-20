@@ -15,8 +15,15 @@ hadoop_version="%%hadoop.version.recommended%%"
 hadoop_version_min="%%hadoop.version.minimum%%"
 
 # for hadoop 2.5 and 2.6 to work we need these
+# These should match up to what the hadoop version desires
 guava_version="11.0.2"
 com_log_version="1.1.3"
+aws_sdk_version="1.7.4"
+commons_config_version="1.6"
+htrace_version="3.1.0-incubating"
+
+# this should match the parquet desired version
+snappy_version="1.1.1.6"
 
 # Resource download location
 base_url="https://search.maven.org/remotecontent?filepath="
@@ -151,7 +158,7 @@ if [[ -z "${install_dir}" ]]; then
   echo "${usage}"
   exit 1
 else
-  read -r -p "Install hadoop dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
+  read -r -p "Install Hadoop, Amazon AWS, and Snappy to ${install_dir}?${NL}Confirm? [Y/n]" confirm
   confirm=${confirm,,} # Lowercasing
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     # Setup download URLs
@@ -160,9 +167,21 @@ else
       "${base_url}org/apache/hadoop/hadoop-client/${hadoop_version}/hadoop-client-${hadoop_version}.jar"
       "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
       "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
+      "${base_url}org/apache/hadoop/hadoop-aws/${hadoop_version}/hadoop-aws-${hadoop_version}.jar"
+      "${base_url}com/amazonaws/aws-java-sdk/${aws_sdk_version}/aws-java-sdk-${aws_sdk_version}.jar"
+      "${base_url}org/xerial/snappy/snappy-java/${snappy_version}/snappy-java-${snappy_version}.jar"
+      "${base_url}commons-configuration/commons-configuration/${commons_config_version}/commons-configuration-${commons_config_version}.jar"
       "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
       "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
+      "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
+      "${base_url}com/google/protobuf/protobuf-java/1.5.0/protobuf-java-2.5.0.jar"
+      "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
     )
+
+
+    if [[ -n "${htrace_version}" ]]; then
+      urls=("${urls[@]}" "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar")
+    fi
 
     # Download dependencies
     for x in "${urls[@]}"; do
