@@ -21,6 +21,7 @@ import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.Random
 import scala.util.control.NonFatal
 
 /**
@@ -58,9 +59,11 @@ class DataStorePersistence(ds: DataStore,
 
   override def run(): Unit = {
     val expired = cache.expired(clock.millis() - ageOffMillis)
-    logger.trace(s"Found partition(s) with expired entries in [$topic]: ${expired.mkString(",")}")
+    logger.trace(s"Found partition(s) with expired entries in [$topic]: " +
+        (if (expired.isEmpty) { "none" } else { expired.mkString(",") }))
     // lock per-partition to allow for multiple write threads
-    expired.foreach { partition =>
+    // randomly access the partitions to avoid contention if multiple data stores are all on the same schedule
+    Random.shuffle(expired).foreach { partition =>
       // if we don't get the lock just try again next run
       logger.trace(s"Acquiring lock for [$topic:$partition]")
       offsetManager.acquireLock(topic, partition, lockTimeout) match {
@@ -97,9 +100,11 @@ class DataStorePersistence(ds: DataStore,
       if (!persistExpired) {
         logger.trace(s"Persist disabled for $topic")
       } else {
+        var start = System.currentTimeMillis()
         // do an update query first
         val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)
         WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
+          var count = 0L
           while (writer.hasNext) {
             val next = writer.next()
             toPersist.get(next.getID).foreach { case (offset, updated) =>
@@ -110,10 +115,14 @@ class DataStorePersistence(ds: DataStore,
               }
               toPersist.remove(updated.getID)
             }
+            count += 1
           }
+          logger.debug(s"Wrote $count updated features to persistent storage in ${System.currentTimeMillis() - start}ms")
         }
         // if any weren't updates, add them as inserts
+        start = System.currentTimeMillis()
         if (toPersist.nonEmpty) {
+          val count = toPersist.size
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             toPersist.values.foreach { case (offset, updated) =>
               logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated")
@@ -123,6 +132,7 @@ class DataStorePersistence(ds: DataStore,
               }
             }
           }
+          logger.debug(s"Wrote $count new features to persistent storage in ${System.currentTimeMillis() - start}ms")
         }
       }
     }
