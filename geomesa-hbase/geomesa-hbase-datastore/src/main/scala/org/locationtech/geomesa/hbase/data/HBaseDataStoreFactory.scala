@@ -41,10 +41,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   private lazy val globalConnection: Connection = {
     val conf = HBaseConfiguration.create()
     HBaseDataStoreFactory.configureSecurity(conf)
-
-    logger.debug("Checking configuration availability.")
-    HBaseAdmin.checkHBaseAvailable(conf)
-
+    checkClusterAvailability(conf)
     val ret = ConnectionFactory.createConnection(conf)
     Runtime.getRuntime.addShutdownHook(new Thread() {
       override def run(): Unit = {
@@ -92,9 +89,15 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     buildDataStore(connection, config)
   }
 
-  // overidden by BigtableFactory
-  def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): HBaseDataStore =
+  // overridden by BigtableFactory
+  protected def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): HBaseDataStore =
     new HBaseDataStore(connection, config)
+
+  // overridden by BigtableFactory
+  protected def checkClusterAvailability(conf: Configuration): Unit = {
+    logger.debug("Checking configuration availability.")
+    HBaseAdmin.checkHBaseAvailable(conf)
+  }
 
   override def getDisplayName: String = HBaseDataStoreFactory.DisplayName
 
