@@ -85,7 +85,7 @@ class ConverterStorage(root: Path,
   override def getWriter(typeName: String, partition: String): FileSystemWriter =
     throw new UnsupportedOperationException("Converter Storage does not support feature writing")
 
-  override def getPartitionReader(typeName: String, q: Query, partition: String): FileSystemPartitionIterator =
+  override def getPartitionReader(sfSt: SimpleFeatureType, q: Query, partition: String): FileSystemPartitionIterator =
     new ConverterPartitionReader(root, partition, sft, converter, q.getFilter)
 
   private def buildPartitionList(path: Path, prefix: String, curDepth: Int): List[String] = {

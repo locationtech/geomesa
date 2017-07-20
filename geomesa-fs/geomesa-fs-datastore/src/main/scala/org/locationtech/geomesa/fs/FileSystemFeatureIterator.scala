@@ -32,7 +32,7 @@ class FileSystemFeatureIterator(fs: FileSystem,
     if (partitions.isEmpty) {
       JavaCloseableIterator
     } else {
-      new ThreadedReader(storage, partitions, sft.getTypeName, q, readThreads)
+      new ThreadedReader(storage, partitions, sft, q, readThreads)
     }
 
   override def hasNext: Boolean = iter.hasNext
@@ -48,7 +48,7 @@ object JavaCloseableIterator extends java.util.Iterator[SimpleFeature] with Auto
 
 class ThreadedReader(storage: FileSystemStorage,
                      partitions: Seq[String],
-                     typeName: String,
+                     sft: SimpleFeatureType,
                      q: Query,
                      numThreads: Int)
   extends java.util.Iterator[SimpleFeature] with AutoCloseable with LazyLogging {
@@ -77,7 +77,7 @@ class ThreadedReader(storage: FileSystemStorage,
         override def run(): Unit = {
           try { // For the latch must be careful with the threads and wrap this separately
             var count = 0
-            val reader = storage.getPartitionReader(typeName, q, p)
+            val reader = storage.getPartitionReader(sft, q, p)
             try {
               logger.debug(s"Reading partition of ${reader.getPartition}")
               while (reader.hasNext) {

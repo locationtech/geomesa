@@ -19,6 +19,7 @@ import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWriter}
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -77,13 +78,20 @@ class FileSystemFeatureStore(entry: ContentEntry,
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = ReferencedEnvelope.EVERYTHING
   override def buildFeatureType(): SimpleFeatureType = _sft
-  override def getCountInternal(query: Query): Int = ???
+  override def getCountInternal(query: Query): Int = -1
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     // The type name can sometimes be empty such as Query.ALL
     query.setTypeName(_sft.getTypeName)
-    new DelegateSimpleFeatureReader(_sft,
+
+    // Set Transforms if present
+    import org.locationtech.geomesa.index.conf.QueryHints._
+    QueryPlanner.setQueryTransforms(query, _sft)
+    val transformSft = query.getHints.getTransformSchema.getOrElse(_sft)
+
+    new DelegateSimpleFeatureReader(transformSft,
       new DelegateSimpleFeatureIterator(
-        new FileSystemFeatureIterator(fs, storage.getPartitionScheme(_sft.getTypeName), _sft, query, readThreads, storage)))
+        new FileSystemFeatureIterator(fs, storage.getPartitionScheme(transformSft.getTypeName),
+          transformSft, query, readThreads, storage)))
   }
 
 
