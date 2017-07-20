@@ -53,21 +53,28 @@ object AvroUserDataSerialization extends GenericMapSerialization[Encoder, Decode
   }
 
   override def deserialize(in: Decoder): java.util.Map[AnyRef, AnyRef] = {
-    var toRead = in.readArrayStart().toInt
-    val map = new java.util.HashMap[AnyRef, AnyRef](toRead)
+    var size = in.readArrayStart().toInt
+    val map = new java.util.HashMap[AnyRef, AnyRef](size)
+    deserialize(in, size, map)
+    map
+  }
 
-    while (toRead > 0) {
+  override def deserialize(in: Decoder, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+    deserialize(in, in.readArrayStart().toInt, map)
+  }
+
+  private def deserialize(in: Decoder, size: Int, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+    var remaining = size
+    while (remaining > 0) {
       val keyClass = in.readString()
       val key = if (keyClass == NullMarkerString) { null } else { read(in, Class.forName(keyClass)) }
       val valueClass = in.readString()
       val value = if (valueClass == NullMarkerString) { null } else { read(in, Class.forName(valueClass))}
       map.put(key, value)
-      toRead -= 1
-      if (toRead == 0) {
-        toRead = in.arrayNext().toInt
+      remaining -= 1
+      if (remaining == 0) {
+        remaining = in.arrayNext().toInt
       }
     }
-
-    map
   }
 }

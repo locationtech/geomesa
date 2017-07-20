@@ -159,6 +159,8 @@ class ScalaSimpleFeature(initialId: String,
   override def hashCode: Int = getID.hashCode()
 
   override def equals(obj: scala.Any): Boolean = obj match {
+    case other: ScalaSimpleFeature =>
+      getID == other.getID && getName == other.getName && java.util.Arrays.equals(values, other.values)
     case other: SimpleFeature =>
       getID == other.getID && getName == other.getName && java.util.Arrays.equals(values, other.getAttributes.toArray)
     case _ => false

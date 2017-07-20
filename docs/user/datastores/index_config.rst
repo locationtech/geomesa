@@ -52,6 +52,8 @@ a 'user-data' key:
       }
     }
 
+.. _set_date_attribute:
+
 Setting the Indexed Date Attribute
 ----------------------------------
 

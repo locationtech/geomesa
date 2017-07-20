@@ -11,7 +11,7 @@ package org.locationtech.geomesa.lambda.tools.export
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
-import org.locationtech.geomesa.tools.RequiredTypeNameParam
+import org.locationtech.geomesa.tools.{OptionalIndexParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
 
 class LambdaExportCommand extends ExportCommand[LambdaDataStore] with LambdaDataStoreCommand {
@@ -19,4 +19,5 @@ class LambdaExportCommand extends ExportCommand[LambdaDataStore] with LambdaData
 }
 
 @Parameters(commandDescription = "Export features from a GeoMesa data store")
-class LambdaExportParams extends ExportParams with LambdaDataStoreParams with RequiredTypeNameParam
+class LambdaExportParams extends ExportParams with LambdaDataStoreParams
+    with RequiredTypeNameParam with OptionalIndexParam

@@ -226,7 +226,8 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
         val providedDictionaries = hints.getArrowDictionaryEncodedValues
         if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
             dictionaryFields.forall(providedDictionaries.contains)) {
-          val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields, providedDictionaries)
+          val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
+            providedDictionaries, hints.isArrowCachedDictionaries)
           val options = ArrowBatchAggregator.configure(sft, this, ecql, dictionaries, hints)
           val reduce = ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries)
           Some(CoprocessorConfig(options, ArrowBatchAggregator.bytesToFeatures, reduce))

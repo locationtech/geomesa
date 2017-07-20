@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.lambda.stream
 
+import java.io.Closeable
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
@@ -34,12 +35,11 @@ class ZookeeperOffsetManager(zookeepers: String, namespace: String = "geomesa") 
       .build()
   client.start()
 
-  private val listeners = new ConcurrentHashMap[(String, OffsetListener), CuratorOffsetListener]
-  private val caches = new ConcurrentHashMap[String, PathChildrenCache]
+  private val listeners = scala.collection.mutable.Map.empty[String, CuratorOffsetListener]
 
   override def getOffset(topic: String, partition: Int): Long = {
     val path = ZookeeperOffsetManager.offsetsPath(topic, partition)
-    if (client.checkExists().forPath(path) == null) { 0L } else {
+    if (client.checkExists().forPath(path) == null) { -1L } else {
       ZookeeperOffsetManager.deserializeOffsets(client.getData.forPath(path))
     }
   }
@@ -59,34 +59,17 @@ class ZookeeperOffsetManager(zookeepers: String, namespace: String = "geomesa") 
     }
   }
 
-  override def addOffsetListener(topic: String, listener: OffsetListener): Unit = {
-    val path = offsetsPath(topic)
-    val curatorListener = new CuratorOffsetListener(client, listener, path)
-    listeners.put((topic, listener), curatorListener)
-    val cache = synchronized {
-      var cache = caches.get(topic)
-      if (cache == null) {
-        cache = new PathChildrenCache(client, path, true)
-        cache.start()
-        caches.put(topic, cache)
-      }
-      cache
-    }
-    cache.getListenable.addListener(curatorListener)
+  override def addOffsetListener(topic: String, listener: OffsetListener): Unit = synchronized {
+    listeners.getOrElseUpdate(topic, new CuratorOffsetListener(client, offsetsPath(topic))).addListener(listener)
   }
 
-  override def removeOffsetListener(topic: String, listener: OffsetListener): Unit = {
-    for {
-     listenable <- Option(listeners.remove((topic, listener)))
-     cache      <- Option(caches.get(topic))
-    } {
-      cache.getListenable.removeListener(listenable)
-    }
+  override def removeOffsetListener(topic: String, listener: OffsetListener): Unit = synchronized {
+    listeners.get(topic).foreach(_.removeListener(listener))
   }
 
-  override def close(): Unit = {
-    import scala.collection.JavaConversions._
-    caches.values.foreach(CloseWithLogging.apply)
+  override def close(): Unit = synchronized {
+    listeners.values.foreach(CloseWithLogging.apply)
+    listeners.clear()
     CloseWithLogging(client)
   }
 
@@ -115,8 +98,29 @@ object ZookeeperOffsetManager {
   private def offsetsPath(topic: String, partition: Int): String = s"${offsetsPath(topic)}/$partition"
   private def partitionFromPath(path: String): Int = path.substring(path.lastIndexOf("/") + 1).toInt
 
-  private class CuratorOffsetListener(client: CuratorFramework, listener: OffsetListener, path: String)
-      extends PathChildrenCacheListener with LazyLogging {
+  private class CuratorOffsetListener(client: CuratorFramework, path: String)
+      extends PathChildrenCacheListener with Closeable with LazyLogging {
+
+    private val executor = Executors.newCachedThreadPool()
+
+    private val listeners = scala.collection.mutable.Set.empty[OffsetListener]
+
+    private var cache: PathChildrenCache = _
+
+    def addListener(listener: OffsetListener): Unit = {
+      closeCache()
+      listeners += listener
+      cache = new PathChildrenCache(client, path, true)
+      cache.getListenable.addListener(this)
+      cache.start()
+    }
+
+    def removeListener(listener: OffsetListener): Unit = {
+      listeners -= listener
+      if (listeners.isEmpty) {
+        closeCache()
+      }
+    }
 
     override def childEvent(client: CuratorFramework, event: PathChildrenCacheEvent): Unit = {
       import PathChildrenCacheEvent.Type.{CHILD_ADDED, CHILD_UPDATED}
@@ -126,10 +130,31 @@ object ZookeeperOffsetManager {
           logger.trace(s"ZK event triggered for: $eventPath")
           val partition = partitionFromPath(eventPath)
           val offset = ZookeeperOffsetManager.deserializeOffsets(event.getData.getData)
-          listener.offsetChanged(partition, offset)
+          listeners.foreach { listener =>
+            executor.execute(new Runnable {
+              override def run(): Unit = {
+                try { listener.offsetChanged(partition, offset) } catch {
+                  case NonFatal(e) => logger.warn("Error calling offset listener", e)
+                }
+              }
+            })
+          }
         }
       } catch {
         case NonFatal(e) => logger.warn("Error handling ZK event", e)
+      }
+    }
+
+    override def close(): Unit = {
+      executor.shutdown()
+      closeCache()
+    }
+
+    private def closeCache(): Unit = synchronized {
+      if (cache != null) {
+        cache.getListenable.removeListener(this)
+        CloseWithLogging(cache)
+        cache = null
       }
     }
   }

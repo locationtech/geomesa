@@ -110,13 +110,14 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
   // Bin ordered features into maxBins that retain order by date then union by geometry
   def timeBinAndUnion(features: Iterable[SimpleFeature], maxBins: Int): Iterator[SimpleFeature] = {
     val numFeatures = features.size
-    val binSize =
-      if(maxBins > 0 )
+    if (numFeatures == 0) { Iterator.empty } else {
+      val binSize = if (maxBins > 0) {
         numFeatures / maxBins + (if (numFeatures % maxBins == 0 ) 0 else 1)
-      else
+      } else {
         numFeatures
-
-    features.grouped(binSize).zipWithIndex.map { case(bin, idx) => unionFeatures(bin.toSeq, idx.toString) }
+      }
+      features.grouped(binSize).zipWithIndex.map { case(bin, idx) => unionFeatures(bin.toSeq, idx.toString) }
+    }
   }
 
   // Union features to create a single geometry and single combined time range
@@ -156,30 +157,28 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
   def nextId: String = id.getAndIncrement.toString
 
   override def createTube: Iterator[SimpleFeature] = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+
     logger.debug("Creating tube with line gap fill")
 
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
+    val pointsAndTimes = sortedTube.map(sf => (getGeom(sf).safeCentroid(), getStartTime(sf)))
 
-    val lineFeatures = sortedTube.sliding(2).map { pair =>
-      import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-      val p1 = getGeom(pair(0)).safeCentroid()
-      val t1 = getStartTime(pair(0))
-      val p2 = getGeom(pair(1)).safeCentroid()
-      val t2 = getStartTime(pair(1))
-
-      val geo =
-        if(p1.equals(p2)) p1
-        else new LineString(new CoordinateArraySequence(Array(p1.getCoordinate, p2.getCoordinate)), geoFac)
-
-      logger.debug(
-        s"Created Line-filled Geometry: ${WKTUtils.write(geo)} from ${WKTUtils.write(getGeom(pair(0)))} and ${WKTUtils.write(getGeom(pair(1)))}")
-
-      builder.reset()
-      builder.buildFeature(nextId, Array(geo, t1, t2))
+    val lineFeatures = if (pointsAndTimes.length == 1) {
+      val (p1, t1) = pointsAndTimes.head
+      logger.debug("Only a single result - can't create a line")
+      Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
+    } else {
+      pointsAndTimes.sliding(2).map { case Seq((p1, t1), (p2, t2)) =>
+        val geo = if (p1.equals(p2)) { p1 } else {
+          new LineString(new CoordinateArraySequence(Array(p1.getCoordinate, p2.getCoordinate)), geoFac)
+        }
+        logger.debug(s"Created line-filled geom: ${WKTUtils.write(geo)} from ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
+        builder.buildFeature(nextId, Array(geo, t1, t2))
+      }
     }
 
     buffer(lineFeatures, bufferDistance)
   }
-
 }

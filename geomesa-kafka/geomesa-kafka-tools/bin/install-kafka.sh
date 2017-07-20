@@ -14,6 +14,7 @@ declare -a urls=(
   "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka-clients/%%kafka.version%%/kafka-clients-%%kafka.version%%.jar"
   "https://search.maven.org/remotecontent?filepath=org/apache/zookeeper/zookeeper/%%zookeeper.version%%/zookeeper-%%zookeeper.version%%.jar"
   "https://search.maven.org/remotecontent?filepath=com/101tec/zkclient/%%zkclient.version%%/zkclient-%%zkclient.version%%.jar"
+  "https://search.maven.org/remotecontent?filepath=net/sf/jopt-simple/jopt-simple/%%jopt-simple.version%%/jopt-simple-%%jopt-simple.version%%.jar"
   "https://search.maven.org/remotecontent?filepath=com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
 )
 

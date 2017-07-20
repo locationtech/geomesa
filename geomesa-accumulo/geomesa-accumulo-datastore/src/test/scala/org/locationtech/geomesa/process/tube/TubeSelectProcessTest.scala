@@ -14,6 +14,7 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
@@ -49,6 +50,46 @@ class TubeSelectProcessTest extends Specification {
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
   "TubeSelect" should {
+    "work with an empty input collection" in {
+      val sftName = "emptyTubeTestType"
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
+
+      val ds = createStore
+
+      ds.createSchema(sft)
+      val fs = ds.getFeatureSource(sftName)
+
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+
+      List("a", "b").foreach { name =>
+        List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
+          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
+          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
+          sf.setAttribute(DefaultDtgField, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute("type", name)
+          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          featureCollection.add(sf)
+        }
+      }
+
+      // write the feature to the store
+      val res = fs.addFeatures(featureCollection)
+
+      // result set to tube on
+      val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
+
+      forall(Seq("nofill", "line")) { fill =>
+        forall(Seq((ECQL.toFilter("in('a1')"), true), (Filter.EXCLUDE, false))) { case (filter, next) =>
+          // tube features
+          val tubeFeatures = fs.getFeatures(filter)
+          val ts = new TubeSelectProcess()
+          val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, fill)
+          results.features().hasNext mustEqual next
+        }
+
+      }
+    }
+
     "should do a simple tube with geo interpolation" in {
       val sftName = "tubeTestType"
       val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")

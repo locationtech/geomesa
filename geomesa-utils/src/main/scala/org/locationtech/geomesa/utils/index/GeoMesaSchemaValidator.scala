@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.index
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
@@ -29,6 +30,9 @@ object GeoMesaSchemaValidator {
     ReservedWordCheck.validateAttributeNames(sft)
     IndexConfigurationCheck.validateIndices(sft)
   }
+
+  private [index] def declared(sft: SimpleFeatureType, prop: String): Boolean =
+    Option(sft.getUserData.get(prop)).orElse(SystemProperty(prop).option).exists(SimpleFeatureTypes.toBoolean)
 }
 
 /**
@@ -43,9 +47,10 @@ object ReservedWordCheck extends LazyLogging {
     val reservedWords = FeatureUtils.sftReservedWords(sft)
     if (reservedWords.nonEmpty) {
       val msg = "The simple feature type contains attribute name(s) that are reserved words: " +
-          s"${reservedWords.mkString(", ")}. You may override this check by setting '$RESERVED_WORDS=true' " +
-          "in the simple feature type user data, but it may cause errors with some functionality."
-      if (SimpleFeatureTypes.toBoolean(sft.getUserData.get(RESERVED_WORDS))) {
+          s"${reservedWords.mkString(", ")}. You may override this check by putting Boolean.TRUE into the " +
+          s"SimpleFeatureType user data under the key '$RESERVED_WORDS' before calling createSchema, or by " +
+          s"setting the system property '$RESERVED_WORDS' to 'true', however it may cause errors with some functionality."
+      if (GeoMesaSchemaValidator.declared(sft, RESERVED_WORDS)) {
         logger.warn(msg)
       } else {
         throw new IllegalArgumentException(msg)
@@ -73,12 +78,14 @@ object TemporalIndexCheck extends LazyLogging {
         sft.clearDtgField()
       }
       // if there are valid fields, warn and set to the first available
-      if (!SimpleFeatureTypes.toBoolean(sft.getUserData.get(IGNORE_INDEX_DTG))) {
+      if (!GeoMesaSchemaValidator.declared(sft, IGNORE_INDEX_DTG)) {
         dtgCandidates.headOption.foreach { candidate =>
           lazy val theWarning = s"$DEFAULT_DATE_KEY is not valid or defined for simple feature type $sft. " +
               "However, the following attribute(s) can be used in GeoMesa's temporal index: " +
-              s"${dtgCandidates.mkString(", ")}. GeoMesa will now point $DEFAULT_DATE_KEY to the first " +
-              s"temporal attribute found: $candidate"
+              s"${dtgCandidates.mkString(", ")}. To disable temporal indexing, put Boolean.TRUE into the " +
+              s"SimpleFeatureType user data under the key '$IGNORE_INDEX_DTG' before calling createSchema, or " +
+              s"set the system property '$IGNORE_INDEX_DTG' to 'true'. GeoMesa will now point $DEFAULT_DATE_KEY " +
+              s"to the first temporal attribute found: $candidate"
           logger.warn(theWarning)
           sft.setDtgField(candidate)
         }
@@ -90,13 +97,13 @@ object TemporalIndexCheck extends LazyLogging {
   def validateDtgIndex(sft: SimpleFeatureType): Unit = {
     sft.getDtgField.foreach { dtg =>
       if (sft.getDescriptor(dtg).getIndexCoverage == IndexCoverage.JOIN) {
-        val declared = SimpleFeatureTypes.toBoolean(sft.getUserData.get(DEFAULT_DTG_JOIN))
-        if (!declared) {
+        if (!GeoMesaSchemaValidator.declared(sft, DEFAULT_DTG_JOIN)) {
           throw new IllegalArgumentException("Trying to create a schema with a partial (join) attribute index " +
               s"on the default date field '$dtg'. This may cause whole-world queries with time bounds to be much " +
-              "slower. If this is intentional, you may override this message by putting Boolean.TRUE into the " +
-              s"SimpleFeatureType user data under the key '$DEFAULT_DTG_JOIN' before calling createSchema. " +
-              "Otherwise, please either specify a full attribute index or remove it entirely.")
+              "slower. If this is intentional, you may override this check by putting Boolean.TRUE into the " +
+              s"SimpleFeatureType user data under the key '$DEFAULT_DTG_JOIN' before calling createSchema, or by " +
+              s"setting the system property '$DEFAULT_DTG_JOIN' to 'true'. Otherwise, please either specify a " +
+              "full attribute index or remove it entirely.")
         }
       }
     }
@@ -112,13 +119,13 @@ object MixedGeometryCheck extends LazyLogging {
   def validateGeometryType(sft: SimpleFeatureType): Unit = {
     val gd = sft.getGeometryDescriptor
     if (gd != null && gd.getType.getBinding == classOf[Geometry]) {
-      val declared = SimpleFeatureTypes.toBoolean(sft.getUserData.get(MIXED_GEOMETRIES))
-      if (!declared) {
+      if (!GeoMesaSchemaValidator.declared(sft, MIXED_GEOMETRIES)) {
         throw new IllegalArgumentException("Trying to create a schema with mixed geometry type " +
             s"'${gd.getLocalName}:Geometry'. Queries may be slower when using mixed geometries. " +
-            "If this is intentional, you may override this message by putting Boolean.TRUE into the " +
-            s"SimpleFeatureType user data under the key '$MIXED_GEOMETRIES' before calling createSchema. " +
-            "Otherwise, please specify a single geometry type (e.g. Point, LineString, Polygon, etc).")
+            "If this is intentional, you may override this check by putting Boolean.TRUE into the " +
+            s"SimpleFeatureType user data under the key '$MIXED_GEOMETRIES' before calling createSchema, or by " +
+            s"setting the system property '$MIXED_GEOMETRIES' to 'true'. Otherwise, please specify a single " +
+            s"geometry type (e.g. Point, LineString, Polygon, etc).")
       }
     }
   }

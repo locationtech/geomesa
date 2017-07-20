@@ -18,7 +18,7 @@ object TextTools {
 
   def getPlural(i: Long, base: String): String = getPlural(i, base, s"${base}s")
 
-  def getPlural(i: Long, base: String, pluralBase: String): String = if (i == 1) s"$i $base" else s"$i ${pluralBase}"
+  def getPlural(i: Long, base: String, pluralBase: String): String = if (i == 1) s"$i $base" else s"$i $pluralBase"
 
   /**
    * Gets elapsed time as a string
@@ -26,11 +26,8 @@ object TextTools {
   def getTime(start: Long): String = PeriodFormatter.print(new Period(System.currentTimeMillis() - start))
 
   def buildString(c: Char, length: Int): String = {
-    if (length < 0) ""
-    else {
-      val sb = new StringBuilder(length)
-      (0 until length).foreach(_ => sb.append(c))
-      sb.toString()
+    if (length < 0) { "" } else {
+      new String(Array.fill(length)(c))
     }
   }
 }

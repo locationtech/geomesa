@@ -9,9 +9,12 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
@@ -57,6 +60,28 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   private val statsTable = GeoMesaFeatureIndex.formatSharedTableName(config.catalog, "stats")
   override val stats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
+
+  // If on a secured cluster, create a thread to periodically renew Kerberos tgt
+  val kerberosTgtRenewer: Option[ScheduledExecutorService] = try {
+    if (UserGroupInformation.isSecurityEnabled) {
+      val executor = Executors.newSingleThreadScheduledExecutor()
+      executor.scheduleAtFixedRate(
+        new Runnable {
+          def run(): Unit = {
+            try {
+              logger.info(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
+              logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
+              UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
+            } catch {
+              case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
+            }
+          }
+        }, 0, 10, TimeUnit.MINUTES)
+      Some(executor)
+    } else { None }
+  } catch {
+    case e: Throwable => logger.error("Error checking for hadoop security", e); None
+  }
 
   // some convenience operations
 
@@ -236,6 +261,12 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       lock.release()
     }
   }
+
+  override def dispose(): Unit = {
+    super.dispose()
+    kerberosTgtRenewer.foreach( _.shutdown() )
+  }
+
 }
 
 object AccumuloDataStore {
