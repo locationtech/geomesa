@@ -16,12 +16,12 @@ import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
 import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, GenericInternalRow, LeafExpression, Literal, PredicateHelper, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical.{Filter, Join, LogicalPlan, Sort}
 import org.apache.spark.sql.catalyst.rules.Rule
+import org.apache.spark.sql.execution.SparkPlan
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.types.DataType
 import org.locationtech.geomesa.spark.{GeoMesaRelation, SparkUtils}
 import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{Filter => GTFilter}
-
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -123,9 +123,22 @@ object SQLRules extends LazyLogging {
     override def apply(plan: LogicalPlan): LogicalPlan = {
       println(s"Optimizer sees $plan")
       plan.transform {
-        case inner: Join =>
-          println(s" Got join $inner")
-              inner
+        case inner @ Join(left@LogicalRelation(gmRelLeft: GeoMesaRelation, _, _),
+                          right@LogicalRelation(gmRelRight: GeoMesaRelation, _, _),
+                          joinType,
+                          condition) =>
+          // If one of the relations has been spatially partitioned,
+          // partition the second relation by the same grid to allow join optimizations
+          if (gmRelLeft.spatiallyPartition) {
+            val partitionEnvs = gmRelLeft.partitionEnvelopes
+            val numPartitions = gmRelLeft.numPartitions
+            gmRelRight.partitionedRDD = SparkUtils.spatiallyPartition(partitionEnvs, gmRelRight.rawRDD, numPartitions)
+            val newRight = right.copy(expectedOutputAttributes = Some(right.output), relation = gmRelRight)
+            Join(left, newRight, joinType, condition)
+          } else {
+            inner
+          }
+
         case sort @ Sort(_, _, _) => sort    // No-op.  Just realizing what we can do:)
         case filt @ Filter(f, lr@LogicalRelation(gmRel: GeoMesaRelation, _, _)) =>
           // TODO: deal with `or`
@@ -189,13 +202,30 @@ object SQLRules extends LazyLogging {
     }
   }
 
+  object SpatialJoinStrategy extends Strategy {
+    import org.apache.spark.sql.catalyst.plans._
+
+    import org.apache.spark.sql.catalyst.plans.logical._
+
+    override def apply(plan: LogicalPlan): Seq[SparkPlan] = plan match {
+      //TODO: handle other kinds of joins
+      case logical.Join(left@LogicalRelation(gmRelLeft: GeoMesaRelation, _, _), right, joinType@Inner, condition) =>
+        if (gmRelLeft.spatiallyPartition) {
+          PartitionedJoinExec(planLater(left), planLater(right), condition) :: Nil
+        } else {
+          Nil
+        }
+      case _ => Nil
+    }
+  }
+
   def registerOptimizations(sqlContext: SQLContext): Unit = {
     Seq(ScalaUDFRule, STContainsRule).foreach { r =>
       if(!sqlContext.experimental.extraOptimizations.contains(r))
         sqlContext.experimental.extraOptimizations ++= Seq(r)
     }
 
-    Seq.empty[Strategy].foreach { s =>
+    Seq(SpatialJoinStrategy).foreach { s =>
       if(!sqlContext.experimental.extraStrategies.contains(s))
         sqlContext.experimental.extraStrategies ++= Seq(s)
     }
