@@ -23,7 +23,6 @@ import org.apache.parquet.hadoop.ParquetReader
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.{FileMetadata, PartitionScheme, StorageUtils}
-import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage._
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -48,6 +47,7 @@ class ParquetFileSystemStorageFactory extends FileSystemStorageFactory {
       conf.set(ParquetCompressionOpt, System.getProperty(ParquetCompressionOpt))
     }
 
+    conf.set("parquet.filter.dictionary.enabled", "true")
     new ParquetFileSystemStorage(root, root.getFileSystem(conf), conf, params)
   }
 }
@@ -121,15 +121,9 @@ class ParquetFileSystemStorage(root: Path,
     metadata(typeName).getPartitions
 
   // TODO ask the parition manager the geometry is fully covered?
-  override def getPartitionReader(typeName: String, q: Query, partition: String): FileSystemPartitionIterator = {
-    val sft = metadata(typeName).getSimpleFeatureType
-
-    import org.locationtech.geomesa.index.conf.QueryHints._
-    QueryPlanner.setQueryTransforms(q, sft)
-
-    val transformSft = q.getHints.getTransformSchema.getOrElse(sft)
-
-    val fc = new FilterConverter(transformSft).convert(q.getFilter)
+  override def getPartitionReader(sft: SimpleFeatureType, q: Query, partition: String): FileSystemPartitionIterator = {
+    // TODO GEOMESA-1954 move this filter conversion higher up in the chain
+    val fc = new FilterConverter(sft).convert(q.getFilter)
     val parquetFilter =
       fc._1
         .map(FilterCompat.get)
@@ -143,13 +137,23 @@ class ParquetFileSystemStorage(root: Path,
         new EmptyFsIterator(partition)
       }
       else {
-        val support = new SimpleFeatureReadSupport
-        SimpleFeatureReadSupport.setSft(transformSft, conf)
 
-        conf.set("parquet.filter.dictionary.enabled", "true")
+        // WARNING it is important to create a new conf per query
+        // because we communicate the transform SFT set here
+        // with the init() method on SimpleFeatureReadSupport via
+        // the parquet api. Thus we need to deep copy conf objects
+        // It may be possibly to move this high up the chain as well
+        // TODO consider this with GEOMESA-1954 but we need to test it well
+        val support = new SimpleFeatureReadSupport
+        val queryConf = {
+          val c = new Configuration(conf)
+          SimpleFeatureReadSupport.setSft(sft, c)
+          c
+        }
+
         val builder = ParquetReader.builder[SimpleFeature](support, path)
           .withFilter(parquetFilter)
-          .withConf(conf)
+          .withConf(queryConf)
 
         new FilteringIterator(partition, builder, fc._2)
       }
