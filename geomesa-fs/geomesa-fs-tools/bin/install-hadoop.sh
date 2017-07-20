@@ -20,6 +20,7 @@ guava_version="11.0.2"
 com_log_version="1.1.3"
 aws_sdk_version="1.7.4"
 commons_config_version="1.6"
+htrace_version="3.1.0-incubating"
 
 # this should match the parquet desired version
 snappy_version="1.1.1.6"
@@ -172,7 +173,15 @@ else
       "${base_url}commons-configuration/commons-configuration/${commons_config_version}/commons-configuration-${commons_config_version}.jar"
       "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
       "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
+      "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
+      "${base_url}com/google/protobuf/protobuf-java/1.5.0/protobuf-java-2.5.0.jar"
+      "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
     )
+
+
+    if [[ -n "${htrace_version}" ]]; then
+      urls=("${urls[@]}" "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar")
+    fi
 
     # Download dependencies
     for x in "${urls[@]}"; do

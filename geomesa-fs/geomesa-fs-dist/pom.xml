@@ -48,6 +48,9 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-gs-plugin_${scala.binary.version}</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
         </dependency>
 
         <!-- additional deps to manage in for deploying to lib dir-->
