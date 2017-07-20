@@ -78,7 +78,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = ReferencedEnvelope.EVERYTHING
   override def buildFeatureType(): SimpleFeatureType = _sft
-  override def getCountInternal(query: Query): Int = ???
+  override def getCountInternal(query: Query): Int = -1
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     // The type name can sometimes be empty such as Query.ALL
     query.setTypeName(_sft.getTypeName)
