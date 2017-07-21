@@ -19,6 +19,7 @@ import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ExpiringFe
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Random
@@ -49,7 +50,7 @@ class DataStorePersistence(ds: DataStore,
                            ageOffMillis: Long,
                            persistExpired: Boolean)
                           (implicit clock: Clock = Clock.systemUTC())
-    extends Runnable with Closeable with LazyLogging {
+    extends Runnable with Closeable with MethodProfiling with LazyLogging {
 
   private val frequency = SystemProperty("geomesa.lambda.persist.interval").toDuration.getOrElse(60000L)
   private val lockTimeout = SystemProperty("geomesa.lambda.persist.lock.timeout").toDuration.getOrElse(1000L)
@@ -100,39 +101,45 @@ class DataStorePersistence(ds: DataStore,
       if (!persistExpired) {
         logger.trace(s"Persist disabled for $topic")
       } else {
-        var start = System.currentTimeMillis()
-        // do an update query first
-        val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)
-        WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
-          var count = 0L
-          while (writer.hasNext) {
-            val next = writer.next()
-            toPersist.get(next.getID).foreach { case (offset, updated) =>
-              logger.trace(s"Persistent store modify [$topic:$partition:$offset] $updated")
-              FeatureUtils.copyToFeature(next, updated, useProvidedFid = true)
-              try { writer.write() } catch {
-                case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
+        implicit val timings = new TimingsImpl
+        val modified = profile("modify") {
+          // do an update query first
+          val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)
+          WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
+            var count = 0L
+            while (writer.hasNext) {
+              val next = writer.next()
+              toPersist.get(next.getID).foreach { case (offset, updated) =>
+                logger.trace(s"Persistent store modify [$topic:$partition:$offset] $updated")
+                FeatureUtils.copyToFeature(next, updated, useProvidedFid = true)
+                try { writer.write() } catch {
+                  case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
+                }
+                toPersist.remove(updated.getID)
               }
-              toPersist.remove(updated.getID)
+              count += 1
             }
-            count += 1
+            count
           }
-          logger.debug(s"Wrote $count updated features to persistent storage in ${System.currentTimeMillis() - start}ms")
         }
+        logger.debug(s"Wrote $modified updated feature(s) to persistent storage in ${timings.time("modify")}ms")
         // if any weren't updates, add them as inserts
-        start = System.currentTimeMillis()
         if (toPersist.nonEmpty) {
-          val count = toPersist.size
-          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            toPersist.values.foreach { case (offset, updated) =>
-              logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated")
-              FeatureUtils.copyToWriter(writer, updated, useProvidedFid = true)
-              try { writer.write() } catch {
-                case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
+          val appended = profile("append") {
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+              var count = 0L
+              toPersist.values.foreach { case (offset, updated) =>
+                logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated")
+                FeatureUtils.copyToWriter(writer, updated, useProvidedFid = true)
+                try { writer.write() } catch {
+                  case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
+                }
+                count += 1
               }
+              count
             }
           }
-          logger.debug(s"Wrote $count new features to persistent storage in ${System.currentTimeMillis() - start}ms")
+          logger.debug(s"Wrote $appended new feature(s) to persistent storage in ${timings.time("append")}ms")
         }
       }
     }

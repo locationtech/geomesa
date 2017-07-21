@@ -145,11 +145,16 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
     def progress(): Float = bytesRead.get() / totalLength
 
-    Command.user.info(s"Ingesting ${TextTools.getPlural(numFiles, "file")} with ${TextTools.getPlural(numLocalThreads, "thread")}")
+    val threads = if (numLocalThreads <= numFiles) { numLocalThreads } else {
+      Command.user.warn("Can't use more threads than there are input files - reducing thread count")
+      numFiles
+    }
+
+    Command.user.info(s"Ingesting ${TextTools.getPlural(numFiles, "file")} with ${TextTools.getPlural(threads, "thread")}")
 
     val start = System.currentTimeMillis()
     val statusCallback = createCallback()
-    val es = Executors.newFixedThreadPool(numLocalThreads)
+    val es = Executors.newFixedThreadPool(threads)
     files.foreach(f => es.submit(new LocalIngestWorker(f)))
     es.shutdown()
 

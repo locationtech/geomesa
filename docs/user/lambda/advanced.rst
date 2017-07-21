@@ -49,3 +49,19 @@ available in memory.
 To write features to long-term storage, instantiate an instance of the delegate data store (``AccumuloDataStore``)
 using the same connection parameters as for the Lambda store. Any features written to the delegate store will
 then be queryable by the Lambda store, and merged with the in-memory cache.
+
+Monitoring State
+----------------
+
+The state of a Lambda data store can be monitored by enabling logging on the following classes:
+
+================================================================= ========= ===============================================
+Class                                                             Level     Info
+================================================================= ========= ===============================================
+org.locationtech.geomesa.lambda.stream.kafka.DataStorePersistence ``debug`` Count of features written to long-term storage
+org.locationtech.geomesa.lambda.stream.kafka.DataStorePersistence ``trace`` All features written to long-term storage
+org.locationtech.geomesa.lambda.stream.kafka.KafkaStore           ``trace`` All features written to Kafka
+org.locationtech.geomesa.lambda.stream.kafka.KafkaCacheLoader     ``trace`` All features read from Kafka
+org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``debug`` Size of in-memory cache
+org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``trace`` All features added/removed from in-memory cache
+================================================================= ========= ===============================================

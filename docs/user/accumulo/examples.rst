@@ -339,11 +339,9 @@ command:
 .. code-block:: bash
 
     $ geomesa ingest \
-     -u <username> -p <password> \
-     -i <instance> -z <zookeepers> \
-     -c gdelt -s gdelt \
-     -C gdelt_tsv \
-     /path/to/<gdelt-data-file>.csv
+       -u <username> -p <password> -i <instance> -z <zookeepers> \
+       -c gdelt -s gdelt -C gdelt_tsv --threads 1 \
+       /path/to/<gdelt-data-file>.csv
 
 ``<username>`` and ``<password>`` are the credentials associated with
 the Accumulo instance. ``<instance>`` and ``<zookeepers>`` are the
@@ -383,10 +381,9 @@ quick to export. First, we'll export to CSV with the following command:
 
     $ geomesa export -u <username> -p <password> -c gdelt_Ukraine -fn gdelt -fmt csv -max 50
     # or specifying Accumulo configuration explicitly:
-    $ geomesa export -u <username> -p <password> \
-      -i <instance> -z <zookeepers> \
-      -c gdelt -f gdelt \
-      -f csv -m 50
+    $ geomesa export \
+        -u <username> -p <password> -i <instance> -z <zookeepers> \
+        -c gdelt -f gdelt -f csv -m 50
 
 This command will output the relevant rows to the console. Inspect the
 rows now, or pipe the output into a file for later review.

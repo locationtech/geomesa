@@ -6,9 +6,6 @@ GeoMesa Processes
 The following analytic processes are available and optimized on GeoMesa
 data stores, found in the ``geomesa-process`` module:
 
-org.locationtech.geomesa.process.transform.ArrowConversionProcess
-org.locationtech.geomesa.process.transform.-
-
 -  ``ArrowConversionProcess`` - encodes simple features in the `Apache Arrow <https://arrow.apache.org/>`_ format
 -  ``BinConversionProcess`` - encodes simple features in a minimized 16-byte format
 -  :ref:`density_process` - computes a density heatmap for a CQL query
@@ -18,7 +15,7 @@ org.locationtech.geomesa.process.transform.-
 -  ``KNearestNeighborSearchProcess`` - performs a KNN search
 -  ``Point2PointProcess`` - aggregates a collection of points into a collection of line segments
 -  ``ProximitySearchProcess`` - searches near a set input features
--  :ref:`query_process` - performs a Geomesa optimized query using spatiotemporal indexes
+-  :ref:`query_process` - performs a Geomesa query, useful as input for nested requests
 -  ``RouteSearchProcess`` - matches features traveling along a given route
 -  ``SamplingProcess`` - uses statistical sampling to reduces the features
    returned by a query
@@ -35,18 +32,22 @@ Installation
 ------------
 
 While they can be used independently, the common use case is to use them
-with GeoServer. To deploy them in GeoServer, one will require:
-	a) a GeoMesa datastore plugin
-	b) the GeoServer WPS extension
-	c) the ``geomesa-process-wps_2.11-${VERSION}.jar`` to be deployed in
-		``${GEOSERVER_HOME}/WEB-INF/lib``.
+with GeoServer. To deploy them in GeoServer requires:
+
+1. a GeoMesa datastore plugin
+2. the GeoServer WPS extension
+3. the ``geomesa-process-wps_2.11-<version>.jar`` deployed in ``${GEOSERVER_HOME}/WEB-INF/lib``
+
+.. note::
+
+  Some processes also require custom output formats, available separately in the GPL licensed
+  `GeoMesa GeoServer WFS module <https://github.com/geomesa/geomesa-geoserver>`__
 
 The GeoMesa datastore plugin and GeoMesa process jars are both
 available in the binary distribution in the gs-plugins directory.
 
 Documentation about the GeoServer WPS Extension (including download
-instructions) is available here:
-http://docs.geoserver.org/stable/en/user/services/wps/install.html.
+instructions) is available `here <http://docs.geoserver.org/stable/en/user/services/wps/install.html>`__.
 
 To verify the install, start GeoServer, and you should see a line like
 ``INFO [geoserver.wps] - Found 15 bindable processes in GeoMesa Process Factory``.
