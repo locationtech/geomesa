@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import java.io.File
+import java.nio.file.Files
 import java.time.temporal.ChronoUnit
 
+import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.junit.runner.RunWith
@@ -23,24 +25,28 @@ import org.specs2.specification.AllExpectations
 class StorageUtilsTest extends Specification with AllExpectations {
 
   "StorageUtils" should {
-    "build a partition list" >> {
+    val tempDir = Files.createTempDirectory("geomesa").toFile.getPath
+
+    "build a partition and file list" >> {
       val files = List(
-        "/tmp/flkjsdfg/mytype/2016/02/03/00.parquet",
-        "/tmp/flkjsdfg/mytype/2016/02/03/01.parquet",
-        "/tmp/flkjsdfg/mytype/2016/02/03/02.parquet",
-        "/tmp/flkjsdfg/mytype/2016/02/04/03.parquet",
-        "/tmp/flkjsdfg/mytype/2016/02/04/04.parquet",
-        "/tmp/flkjsdfg/mytype/2016/02/05/05.parquet",
-        "/tmp/flkjsdfg/mytype/2016/02/05/06.parquet"
+        s"$tempDir/mytype/2016/02/03/00_08.parquet",
+        s"$tempDir/mytype/2016/02/03/01_02.parquet",
+        s"$tempDir/mytype/2016/02/03/02_03.parquet",
+        s"$tempDir/mytype/2016/02/04/03_04.parquet",
+        s"$tempDir/mytype/2016/02/04/04_04.parquet",
+        s"$tempDir/mytype/2016/02/05/05_99.parquet",
+        s"$tempDir/mytype/2016/02/05/06_00.parquet"
       )
       files.foreach { f => new File(f).getParentFile.mkdirs() }
       files.foreach { f => new File(f).createNewFile() }
-      val root = new Path("/tmp/flkjsdfg")
+      val root = new Path(tempDir)
       val fs = root.getFileSystem(new Configuration)
       val typeName = "mytype"
       val sft = SimpleFeatureTypes.createType(typeName, "age:Int,date:Date,*geom:Point:srid=4326")
       val scheme = new DateTimeScheme(DateTimeScheme.Formats.Hourly, ChronoUnit.HOURS, 1, "date", true)
-      val list = StorageUtils.buildPartitionList(new Path("/tmp/flkjsdfg/"), fs, typeName, scheme, 0, "parquet")
+      import scala.collection.JavaConversions._
+      val partitionsAndFiles = StorageUtils.partitionsAndFiles(new Path(tempDir), fs, typeName, scheme, 3, "parquet")
+      val list = partitionsAndFiles.keySet().toList
       list.size mustEqual 7
       val expected = List(
         "2016/02/03/00",
@@ -52,6 +58,28 @@ class StorageUtilsTest extends Specification with AllExpectations {
         "2016/02/05/06"
       )
       list must containTheSameElementsAs(expected)
+
+      val expectedMap = Map (
+        "2016/02/03/00" -> Seq("00_08.parquet"),
+        "2016/02/03/01" -> Seq("01_02.parquet"),
+        "2016/02/03/02" -> Seq("02_03.parquet"),
+        "2016/02/04/03" -> Seq("03_04.parquet"),
+        "2016/02/04/04" -> Seq("04_04.parquet"),
+        "2016/02/05/05" -> Seq("05_99.parquet"),
+        "2016/02/05/06" -> Seq("06_00.parquet")
+      )
+
+      import scala.collection.JavaConversions._
+
+      partitionsAndFiles.keySet.foreach { k =>
+        partitionsAndFiles(k).toSeq must containTheSameElementsAs(expectedMap(k))
+      }
+
+      success
+
+    }
+    step {
+      FileUtils.deleteDirectory(new File(tempDir))
     }
   }
 }
