@@ -24,8 +24,12 @@ trait VersionRemoteCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCom
     Command.output.info(s"Local Branch: $GitBranch")
     Command.output.info(s"Local Build date: $BuildDate")
     try {
-      val iterVersion = withDataStore(_.getVersion._2)
-      Command.output.info(s"Distributed runtime version: $iterVersion")
+      val iterVersions = withDataStore(_.getVersion._2)
+      Command.output.info(s"Distributed runtime version${ if (iterVersions.size > 1) "s" else "" }: " +
+          iterVersions.mkString(", "))
+      if (iterVersions.size > 1) {
+        Command.output.warn("WARNING: multiple iterator versions detected, check your cluster installation")
+      }
     } catch {
       case NonFatal(e) => Command.user.error("Could not get distributed version:", e)
     }

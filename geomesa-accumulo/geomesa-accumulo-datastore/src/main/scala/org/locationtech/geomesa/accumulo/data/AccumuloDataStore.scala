@@ -116,15 +116,19 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override protected def createQueryPlanner(): AccumuloQueryPlannerType = new AccumuloQueryPlanner(this)
 
-  override protected def getIteratorVersion: String = {
-    val scanner = connector.createScanner(config.catalog, new Authorizations())
-    try {
-      ProjectVersionIterator.scanProjectVersion(scanner)
-    } catch {
-      case NonFatal(e) => "unavailable"
-    } finally {
-      scanner.close()
+  override protected def getIteratorVersion: Set[String] = {
+    def getVersions(table: String): Set[String] = {
+      val scanner = connector.createScanner(table, new Authorizations())
+      try {
+        ProjectVersionIterator.scanProjectVersion(scanner)
+      } catch {
+        case NonFatal(e) => Set("unavailable")
+      } finally {
+        scanner.close()
+      }
     }
+    val ops = connector.tableOperations()
+    getTypeNames.toSet.flatMap(getAllTableNames).filter(ops.exists).flatMap(getVersions)
   }
 
   override def getQueryPlan(query: Query,
