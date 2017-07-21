@@ -12,17 +12,17 @@ import org.locationtech.geomesa.features.kryo.json.JsonPathParser
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathElement}
 import org.locationtech.geomesa.geojson.query.PropertyTransformer
 
-class GeoMesaIndexPropertyTransformer(idPath:Option[Seq[PathElement]], dtgPath:Option[Seq[PathElement]]) extends PropertyTransformer {
-  override def useFid(prop: String): Boolean = idPath.contains(JsonPathParser.parse(prop))
+class GeoMesaIndexPropertyTransformer(idPath: Option[Seq[PathElement]], dtgPath: Option[Seq[PathElement]])
+    extends PropertyTransformer {
+
+  // noinspection ExistsEquals
+  override def useFid(prop: String): Boolean = idPath.exists(_ == JsonPathParser.parse(prop))
 
   override def transform(prop: String): String = {
     JsonPathParser.parse(prop) match {
-      case Seq(PathAttribute("geometry")) =>
-        "geom"
-      case `dtgPath` =>
-        "dtg"
-      case x =>
-        JsonPathParser.print(PathAttribute("json") +: x)
+      case Seq(PathAttribute("geometry")) => "geom"
+      case `dtgPath` => "dtg"
+      case x => JsonPathParser.print(PathAttribute("json") +: x)
     }
   }
 }
