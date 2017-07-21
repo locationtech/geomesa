@@ -12,6 +12,7 @@ import java.io.File
 import java.nio.file.Files
 import java.time.temporal.ChronoUnit
 
+import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.junit.runner.RunWith
@@ -24,9 +25,9 @@ import org.specs2.specification.AllExpectations
 class StorageUtilsTest extends Specification with AllExpectations {
 
   "StorageUtils" should {
-    "build a partition list" >> {
-      val tempDir = Files.createTempDirectory("geomesa").toFile.getPath
+    val tempDir = Files.createTempDirectory("geomesa").toFile.getPath
 
+    "build a partition and file list" >> {
       val files = List(
         s"$tempDir/mytype/2016/02/03/00_08.parquet",
         s"$tempDir/mytype/2016/02/03/01_02.parquet",
@@ -76,6 +77,9 @@ class StorageUtilsTest extends Specification with AllExpectations {
 
       success
 
+    }
+    step {
+      FileUtils.deleteDirectory(new File(tempDir))
     }
   }
 }
