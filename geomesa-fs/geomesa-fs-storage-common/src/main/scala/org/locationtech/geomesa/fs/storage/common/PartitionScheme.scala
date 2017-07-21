@@ -75,6 +75,9 @@ object CommonSchemeLoader {
       case "daily" =>
         new DateTimeScheme(Daily, ChronoUnit.DAYS, 1, sft.getDtgField.get, true)
 
+      case "weekly" =>
+        new DateTimeScheme(Weekly, ChronoUnit.WEEKS, 1, sft.getDtgField.get, true)
+
       case "monthly" =>
         new DateTimeScheme(Monthly, ChronoUnit.MONTHS, 1, sft.getDtgField.get, true)
 
@@ -239,6 +242,7 @@ object DateTimeScheme {
     val JulianMinute = "yyyy/DDD/HH/mm"
 
     val Monthly      = "yyyy/MM"
+    val Weekly       = "yyyy/ww"
     val Daily        = "yyyy/MM/dd"
     val Hourly       = "yyyy/MM/dd/HH"
     val Minute       = "yyyy/MM/dd/HH/mm"
