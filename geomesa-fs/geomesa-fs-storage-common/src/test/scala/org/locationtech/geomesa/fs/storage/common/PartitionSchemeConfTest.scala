@@ -52,8 +52,34 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
 
       val scheme2 = PartitionScheme.apply(sft, schemeStr)
       scheme2 must beAnInstanceOf[CompositeScheme]
+    }
 
+    "load dtg, geom, step, and leaf defaults" >> {
+      val conf =
+        """
+          | {
+          |   scheme = "datetime,z2"
+          |   options = {
+          |     datetime-format = "yyyy/DDD/HH"
+          |     step-unit = HOURS
+          |     z2-resolution = 10
+          |   }
+          | }
+        """.stripMargin
 
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")
+      val scheme = PartitionScheme(sft, ConfigFactory.parseString(conf))
+
+      scheme must not(beNull)
+      scheme must beAnInstanceOf[CompositeScheme]
+
+      scheme.isLeafStorage must beTrue
+      val opts = scheme.getOptions
+      import PartitionOpts._
+      opts.get(GeomAttribute) mustEqual "bar"
+      opts.get(DtgAttribute) mustEqual "foo"
+      opts.get(StepUnitOpt).toInt mustEqual 1
+      opts.get(LeafStorage).toBoolean must beTrue
     }
   }
 }
