@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.bigtable.data
 
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client._
 import org.geotools.data.DataAccessFactory.Param
@@ -26,10 +27,12 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
   override def getDisplayName: String = BigtableDataStoreFactory.DisplayName
   override def getDescription: String = BigtableDataStoreFactory.Description
 
-  override def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): BigtableDataStore = {
+  override protected def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): BigtableDataStore = {
     // note: bigtable never has push-down predicates
     new BigtableDataStore(connection, config.copy(remoteFilter = false))
   }
+
+  override protected def checkClusterAvailability(conf: Configuration): Unit = {}
 
   override def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean =
     BigtableDataStoreFactory.canProcess(params)

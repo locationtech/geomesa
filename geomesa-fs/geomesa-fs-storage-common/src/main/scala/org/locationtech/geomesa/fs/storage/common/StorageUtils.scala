@@ -11,56 +11,42 @@ package org.locationtech.geomesa.fs.storage.common
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 
+import scala.collection.mutable
+
 object StorageUtils {
 
-  def buildPartitionList(root: Path,
+  def partitionsAndFiles(root: Path,
                          fs: FileSystem,
                          typeName: String,
                          partitionScheme: PartitionScheme,
                          fileSequenceLength: Int,
-                         fileExtension: String): List[String] = {
-
-    def recurseBucket(path: Path, prefix: String, curDepth: Int, maxDepth: Int): List[String] = {
-      if (curDepth > maxDepth) {
-        return List.empty[String]
+                         fileExtension: String): java.util.Map[String, java.util.List[String]] = {
+    val typePath = new Path(root, typeName)
+    val files = fs.listFiles(typePath, true)
+    val dataFiles = mutable.ListBuffer.empty[Path]
+    while (files.hasNext) {
+      val cur = files.next().getPath
+      if (cur.getName.endsWith(fileExtension)) {
+        dataFiles += cur
       }
-      val status = fs.listStatus(path)
-      status.flatMap { f =>
-        if (f.isDirectory) {
-          recurseBucket(f.getPath, s"$prefix${f.getPath.getName}/", curDepth + 1, maxDepth)
-        } else if (f.getPath.getName.endsWith(s".$fileExtension")) {
-          val name = f.getPath.getName.dropRight(fileExtension.length + 1)
-          List(prefix.dropRight(1))
-        } else {
-          List()
-        }
-      }
-    }.toList
-
-    def recurseLeaf(path: Path, prefix: String, curDepth: Int, maxDepth: Int): List[String] = {
-      if (curDepth > maxDepth) {
-        return List.empty[String]
-      }
-      val status = fs.listStatus(path)
-      status.flatMap { f =>
-        if (f.isDirectory) {
-          recurseLeaf(f.getPath, s"$prefix${f.getPath.getName}/", curDepth + 1, maxDepth)
-        } else if (f.getPath.getName.endsWith(s".$fileExtension")) {
-          val lenToDrop = fileSequenceLength + 1 + fileExtension.length
-          val name = f.getPath.getName.dropRight(lenToDrop)
-          List(s"$prefix$name")
-        } else {
-          List()
-        }
-      }
-    }.toList
-
-    if (partitionScheme.isLeafStorage) {
-      recurseLeaf(new Path(root, typeName), "", 0, partitionScheme.maxDepth())
-    } else {
-      recurseBucket(new Path(root, typeName), "", 0, partitionScheme.maxDepth() + 1)
     }
+    val isLeaf = partitionScheme.isLeafStorage
 
+    import scala.collection.JavaConversions._
+    dataFiles.map { f =>
+      if (isLeaf) {
+        val prefixToRemove = typePath.toUri.getPath + "/"
+        val partition = f.toUri.getPath.dropRight(fileSequenceLength + 1 + fileExtension.length).replaceAllLiterally(prefixToRemove, "")
+        val file = f.getName
+        (partition, file)
+      } else {
+        val prefixToRemove = typePath.toUri.getPath + "/"
+        (f.getParent.toUri.getPath.replaceAllLiterally(prefixToRemove, ""), f.getName)
+      }
+    }.groupBy(_._1).map { case (k, iter) =>
+      import scala.collection.JavaConverters._
+      k -> iter.map(_._2).toList.asJava
+    }
   }
 
   def listFiles(fs: FileSystem, dir: Path, ext: String): Seq[Path] = {

@@ -187,17 +187,6 @@ class ParquetFileSystemStorage(root: Path,
   override def getPartitionScheme(typeName: String): PartitionScheme =
     metadata(typeName).getPartitionScheme
 
-  private def listStorageFiles(typeName: String): util.Map[String, util.List[String]] = {
-    val scheme = getPartitionScheme(typeName)
-    val partitions =
-      StorageUtils.buildPartitionList(root, fs, typeName, scheme, StorageUtils.SequenceLength, FileExtension)
-    import scala.collection.JavaConverters._
-    partitions.map { p =>
-      val files = StorageUtils.listFiles(fs, root, typeName, p, scheme.isLeafStorage, FileExtension).map(_.getName).asJava
-      p -> files
-    }.toMap.asJava
-  }
-
   override def getPaths(typeName: String, partition: String): java.util.List[URI] = {
     val scheme = metadata(typeName).getPartitionScheme
     val baseDir = if (scheme.isLeafStorage) {
@@ -212,7 +201,14 @@ class ParquetFileSystemStorage(root: Path,
 
   override def getMetadata(typeName: String): Metadata = metadata(typeName)
 
-  override def updateMetadata(typeName: String): Unit = metadata(typeName).addPartitions(listStorageFiles(typeName))
+  override def updateMetadata(typeName: String): Unit = {
+    val s = System.currentTimeMillis
+    val scheme = metadata(typeName).getPartitionScheme
+    val parts = StorageUtils.partitionsAndFiles(root, fs, typeName, scheme, StorageUtils.SequenceLength, FileExtension)
+    metadata(typeName).addPartitions(parts)
+    val e = System.currentTimeMillis
+    logger.info(s"Metadata Update took in ${e-s}ms.")
+  }
 
 }
 

@@ -138,6 +138,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     val ret = job.isSuccessful &&
         tempPath.forall(tp => distCopy(tp, dsPath, sft, job.getConfiguration, statusCallback)) && {
       Command.user.info("Attempting to update metadata")
+      // We sleep here to allow a chance for S3 to become "consistent" with its storage listings
       Thread.sleep(5000)
       ds.storage.updateMetadata(typeName)
       Command.user.info("Metadata Updated")
@@ -162,6 +163,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     val opts = new DistCpOptions(List(typePath), destTypePath)
     opts.setAppend(false)
     opts.setOverwrite(true)
+    opts.setCopyStrategy("dynamic")
     val job = new DistCp(new Configuration, opts).execute()
 
     Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")

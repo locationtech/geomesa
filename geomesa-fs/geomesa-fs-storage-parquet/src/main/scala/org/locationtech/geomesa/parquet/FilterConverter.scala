@@ -62,7 +62,7 @@ class FilterConverter(sft: SimpleFeatureType) {
       case binop: org.opengis.filter.BinaryComparisonOperator =>
         // These are all handled by the parquet attribute or date filter
         binop match {
-          case _ if dtgAttrOpt.contains(binop.getExpression1.asInstanceOf[PropertyName].getPropertyName) =>
+          case _ if dtgAttrOpt.exists(_ == binop.getExpression1.asInstanceOf[PropertyName].getPropertyName) =>
             org.opengis.filter.Filter.INCLUDE
 
           case _ @(_: org.opengis.filter.PropertyIsEqualTo |
@@ -133,7 +133,7 @@ class FilterConverter(sft: SimpleFeatureType) {
         val value = binop.getExpression2.toString
 
         binop match {
-          case _ if name == geomAttr | dtgAttrOpt.contains(name) =>
+          case _ if name == geomAttr | dtgAttrOpt.exists(_ == name) =>
             None
 
           case _ =>
