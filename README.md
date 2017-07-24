@@ -42,7 +42,7 @@ geospatial analytics.
   [**Cassandra**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/1.3.2/geomesa-cassandra-dist_2.11-1.3.2-bin.tar.gz) |
   [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-1.3.2.tar.gz)
 
-**Development version: 1.3.2** &nbsp;
+**Development version: 1.3.3-SNAPSHOT** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 
 ### Upgrading
