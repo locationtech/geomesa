@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.strategies
 
+import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
@@ -43,7 +44,7 @@ trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: Wrappe
         case Some(nt) => FilterExtractingVisitor(nt, sft.getGeomField, sft, SpatialFilterStrategy.spatialCheck)
       }
 
-      if (temporal.exists(isBounded(_, dtg)) && (spatial.isDefined || !sft.getDescriptor(dtg).isIndexed)) {
+      if (temporal.exists(isBounded(_, sft, dtg)) && (spatial.isDefined || !sft.getDescriptor(dtg).isIndexed)) {
         Seq(FilterStrategy(this, andOption((spatial ++ temporal).toSeq), others))
       } else {
         Seq(FilterStrategy(this, None, Some(filter)))
@@ -75,9 +76,11 @@ object SpatioTemporalFilterStrategy {
   /**
     * Returns true if the temporal filters create a range with an upper and lower bound
     */
-  def isBounded(temporalFilter: Filter, dtg: String): Boolean = {
-    import FilterHelper.{MaxDateTime, MinDateTime}
+  def isBounded(temporalFilter: Filter, sft: SimpleFeatureType, dtg: String): Boolean = {
     val intervals = FilterHelper.extractIntervals(temporalFilter, dtg)
-    intervals.nonEmpty && intervals.values.forall { case (start, end) => start != MinDateTime && end != MaxDateTime }
+    val maxDate = BinnedTime.maxDate(sft.getZ3Interval)
+    intervals.nonEmpty && intervals.values.forall { i =>
+      i.lower.value.exists(_.isAfter(BinnedTime.ZMinDate)) && i.upper.value.exists(_.isBefore(maxDate))
+    }
   }
 }

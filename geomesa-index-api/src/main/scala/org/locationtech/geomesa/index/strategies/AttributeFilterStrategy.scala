@@ -62,7 +62,7 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
         val cost = stats.flatMap(_.getCount(sft, f, exact = false)).getOrElse {
           val binding = sft.getDescriptor(attribute).getType.getBinding
           val bounds = FilterHelper.extractAttributeBounds(f, attribute, binding)
-          if (bounds.forall(b => b.lower == b.upper)) {
+          if (bounds.forall(b => b.lower.value.isDefined && b.lower.value == b.upper.value)) {
             AttributeFilterStrategy.StaticEqualsCost
           } else {
             AttributeFilterStrategy.StaticRangeCost

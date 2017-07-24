@@ -13,6 +13,7 @@ import java.util.Date
 import com.vividsolutions.jts.geom.Geometry
 import org.joda.time.DateTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
+import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
@@ -41,7 +42,7 @@ trait StatsBasedEstimator {
     // TODO currently we don't consider if the dates are actually ANDed with everything else
     CountEstimator.extractDates(sft, filter) match {
       case None => Some(0L) // disjoint dates
-      case Some(Bounds(lo, hi, _)) => estimateCount(sft, filter, lo, hi)
+      case Some(Bounds(lo, hi)) => estimateCount(sft, filter, lo.value, hi.value)
     }
   }
 
@@ -158,12 +159,14 @@ trait StatsBasedEstimator {
       if intervals.nonEmpty
       bounds     <- stats.getStats[MinMax[Date]](sft, Seq(dateField)).headOption
     } yield {
-      lazy val inRangeIntervals = {
-        val minTime = bounds.min.getTime
-        val maxTime = bounds.max.getTime
-        intervals.values.filter(i => i._1.getMillis <= maxTime && i._2.getMillis >= minTime)
-      }
       if (geometries.disjoint || intervals.disjoint) { 0L } else {
+        val inRangeIntervals = {
+          val minTime = bounds.min.getTime
+          val maxTime = bounds.max.getTime
+          intervals.values.filter { i =>
+            i.lower.value.forall(_.getMillis <= maxTime) && i.upper.value.forall(_.getMillis >= minTime)
+          }
+        }
         estimateSpatioTemporalCount(sft, geomField, dateField, geometries.values, inRangeIntervals)
       }
     }
@@ -183,11 +186,14 @@ trait StatsBasedEstimator {
                                           geomField: String,
                                           dateField: String,
                                           geometries: Seq[Geometry],
-                                          intervals: Seq[(DateTime, DateTime)]): Long = {
-    val dateToBins = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
+                                          intervals: Seq[Bounds[DateTime]]): Long = {
+    val period = sft.getZ3Interval
+    val dateToBins = BinnedTime.dateToBinnedTime(period)
+    val boundsToDates = BinnedTime.boundsToIndexableDates(period)
     val binnedTimes = intervals.map { interval =>
-      val BinnedTime(lb, lt) = dateToBins(interval._1)
-      val BinnedTime(ub, ut) = dateToBins(interval._2)
+      val (lower, upper) = boundsToDates(interval.bounds)
+      val BinnedTime(lb, lt) = dateToBins(lower)
+      val BinnedTime(ub, ut) = dateToBins(upper)
       (Range.inclusive(lb, ub).map(_.toShort), lt, ut)
     }
     val allBins = binnedTimes.flatMap(_._1).distinct
@@ -196,7 +202,7 @@ trait StatsBasedEstimator {
       case None => 0L
       case Some(histogram) =>
         // time range for a chunk is 0 to 1 week (in seconds)
-        val sfc = Z3SFC(sft.getZ3Interval)
+        val sfc = Z3SFC(period)
         val (tmin, tmax) = (sfc.time.min.toLong, sfc.time.max.toLong)
         val xy = geometries.map(GeometryUtils.bounds)
 
@@ -259,10 +265,11 @@ trait StatsBasedEstimator {
       extractedBounds.flatMap { bounds =>
         if (bounds.disjoint) {
           Some(0L) // disjoint range
-        } else if (bounds.values.exists(_.bounds == (None, None))) {
+        } else if (bounds.values.exists(_.everything)) {
           estimateCount(sft, Filter.INCLUDE, loDate, hiDate) // inclusive filter
         } else {
-          val (equalsBounds, rangeBounds) = bounds.values.map(_.bounds).partition { case (l, r) => l == r }
+          val boundsValues = bounds.values.map(b => (b.lower.value, b.upper.value))
+          val (equalsBounds, rangeBounds) = boundsValues.partition { case (l, r) => l == r }
           val equalsCount = if (equalsBounds.isEmpty) { Some(0L) } else {
             estimateEqualsCount(sft, attribute, equalsBounds.map(_._1.get), loDate, hiDate)
           }
@@ -325,13 +332,15 @@ trait StatsBasedEstimator {
       if intervals.nonEmpty
       histogram <- stats.getStats[Histogram[Date]](sft, Seq(dateField)).headOption
     } yield {
-      def inRange(interval: (DateTime, DateTime)) =
-        interval._1.getMillis <= histogram.max.getTime && interval._2.getMillis >= histogram.min.getTime
+      def inRange(interval: Bounds[DateTime]) = {
+        interval.lower.value.forall(_.getMillis <= histogram.max.getTime) &&
+            interval.upper.value.forall(_.getMillis >= histogram.min.getTime)
+      }
 
       if (intervals.disjoint) { 0L } else {
         val indices = intervals.values.filter(inRange).flatMap { interval =>
-          val loIndex = Some(histogram.indexOf(interval._1.toDate)).filter(_ != -1).getOrElse(0)
-          val hiIndex = Some(histogram.indexOf(interval._2.toDate)).filter(_ != -1).getOrElse(histogram.length - 1)
+          val loIndex = interval.lower.value.map(i => histogram.indexOf(i.toDate)).filter(_ != -1).getOrElse(0)
+          val hiIndex = interval.upper.value.map(i => histogram.indexOf(i.toDate)).filter(_ != -1).getOrElse(histogram.length - 1)
           loIndex to hiIndex
         }
         indices.distinct.map(histogram.count).sumOrElse(0L)
@@ -376,8 +385,7 @@ trait StatsBasedEstimator {
     */
   private def estimateRangeCount(sft: SimpleFeatureType,
                                  attribute: String,
-                                 ranges: Seq[(Option[Any],
-                                 Option[Any])]): Option[Long] = {
+                                 ranges: Seq[(Option[Any], Option[Any])]): Option[Long] = {
     stats.getStats[Histogram[Any]](sft, Seq(attribute)).headOption.map { histogram =>
       val inRangeRanges = ranges.filter {
         case (None, None)         => true // inclusive filter
@@ -411,23 +419,19 @@ object CountEstimator {
     */
   private [stats] def extractDates(sft: SimpleFeatureType, filter: Filter): Option[Bounds[Date]] = {
     sft.getDtgField match {
-      case None => Some(Bounds(None, None, inclusive = false))
+      case None => Some(Bounds.everything)
       case Some(dtg) =>
         val intervals = FilterHelper.extractIntervals(filter, dtg)
         if (intervals.disjoint) { None } else {
           // don't consider gaps, just get the endpoints of the intervals
-          val dateTimes = intervals.values.reduceOption[(DateTime, DateTime)] { case (left, right) =>
-            val lower = if (left._1.isAfter(right._1)) right._1 else left._1
-            val upper = if (left._2.isBefore(right._2)) right._2 else left._2
-            (lower, upper)
+          val dateTimes = intervals.values.reduceOption[Bounds[DateTime]] { case (left, right) =>
+            val lower = Bounds.smallerLowerBound(left.lower, right.lower)
+            val upper = Bounds.largerUpperBound(left.upper, right.upper)
+            Bounds(lower, upper)
           }
-          // filter out unbounded endpoints
-          val (lowerOption, upperOption) = dateTimes.map { case (lower, upper) =>
-            val lowerOption = if (lower == FilterHelper.MinDateTime) None else Some(lower.toDate)
-            val upperOption = if (upper == FilterHelper.MaxDateTime) None else Some(upper.toDate)
-            (lowerOption, upperOption)
-          }.getOrElse((None, None))
-          Some(Bounds(lowerOption, upperOption, inclusive = false))
+          val lower = dateTimes.map(d => Bound(d.lower.value.map(_.toDate), d.lower.inclusive))
+          val upper = dateTimes.map(d => Bound(d.upper.value.map(_.toDate), d.upper.inclusive))
+          Some(Bounds(lower.getOrElse(Bound.unbounded[Date]), upper.getOrElse(Bound.unbounded[Date])))
         }
     }
   }

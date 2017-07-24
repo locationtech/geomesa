@@ -43,7 +43,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
 
     import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
     import Z3IndexV2.GEOM_Z_NUM_BYTES
-    import org.locationtech.geomesa.filter.FilterHelper._
+    import org.locationtech.geomesa.filter.FilterHelper.{extractGeometries, extractIntervals}
     import org.locationtech.geomesa.index.conf.QueryHints.{LOOSE_BBOX, RichHints}
 
     // note: z3 requires a date field
@@ -132,10 +132,12 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
       // calculate map of weeks to time intervals in that week
       val timesByBin = scala.collection.mutable.Map.empty[Short, Seq[(Long, Long)]].withDefaultValue(Seq.empty)
       val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
+      val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getZ3Interval)
       // note: intervals shouldn't have any overlaps
       intervals.foreach { interval =>
-        val BinnedTime(lb, lt) = dateToIndex(interval._1)
-        val BinnedTime(ub, ut) = dateToIndex(interval._2)
+        val (lower, upper) = boundsToDates(interval.bounds)
+        val BinnedTime(lb, lt) = dateToIndex(lower)
+        val BinnedTime(ub, ut) = dateToIndex(upper)
         if (lb == ub) {
           timesByBin(lb) ++= Seq((lt, ut))
         } else {

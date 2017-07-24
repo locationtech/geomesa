@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index
 
 import java.util.Comparator
 
+import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestWrappedFeature, TestWrite, _}
 import org.locationtech.geomesa.index.api.{GeoMesaIndexManager, _}
@@ -17,12 +18,13 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
 import org.locationtech.geomesa.index.index._
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
+import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
-import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -32,7 +34,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
   override val metadata: GeoMesaMetadata[String] = new InMemoryMetadata[String]
 
-  override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
+  override val stats: GeoMesaStats = new TestStats(this)
 
   override val manager: TestIndexManager = new TestIndexManager
 
@@ -119,6 +121,7 @@ object TestGeoMesaDataStore {
       override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
         byteComparator.compare(x._1, y._1)
     }
+
     val features = scala.collection.mutable.SortedSet.empty[(Array[Byte], SimpleFeature)]
 
     override val version = 1
@@ -141,6 +144,8 @@ object TestGeoMesaDataStore {
                                     hints: Hints,
                                     ranges: Seq[TestRange],
                                     ecql: Option[Filter]): TestQueryPlanType = TestQueryPlan(this, filter, ranges, ecql)
+
+    override def toString: String = getClass.getSimpleName
   }
 
   class TestAppendFeatureWriter(sft: SimpleFeatureType,
@@ -182,6 +187,22 @@ object TestGeoMesaDataStore {
     override def explain(explainer: Explainer, prefix: String): Unit = {
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r => s"[${r.start.mkString("")}:${r.end.mkString("")})")}")
       explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
+    }
+  }
+
+  class TestStats(override protected val ds: TestGeoMesaDataStore) extends MetadataBackedStats {
+
+    override private [geomesa] val metadata = new InMemoryMetadata[Stat]
+
+    override protected val generateStats = true
+
+    override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
+      val stat = Stat(sft, stats)
+      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).foreach(stat.observe)
+      stat match {
+        case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
+        case s: T => Seq(s)
+      }
     }
   }
 }

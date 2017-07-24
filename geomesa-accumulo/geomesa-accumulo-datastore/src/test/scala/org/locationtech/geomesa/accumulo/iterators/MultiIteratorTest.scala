@@ -17,7 +17,6 @@ import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.iterators.TestData._
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -34,6 +33,9 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
   sequential
 
   val spec = SimpleFeatureTypes.encodeType(TestData.featureType, includeUserData = true)
+
+  val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
+  val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
 
   // noinspection LanguageFeature
   // note: size returns an estimated amount, instead we need to actually count the features
@@ -118,7 +120,6 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
   }
 
-
   "Mock Accumulo with a small table" should {
     val sft = createNewSchema(spec)
     val features = TestData.shortListOfPoints.map(createSF(_, sft))
@@ -201,7 +202,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     "return a filtered results-set with a degenerate time-range" in {
       val filterString = "true = true"
 
-      val dtFilter = new Interval(FilterHelper.MinDateTime, FilterHelper.MaxDateTime)
+      val dtFilter = new Interval(MinDateTime, MaxDateTime)
       val q = getQuery(sft, Some(filterString), dtFilter)
 
       val filteredCount = features.count(q.getFilter.evaluate)
@@ -214,7 +215,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
 
     "return an unfiltered results-set with a global request" in {
-      val dtFilter = new Interval(FilterHelper.MinDateTime, FilterHelper.MaxDateTime)
+      val dtFilter = new Interval(MinDateTime, MaxDateTime)
       val q = getQuery(sft, None, dtFilter, overrideGeometry = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)

@@ -13,6 +13,7 @@ import java.lang.{Boolean, Float, Long}
 import org.apache.parquet.filter2.predicate.{FilterApi, FilterPredicate}
 import org.apache.parquet.io.api.Binary
 import org.geotools.factory.CommonFactoryFinder
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.filter.FilterHelper
@@ -30,6 +31,9 @@ class FilterConverter(sft: SimpleFeatureType) {
   protected val geomAttr: String = sft.getGeomField
   protected val dtgAttrOpt: Option[String] = sft.getDtgField
   private val ff = CommonFactoryFinder.getFilterFactory2
+
+  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
+  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
 
   /**
     * Convert a geotools filter into a parquet filter and new partial geotools filter
@@ -80,10 +84,10 @@ class FilterConverter(sft: SimpleFeatureType) {
 
   protected def dtgFilter(f: org.opengis.filter.Filter): Option[FilterPredicate] = {
     dtgAttrOpt.map { dtgAttr =>
-      val filters = FilterHelper.extractIntervals(f, dtgAttr).values.map { case (start, end) =>
+      val filters = FilterHelper.extractIntervals(f, dtgAttr).values.map { bounds =>
         FilterApi.and(
-          FilterApi.gtEq(FilterApi.longColumn(dtgAttr), start.getMillis: java.lang.Long),
-          FilterApi.ltEq(FilterApi.longColumn(dtgAttr), end.getMillis: java.lang.Long)
+          FilterApi.gtEq(FilterApi.longColumn(dtgAttr), Long.valueOf(bounds.lower.value.getOrElse(MinDateTime).getMillis)),
+          FilterApi.ltEq(FilterApi.longColumn(dtgAttr), Long.valueOf(bounds.upper.value.getOrElse(MaxDateTime).getMillis))
         )
       }
 

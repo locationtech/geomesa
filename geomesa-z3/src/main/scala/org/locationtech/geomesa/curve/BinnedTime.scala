@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.curve
 
-import java.util.Date
-
 import org.joda.time._
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 
@@ -52,9 +50,11 @@ object BinnedTime {
   type BinnedTimeToDate = (BinnedTime) => DateTime
 
   val Epoch = new DateTime(0, DateTimeZone.UTC)
-  val ZMinDate: Date = Epoch.toDate
 
+  // min value (inclusive)
+  val ZMinDate: DateTime = Epoch
 
+  // max values (exclusive)
   val DaysMaxDate   = Epoch.plus(Days.days(Short.MaxValue.toInt + 1))
   val WeeksMaxDate  = Epoch.plus(Weeks.weeks(Short.MaxValue.toInt + 1))
   val MonthsMaxDate = Epoch.plus(Months.months(Short.MaxValue.toInt + 1))
@@ -120,6 +120,12 @@ object BinnedTime {
     }
   }
 
+  /**
+    * Max indexable date (exclusive) for a given time period
+    *
+    * @param period interval type
+    * @return
+    */
   def maxDate(period: TimePeriod): DateTime = {
     period match {
       case TimePeriod.Day   => DaysMaxDate
@@ -129,10 +135,36 @@ object BinnedTime {
     }
   }
 
+  /**
+    * Converts values extracted from a filter into valid indexable bounds
+    *
+    * @param period time period
+    * @return
+    */
+  def boundsToIndexableDates(period: TimePeriod): ((Option[DateTime], Option[DateTime])) => (DateTime, DateTime) = {
+    val maxDateTime = maxDate(period).minus(1L)
+    (bounds) => {
+      val lo = bounds._1 match {
+        case None => ZMinDate
+        case Some(dt) if dt.isBefore(ZMinDate) => ZMinDate
+        case Some(dt) if dt.isAfter(maxDateTime) => maxDateTime
+        case Some(dt) => dt
+      }
+      val hi = bounds._2 match {
+        case None => maxDateTime
+        case Some(dt) if dt.isBefore(ZMinDate) => ZMinDate
+        case Some(dt) if dt.isAfter(maxDateTime) => maxDateTime
+        case Some(dt) => dt
+      }
+      (lo, hi)
+    }
+  }
+
   private def toDayAndMillis(time: Long): BinnedTime =
     toDayAndMillis(new DateTime(time, DateTimeZone.UTC))
 
   private def toDayAndMillis(date: DateTime): BinnedTime = {
+    require(!date.isBefore(ZMinDate), s"Date exceeds minimum indexable value ($ZMinDate): $date")
     require(DaysMaxDate.isAfter(date), s"Date exceeds maximum indexable value ($DaysMaxDate): $date")
     val days = Days.daysBetween(Epoch, date)
     val millisInDay = date.getMillis - Epoch.plus(days).getMillis
@@ -145,6 +177,7 @@ object BinnedTime {
     toWeekAndSeconds(new DateTime(time, DateTimeZone.UTC))
 
   private def toWeekAndSeconds(date: DateTime): BinnedTime = {
+    require(!date.isBefore(ZMinDate), s"Date exceeds minimum indexable value ($ZMinDate): $date")
     require(WeeksMaxDate.isAfter(date), s"Date exceeds maximum indexable value ($WeeksMaxDate): $date")
     val weeks = Weeks.weeksBetween(Epoch, date)
     val secondsInWeek = (date.getMillis - Epoch.plus(weeks).getMillis) / 1000L
@@ -158,6 +191,7 @@ object BinnedTime {
     toMonthAndSeconds(new DateTime(time, DateTimeZone.UTC))
 
   private def toMonthAndSeconds(date: DateTime): BinnedTime = {
+    require(!date.isBefore(ZMinDate), s"Date exceeds minimum indexable value ($ZMinDate): $date")
     require(MonthsMaxDate.isAfter(date), s"Date exceeds maximum indexable value ($MonthsMaxDate): $date")
     val months = Months.monthsBetween(Epoch, date)
     val secondsInMonth = (date.getMillis - Epoch.plus(months).getMillis) / 1000L
@@ -171,6 +205,7 @@ object BinnedTime {
     toYearAndMinutes(new DateTime(time, DateTimeZone.UTC))
 
   private def toYearAndMinutes(date: DateTime): BinnedTime = {
+    require(!date.isBefore(ZMinDate), s"Date exceeds minimum indexable value ($ZMinDate): $date")
     require(YearsMaxDate.isAfter(date), s"Date exceeds maximum indexable value ($YearsMaxDate): $date")
     val years = Years.yearsBetween(Epoch, date)
     val minutesInYear = (date.getMillis - Epoch.plus(years).getMillis) / 60000L

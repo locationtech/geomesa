@@ -63,7 +63,10 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       intervals
     }
 
-    lazy val dates = intervals.map(i => (i.values.map(_._1.getMillis).min, i.values.map(_._2.getMillis).max))
+    lazy val dates = intervals.map { i =>
+      (i.values.map(_.lower.value.map(_.getMillis).getOrElse(0L)).min,
+          i.values.map(_.upper.value.map(_.getMillis).getOrElse(Long.MaxValue)).max)
+    }
     // TODO GEOMESA-1336 fix exclusive AND handling for list types
     lazy val bounds = AttributeQueryableIndex.getBounds(sft, primary, dates)
 
@@ -392,16 +395,16 @@ object AttributeQueryableIndex {
           } else if (lower + WILDCARD_SUFFIX == upper) {
             AttributeWritableIndex.prefix(sft, index, lower)
           } else {
-            AttributeWritableIndex.between(sft, index, (lower, upper), dates, bounds.inclusive)
+            AttributeWritableIndex.between(sft, index, (lower, upper), dates, bounds.lower.inclusive || bounds.upper.inclusive)
           }
         case (Some(lower), None) =>
-          if (bounds.inclusive) {
+          if (bounds.lower.inclusive) {
             AttributeWritableIndex.gte(sft, index, lower, dates.map(_._1))
           } else {
             AttributeWritableIndex.gt(sft, index, lower, dates.map(_._1))
           }
         case (None, Some(upper)) =>
-          if (bounds.inclusive) {
+          if (bounds.upper.inclusive) {
             AttributeWritableIndex.lte(sft, index, upper, dates.map(_._2))
           } else {
             AttributeWritableIndex.lt(sft, index, upper, dates.map(_._2))

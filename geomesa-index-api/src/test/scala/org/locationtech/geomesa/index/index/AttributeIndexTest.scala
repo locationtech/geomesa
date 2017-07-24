@@ -14,7 +14,8 @@ import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestQueryPlan, TestRange}
+import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestQueryPlan, TestRange}
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -71,12 +72,10 @@ class AttributeIndexTest extends Specification {
     }
 
     "correctly set secondary index ranges" in {
-      import Transaction.{AUTO_COMMIT => AC}
-
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)
 
-      WithClose(ds.getFeatureWriterAppend(typeName, AC)) { writer =>
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
         features.foreach { f =>
           FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
           writer.write()
@@ -91,7 +90,7 @@ class AttributeIndexTest extends Specification {
           val ranges = qp.asInstanceOf[TestQueryPlan].ranges.sortBy(_.start)
           forall(ranges.sliding(2)) { case Seq(left, right) => overlaps(left, right) must beFalse }
         }
-        SelfClosingIterator(ds.getFeatureReader(q, AC)).map(_.getID).toSeq
+        SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
       }
 
       // height filter matches bob and charles, st filters only match bob
@@ -102,6 +101,26 @@ class AttributeIndexTest extends Specification {
       val results = execute(s"height = 12.0 AND $stFilter")
       results must haveLength(1)
       results must contain("bob")
+    }
+
+    "handle open-ended secondary filters" in {
+      val spec = "dtgStart:Date:default=true,dtgEnd:Date:index=true,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType(typeName, spec)
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      val before = "dtgStart BEFORE 2017-01-02T00:00:00.000Z"
+      val after = "dtgEnd AFTER 2017-01-03T00:00:00.000Z"
+      val filter = ECQL.toFilter(s"$before AND $after")
+      val q = new Query(typeName, filter)
+      q.getHints.put(QueryHints.QUERY_INDEX, "attr")
+
+      forall(ds.getQueryPlan(q)) { qp =>
+        qp.filter.index must beAnInstanceOf[TestAttributeIndex]
+        qp.filter.primary must beSome(ECQL.toFilter(after))
+        qp.filter.secondary must beSome(ECQL.toFilter(before))
+      }
     }
   }
 }
