@@ -10,27 +10,14 @@ package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.index.index.{AttributeDateIndex, AttributeIndex}
+import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.index.legacy.{AttributeDateIndex, AttributeZIndex}
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseAttributeIndex extends HBaseAttributeLikeIndex with HBasePlatform {
-  override val version: Int = 3
+case object HBaseAttributeIndex extends HBaseLikeAttributeIndex with HBasePlatform
+
+trait HBaseLikeAttributeIndex extends HBaseFeatureIndex
+    with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+  override val version: Int = 4
 }
-
-// no shards
-case object HBaseAttributeIndexV2 extends HBaseAttributeLikeIndex with HBasePlatform {
-  override val version: Int = 2
-
-  override protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = SplitArrays.EmptySplits
-}
-
-trait HBaseAttributeLikeIndex
-    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query]
-
-trait HBaseAttributeDateLikeIndex
-    extends HBaseFeatureIndex with AttributeDateIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
-  override val version: Int = 1
-}
-
-case object HBaseAttributeDateIndex extends HBaseAttributeDateLikeIndex with HBasePlatform

@@ -128,7 +128,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
           statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = false)
         }
       }
-      Thread.sleep(1000)
+      Thread.sleep(500)
     }
     statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = true)
 
@@ -173,7 +173,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
       if (job.getStatus.getState != JobStatus.State.PREP) {
           statusCallback("DistCp (stage 3/3): ", job.mapProgress(), Seq.empty, done = false)
       }
-      Thread.sleep(1000)
+      Thread.sleep(500)
     }
     statusCallback("DistCp (stage 3/3): ", job.mapProgress(), Seq.empty, done = true)
 

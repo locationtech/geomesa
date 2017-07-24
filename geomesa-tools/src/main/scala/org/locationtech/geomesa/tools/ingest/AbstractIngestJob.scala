@@ -76,7 +76,7 @@ abstract class AbstractIngestJob {
         // we don't have any reducers, just track mapper progress
         statusCallback("", job.mapProgress(), counters, done = false)
       }
-      Thread.sleep(1000)
+      Thread.sleep(500)
     }
     statusCallback("", job.mapProgress(), counters, done = true)
 

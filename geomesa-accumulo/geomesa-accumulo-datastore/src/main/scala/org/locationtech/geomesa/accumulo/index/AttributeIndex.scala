@@ -36,7 +36,7 @@ import org.opengis.filter.Filter
 import scala.util.Try
 
 case object AttributeIndex extends AccumuloAttributeIndex {
-  override val version: Int = 5
+  override val version: Int = 6
 }
 
 // secondary z-index

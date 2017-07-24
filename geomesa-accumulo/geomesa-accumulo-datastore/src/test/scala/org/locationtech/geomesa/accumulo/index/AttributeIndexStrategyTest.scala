@@ -83,7 +83,9 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     sft.getAttributeShards
   }
 
-  addFeatures(features)
+  step {
+    addFeatures(features)
+  }
 
   def execute(filter: String, explain: Explainer = ExplainNull, ranges: Option[Matcher[Int]] = None): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))

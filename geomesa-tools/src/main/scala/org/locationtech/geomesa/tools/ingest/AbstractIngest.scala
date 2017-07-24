@@ -161,7 +161,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     def counters = Seq(("ingested", written.get()), ("failed", failed.get()))
 
     while (!es.isTerminated) {
-      Thread.sleep(1000)
+      Thread.sleep(500)
       statusCallback("", progress(), counters, done = false)
     }
     statusCallback("", progress(), counters, done = true)

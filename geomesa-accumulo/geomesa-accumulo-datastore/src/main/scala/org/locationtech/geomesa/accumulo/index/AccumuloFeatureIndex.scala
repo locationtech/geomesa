@@ -18,10 +18,10 @@ import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.legacy.attribute.{AttributeIndexV2, AttributeIndexV3, AttributeIndexV4}
+import org.locationtech.geomesa.accumulo.index.legacy.attribute.{AttributeIndexV2, AttributeIndexV3, AttributeIndexV4, AttributeIndexV5}
 import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV1
-import org.locationtech.geomesa.accumulo.index.legacy.z2.{Z2IndexV1, Z2IndexV2}
-import org.locationtech.geomesa.accumulo.index.legacy.z3.{Z3IndexV1, Z3IndexV2, Z3IndexV3}
+import org.locationtech.geomesa.accumulo.index.legacy.z2.{Z2IndexV1, Z2IndexV2, Z2IndexV3}
+import org.locationtech.geomesa.accumulo.index.legacy.z3.{Z3IndexV1, Z3IndexV2, Z3IndexV3, Z3IndexV4}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloIndexManagerType, AccumuloVersion}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -42,9 +42,9 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
 
   val EmptyColumnQualifier  = new Text()
 
-  private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV2, Z2IndexV1)
-  private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV3, Z3IndexV2, Z3IndexV1)
-  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
+  private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV3, Z2IndexV2, Z2IndexV1)
+  private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV4, Z3IndexV3, Z3IndexV2, Z3IndexV1)
+  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV5, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
   private val RecordIndices         = Seq(RecordIndex, RecordIndexV1)
 
   // note: keep in priority order for running full table scans

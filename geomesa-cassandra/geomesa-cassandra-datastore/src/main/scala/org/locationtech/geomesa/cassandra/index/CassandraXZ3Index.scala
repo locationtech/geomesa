@@ -11,7 +11,7 @@ package org.locationtech.geomesa.cassandra.index
 
 import org.locationtech.geomesa.cassandra.data._
 import org.locationtech.geomesa.cassandra.{RowRange, RowValue}
-import org.locationtech.geomesa.index.index.XZ3Index
+import org.locationtech.geomesa.index.index.z3.XZ3Index
 
 case object CassandraXZ3Index
     extends XZ3Index[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]]

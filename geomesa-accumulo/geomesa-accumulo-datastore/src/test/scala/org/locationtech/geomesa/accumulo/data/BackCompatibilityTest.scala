@@ -204,7 +204,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   def testVersion(version: String): MatchResult[Any] = {
-    val file = new File(s"src/test/resources/data/versioned-data-$version.kryo")
+    val file = new File(getClass.getClassLoader.getResource(s"data/versioned-data-$version.kryo").toURI)
     val data = readVersion(file)
     logger.info(s"Running back compatible test on version $version")
     runVersionTest(data)
@@ -220,6 +220,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     "support backward compatibility to 1.2.6"   >> { testVersion("1.2.6") }
     "support backward compatibility to 1.2.7.3" >> { testVersion("1.2.7.3") }
     "support backward compatibility to 1.3.1"   >> { testVersion("1.3.1") }
+    "support backward compatibility to 1.3.2"   >> { testVersion("1.3.2") }
   }
 
   case class TableMutations(table: String, mutations: Seq[Mutation])

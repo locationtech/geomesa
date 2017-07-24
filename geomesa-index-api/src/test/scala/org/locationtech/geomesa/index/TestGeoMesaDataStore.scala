@@ -16,6 +16,8 @@ import org.locationtech.geomesa.index.api.{GeoMesaIndexManager, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
 import org.locationtech.geomesa.index.index._
+import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
