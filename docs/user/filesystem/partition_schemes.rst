@@ -6,15 +6,16 @@ Partition Schemes
 Partition Schemes can be defined using a JSON/typesafe configuration or by a common name. By default these schemes all
 utilize "leaf storage" with a one up sequence number. This allows for appending data when it arrives out of order.
 
-Common Date schemes are:
+Several commonly used schemes are available and can be referenced by name rather than config:
 
-* minute
-* hourly
-* daily
-* monthly
-* julian-minute
-* julian-hourly
-* julian-daily
+* **minute** - ``yyyy/MM/dd/HH/mm``
+* **hourly** - ``yyyy/MM/dd/HH``
+* **daily** - ``yyyy/MM/dd``
+* **weekly** - ``yyyy/ww``
+* **monthly** - ``yyyy/MM``
+* **julian-minute** - ``yyyy/DDD/HH/mm``
+* **julian-hourly** - ``yyyy/DDD/HH``
+* **julian-daily** - ``yyyy/DDD``
 
 Common geometry schemes are:
 
