@@ -44,7 +44,8 @@ installed in the Accumulo master instance under `/opt/geomesa/`.
 
 Accumulo is available on the standard ports, and GeoServer is available on port `9090`.
 
-# Quick Start
+Quick Start
+-----------
 
 To connect to the Accumulo master instance, run:
 
