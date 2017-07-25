@@ -78,7 +78,7 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
       import PartitionOpts._
       opts.get(GeomAttribute) mustEqual "bar"
       opts.get(DtgAttribute) mustEqual "foo"
-      opts.get(StepUnitOpt).toInt mustEqual 1
+      opts.get(StepOpt).toInt mustEqual 1
       opts.get(LeafStorage).toBoolean must beTrue
     }
   }
