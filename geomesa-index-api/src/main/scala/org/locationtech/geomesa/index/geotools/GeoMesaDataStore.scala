@@ -154,7 +154,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
             // create the tables
             manager.indices(reloadedSft, IndexMode.Any).foreach(_.configure(reloadedSft, this))
           } catch {
-            case e: Exception =>
+            case e: Throwable =>
               // If there was an error creating a schema, clean up.
               try {
                 metadata.delete(sft.getTypeName)

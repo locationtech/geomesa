@@ -90,13 +90,15 @@
 
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
-        <accumulo.version.recommended>1.7.2</accumulo.version.recommended>
+        <accumulo.version.recommended>1.7.3</accumulo.version.recommended>
+        <hbase.version.recommended>1.2.6</hbase.version.recommended>
         <hadoop.version.recommended>2.7.3</hadoop.version.recommended>
         <zookeeper.version.recommended>3.4.9</zookeeper.version.recommended>
 
         <!-- Minimum installation versions -->
         <!-- These are the oldest versions supported -->
         <accumulo.version.minimum>1.6.0</accumulo.version.minimum>
+        <hbase.version.minimum>1.2.3</hbase.version.minimum>
         <hadoop.version.minimum>2.2.0</hadoop.version.minimum>
         <zookeeper.version.minimum>3.3.6</zookeeper.version.minimum>
         <thrift.version.minimum>0.9.1</thrift.version.minimum>
@@ -2389,7 +2391,8 @@
                 <version>${cassandra.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <!-- used by arrow and c* -->
+
+            <!-- Netty 4.x used by arrow, hadoop, hbase, and c* -->
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-buffer</artifactId>
@@ -2414,6 +2417,18 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport</artifactId>
                 <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+
+            <!-- specific to hadoop not to be confused with above-->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty</artifactId>
+                <version>3.6.2.Final</version>
             </dependency>
 
             <!-- geoserver 2.9 spring version -->

@@ -119,7 +119,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
                 fw.write()
                 written.incrementAndGet()
               } catch {
-                case e: Exception =>
+                case e: Throwable =>
                   logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
                   failed.incrementAndGet()
               }
@@ -132,7 +132,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
             IOUtils.closeQuietly(fw)
           }
         } catch {
-          case e: Exception =>
+          case e: Throwable =>
             // Don't kill the entire program bc this thread was bad! use outer try/catch
             logger.error(s"Fatal error running local ingest worker on file ${file.getPath}", e)
         }

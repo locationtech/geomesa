@@ -92,7 +92,7 @@ abstract class AbstractIngestJob {
     try {
       IOUtils.readLines(is)
     } catch {
-      case e: Exception => throw new Exception("Error reading ingest libjars", e)
+      case e: Throwable => throw new Exception("Error reading ingest libjars", e)
     } finally {
       IOUtils.closeQuietly(is)
     }
