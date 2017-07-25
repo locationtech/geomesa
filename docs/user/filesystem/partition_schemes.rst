@@ -50,28 +50,28 @@ You can manually configure the datetime and z2 geometry schemes using typesafe a
 Common Options
 ``````````````
 
-* ``scheme`` - The names of the partition schemes separated by commas
-* ``leaf-storage`` - Defines if the partition scheme are files or directories
+* **scheme** - The names of the partition schemes separated by commas
+* **leaf-storage** - Defines if the partition scheme are files or directories. Default: ``true``
 
-  * ``true`` - Partitions map to file names and will be overwritten with subsequent ingest clients
-  * ``false`` - Partitions map to directories allowing multiple files to be ingested per partition
-
+  * **true** - The right most component of the scheme will be a file with a sequence number
+  * **false** - The rightmost component of the scheme is a directory with sequence files
 
 DateTime Configuration
 ``````````````````````
 
 The datetime scheme is indicated by the key ``name = "datetime"`` and uses the following options:
 
-* ``datetime-format`` - A Java DateTime format string separated by forward slashes which will be used to build a
+* **datetime-format** - A Java DateTime format string separated by forward slashes which will be used to build a
   directory structure. Examples are:
 
-  * ``yyyy/DDD/HH`` - year, Julian Date, hour layout
-  * ``yyyy/MM/dd`` - year, month, day layout
-  * ``yyyy/MM/dd/HH`` - year, month, day, hour layout
+  * **yyyy/DDD/HH** - year, Julian Date, hour layout
+  * **yyyy/MM/dd** - year, month, day layout
+  * **yyyy/MM/dd/HH** - year, month, day, hour layout
 
-* ``step-unit`` - A ``java.time.temporal.ChronoUnit`` defining how to increment the leaf of the partition scheme
-* ``step`` - The step amount to increment the leaf of the partition scheme
-* ``dtg-attribute`` - The datetime attribute from the SimpleFeature to use for partitioning data
+* **step-unit** - A ``java.time.temporal.ChronoUnit`` defining how to increment the leaf of the partition scheme
+* **step** - The step amount to increment the leaf of the partition scheme. Default: ``1``
+* **dtg-attribute** - The datetime attribute from the SimpleFeature to use for partitioning data. Defaults to the
+  default dtg attribute of the SimpleFeatureType
 
 .. code-block:: json
 
@@ -92,8 +92,9 @@ Z2 Configuration
 The z2 scheme is indicate by the key ``name = "z2"`` and uses the following options:
 
 
-* ``geom-attribute`` - The geometry attribute from the SimpleFeature to use for partitioning data
-* ``z2-resolution`` - The number of bits to use for z indexing.
+* **geom-attribute** - The geometry attribute from the SimpleFeature to use for partitioning data. Defaults to the
+  default dtg value of the SimpleFeatureType
+* **z2-resolution** - The number of bits to use for z indexing.
 
 
 .. code-block:: json

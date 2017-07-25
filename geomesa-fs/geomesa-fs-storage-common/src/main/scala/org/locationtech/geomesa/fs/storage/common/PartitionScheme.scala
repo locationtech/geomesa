@@ -43,12 +43,12 @@ object PartitionOpts {
     fmtStr
   }
 
-  def parseDtgAttr(opts: Map[String, String]): String      = opts(DtgAttribute)
-  def parseGeomAttr(opts: Map[String, String]): String     = opts(GeomAttribute)
-  def parseStepUnit(opts: Map[String, String]): ChronoUnit = ChronoUnit.valueOf(opts(StepUnitOpt).toUpperCase)
-  def parseStep(opts: Map[String, String]): Int            = opts(StepOpt).toInt
-  def parseZ2Resolution(opts: Map[String, String]): Int    = opts(Z2Resolution).toInt
-  def parseLeafStorage(opts: Map[String, String]): Boolean = opts(LeafStorage).toBoolean
+  def parseDtgAttr(opts: Map[String, String]): Option[String]  = opts.get(DtgAttribute)
+  def parseGeomAttr(opts: Map[String, String]): Option[String] = opts.get(GeomAttribute)
+  def parseStepUnit(opts: Map[String, String]): ChronoUnit     = ChronoUnit.valueOf(opts(StepUnitOpt).toUpperCase)
+  def parseStep(opts: Map[String, String]): Int                = opts.get(StepOpt).map(_.toInt).getOrElse(1)
+  def parseZ2Resolution(opts: Map[String, String]): Int        = opts(Z2Resolution).toInt
+  def parseLeafStorage(opts: Map[String, String]): Boolean     = opts.get(LeafStorage).map(_.toBoolean).getOrElse(true)
 }
 
 object CommonSchemeLoader {
@@ -127,17 +127,20 @@ object PartitionScheme {
   // TODO delegate out, etc. make a loader, etc
   def apply(sft: SimpleFeatureType, pName: String, opts: Map[String, String]): PartitionScheme = {
     import PartitionOpts._
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
     val leaf = parseLeafStorage(opts)
     val schemes = pName.split(SchemeSeparator).map {
       case DateTimeScheme.Name =>
-        val attr = parseDtgAttr(opts)
+        val attr = parseDtgAttr(opts).orElse(sft.getDtgField)
+          .getOrElse(throw new IllegalArgumentException("SFT must have a Date attribute"))
         val fmt = parseDateTimeFormat(opts)
         val su = parseStepUnit(opts)
         val s = parseStep(opts)
         new DateTimeScheme(fmt, su, s, attr, leaf)
 
       case Z2Scheme.Name =>
-        val geomAttr = parseGeomAttr(opts)
+        val geomAttr = parseGeomAttr(opts).orElse(Option(sft.getGeomField))
+          .getOrElse(throw new IllegalArgumentException("SFT must have Geometry attribute"))
         val z2Res = parseZ2Resolution(opts)
         new Z2Scheme(z2Res, geomAttr, leaf)
 
