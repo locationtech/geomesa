@@ -335,7 +335,7 @@ trait Fetcher extends LazyLogging {
 
 object KafkaConsumer extends LazyLogging {
 
-  import org.locationtech.geomesa.utils.geotools.RichIterator.RichIterator
+  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
   /**
     * Creates a consumer

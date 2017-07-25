@@ -12,12 +12,8 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import com.vividsolutions.jts.geom._
-import org.geotools.data.FeatureReader
-import org.geotools.data.simple.SimpleFeatureIterator
-import org.geotools.feature.{AttributeTypeBuilder, FeatureIterator}
+import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
-import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
-import org.joda.time.DateTime
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
@@ -29,47 +25,12 @@ import org.locationtech.geomesa.utils.stats.IndexCoverage._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.temporal.Instant
 
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 
 object Conversions {
-
-  @deprecated("use CloseableIterator")
-  class RichSimpleFeatureIterator(iter: FeatureIterator[SimpleFeature]) extends SimpleFeatureIterator
-      with Iterator[SimpleFeature] {
-    private[this] var open = true
-
-    def isClosed = !open
-
-    def hasNext = {
-      if (isClosed) false
-      if(iter.hasNext) true else{close(); false}
-    }
-    def next() = iter.next
-    def close() { if(!isClosed) {iter.close(); open = false} }
-  }
-
-  @deprecated("use CloseableIterator")
-  implicit class RichSimpleFeatureReader(val r: FeatureReader[SimpleFeatureType, SimpleFeature]) extends AnyVal {
-    def toIterator: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
-      override def hasNext: Boolean = r.hasNext
-      override def next(): SimpleFeature = r.next()
-    }
-  }
-
-  @deprecated("use CloseableIterator")
-  implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
-  @deprecated("use CloseableIterator")
-  implicit def toRichSimpleFeatureIteratorFromFI(iter: FeatureIterator[SimpleFeature]): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
-
-  implicit def opengisInstantToJodaInstant(instant: Instant): org.joda.time.Instant = new DateTime(instant.getPosition.getDate).toInstant
-  implicit def jodaInstantToOpengisInstant(instant: org.joda.time.Instant): org.opengis.temporal.Instant = new DefaultInstant(new DefaultPosition(instant.toDate))
-  implicit def jodaIntervalToOpengisPeriod(interval: org.joda.time.Interval): org.opengis.temporal.Period =
-    new DefaultPeriod(interval.getStart.toInstant, interval.getEnd.toInstant)
-
 
   implicit class RichCoord(val c: Coordinate) extends AnyVal {
     def toPoint2D = new DirectPosition2D(c.x, c.y)
@@ -100,14 +61,12 @@ object Conversions {
     def get[T](i: Int): T = sf.getAttribute(i).asInstanceOf[T]
     def get[T](name: String): T = sf.getAttribute(name).asInstanceOf[T]
 
-    def getDouble(str: String): Double = {
-      val ret = sf.getAttribute(str)
-      ret match {
-        case d: java.lang.Double  => d
-        case f: java.lang.Float   => f.toDouble
-        case i: java.lang.Integer => i.toDouble
-        case _                    => throw new Exception(s"Input $ret is not a numeric type.")
-      }
+    def getNumericDouble(i: Int): Double = getAsDouble(sf.getAttribute(i))
+    def getNumericDouble(name: String): Double = getAsDouble(sf.getAttribute(name))
+
+    private def getAsDouble(v: AnyRef): Double = v match {
+      case n: Number => n.doubleValue()
+      case _         => throw new Exception(s"Input $v is not a numeric type.")
     }
 
     def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] = {
@@ -116,13 +75,6 @@ object Conversions {
         case _ => None
       }
     }
-  }
-}
-
-object RichIterator {
-  implicit class RichIterator[T](val iter: Iterator[T]) extends AnyVal {
-    def head = iter.next()
-    def headOption = if (iter.hasNext) Some(iter.next()) else None
   }
 }
 
@@ -203,15 +155,16 @@ object RichAttributeDescriptors {
 
   implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {
 
-    def indexCoverage(coverage: IndexCoverage) = builder.userData(OPT_INDEX, coverage.toString)
+    def indexCoverage(coverage: IndexCoverage): AttributeTypeBuilder = builder.userData(OPT_INDEX, coverage.toString)
 
-    def indexValue(indexValue: Boolean) = builder.userData(OPT_INDEX_VALUE, indexValue)
+    def indexValue(indexValue: Boolean): AttributeTypeBuilder = builder.userData(OPT_INDEX_VALUE, indexValue)
 
-    def cardinality(cardinality: Cardinality) = builder.userData(OPT_CARDINALITY, cardinality.toString)
+    def cardinality(cardinality: Cardinality): AttributeTypeBuilder =
+      builder.userData(OPT_CARDINALITY, cardinality.toString)
 
-    def collectionType(typ: Class[_]) = builder.userData(USER_DATA_LIST_TYPE, typ)
+    def collectionType(typ: Class[_]): AttributeTypeBuilder = builder.userData(USER_DATA_LIST_TYPE, typ)
 
-    def mapTypes(keyType: Class[_], valueType: Class[_]) =
+    def mapTypes(keyType: Class[_], valueType: Class[_]): AttributeTypeBuilder =
       builder.userData(USER_DATA_MAP_KEY_TYPE, keyType).userData(USER_DATA_MAP_VALUE_TYPE, valueType)
   }
 }
@@ -236,7 +189,7 @@ object RichSimpleFeatureType {
 
     def getDtgField: Option[String] = userData[String](DEFAULT_DATE_KEY)
     def getDtgIndex: Option[Int] = getDtgField.map(sft.indexOf).filter(_ != -1)
-    def getDtgDescriptor = getDtgIndex.map(sft.getDescriptor)
+    def getDtgDescriptor: Option[AttributeDescriptor] = getDtgIndex.map(sft.getDescriptor)
     def clearDtgField(): Unit = sft.getUserData.remove(DEFAULT_DATE_KEY)
     def setDtgField(dtg: String): Unit = {
       val descriptor = sft.getDescriptor(dtg)
@@ -254,15 +207,15 @@ object RichSimpleFeatureType {
       userData[String](SCHEMA_VERSION_KEY).map(_.toInt).getOrElse(CURRENT_SCHEMA_VERSION)
     def setSchemaVersion(version: Int): Unit = sft.getUserData.put(SCHEMA_VERSION_KEY, version.toString)
 
-    def isPoints = {
+    def isPoints: Boolean = {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[Point]
     }
-    def nonPoints = {
+    def nonPoints: Boolean = {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding != classOf[Point]
     }
-    def isLines = {
+    def isLines: Boolean = {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[LineString]
     }

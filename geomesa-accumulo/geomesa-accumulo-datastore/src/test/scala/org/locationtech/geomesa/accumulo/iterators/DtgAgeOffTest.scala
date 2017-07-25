@@ -21,6 +21,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -53,7 +54,7 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
         }
 
         val is = new IteratorSetting(5, "ageoff", classOf[DtgAgeOffIterator].getCanonicalName)
-        is.addOption(AgeOffFilter.Options.SftOpt, SimpleFeatureTypes.encodeType(sft, true))
+        is.addOption(AgeOffFilter.Options.SftOpt, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
         is.addOption(DtgAgeOffIterator.Options.RetentionPeriodOpt, s"P${days}D")
         is.addOption(AgeOffFilter.Options.IndexOpt, afi.identifier)
 
@@ -78,8 +79,7 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
 
     def testDays(d: Int): mutable.Buffer[SimpleFeature] = {
       configAgeOff(ds, d)
-      import org.locationtech.geomesa.utils.geotools.Conversions._
-      ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features.toBuffer
+      SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toBuffer
     }
 
     "run at scan time" >> {
@@ -117,8 +117,7 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
 
       def testWithExtraAuth(d: Int): mutable.Buffer[SimpleFeature] = {
         configAgeOff(dsWithExtraAuth, d)
-        import org.locationtech.geomesa.utils.geotools.Conversions._
-        dsWithExtraAuth.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features.toBuffer
+        SelfClosingIterator(dsWithExtraAuth.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toBuffer
       }
       testWithExtraAuth(11).size mustEqual 20
       testWithExtraAuth(10).size mustEqual 18

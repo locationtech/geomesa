@@ -22,6 +22,7 @@ import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.{DateTimeScheme, PartitionScheme}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -77,11 +78,11 @@ class FileSystemDataStoreTest extends Specification {
       ds.getTypeNames must have size 1
       val fs = ds.getFeatureSource("test")
       fs must not(beNull)
-      import org.locationtech.geomesa.utils.geotools.Conversions._
-      val q = new Query("test", Filter.INCLUDE)
-      val features = fs.getFeatures(q).features().toList
 
-      features.size mustEqual 1
+      val q = new Query("test", Filter.INCLUDE)
+      val features = SelfClosingIterator(fs.getFeatures(q).features()).toList
+
+      features must haveSize(1)
     }
 
     "create a second ds with the same path" >> {
@@ -91,10 +92,9 @@ class FileSystemDataStoreTest extends Specification {
         "fs.encoding" -> "parquet")).asInstanceOf[FileSystemDataStore]
       ds2.getTypeNames.toList must containTheSameElementsAs(Seq("test"))
 
-      import org.locationtech.geomesa.utils.geotools.Conversions._
-      val fs = ds2.getFeatureSource("test").getFeatures(Filter.INCLUDE).features().toList
+      val fs = SelfClosingIterator(ds2.getFeatureSource("test").getFeatures(Filter.INCLUDE).features).toList
 
-      fs.size mustEqual 1
+      fs must haveSize(1)
       fs.head.getAttributes.toList must containTheSameElementsAs(
         List("test",
           Integer.valueOf(100),

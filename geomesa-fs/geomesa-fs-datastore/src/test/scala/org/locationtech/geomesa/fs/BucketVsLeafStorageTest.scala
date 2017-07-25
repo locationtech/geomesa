@@ -21,7 +21,7 @@ import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.{CompositeScheme, DateTimeScheme, PartitionScheme, Z2Scheme}
-import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
@@ -57,10 +57,8 @@ class BucketVsLeafStorageTest extends Specification {
       ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
         .addFeatures(new ListFeatureCollection(sft, features(sft)))
 
-    def toList(sfi: SimpleFeatureIterator): List[SimpleFeature] = {
-      import org.locationtech.geomesa.utils.geotools.Conversions._
-      sfi.toList
-    }
+    def toList(sfi: SimpleFeatureIterator): List[SimpleFeature] = SelfClosingIterator(sfi).toList
+
     "store data in leaves" >> {
 
       "in one scheme" >> {
