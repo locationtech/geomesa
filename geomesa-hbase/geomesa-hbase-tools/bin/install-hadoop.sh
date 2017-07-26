@@ -13,19 +13,17 @@
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
 
-hbase_version="%%hbase.version.recommended%%"
 hadoop_version="%%hadoop.version.recommended%%"
 zookeeper_version="%%zookeeper.version.recommended%%"
 
-hbase_version_min="%%hbase.version.minimum%%"
 hadoop_version_min="%%hadoop.version.minimum%%"
 zookeeper_version_min="%%zookeeper.version.minimum%%"
 
 # Resource download location
 base_url="https://search.maven.org/remotecontent?filepath="
 
-# These are needed for Hadoop and HBase to work
-# These will depend on the specific hadoop and hbase versions
+# These are needed for Hadoop and to work
+# These will depend on the specific hadoop  versions
 guava_version="11.0.2"
 com_log_version="1.1.3"
 htrace_version="3.1.0-incubating"
@@ -95,7 +93,7 @@ function printVersions() {
 
 # Command Line Help
 NL=$'\n'
-usage="usage: ./install-hadoop-hbase.sh [[target dir] [<version(s)>]] | [-l|--list-versions] | [--help]"
+usage="usage: ./install-hadoop.sh [[target dir] [<version(s)>]] | [-l|--list-versions] | [--help]"
 
 # Parse command line options
 if [[ "$1" == "--help" || "$1" == "-help" ]]; then
@@ -105,7 +103,6 @@ if [[ "$1" == "--help" || "$1" == "-help" ]]; then
   echo "These parameters are for situations where this may need overwritten."
   echo "${NL}"
   echo "Options:"
-  echo "  -b,--hbase-version        Manually set HBase version"
   echo "  -h,--hadoop-version       Manually set Hadoop version"
   echo "  -z,--zookeeper-version    Manually set Zookeeper version"
   echo "  -l,--list-versions        Print out available version numbers."
@@ -115,13 +112,10 @@ if [[ "$1" == "--help" || "$1" == "-help" ]]; then
   echo "${NL}"
   exit 0
 elif [[ "$1" == "-l" || "$1" == "--list-versions" ]]; then
-  hbase_version_url="${base_url}org/apache/hbase/hbase-client/"
   hadoop_version_url="${base_url}org/apache/hadoop/hadoop-main/"
   zookeeper_version_url="${base_url}org/apache/zookeeper/zookeeper/"
 
   echo ""
-  echo "Available HBase Versions"
-  printVersions "${hbase_version_url}" "${hbase_version_min}"
   echo "Available Hadoop Versions"
   printVersions "${hadoop_version_url}" "${hadoop_version_min}"
   echo "Available Zookeeper Versions"
@@ -137,10 +131,6 @@ while [[ $# -gt 1 ]]; do
   key="$1"
 
   case $key in
-    -b|--hbase-version)
-      hbase_version="$2"
-      shift
-    ;;
     -h|--hadoop-version)
       hadoop_version="$2"
       shift
@@ -166,12 +156,10 @@ if [[ -n "$1" ]]; then
 fi
 
 # Check for short version numbers. The version checker only works for version number of the same length.
-hbase_version_split=($(splitVersion "${hbase_version}"))
 hadoop_version_split=($(splitVersion "${hadoop_version}"))
 zookeeper_version_split=($(splitVersion "${zookeeper_version}"))
 
-if [[ "${#hbase_version_split[@]}" != "3" \
-   || "${#hadoop_version_split[@]}" != "3" \
+if [[ "${#hadoop_version_split[@]}" != "3" \
    || "${#zookeeper_version_split[@]}" != "3" ]]; then
   echo "Error: Version numbers must be specified in the format X.X.X"
   exit 1
@@ -182,14 +170,11 @@ if [[ -z "${install_dir}" ]]; then
   echo "${usage}"
   exit 1
 else
-  read -r -p "Install Hadoop, HBase, and Zookeeper dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
+  read -r -p "Install Hadoop and Zookeeper dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
   confirm=${confirm,,} # Lowercasing
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     # Setup download URLs
     declare -a urls=(
-      "${base_url}org/apache/hbase/hbase-common/${hbase_version}/hbase-common-${hbase_version}.jar"
-      "${base_url}org/apache/hbase/hbase-protocol/${hbase_version}/hbase-protocol-${hbase_version}.jar"
-      "${base_url}org/apache/hbase/hbase-client/${hbase_version}/hbase-client-${hbase_version}.jar"
       "${base_url}org/apache/zookeeper/zookeeper/${zookeeper_version}/zookeeper-${zookeeper_version}.jar"
       "${base_url}commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar"
       "${base_url}org/apache/hadoop/hadoop-auth/${hadoop_version}/hadoop-auth-${hadoop_version}.jar"

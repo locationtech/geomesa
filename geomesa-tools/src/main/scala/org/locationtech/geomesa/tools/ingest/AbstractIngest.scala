@@ -26,6 +26,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
+import scala.util.control.NonFatal
 
 /**
   * Base class for handling ingestion of local or distributed files
@@ -119,7 +120,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
                 fw.write()
                 written.incrementAndGet()
               } catch {
-                case e: Throwable =>
+                case NonFatal(e) =>
                   logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
                   failed.incrementAndGet()
               }
@@ -132,7 +133,13 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
             IOUtils.closeQuietly(fw)
           }
         } catch {
-          case e: Throwable =>
+          case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
+            val msg = s"Warning: Missing dependency for command execution: ${e.getMessage}"
+            logger.error(msg, e)
+            Command.user.error(msg)
+            sys.exit(-1)
+
+          case NonFatal(e) =>
             // Don't kill the entire program bc this thread was bad! use outer try/catch
             logger.error(s"Fatal error running local ingest worker on file ${file.getPath}", e)
         }
