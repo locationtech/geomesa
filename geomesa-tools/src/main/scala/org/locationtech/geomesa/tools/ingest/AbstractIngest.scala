@@ -141,6 +141,8 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
           case NonFatal(e) =>
             // Don't kill the entire program bc this thread was bad! use outer try/catch
+            val msg = s"Fatal error running local ingest worker on file ${file.getPath}"
+            Command.user.error(msg)
             logger.error(s"Fatal error running local ingest worker on file ${file.getPath}", e)
         }
       }
