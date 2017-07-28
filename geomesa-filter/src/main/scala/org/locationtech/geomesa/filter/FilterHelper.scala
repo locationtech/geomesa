@@ -313,28 +313,25 @@ object FilterHelper {
     * @param filter filter to evaluate
     * @param attribute attribute name to consider
     * @param binding attribute type
-    * @param intersect intersect resulting values, or return all separately
-    *                  note if not intersected, 'and/or' distinction will be lost
     * @return a sequence of bounds, if any
     */
-  def extractAttributeBounds[T](filter: Filter,
-                                attribute: String,
-                                binding: Class[T],
-                                intersect: Boolean = true): FilterValues[Bounds[T]] = {
+  def extractAttributeBounds[T](filter: Filter, attribute: String, binding: Class[T]): FilterValues[Bounds[T]] = {
     filter match {
       case o: Or =>
-        val all = o.getChildren.map(extractAttributeBounds(_, attribute, binding)).filter(_.nonEmpty)
-        val join = FilterValues.or[Bounds[T]](Bounds.union[T]) _
-        all.reduceLeftOption[FilterValues[Bounds[T]]](join).getOrElse(FilterValues.empty)
+        val all = o.getChildren.flatMap { f =>
+          val child = extractAttributeBounds(f, attribute, binding)
+          if (child.isEmpty) { Seq.empty } else { Seq(child) }
+        }
+        val union = FilterValues.or[Bounds[T]](Bounds.union[T]) _
+        all.reduceLeftOption[FilterValues[Bounds[T]]](union).getOrElse(FilterValues.empty)
 
       case a: And =>
-        val all = a.getChildren.map(extractAttributeBounds(_, attribute, binding)).filter(_.nonEmpty)
-        if (intersect) {
-          val intersection = FilterValues.and[Bounds[T]](Bounds.intersection[T]) _
-          all.reduceLeftOption[FilterValues[Bounds[T]]](intersection).getOrElse(FilterValues.empty)
-        } else {
-          FilterValues(all.flatMap(_.values))
+        val all = a.getChildren.flatMap { f =>
+          val child = extractAttributeBounds(f, attribute, binding)
+          if (child.isEmpty) { Seq.empty } else { Seq(child) }
         }
+        val intersection = FilterValues.and[Bounds[T]](Bounds.intersection[T]) _
+        all.reduceLeftOption[FilterValues[Bounds[T]]](intersection).getOrElse(FilterValues.empty)
 
       case f: PropertyIsEqualTo =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
