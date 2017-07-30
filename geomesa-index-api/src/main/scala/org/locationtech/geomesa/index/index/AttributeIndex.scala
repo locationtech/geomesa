@@ -17,6 +17,7 @@ import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.util.Converters
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -146,13 +147,13 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
           shards.indices.map(i => range(starts(i), ends(i)))
 
         case (Some(lower), None) =>
-          val starts = startRows(sft, i, shards, lower, bounds.inclusive, lowerSecondary)
+          val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
           val ends = upperBounds(sft, i, shards)
           shards.indices.map(i => range(starts(i), ends(i)))
 
         case (None, Some(upper)) =>
           val starts = lowerBounds(sft, i, shards)
-          val ends = endRows(sft, i, shards, upper, bounds.inclusive, upperSecondary)
+          val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
           shards.indices.map(i => range(starts(i), ends(i)))
 
         case (Some(lower), Some(upper)) =>
@@ -163,8 +164,8 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
             val value = encodeForQuery(lower, sft.getDescriptor(i))
             shards.map(shard => rangePrefix(Bytes.concat(prefix, shard, value)))
           } else {
-            val starts = startRows(sft, i, shards, lower, bounds.inclusive, lowerSecondary)
-            val ends = endRows(sft, i, shards, upper, bounds.inclusive, upperSecondary)
+            val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
+            val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
             shards.indices.map(i => range(starts(i), ends(i)))
           }
       }
@@ -292,6 +293,9 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
 
   import AttributeIndex._
 
+  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
+  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+
   override protected def secondaryIndex(sft: SimpleFeatureType): Option[IndexKeySpace[_]] =
     Some(DateIndexKeySpace).filter(_.supports(sft))
 
@@ -313,8 +317,9 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
                            filter: Filter,
                            explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
       val intervals = sft.getDtgField.map(FilterHelper.extractIntervals(filter, _)).getOrElse(FilterValues.empty)
-      intervals.values.iterator.map { case (lo, hi) =>
-        (timeToBytes(lo.getMillis), roundUpTime(timeToBytes(hi.getMillis)))
+      intervals.values.iterator.map { bounds =>
+        (timeToBytes(bounds.lower.value.getOrElse(MinDateTime).getMillis),
+            roundUpTime(timeToBytes(bounds.upper.value.getOrElse(MaxDateTime).getMillis)))
       }
     }
 

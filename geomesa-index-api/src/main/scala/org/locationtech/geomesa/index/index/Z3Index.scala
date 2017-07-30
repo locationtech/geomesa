@@ -194,10 +194,13 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, Seq[(Long, Long)]].withDefaultValue(Seq.empty)
     val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
+    val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getZ3Interval)
+
     // note: intervals shouldn't have any overlaps
     intervals.foreach { interval =>
-      val BinnedTime(lb, lt) = dateToIndex(interval._1)
-      val BinnedTime(ub, ut) = dateToIndex(interval._2)
+      val (lower, upper) = boundsToDates(interval.bounds)
+      val BinnedTime(lb, lt) = dateToIndex(lower)
+      val BinnedTime(ub, ut) = dateToIndex(upper)
       if (lb == ub) {
         timesByBin(lb) ++= Seq((lt, ut))
       } else {
@@ -227,5 +230,5 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
 case class Z3ProcessingValues(sfc: Z3SFC,
                               geometries: FilterValues[Geometry],
                               spatialBounds: Seq[ (Double, Double, Double, Double)],
-                              intervals: FilterValues[(DateTime, DateTime)],
+                              intervals: FilterValues[Bounds[DateTime]],
                               temporalBounds: Map[Short, Seq[(Long, Long)]])

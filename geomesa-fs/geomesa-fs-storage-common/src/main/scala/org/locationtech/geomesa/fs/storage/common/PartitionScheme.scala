@@ -18,6 +18,7 @@ import java.util.Date
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.DataAccessFactory.Param
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.FilterHelper.extractGeometries
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
@@ -193,6 +194,10 @@ class DateTimeScheme(fmtStr: String,
                      dtgAttribute: String,
                      leafStorage: Boolean)
   extends PartitionScheme {
+
+  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
+  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+
   private val fmt = DateTimeFormatter.ofPattern(fmtStr)
   override def getPartitionName(sf: SimpleFeature): String = {
     val instant = sf.getAttribute(dtgAttribute).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC)
@@ -200,11 +205,14 @@ class DateTimeScheme(fmtStr: String,
   }
 
   override def getCoveringPartitions(f: Filter): java.util.List[String] = {
-    val intervals = FilterHelper.extractIntervals(f, dtgAttribute).values.map { case (s,e) =>
-      (Instant.ofEpochMilli(s.getMillis).atZone(ZoneOffset.UTC), Instant.ofEpochMilli(e.getMillis).atZone(ZoneOffset.UTC))
+    val bounds = FilterHelper.extractIntervals(f, dtgAttribute, handleExclusiveBounds = true)
+    val intervals = bounds.values.map { b =>
+      (Instant.ofEpochMilli(b.lower.value.getOrElse(MinDateTime).getMillis).atZone(ZoneOffset.UTC),
+          Instant.ofEpochMilli(b.upper.value.getOrElse(MaxDateTime).getMillis).atZone(ZoneOffset.UTC))
     }
+
     intervals.flatMap { case (start, end) =>
-      val count = start.until(end, stepUnit).toInt
+      val count = stepUnit.between(start, end).toInt + 1
       Seq.tabulate(count)(i => fmt.format(start.plus(step * i, stepUnit)))
     }
   }

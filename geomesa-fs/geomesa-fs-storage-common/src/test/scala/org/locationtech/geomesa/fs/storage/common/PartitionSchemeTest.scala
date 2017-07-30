@@ -154,5 +154,14 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       covering.size() mustEqual 24 * 4
     }
 
+    "handle edge boundaries" >> {
+      val dtScheme = new DateTimeScheme("yyyy/yyyyMMdd", ChronoUnit.DAYS, 1, "dtg", true)
+      val twoDays = dtScheme.getCoveringPartitions(ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'"))
+      twoDays.size mustEqual 2
+      twoDays.toSeq must containTheSameElementsAs((2 to 3).map(i => f"2017/201701$i%02d"))
+      val threeDays = dtScheme.getCoveringPartitions(ECQL.toFilter("dtg >= '2017-01-02' and dtg <= '2017-01-04T00:00:00.001Z'"))
+      threeDays.size mustEqual 3
+      threeDays.toSeq must containTheSameElementsAs((2 to 4).map(i => f"2017/201701$i%02d"))
+    }
   }
 }
