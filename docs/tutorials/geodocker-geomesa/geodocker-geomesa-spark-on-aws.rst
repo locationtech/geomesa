@@ -1,4 +1,4 @@
-Geodocker: Bootstrapping GeoMesa Accumulo and Spark on AWS
+GeoDocker: Bootstrapping GeoMesa Accumulo and Spark on AWS
 ==========================================================
 
 Getting started with spatio-temporal analysis with GeoMesa, Accumulo, and Spark on `Amazon Web Services`_ (AWS) is incredibly simple, thanks to the `Geodocker <https://github.com/geodocker/geodocker-geomesa>`_ project.  The following guide describes how to bootstrap a GeoMesa Accumulo cluster using `Amazon ElasticMapReduce`_ (EMR) and `Docker`_ in order to ingest and query some sample data.  This guide assumes you have an Amazon Web Services account already provisioned as well as an IAM key pair.  To set up the AWS command line tools, follow the instructions found in the AWS `online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
