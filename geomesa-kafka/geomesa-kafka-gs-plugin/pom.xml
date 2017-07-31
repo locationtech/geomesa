@@ -40,7 +40,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <configuration>
-                        <descriptor>${project.basedir}/../../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
+                        <descriptors>
+                            <descriptor>${project.basedir}/../../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
+                        </descriptors>
                     </configuration>
                     <executions>
                         <execution>
