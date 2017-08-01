@@ -12,16 +12,32 @@ import java.io.OutputStream
 
 import org.geotools.GML
 import org.geotools.GML.Version
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.data.store.ReTypingFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 
 class GmlExporter(os: OutputStream) extends FeatureExporter {
 
-  val encode = new GML(Version.WFS1_0)
-  // JNH: "location" is unlikely to be a valid namespace.
-  encode.setNamespace("location", "location.xsd")
-
   override def export(features: SimpleFeatureCollection): Option[Long] = {
-    encode.encode(os, features)
+
+    val encode = new GML(Version.WFS1_0)
+    encode.setNamespace("geomesa", "http://geomesa.org")
+
+    val fcToWrite = if (features.getSchema.getName.getNamespaceURI == null) {
+      val namespacedSFT = {
+        val builder = new SimpleFeatureTypeBuilder()
+        builder.init(features.getSchema)
+        builder.setNamespaceURI("http://geomesa.org")
+        builder.buildFeatureType()
+      }
+
+      new ReTypingFeatureCollection(features, namespacedSFT)
+    } else {
+      features
+    }
+
+    encode.encode(os, fcToWrite)
     None
   }
 
