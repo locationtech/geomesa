@@ -92,7 +92,7 @@ if [[ "$1" == "--help" || "$1" == "-help" ]]; then
   echo "These parameters are for situations where this may need overwritten."
   echo "${NL}"
   echo "Options:"
-  echo "  -b,--hbase-version        Manually set HBase version"
+  echo "  -h,--hbase-version        Manually set HBase version"
   echo "  -l,--list-versions        Print out available version numbers."
   echo "${NL}"
   echo "Example:"

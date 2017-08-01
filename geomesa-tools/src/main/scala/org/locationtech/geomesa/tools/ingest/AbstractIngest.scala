@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.ingest
 
 import java.io._
-import java.util.concurrent.Executors
+import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
@@ -134,10 +134,10 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
           }
         } catch {
           case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
-            val msg = s"Warning: Missing dependency for command execution: ${e.getMessage}"
-            logger.error(msg, e)
-            Command.user.error(msg)
-            sys.exit(-1)
+            // Rethrow exception so it can be caught by getting the future of this runnable in the main thread
+            // which will in turn cause the exception to be handled by org.locationtech.geomesa.tools.Runner
+            // Likely all threads will fail if a dependency is missing so it will terminate quickly
+            throw e
 
           case NonFatal(e) =>
             // Don't kill the entire program bc this thread was bad! use outer try/catch
@@ -164,7 +164,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     val start = System.currentTimeMillis()
     val statusCallback = createCallback()
     val es = Executors.newFixedThreadPool(threads)
-    files.foreach(f => es.submit(new LocalIngestWorker(f)))
+    val futures = files.map(f => es.submit(new LocalIngestWorker(f)))
     es.shutdown()
 
     def counters = Seq(("ingested", written.get()), ("failed", failed.get()))
@@ -174,6 +174,10 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
       statusCallback("", progress(), counters, done = false)
     }
     statusCallback("", progress(), counters, done = true)
+
+    // Get all futures so that we can propagate the logging up to the top level for handling
+    // in org.locationtech.geomesa.tools.Runner to catch missing dependencies
+    futures.foreach(_.get)
 
     Command.user.info(s"Local ingestion complete in ${TextTools.getTime(start)}")
     Command.user.info(getStatInfo(written.get, failed.get))
