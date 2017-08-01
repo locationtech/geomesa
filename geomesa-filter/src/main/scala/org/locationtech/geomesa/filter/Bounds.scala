@@ -21,9 +21,30 @@ import org.locationtech.geomesa.filter.Bounds.Bound
   * @tparam T binding of the attribute type
   */
 case class Bounds[T](lower: Bound[T], upper: Bound[T]) {
+
   def bounds: (Option[T], Option[T]) = (lower.value, upper.value)
-  def unbounded: Boolean = lower.value.isEmpty || upper.value.isEmpty
-  def everything: Boolean = lower.value.isEmpty && upper.value.isEmpty
+
+  /**
+    * Bounded on at least one side
+    *
+    * @return
+    */
+  def isBounded: Boolean = lower.value.nonEmpty || upper.value.nonEmpty
+
+  /**
+    * Bounded on both sides
+    *
+    * @return
+    */
+  def isBoundedBothSides: Boolean = lower.value.nonEmpty && upper.value.nonEmpty
+
+  /**
+    * Only covers a single exact value
+    *
+    * @return
+    */
+  def isExact: Boolean = lower.value.isDefined && lower.value == upper.value
+
   override def toString: String = {
     (if (lower.inclusive) { "[" } else { "(" }) + lower.value.getOrElse("-\u221E") + "," +
       upper.value.getOrElse("+\u221E") + (if (upper.inclusive) { "]" } else { ")" })
@@ -48,19 +69,6 @@ object Bounds {
   object Bound {
     private val unboundedBound = Bound[Any](None, inclusive = false)
     def unbounded[T]: Bound[T] = unboundedBound.asInstanceOf[Bound[T]]
-  }
-
-  private val mergeOrdering: Ordering[Bounds[Any]] = {
-    val inner = Ordering.Option(new Ordering[Any] {
-      override def compare(x: Any, y: Any): Int = x.asInstanceOf[Comparable[Any]].compareTo(y)
-    })
-    val outer = new Ordering[Bound[Any]] {
-      override def compare(x: Bound[Any], y: Bound[Any]): Int = inner.compare(x.value, y.value)
-    }
-    val tuple = Ordering.Tuple2(outer, outer)
-    new Ordering[Bounds[Any]] {
-      override def compare(x: Bounds[Any], y: Bounds[Any]): Int = tuple.compare((x.lower, x.upper), (y.lower, y.upper))
-    }
   }
 
   private val allValues = Bounds(Bound.unbounded, Bound.unbounded)
@@ -161,77 +169,12 @@ object Bounds {
   }
 
   /**
-    * Takes the union of two bounds
+    * Takes the union of two bound sequences. Naive implementation that just concatenates
     *
     * @param left first bounds
     * @param right second bounds
     * @tparam T type parameter
     * @return union
     */
-  def union[T](left: Seq[Bounds[T]], right: Seq[Bounds[T]]): Seq[Bounds[T]] = {
-    var updated = left
-    right.foreach(b => updated = or(updated, b))
-    updated
-  }
-
-  /**
-    * Takes the 'and' of a new bound with a sequence of existing bounds
-    *
-    * @param bounds bounds
-    * @param and bound to 'and'
-    * @tparam T type parameter
-    * @return result of 'and' - may be empty if bounds are disjoint
-    */
-  private def and[T](bounds: Seq[Bounds[T]], and: Bounds[T]): Seq[Bounds[T]] =
-    bounds.flatMap(intersection(and, _))
-
-  /**
-    * Takes the 'or' of a new bound with a sequence of existing bounds
-    *
-    * @param bounds bounds
-    * @param or bound to 'or'
-    * @tparam T type parameter
-    * @return result of 'or', sorted by endpoints
-    */
-  private def or[T](bounds: Seq[Bounds[T]], or: Bounds[T]): Seq[Bounds[T]] = {
-    val merged = (Seq(or) ++ bounds).foldLeft(List.empty[Bounds[T]]) { case (list, bound) =>
-      val (overlapped, disjoint) = list.partition(overlaps(bound, _))
-      disjoint ++ List(overlapped.foldLeft(bound)(mergeOverlapping))
-    }
-    merged.sorted(mergeOrdering.asInstanceOf[Ordering[Bounds[T]]])
-  }
-
-  /**
-    * Determines if the two bounds overlap each other
-    *
-    * @param bounds1 first bounds
-    * @param bounds2 second bounds
-    * @tparam T type class
-    * @return true if bounds overlap (or abut)
-    */
-  private def overlaps[T](bounds1: Bounds[T], bounds2: Bounds[T]): Boolean = {
-    def overlaps(left: T, leftInclusive: Boolean, right: T, rightInclusive: Boolean): Boolean = {
-      val c = left.asInstanceOf[Comparable[Any]].compareTo(right)
-      c > 0 || (c == 0 && (leftInclusive || rightInclusive))
-    }
-    (bounds1.lower.value, bounds1.upper.value) match {
-      case (None, None) => true
-      case (None, Some(b1Up)) => bounds2.lower.value.forall(overlaps(b1Up, bounds1.upper.inclusive, _, bounds2.lower.inclusive))
-      case (Some(b1Lo), None) => bounds2.upper.value.forall(overlaps(_, bounds1.lower.inclusive, b1Lo, bounds2.upper.inclusive))
-      case (Some(b1Lo), Some(b1Up)) =>
-        bounds2.lower.value.forall(overlaps(b1Up, bounds1.upper.inclusive, _, bounds2.lower.inclusive)) &&
-            bounds2.upper.value.forall(overlaps(_, bounds2.upper.inclusive, b1Lo, bounds1.lower.inclusive))
-    }
-  }
-
-  /**
-    * Merges two bounds that overlap each other
-    *
-    * @param left first bound
-    * @param right second bound
-    * @tparam T type parameter
-    * @return merged bounds
-    */
-  private def mergeOverlapping[T](left: Bounds[T], right: Bounds[T]): Bounds[T] =
-    Bounds(smallerLowerBound(left.lower, right.lower), largerUpperBound(left.upper, right.upper))
+  def union[T](left: Seq[Bounds[T]], right: Seq[Bounds[T]]): Seq[Bounds[T]] = left ++ right
 }

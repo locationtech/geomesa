@@ -469,7 +469,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         }
         // range queries don't allow us to use our secondary z-index
         val secondaryIndexMultiplier = {
-          val isEqualsQuery = bounds.forall(b => b.lower.value.isDefined && b.lower.value == b.upper.value)
+          val isEqualsQuery = bounds.forall(_.isExact)
           if (isEqualsQuery) { 1 } else { 10 }
         }
         // join queries are much more expensive than non-join queries

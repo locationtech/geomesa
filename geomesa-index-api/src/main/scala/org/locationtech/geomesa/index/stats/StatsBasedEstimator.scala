@@ -265,7 +265,7 @@ trait StatsBasedEstimator {
       extractedBounds.flatMap { bounds =>
         if (bounds.disjoint) {
           Some(0L) // disjoint range
-        } else if (bounds.values.exists(_.everything)) {
+        } else if (!bounds.values.exists(_.isBounded)) {
           estimateCount(sft, Filter.INCLUDE, loDate, hiDate) // inclusive filter
         } else {
           val boundsValues = bounds.values.map(b => (b.lower.value, b.upper.value))

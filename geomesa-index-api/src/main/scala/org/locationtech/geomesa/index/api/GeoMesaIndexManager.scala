@@ -14,6 +14,8 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.Try
+
 /**
   * Manages available indices and versions. @see GeoMesaFeatureIndex
   */
@@ -55,7 +57,7 @@ trait GeoMesaIndexManager[O <: GeoMesaDataStore[O, F, W], F <: WrappedFeature, W
       case None => CurrentIndices.collect { case i if i.supports(sft) => (i.name, i.version, IndexMode.ReadWrite) }
       case Some(e) =>
         e.toString.split(",").map(_.trim).map { name =>
-          val index = CurrentIndices.find(_.name.equalsIgnoreCase(name)).getOrElse {
+          val index = CurrentIndices.find(_.name.equalsIgnoreCase(name)).orElse(Try(this.index(name)).toOption).getOrElse {
             throw new IllegalArgumentException(s"Configured index '$name' does not exist")
           }
           if (index.supports(sft)) {

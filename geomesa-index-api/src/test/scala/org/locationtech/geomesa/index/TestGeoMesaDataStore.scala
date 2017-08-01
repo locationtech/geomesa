@@ -94,7 +94,7 @@ object TestGeoMesaDataStore {
   class TestIndexManager extends GeoMesaIndexManager[TestGeoMesaDataStore, TestWrappedFeature, TestWrite] {
     override val CurrentIndices: Seq[TestFeatureIndex] =
       Seq(new TestZ3Index, new TestZ2Index, new TestIdIndex, new TestAttributeIndex)
-    override val AllIndices: Seq[TestFeatureIndex] = CurrentIndices
+    override val AllIndices: Seq[TestFeatureIndex] = CurrentIndices :+ new TestAttributeDateIndex
     override def lookup: Map[(String, Int), TestFeatureIndex] =
       super.lookup.asInstanceOf[Map[(String, Int), TestFeatureIndex]]
     override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[TestFeatureIndex] =
@@ -112,7 +112,12 @@ object TestGeoMesaDataStore {
       with IdIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
 
   class TestAttributeIndex extends TestFeatureIndex
-      with AttributeIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+      with AttributeIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange] {
+    override val version: Int = 2
+  }
+
+  class TestAttributeDateIndex extends TestFeatureIndex
+     with AttributeDateIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
 
   trait TestFeatureIndex extends TestFeatureIndexType
       with IndexAdapter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange] {

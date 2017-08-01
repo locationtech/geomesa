@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.index
 
 import org.geotools.data.{Query, Transaction}
+import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
@@ -23,6 +24,8 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexTest extends Specification {
@@ -121,6 +124,54 @@ class AttributeIndexTest extends Specification {
         qp.filter.primary must beSome(ECQL.toFilter(after))
         qp.filter.secondary must beSome(ECQL.toFilter(before))
       }
+    }
+
+    "handle large or'd attribute queries" in {
+      val spec = "attr:String:index=true,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='attr:1,z3'"
+      val sft = SimpleFeatureTypes.createType(typeName, spec)
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      val r = new Random(0L)
+
+      val numFeatures = 5000
+      val features = (0 until numFeatures).map { i =>
+        val a = (0 until 20).map(i => r.nextInt(9).toString).mkString + "<foobar>"
+        val day = i % 30
+        val values = Array[AnyRef](a, f"2014-01-$day%02dT01:00:00.000Z", WKTUtils.read(s"POINT(45.0 45)") )
+        val sf = new ScalaSimpleFeature(i.toString, sft, values)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf
+      }
+
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach { f =>
+          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+          writer.write()
+        }
+      }
+
+      val dtgPart = "dtg between '2014-01-01T00:00:00.000Z' and '2014-01-31T00:00:00.000Z'"
+      val attrPart = "attr in (" + features.take(1000).map(_.getAttribute(0)).map(a => s"'$a'").mkString(", ") + ")"
+      val query = new Query(sft.getTypeName, ECQL.toFilter(s"$dtgPart and $attrPart"))
+
+      query.getHints.put(QueryHints.QUERY_INDEX, "attr")
+
+      val start = System.currentTimeMillis()
+
+      val feats = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      while (feats.hasNext) {
+        feats.next()
+      }
+
+      val time = System.currentTimeMillis() - start
+
+      // set the check fairly high so that we don't get random test failures, but log a warning
+      if (time > 500L) {
+        System.err.println(s"WARNING: attribute query processing took ${time}ms for large query")
+      }
+      time must beLessThan(10000L)
     }
   }
 }
