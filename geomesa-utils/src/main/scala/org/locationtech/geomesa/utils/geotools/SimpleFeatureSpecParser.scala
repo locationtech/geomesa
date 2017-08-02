@@ -46,8 +46,12 @@ object SimpleFeatureSpecParser {
         import scala.collection.JavaConversions._
         // determine what paths the parser partially matched
         val matchers = e.getFailedMatchers.map(getFailedMatcher).distinct
-        val expected = if (matchers.length > 1) { s"one of: ${matchers.mkString(", ")}" } else { matchers.head }
-        s"Invalid spec string at index ${e.getStartIndex}. Expected $expected."
+        if (matchers.isEmpty) {
+          s"Invalid spec string at index ${e.getStartIndex}."
+        } else {
+          val expected = if (matchers.length > 1) { s"one of: ${matchers.mkString(", ")}" } else { matchers.head }
+          s"Invalid spec string at index ${e.getStartIndex}. Expected $expected."
+        }
       }.getOrElse(fallback)
     }
   }
