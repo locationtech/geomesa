@@ -1,4 +1,5 @@
-#! /usr/bin/env bash
+#!/bin/bash
+
 #
 # Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
 # All rights reserved. This program and the accompanying materials
@@ -7,23 +8,13 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# This script will attempt to install the client dependencies for hadoop
+# This script will attempt to install the client dependencies for HBase
 # into a given directory. Usually this is used to install the deps into either the
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
-hadoop_version="%%hadoop.version.recommended%%"
-hadoop_version_min="%%hadoop.version.minimum%%"
 
-# for hadoop 2.5 and 2.6 to work we need these
-# These should match up to what the hadoop version desires
-guava_version="11.0.2"
-com_log_version="1.1.3"
-aws_sdk_version="1.7.4"
-commons_config_version="1.6"
-htrace_version="3.1.0-incubating"
-
-# this should match the parquet desired version
-snappy_version="1.1.1.6"
+hbase_version="%%hbase.version.recommended%%"
+hbase_version_min="%%hbase.version.minimum%%"
 
 # Resource download location
 base_url="https://search.maven.org/remotecontent?filepath="
@@ -91,7 +82,7 @@ function printVersions() {
 
 # Command Line Help
 NL=$'\n'
-usage="usage: ./install-hadoop.sh [[target dir] [<version(s)>]] | [-l|--list-versions] | [--help]"
+usage="usage: ./install-hbase.sh [[target dir] [<version(s)>]] | [-l|--list-versions] | [--help]"
 
 # Parse command line options
 if [[ "$1" == "--help" || "$1" == "-help" ]]; then
@@ -101,19 +92,19 @@ if [[ "$1" == "--help" || "$1" == "-help" ]]; then
   echo "These parameters are for situations where this may need overwritten."
   echo "${NL}"
   echo "Options:"
-  echo "  -h,--hadoop-version       Manually set Hadoop version"
+  echo "  -h,--hbase-version        Manually set HBase version"
   echo "  -l,--list-versions        Print out available version numbers."
   echo "${NL}"
   echo "Example:"
-  echo "./install-hadoop.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -a 1.7.1 -h 2.7.3"
+  echo "./install-hbase.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -h 2.7.3"
   echo "${NL}"
   exit 0
 elif [[ "$1" == "-l" || "$1" == "--list-versions" ]]; then
-  hadoop_version_url="${base_url}org/apache/hadoop/hadoop-main/"
+  hbase_version_url="${base_url}org/apache/hbase/hbase-client/"
 
   echo ""
-  echo "Available Hadoop Versions"
-  printVersions "${hadoop_version_url}" "${hadoop_version_min}"
+  echo "Available HBase Versions"
+  printVersions "${hbase_version_url}" "${hbase_version_min}"
 
   exit 0
 else
@@ -125,8 +116,8 @@ while [[ $# -gt 1 ]]; do
   key="$1"
 
   case $key in
-    -h|--hadoop-version)
-      hadoop_version="$2"
+    -h|--hbase-version)
+      hbase_version="$2"
       shift
     ;;
     *)
@@ -146,9 +137,9 @@ if [[ -n "$1" ]]; then
 fi
 
 # Check for short version numbers. The version checker only works for version number of the same length.
-hadoop_version_split=($(splitVersion "${hadoop_version}"))
+hbase_version_split=($(splitVersion "${hbase_version}"))
 
-if [[ "${#hadoop_version_split[@]}" != "3" ]]; then
+if [[ "${#hbase_version_split[@]}" != "3" ]]; then
   echo "Error: Version numbers must be specified in the format X.X.X"
   exit 1
 fi
@@ -158,25 +149,15 @@ if [[ -z "${install_dir}" ]]; then
   echo "${usage}"
   exit 1
 else
-  read -r -p "Install Hadoop, Amazon AWS, and Snappy to ${install_dir}?${NL}Confirm? [Y/n]" confirm
+  read -r -p "Install HBase dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
   confirm=${confirm,,} # Lowercasing
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     # Setup download URLs
     declare -a urls=(
-      "${base_url}org/apache/hadoop/hadoop-auth/${hadoop_version}/hadoop-auth-${hadoop_version}.jar"
-      "${base_url}org/apache/hadoop/hadoop-client/${hadoop_version}/hadoop-client-${hadoop_version}.jar"
-      "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
-      "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
-      "${base_url}org/apache/hadoop/hadoop-aws/${hadoop_version}/hadoop-aws-${hadoop_version}.jar"
-      "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar"
-      "${base_url}com/amazonaws/aws-java-sdk/${aws_sdk_version}/aws-java-sdk-${aws_sdk_version}.jar"
-      "${base_url}org/xerial/snappy/snappy-java/${snappy_version}/snappy-java-${snappy_version}.jar"
-      "${base_url}commons-configuration/commons-configuration/${commons_config_version}/commons-configuration-${commons_config_version}.jar"
-      "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
-      "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
-      "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
-      "${base_url}com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar"
-      "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
+      "${base_url}org/apache/hbase/hbase-common/${hbase_version}/hbase-common-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-protocol/${hbase_version}/hbase-protocol-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-client/${hbase_version}/hbase-client-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-server/${hbase_version}/hbase-server-${hbase_version}.jar"
     )
 
     # Download dependencies

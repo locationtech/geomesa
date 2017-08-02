@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.ingest
 
 import java.io._
-import java.util.concurrent.Executors
+import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
@@ -26,6 +26,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
+import scala.util.control.NonFatal
 
 /**
   * Base class for handling ingestion of local or distributed files
@@ -119,7 +120,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
                 fw.write()
                 written.incrementAndGet()
               } catch {
-                case e: Exception =>
+                case NonFatal(e) =>
                   logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
                   failed.incrementAndGet()
               }
@@ -132,8 +133,16 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
             IOUtils.closeQuietly(fw)
           }
         } catch {
-          case e: Exception =>
+          case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
+            // Rethrow exception so it can be caught by getting the future of this runnable in the main thread
+            // which will in turn cause the exception to be handled by org.locationtech.geomesa.tools.Runner
+            // Likely all threads will fail if a dependency is missing so it will terminate quickly
+            throw e
+
+          case NonFatal(e) =>
             // Don't kill the entire program bc this thread was bad! use outer try/catch
+            val msg = s"Fatal error running local ingest worker on file ${file.getPath}"
+            Command.user.error(msg)
             logger.error(s"Fatal error running local ingest worker on file ${file.getPath}", e)
         }
       }
@@ -155,7 +164,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     val start = System.currentTimeMillis()
     val statusCallback = createCallback()
     val es = Executors.newFixedThreadPool(threads)
-    files.foreach(f => es.submit(new LocalIngestWorker(f)))
+    val futures = files.map(f => es.submit(new LocalIngestWorker(f)))
     es.shutdown()
 
     def counters = Seq(("ingested", written.get()), ("failed", failed.get()))
@@ -165,6 +174,10 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
       statusCallback("", progress(), counters, done = false)
     }
     statusCallback("", progress(), counters, done = true)
+
+    // Get all futures so that we can propagate the logging up to the top level for handling
+    // in org.locationtech.geomesa.tools.Runner to catch missing dependencies
+    futures.foreach(_.get)
 
     Command.user.info(s"Local ingestion complete in ${TextTools.getTime(start)}")
     Command.user.info(getStatInfo(written.get, failed.get))
