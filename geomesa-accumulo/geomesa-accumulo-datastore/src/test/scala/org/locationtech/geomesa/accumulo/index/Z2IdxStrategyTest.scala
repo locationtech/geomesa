@@ -20,8 +20,8 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.sfcurve.zorder.Z2
@@ -172,12 +172,12 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       val aggregates = returnedFeatures.map(f =>
         f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
-      val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
+      val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
       (0 until 10).map(i => s"name$i".hashCode) must contain(atLeast(bin.map(_.trackId).tail: _*))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
-      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
+      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0f))
       forall(bin.map(_.lon))(_ mustEqual 40.0)
     }
 
@@ -198,15 +198,15 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
         f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       forall(aggregates) { a =>
-        val window = a.grouped(16).map(Convert2ViewerFunction.decode(_).dtg).sliding(2).filter(_.length > 1)
+        val window = a.grouped(16).map(BinaryOutputEncoder.decode(_).dtg).sliding(2).filter(_.length > 1)
         forall(window)(w => w.head must beLessThanOrEqualTo(w(1)))
       }
-      val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
+      val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
       (0 until 10).map(i => s"name$i".hashCode) must contain(atLeast(bin.map(_.trackId).tail: _*))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
-      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
+      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0f))
       forall(bin.map(_.lon))(_ mustEqual 40.0)
     }
 
@@ -226,15 +226,14 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       val aggregates = returnedFeatures.map(f =>
         f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
-      val bin = aggregates.flatMap(a => a.grouped(24).map(Convert2ViewerFunction.decode))
+      val bin = aggregates.flatMap(a => a.grouped(24).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
       (0 until 10).map(i => s"name$i".hashCode) must contain(atLeast(bin.map(_.trackId).tail: _*))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
-      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
+      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0f))
       forall(bin.map(_.lon))(_ mustEqual 40.0)
-      forall(bin)(_ must beAnInstanceOf[ExtendedValues])
-      bin.map(_.asInstanceOf[ExtendedValues].label) must containAllOf((0 until 10).map(i => Convert2ViewerFunction.convertToLabel(s"name$i")))
+      bin.map(_.label) must containAllOf((0 until 10).map(i => BinaryOutputEncoder.convertToLabel(s"name$i")))
     }
 
     "support sampling" in {
@@ -280,7 +279,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support sampling with bin queries" in {
-      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, Filter.INCLUDE)
       query.getHints.put(BIN_TRACK, "track")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
@@ -290,7 +289,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       // have to evaluate attributes before pulling into collection, as the same sf is reused
       val results = queryPlanner.runQuery(sft, query, Some(strategy), ExplainNull).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveLength(6)
       bins.map(_.trackId) must containTheSameElementsAs {
         Seq("track1", "track1", "track2", "track2", "track3", "track3").map(_.hashCode)

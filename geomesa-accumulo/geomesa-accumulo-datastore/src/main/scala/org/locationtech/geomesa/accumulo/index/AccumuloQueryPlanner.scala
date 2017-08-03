@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.AccumuloQueryPlannerType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

@@ -21,6 +21,11 @@ object ScalaImplicits {
 
     def sumOption(implicit num: Numeric[T]): Option[T] = if (seq.isEmpty) None else Some(seq.sum)
     def sumOrElse(or: T)(implicit num: Numeric[T]): T = if (seq.isEmpty) or else seq.sum
+
+    def foreachIndex[U](f: (T, Int) => U): Unit = {
+      var i = 0
+      seq.foreach { v => f(v, i); i += 1 }
+    }
   }
 
   implicit class RichTraversableLike[+A, +Repr](val seq: TraversableLike[A, Repr]) extends AnyVal {

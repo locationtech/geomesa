@@ -17,7 +17,7 @@ import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.LambdaTest
@@ -64,7 +64,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
     val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
     bytes must haveLength(32)
-    val bins = bytes.grouped(16).map(Convert2ViewerFunction.decode).toSeq
+    val bins = bytes.grouped(16).map(BinaryOutputEncoder.decode).toSeq
     bins.map(_.trackId) must containAllOf(Seq("n0", "n1").map(_.hashCode))
     bins.map(_.dtg) must containAllOf(features.map(_.getAttribute("dtg").asInstanceOf[Date].getTime))
     bins.map(_.lat) must containAllOf(Seq(50f, 51f))

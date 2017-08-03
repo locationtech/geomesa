@@ -17,11 +17,11 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, EncodedValues, ExtendedValues}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.process.transform.BinConversionProcess
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
@@ -82,29 +82,29 @@ class HBaseBinAggregatorTest extends HBaseTest with LazyLogging {
   }
 
   def toTuples(value: EncodedValues): Any = value match {
-    case BasicValues(lat, lon, dtg, trackId) => ((trackId, dtg), (lat, lon))
-    case ExtendedValues(lat, lon, dtg, trackId, label) => (((trackId, dtg), (lat, lon)), label)
+    case EncodedValues(trackId, lat, lon, dtg, label) if label == -1L => ((trackId, dtg), (lat, lon))
+    case EncodedValues(trackId, lat, lon, dtg, label) => (((trackId, dtg), (lat, lon)), label)
   }
 
   "BinConversionProcess" should {
     "encode an accumulo feature collection in distributed fashion" in {
       val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", null, null, null, "lonlat").toList
       bytes.length must beLessThan(10)
-      val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(Convert2ViewerFunction.decode).map(toTuples)
+      val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat))
     }
 
     "encode an HBase feature collection in distributed fashion with alternate values" in {
       val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", "geom2", "dtg2", null, "lonlat").toList
       bytes.length must beLessThan(10)
-      val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(Convert2ViewerFunction.decode).map(toTuples)
+      val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates2).zip(lonlat2))
     }
 
     "encode an HBase feature collection in distributed fashion with labels" in {
       val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", null, null, "track", "lonlat").toList
       bytes.length must beLessThan(10)
-      val decoded = bytes.reduceLeft(_ ++ _).grouped(24).toSeq.map(Convert2ViewerFunction.decode).map(toTuples)
+      val decoded = bytes.reduceLeft(_ ++ _).grouped(24).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat).zip(tracks))
     }
   }

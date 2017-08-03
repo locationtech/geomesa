@@ -22,9 +22,9 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions, GeometryAttribute}
-import org.locationtech.geomesa.filter.function.{AxisOrder, BinaryOutputEncoder, Convert2ViewerFunction}
 import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, ByteBufferResult, SamplingIterator}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions}
+import org.locationtech.geomesa.utils.bin.{BinaryOutputCallback, BinaryOutputEncoder}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -72,32 +72,54 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
     // we only need to decode the parts required for the filter/dedupe/sampling check
     // note: we wouldn't be using precomputed if sample by field wasn't the track id
     decodeBin = if (filter) {
-      setDate = if (isDtgArray) {
+      val dtgIndex = encoding.dtgField.get
+      val geomIndex = encoding.geomField.get
+      val trackIndex = encoding.trackIdField.get
+      setDate = if (sft.getDescriptor(dtgIndex).getType.getBinding == classOf[Date]) {
+        (sf, long) => sf.setAttribute(dtgIndex, new Date(long))
+      } else {
         (sf, long) => {
           val list = new java.util.ArrayList[Date](1)
           list.add(new Date(long))
           sf.setAttribute(dtgIndex, list)
         }
-      } else {
-        (sf, long) => sf.setAttribute(dtgIndex, new Date(long))
+      }
+
+      val callback = new BinaryOutputCallback() {
+        override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit = {
+          sf.setAttribute(geomIndex, gf.createPoint(new Coordinate(lat, lon)))
+          sf.setAttribute(trackIndex, Int.box(trackId)) // TODO setAttributeNoConvert
+          setDate(sf, dtg)
+        }
+        override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit =
+          apply(trackId, lat, lon, dtg)
       }
       (_) => {
         val row = source.getTopKey.getRow
         sf.setId(getId(row.getBytes, 0, row.getLength))
-        setValuesFromBin(sf, gf)
-        sf
-      }
-    } else if (sample && dedupe) {
-      (_) => {
-        val row = source.getTopKey.getRow
-        sf.setId(getId(row.getBytes, 0, row.getLength))
-        setTrackIdFromBin(sf)
+        BinaryOutputEncoder.decode(source.getTopValue.get, callback)
         sf
       }
     } else if (sample) {
-      (_) => {
-        setTrackIdFromBin(sf)
-        sf
+      val trackIndex = encoding.trackIdField.get
+      val callback = new BinaryOutputCallback() {
+        override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit =
+          sf.setAttribute(trackIndex, Int.box(trackId))
+        override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit =
+          sf.setAttribute(trackIndex, Int.box(trackId))
+      }
+      if (dedupe) {
+        (_) => {
+          val row = source.getTopKey.getRow
+          sf.setId(getId(row.getBytes, 0, row.getLength))
+          BinaryOutputEncoder.decode(source.getTopValue.get, callback)
+          sf
+        }
+      } else {
+        (_) => {
+          BinaryOutputEncoder.decode(source.getTopValue.get, callback)
+          sf
+        }
       }
     } else if (dedupe) {
       (_) => {
@@ -120,23 +142,6 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 
   override def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit =
     writePrecomputedBin(sf, result)
-
-  /**
-   * Writes a bin record into a simple feature for filtering
-   */
-  private def setValuesFromBin(sf: SimpleFeature, gf: GeometryFactory): Unit = {
-    val values = Convert2ViewerFunction.decode(source.getTopValue.get)
-    sf.setAttribute(geomIndex, gf.createPoint(new Coordinate(values.lat, values.lon)))
-    sf.setAttribute(trackIndex, values.trackId)
-    setDate(sf, values.dtg)
-  }
-
-  /**
-   * Sets only the track id - used for sampling
-   */
-  private def setTrackIdFromBin(sf: SimpleFeature): Unit =
-    sf.setAttribute(trackIndex, Convert2ViewerFunction.decode(source.getTopValue.get).trackId)
-
 }
 
 object BinAggregatingIterator extends LazyLogging {
@@ -251,20 +256,20 @@ object BinAggregatingIterator extends LazyLogging {
     // don't use return sft from query hints, as it will be bin_sft
     val returnSft = hints.getTransformSchema.getOrElse(sft)
 
-    val trackId = Option(hints.getBinTrackIdField)
-    val geom = hints.getBinGeomField.map(GeometryAttribute(_, AxisOrder.LonLat)) // TODO check this out...
-    val dtg = hints.getBinDtgField
-    val label = hints.getBinLabelField
+    val trackId = Option(hints.getBinTrackIdField).filter(_ != "id").map(sft.indexOf)
+    val geom = hints.getBinGeomField.map(sft.indexOf)
+    val dtg = hints.getBinDtgField.map(sft.indexOf)
+    val label = hints.getBinLabelField.map(sft.indexOf)
 
-    val encode = BinaryOutputEncoder.encodeFeatures(returnSft, EncodingOptions(geom, dtg, trackId, label))
+    val encoder = BinaryOutputEncoder(returnSft, EncodingOptions(geom, dtg, trackId, label))
 
     // noinspection ScalaDeprecation
     if (index.serializedWithId) {
       val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
       (e: Entry[Key, Value]) => {
         val deserialized = deserializer.deserialize(e.getValue.get())
-        // set the value directly in the array, as we don't support byte arrays as properties
-        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), GeometryUtils.zeroPoint))
+        val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
+        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, values)
       }
     } else {
       val getId = index.getIdFromRow(sft)
@@ -273,8 +278,8 @@ object BinAggregatingIterator extends LazyLogging {
         val deserialized = deserializer.deserialize(e.getValue.get())
         val row = e.getKey.getRow
         deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
-        // set the value directly in the array, as we don't support byte arrays as properties
-        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, Array(encode(deserialized), GeometryUtils.zeroPoint))
+        val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
+        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, values)
       }
     }
   }

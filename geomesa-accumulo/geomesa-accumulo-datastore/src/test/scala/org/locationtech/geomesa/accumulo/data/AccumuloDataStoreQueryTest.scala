@@ -24,7 +24,8 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
@@ -391,7 +392,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "support bin queries" in {
-      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val sft = createNewSchema(s"name:String,dtg:Date,*geom:Point:srid=4326")
 
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
@@ -403,13 +404,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val queryPlanner = new AccumuloQueryPlanner(ds)
       val results = queryPlanner.runQuery(sft, query, Some(Z2Index), ExplainNull).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(2)
       bins.map(_.trackId) must containAllOf(Seq("name1", "name2").map(_.hashCode))
     }
 
     "support bin queries with linestrings" in {
-      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val sft = createNewSchema(s"name:String,dtgs:List[Date],dtg:Date,*geom:LineString:srid=4326")
       val dtgs1 = new java.util.ArrayList[Date]
       dtgs1.add(Converters.convert("2010-05-07T00:00:00.000Z", classOf[Date]))
@@ -431,16 +432,16 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
         val bytes = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
         forall(bytes)(_ must beAnInstanceOf[Array[Byte]])
-        val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+        val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
         bins must haveSize(7)
         val sorted = bins.sortBy(_.dtg)
-        sorted(0) mustEqual BasicValues(41, 40, dtgs1(0).getTime, "name1".hashCode)
-        sorted(1) mustEqual BasicValues(43, 42, dtgs1(1).getTime, "name1".hashCode)
-        sorted(2) mustEqual BasicValues(45, 44, dtgs1(2).getTime, "name1".hashCode)
-        sorted(3) mustEqual BasicValues(47, 46, dtgs1(3).getTime, "name1".hashCode)
-        sorted(4) mustEqual BasicValues(50, 50, dtgs2(0).getTime, "name2".hashCode)
-        sorted(5) mustEqual BasicValues(51, 51, dtgs2(1).getTime, "name2".hashCode)
-        sorted(6) mustEqual BasicValues(52, 52, dtgs2(2).getTime, "name2".hashCode)
+        sorted(0) mustEqual EncodedValues("name1".hashCode, 41, 40, dtgs1(0).getTime, -1L)
+        sorted(1) mustEqual EncodedValues("name1".hashCode, 43, 42, dtgs1(1).getTime, -1L)
+        sorted(2) mustEqual EncodedValues("name1".hashCode, 45, 44, dtgs1(2).getTime, -1L)
+        sorted(3) mustEqual EncodedValues("name1".hashCode, 47, 46, dtgs1(3).getTime, -1L)
+        sorted(4) mustEqual EncodedValues("name2".hashCode, 50, 50, dtgs2(0).getTime, -1L)
+        sorted(5) mustEqual EncodedValues("name2".hashCode, 51, 51, dtgs2(1).getTime, -1L)
+        sorted(6) mustEqual EncodedValues("name2".hashCode, 52, 52, dtgs2(2).getTime, -1L)
       }
     }
 
