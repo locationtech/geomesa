@@ -12,7 +12,7 @@ import java.util
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Coordinate, Point}
+import com.vividsolutions.jts.geom.{GeometryFactory, Coordinate, Point}
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -82,7 +82,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .option("geomesa.feature", "chicago")
         .option("cache", "true")
         .option("spatial","true")
-          .option("strategy", "RTREE")
+        .option("strategy", "RTREE")
         .load()
       logger.info(df.schema.treeString)
 
@@ -199,6 +199,62 @@ class SparkSQLDataTest extends Specification with LazyLogging {
 
       d.length mustEqual 2
       d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(2, 3))
+    }
+
+    "sweepline join" >> {
+
+      val gf = new GeometryFactory
+
+      val points = SparkSQLTestUtils.generatePoints(gf, 1000)
+      SparkSQLTestUtils.ingestPoints(ds, "points", points)
+
+      val polys = SparkSQLTestUtils.generatePolys(gf, 1000)
+      SparkSQLTestUtils.ingestGeometries(ds, "polys", polys)
+
+      val polysDf = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "polys")
+        .load()
+
+      val pointsDf = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "points")
+        .load()
+
+      val partitionedPolys = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "polys")
+        .option("spatial","true")
+        .option("strategy", "EARTH")
+        .option("partitions","10")
+        .load()
+
+      val partitionedPoints = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "points")
+        .option("spatial","true")
+        .option("strategy", "EARTH")
+        .option("partitions","10")
+        .load()
+
+      partitionedPolys.createOrReplaceTempView("polysSpatial")
+      partitionedPoints.createOrReplaceTempView("pointsSpatial")
+      pointsDf.createOrReplaceTempView("points")
+      polysDf.createOrReplaceTempView("polys")
+
+      var now = System.currentTimeMillis()
+      val r1 = spark.sql("select * from polys join points on st_intersects(points.geom, polys.geom)")
+      val count = r1.count()
+      logger.info(s"Regular join took ${System.currentTimeMillis() - now}ms")
+      now = System.currentTimeMillis()
+      val r2 = spark.sql("select * from polysSpatial join pointsSpatial on st_intersects(pointsSpatial.geom, polysSpatial.geom)")
+      val sweeplineCount = r2.count()
+      logger.info(s"Sweepline join took ${System.currentTimeMillis() - now}ms")
+      sweeplineCount mustEqual count
     }
 
     // after

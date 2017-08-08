@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark
 
-import com.vividsolutions.jts.geom.{Coordinate, Point}
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.spark.sql.SparkSession
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities}
@@ -87,6 +87,27 @@ object SparkSQLTestUtils {
 
     val fs = ds.getFeatureSource(name).asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(features)
+  }
+
+  def generatePoints(gf: GeometryFactory, numPoints: Int): Map[String, String] = {
+    (1 until numPoints).map { i =>
+      val x = -180 + 360 * Math.random()
+      val y = -90 + 180 * Math.random()
+      (i.toString, gf.createPoint(new Coordinate(x, y)).toText)
+    }.toMap
+  }
+
+  def generatePolys(gf: GeometryFactory, numPoints: Int): Map[String, String] = {
+    (1 until numPoints).map { i =>
+      val x = -180 + 360 * Math.random()
+      val y = -90 + 180 * Math.random()
+      val width = (3 * Math.random()) / 2.0
+      val height = (1 * Math.random()) / 2.0
+      val (minX, maxX, minY, maxY) = (x - width, x + width, y - height, y + height)
+      val coords = Array(new Coordinate(minX, minY), new Coordinate(minX, maxY),
+        new Coordinate(maxX, minY), new Coordinate(maxX, maxY), new Coordinate(minX, minY))
+      (i.toString, gf.createPolygon(coords).toText)
+    }.toMap
   }
 }
 

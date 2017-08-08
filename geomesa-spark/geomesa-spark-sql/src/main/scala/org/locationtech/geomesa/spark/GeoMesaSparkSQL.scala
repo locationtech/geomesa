@@ -16,10 +16,10 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.index.strtree.{AbstractNode, Boundable, STRtree}
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.{HashPartitioner, SparkContext}
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
-import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
+import org.apache.spark.sql.catalyst.expressions.{AttributeReference, Expression, GenericRowWithSchema, ScalaUDF}
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
 import org.apache.spark.storage.StorageLevel
@@ -32,7 +32,10 @@ import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleF
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.apache.spark.sql.sources.Filter
+import com.vividsolutions.jts.index.sweepline.{SweepLineIndex, SweepLineInterval, SweepLineOverlapAction}
+import org.locationtech.geomesa.utils.text.WKTUtils
 
+import scala.collection.Iterator
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
@@ -205,7 +208,7 @@ case class GeoMesaRelation(sqlContext: SQLContext,
                            props: Option[Seq[String]] = None,
                            var partitionHints : Seq[Int] = null,
                            var indexRDD: RDD[GeoCQEngineDataStore] = null,
-                           var partitionedRDD: RDD[(Int,Iterable[SimpleFeature])] = null,
+                           var partitionedRDD: RDD[(Int, Iterable[SimpleFeature])] = null,
                            var indexPartRDD: RDD[(Int, GeoCQEngineDataStore)] = null)
   extends BaseRelation with PrunedFilteredScan {
 
@@ -225,18 +228,22 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 
   var partitionEnvelopes: List[Envelope] = null
 
+  val providedBounds = Try(params("bounds").toString).getOrElse(null)
+
   // Control partitioning strategies that require a sample of the data
   val sampleSize = Try(params("sampleSize").toInt).getOrElse(100)
   val thresholdMultiplier = Try(params("threshold").toDouble).getOrElse(0.3)
+
+  val initialQuery = Try(params("query").toString).getOrElse("INCLUDE")
 
   lazy val rawRDD: SpatialRDD = buildRawRDD
 
   def buildRawRDD = {
     val raw = GeoMesaSpark(params).rdd(
       new Configuration(), sqlContext.sparkContext, params,
-      new Query(params(GEOMESA_SQL_FEATURE)))
+      new Query(params(GEOMESA_SQL_FEATURE), ECQL.toFilter(initialQuery)))
 
-    if (params.contains("partitions")) {
+    if (raw.getNumPartitions != numPartitions && params.contains("partitions")) {
       SpatialRDD(raw.repartition(numPartitions), raw.schema)
     } else {
       raw
@@ -246,31 +253,29 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   val encodedSFT: String = org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.encodeType(sft, true)
 
   if (partitionedRDD == null && spatiallyPartition) {
-    val bounds = SparkUtils.getBound(rawRDD)
-    partitionEnvelopes = partitionStrategy match {
-      case "EQUAL" => SparkUtils.equalPartitioning(bounds, numPartitions)
-      case "RTREE" => SparkUtils.rtreePartitioning(rawRDD, numPartitions, sampleSize, thresholdMultiplier)
-    }
-
-
-    // Print in WKT for QGIS debugging
-    var i = 0
-    partitionEnvelopes.foreach { env =>
-      println(s"$i:POLYGON((${env.getMinX} ${env.getMinY}, ${env.getMinX} ${env.getMaxY}, " +
-        s"${env.getMaxX} ${env.getMaxY}, ${env.getMaxX} ${env.getMinY},${env.getMinX} ${env.getMinY}))")
-      i+=1
+    if (partitionEnvelopes == null) {
+      val bounds: Envelope = if (providedBounds == null) {
+        SparkUtils.getBound(rawRDD)
+      } else {
+        WKTUtils.read(providedBounds).getEnvelopeInternal
+      }
+      partitionEnvelopes = partitionStrategy match {
+        case "EARTH" => SparkUtils.wholeEarthPartitioning(numPartitions)
+        case "EQUAL" => SparkUtils.equalPartitioning(bounds, numPartitions)
+        case "RTREE" => SparkUtils.rtreePartitioning(rawRDD, numPartitions, sampleSize, thresholdMultiplier)
+      }
     }
 
     partitionedRDD = SparkUtils.spatiallyPartition(partitionEnvelopes, rawRDD, numPartitions)
     partitionedRDD.persist(StorageLevel.MEMORY_ONLY)
   }
 
-  if (indexRDD == null && indexPartRDD == null && cache) {
-    if (spatiallyPartition) {
+  if (cache) {
+    if (spatiallyPartition && indexPartRDD == null) {
       indexPartRDD = SparkUtils.indexPartitioned(encodedSFT, sft.getTypeName, partitionedRDD, indexId, indexGeom)
       partitionedRDD.unpersist() // make this call blocking?
       indexPartRDD.persist(StorageLevel.MEMORY_ONLY)
-    } else {
+    } else if (indexRDD == null) {
       indexRDD = SparkUtils.index(encodedSFT, sft.getTypeName, rawRDD, indexId, indexGeom)
       indexRDD.persist(StorageLevel.MEMORY_ONLY)
     }
@@ -286,6 +291,75 @@ case class GeoMesaRelation(sqlContext: SQLContext,
       }
     } else {
       SparkUtils.buildScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
+    }
+  }
+
+  override def unhandledFilters(filters: Array[Filter]): Array[Filter] = {
+    filters.filter {
+      case t @ (_:IsNotNull | _:IsNull) => true
+      case _ => false
+    }
+  }
+}
+
+// A special case relation that is built when a join happens across two identically partitioned relations
+// Uses the sweepline algorithm to lower the complexity of the join
+case class GeoMesaJoinRelation(sqlContext: SQLContext,
+                           leftRel: GeoMesaRelation,
+                           rightRel: GeoMesaRelation,
+                           schema: StructType,
+                           condition: Expression,
+                           filt: org.opengis.filter.Filter = org.opengis.filter.Filter.INCLUDE,
+                           props: Option[Seq[String]] = None)
+  extends BaseRelation with PrunedFilteredScan {
+
+  // Uses sweep-line algorithm to join a spatially partitioned RDD
+  def sweeplineJoin(overlapAction: OverlapAction): RDD[(Int, (SimpleFeature, SimpleFeature))] = {
+    import JoinHelperUtils._
+
+    val partitionPairs = leftRel.partitionedRDD.join(rightRel.partitionedRDD)
+
+    partitionPairs.flatMap { case (key, (left, right)) =>
+      val sweeplineIndex = new SweepLineIndex()
+      left.foreach{feature =>
+        val coords = feature.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates
+        val interval = new SweepLineInterval(coords.min.x, coords.max.x, (0, feature))
+        sweeplineIndex.add(interval)
+      }
+      right.foreach{feature =>
+        val coords = feature.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates
+        val interval = new SweepLineInterval(coords.min.x, coords.max.x, (1, feature))
+        sweeplineIndex.add(interval)
+      }
+      sweeplineIndex.computeOverlaps(overlapAction)
+      overlapAction.joinList.map{ f => (key, f)}
+    }
+  }
+
+  override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
+    val leftSchema = leftRel.schema
+    val rightSchema = rightRel.schema
+    val leftExtractors = SparkUtils.getExtractors(leftSchema.fieldNames, leftSchema)
+    val rightExtractors = SparkUtils.getExtractors(rightSchema.fieldNames, rightSchema)
+
+    // Extract geometry indexes and spatial function from condition expression and relation SFTs
+    val (leftIndex, rightIndex, conditionFunction) = condition match {
+      case ScalaUDF(function: ((Geometry, Geometry) => Boolean), _, children, _) =>
+        val rightAttr = children(0).asInstanceOf[AttributeReference].name
+        val leftAttr = children(1).asInstanceOf[AttributeReference].name
+        (leftRel.sft.indexOf(rightAttr), rightRel.sft.indexOf(leftAttr), function)
+    }
+
+    // Perform the sweepline join and build rows containing matching features
+    val overlapAction = new OverlapAction(leftIndex, rightIndex, conditionFunction)
+    val joinedRows: RDD[(Int, (SimpleFeature, SimpleFeature))] = sweeplineJoin(overlapAction)
+    joinedRows.mapPartitions{ iter =>
+      val joinedSchema = StructType(leftSchema.fields ++ rightSchema.fields)
+      val joinedExtractors = leftExtractors ++ rightExtractors
+
+      iter.map{ case (_, (leftFeature, rightFeature)) =>
+          SparkUtils.joinedSf2row(joinedSchema, leftFeature, rightFeature, joinedExtractors)
+      }
     }
   }
 
@@ -338,42 +412,44 @@ object SparkUtils extends LazyLogging {
   // Returns -1 if no match was found
   // TODO: Filter duplicates when querying
   def gridIdMapper(sf: SimpleFeature, envelopes: List[Envelope]): List[(Int, SimpleFeature)] = {
-    var result = new ListBuffer[(Int, SimpleFeature)]
     val geom = sf.getDefaultGeometry.asInstanceOf[Geometry]
-    envelopes.indices.foreach { index =>
-      if (envelopes(index).contains(geom.getEnvelopeInternal)) {
-        val pair = (index, sf)
-        result += pair
+    val mappings = envelopes.indices.flatMap { index =>
+      if (envelopes(index).intersects(geom.getEnvelopeInternal)) {
+        Some(index, sf)
+      } else {
+        None
       }
     }
-    if (result.isEmpty) {
-      val pair = (-1, sf)
-      result += pair
+    if (mappings.isEmpty) {
+      List((-1, sf))
+    } else {
+      mappings.toList
     }
-    result.toList
   }
 
   // Maps a geometry to the id of the envelope that contains it
   // Used to derive partition hints
   def gridIdMapper(geom: Geometry, envelopes: List[Envelope]): List[Int] = {
-    var result = new ListBuffer[Int]
-    envelopes.indices.foreach { index =>
-      if (envelopes(index).contains(geom.getEnvelopeInternal)) {
-        result += index
+    val mappings = envelopes.indices.flatMap { index =>
+      if (envelopes(index).intersects(geom.getEnvelopeInternal)) {
+        Some(index)
+      } else {
+        None
       }
     }
-    if (result.isEmpty) {
-      result += -1
+    if (mappings.isEmpty) {
+      List(-1)
+    } else {
+      mappings.toList
     }
-    result.toList
   }
 
   def spatiallyPartition(envelopes: List[Envelope], rdd: RDD[SimpleFeature], numPartitions: Int): RDD[(Int, Iterable[SimpleFeature])] = {
     val keyedRdd = rdd.flatMap { gridIdMapper( _, envelopes)}
-    val partitioned = keyedRdd.groupByKey(new HashPartitioner(numPartitions))
+    val partitioned = keyedRdd.groupByKey(new IndexPartitioner(numPartitions))
     partitioned.foreachPartition{ iter =>
       iter.foreach{ case (key, features) =>
-        println(s"partition $key has ${features.size} features")
+        logger.debug(s"partition $key has ${features.size} features")
       }
     }
     partitioned
@@ -414,6 +490,10 @@ object SparkUtils extends LazyLogging {
     partitionEnvelopes.toList
   }
 
+  def wholeEarthPartitioning(numPartitions: Int): List[Envelope] = {
+    equalPartitioning(new Envelope(-180,180,-90,90), numPartitions)
+  }
+
   // Constructs an RTree based on a sample of the data and returns its bounds as envelopes
   // returns one less envelope than requested to account for the catch-all envelope
   def rtreePartitioning(rawRDD: RDD[SimpleFeature], numPartitions: Int, sampleSize: Int, thresholdMultiplier: Double): List[Envelope] = {
@@ -432,15 +512,6 @@ object SparkUtils extends LazyLogging {
     val maxSize = reasonableSize + threshold
     rtree.build()
     queryBoundary(rtree.getRoot, envelopes, minSize, maxSize)
-
-    // check if any envelopes intersect
-    envelopes.foreach { env1 =>
-      envelopes.foreach {env2 =>
-        if (env1.intersects(env2) && !env1.equals(env2)) {
-          println (s"rtree envelopes $env1 and $env2 intersect")
-        }
-      }
-    }
     envelopes.take(numPartitions-1).toList
   }
 
@@ -531,8 +602,6 @@ object SparkUtils extends LazyLogging {
          |filters = ${filters.mkString(",")},
          |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
     val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l,r) }
-    logger.debug(s"compiledCQL = $compiledCQL")
-
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val rdd = GeoMesaSpark(params).rdd(
       new Configuration(), ctx, params,
@@ -555,9 +624,7 @@ object SparkUtils extends LazyLogging {
          |filters = ${filters.mkString(",")},
          |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
     val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l,r) }
-    logger.debug(s"compiledCQL = $compiledCQL")
     val filterString = ECQL.toCQL(compiledCQL)
-    logger.debug(s"filterString = $filterString")
 
     val extractors = getExtractors(requiredColumns, schema)
 
@@ -587,10 +654,7 @@ object SparkUtils extends LazyLogging {
          |filters = ${filters.mkString(",")},
          |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
     val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l,r) }
-    logger.debug(s"compiledCQL = $compiledCQL")
     val filterString = ECQL.toCQL(compiledCQL)
-    logger.debug(s"filterString = $filterString")
-
 
     // If keys were derived from query, go straight to those partitions
     val reducedRdd = if (partitionHints != null) {
@@ -613,7 +677,6 @@ object SparkUtils extends LazyLogging {
         val fr = engine.getFeatureReader(query, Transaction.AUTO_COMMIT)
         fr.toIterator
     }.map(SparkUtils.sf2row(schema, _, extractors))
-
     result.asInstanceOf[RDD[Row]]
   }
 
@@ -648,6 +711,21 @@ object SparkUtils extends LazyLogging {
     new GenericRowWithSchema(res, schema)
   }
 
+  def joinedSf2row(schema: StructType, sf1: SimpleFeature, sf2: SimpleFeature, extractors: Array[SimpleFeature => AnyRef]): Row = {
+    val leftLength = sf1.getAttributeCount + 1
+    val res = Array.ofDim[Any](extractors.length)
+    var i = 0
+    while(i < leftLength) {
+      res(i) = extractors(i)(sf1)
+      i += 1
+    }
+    while(i < extractors.length) {
+      res(i) = extractors(i)(sf2)
+      i += 1
+    }
+    new GenericRowWithSchema(res, schema)
+  }
+
   // Since each attribute's corresponding index in the Row is fixed. Compute the mapping once
   def getSftRowNameMappings(sft: SimpleFeatureType, schema: StructType): List[(String, Int)] = {
     sft.getAttributeDescriptors.map{ ad =>
@@ -664,5 +742,31 @@ object SparkUtils extends LazyLogging {
 
     builder.userData(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     builder.buildFeature(id)
+  }
+}
+
+class OverlapAction(leftIndex: Int,
+                    rightIndex: Int,
+                    conditionFunction: (Geometry, Geometry) => Boolean) extends SweepLineOverlapAction with Serializable {
+
+  val joinList = ListBuffer[(SimpleFeature, SimpleFeature)]()
+
+  override def overlap(s0: SweepLineInterval, s1: SweepLineInterval): Unit = {
+    val (key0, feature0) = s0.getItem.asInstanceOf[(Int, SimpleFeature)]
+    val (key1, feature1) = s1.getItem.asInstanceOf[(Int, SimpleFeature)]
+    if (key0 == 0 && key1 == 1) {
+      val leftGeom = feature0.getAttribute(leftIndex).asInstanceOf[Geometry]
+      val rightGeom = feature1.getAttribute(rightIndex).asInstanceOf[Geometry]
+      if (conditionFunction(leftGeom, rightGeom)) {
+        joinList.append((feature0, feature1))
+      }
+    } else if (key0 == 1 && key1 == 0) {
+      val leftGeom = feature1.getAttribute(leftIndex).asInstanceOf[Geometry]
+      val rightGeom = feature0.getAttribute(rightIndex).asInstanceOf[Geometry]
+      if (conditionFunction(leftGeom, rightGeom)) {
+        joinList.append((feature1, feature0))
+      }
+    }
+
   }
 }

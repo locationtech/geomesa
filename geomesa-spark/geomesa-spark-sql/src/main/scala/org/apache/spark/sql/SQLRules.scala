@@ -14,12 +14,12 @@ import org.apache.spark.sql.SQLTypes._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
 import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, GenericInternalRow, LeafExpression, Literal, PredicateHelper, ScalaUDF}
-import org.apache.spark.sql.catalyst.plans.logical.{Filter, Join, LogicalPlan, Sort}
+import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
-import org.apache.spark.sql.execution.SparkPlan
+import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.types.DataType
-import org.locationtech.geomesa.spark.{GeoMesaRelation, SparkUtils}
+import org.apache.spark.sql.types.{DataType, StructType}
+import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, SparkUtils}
 import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{Filter => GTFilter}
 import scala.collection.JavaConversions._
@@ -120,25 +120,69 @@ object SQLRules extends LazyLogging {
       case _ => None
     }
 
-    override def apply(plan: LogicalPlan): LogicalPlan = {
-      println(s"Optimizer sees $plan")
-      plan.transform {
-        case inner @ Join(left@LogicalRelation(gmRelLeft: GeoMesaRelation, _, _),
-                          right@LogicalRelation(gmRelRight: GeoMesaRelation, _, _),
-                          joinType,
-                          condition) =>
-          // If one of the relations has been spatially partitioned,
-          // partition the second relation by the same grid to allow join optimizations
-          if (gmRelLeft.spatiallyPartition) {
-            val partitionEnvs = gmRelLeft.partitionEnvelopes
-            val numPartitions = gmRelLeft.numPartitions
-            gmRelRight.partitionedRDD = SparkUtils.spatiallyPartition(partitionEnvs, gmRelRight.rawRDD, numPartitions)
-            val newRight = right.copy(expectedOutputAttributes = Some(right.output), relation = gmRelRight)
-            Join(left, newRight, joinType, condition)
-          } else {
-            inner
-          }
+    // Converts a pair of GeoMesaRelations into one GeoMesaJoinRelation
+    private def alterRelation(left: GeoMesaRelation, right: GeoMesaRelation, cond: Expression): GeoMesaJoinRelation = {
+      val joinedSchema = StructType(left.schema.fields ++ right.schema.fields)
 
+      // TODO: verify that condition is a spatial scala udf first
+      GeoMesaJoinRelation(left.sqlContext, left, right, joinedSchema, cond)
+    }
+
+    // Replace the relation in a join with a GeoMesaJoin Relation
+    private def alterJoin(join: Join): LogicalPlan = {
+      join match {
+        case Join(leftLr@LogicalRelation(leftRel: GeoMesaRelation, _, _),
+                  rightLr@LogicalRelation(rightRel: GeoMesaRelation, _, _),
+                  joinType,
+                  condition) =>
+          if (leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
+            if (leftRel.partitionEnvelopes != rightRel.partitionEnvelopes) {
+              logger.warn("Joining across two relations that are not partitioned by the same scheme. Unable to optimize")
+              join
+            } else {
+              val joinRelation = alterRelation(leftRel, rightRel, condition.get)
+              val newLogicalRelLeft = leftLr.copy(expectedOutputAttributes = Some(leftLr.output ++ rightLr.output), relation = joinRelation)
+              val newRight = rightLr.copy(expectedOutputAttributes = Some(rightLr.output ++ leftLr.output), relation = joinRelation)
+              Join(newLogicalRelLeft, newRight, joinType, condition)
+            }
+          } else {
+            join
+          }
+        case Join(leftProject@Project(leftProjectList,leftLr@LogicalRelation(leftRel: GeoMesaRelation, _, _)),
+                  rightProject@Project(rightProjectList,rightLr@LogicalRelation(rightRel: GeoMesaRelation, _, _)),
+                  joinType,
+                  condition) =>
+          if (leftRel.spatiallyPartition) {
+            if (leftRel.partitionEnvelopes != rightRel.partitionEnvelopes) {
+              logger.warn("Joining across two relations that are not partitioned by the same scheme. Unable to optimize")
+              join
+            } else {
+              val joinRelation = alterRelation(leftRel, rightRel, condition.get)
+              val newLogicalRelLeft = leftLr.copy(expectedOutputAttributes = Some(leftLr.output ++ rightLr.output), relation = joinRelation)
+              val newProjectLeft = leftProject.copy(projectList = leftProjectList, child = newLogicalRelLeft)
+              val newLogicalRelRight = rightLr.copy(expectedOutputAttributes = Some(rightLr.output ++ leftLr.output), relation = joinRelation)
+              val newProjectRight = rightProject.copy(projectList = rightProjectList, child = newLogicalRelRight)
+
+              Join(newProjectLeft, newProjectRight, joinType, condition)
+            }
+          } else {
+            join
+          }
+        case _ => join
+      }
+    }
+
+    override def apply(plan: LogicalPlan): LogicalPlan = {
+      logger.debug(s"Optimizer sees $plan")
+      plan.transform {
+        case agg @ Aggregate(aggregateExpressions,groupingExpressions, Project(projectList, join: Join)) =>
+          val alteredJoin = alterJoin(join)
+          Aggregate(aggregateExpressions, groupingExpressions, Project(projectList, alteredJoin))
+        case agg @ Aggregate(aggregateExpressions,groupingExpressions, join: Join) =>
+          val alteredJoin = alterJoin(join)
+          Aggregate(aggregateExpressions, groupingExpressions, alteredJoin)
+        case join: Join =>
+          alterJoin(join)
         case sort @ Sort(_, _, _) => sort    // No-op.  Just realizing what we can do:)
         case filt @ Filter(f, lr@LogicalRelation(gmRel: GeoMesaRelation, _, _)) =>
           // TODO: deal with `or`
@@ -157,9 +201,7 @@ object SQLRules extends LazyLogging {
           }
 
           val partitionHints = if (gmRel.spatiallyPartition) {
-            val hint = scalaUDFs.flatMap{e => extractGridId(gmRel.partitionEnvelopes, e) }.flatten
-            println(s"\t setting partition hint to $hint")
-            hint
+            scalaUDFs.flatMap{e => extractGridId(gmRel.partitionEnvelopes, e) }.flatten
           } else {
             null
           }
@@ -167,7 +209,6 @@ object SQLRules extends LazyLogging {
           if (gtFilters.nonEmpty) {
             val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt), partitionHints = partitionHints)
             val newrel = lr.copy(expectedOutputAttributes = Some(lr.output), relation = relation)
-
             if (sFilters.nonEmpty) {
               Filter(sFilters.reduce(And), newrel)
             } else {
@@ -202,19 +243,28 @@ object SQLRules extends LazyLogging {
     }
   }
 
+  // A catch for when we are able to precompute the join using the sweepline algorithm.
+  // Skips doing a full cartesian product with catalyst.
   object SpatialJoinStrategy extends Strategy {
-    import org.apache.spark.sql.catalyst.plans._
 
     import org.apache.spark.sql.catalyst.plans.logical._
 
+    def alterJoin(logicalPlan: Join): Seq[SparkPlan] = {
+      logicalPlan.left match {
+        case Project(projectList, lr@LogicalRelation(gmRel: GeoMesaJoinRelation, _, _)) =>
+          ProjectExec(projectList, planLater(lr)) :: Nil
+        case lr@LogicalRelation(gmRel: GeoMesaJoinRelation, _, _) =>
+          planLater(lr) :: Nil
+        case _ => Nil
+      }
+    }
+
     override def apply(plan: LogicalPlan): Seq[SparkPlan] = plan match {
       //TODO: handle other kinds of joins
-      case logical.Join(left@LogicalRelation(gmRelLeft: GeoMesaRelation, _, _), right, joinType@Inner, condition) =>
-        if (gmRelLeft.spatiallyPartition) {
-          PartitionedJoinExec(planLater(left), planLater(right), condition) :: Nil
-        } else {
-          Nil
-        }
+      case Project(_, logicalPlan: Join) =>
+        alterJoin(logicalPlan)
+      case join: Join =>
+        alterJoin(join)
       case _ => Nil
     }
   }
