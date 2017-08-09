@@ -1135,5 +1135,36 @@ class JsonConverterTest extends Specification {
       ec.counter.getSuccess mustEqual 0
       ec.counter.getFailure mustEqual 1
     }
+
+    "parse geojson geometries" >> {
+      // geojson examples from wikipedia
+      val sft = SimpleFeatureTypes.createType("geojson", "*geom:Geometry:srid=4326")
+      val input = Seq(
+        """{ "type":"Feature","geometry":{"type":"Point","coordinates":[30,10]}}""",
+        """{ "type":"Feature","geometry":{"type":"LineString","coordinates":[[30,10],[10,30],[40,40]]}}""",
+        """{ "type":"Feature","geometry":{"type":"Polygon","coordinates":[[[30,10],[40,40],[20,40],[10,20],[30,10]]]}}""",
+        """{ "type":"Feature","geometry":{"type":"Polygon","coordinates":[[[35,10],[45,45],[15,40],[10,20],[35,10]],[[20,30],[35,35],[30,20],[20,30]]]}}""",
+        """{ "type":"Feature","geometry":{"type":"MultiPoint","coordinates":[[10,40],[40,30],[20,20],[30,10]]}}""",
+        """{ "type":"Feature","geometry":{"type":"MultiLineString","coordinates":[[[10,10],[20,20],[10,40]],[[40,40],[30,30],[40,20],[30,10]]]}}""",
+        """{ "type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[30,20],[45,40],[10,40],[30,20]]],[[[15,5],[40,10],[10,20],[5,10],[15,5]]]]}}""",
+        """{ "type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[40,40],[20,45],[45,30],[40,40]]],[[[20,35],[10,30],[10,10],[30,5],[45,20],[20,35]],[[30,20],[20,15],[20,25],[30,20]]]]}}"""
+      )
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   id-field = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "geom", json-type = "geometry",  path = "$.geometry" }
+          |   ]
+          | }
+        """.stripMargin)
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val ec = converter.createEvaluationContext()
+      val features = converter.processInput(input.iterator, ec).toList
+      features must haveLength(8)
+      forall(features)(_.getDefaultGeometry must not(beNull))
+    }
   }
 }
