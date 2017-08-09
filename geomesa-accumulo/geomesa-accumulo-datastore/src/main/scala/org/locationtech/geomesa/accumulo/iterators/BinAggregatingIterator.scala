@@ -92,7 +92,8 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
           setDate(sf, dtg)
         }
         override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit =
-          apply(trackId, lat, lon, dtg)
+          throw new IllegalStateException("Precomputed BIN values should only have 16 bytes, " +
+              "but found 24 bytes with label")
       }
       (_) => {
         val row = source.getTopKey.getRow
@@ -106,7 +107,8 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
         override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit =
           sf.setAttribute(trackIndex, Int.box(trackId))
         override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit =
-          sf.setAttribute(trackIndex, Int.box(trackId))
+          throw new IllegalStateException("Precomputed BIN values should only have 16 bytes, " +
+              "but found 24 bytes with label")
       }
       if (dedupe) {
         (_) => {
