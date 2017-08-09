@@ -8,13 +8,17 @@
 
 package org.locationtech.geomesa.index.iterators
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-trait StatsScan extends AggregatingScan[Stat] {
+import scala.util.control.NonFatal
+
+trait StatsScan extends AggregatingScan[Stat] with LazyLogging {
+
   import org.locationtech.geomesa.index.iterators.StatsScan.Configuration._
 
   var serializer: StatSerializer = _
@@ -28,7 +32,11 @@ trait StatsScan extends AggregatingScan[Stat] {
     Stat(finalSft, options(STATS_STRING_KEY))
   }
 
-  override protected def aggregateResult(sf: SimpleFeature, result: Stat): Unit = result.observe(sf)
+  override protected def aggregateResult(sf: SimpleFeature, result: Stat): Unit = {
+    try { result.observe(sf) } catch {
+      case NonFatal(e) => logger.warn(s"Error observing feature $sf", e)
+    }
+  }
 
   // encode the result as a byte array
   override protected def encodeResult(result: Stat): Array[Byte] = serializer.serialize(result)
