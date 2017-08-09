@@ -479,6 +479,7 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "render SFTs as config again" >> {
+      import scala.collection.JavaConverters._
       val conf = ConfigFactory.parseString(
         """
           |{
@@ -518,9 +519,25 @@ class SimpleFeatureTypesTest extends Specification {
       getFieldOpts("geom") must havePairs("name" -> "geom", "type" -> "Point",
         "srid" -> "4326", "default" -> "true")
 
-      val userdata = typeConf.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
+      val userdata = typeConf.getConfig(SimpleFeatureSpecConfig.UserDataPath).root.unwrapped().asScala
       userdata must havePairs("geomesa.one" -> "true", "geomesa.two" -> "two")
+    }
 
+    "render sfts as config with table sharing" >> {
+      import scala.collection.JavaConverters._
+      val sft = SimpleFeatureTypes.createType("geolife",
+        "userId:String,trackId:String,altitude:Double,dtg:Date,*geom:Point:srid=4326;" +
+            "geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3'," +
+            "geomesa.table.sharing.prefix='\\u0001'")
+      val config = SimpleFeatureTypes.toConfig(sft, includePrefix = false)
+      config.hasPath(SimpleFeatureSpecConfig.UserDataPath) must beTrue
+      val userData = config.getConfig(SimpleFeatureSpecConfig.UserDataPath)
+      userData.root.unwrapped().asScala mustEqual Map(
+        "geomesa.index.dtg" -> "dtg",
+        "geomesa.indices" -> "z3:4:3,z2:3:3,records:2:3",
+        "geomesa.table.sharing" -> "true",
+        "geomesa.table.sharing.prefix" -> "\u0001"
+      )
     }
   }
 

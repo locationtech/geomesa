@@ -322,7 +322,8 @@ object RichSimpleFeatureType {
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
 
-    def getKeywords: Set[String] = userData[String](KEYWORDS_KEY).getOrElse("").split(KEYWORDS_DELIMITER).toSet
+    def getKeywords: Set[String] =
+      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).getOrElse(Set.empty)
 
     def addKeywords(keywords: Set[String]): Unit =
       sft.getUserData.put(KEYWORDS_KEY, getKeywords.union(keywords).mkString(KEYWORDS_DELIMITER))

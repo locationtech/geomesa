@@ -84,9 +84,8 @@ object SimpleFeatureSpecConfig {
       val toConvert = keywords ++ sft.getUserData.collect {
         case (k, v) if v != null && prefixes.exists(k.toString.startsWith) && k != KEYWORDS_KEY => (k.toString, v)
       }
-      val userData = ConfigFactory.parseMap(toConvert)
-
-      base.withValue(UserDataPath, userData.root())
+      val userData = ConfigValueFactory.fromMap(toConvert)
+      base.withValue(UserDataPath, userData)
     } else {
       base
     }
