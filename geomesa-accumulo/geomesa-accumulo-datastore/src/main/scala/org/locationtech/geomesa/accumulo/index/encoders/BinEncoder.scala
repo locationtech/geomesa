@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index.encoders
 import java.util.Date
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
+import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteArrayCallback
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -37,7 +37,8 @@ class BinEncoder(sft: SimpleFeatureType, trackIdField: String) {
     val dtg = getDtg(sf)
     val trackIdVal = sf.getAttribute(trackIdIndex)
     val trackId = if (trackIdVal == null) { 0 } else { trackIdVal.hashCode }
-    Convert2ViewerFunction.encodeToByteArray(BasicValues(lat, lon, dtg, trackId))
+    ByteArrayCallback.apply(trackId, lat, lon, dtg)
+    ByteArrayCallback.result
   }
 
   private def getLatLonPoints(sf: SimpleFeature): (Float, Float) = {

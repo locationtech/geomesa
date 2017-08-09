@@ -13,7 +13,7 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.security.visibility.Authorizations
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex

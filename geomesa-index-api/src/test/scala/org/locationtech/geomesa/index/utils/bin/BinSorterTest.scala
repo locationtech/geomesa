@@ -14,7 +14,8 @@ import java.util.{Arrays, Date}
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -39,13 +40,13 @@ class BinSorterTest extends Specification {
   }
 
   val out = new ByteArrayOutputStream(16 * features.length)
+  val callback = new ByteStreamCallback(out)
   features.foreach { f =>
-    val values =
-      BasicValues(f.getDefaultGeometry.asInstanceOf[Point].getY.toFloat,
-        f.getDefaultGeometry.asInstanceOf[Point].getX.toFloat,
-        f.getAttribute("dtg").asInstanceOf[Date].getTime,
-        f.getAttribute("name").asInstanceOf[String].hashCode)
-    Convert2ViewerFunction.encode(values, out)
+    callback.apply(
+      f.getAttribute("name").asInstanceOf[String].hashCode,
+      f.getDefaultGeometry.asInstanceOf[Point].getY.toFloat,
+      f.getDefaultGeometry.asInstanceOf[Point].getX.toFloat,
+      f.getAttribute("dtg").asInstanceOf[Date].getTime)
   }
   val bin = out.toByteArray
 
@@ -53,14 +54,14 @@ class BinSorterTest extends Specification {
     "quicksort" in {
       val bytes = Arrays.copyOf(bin, bin.length)
       BinSorter.quickSort(bytes, 0, bytes.length - 16, 16)
-      val result = bytes.grouped(16).map(Convert2ViewerFunction.decode).map(_.dtg).toSeq
+      val result = bytes.grouped(16).map(BinaryOutputEncoder.decode).map(_.dtg).toSeq
       forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
     }
     "mergesort" in {
       val bytes = Arrays.copyOf(bin, bin.length).grouped(48).toSeq
       bytes.foreach(b => BinSorter.quickSort(b, 0, b.length - 16, 16))
       val result = BinSorter.mergeSort(bytes.iterator, 16).map {
-        case (b, o) => Convert2ViewerFunction.decode(b.slice(o, o + 16)).dtg
+        case (b, o) => BinaryOutputEncoder.decode(b.slice(o, o + 16)).dtg
       }
       forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
     }
@@ -71,36 +72,38 @@ class BinSorterTest extends Specification {
       BinSorter.quickSort(left, 0, left.length - 16, 16)
       BinSorter.quickSort(right, 0, right.length - 16, 16)
       val merged = BinSorter.mergeSort(left, right, 16)
-      val result = merged.grouped(16).map(Convert2ViewerFunction.decode).map(_.dtg).toSeq
+      val result = merged.grouped(16).map(BinaryOutputEncoder.decode).map(_.dtg).toSeq
       forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
     }
     "quicksort 24 byte records" in {
       val out = new ByteArrayOutputStream(24 * features.length)
+      val callback = new ByteStreamCallback(out)
       features.foreach { f =>
-        val values =
-          ExtendedValues(f.getDefaultGeometry.asInstanceOf[Point].getY.toFloat,
-            f.getDefaultGeometry.asInstanceOf[Point].getX.toFloat,
-            f.getAttribute("dtg").asInstanceOf[Date].getTime,
-            f.getAttribute("name").asInstanceOf[String].hashCode,
-            f.getAttribute("dtg").asInstanceOf[Date].getTime * 1000)
-        Convert2ViewerFunction.encode(values, out)
+        callback.apply(
+          f.getAttribute("name").asInstanceOf[String].hashCode,
+          f.getDefaultGeometry.asInstanceOf[Point].getY.toFloat,
+          f.getDefaultGeometry.asInstanceOf[Point].getX.toFloat,
+          f.getAttribute("dtg").asInstanceOf[Date].getTime,
+          f.getAttribute("dtg").asInstanceOf[Date].getTime * 1000)
       }
       val bytes = out.toByteArray
       BinSorter.quickSort(bytes, 0, bytes.length - 24, 24)
-      val result = bytes.grouped(24).map(Convert2ViewerFunction.decode).map(_.dtg).toSeq
+      val result = bytes.grouped(24).map(BinaryOutputEncoder.decode).map(_.dtg).toSeq
       forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
     }
     "quicksort edge cases" in {
       val maxLength = 8 // anything more than 8 takes too long to run
       val buffer = Array.ofDim[Byte](maxLength * 16)
-      val bins = (1 to maxLength).map(i =>
-        Convert2ViewerFunction.encodeToByteArray(BasicValues(0f, 0f, i * 1000, s"name$i".hashCode)))
+      val bins = (1 to maxLength).map { i =>
+        ByteArrayCallback.apply(s"name$i".hashCode, 0f, 0f, i * 1000)
+        ByteArrayCallback.result
+      }
       (1 to maxLength).foreach { i =>
         bins.slice(0, i).permutations.foreach { seq =>
           val right = i * 16 - 16
           seq.zipWithIndex.foreach { case (b, s) => System.arraycopy(b, 0, buffer, s * 16, 16) }
           BinSorter.quickSort(buffer, 0, right, 16)
-          val result = buffer.take(right + 16).grouped(16).map(Convert2ViewerFunction.decode).map(_.dtg).toSeq
+          val result = buffer.take(right + 16).grouped(16).map(BinaryOutputEncoder.decode).map(_.dtg).toSeq
           result must haveLength(i)
           if (result.length > 1) {
             forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))

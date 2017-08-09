@@ -22,14 +22,14 @@ import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVect
 import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, GeometryAttribute}
-import org.locationtech.geomesa.filter.function.{AxisOrder, BinaryOutputEncoder}
 import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ReadableFeatureCache
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
 import org.locationtech.geomesa.utils.stats.Stat
@@ -95,12 +95,11 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
                         sft: SimpleFeatureType,
                         hints: Hints,
                         filter: Filter): Iterator[SimpleFeature] = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     if (hints.isBinQuery) {
-      val trackId = Option(hints.getBinTrackIdField)
-      val geom = hints.getBinGeomField.orElse(Option(sft.getGeomField)).map(GeometryAttribute(_, AxisOrder.LonLat))
-      binTransform(features, sft, trackId, geom, hints.getBinDtgField, hints.getBinLabelField)
+      val trackId = Option(hints.getBinTrackIdField).map(sft.indexOf)
+      val geom = hints.getBinGeomField.map(sft.indexOf)
+      val dtg = hints.getBinDtgField.map(sft.indexOf)
+      binTransform(features, sft, trackId, geom, dtg, hints.getBinLabelField.map(sft.indexOf))
     } else if (hints.isArrowQuery) {
       arrowTransform(features, sft, hints, filter)
     } else if (hints.isDensityQuery) {
@@ -120,14 +119,14 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
 
   private def binTransform(features: Iterator[SimpleFeature],
                            sft: SimpleFeatureType,
-                           trackId: Option[String],
-                           geom: Option[GeometryAttribute],
-                           dtg: Option[String],
-                           label: Option[String]): Iterator[SimpleFeature] = {
-    val encode = BinaryOutputEncoder.encodeFeatures(sft, EncodingOptions(geom, dtg, trackId, label))
+                           trackId: Option[Int],
+                           geom: Option[Int],
+                           dtg: Option[Int],
+                           label: Option[Int]): Iterator[SimpleFeature] = {
+    val encoder = BinaryOutputEncoder(sft, EncodingOptions(geom, dtg, trackId, label))
     val sf = new ScalaSimpleFeature("", BinaryOutputEncoder.BinEncodedSft, Array(null, GeometryUtils.zeroPoint))
     features.map { feature =>
-      sf.setAttribute(BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX, encode(feature))
+      sf.setAttribute(BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX, encoder.encode(feature))
       sf
     }
   }
