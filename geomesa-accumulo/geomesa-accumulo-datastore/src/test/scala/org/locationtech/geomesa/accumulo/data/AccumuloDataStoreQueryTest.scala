@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.Date
+import java.util.{Collections, Date}
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
@@ -496,38 +496,16 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         res must containTheSameElementsAs(Seq("fid-1"))
       }
 
-      query.getHints.put(QUERY_INDEX, AttributeIndex.identifier)
-      expectStrategy(AttributeIndex)
-
-      query.getHints.put(QUERY_INDEX, Z2Index.identifier)
-      expectStrategy(Z2Index)
-
-      query.getHints.put(QUERY_INDEX, Z3Index.identifier)
-      expectStrategy(Z3Index)
-
-      query.getHints.put(QUERY_INDEX, RecordIndex.identifier)
-      expectStrategy(RecordIndex)
-
-      val viewParams =  new java.util.HashMap[String, String]
-      query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, viewParams)
-
-      query.getHints.remove(QUERY_INDEX)
-      viewParams.put("QUERY_INDEX", "attr")
-      expectStrategy(AttributeIndex)
-
-      query.getHints.remove(QUERY_INDEX)
-      viewParams.put("QUERY_INDEX", "Z2")
-      expectStrategy(Z2Index)
-
-      query.getHints.remove(QUERY_INDEX)
-      viewParams.put("QUERY_INDEX", "Z3")
-      expectStrategy(Z3Index)
-
-      query.getHints.remove(QUERY_INDEX)
-      viewParams.put("QUERY_INDEX", "RECORDS")
-      expectStrategy(RecordIndex)
-
-      success
+      forall(Seq(AttributeIndex, Z2Index, Z3Index, RecordIndex)) { index =>
+        query.getHints.put(QUERY_INDEX, index.identifier)
+        expectStrategy(index)
+        query.getHints.remove(QUERY_INDEX)
+        query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, Collections.singletonMap("QUERY_INDEX", index.name))
+        expectStrategy(index)
+        query.getHints.remove(QUERY_INDEX)
+        query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, Collections.singletonMap("STRATEGY", index.name))
+        expectStrategy(index)
+      }
     }
 
     "allow for loose bounding box config" >> {

@@ -50,7 +50,8 @@ object ViewParams extends LazyLogging {
       Option(viewParams).map(_.toMap).getOrElse(Map.empty)
     }
 
-    params.foreach { case (key, value) =>
+    params.foreach { case (original, value) =>
+      val key = if (original == "STRATEGY") { "QUERY_INDEX" } else { original }
       hints.get(key) match {
         case None => logger.debug(s"Ignoring view param $key=$value")
         case Some(hint) =>
