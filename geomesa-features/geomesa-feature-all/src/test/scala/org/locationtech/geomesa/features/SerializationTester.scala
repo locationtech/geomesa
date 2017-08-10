@@ -98,7 +98,7 @@ object SerializationTester {
     }
 
     def three() = {
-      val serializer = new KryoFeatureSerializer(features(0).getType)
+      val serializer = KryoFeatureSerializer(features(0).getType)
       features.map { f =>
         val bytes = serializer.serialize(f)
         val feat = serializer.deserialize(bytes)

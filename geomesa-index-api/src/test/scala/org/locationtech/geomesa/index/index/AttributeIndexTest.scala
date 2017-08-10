@@ -140,7 +140,7 @@ class AttributeIndexTest extends Specification {
         val a = (0 until 20).map(i => r.nextInt(9).toString).mkString + "<foobar>"
         val day = i % 30
         val values = Array[AnyRef](a, f"2014-01-$day%02dT01:00:00.000Z", WKTUtils.read(s"POINT(45.0 45)") )
-        val sf = new ScalaSimpleFeature(i.toString, sft, values)
+        val sf = new ScalaSimpleFeature(sft, i.toString, values)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }

@@ -32,11 +32,11 @@ class StatsHistogramCommandTest extends Specification {
       val histogram = stat.asInstanceOf[Histogram[Geometry]]
 
       def addPoint(x: Int, y: Int): Unit = {
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT ($x $y)"))))
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x + 0.1} ${y + 0.1})"))))
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x - 0.1} ${y + 0.1})"))))
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x + 0.1} ${y - 0.1})"))))
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x - 0.1} ${y - 0.1})"))))
+        histogram.observe(new ScalaSimpleFeature(sft, "", Array(WKTUtils.read(s"POINT ($x $y)"))))
+        histogram.observe(new ScalaSimpleFeature(sft, "", Array(WKTUtils.read(s"POINT (${x + 0.1} ${y + 0.1})"))))
+        histogram.observe(new ScalaSimpleFeature(sft, "", Array(WKTUtils.read(s"POINT (${x - 0.1} ${y + 0.1})"))))
+        histogram.observe(new ScalaSimpleFeature(sft, "", Array(WKTUtils.read(s"POINT (${x + 0.1} ${y - 0.1})"))))
+        histogram.observe(new ScalaSimpleFeature(sft, "", Array(WKTUtils.read(s"POINT (${x - 0.1} ${y - 0.1})"))))
       }
 
       addPoint(0, 0)

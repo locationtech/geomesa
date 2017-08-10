@@ -34,7 +34,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
 
   // features along the lower angled part of the route, headed in the opposite direction
   val features0 = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"0$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"0$i")
     sf.setAttribute("track", "0")
     sf.setAttribute("heading", Double.box(217.3 + (r.nextDouble * 10) - 5))
     sf.setAttribute("dtg", s"2017-02-20T00:00:0$i.000Z")
@@ -45,7 +45,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
 
   // features along the upper vertical part of the route
   val features1 = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"1$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"1$i")
     sf.setAttribute("track", "1")
     sf.setAttribute("heading", Double.box((r.nextDouble * 10) - 5))
     sf.setAttribute("dtg", s"2017-02-20T00:01:0$i.000Z")
@@ -55,7 +55,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
 
   // features along the upper vertical part of the route, but with a heading off by 5-15 degrees
   val features2 = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"2$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"2$i")
     sf.setAttribute("track", "2")
     sf.setAttribute("heading", Double.box(10 + (r.nextDouble * 10) - 5))
     sf.setAttribute("dtg", s"2017-02-20T00:02:0$i.000Z")
@@ -65,7 +65,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
 
   // features headed along the upper vertical part of the route, but not close to the route
   val features3 = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"3$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"3$i")
     sf.setAttribute("track", "3")
     sf.setAttribute("heading", Double.box((r.nextDouble * 10) - 5))
     sf.setAttribute("dtg", s"2017-02-20T00:03:0$i.000Z")

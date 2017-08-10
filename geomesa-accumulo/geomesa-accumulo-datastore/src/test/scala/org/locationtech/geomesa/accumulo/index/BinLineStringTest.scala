@@ -33,14 +33,14 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
   val features =
     (0 until 10).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       val geom = s"LINESTRING(40 6$i, 40.1 6$i, 40.2 6$i, 40.3 6$i)"
       val dates = new java.util.ArrayList[Date]
       (0 until 4).map(mm => java.util.Date.from(java.time.LocalDateTime.parse(s"2010-05-07T0$i:0$mm:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))).foreach(dates.add)
       sf.setAttributes(Array[AnyRef](s"name$i", "track1", dates, s"2010-05-07T0$i:00:00.000Z", geom))
       sf
     } ++ (10 until 20).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       val geom = s"LINESTRING(40 8${i - 10}, 40.1 8${i - 10}, 40.2 8${i - 10}, 40.3 8${i - 10})"
       val dates = new java.util.ArrayList[Date]
       (0 until 4).map(mm => java.util.Date.from(java.time.LocalDateTime.parse(s"2010-05-07T0${i-10}:0$mm:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))).foreach(dates.add)

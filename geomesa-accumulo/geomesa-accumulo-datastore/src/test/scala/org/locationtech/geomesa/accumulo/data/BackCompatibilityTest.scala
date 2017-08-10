@@ -238,7 +238,7 @@ class BackCompatibilityWriter extends TestWithDataStore {
       skipped("integration")
 
       addFeatures((0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"2015-01-01T0$i:01:00.000Z")
         sf.setAttribute(2, s"POINT(-12$i 4$i)")

@@ -47,9 +47,9 @@ object SparkSQLTestUtils {
     val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
     val f = List(
-      new ScalaSimpleFeature("1", sft, initialValues = Array("true","1",parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-76.5, 38.5)))),
-      new ScalaSimpleFeature("2", sft, initialValues = Array("true","2",parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-77.0, 38.0)))),
-      new ScalaSimpleFeature("3", sft, initialValues = Array("true","3",parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-78.0, 39.0))))
+      new ScalaSimpleFeature(sft, "1", initialValues = Array("true","1",parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-76.5, 38.5)))),
+      new ScalaSimpleFeature(sft, "2", initialValues = Array("true","2",parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-77.0, 38.0)))),
+      new ScalaSimpleFeature(sft, "3", initialValues = Array("true","3",parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-78.0, 39.0))))
     )
 
     f.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
@@ -65,7 +65,7 @@ object SparkSQLTestUtils {
     ds.createSchema(sft)
 
     val features = DataUtilities.collection(points.map(x => {
-      new ScalaSimpleFeature(x._1, sft,
+      new ScalaSimpleFeature(sft, x._1,
         initialValues=Array(x._1, WKTUtils.read(x._2).asInstanceOf[Point]))
     }).toList)
 
@@ -81,7 +81,7 @@ object SparkSQLTestUtils {
     ds.createSchema(sft)
 
     val features = DataUtilities.collection(geoms.map(x => {
-      new ScalaSimpleFeature(x._1, sft,
+      new ScalaSimpleFeature(sft, x._1,
         initialValues=Array(x._1, WKTUtils.read(x._2)))
     }).toList)
 

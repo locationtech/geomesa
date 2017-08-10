@@ -73,7 +73,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     Array("bob",     30,   3, 6.0, 12.0F, false, bobGeom, bobDate, bobDate, bobFingers, List(3.0, 2.0, 5.0), "track1", geom2),
     Array("charles", null, 4, 7.0, 12.0F, false, charlesGeom, charlesDate, charlesDate, charlesFingers, List(), "track1", geom2)
   ).map { entry =>
-    val feature = new ScalaSimpleFeature(entry.head.toString, sft)
+    val feature = new ScalaSimpleFeature(sft, entry.head.toString)
     feature.setAttributes(entry.asInstanceOf[Array[AnyRef]])
     feature
   }

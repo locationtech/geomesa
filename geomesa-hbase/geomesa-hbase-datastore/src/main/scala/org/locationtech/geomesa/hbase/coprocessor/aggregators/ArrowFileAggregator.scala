@@ -23,7 +23,7 @@ class ArrowFileAggregator extends ArrowFileScan with HBaseAggregator[ArrowFileAg
 object ArrowFileAggregator {
 
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature =
-    new ScalaSimpleFeature("", ArrowEncodedSft, Array(bytes, GeometryUtils.zeroPoint))
+    new ScalaSimpleFeature(ArrowEncodedSft, "", Array(bytes, GeometryUtils.zeroPoint))
 
   def configure(sft: SimpleFeatureType,
                 index: HBaseFeatureIndexType,

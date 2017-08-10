@@ -124,7 +124,7 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
                            dtg: Option[Int],
                            label: Option[Int]): Iterator[SimpleFeature] = {
     val encoder = BinaryOutputEncoder(sft, EncodingOptions(geom, dtg, trackId, label))
-    val sf = new ScalaSimpleFeature("", BinaryOutputEncoder.BinEncodedSft, Array(null, GeometryUtils.zeroPoint))
+    val sf = new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
     features.map { feature =>
       sf.setAttribute(BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX, encoder.encode(feature))
       sf
@@ -169,7 +169,7 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
     val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
     val batchWriter = new RecordBatchUnloader(vector)
 
-    val sf = new ScalaSimpleFeature("", ArrowEncodedSft, Array(null, GeometryUtils.zeroPoint))
+    val sf = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
 
     new Iterator[SimpleFeature] {
       override def hasNext: Boolean = features.hasNext
@@ -210,7 +210,7 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
       }
     }
 
-    val sf = new ScalaSimpleFeature("", ArrowEncodedSft, Array(null, GeometryUtils.zeroPoint))
+    val sf = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
 
     new Iterator[SimpleFeature] {
       override def hasNext: Boolean = features.hasNext
@@ -245,7 +245,7 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
     val writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)
     val os = new ByteArrayOutputStream()
 
-    val sf = new ScalaSimpleFeature("", ArrowEncodedSft, Array(null, GeometryUtils.zeroPoint))
+    val sf = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
 
     new Iterator[SimpleFeature] {
       override def hasNext: Boolean = features.hasNext
@@ -272,7 +272,7 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
     val writeGeom = DensityScan.writeGeometry(sft, grid)
     features.foreach(f => writeGeom(f, getWeight(f), result))
 
-    val sf = new ScalaSimpleFeature("", DensityScan.DensitySft, Array(GeometryUtils.zeroPoint))
+    val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
     // Return value in user data so it's preserved when passed through a RetypingFeatureCollection
     sf.getUserData.put(DensityScan.DensityValueKey, DensityScan.encodeResult(result))
     Iterator(sf)
@@ -290,14 +290,14 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
     }
     toObserve.foreach(stat.observe)
     val encoded = if (encode) { KryoLazyStatsUtils.encodeStat(sft)(stat) } else { stat.toJson }
-    Iterator(new ScalaSimpleFeature("stat", KryoLazyStatsUtils.StatsSft, Array(encoded, GeometryUtils.zeroPoint)))
+    Iterator(new ScalaSimpleFeature(KryoLazyStatsUtils.StatsSft, "stat", Array(encoded, GeometryUtils.zeroPoint)))
   }
 
   private def projectionTransform(features: Iterator[SimpleFeature],
                                   transform: SimpleFeatureType,
                                   definitions: String): Iterator[SimpleFeature] = {
     val tdefs = TransformProcess.toDefinition(definitions)
-    val reusableSf = new ScalaSimpleFeature("", transform)
+    val reusableSf = new ScalaSimpleFeature(transform, "")
     var i = 0
     features.map { feature =>
       reusableSf.setId(feature.getID)

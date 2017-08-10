@@ -49,8 +49,8 @@ class DelimitedExportImportTest extends Specification {
 
       val sft = SimpleFeatureTypes.createType("tools", "name:String,dtg:Date,*geom:Point:srid=4326")
       val features = List(
-        new ScalaSimpleFeature("1", sft, Array("name1", dt1, pt1)),
-        new ScalaSimpleFeature("2", sft, Array("name2", dt2, pt2))
+        new ScalaSimpleFeature(sft, "1", Array("name1", dt1, pt1)),
+        new ScalaSimpleFeature(sft, "2", Array("name2", dt2, pt2))
       )
       val fc = new ListFeatureCollection(sft, features)
 
@@ -90,8 +90,8 @@ class DelimitedExportImportTest extends Specification {
       val sft = SimpleFeatureTypes.createType("tools",
         "name:String,fingers:List[Int],toes:Map[String,Int],dtg:Date,*geom:Point:srid=4326")
       val features = List(
-        new ScalaSimpleFeature("1", sft, Array("name1", List(1, 2).asJava, Map("one" -> 1, "1" -> 0).asJava, dt1, pt1)),
-        new ScalaSimpleFeature("2", sft, Array("name2", List(2, 1).asJava, Map("two" -> 2, "2" -> 0).asJava, dt1, pt1))
+        new ScalaSimpleFeature(sft, "1", Array("name1", List(1, 2).asJava, Map("one" -> 1, "1" -> 0).asJava, dt1, pt1)),
+        new ScalaSimpleFeature(sft, "2", Array("name2", List(2, 1).asJava, Map("two" -> 2, "2" -> 0).asJava, dt1, pt1))
       )
       val fc = new ListFeatureCollection(sft, features)
 

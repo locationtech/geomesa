@@ -63,7 +63,7 @@ class AvroFileRecordReader extends FileStreamRecordReader {
         override def next(): SimpleFeature = {
           val sf = reader.next()
           counter.increment(1)
-          new ScalaSimpleFeature(sf.getID, sft, sf.getAttributes.toArray)
+          new ScalaSimpleFeature(sft, sf.getID, sf.getAttributes.toArray)
         }
         override def close(): Unit = reader.close()
       }

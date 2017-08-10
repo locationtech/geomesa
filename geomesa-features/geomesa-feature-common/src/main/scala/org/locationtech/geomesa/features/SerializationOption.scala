@@ -18,6 +18,7 @@ object SerializationOption extends Enumeration {
   val WithUserData = Value
   val WithoutId = Value
   val Immutable = Value
+  val Lazy = Value
 
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
@@ -32,6 +33,8 @@ object SerializationOption extends Enumeration {
     def withoutId: Boolean = options.contains(WithoutId)
 
     def immutable: Boolean = options.contains(Immutable)
+
+    def isLazy: Boolean = options.contains(Lazy)
   }
 
   object SerializationOptions {
@@ -52,7 +55,9 @@ object SerializationOption extends Enumeration {
       def immutable: Builder = { options.add(Immutable); this }
       def withUserData: Builder = { options.add(WithUserData); this }
       def withoutId: Builder = { options.add(WithoutId); this }
-      def build(): Set[SerializationOption] = options.toSet
+      def `lazy`: Builder = { options.add(Lazy); this }
+
+      def build: Set[SerializationOption] = options.toSet
     }
   }
 }

@@ -51,7 +51,7 @@ object KryoLazyDensityIterator extends LazyLogging {
    * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
    */
   def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", DensityScan.DensitySft)
+    val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "")
     sf.setAttribute(0, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       // Return value in user data so it's preserved when passed through a RetypingFeatureCollection

@@ -25,7 +25,7 @@ class JoinProcessTest extends Specification with TestWithMultipleSfts {
   val sft2 = createNewSchema("track:String:index=true,dtg:Date,*geom:Point:srid=4326")
 
   val features1 = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(i.toString, sft1)
+    val sf = new ScalaSimpleFeature(sft1, i.toString)
     sf.setAttribute(0, i.asInstanceOf[AnyRef])
     sf.setAttribute(1, i.asInstanceOf[AnyRef])
     sf.setAttribute(2, i.asInstanceOf[AnyRef])
@@ -35,7 +35,7 @@ class JoinProcessTest extends Specification with TestWithMultipleSfts {
   }
 
   val features2 = (0 until 100).map { i =>
-    val sf = new ScalaSimpleFeature(i.toString, sft2)
+    val sf = new ScalaSimpleFeature(sft2, i.toString)
     sf.setAttribute(0, (i / 10).asInstanceOf[AnyRef])
     sf.setAttribute(1, "2015-01-01T00:00:00.000Z")
     sf.setAttribute(2, "POINT(0 0)")

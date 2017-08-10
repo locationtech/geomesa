@@ -45,11 +45,11 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
   val ff = CommonFactoryFinder.getFilterFactory2
 
   def createFeature(sft: SimpleFeatureType) =
-    Seq(new ScalaSimpleFeature("fid-1", sft, Array(name, date, geom)))
+    Seq(new ScalaSimpleFeature(sft, "fid-1", Array(name, date, geom)))
   def createFeature2(sft: SimpleFeatureType, attr: String) =
-    Seq(new ScalaSimpleFeature("fid-1", sft, Array(name, attr, date, geom)))
+    Seq(new ScalaSimpleFeature(sft, "fid-1", Array(name, attr, date, geom)))
   def createFeature3(sft: SimpleFeatureType) =
-    Seq(new ScalaSimpleFeature("fid-1", sft, Array(name, date, geom, new Integer(1680), new Integer(434), new Integer(112))))
+    Seq(new ScalaSimpleFeature(sft, "fid-1", Array(name, date, geom, new Integer(1680), new Integer(434), new Integer(112))))
 
   "AccumuloDataStore" should {
 
@@ -186,7 +186,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
       addFeatures(sft, {
         (0 until 5).map { i =>
-          val sf = new ScalaSimpleFeature(s"f$i", sft)
+          val sf = new ScalaSimpleFeature(sft, s"f$i")
           sf.setAttribute(0, s"trk$i")
           sf.setAttribute(1, s"label$i")
           sf.setAttribute(2, "extra")
@@ -250,7 +250,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       val sftName = sft.getTypeName
 
       val reference = (0 until 3).map { i =>
-        val sf = new ScalaSimpleFeature(s"f$i", sft)
+        val sf = new ScalaSimpleFeature(sft, s"f$i")
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:00.000Z")
         sf.setAttribute(2, s"POINT(5$i 50)")

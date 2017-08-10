@@ -59,8 +59,7 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 
   override def isAvailable: Boolean = true
 
-  override def getImplementationHints: java.util.Map[Key, _] =
-    java.util.Collections.EMPTY_MAP.asInstanceOf[java.util.Map[Key, _]]
+  override def getImplementationHints: java.util.Map[Key, _] = java.util.Collections.emptyMap()
 }
 
 object ArrowDataStoreFactory {

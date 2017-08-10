@@ -23,7 +23,7 @@ class XZConfigurationTest extends Specification with TestWithDataStore {
   val spec = "name:String,dtg:Date,*geom:Polygon:srid=4326;geomesa.xz.precision='10',geomesa.indexes.enabled='xz2,xz3'"
 
   val features = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"$i")
     sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-07T$i:00:00.000Z",
       s"POLYGON((40 3$i, 42 3$i, 42 2$i, 40 2$i, 40 3$i))"))
     sf

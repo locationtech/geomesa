@@ -52,7 +52,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
     "reduce total features returned" in {
       clearFeatures()
       val features = (0 until 150).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
@@ -69,7 +69,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
     "maintain total weight of points" in {
       clearFeatures()
       val features = (0 until 150).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
@@ -87,7 +87,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
       clearFeatures()
       val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
       val features = (0 until 150).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new Date(date + i * 60000))
@@ -107,7 +107,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
       val features = (0 until 150).toArray.map { i =>
         // space out the points very slightly around 5 primary latitudes 1 degree apart
         val lat = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new Date(date + i * 60000))

@@ -46,7 +46,7 @@ class BinAggregatingIterator
 class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 
   var decodeBin: (Array[Byte]) => SimpleFeature = _
-  var setDate: (SimpleFeature, Long) => Unit = _
+  var setDate: (Long) => Unit = _
   var writePrecomputedBin: (SimpleFeature, ByteBufferResult) => Unit = _
 
   override protected def initResult(sft: SimpleFeatureType,
@@ -61,7 +61,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
     val dedupe = options.contains(DUPE_OPT)
     val sample = options.contains(SamplingIterator.Configuration.SampleByOpt)
 
-    val sf = new ScalaSimpleFeature("", sft)
+    val sf = new ScalaSimpleFeature(sft, "")
     val gf = new GeometryFactory
 
     val index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
@@ -76,20 +76,20 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
       val geomIndex = encoding.geomField.get
       val trackIndex = encoding.trackIdField.get
       setDate = if (sft.getDescriptor(dtgIndex).getType.getBinding == classOf[Date]) {
-        (sf, long) => sf.setAttribute(dtgIndex, new Date(long))
+        (long) => sf.setAttributeNoConvert(dtgIndex, new Date(long))
       } else {
-        (sf, long) => {
+        (long) => {
           val list = new java.util.ArrayList[Date](1)
           list.add(new Date(long))
-          sf.setAttribute(dtgIndex, list)
+          sf.setAttributeNoConvert(dtgIndex, list)
         }
       }
 
       val callback = new BinaryOutputCallback() {
         override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit = {
-          sf.setAttribute(geomIndex, gf.createPoint(new Coordinate(lat, lon)))
-          sf.setAttribute(trackIndex, Int.box(trackId)) // TODO setAttributeNoConvert
-          setDate(sf, dtg)
+          sf.setAttributeNoConvert(geomIndex, gf.createPoint(new Coordinate(lat, lon)))
+          sf.setAttributeNoConvert(trackIndex, Int.box(trackId))
+          setDate(dtg)
         }
         override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit =
           throw new IllegalStateException("Precomputed BIN values should only have 16 bytes, " +
@@ -105,7 +105,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
       val trackIndex = encoding.trackIdField.get
       val callback = new BinaryOutputCallback() {
         override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit =
-          sf.setAttribute(trackIndex, Int.box(trackId))
+          sf.setAttributeNoConvert(trackIndex, Int.box(trackId))
         override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit =
           throw new IllegalStateException("Precomputed BIN values should only have 16 bytes, " +
               "but found 24 bytes with label")
@@ -236,7 +236,7 @@ object BinAggregatingIterator extends LazyLogging {
    * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
    */
   def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", BinaryOutputEncoder.BinEncodedSft)
+    val sf = new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, "")
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       sf.setAttribute(BIN_ATTRIBUTE_INDEX, e.getValue.get())
@@ -271,7 +271,7 @@ object BinAggregatingIterator extends LazyLogging {
       (e: Entry[Key, Value]) => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
-        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, values)
+        new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, deserialized.getID, values)
       }
     } else {
       val getId = index.getIdFromRow(sft)
@@ -281,7 +281,7 @@ object BinAggregatingIterator extends LazyLogging {
         val row = e.getKey.getRow
         deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
         val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
-        new ScalaSimpleFeature(deserialized.getID, BinaryOutputEncoder.BinEncodedSft, values)
+        new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, deserialized.getID, values)
       }
     }
   }

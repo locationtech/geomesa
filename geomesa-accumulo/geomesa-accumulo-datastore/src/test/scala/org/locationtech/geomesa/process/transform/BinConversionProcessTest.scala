@@ -32,7 +32,7 @@ class BinConversionProcessTest extends TestWithDataStore {
   val process = new BinConversionProcess
 
   val features = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"0$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"0$i")
     sf.setAttribute("name", s"name$i")
     sf.setAttribute("track", s"$i")
     sf.setAttribute("dtg", s"2017-02-20T00:00:0$i.000Z")

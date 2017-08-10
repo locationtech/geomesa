@@ -64,14 +64,14 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
         sf.setAttribute(3, "POINT(-77 38)")
         sf
       }  :+ {
-        val sf2 = new ScalaSimpleFeature("200", sft)
+        val sf2 = new ScalaSimpleFeature(sft, "200")
         sf2.setAttribute(0, "200")
         sf2.setAttribute(1, "1.0")
         sf2.setAttribute(2, new DateTime("2010-01-01T19:00:00", DateTimeZone.UTC).toDate)
@@ -91,7 +91,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
@@ -112,7 +112,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
@@ -134,7 +134,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
       val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
       val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new Date(date + i * 60000))
@@ -158,7 +158,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       val toAdd = (0 until 150).map { i =>
         // space out the points very slightly around 5 primary latitudes 1 degree apart
         val lat = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new Date(date + i * 60000))

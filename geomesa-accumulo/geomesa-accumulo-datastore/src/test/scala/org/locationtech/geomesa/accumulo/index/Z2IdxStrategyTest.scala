@@ -39,15 +39,15 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
 
   val features =
     (0 until 10).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](s"name$i", "track1", s"2010-05-07T0$i:00:00.000Z", s"POINT(40 6$i)"))
       sf
     } ++ (10 until 20).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](s"name$i", "track2", s"2010-05-${i}T$i:00:00.000Z", s"POINT(40 6${i - 10})"))
       sf
     } ++ (20 until 30).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](s"name$i", "track3", s"2010-05-${i}T${i-10}:00:00.000Z", s"POINT(40 8${i - 20})"))
       sf
     }

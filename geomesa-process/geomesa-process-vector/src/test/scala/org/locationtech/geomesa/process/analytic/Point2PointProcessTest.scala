@@ -33,11 +33,11 @@ class Point2PointProcessTest extends Specification {
   sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
 
   val points1 = (1 to 5).map( i => WKTUtils.read(s"POINT($i $i)").asInstanceOf[Point]).zip(1 to 5).map { case (p, i) =>
-    new ScalaSimpleFeature(s"first$i", sft, Array[AnyRef]("first", p, sdf.parse(s"2015-08-$i")))
+    new ScalaSimpleFeature(sft, s"first$i", Array[AnyRef]("first", p, sdf.parse(s"2015-08-$i")))
   }
 
   val points2 = (6 to 10).reverse.map( i => WKTUtils.read(s"POINT($i $i)").asInstanceOf[Point]).zip(1 to 5).map { case (p, i) =>
-    new ScalaSimpleFeature(s"second$i", sft, Array[AnyRef]("second", p, sdf.parse(s"2015-08-$i")))
+    new ScalaSimpleFeature(sft, s"second$i", Array[AnyRef]("second", p, sdf.parse(s"2015-08-$i")))
   }
 
   val p2p = new Point2PointProcess

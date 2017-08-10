@@ -29,7 +29,7 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class GeoToolsSpatialRDDProviderTest extends Specification {
 
-  var sc: SparkContext = null
+  var sc: SparkContext = _
 
   step {
     val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
@@ -65,12 +65,12 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
     val parseDate = ISODateTimeFormat.basicDateTime().parseDateTime _
     val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
     val features = List(
-      new ScalaSimpleFeature("1", chicagoSft, initialValues = Array("true", new Integer(1), parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-76.5, 38.5)))),
-      new ScalaSimpleFeature("2", chicagoSft, initialValues = Array("true", new Integer(2), parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-77.0, 38.0)))),
-      new ScalaSimpleFeature("3", chicagoSft, initialValues = Array("true", new Integer(3), parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-78.0, 39.0)))),
-      new ScalaSimpleFeature("4", chicagoSft, initialValues = Array("true", new Integer(4), parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-73.5, 39.5)))),
-      new ScalaSimpleFeature("5", chicagoSft, initialValues = Array("true", new Integer(5), parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-74.0, 35.5)))),
-      new ScalaSimpleFeature("6", chicagoSft, initialValues = Array("true", new Integer(6), parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-79.0, 37.5))))
+      new ScalaSimpleFeature(chicagoSft, "1", initialValues = Array("true", new Integer(1), parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-76.5, 38.5)))),
+      new ScalaSimpleFeature(chicagoSft, "2", initialValues = Array("true", new Integer(2), parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-77.0, 38.0)))),
+      new ScalaSimpleFeature(chicagoSft, "3", initialValues = Array("true", new Integer(3), parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-78.0, 39.0)))),
+      new ScalaSimpleFeature(chicagoSft, "4", initialValues = Array("true", new Integer(4), parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-73.5, 39.5)))),
+      new ScalaSimpleFeature(chicagoSft, "5", initialValues = Array("true", new Integer(5), parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-74.0, 35.5)))),
+      new ScalaSimpleFeature(chicagoSft, "6", initialValues = Array("true", new Integer(6), parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-79.0, 37.5))))
     )
     features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
     features

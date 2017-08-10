@@ -44,7 +44,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val track = "track1"
       val dtg = s"2010-05-07T0$i:00:00.000Z"
       val geom = s"POINT(4$i 60)"
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
       sf
     } ++ (10 until 20).map { i =>
@@ -52,7 +52,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val track = "track2"
       val dtg = s"2010-05-${i}T$i:00:00.000Z"
       val geom = s"POINT(4${i - 10} 60)"
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
       sf
     } ++ (20 until 30).map { i =>
@@ -60,7 +60,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val track = "track3"
       val dtg = s"2010-05-${i}T${i-10}:00:00.000Z"
       val geom = s"POINT(6${i - 20} 60)"
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
       sf
     }

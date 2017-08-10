@@ -53,7 +53,7 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
     val collection = new DefaultFeatureCollection()
     collection.addAll {
       (0 until 10).filter(_ % 2 == 0).map { i =>
-        val sf = new ScalaSimpleFeature(s"f$i", sft)
+        val sf = new ScalaSimpleFeature(sft, s"f$i")
         sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
         sf.setAttribute(1, s"POINT(5$i 50)")
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -84,7 +84,7 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
     val collection = new DefaultFeatureCollection()
     collection.addAll {
       (0 until 10).filter(_ % 2 == 1).map { i =>
-        val sf = new ScalaSimpleFeature(s"f$i", sft)
+        val sf = new ScalaSimpleFeature(sft, s"f$i")
         sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
         sf.setAttribute(1, s"POINT(5$i 50)")
         sf.setAttribute(2, s"$i")

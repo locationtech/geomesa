@@ -36,7 +36,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
 
   def addFeatures(sft: SimpleFeatureType): Unit = {
     addFeatures(sft, (0 until 10).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttribute("name", "fred")
       sf.setAttribute("dtg", f"2015-01-${i+1}%02dT12:00:00.000Z")
       sf.setAttribute("geom", s"POINT(-120 7$i)")

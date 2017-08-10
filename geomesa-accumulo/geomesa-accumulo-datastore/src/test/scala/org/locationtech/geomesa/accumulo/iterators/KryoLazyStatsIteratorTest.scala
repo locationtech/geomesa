@@ -31,7 +31,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
   addFeatures((0 until 150).toArray.map { i =>
     val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef],
       new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
-    val sf = new ScalaSimpleFeature(i.toString, sft)
+    val sf = new ScalaSimpleFeature(sft, i.toString)
     sf.setAttributes(attrs)
     sf
   })
