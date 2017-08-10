@@ -56,9 +56,10 @@ case object CassandraAttributeIndex
       lexicoded = new String(row, offset, nullByte - offset, StandardCharsets.UTF_8)
       offset = nullByte + 1
       val secondaryIndexLength = getSecondaryIndexKeyLength(sft)
-      if (offset + secondaryIndexLength < row.length) {
-        secondaryIndex = ByteBuffer.wrap(row, offset, secondaryIndexLength)
-        offset += secondaryIndexLength
+      if (offset < row.length) {
+        val length = math.min(secondaryIndexLength, row.length - offset)
+        secondaryIndex = ByteBuffer.wrap(row, offset, length)
+        offset += length
         if (offset < row.length) {
           featureId = new String(row, offset, row.length - offset, StandardCharsets.UTF_8)
         }
