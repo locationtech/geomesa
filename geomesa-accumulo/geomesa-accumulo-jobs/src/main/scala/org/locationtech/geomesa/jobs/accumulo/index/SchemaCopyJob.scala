@@ -153,7 +153,7 @@ class CopyMapper extends Mapper[Text, SimpleFeature, Text, SimpleFeature] {
   }
 
   override def map(key: Text, value: SimpleFeature, context: Context) {
-    context.write(text, new ScalaSimpleFeature(value.getID, sftOut, value.getAttributes.toArray))
+    context.write(text, new ScalaSimpleFeature(sftOut, value.getID, value.getAttributes.toArray))
     counter.increment(1)
   }
 }

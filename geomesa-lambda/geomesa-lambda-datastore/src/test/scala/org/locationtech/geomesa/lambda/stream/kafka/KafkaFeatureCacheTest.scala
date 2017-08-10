@@ -10,7 +10,7 @@ package org.locationtech.geomesa.lambda.stream.kafka
 
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ImmutableSimpleFeature
+import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

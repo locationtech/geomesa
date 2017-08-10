@@ -59,9 +59,9 @@ class ParquetFSTest extends Specification with AllExpectations {
       fsStorage.listFeatureTypes().size mustEqual 1
       fsStorage.listFeatureTypes().head.getTypeName mustEqual "test"
 
-      val sf1 = new ScalaSimpleFeature("1", sft, Array("first", Integer.valueOf(100), new java.util.Date, gf.createPoint(new Coordinate(25.236263, 27.436734))))
-      val sf2 = new ScalaSimpleFeature("2", sft, Array(null, Integer.valueOf(200), new java.util.Date, gf.createPoint(new Coordinate(67.2363, 55.236))))
-      val sf3 = new ScalaSimpleFeature("3", sft, Array("third", Integer.valueOf(300), new java.util.Date, gf.createPoint(new Coordinate(73.0, 73.0))))
+      val sf1 = new ScalaSimpleFeature(sft, "1", Array("first", Integer.valueOf(100), new java.util.Date, gf.createPoint(new Coordinate(25.236263, 27.436734))))
+      val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, Integer.valueOf(200), new java.util.Date, gf.createPoint(new Coordinate(67.2363, 55.236))))
+      val sf3 = new ScalaSimpleFeature(sft, "3", Array("third", Integer.valueOf(300), new java.util.Date, gf.createPoint(new Coordinate(73.0, 73.0))))
 
       val partitionSchema = fsStorage.getPartitionScheme(sft.getTypeName)
       val partitions = List(sf1, sf2, sf3).map(partitionSchema.getPartitionName)

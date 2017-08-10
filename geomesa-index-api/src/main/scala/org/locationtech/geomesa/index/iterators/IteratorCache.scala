@@ -59,7 +59,7 @@ object IteratorCache {
     // note: before the cache is populated, we might end up creating multiple objects, but it is still thread-safe
     val cached = serializerCache.get((spec, options.mkString))
     if (cached != null) { cached } else {
-      val serializer = new KryoFeatureSerializer(sft(spec), options)
+      val serializer = KryoFeatureSerializer(sft(spec), options)
       serializerCache.put((spec, options.mkString), serializer)
       serializer
     }

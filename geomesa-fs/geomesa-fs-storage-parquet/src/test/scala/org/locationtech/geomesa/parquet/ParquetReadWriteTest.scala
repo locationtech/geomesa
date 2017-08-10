@@ -64,9 +64,9 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
       val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
       val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
 
-      val sf = new ScalaSimpleFeature("1", sft, Array("first", Integer.valueOf(100),  d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
-      val sf2 = new ScalaSimpleFeature("2", sft, Array(null, Integer.valueOf(200),    d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-      val sf3 = new ScalaSimpleFeature("3", sft, Array("third", Integer.valueOf(300), d3, gf.createPoint(new Coordinate(73.0, 73.0))))
+      val sf = new ScalaSimpleFeature(sft, "1", Array("first", Integer.valueOf(100),  d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
+      val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, Integer.valueOf(200),    d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
+      val sf3 = new ScalaSimpleFeature(sft, "3", Array("third", Integer.valueOf(300), d3, gf.createPoint(new Coordinate(73.0, 73.0))))
       writer.write(sf)
       writer.write(sf2)
       writer.write(sf3)

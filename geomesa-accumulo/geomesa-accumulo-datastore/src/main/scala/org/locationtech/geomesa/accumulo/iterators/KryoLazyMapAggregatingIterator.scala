@@ -42,7 +42,7 @@ class KryoLazyMapAggregatingIterator extends KryoLazyAggregatingIterator[mutable
     val mapSft = IteratorCache.sft(mapSpec)
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
     serializer = IteratorCache.serializer(mapSpec, kryoOptions)
-    featureToSerialize = new ScalaSimpleFeature("", mapSft, Array(null, GeometryUtils.zeroPoint))
+    featureToSerialize = new ScalaSimpleFeature(mapSft, "", Array(null, GeometryUtils.zeroPoint))
     mutable.Map.empty[AnyRef, Int]
   }
 
@@ -93,7 +93,7 @@ object KryoLazyMapAggregatingIterator extends LazyLogging {
     if (maps.nonEmpty) {
       val reducedMap = sumNumericValueMutableMaps(maps.toIterable).toMap // to immutable map
       val attributes = Array(reducedMap.asJava, GeometryUtils.zeroPoint) // filler value as feature requires a geometry
-      val result = new ScalaSimpleFeature(UUID.randomUUID().toString, sft, attributes)
+      val result = new ScalaSimpleFeature(sft, UUID.randomUUID().toString, attributes)
       Iterator(result)
     } else {
       CloseableIterator.empty

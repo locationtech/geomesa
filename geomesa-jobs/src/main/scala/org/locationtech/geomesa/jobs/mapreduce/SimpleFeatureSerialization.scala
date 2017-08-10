@@ -77,7 +77,7 @@ class HadoopSimpleFeatureSerializer extends Serializer[SimpleFeature] {
     writeString(out, sft.getTypeName)
     val sftString = SimpleFeatureTypes.encodeType(sft)
     writeString(out, sftString)
-    serializers.getOrElseUpdate(s"${sft.getTypeName}:$sftString", new KryoFeatureSerializer(sft)).serialize(sf, out)
+    serializers.getOrElseUpdate(s"${sft.getTypeName}:$sftString", KryoFeatureSerializer(sft)).serialize(sf, out)
   }
 }
 
@@ -96,6 +96,6 @@ class HadoopSimpleFeatureDeserializer extends Deserializer[SimpleFeature] {
     val sftName = readString(in)
     val sftString = readString(in)
     lazy val sft = SimpleFeatureTypes.createType(sftName, sftString)
-    serializers.getOrElseUpdate(s"${sft.getTypeName}:$sftString", new KryoFeatureSerializer(sft)).deserialize(in)
+    serializers.getOrElseUpdate(s"${sft.getTypeName}:$sftString", KryoFeatureSerializer(sft)).deserialize(in)
   }
 }

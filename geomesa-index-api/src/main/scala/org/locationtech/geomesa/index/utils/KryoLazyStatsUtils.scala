@@ -72,6 +72,6 @@ object KryoLazyStatsUtils {
     decodedStats.close()
 
     val stats = if (hints.isStatsEncode) { encodeStat(sft)(sum) } else { sum.toJson }
-    CloseableIterator(Iterator(new ScalaSimpleFeature("stat", StatsSft, Array(stats, GeometryUtils.zeroPoint))))
+    CloseableIterator(Iterator(new ScalaSimpleFeature(StatsSft, "stat", Array(stats, GeometryUtils.zeroPoint))))
   }
 }

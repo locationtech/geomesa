@@ -19,13 +19,13 @@ import scala.collection.JavaConversions._
 
 class ScalaSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
-  override def createSimpleFeature(attrs: Array[AnyRef], sft: SimpleFeatureType, id: String) = {
-    val sf = new ScalaSimpleFeature(id, sft)
+  override def createSimpleFeature(attrs: Array[AnyRef], sft: SimpleFeatureType, id: String): ScalaSimpleFeature = {
+    val sf = new ScalaSimpleFeature(sft, id)
     sf.setAttributes(attrs)
     sf
   }
 
-  override def createSimpleFeautre(attrs: Array[AnyRef], descriptor: AttributeDescriptor, id: String) =
+  override def createSimpleFeautre(attrs: Array[AnyRef], descriptor: AttributeDescriptor, id: String): ScalaSimpleFeature =
     createSimpleFeature(attrs, descriptor.asInstanceOf[SimpleFeatureType], id)
 
 }

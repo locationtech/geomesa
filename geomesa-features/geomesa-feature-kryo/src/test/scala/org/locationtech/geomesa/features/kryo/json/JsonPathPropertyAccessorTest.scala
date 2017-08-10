@@ -30,13 +30,13 @@ class JsonPathPropertyAccessorTest extends Specification {
     "be available on the classpath" in {
       import scala.collection.JavaConverters._
       val accessors =
-        PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature("", sft), "$.json.foo", classOf[String], null)
+        PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature(sft, ""), "$.json.foo", classOf[String], null)
       accessors must not(beNull)
       accessors.asScala must contain(JsonPathPropertyAccessor)
     }
     "access json values in simple features" in {
       val property = ff.property("$.json.foo")
-      val sf = new ScalaSimpleFeature("", sft)
+      val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(0, """{ "foo" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
       sf.setAttribute(0, """{ "foo" : "baz" }""")
@@ -45,7 +45,7 @@ class JsonPathPropertyAccessorTest extends Specification {
 
     "access json values in simple features with spaces in the json path" in {
       val property = ff.property("""$.json.['foo path']""")
-      val sf = new ScalaSimpleFeature("", sft)
+      val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(0, """{ "foo path" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
       sf.setAttribute(0, """{ "foo path" : "baz" }""")
@@ -54,7 +54,7 @@ class JsonPathPropertyAccessorTest extends Specification {
 
     "access nested json values in simple features with a json path" in {
       val property = ff.property("""$.json.foo.bar""")
-      val sf = new ScalaSimpleFeature("", sft)
+      val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(0, """{ "foo" : { "bar" : 0 } }""")
       property.evaluate(sf) mustEqual 0
       sf.setAttribute(0, """{ "foo" : { "bar" : "baz" } }""")
@@ -63,7 +63,7 @@ class JsonPathPropertyAccessorTest extends Specification {
 
     "access non-json strings in simple features" in {
       val property = ff.property("$.s.foo")
-      val sf = new ScalaSimpleFeature("", sft)
+      val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(1, """{ "foo" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
       sf.setAttribute(1, """{ "foo" : "baz" }""")
@@ -72,27 +72,27 @@ class JsonPathPropertyAccessorTest extends Specification {
 
     "access json values in kryo serialized simple features" in {
       val property = ff.property("$.json.foo")
-      val serializer = new KryoFeatureSerializer(sft)
+      val serializer = KryoFeatureSerializer(sft)
       val sf = serializer.getReusableFeature
-      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo" : "bar" }""", null, null, null))))
+      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature(sft, "", Array("""{ "foo" : "bar" }""", null, null, null))))
       property.evaluate(sf) mustEqual "bar"
-      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo" : "baz" }""", null, null, null))))
+      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature(sft, "", Array("""{ "foo" : "baz" }""", null, null, null))))
       property.evaluate(sf) mustEqual "baz"
     }
 
     "access json values with spaces in kryo serialized simple features" in {
       val property = ff.property("$.json.['foo path']")
-      val serializer = new KryoFeatureSerializer(sft)
+      val serializer = KryoFeatureSerializer(sft)
       val sf = serializer.getReusableFeature
-      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo path" : "bar" }""", null, null, null))))
+      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature(sft, "", Array("""{ "foo path" : "bar" }""", null, null, null))))
       property.evaluate(sf) mustEqual "bar"
-      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo path" : "baz" }""", null, null, null))))
+      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature(sft, "", Array("""{ "foo path" : "baz" }""", null, null, null))))
       property.evaluate(sf) mustEqual "baz"
     }
 
     "accept json path in ECQL" in {
       val expression = ECQL.toFilter(""""$.json.foo" = 'bar'""")
-      val sf = new ScalaSimpleFeature("", sft)
+      val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(0, """{ "foo" : "bar" }""")
       expression.evaluate(sf) must beTrue
       sf.setAttribute(0, """{ "foo" : "baz" }""")
@@ -101,12 +101,12 @@ class JsonPathPropertyAccessorTest extends Specification {
 
     "return null for invalid paths" in {
       val sf0 = {
-        val sf = new ScalaSimpleFeature("", sft)
+        val sf = new ScalaSimpleFeature(sft, "")
         sf.setAttribute(0, """{ "foo" : "bar" }""")
         sf
       }
       val sf1 = {
-        val serializer = new KryoFeatureSerializer(sft)
+        val serializer = KryoFeatureSerializer(sft)
         val sf = serializer.getReusableFeature
         sf.setBuffer(serializer.serialize(sf0))
         sf

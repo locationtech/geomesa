@@ -242,7 +242,7 @@ object QueryPlanner extends LazyLogging {
             }
             descriptor.getUserData.putAll(origAttr.getUserData)
             descriptor
-          } else if (PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature("", origSFT), prop, null, null).nonEmpty) {
+          } else if (PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature(origSFT, ""), prop, null, null).nonEmpty) {
             // note: we return String as we have to use a concrete type, but the json might return anything
             val ab = new AttributeTypeBuilder().binding(classOf[String])
             ab.buildDescriptor(name, ab.buildType())

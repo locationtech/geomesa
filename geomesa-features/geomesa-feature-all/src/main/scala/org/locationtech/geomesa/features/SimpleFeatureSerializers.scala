@@ -29,7 +29,7 @@ object SimpleFeatureDeserializers {
    */
   def apply(sft: SimpleFeatureType, typ: SerializationType, options: Set[SerializationOption] = Set.empty) =
     typ match {
-      case SerializationType.KRYO => new KryoFeatureSerializer(sft, options)
+      case SerializationType.KRYO => KryoFeatureSerializer(sft, options)
       case SerializationType.AVRO => new AvroFeatureDeserializer(sft, options)
     }
 }
@@ -74,7 +74,7 @@ object SimpleFeatureSerializers {
             typ: SerializationType,
             options: Set[SerializationOption] = Set.empty): SimpleFeatureSerializer =
     typ match {
-      case SerializationType.KRYO => new KryoFeatureSerializer(sft, options)
+      case SerializationType.KRYO => KryoFeatureSerializer(sft, options)
       case SerializationType.AVRO => new AvroFeatureSerializer(sft, options)
     }
 }

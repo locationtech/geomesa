@@ -40,7 +40,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
   val sftName = sft.getTypeName
 
   val baseMillis = {
-    val sf = new ScalaSimpleFeature("", sft)
+    val sf = new ScalaSimpleFeature(sft, "")
     sf.setAttribute(3, "2016-01-04T00:00:00.000Z")
     sf.getAttribute(3).asInstanceOf[Date].getTime
   }
@@ -122,7 +122,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
       "through feature source add features" >> {
         val fs = ds.getFeatureSource(sftName)
 
-        val sf = new ScalaSimpleFeature("collection1", sft)
+        val sf = new ScalaSimpleFeature(sft, "collection1")
         sf.setAttribute(0, "gamma")
         sf.setAttribute(1, Int.box(15))
         sf.setAttribute(2, Int.box(15))
@@ -162,7 +162,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
       "through feature source set features" >> {
         val fs = ds.getFeatureSource(sftName)
 
-        val sf = new ScalaSimpleFeature("", sft)
+        val sf = new ScalaSimpleFeature(sft, "")
         sf.setAttribute(0, "0")
         sf.setAttribute(1, Int.box(10))
         sf.setAttribute(2, Int.box(10))
@@ -372,7 +372,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         val fs = dsNoStats.getFeatureSource(sftName)
 
-        val sf = new ScalaSimpleFeature("collection1", sft)
+        val sf = new ScalaSimpleFeature(sft, "collection1")
         sf.setAttribute(0, "zed")
         sf.setAttribute(1, Int.box(100))
         sf.setAttribute(2, Int.box(100))

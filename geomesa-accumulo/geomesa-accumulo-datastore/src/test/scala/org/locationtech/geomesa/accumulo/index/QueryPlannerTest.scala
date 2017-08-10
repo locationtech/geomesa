@@ -30,9 +30,9 @@ import scala.collection.JavaConversions._
 class QueryPlannerTest extends Specification with Mockito with TestWithDataStore {
 
   override val spec = "*geom:Point,dtg:Date,s:String"
-  val sf = new ScalaSimpleFeature("id", sft)
+  val sf = new ScalaSimpleFeature(sft, "id")
   sf.setAttributes(Array[AnyRef]("POINT(45 45)", "2014/10/10T00:00:00Z", "string"))
-  val sf2 = new ScalaSimpleFeature("id2", sft)
+  val sf2 = new ScalaSimpleFeature(sft, "id2")
   sf2.setAttributes(Array[AnyRef]("POINT(45 45)", "2014/10/10T00:00:00Z", "astring"))
 
   addFeatures(Seq(sf, sf2))

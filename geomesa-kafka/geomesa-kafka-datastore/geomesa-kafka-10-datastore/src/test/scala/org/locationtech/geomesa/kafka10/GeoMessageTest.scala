@@ -44,7 +44,7 @@ class GeoMessageTest extends Specification with Mockito {
   }
 
   def encodeSF(sf: SimpleFeature): Array[Byte] = {
-    val sfEncoder = new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
+    val sfEncoder = KryoFeatureSerializer(schema, SerializationOptions.withUserData)
     sfEncoder.serialize(sf)
   }
 

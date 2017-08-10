@@ -28,13 +28,13 @@ class AttributeTableTest extends Specification with TestWithDataStore {
 
   addFeatures(Seq(
     {
-      val sf = new ScalaSimpleFeature("0", sft)
+      val sf = new ScalaSimpleFeature(sft, "0")
       sf.setAttribute("geom", "POINT (45 55)")
       sf.setAttribute("dtg", "2016-01-01T12:00:00.000Z")
       sf
     },
     {
-      val sf = new ScalaSimpleFeature("1", sft)
+      val sf = new ScalaSimpleFeature(sft, "1")
       sf.setAttribute("geom", "POINT (45 55)")
       sf.setAttribute("dtg", "2016-01-01T14:00:00.000Z")
       sf

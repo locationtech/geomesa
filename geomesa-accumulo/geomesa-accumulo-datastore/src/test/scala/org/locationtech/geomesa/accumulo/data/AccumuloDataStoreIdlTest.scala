@@ -26,7 +26,7 @@ class AccumuloDataStoreIdlTest extends Specification with TestWithDataStore {
   override val spec = "dtg:Date,*geom:Point:srid=4326"
 
   addFeatures((-180 to 180).map { lon =>
-    val sf = new ScalaSimpleFeature(lon.toString, sft)
+    val sf = new ScalaSimpleFeature(sft, lon.toString)
     sf.setAttribute(0, "2015-01-01T00:00:00.000Z")
     sf.setAttribute(1, s"POINT($lon ${lon / 10})")
     sf

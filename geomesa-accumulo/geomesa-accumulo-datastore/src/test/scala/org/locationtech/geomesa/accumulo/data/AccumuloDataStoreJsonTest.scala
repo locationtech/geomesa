@@ -30,19 +30,19 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithDataStore {
     s"""{"type":"Feature","geometry":{"type":"Point","coordinates":[$x,$y]},"properties":$props}"""
   }
 
-  val sf0 = new ScalaSimpleFeature("0", sft)
+  val sf0 = new ScalaSimpleFeature(sft, "0")
   sf0.setAttribute(0, getJson(45, 60, """{"id":"zero","names":["zero","zilch","nada"]}"""))
   sf0.setAttribute(1, "POINT(45 60)")
 
-  val sf1 = new ScalaSimpleFeature("1", sft)
+  val sf1 = new ScalaSimpleFeature(sft, "1")
   sf1.setAttribute(0, getJson(45, 61, """{"id":"one","names":["solo","top dog"]}"""))
   sf1.setAttribute(1, "POINT(45 61)")
 
-  val sf2 = new ScalaSimpleFeature("2", sft)
+  val sf2 = new ScalaSimpleFeature(sft, "2")
   sf2.setAttribute(0, getJson(45, 62, """{"id":"two","characteristics":{"height":20,"weight":200}}"""))
   sf2.setAttribute(1, "POINT(45 62)")
 
-  val sf3 = new ScalaSimpleFeature("3", sft)
+  val sf3 = new ScalaSimpleFeature(sft, "3")
   sf3.setAttribute(0, getJson(45, 63, """{"id":"three","characteristics":{"height":30,"weight":300}}"""))
   sf3.setAttribute(1, "POINT(45 63)")
 

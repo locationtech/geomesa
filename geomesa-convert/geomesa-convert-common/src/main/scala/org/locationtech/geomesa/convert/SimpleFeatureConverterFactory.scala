@@ -333,7 +333,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     }
 
     val id = idBuilder.eval(t)(ec).asInstanceOf[String]
-    val sf = new ScalaSimpleFeature(id, targetSFT, sfValues)
+    val sf = new ScalaSimpleFeature(targetSFT, id, sfValues)
     userDataBuilder.foreach { case (k, v) => sf.getUserData.put(k, v.eval(t)(ec).asInstanceOf[AnyRef]) }
 
     validate(sf, ec)

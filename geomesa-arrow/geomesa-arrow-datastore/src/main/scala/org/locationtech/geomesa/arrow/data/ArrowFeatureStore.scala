@@ -76,7 +76,7 @@ class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReade
       override def hasNext: Boolean = false
 
       override def next(): SimpleFeature = {
-        feature = new ScalaSimpleFeature(featureIds.getAndIncrement().toString, writer.sft)
+        feature = new ScalaSimpleFeature(writer.sft, featureIds.getAndIncrement().toString)
         feature
       }
 

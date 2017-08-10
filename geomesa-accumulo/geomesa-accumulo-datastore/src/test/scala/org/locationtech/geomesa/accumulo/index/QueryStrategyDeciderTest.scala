@@ -51,7 +51,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         val dec = i % 100
         s"POINT (${tens + ones.toInt}.$dec 50.0)"
       }
-      val sf = new ScalaSimpleFeature(id, sft)
+      val sf = new ScalaSimpleFeature(sft, id)
       sf.setAttributes(Array(name, age, height, dtg, weight, noDtg, dtg, geom).asInstanceOf[Array[AnyRef]])
       sf
     }

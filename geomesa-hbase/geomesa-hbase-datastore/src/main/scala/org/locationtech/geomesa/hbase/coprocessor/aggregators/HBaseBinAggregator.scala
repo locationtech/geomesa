@@ -22,7 +22,7 @@ class HBaseBinAggregator extends BinAggregatingScan with HBaseAggregator[ByteBuf
 object HBaseBinAggregator {
 
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature =
-    new ScalaSimpleFeature("", BinaryOutputEncoder.BinEncodedSft, Array(bytes, GeometryUtils.zeroPoint))
+    new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, "", Array(bytes, GeometryUtils.zeroPoint))
 
   def configure(sft: SimpleFeatureType,
                 index: HBaseFeatureIndexType,

@@ -32,7 +32,7 @@ class LazySimpleFeatureTest extends Specification with LazyLogging {
       val spec = "a:Integer,c:Double,d:Long,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("testType", spec)
 
-      val sf = new ScalaSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature(sft, "fakeid")
 
       sf.setAttribute("a", "1")
       sf.setAttribute("c", "5.37")
@@ -66,7 +66,7 @@ class LazySimpleFeatureTest extends Specification with LazyLogging {
       val spec = "a:Integer,c:Double,d:Long,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("speed", spec)
 
-      val sf = new ScalaSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature(sft, "fakeid")
 
       sf.setAttribute("a", "1")
       sf.setAttribute("c", "5.37")

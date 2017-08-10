@@ -39,7 +39,7 @@ class ProximitySearchProcessTest extends Specification {
 
       List("a", "b").foreach { name =>
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = new ScalaSimpleFeature(name + i, sft)
+          val sf = new ScalaSimpleFeature(sft, name + i)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
@@ -58,7 +58,7 @@ class ProximitySearchProcessTest extends Specification {
 
       val inputFeatures = new ListFeatureCollection(sft)
       List(1, 2, 3).zip(List(p1, p2, p3)).foreach { case (i, p) =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setDefaultGeometry(p)
         sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
         sf.setAttribute("type", "fake")

@@ -56,7 +56,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
     val track = if (i < 10) "track1" else "track2"
     val dtg = f"2010-05-07T$i%02d:00:00.000Z"
     val geom = s"POINT(${i * 2} $i)"
-    val sf = new ScalaSimpleFeature(s"$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"$i")
     sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
     sf
   }

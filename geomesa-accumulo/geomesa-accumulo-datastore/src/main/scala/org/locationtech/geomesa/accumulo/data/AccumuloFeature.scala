@@ -61,8 +61,8 @@ object AccumuloFeature {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   def wrapper(sft: SimpleFeatureType, defaultVisibility: String): (SimpleFeature) => AccumuloFeature = {
-    val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-    val serializerWithId = new KryoFeatureSerializer(sft)
+    val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    val serializerWithId = KryoFeatureSerializer(sft)
     val indexSerializer = IndexValueEncoder(sft)
     val indexSerializerWithId = IndexValueEncoder(sft, includeIds = true)
     val binEncoder = BinEncoder(sft)
@@ -136,25 +136,25 @@ class AccumuloAttributeLevelFeature(val feature: SimpleFeature,
     }.toSeq
 
   override lazy val fullValues: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
-    val sf = new ScalaSimpleFeature("", sft)
+    val sf = new ScalaSimpleFeature(sft, "")
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
     new RowValue(AttributeColumnFamily, new Text(indices), vis, new Value(serializer.serialize(sf)))
   }
 
   override lazy val fullValuesWithId: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
-    val sf = new ScalaSimpleFeature("", sft)
+    val sf = new ScalaSimpleFeature(sft, "")
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
     new RowValue(AttributeColumnFamily, new Text(indices), vis, new Value(serializerWithId.serialize(sf)))
   }
 
   override lazy val indexValues: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
-    val sf = new ScalaSimpleFeature("", sft)
+    val sf = new ScalaSimpleFeature(sft, "")
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
     new RowValue(AttributeColumnFamily, new Text(indices), vis, new Value(indexSerializer.serialize(sf)))
   }
 
   override lazy val indexValuesWithId: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
-    val sf = new ScalaSimpleFeature("", sft)
+    val sf = new ScalaSimpleFeature(sft, "")
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
     new RowValue(AttributeColumnFamily, new Text(indices), vis, new Value(indexSerializerWithId.serialize(sf)))
   }

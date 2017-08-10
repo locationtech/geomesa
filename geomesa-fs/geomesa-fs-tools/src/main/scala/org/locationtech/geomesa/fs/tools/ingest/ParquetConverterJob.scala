@@ -264,7 +264,7 @@ class IngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritab
   override def setup(context: Context): Unit = {
     super.setup(context)
     val sft = ParquetConverterJob.getSimpleFeatureType(context.getConfiguration)
-    serializer = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
+    serializer = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
     partitionScheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft)
 
     written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
@@ -298,7 +298,7 @@ class DummyReducer extends Reducer[Text, BytesWritable, Void, SimpleFeature] {
   override def setup(context: Context): Unit = {
     super.setup(context)
     val sft = ParquetConverterJob.getSimpleFeatureType(context.getConfiguration)
-    serializer = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
+    serializer = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
     reduced = context.getCounter(GeoMesaOutputFormat.Counters.Group, "reduced")
   }
 

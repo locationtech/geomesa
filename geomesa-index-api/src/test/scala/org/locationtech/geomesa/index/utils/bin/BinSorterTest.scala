@@ -34,7 +34,7 @@ class BinSorterTest extends Specification {
     val dtg = new Date(r.nextInt(999999))
     val name = s"name$i"
     val geom = s"POINT(40 6$i)"
-    val sf = new ScalaSimpleFeature(s"$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"$i")
     sf.setAttributes(Array[AnyRef](name, dtg, geom))
     sf
   }

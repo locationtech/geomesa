@@ -43,7 +43,7 @@ class FileSystemDataStoreTest extends Specification {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily, ChronoUnit.DAYS, 1, "dtg", false)
 
-      val sf = new ScalaSimpleFeature("1", sft, Array("test", Integer.valueOf(100),
+      val sf = new ScalaSimpleFeature(sft, "1", Array("test", Integer.valueOf(100),
         ISODateTimeFormat.dateTime().parseDateTime("2017-06-05T04:03:02.0001Z").toDate,
         gf.createPoint(new Coordinate(10, 10))))
 
