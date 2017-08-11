@@ -67,7 +67,7 @@ At this point you are ready to create a dict of connection parameters to your Ac
         .load()
     )
 
-    df.createOrReplaceView("tbl")
+    df.createOrReplaceTempView("tbl")
     spark.sql("show tables").show()
 
     # Count features in a bounding box.
