@@ -19,9 +19,10 @@ import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.types.{DataType, StructType}
-import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, SparkUtils}
+import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils}
 import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{Filter => GTFilter}
+
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -115,8 +116,8 @@ object SQLRules extends LazyLogging {
 
     private def extractGridId(envelopes: List[Envelope], e: org.apache.spark.sql.catalyst.expressions.Expression): Option[List[Int]] = e match {
       case And(l, r) => extractGridId(envelopes, l).orElse(extractGridId(envelopes, r))
-      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(SparkUtils.gridIdMapper(geom, envelopes))
-      case GeometryLiteral(_,geom) => Some(SparkUtils.gridIdMapper(geom, envelopes))
+      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(RelationUtils.gridIdMapper(geom, envelopes))
+      case GeometryLiteral(_,geom) => Some(RelationUtils.gridIdMapper(geom, envelopes))
       case _ => None
     }
 
