@@ -262,6 +262,7 @@ case class GeoMesaRelation(sqlContext: SQLContext,
       partitionEnvelopes = partitionStrategy match {
         case "EARTH" => RelationUtils.wholeEarthPartitioning(numPartitions)
         case "EQUAL" => RelationUtils.equalPartitioning(bounds, numPartitions)
+        case "WEIGHTED" => RelationUtils.weightedPartitioning(rawRDD, bounds, numPartitions, sampleSize)
         case "RTREE" => RelationUtils.rtreePartitioning(rawRDD, numPartitions, sampleSize, thresholdMultiplier)
       }
     }
@@ -489,6 +490,31 @@ object RelationUtils extends LazyLogging {
         partitionEnvelopes += new Envelope(xPartitionStart, xPartitionEnd, yPartitionStart, yPartitionEnd)
       }
     }
+    partitionEnvelopes.toList
+  }
+
+  def weightedPartitioning(rawRDD: RDD[SimpleFeature], bound: Envelope, numPartitions: Int, sampleSize: Int): List[Envelope] = {
+    import JoinHelperUtils._
+    val width: Int = Math.sqrt(numPartitions).toInt
+    val binSize = sampleSize / width
+    val sample = rawRDD.takeSample(withReplacement = false, sampleSize)
+    val xSample = sample.map{f => f.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates.min.x}
+    val ySample = sample.map{f => f.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates.min.y}
+    val xSorted = xSample.sorted
+    val ySorted = ySample.sorted
+
+    val partitionEnvelopes: ListBuffer[Envelope] = ListBuffer()
+
+    for (xBin <- 0 until width) {
+      val minX = xSorted(xBin * binSize)
+      val maxX = xSorted(((xBin + 1) * binSize) - 1)
+      for (yBin <- 0 until width) {
+        val minY = ySorted(yBin)
+        val maxY = ySorted(((yBin + 1) * binSize) - 1)
+        partitionEnvelopes += new Envelope(minX, maxX, minY, maxY)
+      }
+    }
+
     partitionEnvelopes.toList
   }
 
