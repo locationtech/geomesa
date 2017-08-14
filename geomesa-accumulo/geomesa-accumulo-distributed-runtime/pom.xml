@@ -65,7 +65,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shade.com.fasterxml.jackson</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.accumulo.shade.com.fasterxml.jackson</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
