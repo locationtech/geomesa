@@ -71,7 +71,7 @@ public class MultiLineStringVector extends AbstractMultiLineStringVector {
 
     @Override
     protected void writeOrdinal(int index, double ordinal) {
-      mutator.set(index, ordinal);
+      mutator.setSafe(index, ordinal);
     }
   }
 

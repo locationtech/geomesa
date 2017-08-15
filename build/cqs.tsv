@@ -1,7 +1,7 @@
 asm:asm	3.1	compile
 com.adobe.xmp:xmpcore	5.1.2	compile
 com.beust:jcommander	1.48	compile
-com.carrotsearch:hppc	0.7.1	compile
+com.carrotsearch:hppc	0.7.2	compile
 com.clearspring.analytics:stream	2.9.2	compile
 com.drewnoakes:metadata-extractor	2.8.1	compile
 com.esotericsoftware.kryo:kryo	2.21	compile
@@ -118,9 +118,9 @@ org.antlr:antlr4-runtime	4.5	compile
 org.apache.accumulo:accumulo-core	1.7.2	compile
 org.apache.accumulo:accumulo-fate	1.7.2	compile
 org.apache.accumulo:accumulo-start	1.7.2	compile
-org.apache.arrow:arrow-format	0.4.0	compile
-org.apache.arrow:arrow-memory	0.4.0	compile
-org.apache.arrow:arrow-vector	0.4.0	compile
+org.apache.arrow:arrow-format	0.6.0	compile
+org.apache.arrow:arrow-memory	0.6.0	compile
+org.apache.arrow:arrow-vector	0.6.0	compile
 org.apache.avro:avro	1.7.5	compile
 org.apache.camel:camel-core	2.15.1	compile
 org.apache.camel:camel-scala	2.15.1	compile
