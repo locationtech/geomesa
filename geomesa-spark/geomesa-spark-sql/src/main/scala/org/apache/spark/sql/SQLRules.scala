@@ -124,8 +124,6 @@ object SQLRules extends LazyLogging {
     // Converts a pair of GeoMesaRelations into one GeoMesaJoinRelation
     private def alterRelation(left: GeoMesaRelation, right: GeoMesaRelation, cond: Expression): GeoMesaJoinRelation = {
       val joinedSchema = StructType(left.schema.fields ++ right.schema.fields)
-
-      // TODO: verify that condition is a spatial scala udf first
       GeoMesaJoinRelation(left.sqlContext, left, right, joinedSchema, cond)
     }
 
@@ -136,15 +134,18 @@ object SQLRules extends LazyLogging {
                   rightLr@LogicalRelation(rightRel: GeoMesaRelation, _, _),
                   joinType,
                   condition) =>
-          if (leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
+          val isSpatialUDF = condition.get match {
+            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, _, _) =>
+              true
+          }
+          if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
             if (leftRel.partitionEnvelopes != rightRel.partitionEnvelopes) {
               logger.warn("Joining across two relations that are not partitioned by the same scheme. Unable to optimize")
               join
             } else {
               val joinRelation = alterRelation(leftRel, rightRel, condition.get)
               val newLogicalRelLeft = leftLr.copy(expectedOutputAttributes = Some(leftLr.output ++ rightLr.output), relation = joinRelation)
-              val newRight = rightLr.copy(expectedOutputAttributes = Some(rightLr.output ++ leftLr.output), relation = joinRelation)
-              Join(newLogicalRelLeft, newRight, joinType, condition)
+              Join(newLogicalRelLeft, rightLr, joinType, condition)
             }
           } else {
             join
@@ -153,18 +154,19 @@ object SQLRules extends LazyLogging {
                   rightProject@Project(rightProjectList,rightLr@LogicalRelation(rightRel: GeoMesaRelation, _, _)),
                   joinType,
                   condition) =>
-          if (leftRel.spatiallyPartition) {
+          val isSpatialUDF = condition.get match {
+            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, _, _) =>
+              true
+          }
+          if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
             if (leftRel.partitionEnvelopes != rightRel.partitionEnvelopes) {
               logger.warn("Joining across two relations that are not partitioned by the same scheme. Unable to optimize")
               join
             } else {
               val joinRelation = alterRelation(leftRel, rightRel, condition.get)
               val newLogicalRelLeft = leftLr.copy(expectedOutputAttributes = Some(leftLr.output ++ rightLr.output), relation = joinRelation)
-              val newProjectLeft = leftProject.copy(projectList = leftProjectList, child = newLogicalRelLeft)
-              val newLogicalRelRight = rightLr.copy(expectedOutputAttributes = Some(rightLr.output ++ leftLr.output), relation = joinRelation)
-              val newProjectRight = rightProject.copy(projectList = rightProjectList, child = newLogicalRelRight)
-
-              Join(newProjectLeft, newProjectRight, joinType, condition)
+              val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
+              Join(newProjectLeft, rightProject, joinType, condition)
             }
           } else {
             join
@@ -252,7 +254,7 @@ object SQLRules extends LazyLogging {
 
     def alterJoin(logicalPlan: Join): Seq[SparkPlan] = {
       logicalPlan.left match {
-        case Project(projectList, lr@LogicalRelation(gmRel: GeoMesaJoinRelation, _, _)) =>
+        case project@Project(projectList, lr@LogicalRelation(gmRel: GeoMesaJoinRelation, _, _)) =>
           ProjectExec(projectList, planLater(lr)) :: Nil
         case lr@LogicalRelation(gmRel: GeoMesaJoinRelation, _, _) =>
           planLater(lr) :: Nil

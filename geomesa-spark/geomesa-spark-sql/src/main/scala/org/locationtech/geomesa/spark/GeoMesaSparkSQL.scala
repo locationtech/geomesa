@@ -316,7 +316,11 @@ case class GeoMesaJoinRelation(sqlContext: SQLContext,
 
   // Uses sweep-line algorithm to join a spatially partitioned RDD
   def sweeplineJoin(overlapAction: OverlapAction): RDD[(Int, (SimpleFeature, SimpleFeature))] = {
-    import JoinHelperUtils._
+
+    implicit val CoordinateOrdering: Ordering[Coordinate] =
+      Ordering.by {
+        case (c: Coordinate) => c.x
+      }
 
     val partitionPairs = leftRel.partitionedRDD.join(rightRel.partitionedRDD)
 
@@ -384,8 +388,7 @@ object RelationUtils extends LazyLogging {
   }
 
   def index(encodedSft: String, typeName: String, rdd: RDD[SimpleFeature], indexId: Boolean, indexGeom: Boolean): RDD[GeoCQEngineDataStore] = {
-    rdd.mapPartitions {
-      iter =>
+    rdd.mapPartitions { iter =>
         val sft = SimpleFeatureTypes.createType(typeName,encodedSft)
         val engineStore = RelationUtils.indexIterator(sft, indexId, indexGeom)
         val engine = engineStore.namesToEngine(typeName)
@@ -399,8 +402,6 @@ object RelationUtils extends LazyLogging {
                        rdd: RDD[(Int, Iterable[SimpleFeature])],
                        indexId: Boolean,
                        indexGeom: Boolean): RDD[(Int, GeoCQEngineDataStore)] = {
-
-
     rdd.mapValues { iter =>
       val sft = SimpleFeatureTypes.createType(typeName,encodedSft)
       val engineStore = RelationUtils.indexIterator(sft, indexId, indexGeom)
@@ -494,7 +495,10 @@ object RelationUtils extends LazyLogging {
   }
 
   def weightedPartitioning(rawRDD: RDD[SimpleFeature], bound: Envelope, numPartitions: Int, sampleSize: Int): List[Envelope] = {
-    import JoinHelperUtils._
+    implicit val CoordinateOrdering: Ordering[Coordinate] =
+      Ordering.by {
+        case (c: Coordinate) => c.x
+      }
     val width: Int = Math.sqrt(numPartitions).toInt
     val binSize = sampleSize / width
     val sample = rawRDD.takeSample(withReplacement = false, sampleSize)
@@ -659,11 +663,12 @@ object RelationUtils extends LazyLogging {
     val filterString = ECQL.toCQL(compiledCQL)
 
     // If keys were derived from query, go straight to those partitions
-    val reducedRdd = if (partitionHints != null) {
-      indexPartRDD.filter {case (key, _) => partitionHints.contains(key) }
-    } else {
-      indexPartRDD
-    }
+    val reducedRdd = indexPartRDD
+//      if (partitionHints != null) {
+//      indexPartRDD.filter {case (key, _) => partitionHints.contains(key) }
+//    } else {
+//      indexPartRDD
+//    }
 
     val extractors = SparkUtils.getExtractors(requiredColumns, schema)
 
@@ -671,10 +676,10 @@ object RelationUtils extends LazyLogging {
 
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val result = reducedRdd.flatMap { case (key, engine) =>
-        val cqlFilter = ECQL.toFilter(filterString)
-        val query = new Query(params(GEOMESA_SQL_FEATURE), cqlFilter, requiredAttributes)
-        val fr = engine.getFeatureReader(query, Transaction.AUTO_COMMIT)
-        fr.toIterator
+      val cqlFilter = ECQL.toFilter(filterString)
+      val query = new Query(params(GEOMESA_SQL_FEATURE), cqlFilter, requiredAttributes)
+      val fr = engine.getFeatureReader(query, Transaction.AUTO_COMMIT)
+      fr.toIterator
     }.map(SparkUtils.sf2row(schema, _, extractors))
     result.asInstanceOf[RDD[Row]]
   }
