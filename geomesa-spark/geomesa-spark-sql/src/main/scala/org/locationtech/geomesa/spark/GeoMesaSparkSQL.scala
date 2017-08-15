@@ -663,12 +663,11 @@ object RelationUtils extends LazyLogging {
     val filterString = ECQL.toCQL(compiledCQL)
 
     // If keys were derived from query, go straight to those partitions
-    val reducedRdd = indexPartRDD
-//      if (partitionHints != null) {
-//      indexPartRDD.filter {case (key, _) => partitionHints.contains(key) }
-//    } else {
-//      indexPartRDD
-//    }
+    val reducedRdd =  if (partitionHints != null) {
+      indexPartRDD.filter {case (key, _) => partitionHints.contains(key) }
+    } else {
+      indexPartRDD
+    }
 
     val extractors = SparkUtils.getExtractors(requiredColumns, schema)
 

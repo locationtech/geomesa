@@ -254,7 +254,7 @@ object SQLRules extends LazyLogging {
 
     def alterJoin(logicalPlan: Join): Seq[SparkPlan] = {
       logicalPlan.left match {
-        case project@Project(projectList, lr@LogicalRelation(gmRel: GeoMesaJoinRelation, _, _)) =>
+        case Project(projectList, lr@LogicalRelation(gmRel: GeoMesaJoinRelation, _, _)) =>
           ProjectExec(projectList, planLater(lr)) :: Nil
         case lr@LogicalRelation(gmRel: GeoMesaJoinRelation, _, _) =>
           planLater(lr) :: Nil
