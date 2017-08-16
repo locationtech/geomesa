@@ -17,61 +17,74 @@
     <packaging>pom</packaging>
 
     <artifactId>geomesa-kafka-dist_2.11</artifactId>
-    <name>GeoMesa Kafka Distributions Parent</name>
+    <name>GeoMesa Kafka Distribution</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <gmtools.dist.name>GEOMESA_KAKFA</gmtools.dist.name> <!-- used in tools filtering -->
     </properties>
 
-    <modules>
-        <module>geomesa-kafka-08-dist</module>
-        <module>geomesa-kafka-09-dist</module>
-        <module>geomesa-kafka-10-dist</module>
-    </modules>
-
     <dependencies>
-        <!-- These jars will be included in all Kafka dist lib dirs -->
+
+        <!-- Kafka Tools -->
         <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <scope>compile</scope>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-kafka-tools_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
+            <classifier>data</classifier>
+        </dependency>
+
+        <!-- Kafka Datastore -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-kafka-datastore_${scala.binary.version}</artifactId>
+        </dependency>
+
+        <!-- GeoServer Plugins -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-kafka-gs-plugin_${scala.binary.version}</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
+        </dependency>
+
     </dependencies>
 
-
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <executions>
-                        <execution>
-                            <id>binary-assembly</id>
-                            <goals>
-                                <goal>single</goal>
-                            </goals>
-                            <phase>package</phase>
-                            <configuration>
-                                <attach>true</attach>
-                                <tarLongFileMode>posix</tarLongFileMode>
-                                <descriptors>
-                                    <descriptor>${project.basedir}/../assemblies/binary-release.xml</descriptor>
-                                </descriptors>
-                                <delimiters>
-                                    <delimiter>%%</delimiter>
-                                </delimiters>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>binary-assembly</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <attach>true</attach>
+                            <finalName>geomesa-kafka_${scala.binary.version}-${project.version}</finalName>
+                            <tarLongFileMode>posix</tarLongFileMode>
+                            <descriptors>
+                                <descriptor>src/main/assemblies/binary-release.xml</descriptor>
+                            </descriptors>
+                            <delimiters>
+                                <delimiter>%%</delimiter>
+                            </delimiters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
-</project>
 
+</project>

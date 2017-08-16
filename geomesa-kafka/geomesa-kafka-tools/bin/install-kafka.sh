@@ -7,14 +7,17 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-kafka_major_version="%%kafka.maj.version%%"
+kafka_version="%%kafka.version%%"
+zkclient_version="%%zkclient.version%%"
+zookeeper_version="%%zookeeper.version%%"
+jopt_version="%%jopt.version%%"
 
 declare -a urls=(
-  "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka_2.11/%%kafka.version%%/kafka_2.11-%%kafka.version%%.jar"
-  "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka-clients/%%kafka.version%%/kafka-clients-%%kafka.version%%.jar"
-  "https://search.maven.org/remotecontent?filepath=org/apache/zookeeper/zookeeper/%%zookeeper.version%%/zookeeper-%%zookeeper.version%%.jar"
-  "https://search.maven.org/remotecontent?filepath=com/101tec/zkclient/%%zkclient.version%%/zkclient-%%zkclient.version%%.jar"
-  "https://search.maven.org/remotecontent?filepath=net/sf/jopt-simple/jopt-simple/%%jopt-simple.version%%/jopt-simple-%%jopt-simple.version%%.jar"
+  "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka_2.11/$kafka_version/kafka_2.11-$kafka_version.jar"
+  "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka-clients/$kafka_version/kafka-clients-$kafka_version.jar"
+  "https://search.maven.org/remotecontent?filepath=org/apache/zookeeper/zookeeper/$zookeeper_version/zookeeper-$zookeeper_version.jar"
+  "https://search.maven.org/remotecontent?filepath=com/101tec/zkclient/$zkclient_version/zkclient-$zkclient_version.jar"
+  "https://search.maven.org/remotecontent?filepath=net/sf/jopt-simple/jopt-simple/$jopt_version/jopt-simple-$jopt_version.jar"
   "https://search.maven.org/remotecontent?filepath=com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
 )
 
@@ -25,7 +28,7 @@ fi
 
 install_dir=$1
 NL=$'\n'
-read -r -p "Install Kafka ${kafka_major_version} DataStore dependencies to '${install_dir}' (y/n)? " confirm
+read -r -p "Install Kafka ${kafka_version} DataStore dependencies to '${install_dir}' (y/n)? " confirm
 confirm=${confirm,,} #lowercasing
 if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
   # get stuff

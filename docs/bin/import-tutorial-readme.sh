@@ -12,7 +12,7 @@
 # may be overridden by setting variables or by command line switches
 # (will try to guess $GEOMESA relative to the script path)
 GEOMESA=${GEOMESA:-$(readlink -f "$(dirname ${BASH_SOURCE[0]})/../..")}
-GEOMESA_TUTORIALS=${GEOMESA_TUTORIALS:-/path/to/geomesa-tutorials}
+GEOMESA_TUTORIALS=${GEOMESA_TUTORIALS:-$GEOMESA/../geomesa-tutorials}
 
 function usage {
     echo "$0: imports several README.md files from the GeoMesa tutorials distribution,"

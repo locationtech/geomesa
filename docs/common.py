@@ -83,11 +83,7 @@ rst_epilog = """
 
 .. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release)s/geomesa-accumulo-dist_2.11-%(release)s-bin.tar.gz
 
-.. |release_tarball_kafka08| replace:: %(url_locationtech_release)s/geomesa-kafka-08-dist_2.11/%(release)s/geomesa-kafka-08-dist_2.11-%(release)s-bin.tar.gz
-
-.. |release_tarball_kafka09| replace:: %(url_locationtech_release)s/geomesa-kafka-09-dist_2.11/%(release)s/geomesa-kafka-09-dist_2.11-%(release)s-bin.tar.gz
-
-.. |release_tarball_kafka10| replace:: %(url_locationtech_release)s/geomesa-kafka-10-dist_2.11/%(release)s/geomesa-kafka-10-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_2.11/%(release)s/geomesa-kafka-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release)s/geomesa-hbase-dist_2.11-%(release)s-bin.tar.gz
 
@@ -119,9 +115,9 @@ rst_epilog = """
 
 .. |maven_version| replace:: 3.2.2 or better
 
-.. |geoserver_version| replace:: 2.9.1
+.. |geoserver_version| replace:: 2.9.x
 
-.. |geotools_version| replace:: 15.1
+.. |geotools_version| replace:: 15.x
 
 .. |accumulo_version| replace:: 1.7 or 1.8
 
@@ -129,7 +125,7 @@ rst_epilog = """
 
 .. |zookeeper_version| replace:: 3.4.5 or better
 
-.. |kafka_version| replace:: 0.8, 0.9, or 0.10
+.. |kafka_version| replace:: 0.9.x or 0.10.x
 
 .. |cassandra_version| replace:: 3.x
 

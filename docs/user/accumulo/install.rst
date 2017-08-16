@@ -289,7 +289,7 @@ If you are using Tomcat:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-accumulo_2.11-$VERSION/dist/geoserver/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
+      geomesa-accumulo_2.11-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
       -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
@@ -297,7 +297,7 @@ If you are using GeoServer's built in Jetty web server:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-accumulo_2.11-$VERSION/dist/geoserver/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
+      geomesa-accumulo_2.11-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 There are additional JARs for Accumulo, Zookeeper, Hadoop, and Thrift that will

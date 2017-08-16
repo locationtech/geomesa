@@ -10,8 +10,10 @@ package org.locationtech.geomesa.memory.cqengine.datastore
 
 import java.util.concurrent.atomic.AtomicLong
 
+import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
+import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
@@ -55,8 +57,10 @@ class GeoCQEngineFeatureStore(engine: GeoCQEngine, entry: ContentEntry, query: Q
   override def getCountInternal(query: Query): Int =
     SelfClosingIterator(engine.getReaderForFilter(query.getFilter)).length
 
-  override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] =
-    engine.getReaderForFilter(query.getFilter)
+  override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+    import scala.collection.JavaConversions._
+    new DelegateFeatureReader(engine.sft, new DelegateFeatureIterator(engine.getReaderForFilter(query.getFilter)))
+  }
 
   object GeoCQEngineQueryCapabilities extends QueryCapabilities {
     override def isUseProvidedFIDSupported = true

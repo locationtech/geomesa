@@ -20,6 +20,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.FlushableFeatureWriter
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
@@ -50,6 +51,8 @@ object GeoMesaFeatureWriter extends LazyLogging {
         new Z3FeatureIdGenerator
     }
   }
+
+  trait FlushableFeatureWriter extends SimpleFeatureWriter with Flushable
 
   /**
    * Sets the feature ID on the feature. If the user has requested a specific ID, that will be used,
@@ -108,7 +111,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
 
 abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, T]
     (val sft: SimpleFeatureType, val ds: DS, val indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]])
-    extends SimpleFeatureWriter with Flushable with LazyLogging {
+    extends FlushableFeatureWriter with LazyLogging {
 
   private val statUpdater = ds.stats.statUpdater(sft)
 
@@ -191,7 +194,7 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
 trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, T]
     extends GeoMesaFeatureWriter[DS, F, W, T] {
 
-  var currentFeature: SimpleFeature = null
+  var currentFeature: SimpleFeature = _
 
   override def write(): Unit =
     if (currentFeature != null) {
@@ -221,9 +224,9 @@ trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedF
   private val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
 
   // feature that caller will modify
-  private var live: SimpleFeature = null
+  private var live: SimpleFeature = _
   // feature returned from reader
-  private var original: SimpleFeature = null
+  private var original: SimpleFeature = _
 
   override def remove(): Unit = if (original != null) {
     removeFeature(original)

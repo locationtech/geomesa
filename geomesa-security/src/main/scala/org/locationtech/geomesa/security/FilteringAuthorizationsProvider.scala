@@ -18,20 +18,16 @@ import scala.collection.JavaConversions._
 class FilteringAuthorizationsProvider (val wrappedProvider: AuthorizationsProvider)
     extends AuthorizationsProvider {
 
-  var filter: Option[Array[String]] = None
+  private var filter: Option[Array[String]] = None
 
   override def getAuthorizations: util.List[String] =
     filter match {
-      case None => wrappedProvider.getAuthorizations
-      case Some(_) => wrappedProvider.getAuthorizations.map(new String(_)).intersect(filter.get)
+      case None    => wrappedProvider.getAuthorizations
+      case Some(f) => wrappedProvider.getAuthorizations.intersect(f)
     }
 
-  override def configure(params: java.util.Map[String, java.io.Serializable]) {
-    val authString = AuthsParam.lookUp(params).asInstanceOf[String]
-    if (authString != null && !authString.isEmpty)
-      filter = Option(authString.split(","))
-
+  override def configure(params: java.util.Map[String, java.io.Serializable]): Unit = {
+    filter = Option(AuthsParam.lookUp(params).asInstanceOf[String]).filterNot(_.isEmpty).map(_.split(","))
     wrappedProvider.configure(params)
   }
-
 }

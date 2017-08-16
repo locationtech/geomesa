@@ -27,6 +27,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
@@ -87,7 +88,7 @@ class KafkaStore(ds: DataStore,
        logger.warn(s"Topic [$topic] already exists - it may contain stale data")
       } else {
         val replication = SystemProperty("geomesa.kafka.replication").option.map(_.toInt).getOrElse(1)
-        AdminUtils.createTopic(zk, topic, config.partitions, replication)
+        AdminUtilsVersions.createTopic(zk, topic, config.partitions, replication)
       }
     }
   }
@@ -210,11 +211,11 @@ object KafkaStore {
     require(parallelism > 0, "Parallelism must be greater than 0")
 
     val group = UUID.randomUUID().toString
-    val topics = java.util.Arrays.asList(topic)
 
     Seq.fill(parallelism) {
       val consumer = KafkaStore.consumer(connect, group)
-      consumer.subscribe(topics, new OffsetRebalanceListener(consumer, manager, callback))
+      val listener = new OffsetRebalanceListener(consumer, manager, callback)
+      KafkaConsumerVersions.subscribe(consumer, topic, listener)
       consumer
     }
   }
