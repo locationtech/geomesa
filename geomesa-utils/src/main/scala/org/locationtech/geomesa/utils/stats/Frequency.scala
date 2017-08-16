@@ -128,6 +128,13 @@ class Frequency[T](val attribute: Int,
   def size: Long = sketchMap.values.map(_.size).sumOrElse(0L)
 
   /**
+    * Number of observations in the frequency map
+    *
+    * @return number of observations
+    */
+  def size(timeBin: Short): Long = sketchMap.get(timeBin).map(_.size).getOrElse(0L)
+
+  /**
     * Split the stat into a separate stat per time bin of z data. Allows for separate handling of the reduced
     * data set.
     *

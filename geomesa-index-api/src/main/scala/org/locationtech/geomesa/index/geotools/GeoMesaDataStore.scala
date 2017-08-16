@@ -23,8 +23,11 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.utils.{DistributedLocking, ExplainLogging, Releasable}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.SHARING_PREFIX_KEY
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+
+import scala.util.control.NonFatal
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
@@ -154,12 +157,12 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
             // create the tables
             manager.indices(reloadedSft, IndexMode.Any).foreach(_.configure(reloadedSft, this))
           } catch {
-            case e: Exception =>
+            case NonFatal(e) =>
               // If there was an error creating a schema, clean up.
               try {
                 metadata.delete(sft.getTypeName)
               } catch {
-                case e2: Throwable => e.addSuppressed(e2)
+                case NonFatal(e2) => e.addSuppressed(e2)
               }
               throw e
           }
@@ -516,6 +519,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     if (sft.isTableSharing) {
       sft.setTableSharing(true) // explicitly set it in case this was just the default
       sft.setTableSharingPrefix(schemaIdString)
+    } else {
+      sft.setTableSharing(false)
+      sft.getUserData.remove(SHARING_PREFIX_KEY)
     }
 
     // set the enabled indices

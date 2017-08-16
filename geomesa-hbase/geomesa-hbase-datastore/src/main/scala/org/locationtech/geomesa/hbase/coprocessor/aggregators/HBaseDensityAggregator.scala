@@ -23,7 +23,7 @@ class HBaseDensityAggregator extends DensityScan with HBaseAggregator[DensityRes
 object HBaseDensityAggregator {
 
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", DensityScan.DensitySft)
+    val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "")
     sf.setAttribute(0, GeometryUtils.zeroPoint)
     sf.getUserData.put(DensityScan.DensityValueKey, bytes)
     sf

@@ -15,6 +15,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.opengis.filter._
 import org.specs2.mutable.Specification
@@ -25,15 +26,12 @@ class FilterHelperTest extends Specification {
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  val MinDateTime = Converters.convert(FilterHelper.MinDateTime.toDate, classOf[String])
-  val MaxDateTime = Converters.convert(FilterHelper.MaxDateTime.toDate, classOf[String])
-
   def updateFilter(filter: Filter): Filter = filter.accept(new QueryPlanFilterVisitor(null), null).asInstanceOf[Filter]
 
-  def toInterval(dt1: String, dt2: String): (DateTime, DateTime) = {
-    val s = Converters.convert(dt1, classOf[Date])
-    val e = Converters.convert(dt2, classOf[Date])
-    (new DateTime(s, DateTimeZone.UTC), new DateTime(e, DateTimeZone.UTC))
+  def toInterval(dt1: String, dt2: String, inclusive: Boolean = true): Bounds[DateTime] = {
+    val s = Option(Converters.convert(dt1, classOf[Date])).map(new DateTime(_, DateTimeZone.UTC))
+    val e = Option(Converters.convert(dt2, classOf[Date])).map(new DateTime(_, DateTimeZone.UTC))
+    Bounds(Bound(s, if (s.isDefined) inclusive else false), Bound(e, if (e.isDefined) inclusive else false))
   }
 
   "FilterHelper" should {
@@ -80,19 +78,19 @@ class FilterHelperTest extends Specification {
     }
 
     "extract interval from simple during and between" >> {
-      val predicates = Seq("dtg DURING 2016-01-01T00:00:00.000Z/2016-01-02T00:00:00.000Z",
-        "dtg BETWEEN '2016-01-01T00:00:00.000Z' AND '2016-01-02T00:00:00.000Z'")
-      forall(predicates) { predicate =>
+      val predicates = Seq(("dtg DURING 2016-01-01T00:00:00.000Z/2016-01-02T00:00:00.000Z", false),
+        ("dtg BETWEEN '2016-01-01T00:00:00.000Z' AND '2016-01-02T00:00:00.000Z'", true))
+      forall(predicates) { case (predicate, inclusive) =>
         val filter = ECQL.toFilter(predicate)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-02T00:00:00.000Z")))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-02T00:00:00.000Z", inclusive)))
       }
     }
 
     "extract interval from narrow during" >> {
       val filter = ECQL.toFilter("dtg DURING 2016-01-01T00:00:00.000Z/T1S")
       val intervals = FilterHelper.extractIntervals(filter, "dtg", handleExclusiveBounds = true)
-      intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-01T00:00:01.000Z")))
+      intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-01T00:00:01.000Z", inclusive = false)))
     }
 
     "extract interval with exclusive endpoints from simple during and between" >> {
@@ -117,14 +115,14 @@ class FilterHelperTest extends Specification {
 
     "extract interval from simple after" >> {
       val filters = Seq(
-        "dtg > '2016-01-01T00:00:00.000Z'",
-        "dtg >= '2016-01-01T00:00:00.000Z'",
-        "dtg AFTER 2016-01-01T00:00:00.000Z"
+        ("dtg > '2016-01-01T00:00:00.000Z'", false),
+        ("dtg >= '2016-01-01T00:00:00.000Z'", true),
+        ("dtg AFTER 2016-01-01T00:00:00.000Z", false)
       )
-      forall(filters) { cql =>
+      forall(filters) { case (cql, inclusive) =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", MaxDateTime)))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", null, inclusive)))
       }
     }
 
@@ -137,20 +135,20 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg", handleExclusiveBounds = true)
-        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:01.000Z", MaxDateTime)))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:01.000Z", null)))
       }
     }
 
     "extract interval from simple before" >> {
       val filters = Seq(
-        "dtg < '2016-01-01T00:00:00.000Z'",
-        "dtg <= '2016-01-01T00:00:00.000Z'",
-        "dtg BEFORE 2016-01-01T00:00:00.000Z"
+        ("dtg < '2016-01-01T00:00:00.000Z'", false),
+        ("dtg <= '2016-01-01T00:00:00.000Z'", true),
+        ("dtg BEFORE 2016-01-01T00:00:00.000Z", false)
       )
-      forall(filters) { cql =>
+      forall(filters) { case (cql, inclusive) =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual FilterValues(Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z")))
+        intervals mustEqual FilterValues(Seq(toInterval(null, "2016-01-01T00:00:00.000Z", inclusive)))
       }
     }
 
@@ -163,7 +161,7 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg", handleExclusiveBounds = true)
-        intervals mustEqual FilterValues(Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z")))
+        intervals mustEqual FilterValues(Seq(toInterval(null, "2016-01-01T00:00:00.000Z")))
       }
     }
 

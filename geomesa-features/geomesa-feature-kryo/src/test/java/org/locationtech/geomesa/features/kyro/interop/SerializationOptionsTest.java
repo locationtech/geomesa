@@ -14,6 +14,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer;
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer$;
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
 import org.locationtech.geomesa.utils.interop.WKTUtils;
 import org.opengis.feature.simple.SimpleFeature;
@@ -41,7 +42,7 @@ public class SerializationOptionsTest {
 
         SimpleFeature sf = sfBuilder.buildFeature("1");
         sf.getUserData().put("TESTKEY", "TESTVAL");
-        KryoFeatureSerializer serializer = new KryoFeatureSerializer(sft, SerializationOptions.withUserData());
+        KryoFeatureSerializer serializer = KryoFeatureSerializer$.MODULE$.apply(sft, SerializationOptions.withUserData());
 
         byte[] serialized = serializer.serialize(sf);
         SimpleFeature deserialized = serializer.deserialize(serialized);

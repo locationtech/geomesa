@@ -102,6 +102,7 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3ProcessingValues] {
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, (Double, Double)]
     val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
+    val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getZ3Interval)
 
     def updateTime(week: Short, lt: Double, ut: Double): Unit = {
       val times = timesByBin.get(week) match {
@@ -113,8 +114,9 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3ProcessingValues] {
 
     // note: intervals shouldn't have any overlaps
     intervals.foreach { interval =>
-      val BinnedTime(lb, lt) = dateToIndex(interval._1)
-      val BinnedTime(ub, ut) = dateToIndex(interval._2)
+      val (lower, upper) = boundsToDates(interval.bounds)
+      val BinnedTime(lb, lt) = dateToIndex(lower)
+      val BinnedTime(ub, ut) = dateToIndex(upper)
       if (lb == ub) {
         updateTime(lb, lt, ut)
       } else {

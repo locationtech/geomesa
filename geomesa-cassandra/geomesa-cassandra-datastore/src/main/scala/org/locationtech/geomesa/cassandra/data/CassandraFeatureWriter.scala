@@ -28,7 +28,7 @@ class CassandraModifyFeatureWriter(sft: SimpleFeatureType,
     extends CassandraFeatureWriterType(sft, ds, indices) with CassandraModifyFeatureWriterType with CassandraFeatureWriter
 
 trait CassandraFeatureWriter extends CassandraFeatureWriterType {
-  private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+  private val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
   override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[String] = tables
 

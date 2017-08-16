@@ -93,7 +93,7 @@ object AutoIngestDelimited {
         i += 1
       }
       // we can use the no-convert constructor since we've already converted everything
-      new ScalaSimpleFeature(record.get(0), sft, attributes)
+      new ScalaSimpleFeature(sft, record.get(0), attributes)
     }
 
     (sft, features)

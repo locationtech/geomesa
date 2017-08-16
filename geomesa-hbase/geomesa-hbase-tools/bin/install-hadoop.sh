@@ -22,6 +22,14 @@ zookeeper_version_min="%%zookeeper.version.minimum%%"
 # Resource download location
 base_url="https://search.maven.org/remotecontent?filepath="
 
+# These are needed for Hadoop and to work
+# These will depend on the specific hadoop  versions
+guava_version="11.0.2"
+com_log_version="1.1.3"
+htrace_version="3.1.0-incubating"
+netty3_version="3.6.2.Final"
+netty4_version="%%netty.version%%"
+
 function splitVersion() {
   # Split a version on '.' and return space separated list for an array
   split=($(echo $1 | sed -e 's/\./ /g'))
@@ -100,7 +108,7 @@ if [[ "$1" == "--help" || "$1" == "-help" ]]; then
   echo "  -l,--list-versions        Print out available version numbers."
   echo "${NL}"
   echo "Example:"
-  echo "./install-hadoop.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -h 2.7.3"
+  echo "./install-hadoop-hbase.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -h 2.7.3"
   echo "${NL}"
   exit 0
 elif [[ "$1" == "-l" || "$1" == "--list-versions" ]]; then
@@ -162,7 +170,7 @@ if [[ -z "${install_dir}" ]]; then
   echo "${usage}"
   exit 1
 else
-  read -r -p "Install hadoop dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
+  read -r -p "Install Hadoop and Zookeeper dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
   confirm=${confirm,,} # Lowercasing
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     # Setup download URLs
@@ -173,6 +181,15 @@ else
       "${base_url}org/apache/hadoop/hadoop-client/${hadoop_version}/hadoop-client-${hadoop_version}.jar"
       "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
       "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
+      "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar"
+      "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
+      "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
+      "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
+      "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
+      "${base_url}javax/servlet/servlet-api/2.4/servlet-api-2.4.jar"
+      "${base_url}io/netty/netty-all/${netty4_version}/netty-all-${netty4_version}.jar"
+      "${base_url}io/netty/netty/${netty3_version}/netty-${netty3_version}.jar"
+      "${base_url}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
     )
 
     # Download dependencies

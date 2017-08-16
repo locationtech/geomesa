@@ -47,10 +47,10 @@ class BucketVsLeafStorageTest extends Specification {
     def date(str: String) = ISODateTimeFormat.date().parseDateTime(str).toDate
 
     def features(sft: SimpleFeatureType) = List(
-      new ScalaSimpleFeature("1", sft, Array("first",  date("2016-01-01"), gf.createPoint(new Coordinate(-5, 5)))), // z2 = 2
-      new ScalaSimpleFeature("2", sft, Array("second", date("2016-01-02"), gf.createPoint(new Coordinate(5, 5)))),  // z2 = 3
-      new ScalaSimpleFeature("3", sft, Array("third",  date("2016-01-03"), gf.createPoint(new Coordinate(5, -5)))), // z2 = 1
-      new ScalaSimpleFeature("3", sft, Array("fourth", date("2016-01-04"), gf.createPoint(new Coordinate(-5, -5)))) // z2 = 0
+      new ScalaSimpleFeature(sft, "1", Array("first",  date("2016-01-01"), gf.createPoint(new Coordinate(-5, 5)))), // z2 = 2
+      new ScalaSimpleFeature(sft, "2", Array("second", date("2016-01-02"), gf.createPoint(new Coordinate(5, 5)))),  // z2 = 3
+      new ScalaSimpleFeature(sft, "3", Array("third",  date("2016-01-03"), gf.createPoint(new Coordinate(5, -5)))), // z2 = 1
+      new ScalaSimpleFeature(sft, "3", Array("fourth", date("2016-01-04"), gf.createPoint(new Coordinate(-5, -5)))) // z2 = 0
     )
 
     def addFeatures(sft: SimpleFeatureType) =

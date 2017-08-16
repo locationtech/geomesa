@@ -15,11 +15,12 @@ import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions, GeometryAttribute}
-import org.locationtech.geomesa.filter.function.{AxisOrder, BinaryOutputEncoder}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions}
+import org.locationtech.geomesa.utils.bin.{AxisOrder, BinaryOutputEncoder}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -65,27 +66,27 @@ class BinConversionProcess extends GeoMesaProcess with LazyLogging {
 
     val sft = features.getSchema
 
-    val geomField  = {
-      val name = Option(geom).getOrElse(sft.getGeomField)
-      val axis = Option(axisOrder).map {
-        case o if o.toLowerCase(Locale.US) == "latlon" => AxisOrder.LatLon
-        case o if o.toLowerCase(Locale.US) == "lonlat" => AxisOrder.LonLat
-        case o => throw new IllegalArgumentException(s"Invalid axis order '$o'. Valid values are 'latlon' and 'lonlat'")
+    def indexOf(attribute: String): Int = {
+      val i = sft.indexOf(attribute)
+      if (i == -1) {
+        throw new IllegalArgumentException(s"Attribute $attribute doesn't exist in ${sft.getTypeName} " +
+            SimpleFeatureTypes.encodeType(sft))
       }
-      Some(GeometryAttribute(name, axis.getOrElse(AxisOrder.LonLat))) // note: wps seems to always be lon first
-    }
-    val dtgField   = Option(dtg).orElse(sft.getDtgField)
-    val trackField = Option(track).orElse(sft.getBinTrackId)
-    val labelField = Option(label)
-
-    // validate inputs
-    (geomField.map(_.geom).toSeq ++ dtgField ++ trackField ++ labelField).foreach { attribute =>
-      if (attribute != "id" && sft.indexOf(attribute) == -1) {
-        throw new IllegalArgumentException(s"Attribute $attribute doesn't exist in $sft")
-      }
+      i
     }
 
-    val visitor = new BinVisitor(sft, EncodingOptions(geomField, dtgField, trackField, labelField))
+    val geomField  = Option(geom).map(indexOf)
+    val dtgField   = Option(dtg).map(indexOf).orElse(sft.getDtgIndex)
+    val trackField = Option(track).orElse(sft.getBinTrackId).filter(_ != "id").map(indexOf)
+    val labelField = Option(label).map(indexOf)
+
+    val axis = Option(axisOrder).map {
+      case o if o.toLowerCase(Locale.US) == "latlon" => AxisOrder.LatLon
+      case o if o.toLowerCase(Locale.US) == "lonlat" => AxisOrder.LonLat
+      case o => throw new IllegalArgumentException(s"Invalid axis order '$o'. Valid values are 'latlon' and 'lonlat'")
+    }
+
+    val visitor = new BinVisitor(sft, EncodingOptions(geomField, dtgField, trackField, labelField, axis))
     features.accepts(visitor, null)
     visitor.getResult.results
   }
@@ -98,7 +99,7 @@ class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
 
   // for collecting results manually
   private val manualResults = scala.collection.mutable.Queue.empty[Array[Byte]]
-  private val manualConversion = BinaryOutputEncoder.encodeFeatures(sft, options)
+  private val manualConversion = BinaryOutputEncoder(sft, options)
 
   private var result = new Iterator[Array[Byte]] {
     override def next(): Array[Byte] = manualResults.dequeue()
@@ -109,15 +110,15 @@ class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
 
   // manually called for non-accumulo feature collections
   override def visit(feature: Feature): Unit =
-    manualResults += manualConversion.apply(feature.asInstanceOf[SimpleFeature])
+    manualResults += manualConversion.encode(feature.asInstanceOf[SimpleFeature])
 
   override def execute(source: SimpleFeatureSource, query: Query): Unit = {
     logger.debug(s"Visiting source type: ${source.getClass.getName}")
 
-    query.getHints.put(QueryHints.BIN_TRACK, options.trackIdField.getOrElse("id"))
-    options.geomField.foreach { case GeometryAttribute(g, _) => query.getHints.put(QueryHints.BIN_GEOM, g) }
-    options.dtgField.foreach(query.getHints.put(QueryHints.BIN_DTG, _))
-    options.labelField.foreach(query.getHints.put(QueryHints.BIN_LABEL, _))
+    query.getHints.put(QueryHints.BIN_TRACK, options.trackIdField.map(sft.getDescriptor(_).getLocalName).getOrElse("id"))
+    options.geomField.foreach(i => query.getHints.put(QueryHints.BIN_GEOM, sft.getDescriptor(i).getLocalName))
+    options.dtgField.foreach(i => query.getHints.put(QueryHints.BIN_DTG, sft.getDescriptor(i).getLocalName))
+    options.labelField.foreach(i => query.getHints.put(QueryHints.BIN_LABEL, sft.getDescriptor(i).getLocalName))
 
     val features = SelfClosingIterator(source.getFeatures(query))
     result ++= features.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])

@@ -36,7 +36,7 @@ object IndexValueEncoder {
     if (sft.getSchemaVersion < 4) { // kryo encoding introduced in version 4
       OldIndexValueEncoder(sft, transform)
     } else {
-      val encoder = new KryoFeatureSerializer(indexSft)
+      val encoder = KryoFeatureSerializer(indexSft)
       val decoder = new ProjectingKryoFeatureDeserializer(indexSft, transform)
       val copyFunction = getCopyFunction(sft, indexSft)
       new IndexValueEncoderImpl(copyFunction, indexSft, encoder, decoder)
@@ -50,7 +50,7 @@ object IndexValueEncoder {
     if (sft.getSchemaVersion < 4) { // kryo encoding introduced in version 4
       OldIndexValueEncoder(sft, indexSft)
     } else if (includeIds) {
-      val encoder = new KryoFeatureSerializer(indexSft)
+      val encoder = KryoFeatureSerializer(indexSft)
       val copyFunction = getCopyFunction(sft, indexSft)
       new IndexValueEncoderImpl(copyFunction, indexSft, encoder, encoder)
     } else {
@@ -144,7 +144,7 @@ class IndexValueEncoderImpl(copyFeature: (SimpleFeature, SimpleFeature) => Unit,
                             encoder: SimpleFeatureSerializer,
                             decoder: SimpleFeatureSerializer) extends SimpleFeatureSerializer {
 
-  val reusableFeature = new ScalaSimpleFeature("", indexSft)
+  val reusableFeature = new ScalaSimpleFeature(indexSft, "")
 
   override val options: Set[SerializationOption] = Set.empty
 
@@ -234,7 +234,7 @@ class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType
   override def deserialize(value: Array[Byte]): SimpleFeature = {
     val buf = ByteBuffer.wrap(value)
     val values = fieldsWithIndex.map { case (f, i) => f -> decodings(i)(buf) }.toMap
-    val sf = new ScalaSimpleFeature(values(ID_FIELD).asInstanceOf[String], encodedSft)
+    val sf = new ScalaSimpleFeature(encodedSft, values(ID_FIELD).asInstanceOf[String])
     values.foreach { case (key, value) =>
       if (encodedSft.indexOf(key) != -1) {
         sf.setAttribute(key, value.asInstanceOf[AnyRef])

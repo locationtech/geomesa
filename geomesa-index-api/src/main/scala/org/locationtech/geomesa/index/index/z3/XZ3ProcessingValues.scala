@@ -11,10 +11,10 @@ package org.locationtech.geomesa.index.index.z3
 import com.vividsolutions.jts.geom.Geometry
 import org.joda.time.DateTime
 import org.locationtech.geomesa.curve.XZ3SFC
-import org.locationtech.geomesa.filter.FilterValues
+import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 
 case class XZ3ProcessingValues(sfc: XZ3SFC,
                                geometries: FilterValues[Geometry],
                                spatialBounds: Seq[(Double, Double, Double, Double)],
-                               intervals: FilterValues[(DateTime, DateTime)],
+                               intervals: FilterValues[Bounds[DateTime]],
                                temporalBounds: Map[Short, (Double, Double)])

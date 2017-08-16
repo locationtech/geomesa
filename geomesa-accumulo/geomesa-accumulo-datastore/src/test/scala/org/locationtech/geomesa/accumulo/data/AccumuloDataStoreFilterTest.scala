@@ -26,14 +26,14 @@ class AccumuloDataStoreFilterTest extends Specification with TestWithDataStore {
   override val spec = "name:String,dtg:Date,*geom:Geometry:srid=4326:index=full;geomesa.mixed.geometries='true'"
 
   val point = {
-    val sf = new ScalaSimpleFeature("point", sft)
+    val sf = new ScalaSimpleFeature(sft, "point")
     sf.setAttribute(0, "name-point")
     sf.setAttribute(1, "2014-01-01T00:00:00.000Z")
     sf.setAttribute(2, "POINT (-120 45)")
     sf
   }
   val polygon = {
-    val sf = new ScalaSimpleFeature("poly", sft)
+    val sf = new ScalaSimpleFeature(sft, "poly")
     sf.setAttribute(0, "name-poly")
     sf.setAttribute(1, "2014-01-01T00:00:00.000Z")
     sf.setAttribute(2, "POLYGON((-120 45, -120 50, -125 50, -125 45, -120 45))")

@@ -53,6 +53,16 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       ps.getPartitionName(sf) mustEqual "2017/003/10"
     }
 
+    "weekly partitions" >> {
+      val ps = CommonSchemeLoader.build("weekly", sft)
+      ps must beAnInstanceOf[DateTimeScheme]
+      ps.getPartitionName(sf) mustEqual "2017/01"
+      val tenWeeksOut = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-01T00:00:00Z").plus(9*7 + 1, ChronoUnit.DAYS)),
+          gf.createPoint(new Coordinate(10, 10))), sft, new FeatureIdImpl("1"))
+      ps.getPartitionName(tenWeeksOut) mustEqual "2017/10"
+    }
+
     "10 bit datetime z2 partition" >> {
       val sf = new SimpleFeatureImpl(
         List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
@@ -144,5 +154,14 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       covering.size() mustEqual 24 * 4
     }
 
+    "handle edge boundaries" >> {
+      val dtScheme = new DateTimeScheme("yyyy/yyyyMMdd", ChronoUnit.DAYS, 1, "dtg", true)
+      val twoDays = dtScheme.getCoveringPartitions(ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'"))
+      twoDays.size mustEqual 2
+      twoDays.toSeq must containTheSameElementsAs((2 to 3).map(i => f"2017/201701$i%02d"))
+      val threeDays = dtScheme.getCoveringPartitions(ECQL.toFilter("dtg >= '2017-01-02' and dtg <= '2017-01-04T00:00:00.001Z'"))
+      threeDays.size mustEqual 3
+      threeDays.toSeq must containTheSameElementsAs((2 to 4).map(i => f"2017/201701$i%02d"))
+    }
   }
 }

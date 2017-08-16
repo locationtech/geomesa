@@ -61,7 +61,7 @@ class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter
   // Don't materialize unless we have to
   def getCurrent: SimpleFeature = {
     // Deep copy array since the next record may change references in the array
-    new ScalaSimpleFeature(curId.toStringUsingUTF8, sft, util.Arrays.copyOf(currentArr, currentArr.length))
+    new ScalaSimpleFeature(sft, curId.toStringUsingUTF8, util.Arrays.copyOf(currentArr, currentArr.length))
   }
 
   override def end(): Unit = { }

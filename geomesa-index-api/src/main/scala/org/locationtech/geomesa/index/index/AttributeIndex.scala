@@ -17,6 +17,7 @@ import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.util.Converters
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -149,13 +150,13 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
           shards.indices.map(i => range(starts(i), ends(i)))
 
         case (Some(lower), None) =>
-          val starts = startRows(sft, i, shards, lower, bounds.inclusive, lowerSecondary)
+          val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
           val ends = upperBounds(sft, i, shards)
           shards.indices.map(i => range(starts(i), ends(i)))
 
         case (None, Some(upper)) =>
           val starts = lowerBounds(sft, i, shards)
-          val ends = endRows(sft, i, shards, upper, bounds.inclusive, upperSecondary)
+          val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
           shards.indices.map(i => range(starts(i), ends(i)))
 
         case (Some(lower), Some(upper)) =>
@@ -166,8 +167,8 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
             val value = encodeForQuery(lower, sft.getDescriptor(i))
             shards.map(shard => rangePrefix(Bytes.concat(prefix, shard, value)))
           } else {
-            val starts = startRows(sft, i, shards, lower, bounds.inclusive, lowerSecondary)
-            val ends = endRows(sft, i, shards, upper, bounds.inclusive, upperSecondary)
+            val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
+            val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
             shards.indices.map(i => range(starts(i), ends(i)))
           }
       }

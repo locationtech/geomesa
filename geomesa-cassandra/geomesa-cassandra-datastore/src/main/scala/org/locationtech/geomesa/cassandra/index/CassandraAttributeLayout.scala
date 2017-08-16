@@ -13,6 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.locationtech.geomesa.cassandra.data._
+import org.locationtech.geomesa.cassandra.index.CassandraAttributeIndex._
 import org.locationtech.geomesa.cassandra.{NamedColumn, RowRange, RowValue}
 import org.locationtech.geomesa.index.index.AttributeIndex
 import org.locationtech.geomesa.index.utils.SplitArrays
@@ -39,6 +40,7 @@ trait CassandraAttributeLayout extends CassandraFeatureIndex {
   //  * - n bytes storing the feature ID
 
   override protected def rowToColumns(sft: SimpleFeatureType, row: Array[Byte]): Seq[RowValue] = {
+
     val index = Short.box(AttributeIndex.bytesToIndex(row(0), row(1)))
     var offset = 2
     var lexicoded: String = null
@@ -53,9 +55,10 @@ trait CassandraAttributeLayout extends CassandraFeatureIndex {
       lexicoded = new String(row, offset, nullByte - offset, StandardCharsets.UTF_8)
       offset = nullByte + 1
       val secondaryIndexLength = getSecondaryIndexKeyLength(sft)
-      if (offset + secondaryIndexLength < row.length) {
-        secondaryIndex = ByteBuffer.wrap(row, offset, secondaryIndexLength)
-        offset += secondaryIndexLength
+      if (offset < row.length) {
+        val length = math.min(secondaryIndexLength, row.length - offset)
+        secondaryIndex = ByteBuffer.wrap(row, offset, length)
+        offset += length
         if (offset < row.length) {
           featureId = new String(row, offset, row.length - offset, StandardCharsets.UTF_8)
         }

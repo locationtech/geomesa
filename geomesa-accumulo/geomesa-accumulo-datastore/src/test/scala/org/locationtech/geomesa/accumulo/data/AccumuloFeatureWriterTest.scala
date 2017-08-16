@@ -439,7 +439,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       }
 
       val scanner = ds.connector.createScanner(RecordIndex.getTableName(sftName, ds), new Authorizations)
-      val serializer = new KryoFeatureSerializer(sft)
+      val serializer = KryoFeatureSerializer(sft)
       val rows = scanner.toList
       scanner.close()
 

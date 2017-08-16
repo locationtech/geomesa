@@ -5,44 +5,46 @@ GeoMesa supports traditional HBase installations as well as HBase running on `Am
 and `Hortonworks' Data Platform (HDP) <https://hortonworks.com/products/data-center/hdp/>`_. For instructions on
 bootstrapping an EMR cluster, please read this tutorial: :doc:`/tutorials/geomesa-hbase-s3-on-aws`.
 
-Installing from the Binary Distribution
----------------------------------------
+Installing the Binary Distribution
+----------------------------------
 
 GeoMesa HBase artifacts are available for download or can be built from source.
 The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
 and untar it somewhere convenient:
 
+.. code-block:: bash
+
+    # Install to /opt/ adapt as needed for your environment
+    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/$VERSION/geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz
+    $ tar xvf geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz -C /opt/
+
+    # Add symbolic links
+    $ ln -s /opt/geomesa-hbase-dist_2.11-$VERSION /opt/geomesa
+    $ ls /opt/geomesa
+    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
+
+Configuring HBase and Hadoop Dependencies
+-----------------------------------------
+
+GeoMesa HBase requires Hadoop and HBase jars to be available on the classpath. These can be installed in the
+lib directory or referenced via environmental variables:
+
 .. tabs::
 
     .. group-tab:: Standard
 
+        Configure GeoMesa to use pre-installed HBase and Hadoop distributions:
+
         .. code-block:: bash
 
-            # download and unpackage the most recent distribution
-            $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/$VERSION/geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz
-            $ tar xvf geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz
-            $ cd geomesa-hbase-dist_2.11-$VERSION
-            $ ls
-            bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
+            $ export HADOOP_HOME=/path/to/hadoop
+            $ export HBASE_HOME=/path/to/hbase
+            $ export GEOMESA_HOME=/opt/geomesa
+            $ export PATH=$PATH:$GEOMESA_HOME/bin
 
     .. group-tab:: HDP
 
-        Download and unpackage the most recent distribution.
-
-        .. code-block:: bash
-
-            $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/$VERSION/geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz
-            $ tar xvf geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz -C /opt/
-
-        Add symbolic links
-
-        .. code-block:: bash
-
-            $ ln -s /opt/geomesa-hbase-dist_2.11-$VERSION /opt/geomesa
-            $ ls /opt/geomesa
-            bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
-
-        Configure the environment.
+        Configure the environment to use an HDP install
 
         .. code-block:: bash
 
@@ -53,6 +55,18 @@ and untar it somewhere convenient:
 
         Optionally, add these to your bash profile or geomesa-env.sh (detailed later in
         :ref:`setting_up_hbase_commandline`) to persist this configuration.
+
+    .. group-tab:: Manual Install
+
+        If no HBase or Hadoop distribution is installed, try manually installing the jars from maven:
+
+        .. code-block:: bash
+
+            $ export GEOMESA_HOME=/opt/geomesa
+            $ export PATH=$PATH:$GEOMESA_HOME/bin
+            $ cd $GEOMESA_HOME
+            $ bin/install-hadoop.sh lib
+            $ bin/install-hbase.sh lib
 
 .. _hbase_deploy_distributed_runtime:
 

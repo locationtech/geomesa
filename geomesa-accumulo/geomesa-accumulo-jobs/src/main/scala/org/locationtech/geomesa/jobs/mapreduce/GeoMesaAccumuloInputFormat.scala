@@ -308,7 +308,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
     val hasId = table.serializedWithId
     val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
-    val decoder = new KryoFeatureSerializer(schema, serializationOptions)
+    val decoder = KryoFeatureSerializer(schema, serializationOptions)
     new GeoMesaRecordReader(sft, table, reader, hasId, decoder)
   }
 }

@@ -50,7 +50,7 @@ object KryoLazyStatsIterator extends LazyLogging {
   }
 
   def kvsToFeatures(sft: SimpleFeatureType): (Entry[Key, Value]) => SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", KryoLazyStatsUtils.StatsSft)
+    val sf = new ScalaSimpleFeature(KryoLazyStatsUtils.StatsSft, "")
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       // value is the already serialized stat

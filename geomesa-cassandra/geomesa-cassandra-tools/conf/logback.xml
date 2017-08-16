@@ -41,6 +41,12 @@
     <appender-ref ref="output" />
   </logger>
 
+  <!-- uncomment to see query explain logging -->
+  <!--
+  <logger name="org.locationtech.geomesa.index.utils.Explainer" level="TRACE">
+    <appender-ref ref="output" />
+  </logger>
+  -->
   <logger name="org.locationtech.geomesa" level="INFO"/>
 
   <logger name="hsqldb.db" level="WARN"/>

@@ -38,7 +38,7 @@ class BigTableIntegrationTest extends Specification {
       lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       def createFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(0, s"name $i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
@@ -92,7 +92,7 @@ class BigTableIntegrationTest extends Specification {
       lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       def createFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(0, s"name $i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")

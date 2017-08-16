@@ -24,7 +24,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: Set[SerializationOption] = Set.empty)
     extends Serializer[SimpleFeature] {
 
-  private val serializer = new KryoFeatureSerializer(sft, opts)
+  private val serializer = KryoFeatureSerializer(sft, opts)
 
   override def write(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
     val bytes = serializer.serialize(sf)

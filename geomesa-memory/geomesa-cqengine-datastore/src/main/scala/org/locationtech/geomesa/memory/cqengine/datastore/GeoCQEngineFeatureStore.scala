@@ -30,7 +30,7 @@ class GeoCQEngineFeatureStore(engine: GeoCQEngine, entry: ContentEntry, query: Q
            override def remove(): Unit = ???
 
            override def next(): SimpleFeature = {
-             currentFeature = new ScalaSimpleFeature(tempFeatureIds.getAndIncrement().toString, engine.sft)
+             currentFeature = new ScalaSimpleFeature(engine.sft, tempFeatureIds.getAndIncrement().toString)
              currentFeature
            }
 

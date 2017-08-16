@@ -139,7 +139,7 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
             val primarySf = primaryFeatures.find(_.getAttribute(joinAttribute) == toJoin).getOrElse {
               throw new RuntimeException("No feature joined from attribute query")
             }
-            val sf = new ScalaSimpleFeature(s"${primarySf.getID}-${secondarySf.getID}" , returnSft)
+            val sf = new ScalaSimpleFeature(returnSft, s"${primarySf.getID}-${secondarySf.getID}")
             attributeMappings.foreach { case (to, from, fromPrimary) =>
               val a = if (fromPrimary) { primarySf.getAttribute(from) } else { secondarySf.getAttribute(from) }
               sf.setAttribute(to, a)

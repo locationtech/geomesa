@@ -42,7 +42,7 @@ class JsonPathFilterFunctionTest extends Specification {
       | }
     """.stripMargin
   val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,s:String,dtg:Date,*geom:Point:srid=4326")
-  val sf = new ScalaSimpleFeature("", sft)
+  val sf = new ScalaSimpleFeature(sft, "")
   sf.setAttribute(0, json)
 
   "Json Attr Function" should {

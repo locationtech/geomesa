@@ -11,89 +11,51 @@ package org.locationtech.geomesa.index.iterators
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
-import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.utils.bin.BinSorter
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
+import org.locationtech.geomesa.utils.bin.{BinaryOutputCallback, BinaryOutputEncoder}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
   import BinAggregatingScan.Configuration._
 
-  var trackIndex: Int = -1
-  var geomIndex: Int = -1
-  var dtgIndex: Int = -1
-  var labelIndex: Int = -1
-
-  var getTrackId: (KryoBufferSimpleFeature) => Int = _
-  var getDtg: (KryoBufferSimpleFeature) => Long = _
-  var isDtgArray: Boolean = false
-  var linePointIndex: Int = -1
+  var encoding: EncodingOptions = _
+  var encoder: BinaryOutputEncoder = _
+  var callback: ResultCallback = _
 
   var binSize: Int = 16
   var sort: Boolean = false
-
-  var writeBin: (KryoBufferSimpleFeature, ByteBufferResult) => Unit = _
 
   // create the result object for the current scan
   override protected def initResult(sft: SimpleFeatureType,
                                     transform: Option[SimpleFeatureType],
                                     options: Map[String, String]): ByteBufferResult = {
-    geomIndex = options(GeomOpt).toInt
-    labelIndex = options.get(LabelOpt).map(_.toInt).getOrElse(-1)
+    val geom = options.get(GeomOpt).map(_.toInt)
+    val dtg = options.get(DateOpt).map(_.toInt)
+    val track = options.get(TrackOpt).map(_.toInt).filter(_ != -1)
+    val label = options.get(LabelOpt).map(_.toInt)
 
-    trackIndex = options(TrackOpt).toInt
-    getTrackId = if (trackIndex == -1) {
-      (sf) => sf.getID.hashCode
-    } else {
-      (sf) => {
-        val track = sf.getAttribute(trackIndex)
-        if (track == null) { 0 } else { track.hashCode() }
-      }
-    }
-    dtgIndex = options(DateOpt).toInt
-    isDtgArray = options.get(DateArrayOpt).exists(_.toBoolean)
-    getDtg = if (dtgIndex == -1) {
-      (_) => 0L
-    } else if (isDtgArray) {
-      (sf) => {
-        try {
-          sf.getAttribute(dtgIndex).asInstanceOf[java.util.List[Date]].get(linePointIndex).getTime
-        } catch {
-          case _: IndexOutOfBoundsException => 0L
-        }
-      }
-    } else {
-      (sf) => sf.getDateAsLong(dtgIndex)
-    }
+    encoding = EncodingOptions(geom, dtg, track, label)
+    encoder = BinaryOutputEncoder(sft, encoding)
 
-    binSize = if (labelIndex == -1) 16 else 24
+    binSize = if (label.isEmpty) { 16 } else { 24 }
     sort = options(SortOpt).toBoolean
-
-    // derive the bin values from the features
-    writeBin = if (sft.isPoints) {
-      if (labelIndex == -1) writePoint else writePointWithLabel
-    } else if (sft.isLines) {
-      if (labelIndex == -1) writeLineString else writeLineStringWithLabel
-    } else {
-      if (labelIndex == -1) writeGeometry else writeGeometryWithLabel
-    }
 
     val batchSize = options(BatchSizeOpt).toInt * binSize
 
     val buffer = ByteBuffer.wrap(Array.ofDim(batchSize)).order(ByteOrder.LITTLE_ENDIAN)
     val overflow = ByteBuffer.wrap(Array.ofDim(binSize * 16)).order(ByteOrder.LITTLE_ENDIAN)
 
-    new ByteBufferResult(buffer, overflow)
+    callback = new ResultCallback(new ByteBufferResult(buffer, overflow))
+
+    callback.result
   }
 
   // add the feature to the current aggregated result
-  override def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit =
-    writeBin(sf.asInstanceOf[KryoBufferSimpleFeature], result)
+  override def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit = encoder.encode(sf, callback)
 
   // encode the result as a byte array
   override def encodeResult(result: ByteBufferResult): Array[Byte] = {
@@ -116,84 +78,6 @@ trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
       BinSorter.quickSort(bytes, 0, bytes.length - binSize, binSize)
     }
     bytes
-  }
-
-  /**
-    * Writes a point to our buffer in the bin format
-    */
-  private def writeBinToBuffer(sf: KryoBufferSimpleFeature, pt: Point, result: ByteBufferResult): Unit = {
-    val buffer = result.ensureCapacity(16)
-    buffer.putInt(getTrackId(sf))
-    buffer.putInt((getDtg(sf) / 1000).toInt)
-    buffer.putFloat(pt.getY.toFloat) // y is lat
-    buffer.putFloat(pt.getX.toFloat) // x is lon
-  }
-
-  /**
-    * Writes a label to the buffer in the bin format
-    */
-  private def writeLabelToBuffer(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
-    val label = sf.getAttribute(labelIndex)
-    val labelAsLong = if (label == null) { 0L } else { Convert2ViewerFunction.convertToLabel(label.toString) }
-    val buffer = result.ensureCapacity(8)
-    buffer.putLong(labelAsLong)
-  }
-
-  /**
-    * Writes a bin record from a feature that has a point geometry
-    */
-  def writePoint(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit =
-    writeBinToBuffer(sf, sf.getAttribute(geomIndex).asInstanceOf[Point], result)
-
-  /**
-    * Writes point + label
-    */
-  def writePointWithLabel(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
-    writePoint(sf, result)
-    writeLabelToBuffer(sf, result)
-  }
-
-  /**
-    * Writes bins record from a feature that has a line string geometry.
-    * The feature will be multiple bin records.
-    */
-  def writeLineString(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
-    val geom = sf.getAttribute(geomIndex).asInstanceOf[LineString]
-    linePointIndex = 0
-    while (linePointIndex < geom.getNumPoints) {
-      writeBinToBuffer(sf, geom.getPointN(linePointIndex), result)
-      linePointIndex += 1
-    }
-  }
-
-  /**
-    * Writes line string + label
-    */
-  def writeLineStringWithLabel(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
-    val geom = sf.getAttribute(geomIndex).asInstanceOf[LineString]
-    linePointIndex = 0
-    while (linePointIndex < geom.getNumPoints) {
-      writeBinToBuffer(sf, geom.getPointN(linePointIndex), result)
-      writeLabelToBuffer(sf, result)
-      linePointIndex += 1
-    }
-  }
-
-  /**
-    * Writes a bin record from a feature that has a arbitrary geometry.
-    * A single internal point will be written.
-    */
-  def writeGeometry(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-    writeBinToBuffer(sf, sf.getAttribute(geomIndex).asInstanceOf[Geometry].safeCentroid(), result)
-  }
-
-  /**
-    * Writes geom + label
-    */
-  def writeGeometryWithLabel(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
-    writeGeometry(sf, result)
-    writeLabelToBuffer(sf, result)
   }
 }
 
@@ -267,9 +151,21 @@ class ByteBufferResult(val buffer: ByteBuffer, var overflow: ByteBuffer) {
   }
 
   def isEmpty: Boolean = buffer.position == 0
+
   def clear(): Unit = {
     buffer.clear()
     overflow.clear()
   }
 }
 
+class ResultCallback(val result: ByteBufferResult) extends BinaryOutputCallback {
+  override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit = {
+    val buffer = result.ensureCapacity(16)
+    put(buffer, trackId, lat, lon, dtg)
+  }
+
+  override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit = {
+    val buffer = result.ensureCapacity(24)
+    put(buffer, trackId, lat, lon, dtg, label)
+  }
+}

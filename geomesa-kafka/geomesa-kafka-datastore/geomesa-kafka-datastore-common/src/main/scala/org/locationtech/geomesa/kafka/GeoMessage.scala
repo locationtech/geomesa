@@ -85,7 +85,7 @@ class GeoMessageEncoder(schema: SimpleFeatureType) {
 
   import GeoMessageEncoder._
 
-  private val serializer = new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
+  private val serializer = KryoFeatureSerializer(schema, SerializationOptions.withUserData)
 
   def encodeKey(msg: GeoMessage): Array[Byte] = {
     val msgType: Byte = msg match {
@@ -128,7 +128,7 @@ class GeoMessageDecoder(schema: SimpleFeatureType) extends LazyLogging {
 
   case class MsgKey(version: Byte, msgType: Byte, ts: Instant)
 
-  private val serializer = new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
+  private val serializer = KryoFeatureSerializer(schema, SerializationOptions.withUserData)
 
   /** Decodes an encoded [[GeoMessage]] represented by the given ``key`` and ``msg``.
     *

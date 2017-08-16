@@ -66,7 +66,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
                    id: String = "f1",
                    name: String = "testType",
                    point: String = "POINT(45.0 49.0)"): SimpleFeature = {
-    new ScalaSimpleFeature(id, sft, Array(name, WKTUtils.read(point), new Date(100000)))
+    new ScalaSimpleFeature(sft, id, Array(name, WKTUtils.read(point), new Date(100000)))
   }
 
   "AccumuloDataStore" should {
@@ -221,9 +221,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       retrievedSft must not(beNull)
       retrievedSft.getAttributeCount mustEqual 1
 
-      val f = new ScalaSimpleFeature("fid1", sft, Array("my name"))
+      val f = new ScalaSimpleFeature(sft, "fid1", Array("my name"))
       f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      val f2 = new ScalaSimpleFeature("replaceme", sft, Array("my other name"))
+      val f2 = new ScalaSimpleFeature(sft, "replaceme", Array("my other name"))
 
       val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
 
@@ -500,7 +500,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftName = sft.getTypeName
 
       addFeatures(sft, (0 until 6).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttributes(Array[AnyRef](i.toString, "2012-01-02T05:06:07.000Z", "POINT(45.0 45.0)"))
         sf
       })
@@ -560,7 +560,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftName = sft.getTypeName
 
       val features = (0 until 6).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttributes(Array[AnyRef](i.toString, s"2012-01-02T05:0$i:07.000Z", s"POINT(45.0 4$i.0)", s"2-$i"))
         sf
       }
@@ -630,7 +630,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftName = sft.getTypeName
 
       addFeatures(sft, (0 until 5).map { i =>
-        val sf = new ScalaSimpleFeature(s"f$i", sft)
+        val sf = new ScalaSimpleFeature(sft, s"f$i")
         sf.setAttributes(Array[AnyRef](s"trk$i", s"label$i", "extra", s"$i", s"2014-01-01T0$i:00:00.000Z", s"POINT(5$i 50)"))
         sf
       })
@@ -700,7 +700,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326")
 
       addFeatures(sft, (0 until 6).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttributes(Array[AnyRef](i.toString, s"2012-01-02T05:0$i:07.000Z", s"POINT(45.0 4$i.0)"))
         sf
       })

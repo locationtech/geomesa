@@ -12,7 +12,7 @@ import org.geotools.factory.Hints
 import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.geomesa.utils.geotools.GridSnap
@@ -87,7 +87,7 @@ object DensityScan {
     * Encodes a sparse matrix into a byte array
     */
   def encodeResult(result: DensityResult): Array[Byte] = {
-    val output = KryoFeatureSerializer.getOutput(null)
+    val output = KryoFeatureSerialization.getOutput(null)
     result.toList.groupBy(_._1._1).foreach { case (row, cols) =>
       output.writeInt(row, true)
       output.writeInt(cols.size, true)
@@ -111,7 +111,7 @@ object DensityScan {
     */
   def decodeResult(gridSnap: GridSnap)(sf: SimpleFeature): Iterator[(Double, Double, Double)] = {
     val result = sf.getUserData.get(DensityValueKey).asInstanceOf[Array[Byte]]
-    val input = KryoFeatureSerializer.getInput(result, 0, result.length)
+    val input = KryoFeatureDeserialization.getInput(result, 0, result.length)
     new Iterator[(Double, Double, Double)]() {
       private var x = 0.0
       private var colCount = 0

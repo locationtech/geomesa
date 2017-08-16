@@ -49,7 +49,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
       override def hasNext: Boolean = false
 
       override def next(): SimpleFeature = {
-        feature = new ScalaSimpleFeature(featureIds.getAndIncrement().toString, sft)
+        feature = new ScalaSimpleFeature(sft, featureIds.getAndIncrement().toString)
         feature
       }
 

@@ -27,6 +27,7 @@ import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 /**
  * Abstract class that handles configuration and tracking of the remote job
@@ -92,7 +93,7 @@ abstract class AbstractIngestJob {
     try {
       IOUtils.readLines(is)
     } catch {
-      case e: Exception => throw new Exception("Error reading ingest libjars", e)
+      case NonFatal(e) => throw new Exception("Error reading ingest libjars", e)
     } finally {
       IOUtils.closeQuietly(is)
     }

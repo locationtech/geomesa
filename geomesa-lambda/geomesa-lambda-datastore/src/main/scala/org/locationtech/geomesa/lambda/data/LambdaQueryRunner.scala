@@ -13,7 +13,7 @@ import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore

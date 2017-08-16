@@ -36,7 +36,7 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
   val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
 
   addFeatures((0 until 2).map { i =>
-    val sf = new ScalaSimpleFeature(i.toString, sft)
+    val sf = new ScalaSimpleFeature(sft, i.toString)
     sf.setAttribute(0, i.toString)
     sf.setAttribute(1, s"2016-01-01T01:0$i:00.000Z")
     sf.setAttribute(2, s"POINT (45 5$i)")
@@ -221,7 +221,7 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
 
       // write some data
       val fs = ds.getFeatureSource("canwrite").asInstanceOf[SimpleFeatureStore]
-      val feat = new ScalaSimpleFeature("1", sft)
+      val feat = new ScalaSimpleFeature(sft, "1")
       feat.setAttribute("geom", "POINT(45 55)")
       val written = fs.addFeatures(new ListFeatureCollection(sft, List(feat)))
 

@@ -105,7 +105,7 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
         stat.toJson
       }
 
-      val sf = new ScalaSimpleFeature("", KryoLazyStatsUtils.StatsSft, Array(stats, GeometryUtils.zeroPoint))
+      val sf = new ScalaSimpleFeature(KryoLazyStatsUtils.StatsSft, "", Array(stats, GeometryUtils.zeroPoint))
       val manualVisitResults = new ListFeatureCollection(KryoLazyStatsUtils.StatsSft)
       manualVisitResults.add(sf)
       FeatureResult(manualVisitResults)
