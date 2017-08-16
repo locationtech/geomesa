@@ -71,7 +71,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>javax.measure</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shade.javax.measure</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.javax.measure</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
