@@ -264,6 +264,7 @@ case class GeoMesaRelation(sqlContext: SQLContext,
         case "EQUAL" => RelationUtils.equalPartitioning(bounds, numPartitions)
         case "WEIGHTED" => RelationUtils.weightedPartitioning(rawRDD, bounds, numPartitions, sampleSize)
         case "RTREE" => RelationUtils.rtreePartitioning(rawRDD, numPartitions, sampleSize, thresholdMultiplier)
+        case _ => throw new IllegalArgumentException(s"Invalid partitioning strategy specified: $partitionStrategy")
       }
     }
 
@@ -316,12 +317,7 @@ case class GeoMesaJoinRelation(sqlContext: SQLContext,
 
   // Uses sweep-line algorithm to join a spatially partitioned RDD
   def sweeplineJoin(overlapAction: OverlapAction): RDD[(Int, (SimpleFeature, SimpleFeature))] = {
-
-    implicit val CoordinateOrdering: Ordering[Coordinate] =
-      Ordering.by {
-        case (c: Coordinate) => c.x
-      }
-
+    implicit val ordering = RelationUtils.CoordinateOrdering
     val partitionPairs = leftRel.partitionedRDD.join(rightRel.partitionedRDD)
 
     partitionPairs.flatMap { case (key, (left, right)) =>
@@ -380,6 +376,8 @@ object RelationUtils extends LazyLogging {
   import CaseInsensitiveMapFix._
 
   @transient val ff = CommonFactoryFinder.getFilterFactory2
+
+  implicit val CoordinateOrdering: Ordering[Coordinate] = Ordering.by {_.x}
 
   def indexIterator(sft: SimpleFeatureType, indexId: Boolean, indexGeom: Boolean): GeoCQEngineDataStore = {
     val engineStore = new org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore(indexGeom)
@@ -462,7 +460,7 @@ object RelationUtils extends LazyLogging {
   def getBound(rdd: RDD[SimpleFeature]): Envelope = {
     rdd.aggregate[Envelope](new Envelope())(
       (env: Envelope, sf: SimpleFeature) => {
-        env.expandToInclude(sf.getDefaultGeometry.asInstanceOf[Geometry].getCoordinate)
+        env.expandToInclude(sf.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal)
         env
       },
       (env1: Envelope, env2: Envelope) => {
@@ -495,10 +493,6 @@ object RelationUtils extends LazyLogging {
   }
 
   def weightedPartitioning(rawRDD: RDD[SimpleFeature], bound: Envelope, numPartitions: Int, sampleSize: Int): List[Envelope] = {
-    implicit val CoordinateOrdering: Ordering[Coordinate] =
-      Ordering.by {
-        case (c: Coordinate) => c.x
-      }
     val width: Int = Math.sqrt(numPartitions).toInt
     val binSize = sampleSize / width
     val sample = rawRDD.takeSample(withReplacement = false, sampleSize)

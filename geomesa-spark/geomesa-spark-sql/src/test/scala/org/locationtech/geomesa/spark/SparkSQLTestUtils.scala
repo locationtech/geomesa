@@ -20,6 +20,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.interop.WKTUtils
 
 import scala.collection.JavaConversions._
+import scala.util.Random
 
 object SparkSQLTestUtils {
   def createSparkSession(): SparkSession = {
@@ -31,6 +32,9 @@ object SparkSQLTestUtils {
       .master("local[*]")
       .getOrCreate()
   }
+
+  val random = new Random()
+  random.setSeed(0)
 
   val ChiSpec = "arrest:String,case_number:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326"
   val ChicagoSpec = SimpleFeatureTypes.createType("chicago", ChiSpec)
@@ -91,18 +95,18 @@ object SparkSQLTestUtils {
 
   def generatePoints(gf: GeometryFactory, numPoints: Int): Map[String, String] = {
     (1 until numPoints).map { i =>
-      val x = -180 + 360 * Math.random()
-      val y = -90 + 180 * Math.random()
+      val x = -180 + 360 * random.nextDouble()
+      val y = -90 + 180 * random.nextDouble()
       (i.toString, gf.createPoint(new Coordinate(x, y)).toText)
     }.toMap
   }
 
   def generatePolys(gf: GeometryFactory, numPoints: Int): Map[String, String] = {
     (1 until numPoints).map { i =>
-      val x = -180 + 360 * Math.random()
-      val y = -90 + 180 * Math.random()
-      val width = (3 * Math.random()) / 2.0
-      val height = (1 * Math.random()) / 2.0
+      val x = -180 + 360 * random.nextDouble()
+      val y = -90 + 180 * random.nextDouble()
+      val width = (3 * random.nextDouble()) / 2.0
+      val height = (1 * random.nextDouble()) / 2.0
       val (minX, maxX, minY, maxY) = (x - width, x + width, y - height, y + height)
       val coords = Array(new Coordinate(minX, minY), new Coordinate(minX, maxY),
         new Coordinate(maxX, minY), new Coordinate(maxX, maxY), new Coordinate(minX, minY))

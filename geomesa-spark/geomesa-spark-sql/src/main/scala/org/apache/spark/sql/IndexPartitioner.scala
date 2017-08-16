@@ -25,6 +25,7 @@ class IndexPartitioner(partitions: Int) extends Partitioner {
         // A non-match (-1) goes to the reserved partition
         numPartitions - 1
       }
+    case _ => throw new IllegalArgumentException(s"Unexpected partition key $key")
   }
 
   override def equals(other: Any): Boolean = other match {

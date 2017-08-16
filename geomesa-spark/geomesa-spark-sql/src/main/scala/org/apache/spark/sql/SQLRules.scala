@@ -115,7 +115,7 @@ object SQLRules extends LazyLogging {
     }
 
     private def extractGridId(envelopes: List[Envelope], e: org.apache.spark.sql.catalyst.expressions.Expression): Option[List[Int]] = e match {
-      case And(l, r) => extractGridId(envelopes, l).orElse(extractGridId(envelopes, r))
+      case And(l, r) => Some(extractGridId(envelopes, l).getOrElse(List()) ++  extractGridId(envelopes, r).getOrElse(List()))
       case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(RelationUtils.gridIdMapper(geom, envelopes))
       case GeometryLiteral(_,geom) => Some(RelationUtils.gridIdMapper(geom, envelopes))
       case _ => None
@@ -135,8 +135,8 @@ object SQLRules extends LazyLogging {
                   joinType,
                   condition) =>
           val isSpatialUDF = condition.get match {
-            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, _, _) =>
-              true
+            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, _, _) => true
+            case _ => false
           }
           if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
             if (leftRel.partitionEnvelopes != rightRel.partitionEnvelopes) {
@@ -155,8 +155,8 @@ object SQLRules extends LazyLogging {
                   joinType,
                   condition) =>
           val isSpatialUDF = condition.get match {
-            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, _, _) =>
-              true
+            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, _, _) => true
+            case _ => false
           }
           if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
             if (leftRel.partitionEnvelopes != rightRel.partitionEnvelopes) {
@@ -204,7 +204,12 @@ object SQLRules extends LazyLogging {
           }
 
           val partitionHints = if (gmRel.spatiallyPartition) {
-            scalaUDFs.flatMap{e => extractGridId(gmRel.partitionEnvelopes, e) }.flatten
+            val hints = scalaUDFs.flatMap{e => extractGridId(gmRel.partitionEnvelopes, e) }.flatten
+            if (hints.nonEmpty) {
+              hints
+            } else {
+              null
+            }
           } else {
             null
           }
