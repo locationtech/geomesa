@@ -156,6 +156,56 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
 
   def nextId: String = id.getAndIncrement.toString
 
+  /**
+    * This function checks if a segment crosses the IDL.
+    * @param point1 The first point in the segment
+    * @param point2 The second point in the segment
+    * @return boolean representing validity of a segment based on segment length
+    */
+  def crossesIDL(point1:Coordinate,point2:Coordinate): Boolean = {
+    return (Math.abs(point1.x-point2.x) > 350)
+  }
+
+  /**
+    * Calculate the latitude at which the segment intercepts the IDL.
+    * @param point1 The first point in the segment
+    * @param point2 The second point in the segment
+    * @return a dobule representing the intercept latitude
+    */
+  def calcIDLIntercept(point1: Coordinate, point2: Coordinate): Double = {
+    if(point2.x > point1.x){
+      return point2.y - (((point2.y-point1.y)/(point2.x-(-180+point1.x)))*point2.x)
+    }
+    return point1.y - (((point1.y-point2.y)/(point1.x-(-180+point2.x)))*point1.x)
+  }
+
+  /**
+    * Return an Array containing either 1 or 2 LineStrings that straddle but
+    * do not cross the IDL.
+    * @param input1 The first point in the segment
+    * @param input2 The second point in the segment
+    * @return an array of LineString containing either 1 or 2 LineStrings that do not
+    *         span the IDL.
+    */
+  def makeIDLSafeLineString(input1:Coordinate, input2:Coordinate): MultiLineString = {
+    //If the points cross the IDL we must generate two line segments
+    val segments = if(crossesIDL(input1, input2)){
+      //Find the latitude where the segment intercepts the IDL
+      val latIntercept = calcIDLIntercept(input1,input2)
+      val p1 = new Coordinate(-180,latIntercept)
+      val p2 = new Coordinate(180,latIntercept)
+      //This orders the points so that point1 is always the east-most point
+      val (point1, point2) = if(input1.x > 0) (input1, input2) else (input2, input1)
+      val westLine = new LineString(new CoordinateArraySequence(Array(point2, p1)), geoFac)
+      val eastLine = new LineString(new CoordinateArraySequence(Array(point1, p2)), geoFac)
+      Array[LineString](westLine,eastLine)
+    }else{
+      val originalLine = new LineString(new CoordinateArraySequence(Array(input1, input2)), geoFac)
+      Array[LineString](originalLine)
+    }
+    new MultiLineString(segments, geoFac)
+  }
+
   override def createTube: Iterator[SimpleFeature] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
 
@@ -164,21 +214,17 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
     val pointsAndTimes = sortedTube.map(sf => (getGeom(sf).safeCentroid(), getStartTime(sf)))
-
     val lineFeatures = if (pointsAndTimes.length == 1) {
       val (p1, t1) = pointsAndTimes.head
       logger.debug("Only a single result - can't create a line")
       Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
     } else {
       pointsAndTimes.sliding(2).map { case Seq((p1, t1), (p2, t2)) =>
-        val geo = if (p1.equals(p2)) { p1 } else {
-          new LineString(new CoordinateArraySequence(Array(p1.getCoordinate, p2.getCoordinate)), geoFac)
-        }
-        logger.debug(s"Created line-filled geom: ${WKTUtils.write(geo)} from ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
+        val geo = if(p1.equals(p2)) p1 else makeIDLSafeLineString(p1.getCoordinate,p2.getCoordinate)
+        logger.debug(s"Created Line-filled Geometry: ${WKTUtils.write(geo)} From ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
         builder.buildFeature(nextId, Array(geo, t1, t2))
       }
     }
-
     buffer(lineFeatures, bufferDistance)
   }
 }

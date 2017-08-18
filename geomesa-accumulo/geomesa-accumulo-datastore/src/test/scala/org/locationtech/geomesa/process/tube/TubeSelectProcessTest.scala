@@ -259,6 +259,50 @@ class TubeSelectProcessTest extends Specification {
 
       results.size mustEqual 20
     }
+
+    "should properly handle geometries crossing the IDL" in {
+      val sftName = "tubeTestType"
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
+
+      val ds = createStore
+
+      ds.createSchema(sft)
+      val fs = ds.getFeatureSource(sftName)
+
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+
+      List("c", "d").foreach { name =>
+        List(1, 2, 3, 4).zip(List(-178, -179, 179, 178)).foreach { case (i, lat) =>
+          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
+          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d 0)"))
+          sf.setAttribute(DefaultDtgField, new DateTime(f"2011-01-01T00:0$i%d:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute("type", name)
+          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          featureCollection.add(sf)
+        }
+      }
+
+      // write the feature to the store
+      val res = fs.addFeatures(featureCollection)
+
+      // tube features
+      val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'c'"))
+
+      // result set to tube on
+      val features = fs.getFeatures(CQL.toFilter("type <> 'd'"))
+
+      // get back type b from tube
+      val ts = new TubeSelectProcess()
+      val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, "line")
+
+      val f = results.features()
+      while (f.hasNext) {
+        val sf = f.next
+        sf.getAttribute("type") mustEqual "c"
+      }
+
+      results.size mustEqual 4
+    }
   }
 
   "TubeSelect" should {

@@ -35,7 +35,7 @@ class TubeBinTest extends Specification {
 
   val geotimeAttributes = s"geom:Point:srid=4326,$DefaultDtgField:Date,dtg_end_time:Date"
 
-  "NoGapFilll" should {
+  "NoGapFill" should {
 
     "correctly time bin features" in {
       val sftName = "tubetest2"
