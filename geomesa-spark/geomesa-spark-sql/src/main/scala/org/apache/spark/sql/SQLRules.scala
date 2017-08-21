@@ -135,7 +135,8 @@ object SQLRules extends LazyLogging {
                   joinType,
                   condition) =>
           val isSpatialUDF = condition.get match {
-            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, _, _) => true
+            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, children, _) =>
+              children(0).isInstanceOf[AttributeReference] && children(1).isInstanceOf[AttributeReference]
             case _ => false
           }
           if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
@@ -155,7 +156,8 @@ object SQLRules extends LazyLogging {
                   joinType,
                   condition) =>
           val isSpatialUDF = condition.get match {
-            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, _, _) => true
+            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, children, _) =>
+              children(0).isInstanceOf[AttributeReference] && children(1).isInstanceOf[AttributeReference]
             case _ => false
           }
           if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {

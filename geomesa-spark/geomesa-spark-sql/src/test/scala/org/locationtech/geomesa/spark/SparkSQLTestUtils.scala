@@ -81,7 +81,7 @@ object SparkSQLTestUtils {
                        name: String,
                        geoms: Map[String, String]): Unit = {
     val sft = SimpleFeatureTypes.createType(
-      name, "name:String,*geom:Geometry:srid=4326")
+      name, "name:String,*polyGeom:Geometry:srid=4326")
     ds.createSchema(sft)
 
     val features = DataUtilities.collection(geoms.map(x => {

@@ -247,11 +247,11 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       polysDf.createOrReplaceTempView("polys")
 
       var now = System.currentTimeMillis()
-      val r1 = spark.sql("select * from polys join points on st_intersects(points.geom, polys.geom)")
+      val r1 = spark.sql("select * from polys join points on st_intersects(points.geom, polys.polyGeom)")
       val count = r1.count()
       logger.info(s"Regular join took ${System.currentTimeMillis() - now}ms")
       now = System.currentTimeMillis()
-      val r2 = spark.sql("select * from polysSpatial join pointsSpatial on st_intersects(pointsSpatial.geom, polysSpatial.geom)")
+      val r2 = spark.sql("select * from polysSpatial join pointsSpatial on st_intersects(pointsSpatial.geom, polysSpatial.polyGeom)")
       val sweeplineCount = r2.count()
       logger.info(s"Sweepline join took ${System.currentTimeMillis() - now}ms")
       sweeplineCount mustEqual count
