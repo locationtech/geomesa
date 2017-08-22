@@ -34,8 +34,8 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
       val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
-      ECQL.toCQL(geoms(0)) mustEqual("BBOX(geom, -45.0,-45.0,45.0,45.0)")
-      ECQL.toCQL(nongeoms(0)) mustEqual("BBOX(g, -30.0,-30.0,30.0,30.0)")
+      ECQL.toCQL(geoms(0)) mustEqual "BBOX(geom, -45.0,-45.0,45.0,45.0)"
+      ECQL.toCQL(nongeoms(0)) mustEqual "BBOX(g, -30.0,-30.0,30.0,30.0)"
     }
     "filter intersect based on default geom" in {
       val filter =
@@ -44,8 +44,8 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
       val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
-      ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(geom, POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)))")
-      ECQL.toCQL(nongeoms(0)) mustEqual("INTERSECTS(g, POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)))")
+      ECQL.toCQL(geoms(0)) mustEqual "INTERSECTS(geom, POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)))"
+      ECQL.toCQL(nongeoms(0)) mustEqual "INTERSECTS(g, POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)))"
     }
     "filter intersect based on default geom regardless of order" in {
       val filter =
@@ -54,12 +54,12 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
       val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
-      ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)")
-      ECQL.toCQL(nongeoms(0)) mustEqual("INTERSECTS(POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)), g)")
+      ECQL.toCQL(geoms(0)) mustEqual "INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)"
+      ECQL.toCQL(nongeoms(0)) mustEqual "INTERSECTS(POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)), g)"
     }
 
     "handle ANDs with multiple predicates" in {
-      val filters= Seq(1 && geomFilter && 2, 1 && 2 && geomFilter, geomFilter && 1 && 2)
+      val filters = List(ECQL.toFilter("attr1 = val1"), ECQL.toFilter("attr2 = val2"), geomFilter).permutations.map(ff.and(_))
 
       forall(filters) { filter => 
         val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
