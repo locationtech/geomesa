@@ -71,7 +71,7 @@ public class PolygonVector extends AbstractPolygonVector {
 
     @Override
     protected void writeOrdinal(int index, double ordinal) {
-      mutator.set(index, ordinal);
+      mutator.setSafe(index, ordinal);
     }
   }
 
