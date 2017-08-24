@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert.xml
 import java.io.{ByteArrayInputStream, File, FileInputStream}
 import java.nio.charset.StandardCharsets
 
+import com.google.common.base.Strings
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
@@ -562,6 +563,49 @@ class XMLConverterTest extends Specification {
       features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
       features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
       features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+    }
+
+    "Parse xml doc per line" >> {
+      val xml =
+        """
+          |<doc><Feature><number>123</number><color>red</color><physical weight="127.5" height="5'11"/></Feature></doc>
+          |<doc><Feature><number>124</number><color>red</color><physical weight="127.5" height="5'11"/></Feature></doc>
+          |<doc><Feature><number>125</number><color>red</color><physical weight="127.5" height="5'11"/></Feature></doc>
+          |<doc><Feature><number>126</number><color>red</color><physical weight="127.5" height="5'11"/></Feature></doc>
+          |
+        """.stripMargin
+
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "xml"
+          |   id-field     = "uuid()"
+          |   feature-path = "/doc/Feature"
+          |   options {
+          |     line-mode  = "single"
+          |   }
+          |   fields = [
+          |     // paths can be any xpath - relative to the feature-path, or absolute
+          |     { name = "number", path = "number",           transform = "$0::integer" }
+          |     { name = "color",  path = "color",            transform = "trim($0)" }
+          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes)).toList
+      features must haveLength(4)
+
+      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+
+      features.last.getAttribute("number").asInstanceOf[Integer] mustEqual 126
+      features.last.getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features.last.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
     }
   }
 }
