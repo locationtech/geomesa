@@ -63,7 +63,7 @@ class TubeBinTest extends Specification {
 
       ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 1).size mustEqual 1
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 0).size mustEqual 1
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 0).size mustEqual 19
     }
 
   }
