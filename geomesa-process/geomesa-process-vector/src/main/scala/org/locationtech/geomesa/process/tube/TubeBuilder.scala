@@ -251,7 +251,7 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
   override def createTube: Iterator[SimpleFeature] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
 
-    logger.debug("Creating tube with line gap fill")
+    logger.debug("Creating tube with line interpolated line gap fill")
 
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
