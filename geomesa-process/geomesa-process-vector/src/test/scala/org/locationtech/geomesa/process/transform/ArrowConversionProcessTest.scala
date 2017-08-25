@@ -10,7 +10,7 @@ package org.locationtech.geomesa.process.transform
 
 import java.io.ByteArrayInputStream
 
-import org.apache.arrow.memory.RootAllocator
+import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
@@ -26,7 +26,7 @@ class ArrowConversionProcessTest extends Specification {
 
   import scala.collection.JavaConversions._
 
-  implicit val allocator = new RootAllocator(Long.MaxValue)
+  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   val sft = SimpleFeatureTypes.createType("arrow", "name:String,dtg:Date,*geom:Point:srid=4326")
 
@@ -64,7 +64,7 @@ class ArrowConversionProcessTest extends Specification {
             containTheSameElementsAs(features)
         reader.dictionaries.get("name") must beSome
       }
-    }.pendingUntilFixed("Can't encode dictionary values for non-distributed query")
+    }
   }
 
   step {

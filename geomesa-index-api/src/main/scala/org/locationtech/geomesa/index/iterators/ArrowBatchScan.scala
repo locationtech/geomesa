@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureOrdering}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat, TopK}
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -119,13 +119,7 @@ class ArrowSortingBatchAggregate(sft: SimpleFeatureType,
   private val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
   private val batchWriter = new RecordBatchUnloader(vector)
 
-  private val ordering = new Ordering[SimpleFeature] {
-    override def compare(x: SimpleFeature, y: SimpleFeature): Int = {
-      val left = x.getAttribute(sortField).asInstanceOf[Comparable[Any]]
-      val right = y.getAttribute(sortField).asInstanceOf[Comparable[Any]]
-      left.compareTo(right)
-    }
-  }
+  private val ordering = SimpleFeatureOrdering(sortField)
 
   override def add(sf: SimpleFeature): Unit = {
     // we have to copy since the feature might be re-used
