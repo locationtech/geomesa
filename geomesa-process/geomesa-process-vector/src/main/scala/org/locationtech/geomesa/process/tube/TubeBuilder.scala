@@ -103,8 +103,8 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     * @param point2 The second point in the segment
     * @return boolean true if the segment crosses the IDL, otherwise false
     */
-  def crossesIDL(point1:Coordinate,point2:Coordinate): Boolean = {
-    ((point1.x > 0 && point2.x < 0) || (point2.x > 0 && point1.x < 0))
+  def crossesIDL(point1:Coordinate, point2:Coordinate): Boolean = {
+    Math.abs(point1.x - point2.x) >= 180
   }
 
   /**
@@ -114,9 +114,9 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     * @return a dobule representing the intercept latitude
     */
   def calcIDLIntercept(point1: Coordinate, point2: Coordinate): Double = {
-    if(point2.x > point1.x){
-      point2.y - (((point2.y-point1.y)/(point2.x-(-180+point1.x)))*point2.x)
-    }else {
+    if (point2.x > point1.x) {
+      point2.y - (((point2.y - point1.y) / (point2.x-(-180 + point1.x))) * point2.x)
+    } else {
       point1.y - (((point1.y - point2.y) / (point1.x - (-180 + point2.x))) * point1.x)
     }
   }
@@ -131,17 +131,17 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     */
   def makeIDLSafeLineString(input1:Coordinate, input2:Coordinate): Geometry = {
     //If the points cross the IDL we must generate two line segments
-    if(crossesIDL(input1, input2)){
+    if (crossesIDL(input1, input2)) {
       //Find the latitude where the segment intercepts the IDL
-      val latIntercept = calcIDLIntercept(input1,input2)
-      val p1 = new Coordinate(-180,latIntercept)
-      val p2 = new Coordinate(180,latIntercept)
+      val latIntercept = calcIDLIntercept(input1, input2)
+      val p1 = new Coordinate(-180, latIntercept)
+      val p2 = new Coordinate(180, latIntercept)
       //This orders the points so that point1 is always the east-most point
-      val (point1, point2) = if(input1.x > 0) (input1, input2) else (input2, input1)
+      val (point1, point2) = if (input1.x > 0) (input1, input2) else (input2, input1)
       val westLine = new LineString(new CoordinateArraySequence(Array(p1, point2)), geoFac)
       val eastLine = new LineString(new CoordinateArraySequence(Array(point1, p2)), geoFac)
       new MultiLineString(Array[LineString](westLine,eastLine), geoFac)
-    }else{
+    } else {
       new LineString(new CoordinateArraySequence(Array(input1, input2)), geoFac)
     }
   }
@@ -225,7 +225,7 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
       Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
     } else {
       pointsAndTimes.sliding(2).map { case Seq((p1, t1), (p2, t2)) =>
-        val geo = if(p1.equals(p2)) p1 else makeIDLSafeLineString(p1.getCoordinate,p2.getCoordinate)
+        val geo = if (p1.equals(p2)) p1 else makeIDLSafeLineString(p1.getCoordinate,p2.getCoordinate)
         logger.debug(s"Created Line-filled Geometry: ${WKTUtils.write(geo)} From ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
         builder.buildFeature(nextId, Array(geo, t1, t2))
       }
@@ -241,8 +241,8 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
   * @param maxBins
   */
 class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
-                  bufferDistance: Double,
-                  maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with LazyLogging {
+                          bufferDistance: Double,
+                          maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with LazyLogging {
 
   val id = new AtomicInteger(0)
 
@@ -270,7 +270,7 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
         //times and distance.
         if (dist > bufferDistance) {
           val heading = calc.getAzimuth
-          val timeDiffMillis = (t2.toInstant.toEpochMilli - t1.toInstant.toEpochMilli)
+          val timeDiffMillis = t2.toInstant.toEpochMilli - t1.toInstant.toEpochMilli
           val segCount = (dist / bufferDistance).toInt
           val segDuration = timeDiffMillis / segCount
           var segStep = new Coordinate(p1.getX, p1.getY, 0)

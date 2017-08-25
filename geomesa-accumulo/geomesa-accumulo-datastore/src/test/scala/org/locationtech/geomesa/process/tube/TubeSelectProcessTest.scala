@@ -265,7 +265,7 @@ class TubeSelectProcessTest extends Specification {
 
     "should properly handle geometries crossing the IDL" in {
       val sftName = "tubeTestType"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String, $geotimeAttributes")
 
       val ds = createStore
 
@@ -303,7 +303,7 @@ class TubeSelectProcessTest extends Specification {
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'c'"))
 
-      // get back type b from tube
+      // get back type d from tube
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, "line")
 
@@ -318,7 +318,7 @@ class TubeSelectProcessTest extends Specification {
 
     "properly interpolate times and geometries" in {
       val sftName = "tubeTestType"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String, $geotimeAttributes")
 
       val ds = createStore
 
@@ -326,44 +326,43 @@ class TubeSelectProcessTest extends Specification {
       val fs = ds.getFeatureSource(sftName)
 
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
-      //TODO: Make data that actually emulated a track, and two alternate tracks, one offset from the other by a small amount of time
+      //Make data that actually emulated a track, and two alternate tracks, one offset from the other by a small amount of time
       val calc = new GeodeticCalculator()
       //Configure track generation for 1 hour at 10.2 meters per second @ 80 degrees starting at -141.0, 35.0
       var curPoint = WKTUtils.read("POINT(-141.0 35.0)")
-      val timePerPoint = 150000l  //2.5 minutes in milliseconds
-      val speed =.0102d // meters/millisecond
+      val timePerPoint = 150000L  //2.5 minutes in milliseconds
+      val speed =.0102 // meters/millisecond
       val startTime = new DateTime(f"2011-01-01T00:00:00Z", DateTimeZone.UTC).toInstant.getMillis
       val endTime = new DateTime(f"2011-01-01T01:00:00Z", DateTimeZone.UTC).toInstant.getMillis
-      val heading = 80.0d
+      val heading = 80.0
       //Validation values
       var i=0                     //Index for providing an FID to each point
       var trackCount = 0          //Count number of track points
       var poolCount = 0           //Count number of valid pool points
       var invalidPoolCount = 0    //Count number of invalid pool points (those back in time)
 
-
       (startTime to endTime).by(timePerPoint).foreach { t =>
         i+=1
-        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft,List(), i.toString)
+        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), i.toString)
         sf.setDefaultGeometry(curPoint)
         sf.setAttribute(DefaultDtgField, new DateTime(t, DateTimeZone.UTC).toDate)
         sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
         featureCollection.add(sf)
-        if(t % 600000 == 0 ){         //Create a track point every 10 minutes
+        if((t - startTime) % 600000 == 0 ) {         //Create a track point every 10 minutes
           sf.setAttribute("type","track")
           trackCount+=1
-        } else if (t % 450000 == 0) { //Create invalid pool points every 7 minutes, but put them back in time.
+        } else if ((t - startTime) % 450000 == 0) { //Create invalid pool points every 7.5 minutes, but put them back in time.
           sf.setAttribute(DefaultDtgField, new DateTime(t-450000l, DateTimeZone.UTC).toDate)
-          sf.setAttribute("type","pool2")
+          sf.setAttribute("type", "pool2")
           invalidPoolCount+=1
-        } else {                      //Else create valid pool points where they ought to be in time/space
-          sf.setAttribute("type","pool")
+        } else {                                    //Else create valid pool points where they ought to be in time/space
+          sf.setAttribute("type", "pool")
           poolCount+=1
         }
         featureCollection.add(sf)
         //Increment for next point
-        calc.setStartingGeographicPoint(curPoint.getCoordinate.x,curPoint.getCoordinate.y)
-        calc.setDirection(heading,speed*timePerPoint)
+        calc.setStartingGeographicPoint(curPoint.getCoordinate.x, curPoint.getCoordinate.y)
+        calc.setDirection(heading, speed*timePerPoint)
         val next = calc.getDestinationGeographicPoint
         val nextPointX = next.getX
         val nextPointY = next.getY
@@ -381,10 +380,7 @@ class TubeSelectProcessTest extends Specification {
 
       // get back type b from tube
       val ts = new TubeSelectProcess()
-      val startTS = System.currentTimeMillis()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 1000.0, 5, "interpolated")
-      val endTS = System.currentTimeMillis()
-      println("Tube Select Duration: " + String.valueOf((endTS-startTS)/1000))
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
