@@ -14,15 +14,16 @@ trait EvaluationContext {
   def indexOf(n: String): Int
   def clear(): Unit
   def counter: Counter
+  def getCache(k: String): EnrichmentCache
 }
 
 object EvaluationContext {
-  def empty: EvaluationContext = apply(IndexedSeq.empty, Array.empty, new DefaultCounter)
-  def apply(names: IndexedSeq[String], values: Array[Any], counter: Counter): EvaluationContext =
-    new EvaluationContextImpl(names, values, counter)
+  def empty: EvaluationContext = apply(IndexedSeq.empty, Array.empty, new DefaultCounter, Map.empty)
+  def apply(names: IndexedSeq[String], values: Array[Any], counter: Counter, caches: Map[String, EnrichmentCache]): EvaluationContext =
+    new EvaluationContextImpl(names, values, counter, caches)
 }
 
-class EvaluationContextImpl(names: IndexedSeq[String], values: Array[Any], val counter: Counter)
+class EvaluationContextImpl(names: IndexedSeq[String], values: Array[Any], val counter: Counter, caches: Map[String, EnrichmentCache])
   extends EvaluationContext {
   // check to see what global variables have been set
   // global variables are at the end of the array
@@ -35,6 +36,8 @@ class EvaluationContextImpl(names: IndexedSeq[String], values: Array[Any], val c
     while (i < globalValuesOffset) { values(i) = null; i += 1 }
   }
   def indexOf(n: String): Int = names.indexOf(n)
+
+  override def getCache(k: String): EnrichmentCache = caches(k)
 }
 
 trait Counter {

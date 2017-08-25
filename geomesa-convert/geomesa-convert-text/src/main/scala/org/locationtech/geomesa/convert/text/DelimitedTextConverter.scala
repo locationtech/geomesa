@@ -30,6 +30,7 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
+                                        cacheServices: Map[String, EnrichmentCache],
                                         parseOpts: ConvertParseOpts): DelimitedTextConverter = {
     import org.locationtech.geomesa.utils.conf.ConfConversions._
 
@@ -57,7 +58,7 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
     conf.getIntOpt("options.skip-lines").foreach(s => opts.skipLines = s)
     conf.getIntOpt("options.pipe-size").foreach(p => opts.pipeSize = p)
 
-    new DelimitedTextConverter(format, sft, idBuilder, fields, userDataBuilder, opts, parseOpts)
+    new DelimitedTextConverter(format, sft, idBuilder, fields, userDataBuilder, cacheServices, opts, parseOpts)
   }
 }
 
@@ -81,6 +82,7 @@ class DelimitedTextConverter(format: CSVFormat,
                              val idBuilder: Expr,
                              val inputFields: IndexedSeq[Field],
                              val userDataBuilder: Map[String, Expr],
+                             val caches: Map[String, EnrichmentCache],
                              val options: DelimitedOptions,
                              val parseOpts: ConvertParseOpts)
   extends LinesToSimpleFeatureConverter {

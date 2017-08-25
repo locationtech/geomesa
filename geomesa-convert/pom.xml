@@ -29,6 +29,7 @@
         <module>geomesa-convert-scripting</module>
         <module>geomesa-convert-osm</module>
         <module>geomesa-convert-all</module>
+        <module>geomesa-convert-redis-cache</module>
     </modules>
 
 </project>

@@ -43,7 +43,7 @@ class ScriptingFunctionFactoryTest extends Specification {
     }
 
     "execute functions" >> {
-      implicit val ec = new EvaluationContextImpl(IndexedSeq.empty[String], Array.empty[Any], new DefaultCounter)
+      implicit val ec = new EvaluationContextImpl(IndexedSeq.empty[String], Array.empty[Any], new DefaultCounter, Map.empty)
       val fn = sff.functions.find(_.names.contains("js:hello")).head
       val res = fn.eval(Array("geomesa"))
       res must beEqualTo("hello: geomesa")

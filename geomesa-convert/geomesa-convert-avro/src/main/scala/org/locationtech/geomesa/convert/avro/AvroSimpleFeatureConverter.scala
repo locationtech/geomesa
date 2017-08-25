@@ -29,6 +29,7 @@ class AvroSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
+                                        cacheServices: Map[String, EnrichmentCache],
                                         parseOpts: ConvertParseOpts): SimpleFeatureConverter[Array[Byte]] = {
     val avroSchema =
       if (conf.hasPath("schema-file")) {
@@ -37,7 +38,7 @@ class AvroSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
         new org.apache.avro.Schema.Parser().parse(conf.getString("schema"))
       }
     val reader = new GenericDatumReader[GenericRecord](avroSchema)
-    new AvroSimpleFeatureConverter(avroSchema, reader, sft, fields, idBuilder, userDataBuilder, parseOpts)
+    new AvroSimpleFeatureConverter(avroSchema, reader, sft, fields, idBuilder, userDataBuilder, cacheServices, parseOpts)
   }
 }
 
@@ -47,6 +48,7 @@ class AvroSimpleFeatureConverter(avroSchema: Schema,
                                  val inputFields: IndexedSeq[Field],
                                  val idBuilder: Expr,
                                  val userDataBuilder: Map[String, Expr],
+                                 val caches: Map[String, EnrichmentCache],
                                  val parseOpts: ConvertParseOpts)
   extends ToSimpleFeatureConverter[Array[Byte]] {
 

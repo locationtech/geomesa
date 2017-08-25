@@ -166,3 +166,12 @@ JSON/Avro Transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 See Parsing Json and Parsing Avro sections
+
+Enrichment Functions
+~~~~~~~~~~~~~~~~~~~~
+
+The converter framework provides a mechanism for setting an attribute based on a lookup
+from a cache.  The cache can be a literal cache in the system or in an external system such
+as Redis.
+
+- ``cacheLookup``
