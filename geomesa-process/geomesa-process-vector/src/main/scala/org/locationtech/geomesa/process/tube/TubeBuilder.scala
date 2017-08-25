@@ -161,7 +161,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
     val numFeatures = features.size
 
     if (numFeatures == 0) { Iterator.empty } else {
-      //If -1 is passed in then don't bin the features, if 0 then make one bin, otherwise calculate number
+      //If 0 is passed in then don't bin the features, if 1 then make one bin, otherwise calculate number
       //of bins based on numFeatures and maxBins
       val binSize = maxBins match {
         case 0 => 1
