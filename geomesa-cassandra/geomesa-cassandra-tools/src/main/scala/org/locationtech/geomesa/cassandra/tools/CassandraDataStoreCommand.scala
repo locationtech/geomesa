@@ -12,7 +12,6 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.cassandra.data.{CassandraDataStore, CassandraDataStoreFactory}
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand}
 
-
 trait CassandraDataStoreCommand extends DataStoreCommand[CassandraDataStore] {
 
   override def params: CassandraConnectionParams with CatalogParam
@@ -26,5 +25,6 @@ trait CassandraDataStoreCommand extends DataStoreCommand[CassandraDataStore] {
   )
 }
 
-@Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
-class CassandraDataStoreParams extends CassandraConnectionParams with CatalogParam
+object CassandraDataStoreCommand {
+  trait CassandraDataStoreParams extends CassandraConnectionParams with CatalogParam
+}
