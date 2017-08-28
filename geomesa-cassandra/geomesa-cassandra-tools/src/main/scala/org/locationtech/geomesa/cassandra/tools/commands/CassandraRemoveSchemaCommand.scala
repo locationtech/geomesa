@@ -10,13 +10,16 @@ package org.locationtech.geomesa.cassandra.tools.commands
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.cassandra.data.CassandraDataStore
-import org.locationtech.geomesa.cassandra.tools.{CassandraDataStoreCommand, CassandraDataStoreParams}
-import org.locationtech.geomesa.tools.CatalogParam
+import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
+import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand.CassandraDataStoreParams
+import org.locationtech.geomesa.cassandra.tools.commands.CassandraRemoveSchemaCommand.CassandraRemoveSchemaParams
 import org.locationtech.geomesa.tools.data.{RemoveSchemaCommand, RemoveSchemaParams}
 
 class CassandraRemoveSchemaCommand  extends RemoveSchemaCommand[CassandraDataStore] with CassandraDataStoreCommand {
   override val params = new CassandraRemoveSchemaParams
 }
 
-@Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
-class CassandraRemoveSchemaParams extends CassandraDataStoreParams with CatalogParam with RemoveSchemaParams
+object CassandraRemoveSchemaCommand {
+  @Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
+  class CassandraRemoveSchemaParams extends RemoveSchemaParams with CassandraDataStoreParams
+}

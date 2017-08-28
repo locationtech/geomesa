@@ -12,14 +12,14 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.cassandra.data.CassandraDataStore
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand.CassandraDataStoreParams
-import org.locationtech.geomesa.cassandra.tools.commands.CassandraDeleteFeaturesCommand.CassandraDeleteFeaturesParams
-import org.locationtech.geomesa.tools.data.{DeleteFeaturesCommand, DeleteFeaturesParams}
+import org.locationtech.geomesa.cassandra.tools.commands.CassandraExplainCommand.CassandraExplainParams
+import org.locationtech.geomesa.tools.status.{ExplainCommand, ExplainParams}
 
-class CassandraDeleteFeaturesCommand extends DeleteFeaturesCommand[CassandraDataStore] with CassandraDataStoreCommand {
-  override val params = new CassandraDeleteFeaturesParams
+class CassandraExplainCommand extends ExplainCommand[CassandraDataStore] with CassandraDataStoreCommand {
+  override val params = new CassandraExplainParams()
 }
 
-object CassandraDeleteFeaturesCommand {
-  @Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
-  class CassandraDeleteFeaturesParams extends DeleteFeaturesParams with CassandraDataStoreParams
+object CassandraExplainCommand {
+  @Parameters(commandDescription = "Explain how a GeoMesa query will be executed")
+  class CassandraExplainParams extends ExplainParams with CassandraDataStoreParams
 }
