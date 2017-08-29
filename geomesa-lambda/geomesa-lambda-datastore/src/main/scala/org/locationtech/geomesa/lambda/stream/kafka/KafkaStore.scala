@@ -37,6 +37,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 
 class KafkaStore(ds: DataStore,
@@ -239,25 +240,38 @@ object KafkaStore {
 
   private [kafka] class OffsetRebalanceListener(consumer: Consumer[Array[Byte], Array[Byte]],
                                                 manager: OffsetManager,
-                                                callback: (Int, Long) => Unit) extends ConsumerRebalanceListener {
+                                                callback: (Int, Long) => Unit)
+      extends ConsumerRebalanceListener with LazyLogging {
 
     override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
     override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
       import scala.collection.JavaConversions._
 
+      // ensure we have queues for each partition
+      // read our last committed offsets and seek to them
       topicPartitions.foreach { tp =>
-        // ensure we have queues for each partition
-        // read our last committed offsets and seek to them
-        KafkaConsumerVersions.pause(consumer, tp)
-        val lastRead = manager.getOffset(tp.topic(), tp.partition())
-        if (lastRead > -1) {
-          consumer.seek(tp, lastRead + 1)
-          callback.apply(tp.partition, lastRead)
-        } else {
+
+        // seek to earliest existing offset and return the offset
+        def seekToBeginning(): Long = {
           KafkaConsumerVersions.seekToBeginning(consumer, tp)
-          callback.apply(tp.partition, consumer.position(tp) - 1)
+          consumer.position(tp) - 1
         }
+
+        val lastRead = manager.getOffset(tp.topic(), tp.partition())
+
+        KafkaConsumerVersions.pause(consumer, tp)
+
+        val offset = if (lastRead < 0) { seekToBeginning() } else {
+          try { consumer.seek(tp, lastRead + 1); lastRead } catch {
+            case NonFatal(e) =>
+              logger.warn(s"Error seeking to initial offset: [${tp.topic}:${tp.partition}:$lastRead]" +
+                  ", seeking to beginning")
+              seekToBeginning()
+          }
+        }
+        callback.apply(tp.partition, offset)
+
         KafkaConsumerVersions.resume(consumer, tp)
       }
     }
