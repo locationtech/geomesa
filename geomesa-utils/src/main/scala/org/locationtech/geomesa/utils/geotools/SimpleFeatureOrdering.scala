@@ -22,14 +22,14 @@ object SimpleFeatureOrdering {
   private val nullFirstOrderings = Array.tabulate(cached)(new NullFirstOrdering(_))
 
   def apply(i: Int): Ordering[SimpleFeature] =
-    if (i < cached) { nullLastOrderings(i) } else { new NullLastOrdering(i) }
+    if (i < cached) { nullFirstOrderings(i) } else { new NullFirstOrdering(i) }
 
   def fid: Ordering[SimpleFeature] = Fid
 
-  def nullsFirst(i: Int): Ordering[SimpleFeature] =
-    if (i < cached) { nullFirstOrderings(i) } else { new NullFirstOrdering(i) }
+  def nullsFirst(i: Int): Ordering[SimpleFeature] = apply(i)
 
-  def nullsLast(i: Int): Ordering[SimpleFeature] = apply(i)
+  def nullsLast(i: Int): Ordering[SimpleFeature] =
+    if (i < cached) { nullLastOrderings(i) } else { new NullLastOrdering(i) }
 
   private object Fid extends Ordering[SimpleFeature] {
     override def compare(x: SimpleFeature, y: SimpleFeature): Int = x.getID.compareTo(y.getID)
