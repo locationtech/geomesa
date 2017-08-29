@@ -81,13 +81,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create a schema with or without logical time" in {
       val logical = createNewSchema(defaultSpec, tableSharing = false)
-      val millis = {
-        val ds = DataStoreFinder.getDataStore(dsParams + ("logicalTime" -> false))
-        ds.createSchema(SimpleFeatureTypes.createType("millis", defaultSpec + ";geomesa.table.sharing=false"))
-        val sft = ds.getSchema("millis")
-        ds.dispose()
-        sft
-      }
+      val millis = createNewSchema(defaultSpec + ";geomesa.logical.time=false", tableSharing = false)
 
       Seq(logical, millis).foreach(sft => addFeature(sft, defaultPoint(sft)))
       val timestamp = System.currentTimeMillis()

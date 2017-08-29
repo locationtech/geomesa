@@ -147,7 +147,7 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     val table = getTableName(sft.getTypeName, ds)
 
     // create table if needed
-    AccumuloVersion.ensureTableExists(ds.connector, table, ds.config.logicalTime)
+    AccumuloVersion.ensureTableExists(ds.connector, table, sft.isLogicalTime)
 
     // create splits
     val splitsToAdd = getSplits(sft).map(new Text(_)).toSet -- ds.tableOps.listSplits(table).toSet

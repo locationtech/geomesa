@@ -308,7 +308,6 @@ object AccumuloDataStore {
   * @param queryTimeout optional timeout (in millis) before a long-running query will be terminated
   * @param looseBBox sacrifice some precision for speed
   * @param caching cache feature results - WARNING can use large amounts of memory
-  * @param logicalTime use logical time for creating accumulo tables
   * @param writeThreads numer of threads used for writing
   * @param queryThreads number of threads used per-query
   * @param recordThreads number of threads used to join against the record table. Because record scans
@@ -322,7 +321,6 @@ case class AccumuloDataStoreConfig(catalog: String,
                                    queryTimeout: Option[Long],
                                    looseBBox: Boolean,
                                    caching: Boolean,
-                                   logicalTime: Boolean,
                                    writeThreads: Int,
                                    queryThreads: Int,
                                    recordThreads: Int) extends GeoMesaDataStoreConfig

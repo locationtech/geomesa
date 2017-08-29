@@ -70,7 +70,6 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       generateStatsParam,
       auditQueriesParam,
       cachingParam,
-      logicalTimeParam,
       forceEmptyAuthsParam
     )
 
@@ -163,7 +162,6 @@ object AccumuloDataStoreFactory {
       queryTimeout,
       looseBBoxParam.lookupWithDefault(params),
       cachingParam.lookupWithDefault(params),
-      logicalTimeParam.lookupWithDefault(params),
       writeThreadsParam.lookupWithDefault(params),
       queryThreadsParam.lookupWithDefault(params),
       recordThreadsParam.lookupWithDefault(params)
@@ -257,5 +255,4 @@ object AccumuloDataStoreParams {
   val cachingParam           = GeoMesaDataStoreFactory.CachingParam
   val mockParam              = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
   val forceEmptyAuthsParam   = org.locationtech.geomesa.security.ForceEmptyAuthsParam
-  val logicalTimeParam       = new Param("logicalTime", classOf[java.lang.Boolean], "Use logical time for Accumulo tables", false, true)
 }
