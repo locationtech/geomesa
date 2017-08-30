@@ -145,7 +145,7 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
 
   override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
 
-  override def close(): Unit = {}
+  override def close(): Unit = metadata.close()
 
   /**
     * Write a stat to accumulo. If merge == true, will write the stat but not remove the old stat,
