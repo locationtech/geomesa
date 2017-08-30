@@ -114,11 +114,17 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     * @return a dobule representing the intercept latitude
     */
   def calcIDLIntercept(point1: Coordinate, point2: Coordinate): Double = {
-    if (point2.x > point1.x) {
-      point2.y - (((point2.y - point1.y) / (point2.x-(-180 + point1.x))) * point2.x)
+    if (point1.x > 0) {
+      calcCrossLat(point1, point2, -180)
     } else {
-      point1.y - (((point1.y - point2.y) / (point1.x - (-180 + point2.x))) * point1.x)
+      calcCrossLat(point1, point2, 180)
     }
+  }
+
+  def calcCrossLat(point1: Coordinate, point2: Coordinate, crossLon: Double): Double = {
+    val slope = (point1.y - point2.y) / (point1.x - point2.x);
+    val intercept = point1.y - (slope * point1.y);
+    (slope * crossLon) + intercept;
   }
 
   /**
