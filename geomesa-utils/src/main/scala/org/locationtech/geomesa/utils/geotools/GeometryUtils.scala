@@ -105,4 +105,41 @@ object GeometryUtils {
   // checks that there aren't any angled lines
   private def allRightAngles(p: Polygon): Boolean =
     p.getCoordinates.sliding(2).forall { case Array(left, right) => left.x == right.x || left.y == right.y }
+
+  /**
+    * This function checks if a segment crosses the IDL.
+    * @param point1 The first point in the segment
+    * @param point2 The second point in the segment
+    * @return boolean true if the segment crosses the IDL, otherwise false
+    */
+  def crossesIDL(point1:Coordinate, point2:Coordinate): Boolean = {
+    Math.abs(point1.x - point2.x) >= 180
+  }
+
+  /**
+    * Calculate the latitude at which the segment intercepts the IDL.
+    * @param point1 The first point in the segment
+    * @param point2 The second point in the segment
+    * @return a double representing the intercept latitude
+    */
+  def calcIDLIntercept(point1: Coordinate, point2: Coordinate): Double = {
+    if (point1.x > 0) {
+      calcCrossLat(point1, point2, -180)
+    } else {
+      calcCrossLat(point1, point2, 180)
+    }
+  }
+
+  /**
+    * Calculate the latitude at which a segment intercepts a given latitude.
+    * @param point1 The first point in the segment
+    * @param point2 The second point in the segment
+    * @param crossLon The longitude of intercept
+    * @return a double representing the intercept latitude
+    */
+  def calcCrossLat(point1: Coordinate, point2: Coordinate, crossLon: Double): Double = {
+    val slope = (point1.y - point2.y) / (point1.x - point2.x);
+    val intercept = point1.y - (slope * point1.y);
+    (slope * crossLon) + intercept;
+  }
 }

@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 
 object TubeBuilder {
   val DefaultDtgField = "dtg"
@@ -78,7 +79,6 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
 
   // transform the input tubeFeatures into the intermediate SF used by the
   // tubing code consisting of three attributes (geom, startTime, endTime)
-  //
   // handle date parsing from input -> TODO revisit date parsing...
   def transform(tubeFeatures: SimpleFeatureCollection, dtgField: String): Iterator[SimpleFeature] = {
     SelfClosingIterator(tubeFeatures.features).map { sf =>
@@ -98,36 +98,6 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   }
 
   /**
-    * This function checks if a segment crosses the IDL.
-    * @param point1 The first point in the segment
-    * @param point2 The second point in the segment
-    * @return boolean true if the segment crosses the IDL, otherwise false
-    */
-  def crossesIDL(point1:Coordinate, point2:Coordinate): Boolean = {
-    Math.abs(point1.x - point2.x) >= 180
-  }
-
-  /**
-    * Calculate the latitude at which the segment intercepts the IDL.
-    * @param point1 The first point in the segment
-    * @param point2 The second point in the segment
-    * @return a dobule representing the intercept latitude
-    */
-  def calcIDLIntercept(point1: Coordinate, point2: Coordinate): Double = {
-    if (point1.x > 0) {
-      calcCrossLat(point1, point2, -180)
-    } else {
-      calcCrossLat(point1, point2, 180)
-    }
-  }
-
-  def calcCrossLat(point1: Coordinate, point2: Coordinate, crossLon: Double): Double = {
-    val slope = (point1.y - point2.y) / (point1.x - point2.x);
-    val intercept = point1.y - (slope * point1.y);
-    (slope * crossLon) + intercept;
-  }
-
-  /**
     * Return an Array containing either 1 or 2 LineStrings that straddle but
     * do not cross the IDL.
     * @param input1 The first point in the segment
@@ -137,9 +107,9 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     */
   def makeIDLSafeLineString(input1:Coordinate, input2:Coordinate): Geometry = {
     //If the points cross the IDL we must generate two line segments
-    if (crossesIDL(input1, input2)) {
+    if (GeometryUtils.crossesIDL(input1, input2)) {
       //Find the latitude where the segment intercepts the IDL
-      val latIntercept = calcIDLIntercept(input1, input2)
+      val latIntercept = GeometryUtils.calcIDLIntercept(input1, input2)
       val p1 = new Coordinate(-180, latIntercept)
       val p2 = new Coordinate(180, latIntercept)
       //This orders the points so that point1 is always the east-most point
