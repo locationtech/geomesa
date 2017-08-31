@@ -118,15 +118,16 @@ object GeometryUtils {
 
   /**
     * Calculate the latitude at which the segment intercepts the IDL.
+    * This function assumes that the provided points do actually cross the IDL.
     * @param point1 The first point in the segment
     * @param point2 The second point in the segment
     * @return a double representing the intercept latitude
     */
   def calcIDLIntercept(point1: Coordinate, point2: Coordinate): Double = {
-    if (point1.x > 0) {
-      calcCrossLat(point1, point2, -180)
+    if (point1.x < 0) {
+      calcCrossLat(point1, new Coordinate(point2.x-360,point2.y) , -180)
     } else {
-      calcCrossLat(point1, point2, 180)
+      calcCrossLat(point1, new Coordinate(point2.x+360,point2.y) , 180)
     }
   }
 
@@ -139,7 +140,7 @@ object GeometryUtils {
     */
   def calcCrossLat(point1: Coordinate, point2: Coordinate, crossLon: Double): Double = {
     val slope = (point1.y - point2.y) / (point1.x - point2.x);
-    val intercept = point1.y - (slope * point1.y);
+    val intercept = point1.y - (slope * point1.x);
     (slope * crossLon) + intercept;
   }
 }
