@@ -125,9 +125,9 @@ object GeometryUtils {
     */
   def calcIDLIntercept(point1: Coordinate, point2: Coordinate): Double = {
     if (point1.x < 0) {
-      calcCrossLat(point1, new Coordinate(point2.x-360,point2.y) , -180)
+      calcCrossLat(point1, new Coordinate(point2.x - 360, point2.y), -180)
     } else {
-      calcCrossLat(point1, new Coordinate(point2.x+360,point2.y) , 180)
+      calcCrossLat(point1, new Coordinate(point2.x + 360, point2.y), 180)
     }
   }
 
