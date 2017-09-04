@@ -157,9 +157,10 @@ object StatsHistogramCommand {
     if (stat.isEmpty) {
       Command.output.info("  No values")
     } else {
+      val stringify = Stat.stringifier(sft.getDescriptor(attribute).getType.getBinding)
       (0 until stat.length).foreach { i =>
         val (min, max) = stat.bounds(i)
-        Command.output.info(s"  [ ${stat.stringify(min)} to ${stat.stringify(max)} ] ${stat.count(i)}")
+        Command.output.info(s"  [ ${stringify(min)} to ${stringify(max)} ] ${stat.count(i)}")
       }
     }
   }

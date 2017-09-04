@@ -14,7 +14,7 @@ import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, Sorted
 import org.locationtech.geomesa.accumulo.data.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.stats.StatSerializer
+import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
@@ -27,7 +27,7 @@ class StatsCombiner extends Combiner with LazyLogging {
 
   import StatsCombiner.{SeparatorOption, SftOption}
 
-  private var serializers: Map[String, StatSerializer] = null
+  private var serializers: Map[String, StatSerializer] = _
   private var separator: Char = '~'
 
   override def init(source: SortedKeyValueIterator[Key, Value],
@@ -44,9 +44,7 @@ class StatsCombiner extends Combiner with LazyLogging {
 
   override def reduce(key: Key, iter: java.util.Iterator[Value]): Value = {
     val head = iter.next()
-    if (!iter.hasNext) {
-      head
-    } else {
+    if (!iter.hasNext) { head } else {
       val sftName = try {
         CachedLazyMetadata.decodeRow(key.getRow.getBytes, separator)._1
       } catch {
@@ -54,15 +52,30 @@ class StatsCombiner extends Combiner with LazyLogging {
         case NonFatal(e) => SingleRowAccumuloMetadata.getTypeName(key.getRow)
       }
       val serializer = serializers(sftName)
-      val stat = serializer.deserialize(head.get)
-      iter.foreach { s =>
-        try {
-          stat += serializer.deserialize(s.get)
-        } catch {
-          case e: Exception => logger.error("Error combining stats:", e)
+
+      var stat = deserialize(head, serializer)
+
+      while (stat == null) {
+        if (iter.hasNext) {
+          stat = deserialize(iter.next, serializer)
+        } else {
+          return head // couldn't parse anything... return head value and let client deal with it
         }
       }
+
+      iter.foreach { s =>
+        try { stat += serializer.deserialize(s.get) } catch {
+          case NonFatal(e) => logger.error("Error combining stats:", e)
+        }
+      }
+
       new Value(serializer.serialize(stat))
+    }
+  }
+
+  private def deserialize(value: Value, serializer: StatSerializer): Stat = {
+    try { serializer.deserialize(value.get) } catch {
+      case NonFatal(e) => logger.error("Error deserializing stat:", e); null
     }
   }
 }

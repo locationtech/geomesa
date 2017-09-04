@@ -37,7 +37,6 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   override type S = Histogram[T]
 
   private [stats] var bins: BinnedArray[T] = BinnedArray[T](initialBins, initialEndpoints)
-  lazy val stringify = Stat.stringifier(ct.runtimeClass)
 
   def length: Int = bins.length
   def directIndex(value: Long): Int = bins.directIndex(value)

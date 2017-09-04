@@ -10,10 +10,11 @@ package org.locationtech.geomesa.utils.stats
 
 import java.util.{Date, Locale}
 
-import com.clearspring.analytics.stream.frequency.{CountMinSketch, IFrequency, RichCountMinSketch}
+import com.clearspring.analytics.stream.frequency.IFrequency
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC}
+import org.locationtech.geomesa.utils.clearspring.CountMinSketch
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeature
 
@@ -49,7 +50,7 @@ class Frequency[T](val attribute: Int,
   override type S = Frequency[T]
 
   private [stats] val sketchMap = scala.collection.mutable.Map.empty[Short, CountMinSketch]
-  private [stats] def newSketch = new CountMinSketch(eps, confidence, Frequency.Seed)
+  private [stats] def newSketch = CountMinSketch(eps, confidence, Frequency.Seed)
   private val timeToBin = BinnedTime.timeToBinnedTime(period)
 
   private val addAttribute = Frequency.add[T](ct.runtimeClass.asInstanceOf[Class[T]], precision)
@@ -173,12 +174,12 @@ class Frequency[T](val attribute: Int,
     other.sketchMap.foreach { case (w, sketch) =>
       sketchMap.get(w) match {
         case None => sketchMap.put(w, sketch) // note: sharing a reference now
-        case Some(s) => new RichCountMinSketch(s).add(sketch)
+        case Some(s) => s += sketch
       }
     }
   }
 
-  override def clear(): Unit = sketchMap.values.foreach(s => new RichCountMinSketch(s).clear())
+  override def clear(): Unit = sketchMap.values.foreach(_.clear())
 
   override def isEmpty: Boolean = sketchMap.isEmpty || sketchMap.values.forall(_.size == 0)
 
@@ -191,7 +192,7 @@ class Frequency[T](val attribute: Int,
           val sketches = sketchMap.filter(_._2.size != 0)
           val otherSketches = s.sketchMap.filter(_._2.size != 0)
           sketches.keySet == otherSketches.keySet && sketches.forall {
-            case (w, sketch) => new RichCountMinSketch(sketch).isEquivalent(otherSketches(w))
+            case (w, sketch) => sketch.isEquivalent(otherSketches(w))
           }
         }
       case _ => false
@@ -202,7 +203,7 @@ class Frequency[T](val attribute: Int,
 object Frequency {
 
   // the seed for our frequencies - frequencies can only be combined if they have the same seed.
-  val Seed = -27
+  val Seed: Int = -27
 
   // default time bin we use for features without a date
   val DefaultTimeBin: Short = 0

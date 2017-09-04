@@ -7,33 +7,27 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
-import com.clearspring.analytics.stream.StreamSummary
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.clearspring.StreamSummary
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.JavaConversions._
 import scala.collection.immutable.ListMap
-import scala.reflect.ClassTag
 
 /**
   * TopK stat
   *
   * @param attribute index of the attribute to track
   * @param summary stream summary object
-  * @param ct classtag
   * @tparam T attribute type binding
   */
-class TopK[T](val attribute: Int,
-              private [stats] var summary: StreamSummary[T] = new StreamSummary[T](TopK.StreamCapacity))(implicit ct: ClassTag[T])
+class TopK[T](val attribute: Int, private [stats] val summary: StreamSummary[T] = StreamSummary[T](TopK.StreamCapacity))
     extends Stat with LazyLogging {
 
   import TopK.StreamCapacity
 
   override type S = TopK[T]
 
-  lazy val stringify = Stat.stringifier(ct.runtimeClass)
-
-  def topK(k: Int): Seq[(T, Long)] = summary.topK(k).map(c => (c.getItem, c.getCount))
+  def topK(k: Int): Iterator[(T, Long)] = summary.topK(k)
   def size: Int = summary.size
 
   override def observe(sf: SimpleFeature): Unit = {
@@ -51,34 +45,29 @@ class TopK[T](val attribute: Int,
   }
 
   override def +(other: TopK[T]): TopK[T] = {
-    val merged = new TopK(attribute, new StreamSummary[T](StreamCapacity))
+    val merged = new TopK[T](attribute)
     merged += this
     merged += other
     merged
   }
 
   override def +=(other: TopK[T]): Unit =
-    other.summary.topK(StreamCapacity).foreach { counter =>
-      if (counter.getCount > Int.MaxValue) {
-        logger.warn(s"Truncating count greater than Int.MaxValue: ${counter.getCount}")
-        summary.offer(counter.getItem, Int.MaxValue)
-      } else {
-        summary.offer(counter.getItem, counter.getCount.toInt)
-      }
-    }
+    other.summary.topK(StreamCapacity).foreach { case (item, count) => summary.offer(item, count) }
 
-  override def clear(): Unit = summary = new StreamSummary[T](StreamCapacity)
+  override def clear(): Unit = summary.clear()
 
   override def isEmpty: Boolean = summary.size == 0
 
-  override def toJsonObject =
-    ListMap(summary.topK(10).zipWithIndex.map{ case (c,i) => (i, ListMap( "value" -> c.getItem, "count" -> c.getCount))}:_*)
-
+  override def toJsonObject: Any = {
+    val maps = summary.topK(10).zipWithIndex.map { case ((item, count), i) =>
+      (i, ListMap( "value" -> item, "count" -> count))
+    }
+    ListMap(maps.toSeq:_*)
+  }
 
   override def isEquivalent(other: Stat): Boolean = other match {
     case s: TopK[T] if summary.size == s.summary.size =>
-      summary.topK(summary.size).map(c => (c.getItem, c.getCount)) ==
-          s.summary.topK(summary.size).map(c => (c.getItem, c.getCount))
+      s.summary.topK(summary.size).sameElements(summary.topK(summary.size))
     case _ => false
   }
 }
