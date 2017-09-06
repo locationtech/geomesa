@@ -1,0 +1,100 @@
+/***********************************************************************
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
+
+package org.locationtech.geomesa.index.filters
+
+import java.util.Date
+
+import org.joda.time.Period
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaIndexManager}
+import org.locationtech.geomesa.index.iterators.IteratorCache
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.util.control.NonFatal
+
+/**
+  * Age-off a feature based on an attribute time
+  */
+trait DtgAgeOffFilter extends AgeOffFilter {
+
+  protected def manager: GeoMesaIndexManager[_, _, _]
+
+  protected var sft: SimpleFeatureType = _
+  protected var index: GeoMesaFeatureIndex[_, _, _] = _
+
+  protected var reusableSf: KryoBufferSimpleFeature = _
+  protected var dtgIndex: Int = -1
+
+  override def init(options: Map[String, String]): Unit = {
+    import DtgAgeOffFilter.Configuration.{DtgOpt, IndexOpt, SftOpt}
+
+    super.init(options)
+
+    val spec = options(SftOpt)
+    sft = IteratorCache.sft(spec)
+
+    index = try { manager.index(options(IndexOpt)) } catch {
+      case NonFatal(_) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(IndexOpt)}")
+    }
+
+    // noinspection ScalaDeprecation
+    val withId = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
+    reusableSf = IteratorCache.serializer(spec, withId).getReusableFeature
+    dtgIndex = options(DtgOpt).toInt // note: keep this last, for back-compatibility with DtgAgeOffIterator
+  }
+
+  override def accept(row: Array[Byte],
+                      rowOffset: Int,
+                      rowLength: Int,
+                      value: Array[Byte],
+                      valueOffset: Int,
+                      valueLength: Int,
+                      timestamp: Long): Boolean = {
+    reusableSf.setBuffer(value, valueOffset, valueLength)
+    reusableSf.getDateAsLong(dtgIndex) > expiry
+  }
+}
+
+object DtgAgeOffFilter {
+
+  // configuration keys
+  object Configuration {
+    val SftOpt   = "sft"
+    val IndexOpt = "index"
+    val DtgOpt   = "dtg"
+  }
+
+  def configure(sft: SimpleFeatureType,
+                index: GeoMesaFeatureIndex[_, _, _],
+                expiry: Period,
+                dtgField: Option[String]): Map[String, String] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    val dtgIndex = dtgField match {
+      case None =>
+        sft.getDtgIndex.getOrElse {
+          throw new IllegalArgumentException("Simple feature type does not have a valid date field")
+        }
+      case Some(dtg) =>
+        val i = sft.indexOf(dtg)
+        if (i == -1 || !classOf[Date].isAssignableFrom(sft.getDescriptor(i).getType.getBinding)) {
+          throw new IllegalArgumentException(s"Simple feature type does not have a valid date field '$dtg'")
+        }
+        i
+    }
+
+    AgeOffFilter.configure(sft, expiry) ++ Map (
+      Configuration.SftOpt   -> SimpleFeatureTypes.encodeType(sft),
+      Configuration.IndexOpt -> index.identifier,
+      Configuration.DtgOpt   -> dtgIndex.toString
+    )
+  }
+}
