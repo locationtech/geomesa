@@ -15,7 +15,6 @@
 import sys
 import os
 import shlex
-import re
 
 # themes/plugins
 import sphinx_rtd_theme
