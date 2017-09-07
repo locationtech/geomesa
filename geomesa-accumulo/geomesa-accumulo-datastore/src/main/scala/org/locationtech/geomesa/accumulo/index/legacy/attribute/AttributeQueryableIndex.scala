@@ -23,6 +23,7 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
+import org.locationtech.geomesa.index.iterators.ArrowBatchScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -133,6 +134,36 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
           joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
         }
       }
+    } else if (hints.isArrowQuery) {
+      val dictionaryFields = hints.getArrowDictionaryFields
+      val providedDictionaries = hints.getArrowDictionaryEncodedValues
+      def arrowPlan(indexSft: SimpleFeatureType): BatchScanPlan = {
+        if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
+            dictionaryFields.forall(providedDictionaries.contains)) {
+          val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
+            providedDictionaries, hints.isArrowCachedDictionaries)
+          val iter = ArrowBatchIterator.configure(indexSft, this, filter.secondary, dictionaries, hints, hasDupes)
+          val iters = visibilityIter(indexSft) :+ iter
+          val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(indexSft), hints, dictionaries))
+          val kvsToFeatures = ArrowBatchIterator.kvsToFeatures()
+          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, reduce, attrThreads, hasDupes)
+        } else {
+          val iter = ArrowFileIterator.configure(indexSft, this, filter.secondary, dictionaryFields, hints, hasDupes)
+          val iters = visibilityIter(indexSft) :+ iter
+          val kvsToFeatures = ArrowFileIterator.kvsToFeatures()
+          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, None, attrThreads, hasDupes)
+        }
+      }
+      // TODO GEOMESA-2011 support attr + value
+      if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
+        arrowPlan(sft)
+      } else if (IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform)) {
+        // we can execute against the index values
+        arrowPlan(IndexValueEncoder.getIndexSft(sft))
+      } else {
+        // have to do a join against the record table
+        joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
+      }
     } else if (hints.isStatsQuery) {
       val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
@@ -197,11 +228,24 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     // the scan against the attribute table
     val attributeScan = attributePlan(IndexValueEncoder.getIndexSft(sft), stFilter, None)
 
+    lazy val dictionaryFields = hints.getArrowDictionaryFields
+    lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
+    val arrowBatch = hints.isArrowQuery &&
+        (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains))
+    lazy val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
+      providedDictionaries, hints.isArrowCachedDictionaries)
+
     // apply any secondary filters or transforms against the record table
     val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
       throw new RuntimeException("Record index does not exist for join query")
     }
-    val recordIter = if (hints.isStatsQuery) {
+    val recordIter = if (hints.isArrowQuery) {
+      if (arrowBatch) {
+        Seq(ArrowBatchIterator.configure(sft, recordIndex, ecqlFilter, dictionaries, hints, deduplicate = false))
+      } else {
+        Seq(ArrowFileIterator.configure(sft, recordIndex, ecqlFilter, dictionaryFields, hints, deduplicate = false))
+      }
+    } else if (hints.isStatsQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else {
       KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
@@ -215,6 +259,13 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     val (kvsToFeatures, reduce) = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
       (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
+    } else if (hints.isArrowQuery) {
+      if (arrowBatch) {
+        val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries))
+        (ArrowBatchIterator.kvsToFeatures(), reduce)
+      } else {
+        (ArrowFileIterator.kvsToFeatures(), None)
+      }
     } else if (hints.isStatsQuery) {
       (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
     } else {

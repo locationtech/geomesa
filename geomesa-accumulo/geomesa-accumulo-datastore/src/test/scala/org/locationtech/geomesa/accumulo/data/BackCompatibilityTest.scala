@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io._
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
@@ -17,6 +17,7 @@ import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
+import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
@@ -25,10 +26,12 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -44,6 +47,8 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     */
 
   sequential
+
+  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
@@ -80,6 +85,17 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     }
   }
 
+  def doArrowQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] = {
+    query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+    val out = new ByteArrayOutputStream
+    val results = SelfClosingIterator(fs.getFeatures(query).features)
+    results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+    def in() = new ByteArrayInputStream(out.toByteArray)
+    WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+      SelfClosingIterator(reader.features()).map(_.getID.toInt).toSeq
+    }
+  }
+
   def runVersionTest(tables: Seq[TableMutations]): MatchResult[Any] = {
     import scala.collection.JavaConversions._
 
@@ -90,7 +106,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
       "connector" -> connector,
       "caching"   -> false,
       "tableName" -> sftName
-    ))
+    )).asInstanceOf[AccumuloDataStore]
     val fs = ds.getFeatureSource(sftName)
 
     // test adding features
@@ -108,10 +124,10 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     writer.close()
 
     // make sure we can read it back
-    forall(addQueries) { query =>
+    foreach(addQueries) { query =>
       val filter = ECQL.toFilter(query)
       doQuery(fs, new Query(sftName, filter)) mustEqual Seq(10)
-      forall(transforms) { transform =>
+      foreach(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) mustEqual Seq(10)
       }
     }
@@ -125,21 +141,23 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     remover.close()
 
     // make sure that it no longer comes back
-    forall(addQueries) { query =>
+    foreach(addQueries) { query =>
       val filter = ECQL.toFilter(query)
       doQuery(fs, new Query(sftName, filter)) must beEmpty
-      forall(transforms) { transform =>
+      foreach(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) must beEmpty
       }
     }
 
     // test queries
-    forall(queries) { case (q, results) =>
+    foreach(queries) { case (q, results) =>
       val filter = ECQL.toFilter(q)
       logger.debug(s"Running query $q")
       doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
-      forall(transforms) { transform =>
+      doArrowQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
+      foreach(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
+        doArrowQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
       }
     }
 
@@ -264,6 +282,10 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   def getFile(name: String): File = new File(getClass.getClassLoader.getResource(name).toURI)
+
+  step {
+    allocator.close()
+  }
 
   case class TableMutations(table: String, mutations: Seq[Mutation])
 }

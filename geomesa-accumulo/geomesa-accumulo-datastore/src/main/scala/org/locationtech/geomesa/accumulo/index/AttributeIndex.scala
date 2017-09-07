@@ -210,37 +210,18 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       lazy val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
         providedDictionaries, hints.isArrowCachedDictionaries)
       // check to see if we can execute against the index values
+      // TODO GEOMESA-2011 support attr + value
       if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
         val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
             hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
           val iter = ArrowBatchIterator.configure(indexSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchScan.reduceFeatures(indexSft, hints, dictionaries)(_))
+          val reduce = Some(ArrowBatchScan.reduceFeatures(transform.get, hints, dictionaries)(_))
           (iter, reduce, ArrowBatchIterator.kvsToFeatures())
         } else {
           val iter = ArrowFileIterator.configure(indexSft, this, ecql, dictionaryFields, hints, dedupe)
           (iter, None, ArrowFileIterator.kvsToFeatures())
         }
         val iters = visibilityIter(indexSft) :+ iter
-        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
-      } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, ecql, transform)) {
-        // we can use the index PLUS the value
-        val transformSft = hints.getTransformSchema.getOrElse {
-          throw new IllegalStateException("Must have a transform for attribute key plus value scan")
-        }
-        // make sure we set table sharing - required for the iterator
-        transformSft.setTableSharing(sft.isTableSharing)
-        // the key-value iter needs to run before the arrow iter so that the attribute is available to encode
-        val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
-            hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
-          val iter = ArrowBatchIterator.configure(transformSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchScan.reduceFeatures(transformSft, hints, dictionaries)(_))
-          (iter, reduce, ArrowBatchIterator.kvsToFeatures())
-        } else {
-          val iter = ArrowFileIterator.configure(transformSft, this, ecql, dictionaryFields, hints, dedupe)
-          (iter, None, ArrowFileIterator.kvsToFeatures())
-        }
-        val keyValueIter = KryoAttributeKeyValueIterator.configure(this, transformSft, attribute, 23)
-        val iters = visibilityIter(transformSft) :+ iter :+ keyValueIter
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
       } else {
         // have to do a join against the record table
