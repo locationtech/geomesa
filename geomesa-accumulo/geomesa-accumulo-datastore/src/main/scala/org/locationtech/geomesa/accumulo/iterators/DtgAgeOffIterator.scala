@@ -69,7 +69,7 @@ object DtgAgeOffIterator {
                 index: AccumuloFeatureIndexType,
                 expiry: Period,
                 dtgField: Option[String],
-                priority: Int = 10): IteratorSetting = {
+                priority: Int = 5): IteratorSetting = {
     val is = new IteratorSetting(priority, Name, classOf[DtgAgeOffIterator])
     DtgAgeOffFilter.configure(sft, index, expiry, dtgField).foreach { case (k, v) => is.addOption(k, v) }
     is

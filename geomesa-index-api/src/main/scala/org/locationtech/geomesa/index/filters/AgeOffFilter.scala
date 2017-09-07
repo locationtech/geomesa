@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.filters
 
 import org.joda.time.format.ISOPeriodFormat
 import org.joda.time.{DateTime, Period}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -44,7 +45,8 @@ object AgeOffFilter {
 
   def configure(sft: SimpleFeatureType, expiry: Period): Map[String, String] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    require(!sft.isTableSharing, "AgeOff filter can only be applied to features that don't use table sharing")
+    require(!sft.isTableSharing || SystemProperty("geomesa.age-off.override").option.exists(_.toBoolean),
+      "AgeOff filter can only be applied to features that don't use table sharing")
     Map(Configuration.ExpiryOpt -> format.print(expiry))
   }
 }

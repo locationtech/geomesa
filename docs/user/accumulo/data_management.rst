@@ -42,6 +42,8 @@ be answered without joining against the record table. This is the only option fo
 To use a full index, the keyword ``full`` must be used in place of ``true`` when specifying an attribute
 index in the ``SimpleFeatureType``.  Note that join indices are the default in the Accumulo data store.
 
+.. _logical_timestamps:
+
 Accumulo Logical Timestamps
 ---------------------------
 

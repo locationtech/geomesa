@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.filters
 
 import java.util.Date
 
+import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.Period
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
@@ -23,7 +24,7 @@ import scala.util.control.NonFatal
 /**
   * Age-off a feature based on an attribute time
   */
-trait DtgAgeOffFilter extends AgeOffFilter {
+trait DtgAgeOffFilter extends AgeOffFilter with LazyLogging {
 
   protected def manager: GeoMesaIndexManager[_, _, _]
 
@@ -58,8 +59,15 @@ trait DtgAgeOffFilter extends AgeOffFilter {
                       valueOffset: Int,
                       valueLength: Int,
                       timestamp: Long): Boolean = {
-    reusableSf.setBuffer(value, valueOffset, valueLength)
-    reusableSf.getDateAsLong(dtgIndex) > expiry
+    try {
+      reusableSf.setBuffer(value, valueOffset, valueLength)
+      reusableSf.getDateAsLong(dtgIndex) > expiry
+    } catch {
+      case NonFatal(e) =>
+        logger.error(s"Error checking age-off for " +
+          Option(value).getOrElse(Array.empty).slice(valueOffset, valueOffset + valueLength).mkString("[", ",", "]"))
+        false
+    }
   }
 }
 

@@ -51,7 +51,7 @@ object AgeOffIterator {
 
   val Name = "age-off"
 
-  def configure(sft: SimpleFeatureType, expiry: Period, priority: Int = 10): IteratorSetting = {
+  def configure(sft: SimpleFeatureType, expiry: Period, priority: Int = 5): IteratorSetting = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     require(!sft.isLogicalTime, "AgeOff iterator will not work with Accumulo logical time - set user data " +
           s"'${SimpleFeatureTypes.Configs.LOGICAL_TIME_KEY}=false' at schema creation")
