@@ -26,6 +26,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.matcher.MatchResult
@@ -82,25 +83,9 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   def runVersionTest(tables: Seq[TableMutations]): MatchResult[Any] = {
     import scala.collection.JavaConversions._
 
-    // since we re-use the same sft and tables, the converter cache can get messed up
-    // note that the only problem is the attribute table name change between 1.2.2 and 1.2.3, which gets cached
-    // other changes are captured in the index versions, and the cache handles them appropriately
-    GeoMesaFeatureWriter.expireConverterCache()
-
-    // reload the tables
-    tables.foreach { case TableMutations(table, mutations) =>
-      if (connector.tableOperations.exists(table)) {
-        connector.tableOperations.delete(table)
-      }
-      connector.tableOperations.create(table)
-      val bw = connector.createBatchWriter(table, new BatchWriterConfig)
-      bw.addMutations(mutations)
-      bw.flush()
-      bw.close()
-    }
+    val sftName = restoreTables(tables)
 
     // get the data store
-    val sftName = tables.map(_.table).minBy(_.length)
     val ds = DataStoreFinder.getDataStore(Map(
       "connector" -> connector,
       "caching"   -> false,
@@ -177,6 +162,61 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     ok
   }
 
+  def testBoundsDelete(): MatchResult[Any] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    foreach(Seq("1.2.8-bounds", "1.2.8-bounds-multi")) { name =>
+      logger.info(s"Running back compatible deletion test on $name")
+      val sftName = restoreTables(readVersion(getFile(s"data/versioned-data-$name.kryo")))
+      val ds = DataStoreFinder.getDataStore(Map(
+        "connector" -> connector,
+        "caching"   -> false,
+        "tableName" -> sftName
+      )).asInstanceOf[AccumuloDataStore]
+
+      val sft = ds.getSchema(sftName)
+
+      // verify the features are there
+      foreach(sft.getIndices) { case (index, _, _) =>
+        val query = new Query(sftName, ECQL.toFilter("name is not null"))
+        query.getHints.put(QueryHints.QUERY_INDEX, index)
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(4)
+      }
+
+      // delete the features
+      val filter = SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).map(_.getID).mkString("IN('", "', '", "')")
+      ds.getFeatureSource(sftName).removeFeatures(ECQL.toFilter(filter))
+
+      // verify the delete
+      foreach(sft.getIndices) { case (index, _, _) =>
+        val query = new Query(sftName, ECQL.toFilter("name is not null"))
+        query.getHints.put(QueryHints.QUERY_INDEX, index)
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) must beEmpty
+      }
+    }
+  }
+
+  def restoreTables(tables: Seq[TableMutations]): String = {
+    // since we re-use the same sft and tables, the converter cache can get messed up
+    // note that the only problem is the attribute table name change between 1.2.2 and 1.2.3, which gets cached
+    // other changes are captured in the index versions, and the cache handles them appropriately
+    GeoMesaFeatureWriter.expireConverterCache()
+
+    // reload the tables
+    tables.foreach { case TableMutations(table, mutations) =>
+      if (connector.tableOperations.exists(table)) {
+        connector.tableOperations.delete(table)
+      }
+      connector.tableOperations.create(table)
+      val bw = connector.createBatchWriter(table, new BatchWriterConfig)
+      bw.addMutations(mutations)
+      bw.flush()
+      bw.close()
+    }
+
+    tables.map(_.table).minBy(_.length)
+  }
+
   def readVersion(file: File): Seq[TableMutations] = {
     val input = new Input(new FileInputStream(file))
     def readBytes: Array[Byte] = {
@@ -204,8 +244,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   def testVersion(version: String): MatchResult[Any] = {
-    val file = new File(s"src/test/resources/data/versioned-data-$version.kryo")
-    val data = readVersion(file)
+    val data = readVersion(getFile(s"data/versioned-data-$version.kryo"))
     logger.info(s"Running back compatible test on version $version")
     runVersionTest(data)
   }
@@ -220,7 +259,11 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     "support backward compatibility to 1.2.6"   >> { testVersion("1.2.6") }
     "support backward compatibility to 1.2.7.3" >> { testVersion("1.2.7.3") }
     "support backward compatibility to 1.3.1"   >> { testVersion("1.3.1") }
+
+    "delete invalid indexed data" >> { testBoundsDelete() }
   }
+
+  def getFile(name: String): File = new File(getClass.getClassLoader.getResource(name).toURI)
 
   case class TableMutations(table: String, mutations: Seq[Mutation])
 }
