@@ -133,7 +133,7 @@ class ParquetFileSystemStorage(root: Path,
       case None => (sft, sft)
       case Some(tsft) =>
         val transforms = tsft.getAttributeDescriptors.map(_.getLocalName)
-        val filters = FilterHelper.propertyNames(q.getFilter, sft).filterNot(transforms.contains)
+        val filters = FilterHelper.propertyNames(q.getFilter, sft).filterNot(transforms.contains).distinct
         if (filters.isEmpty) {
           (tsft, tsft)
         } else {
@@ -141,6 +141,7 @@ class ParquetFileSystemStorage(root: Path,
           builder.init(tsft)
           filters.foreach(f => builder.add(sft.getDescriptor(f)))
           val psft = builder.buildFeatureType()
+          psft.getUserData.putAll(sft.getUserData)
           (psft, tsft)
         }
     }
