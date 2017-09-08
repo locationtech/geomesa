@@ -35,7 +35,7 @@ class TubeBinTest extends Specification {
 
   val geotimeAttributes = s"geom:Point:srid=4326,$DefaultDtgField:Date,dtg_end_time:Date"
 
-  "NoGapFilll" should {
+  "NoGapFill" should {
 
     "correctly time bin features" in {
       val sftName = "tubetest2"
@@ -63,7 +63,7 @@ class TubeBinTest extends Specification {
 
       ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 1).size mustEqual 1
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 0).size mustEqual 1
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 0).size mustEqual 19
     }
 
   }

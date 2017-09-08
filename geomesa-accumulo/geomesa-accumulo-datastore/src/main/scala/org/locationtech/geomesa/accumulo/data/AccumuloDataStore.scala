@@ -41,7 +41,6 @@ import org.opengis.filter.Filter
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-
 /**
  * This class handles DataStores which are stored in Accumulo Tables. To be clear, one table may
  * contain multiple features addressed by their featureName.
@@ -131,17 +130,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     getTypeNames.toSet.flatMap(getAllTableNames).filter(ops.exists).flatMap(getVersions)
   }
 
-  override def getQueryPlan(query: Query,
-                            index: Option[AccumuloFeatureIndexType],
-                            explainer: Explainer): Seq[AccumuloQueryPlan] =
-    super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[AccumuloQueryPlan]]
-
-  // extensions and back-compatibility checks for core data store methods
-
-  override def getTypeNames: Array[String] = super.getTypeNames ++ oldMetadata.getFeatureTypes
-
-  override def createSchema(sft: SimpleFeatureType): Unit = {
-
+  @throws(classOf[IllegalArgumentException])
+  override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
     // check for old enabled indices and re-map them
     SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.find(sft.getUserData.containsKey).foreach { key =>
       val indices = sft.getUserData.remove(key).toString.split(",").map(_.trim.toLowerCase)
@@ -154,16 +144,31 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       sft.getUserData.put(SimpleFeatureTypes.Configs.ENABLED_INDICES, enabled.mkString(","))
     }
 
-    super.createSchema(sft)
+    super.validateNewSchema(sft)
 
-    val lock = acquireCatalogLock()
-    try {
-      // configure the stats combining iterator on the table for this sft
-      stats.configureStatCombiner(connector, sft)
-    } finally {
-      lock.release()
+    if (sft.isTableSharing &&
+        getTypeNames.map(getSchema).exists(t => t.isTableSharing && t.isLogicalTime != sft.isLogicalTime)) {
+      logger.warn(s"Trying to create schema '${sft.getTypeName}' using " +
+          s"${if (sft.isLogicalTime) "logical" else "system"} time, but shared tables already exist with " +
+          s"${if (sft.isLogicalTime) "system" else "logical"} time. Disabling table sharing to force creation " +
+          "of new tables")
+      sft.setTableSharing(false)
     }
   }
+
+  override protected def afterCreateSchemaTasks(sft: SimpleFeatureType): Unit = {
+    // configure the stats combining iterator on the table for this sft
+    stats.configureStatCombiner(connector, sft)
+  }
+
+  override def getQueryPlan(query: Query,
+                            index: Option[AccumuloFeatureIndexType],
+                            explainer: Explainer): Seq[AccumuloQueryPlan] =
+    super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[AccumuloQueryPlan]]
+
+  // extensions and back-compatibility checks for core data store methods
+
+  override def getTypeNames: Array[String] = super.getTypeNames ++ oldMetadata.getFeatureTypes
 
   override def getSchema(typeName: String): SimpleFeatureType = {
     import GeoMesaMetadata.{ATTRIBUTES_KEY, SCHEMA_ID_KEY, STATS_GENERATION_KEY, VERSION_KEY}

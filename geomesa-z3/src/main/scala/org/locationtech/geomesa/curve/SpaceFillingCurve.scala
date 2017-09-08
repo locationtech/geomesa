@@ -16,7 +16,7 @@ trait SpaceFillingCurve[T] {
 
   def lat: NormalizedDimension
   def lon: NormalizedDimension
-  def index(x: Double, y: Double): T
+  def index(x: Double, y: Double, lenient: Boolean = false): T
   def invert(i: T): (Double, Double)
 
   def ranges(x: (Double, Double), y: (Double, Double)): Seq[IndexRange] =
@@ -48,7 +48,7 @@ trait SpaceTimeFillingCurve[T] {
   def lat: NormalizedDimension
   def lon: NormalizedDimension
   def time: NormalizedDimension
-  def index(x: Double, y: Double, t: Long): T
+  def index(x: Double, y: Double, t: Long, lenient: Boolean = false): T
   def invert(i: T): (Double, Double, Long)
 
   def ranges(x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[IndexRange] =

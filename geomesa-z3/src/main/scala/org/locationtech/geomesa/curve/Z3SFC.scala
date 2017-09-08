@@ -27,10 +27,21 @@ class Z3SFC(period: TimePeriod, precision: Int = 21) extends SpaceTimeFillingCur
   override val lat: NormalizedDimension  = NormalizedLat(precision)
   override val time: NormalizedDimension = NormalizedTime(precision, BinnedTime.maxOffset(period).toDouble)
 
-  override def index(x: Double, y: Double, t: Long): Z3 = {
-    require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max && t >= time.min && t <= time.max,
-      s"Value(s) out of bounds ([${lon.min},${lon.max}], [${lat.min},${lat.max}], [${time.min},${time.max}]): $x, $y, $t")
-    Z3(lon.normalize(x), lat.normalize(y), time.normalize(t))
+  override def index(x: Double, y: Double, t: Long, lenient: Boolean = false): Z3 = {
+    try {
+      require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max && t >= time.min && t <= time.max,
+        s"Value(s) out of bounds ([${lon.min},${lon.max}], [${lat.min},${lat.max}], [${time.min},${time.max}]): $x, $y, $t")
+      Z3(lon.normalize(x), lat.normalize(y), time.normalize(t))
+    } catch {
+      case _: IllegalArgumentException if lenient => lenientIndex(x, y, t)
+    }
+  }
+
+  protected def lenientIndex(x: Double, y: Double, t: Long): Z3 = {
+    val bx = if (x < lon.min) { lon.min } else if (x > lon.max) { lon.max } else { x }
+    val by = if (y < lat.min) { lat.min } else if (y > lat.max) { lat.max } else { y }
+    val bt = if (t < time.min) { time.min } else if (t > time.max) { time.max } else { t }
+    Z3(lon.normalize(bx), lat.normalize(by), time.normalize(bt))
   }
 
   override def invert(z: Z3): (Double, Double, Long) = {

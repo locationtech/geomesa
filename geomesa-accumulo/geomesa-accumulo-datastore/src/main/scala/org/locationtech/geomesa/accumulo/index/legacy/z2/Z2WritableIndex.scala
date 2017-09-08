@@ -18,10 +18,14 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.curve.LegacyZ2SFC
+import org.locationtech.geomesa.curve.NormalizedDimension.SemiNormalizedDimension
+import org.locationtech.geomesa.curve.{LegacyZ2SFC, NormalizedDimension}
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.util.control.NonFatal
 
 trait Z2WritableIndex extends AccumuloFeatureIndex {
 
@@ -34,7 +38,7 @@ trait Z2WritableIndex extends AccumuloFeatureIndex {
   }
 
   // split(1 byte), z value (8 bytes), id (n bytes)
-  protected def getPointRowKey(tableSharing: Array[Byte], splitArray: Seq[Array[Byte]])
+  protected def getPointRowKey(tableSharing: Array[Byte], splitArray: Seq[Array[Byte]], lenient: Boolean)
                               (wf: AccumuloFeature): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
     val numSplits = splitArray.length
@@ -44,7 +48,7 @@ trait Z2WritableIndex extends AccumuloFeatureIndex {
     if (geom == null) {
       throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
     }
-    val z = LegacyZ2SFC.index(geom.getX, geom.getY).z
+    val z = LegacyZ2SFC.index(geom.getX, geom.getY, lenient).z
     Seq(Bytes.concat(tableSharing, split, Longs.toByteArray(z), id))
   }
 
