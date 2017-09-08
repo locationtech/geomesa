@@ -53,7 +53,7 @@ case object Z3IndexV3 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     val splitArray = SplitArrays.apply(sft.getZShards)
 
     (wf: AccumuloFeature) => {
-      val rows = getPointRowKey(timeToIndex, sfc, splitArray)(wf, dtgIndex)
+      val rows = getPointRowKey(timeToIndex, sfc, splitArray, lenient = false)(wf, dtgIndex)
       rows.map { row =>
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value => mutation.put(value.cf, value.cq, value.vis, value.value) }
@@ -71,7 +71,7 @@ case object Z3IndexV3 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     val splitArray = SplitArrays.apply(sft.getZShards)
 
     (wf: AccumuloFeature) => {
-      val rows = getPointRowKey(timeToIndex, sfc, splitArray)(wf, dtgIndex)
+      val rows = getPointRowKey(timeToIndex, sfc, splitArray, lenient = true)(wf, dtgIndex)
       rows.map { row =>
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value =>

@@ -48,7 +48,7 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    val toIndexKey = Z2Index.toIndexKey(sft)
+    val toIndexKey = Z2Index.toIndexKey(sft, lenient = true)
     (wf) => Seq(createDelete(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 
@@ -130,14 +130,14 @@ object Z2Index extends IndexKeySpace[Z2ProcessingValues] {
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.isPoints
 
-  override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
     val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
     (feature) => {
       val geom = feature.getAttribute(geomIndex).asInstanceOf[Point]
       if (geom == null) {
         throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
       }
-      val z = try { LegacyZ2SFC.index(geom.getX, geom.getY).z } catch {
+      val z = try { LegacyZ2SFC.index(geom.getX, geom.getY, lenient).z } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry: $geom", e)
       }
       Longs.toByteArray(z)

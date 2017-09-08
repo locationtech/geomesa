@@ -12,12 +12,12 @@ import java.io.File
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStore
-import org.locationtech.geomesa.cassandra.tools.{CassandraDataStoreCommand, CassandraDataStoreParams}
-import org.locationtech.geomesa.tools.CatalogParam
+import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
+import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand.CassandraDataStoreParams
+import org.locationtech.geomesa.cassandra.tools.commands.CassandraIngestCommand.CassandraIngestParams
 import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
 
 import scala.collection.JavaConversions._
-
 
 class CassandraIngestCommand extends IngestCommand[CassandraDataStore] with CassandraDataStoreCommand {
 
@@ -35,5 +35,7 @@ class CassandraIngestCommand extends IngestCommand[CassandraDataStore] with Cass
   }
 }
 
-@Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-class CassandraIngestParams extends CassandraDataStoreParams with IngestParams with CatalogParam
+object CassandraIngestCommand {
+  @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
+  class CassandraIngestParams extends IngestParams with CassandraDataStoreParams
+}

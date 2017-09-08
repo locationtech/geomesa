@@ -50,7 +50,7 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    val toIndexKey = Z3Index.toIndexKey(sft)
+    val toIndexKey = Z3Index.toIndexKey(sft, lenient = true)
     (wf) => Seq(createDelete(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 
@@ -132,7 +132,7 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.isPoints
 
-  override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
     val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
@@ -146,7 +146,7 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
       val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) { 0 } else { dtg.getTime }
       val BinnedTime(b, t) = timeToIndex(time)
-      val z = try { sfc.index(geom.getX, geom.getY, t).z } catch {
+      val z = try { sfc.index(geom.getX, geom.getY, t, lenient).z } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry/time: $geom,$dtg", e)
       }
       ByteArrays.toBytes(b, z)

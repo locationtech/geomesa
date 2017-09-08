@@ -5,7 +5,7 @@ Versions and Downloads
 
 .. note::
 
-    The current recommended version of GeoMesa to install is |release|.
+    The current recommended version of GeoMesa to install is |release_last|.
 
 GeoMesa artifacts can be downloaded from the LocationTech Maven repository:
 https://repo.locationtech.org/content/repositories/geomesa-releases/
@@ -23,7 +23,7 @@ To build and install the source distribution requires:
 * `Apache Maven <http://maven.apache.org/>`__ |maven_version|
 * A ``git`` `client <http://git-scm.com/>`__
 
-**Latest release**: |release|
+**Latest release**: |release_last|
 
 .. TODO: substitutions don't work in some kinds of markup, including URLs
 
