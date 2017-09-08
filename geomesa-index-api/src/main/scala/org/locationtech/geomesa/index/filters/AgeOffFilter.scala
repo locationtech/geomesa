@@ -46,7 +46,9 @@ object AgeOffFilter {
   def configure(sft: SimpleFeatureType, expiry: Period): Map[String, String] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     require(!sft.isTableSharing || SystemProperty("geomesa.age-off.override").option.exists(_.toBoolean),
-      "AgeOff filter can only be applied to features that don't use table sharing")
+      "AgeOff filter should only be applied to features that don't use table sharing. You may override this check" +
+          "by setting the system property 'geomesa.age-off.override=true', however please note that age-off" +
+          "will affect all shared feature types in the same catalog")
     Map(Configuration.ExpiryOpt -> format.print(expiry))
   }
 }

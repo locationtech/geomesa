@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.iterators
 
 
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -21,8 +20,6 @@ import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloInde
 import org.locationtech.geomesa.index.filters.DtgAgeOffFilter
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.util.control.NonFatal
 
 /**
   * Age off data based on the dtg value stored in the SimpleFeature

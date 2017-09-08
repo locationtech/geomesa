@@ -16,6 +16,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaIndexManager}
 import org.locationtech.geomesa.index.iterators.IteratorCache
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -65,7 +66,7 @@ trait DtgAgeOffFilter extends AgeOffFilter with LazyLogging {
     } catch {
       case NonFatal(e) =>
         logger.error(s"Error checking age-off for " +
-          Option(value).getOrElse(Array.empty).slice(valueOffset, valueOffset + valueLength).mkString("[", ",", "]"))
+            Option(value).getOrElse(Array.empty).mkString("[", ",", s"], offset: $valueOffset, length: $valueLength"))
         false
     }
   }
@@ -85,6 +86,12 @@ object DtgAgeOffFilter {
                 expiry: Period,
                 dtgField: Option[String]): Map[String, String] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    require(!sft.isTableSharing || SystemProperty("geomesa.age-off.override").option.exists(_.toBoolean),
+      "DtgAgeOff filter should only be applied to features that don't use table sharing. You may override this check" +
+          "by setting the system property 'geomesa.age-off.override=true', however please note that age-off" +
+          "will affect all shared feature types in the same catalog, and may not work correctly with multiple feature" +
+          "types")
 
     val dtgIndex = dtgField match {
       case None =>
