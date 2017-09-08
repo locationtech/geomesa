@@ -99,6 +99,20 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
     }
 
+    "disable table sharing if logical time doesn't match existing tables" in {
+      val millis = createNewSchema(defaultSpec + ";geomesa.logical.time=false", tableSharing = true)
+      millis.isTableSharing must beFalse
+
+      addFeature(millis, defaultPoint(millis))
+      val timestamp = System.currentTimeMillis()
+
+      foreach(ds.getAllIndexTableNames(millis.getTypeName)) { index =>
+        foreach(ds.connector.createScanner(index, new Authorizations)) { entry =>
+          entry.getKey.getTimestamp must beCloseTo(timestamp, 1000L) // millis time - sys time
+        }
+      }
+    }
+
     "escape a ~ in the feature name" in {
       val sft = SimpleFeatureTypes.createType("name~name", "name:String,geom:Point:srid=4326")
       ds.createSchema(sft)
