@@ -16,6 +16,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.AttributeSplittable
 import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.accumulo.iterators._
@@ -125,7 +126,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       strategies.filterNot { strategy =>
         val attributes = strategy.primary.toSeq.flatMap(FilterHelper.propertyNames(_, sft))
         val joins = attributes.filter(sft.getDescriptor(_).getIndexCoverage() == IndexCoverage.JOIN)
-        joins.exists(requiresJoin(sft, _, strategy.secondary, transform))
+        joins.exists(AccumuloAttributeIndex.requiresJoin(sft, _, strategy.secondary, transform))
       }
     }
   }
@@ -210,7 +211,6 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       lazy val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
         providedDictionaries, hints.isArrowCachedDictionaries)
       // check to see if we can execute against the index values
-      // TODO GEOMESA-2011 support attr + value
       if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
         val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
             hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
@@ -222,6 +222,24 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
           (iter, None, ArrowFileIterator.kvsToFeatures())
         }
         val iters = visibilityIter(indexSft) :+ iter
+        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
+      } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, ecql, transform)) {
+        val transformSft = transform.getOrElse {
+          throw new IllegalStateException("Must have a transform for attribute key plus value scan")
+        }
+        hints.clearTransforms() // clear the transforms as we've already accounted for them
+        val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
+            hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
+          val iter = ArrowBatchIterator.configure(transformSft, this, None, dictionaries, hints, dedupe)
+          val reduce = Some(ArrowBatchScan.reduceFeatures(transformSft, hints, dictionaries)(_))
+          (iter, reduce, ArrowBatchIterator.kvsToFeatures())
+        } else {
+          val iter = ArrowFileIterator.configure(transformSft, this, None, dictionaryFields, hints, dedupe)
+          (iter, None, ArrowFileIterator.kvsToFeatures())
+        }
+        // note: ECQL is handled here so we don't pass it to the arrow iters, above
+        val indexValueIter = AttributeIndexValueIterator.configure(this, indexSft, transformSft, attribute, ecql)
+        val iters = visibilityIter(indexSft) :+ indexValueIter :+ iter
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
       } else {
         // have to do a join against the record table
@@ -467,6 +485,9 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     }
     cost.getOrElse(Long.MaxValue)
   }
+}
+
+object AccumuloAttributeIndex {
 
   /**
     * Does the query require a join against the record table, or can it be satisfied
@@ -486,8 +507,8 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         !IteratorTrigger.canUseAttrIdxValues(sft, filter, transform) &&
         !IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter, transform)
   }
-}
 
-trait AttributeSplittable {
-  def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit
+  trait AttributeSplittable {
+    def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit
+  }
 }
