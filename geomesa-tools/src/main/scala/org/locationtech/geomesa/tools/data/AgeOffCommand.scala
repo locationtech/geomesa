@@ -23,9 +23,9 @@ trait AgeOffCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override def execute(): Unit = {
     if (Seq(params.set, params.remove, params.list).count(_ == true) != 1) {
-      throw new ParameterException("Must specify exactly one of 'list', 'add' or 'remove'")
+      throw new ParameterException("Must specify exactly one of 'list', 'set' or 'remove'")
     } else if (params.set && params.expiry == null) {
-      throw new ParameterException("Must specify 'expiry' when adding age-off")
+      throw new ParameterException("Must specify 'expiry' when setting age-off")
     }
 
     if (params.list) {

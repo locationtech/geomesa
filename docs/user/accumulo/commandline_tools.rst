@@ -609,6 +609,8 @@ Explain how a given GeoMesa query will be executed::
       -c test_catalog -f test_feature \
       -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
 
+.. _accumulo_tools_stats_analyze:
+
 stats-analyze
 ~~~~~~~~~~~~~
 

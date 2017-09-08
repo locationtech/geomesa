@@ -86,6 +86,14 @@ Any configured age-off iterators can be cleared via the command line tools ``con
 
 This will remove both attribute and ingest time age-off.
 
+Statistics
+----------
+
+As features are aged off, summary data statistics will get out of date, which can degrade query planning. For
+manageable data sets, it is recommended to re-analyze statistics every so often, via the
+:ref:`accumulo_tools_stats_analyze` command. If the data set is too large for this to be feasible, then stats
+can instead be disabled completely via :ref:`stats_generate_config`.
+
 Forcing Deletion of Records
 ---------------------------
 
