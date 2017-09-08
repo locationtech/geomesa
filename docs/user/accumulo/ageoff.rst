@@ -1,10 +1,13 @@
+.. _ageoff_accumulo:
+
 Age-Off Iterators
 =================
 
-This chapter provides documentation on how to configure the alpha feature for data age-off via Accumulo iterators.
-Currently the only available age off iterator is a date-based age-off iterator which allows administrators to set
-retention periods on data (e.g. 3 months) in order to automatically age-off data from tables without manually deleting
-features.
+This chapter provides documentation on how to configure the beta feature for data age-off via Accumulo iterators.
+Age-off allows administrators to set retention periods on data (e.g. 3 months) in order to automatically hide and
+delete data from tables without manually deleting features.
+
+Currently there are two types of age-off supported - attribute based, and ingest-time based.
 
 Installation
 ------------
@@ -12,72 +15,91 @@ Installation
 The age-off iterators are provided as part of the GeoMesa Accumulo Distributed Runtime jar which can be found in the
 :doc:`install` chapter.
 
+Requirements
+------------
+
+Age-off iterators are applied to individual Accumulo tables - as such, to configure age-off on a simple feature
+type, table sharing must be disabled. This may be accomplished by setting the user data string
+``geomesa.table.sharing='false'`` on the simple feature type before calling ``createSchema``. This check may be
+overridden by setting the system property ``geomesa.age-off.override=true``. This may be desirable for configuring
+ingest time age-off on multiple simple feature types, or when it is known that only a single simple feature type
+is present in a catalog. Note that configuring attribute-based age-off on multiple features in a shared catalog
+will generally not work.
+
 Configuration
 -------------
 
-Since this feature is currently in alpha, it must be configured via the Accumulo Shell. The following example shows
-how to configure a set of GeoMesa tables with a retention period of 3 months.
+Age-off can be configured through the GeoMesa command-line tools, using the ``configure-age-off`` command.
+See :ref:`accumulo_tools` for an overview of the command-line tools.
+
+.. warning::
+
+    If age-off iterators have previously been configured manually, it is suggested to remove them before
+    using any provided tools, in order to ensure consistency in naming and priority.
+
+Viewing Current Age-Off
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Any configured age-off iterators can be shown via the command line tools ``configure-age-off`` command::
+
+    $ geomesa configure-age-off -c test_catalog -f test_feature --list
+    INFO  Attribute age-off: None
+    INFO  Timestamp age-off: name:age-off, priority:10, class:org.locationtech.geomesa.accumulo.iterators.AgeOffIterator, properties:{retention=PT1M}
+
+Note that this may not display any manually configured age-off iterators, as the iterator name may not match.
+
+Ingest Time Age-Off
+^^^^^^^^^^^^^^^^^^^
+
+Ingest time age-off will use the timestamp associated with the Accumulo data value to validate retention.
 
 .. note::
 
-    Only ``SimpleFeatureType``s with a default date field can be used with the date-based age-off iterator
+    Ingest time age-off requires that the Accumulo tables are configured with system timestamps, instead of
+    the default logical timestamps. See :ref:`logical_timestamps` for more information.
 
-There are three options that are required to configure the iterator:
+Ingest time age-off can be configured via the command line tools ``configure-age-off`` command, without specifying
+a date attribute::
 
-* **sft** - a GeoMesa ``SimpleFeatureType`` spec string
-* **index** - the GeoMesa Index identifier (usually concatenated index name, colon, and version e.g. z2:2 or records:2)
-* **retention** - an ISO 8601 Durations (or Period) format string
+    $ geomesa configure-age-off -c test_catalog -f test_feature --set --expiry '1 day'
 
-The sft option is a GeoMesa ``SimpleFeatureType`` spec string. You need to scan the catalog table to determine
-the correct spec string used by your feature type. We will be using it to set the ``sft`` opt on the age-off iterator.
-It should resemble something like this::
+This will remove any existing age-off configuration and replace it with the new specification.
 
-    dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'
+Attribute Age-Off
+^^^^^^^^^^^^^^^^^
 
-.. note::
+Attribute age-off will use a date-type attribute to validate retention.
 
-    The iterator's priority should be lower than the standard GeoMesa iterators and the versioning iterator. A good starting
-    place for the iterator priority is 5.
+Attribute age-off can be configured via the command line tools ``configure-age-off`` command by specifying
+a date attribute::
 
-For example, the iterator can then be configured on scan, minc, and majc scopes on the table
-"geomesa.mycatalog_mytype_z2_v2" in the shell:
+    $ geomesa configure-age-off -c test_catalog -f test_feature --set --expiry '1 day' --dtg my_date_attribute
 
-.. highlight:: none
+This will remove any existing age-off configuration and replace it with the new specification.
 
-::
+Removing Age-Off
+^^^^^^^^^^^^^^^^
 
-    # scan time iterator config
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.retention=P3M
-    config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
+Any configured age-off iterators can be cleared via the command line tools ``configure-age-off`` command::
 
-    # minor compaction iterator config
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.minc.ageoff.opt.retention=P3M
-    config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.scan.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
+    $ geomesa configure-age-off -c test_catalog -f test_feature --remove
 
-    # major compaction iterator config
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff=5,org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.scan.ageoff.opt.index=z2:2
-    config -t geomesa.mycatalog_mytype_z2_v2 -s table.iterator.majc.ageoff.opt.retention=P3M
-    config -t geomesa.mycatalog_mytype_z2_v2 -s "table.iterator.majc.ageoff.opt.sft=dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3',geomesa.table.sharing.prefix='\\\\u0001'"
+This will remove both attribute and ingest time age-off.
 
-.. note::
+Statistics
+----------
 
-    Use quotes around the entire argument to ``-s`` to handle special characters from SFT specs
-
-This configuration must be applied to other indices (i.e. records, z3, attr) in order to completely age-off data.
+As features are aged off, summary data statistics will get out of date, which can degrade query planning. For
+manageable data sets, it is recommended to re-analyze statistics every so often, via the
+:ref:`accumulo_tools_stats_analyze` command. If the data set is too large for this to be feasible, then stats
+can instead be disabled completely via :ref:`stats_generate_config`.
 
 Forcing Deletion of Records
 ---------------------------
 
-The GeoMesa age-off iterators will not full delete records until compactions occur. To force a true deletion on disk of
-data you must manually compact a table or range. When compacting an entire table you should take care not to overwhelm
-your system:
-
-.. code-block::
+The GeoMesa age-off iterators will not fully delete records until compactions occur. To force a true deletion of data
+on disk, you must manually compact a table or range. When compacting an entire table you should take care not to
+overwhelm your system. You may start a compaction through the Accumulo shell::
 
     compact -t geomesa.mycatalog_mytype_z2
 
