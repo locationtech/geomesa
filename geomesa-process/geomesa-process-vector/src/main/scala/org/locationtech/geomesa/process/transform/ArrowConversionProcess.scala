@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.io.{ByteArrayOutputStream, Closeable}
+import java.io.ByteArrayOutputStream
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
@@ -16,12 +16,18 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 @DescribeProcess(
   title = "Arrow Conversion",
@@ -72,96 +78,177 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(100000)
 
-    val visitor = new ArrowVisitor(sft, toEncode, encoding, cacheDictionaries, Option(sortField), reverse, batch)
+    val visitor = new ArrowVisitor(sft, encoding, toEncode, cacheDictionaries, Option(sortField), reverse, batch)
     features.accepts(visitor, null)
-    visitor.close()
     visitor.getResult.results
   }
 }
 
-class ArrowVisitor(sft: SimpleFeatureType,
-                   dictionaryFields: Seq[String],
-                   encoding: SimpleFeatureEncoding,
-                   cacheDictionaries: Option[Boolean],
-                   sortField: Option[String],
-                   sortReverse: Option[Boolean],
-                   batchSize: Int)
-    extends GeoMesaProcessVisitor with Closeable with LazyLogging {
+object ArrowConversionProcess {
 
-  import org.locationtech.geomesa.arrow.allocator
+  class ArrowVisitor(sft: SimpleFeatureType,
+                     encoding: SimpleFeatureEncoding,
+                     dictionaryFields: Seq[String],
+                     cacheDictionaries: Option[Boolean],
+                     sortField: Option[String],
+                     sortReverse: Option[Boolean],
+                     batchSize: Int)
+      extends GeoMesaProcessVisitor with LazyLogging {
 
-  import scala.collection.JavaConversions._
+    import scala.collection.JavaConversions._
 
-  // for collecting results manually
-  private val manualResults = scala.collection.mutable.Queue.empty[Array[Byte]]
-  private val manualBytes = new ByteArrayOutputStream()
-  private lazy val manualWriter = {
-    if (dictionaryFields.nonEmpty) {
-      logger.warn("Non-distributed conversion - fields will not be dictionary encoded")
+    // for collecting results manually
+    private lazy val manualVisitor: ArrowManualVisitor =
+      if (dictionaryFields.isEmpty && sortField.isEmpty) {
+        new SimpleArrowManualVisitor(sft, encoding, batchSize)
+      } else {
+        val sort = sortField.map(s => (s, sortReverse.getOrElse(false)))
+        new ComplexArrowManualVisitor(sft, encoding, dictionaryFields, sort, batchSize)
+      }
+
+    private var result: Iterator[Array[Byte]] = _
+
+    override def getResult: ArrowResult = {
+      if (result != null) {
+        ArrowResult(result)
+      } else {
+        ArrowResult(manualVisitor.results)
+      }
     }
-    if (sortField.isDefined) {
-      logger.warn("Non-distributed conversion - results will not be sorted")
+
+    // manually called for non-accumulo feature collections
+    override def visit(feature: Feature): Unit = manualVisitor.visit(feature.asInstanceOf[SimpleFeature])
+
+    /**
+      * Optimized method to run distributed query. Sets the result, available from `getResult`
+      *
+      * @param source simple feature source
+      * @param query may contain additional filters to apply
+      */
+    override def execute(source: SimpleFeatureSource, query: Query): Unit = {
+      logger.debug(s"Visiting source type: ${source.getClass.getName}")
+
+      query.getHints.put(QueryHints.ARROW_ENCODE, true)
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaryFields.mkString(","))
+      query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids)
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
+      cacheDictionaries.foreach(query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, _))
+      sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
+      sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
+
+      val features = SelfClosingIterator(source.getFeatures(query))
+      result = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
     }
-    new SimpleFeatureArrowFileWriter(sft, manualBytes, Map.empty, encoding)
   }
-  private var manualVisit = 0L
-  private var distributedVisit = false
 
-  private var result = new Iterator[Array[Byte]] {
-    override def next(): Array[Byte] = manualResults.dequeue()
-    override def hasNext: Boolean = manualResults.nonEmpty
-  }
-
-  override def getResult: ArrowResult = ArrowResult(result)
-
-  // manually called for non-accumulo feature collections
-  override def visit(feature: Feature): Unit = {
-    manualWriter.add(feature.asInstanceOf[SimpleFeature])
-    manualVisit += 1
-    if (manualVisit % batchSize == 0) {
-      unloadManualResults(false)
-    }
-  }
-
-  private def unloadManualResults(finalize: Boolean): Unit = {
-    if (finalize) {
-      manualWriter.close()
-    } else {
-      manualWriter.flush()
-    }
-    manualResults += manualBytes.toByteArray
-    manualBytes.reset()
+  trait ArrowManualVisitor {
+    def visit(feature: SimpleFeature): Unit
+    def results: Iterator[Array[Byte]]
   }
 
   /**
-    * Optimized method to run distributed query. Sets the result, available from `getResult`
+    * Writes out features in batches, without sorting or dictionaries
     *
-    * @param source simple feature source
-    * @param query may contain additional filters to apply
+    * @param sft simple feature type
+    * @param encoding arrow encoding
+    * @param batchSize batch size
     */
-  override def execute(source: SimpleFeatureSource, query: Query): Unit = {
-    logger.debug(s"Visiting source type: ${source.getClass.getName}")
+  private class SimpleArrowManualVisitor(sft: SimpleFeatureType, encoding: SimpleFeatureEncoding, batchSize: Int)
+      extends ArrowManualVisitor {
 
-    query.getHints.put(QueryHints.ARROW_ENCODE, true)
-    query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaryFields.mkString(","))
-    query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids)
-    query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
-    cacheDictionaries.foreach(query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, _))
-    sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
-    sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
+    import org.locationtech.geomesa.arrow.allocator
 
-    val features = SelfClosingIterator(source.getFeatures(query))
-    result ++= features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-    distributedVisit = true
-  }
+    private val out = new ByteArrayOutputStream()
+    private val bytes = ListBuffer.empty[Array[Byte]]
+    private var count = 0L
 
-  override def close(): Unit = {
-    if (manualVisit > 0 || !distributedVisit) {
-      unloadManualResults(true)
+    private val writer = new SimpleFeatureArrowFileWriter(sft, out, Map.empty, encoding)
+
+    override def visit(feature: SimpleFeature): Unit = {
+      writer.add(feature.asInstanceOf[SimpleFeature])
+      count += 1
+      if (count % batchSize == 0) {
+        writer.flush()
+        bytes.append(out.toByteArray)
+        out.reset()
+      }
+    }
+
+    override def results: Iterator[Array[Byte]] = {
+      writer.close()
+      bytes.append(out.toByteArray)
+      bytes.iterator
     }
   }
-}
 
-case class ArrowResult(results: java.util.Iterator[Array[Byte]]) extends AbstractCalcResult {
-  override def getValue: AnyRef = results
+  /**
+    * Caches features locally in order to compute dictionaries and/or sorting
+    *
+    * @param sft simple feature type
+    * @param encoding arrow encoding
+    * @param dictionaryFields dictionary fields
+    * @param sort sort
+    * @param batchSize batch size
+    */
+  private class ComplexArrowManualVisitor(sft: SimpleFeatureType,
+                                          encoding: SimpleFeatureEncoding,
+                                          dictionaryFields: Seq[String],
+                                          sort: Option[(String, Boolean)],
+                                          batchSize: Int) extends ArrowManualVisitor {
+
+    import org.locationtech.geomesa.arrow.allocator
+
+    private val features = ArrayBuffer.empty[SimpleFeature]
+
+    override def visit(feature: SimpleFeature): Unit = {
+      // copy the feature in case it is being re-used in the iterator
+      features.append(ScalaSimpleFeature.copy(feature))
+    }
+
+    override def results: Iterator[Array[Byte]] = {
+      val dictionaries = if (dictionaryFields.isEmpty) { Map.empty[String, ArrowDictionary] } else {
+        val indicesAndValues = dictionaryFields.map { field =>
+          (field, sft.indexOf(field), scala.collection.mutable.HashSet.empty[AnyRef])
+        }
+        features.foreach { f =>
+          indicesAndValues.foreach { case (_, i, v) => v.add(f.getAttribute(i)) }
+        }
+        indicesAndValues.map { case (n, _, v) => n -> ArrowDictionary.create(v.toSeq) }.toMap
+      }
+
+      val ordering = sort.map { case (field, reverse) =>
+        val o = SimpleFeatureOrdering(sft.indexOf(field))
+        if (reverse) { o.reverse } else { o }
+      }
+      val sorted = ordering match {
+        case None    => features.iterator
+        case Some(o) => features.sorted(o).iterator
+      }
+
+      val out = new ByteArrayOutputStream()
+      val writer = new SimpleFeatureArrowFileWriter(sft, out, dictionaries, encoding, sort)
+
+      new Iterator[Array[Byte]] {
+        override def hasNext: Boolean = sorted.hasNext
+        override def next(): Array[Byte] = {
+          out.reset()
+          var i = 0
+          while (i < batchSize && sorted.hasNext) {
+            writer.add(sorted.next)
+            i += 1
+          }
+          if (sorted.hasNext) {
+            writer.flush()
+          } else {
+            writer.close()
+          }
+          out.toByteArray
+        }
+      }
+    }
+  }
+
+  case class ArrowResult(results: java.util.Iterator[Array[Byte]]) extends AbstractCalcResult {
+    override def getValue: AnyRef = results
+  }
 }

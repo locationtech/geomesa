@@ -9,11 +9,9 @@
 package org.locationtech.geomesa.utils.iterators
 
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.sort.{SortBy, SortOrder}
-
-import scala.reflect.ClassTag
 
 /**
   * In memory sorting of simple features
@@ -30,14 +28,14 @@ class SortingSimpleFeatureIterator(features: CloseableIterator[SimpleFeature], s
       val sft = first.getFeatureType
 
       val sortOrdering = sortBy.map {
-        case SortBy.NATURAL_ORDER => Ordering.by[SimpleFeature, String](_.getID)
-        case SortBy.REVERSE_ORDER => Ordering.by[SimpleFeature, String](_.getID).reverse
+        case SortBy.NATURAL_ORDER => SimpleFeatureOrdering.fid
+        case SortBy.REVERSE_ORDER => SimpleFeatureOrdering.fid.reverse
         case sb =>
           val prop = sb.getPropertyName.getPropertyName
           val idx = sft.indexOf(prop)
           require(idx != -1, s"Trying to sort on unavailable property '$prop' in feature type " +
               s"'${SimpleFeatureTypes.encodeType(sft)}'")
-          val ord  = attributeToComparable(idx)
+          val ord = SimpleFeatureOrdering(idx)
           if (sb.getSortOrder == SortOrder.DESCENDING) ord.reverse else ord
       }
       val comp: (SimpleFeature, SimpleFeature) => Boolean =
@@ -57,21 +55,6 @@ class SortingSimpleFeatureIterator(features: CloseableIterator[SimpleFeature], s
       CloseableIterator(buf.sortWith(comp).iterator)
     }
   }
-
-  def attributeToComparable[T <: Comparable[T]](i: Int)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
-    Ordering.by[SimpleFeature, T](_.getAttribute(i).asInstanceOf[T])(new Ordering[T] {
-      val evo = implicitly[Ordering[T]]
-
-      override def compare(x: T, y: T): Int = {
-        if (x == null) {
-          if (y == null) { 0 } else { -1 }
-        } else if (y == null) {
-          1
-        } else {
-          evo.compare(x, y)
-        }
-      }
-    })
 
   override def hasNext: Boolean = sorted.hasNext
 

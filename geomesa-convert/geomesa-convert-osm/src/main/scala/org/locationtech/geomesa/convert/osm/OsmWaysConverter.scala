@@ -10,7 +10,7 @@ package org.locationtech.geomesa.convert.osm
 
 import java.io.InputStream
 import java.nio.file.Files
-import java.sql.DriverManager
+import java.sql.{Connection, DriverManager}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -33,18 +33,11 @@ class OsmWaysConverter(val targetSFT: SimpleFeatureType,
                        val userDataBuilder: Map[String, Expr],
                        val parseOpts: ConvertParseOpts,
                        val pbf: Boolean,
-                       val needsMetadata: Boolean) extends ToSimpleFeatureConverter[OsmWay] with LazyLogging {
+                       val needsMetadata: Boolean,
+                       connection: Connection) extends ToSimpleFeatureConverter[OsmWay] with LazyLogging {
 
   private def gf = JTSFactoryFinder.getGeometryFactory
   private val toArray = if (needsMetadata) { OsmField.toArrayWithMetadata _ } else { OsmField.toArrayNoMetadata _ }
-
-  // create a temporary h2 database to store our nodes
-  // the ways only refer to nodes by reference, but we can't keep the whole file in memory
-  private val h2Dir = Files.createTempDirectory("geomesa-convert-h2").toFile
-  private val connection = {
-    Class.forName("org.h2.Driver")
-    DriverManager.getConnection(s"jdbc:h2:split:${h2Dir.getAbsolutePath}/osm")
-  }
 
   createNodesTable()
 
@@ -120,10 +113,17 @@ class OsmWaysConverter(val targetSFT: SimpleFeatureType,
     map.toMap
   }
 
+  protected def dropNodesTable(): Unit = {
+    val sql = "drop table nodes;"
+    val stmt = connection.prepareStatement(sql)
+    stmt.execute()
+    stmt.close()
+  }
+
   override def close(): Unit = {
     insertStatement.close()
+    dropNodesTable()
     connection.close()
-    PathUtils.deleteRecursively(h2Dir.toPath)
   }
 }
 
@@ -139,7 +139,23 @@ class OsmWaysConverterFactory extends AbstractSimpleFeatureConverterFactory[OsmW
                                         parseOpts: ConvertParseOpts): SimpleFeatureConverter[OsmWay] = {
     val pbf = if (conf.hasPath("format")) conf.getString("format").toLowerCase.trim.equals("pbf") else false
     val needsMetadata = OsmField.requiresMetadata(fields)
-    new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, parseOpts, pbf, needsMetadata)
+
+    if (conf.hasPath("jdbc")) {
+      val connection = DriverManager.getConnection(conf.getString("jdbc"))
+      new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, parseOpts, pbf, needsMetadata, connection)
+    } else {
+      // create a temporary h2 database to store our nodes
+      // the ways only refer to nodes by reference, but we can't keep the whole file in memory
+      val h2Dir = Files.createTempDirectory("geomesa-convert-h2").toFile
+      Class.forName("org.h2.Driver")
+      val connection = DriverManager.getConnection(s"jdbc:h2:split:${h2Dir.getAbsolutePath}/osm")
+
+      new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, parseOpts, pbf, needsMetadata, connection) {
+        override protected def dropNodesTable(): Unit = {
+          PathUtils.deleteRecursively(h2Dir.toPath)
+        }
+      }
+    }
   }
 
   override protected def buildField(field: Config): Field = OsmField.build(field)

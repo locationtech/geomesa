@@ -38,9 +38,10 @@ trait IndexKeySpace[T] {
     * Index key from the attributes of a simple feature
     *
     * @param sft simple feature type
+    * @param lenient if input values should be strictly checked, or normalized instead
     * @return
     */
-  def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte]
+  def toIndexKey(sft: SimpleFeatureType, lenient: Boolean = false): (SimpleFeature) => Array[Byte]
 
   /**
     * Ranges over the index keys. Calling this method will populate
