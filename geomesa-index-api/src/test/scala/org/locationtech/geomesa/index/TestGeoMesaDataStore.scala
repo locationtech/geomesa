@@ -122,12 +122,12 @@ object TestGeoMesaDataStore {
   trait TestFeatureIndex extends TestFeatureIndexType
       with IndexAdapter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange] {
 
-    implicit val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
+    private val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
       override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
         byteComparator.compare(x._1, y._1)
     }
 
-    val features = scala.collection.mutable.SortedSet.empty[(Array[Byte], SimpleFeature)]
+    val features = scala.collection.mutable.SortedSet.empty[(Array[Byte], SimpleFeature)](ordering)
 
     override val version = 1
 
@@ -186,7 +186,9 @@ object TestGeoMesaDataStore {
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
       def contained(range: TestRange, row: Array[Byte]): Boolean =
         byteComparator.compare(range.start, row) <= 0 && byteComparator.compare(range.end, row) > 0
-      index.features.toIterator.collect { case (row, sf) if ranges.exists(contained(_, row))  => sf }
+      index.features.toIterator.collect {
+        case (row, sf) if ranges.exists(contained(_, row)) && ecql.forall(_.evaluate(sf)) => sf
+      }
     }
 
     override def explain(explainer: Explainer, prefix: String): Unit = {

@@ -107,7 +107,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
      * Fetches Blob by id
      *
      * @param id String feature Id of the Blob, from getIds functions
-     * @return Map.Entry<String, byte[]> map entry of filename to file bytes
+     * @return Map.Entry&lt;String, byte[]&gt; map entry of filename to file bytes
      */
     @Override
     public Blob get(String id) {

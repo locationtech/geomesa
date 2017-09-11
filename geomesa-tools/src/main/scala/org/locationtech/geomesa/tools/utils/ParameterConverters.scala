@@ -10,7 +10,10 @@ package org.locationtech.geomesa.tools.utils
 
 import com.beust.jcommander.ParameterException
 import com.beust.jcommander.converters.BaseConverter
+import org.joda.time.Period
+import org.joda.time.format.PeriodFormat
 
+import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 object ParameterConverters {
@@ -26,6 +29,27 @@ object ParameterConverters {
         map
       } catch {
         case NonFatal(e) => throw new ParameterException(getErrorString(value, s"hint map: $e"))
+      }
+    }
+  }
+
+  class PeriodConverter(name: String) extends BaseConverter[Period](name) {
+    private val format = PeriodFormat.getDefault
+    override def convert(value: String): Period = {
+      try {
+        format.parsePeriod(value)
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"period: $e"))
+      }
+    }
+  }
+
+  class DurationConverter(name: String) extends BaseConverter[Duration](name) {
+    override def convert(value: String): Duration = {
+      try {
+        Duration(value)
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"duration: $e"))
       }
     }
   }

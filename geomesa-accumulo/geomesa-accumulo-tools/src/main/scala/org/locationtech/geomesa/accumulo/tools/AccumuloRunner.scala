@@ -31,10 +31,11 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
   override val name: String = "geomesa"
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new AddAttributeIndexCommand,
+    new AccumuloAgeOffCommand,
     new AccumuloCreateSchemaCommand,
     new AccumuloDeleteCatalogCommand,
     new AccumuloDeleteFeaturesCommand,
+    new AddAttributeIndexCommand,
     new DeleteRasterCommand,
     new AccumuloDescribeSchemaCommand,
     new EnvironmentCommand,

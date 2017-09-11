@@ -31,12 +31,10 @@ import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils,
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleFeatureOrdering}
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, Id}
-
-import scala.math.Ordering
 
 class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, authProvider: Option[AuthorizationsProvider])
     extends QueryRunner {
@@ -200,15 +198,8 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
 
     val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
     val batchWriter = new RecordBatchUnloader(vector)
-    val sortIndex = sft.indexOf(sortField)
 
-    val ordering = new Ordering[SimpleFeature] {
-      override def compare(x: SimpleFeature, y: SimpleFeature): Int = {
-        val left = x.getAttribute(sortIndex).asInstanceOf[Comparable[Any]]
-        val right = y.getAttribute(sortIndex).asInstanceOf[Comparable[Any]]
-        left.compareTo(right)
-      }
-    }
+    val ordering = SimpleFeatureOrdering(sft.indexOf(sortField))
 
     val sf = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
 

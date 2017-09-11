@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableSet
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
 import org.geotools.data._
@@ -76,6 +77,40 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create a schema" in {
       ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
+    }
+
+    "create a schema with or without logical time" in {
+      val logical = createNewSchema(defaultSpec, tableSharing = false)
+      val millis = createNewSchema(defaultSpec + ";geomesa.logical.time=false", tableSharing = false)
+
+      Seq(logical, millis).foreach(sft => addFeature(sft, defaultPoint(sft)))
+      val timestamp = System.currentTimeMillis()
+
+      foreach(ds.getAllIndexTableNames(logical.getTypeName)) { index =>
+        foreach(ds.connector.createScanner(index, new Authorizations)) { entry =>
+          entry.getKey.getTimestamp mustEqual 1L // logical time - incrementing counter
+        }
+      }
+
+      foreach(ds.getAllIndexTableNames(millis.getTypeName)) { index =>
+        foreach(ds.connector.createScanner(index, new Authorizations)) { entry =>
+          entry.getKey.getTimestamp must beCloseTo(timestamp, 1000L) // millis time - sys time
+        }
+      }
+    }
+
+    "disable table sharing if logical time doesn't match existing tables" in {
+      val millis = createNewSchema(defaultSpec + ";geomesa.logical.time=false", tableSharing = true)
+      millis.isTableSharing must beFalse
+
+      addFeature(millis, defaultPoint(millis))
+      val timestamp = System.currentTimeMillis()
+
+      foreach(ds.getAllIndexTableNames(millis.getTypeName)) { index =>
+        foreach(ds.connector.createScanner(index, new Authorizations)) { entry =>
+          entry.getKey.getTimestamp must beCloseTo(timestamp, 1000L) // millis time - sys time
+        }
+      }
     }
 
     "prevent opening connections after dispose is called" in {

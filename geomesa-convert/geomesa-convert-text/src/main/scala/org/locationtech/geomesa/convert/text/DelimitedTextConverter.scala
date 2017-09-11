@@ -14,17 +14,16 @@ import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
+import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.DelimitedOptions
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.IndexedSeq
 
 class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
 
-  override protected val typeToProcess = "delimited-text"
+  import DelimitedTextConverterFactory._
 
-  val QUOTED                    = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.ALL)
-  val QUOTE_ESCAPE              = CSVFormat.DEFAULT.withEscape('"')
-  val QUOTED_WITH_QUOTE_ESCAPE  = QUOTE_ESCAPE.withQuoteMode(QuoteMode.ALL)
+  override protected val typeToProcess = "delimited-text"
 
   override protected def buildConverter(sft: SimpleFeatureType,
                                         conf: Config,
@@ -32,7 +31,9 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
                                         parseOpts: ConvertParseOpts): DelimitedTextConverter = {
-    var baseFmt = conf.getString("format").toUpperCase match {
+    import org.locationtech.geomesa.utils.conf.ConfConversions._
+
+    val baseFormat = conf.getString("format").toUpperCase match {
       case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
       case "MYSQL"                    => CSVFormat.MYSQL
@@ -44,30 +45,36 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
       case _ => throw new IllegalArgumentException("Unknown delimited text format")
     }
 
-    import org.locationtech.geomesa.utils.conf.ConfConversions._
-    val opts = {
-      val o = "options"
-      val dOpts = new DelimitedOptions()
-      conf.getIntOpt(s"$o.skip-lines").foreach(s => dOpts.skipLines = s)
-      conf.getIntOpt(s"$o.pipe-size").foreach(p => dOpts.pipeSize = p)
-      dOpts
+    val format = formatOptions.foldLeft(baseFormat) { case (fmt, (name, fn)) =>
+      conf.getStringOpt(s"options.$name") match {
+        case None => fmt
+        case Some(o) if o.length == 1 => fn.apply(fmt, o.toCharArray()(0))
+        case Some(o) => throw new IllegalArgumentException(s"$name must be a single character: $o")
+      }
     }
 
-    conf.getStringOpt("options.quote").foreach { q =>
-      require(q.length == 1, "Quote must be a single character")
-      baseFmt = baseFmt.withQuote(q.toCharArray()(0))
-    }
+    val opts = new DelimitedOptions()
+    conf.getIntOpt("options.skip-lines").foreach(s => opts.skipLines = s)
+    conf.getIntOpt("options.pipe-size").foreach(p => opts.pipeSize = p)
 
-    conf.getStringOpt("options.escape").foreach { q =>
-      require(q.length == 1, "Escape must be a single character")
-      baseFmt = baseFmt.withEscape(q.toCharArray()(0))
-    }
-
-    new DelimitedTextConverter(baseFmt, sft, idBuilder, fields, userDataBuilder, opts, parseOpts)
+    new DelimitedTextConverter(format, sft, idBuilder, fields, userDataBuilder, opts, parseOpts)
   }
 }
 
-class DelimitedOptions(var skipLines: Int = 0, var pipeSize: Int = 16 * 1024)
+object DelimitedTextConverterFactory {
+
+  private val QUOTED                   = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.ALL)
+  private val QUOTE_ESCAPE             = CSVFormat.DEFAULT.withEscape('"')
+  private val QUOTED_WITH_QUOTE_ESCAPE = QUOTE_ESCAPE.withQuoteMode(QuoteMode.ALL)
+
+  private val formatOptions: Seq[(String, (CSVFormat, Char) => CSVFormat)] = Seq(
+    ("quote",     (f, c) => f.withQuote(c)),
+    ("escape",    (f, c) => f.withEscape(c)),
+    ("delimiter", (f, c) => f.withDelimiter(c))
+  )
+
+  class DelimitedOptions(var skipLines: Int = 0, var pipeSize: Int = 16 * 1024)
+}
 
 class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,

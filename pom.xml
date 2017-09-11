@@ -10,6 +10,14 @@
     <packaging>pom</packaging>
     <version>1.3.4-SNAPSHOT</version>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <modules>
         <module>geomesa-accumulo</module>
         <module>geomesa-archetypes</module>
@@ -249,59 +257,104 @@
         </profile>
 
         <profile>
-            <!-- disables all non-LT repositories for a build with only CQ'd jars -->
-            <id>locationtech</id>
-            <repositories>
+            <id>central</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadoc</id>
+                                <goals>
+                                    <goal>doc-jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <distributionManagement>
                 <repository>
-                    <id>locationtech-thirdparty</id>
-                    <name>Locationtech Repository - Third party</name>
-                    <url>https://repo.locationtech.org/content/repositories/thirdparty/</url>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
-                <repository>
-                    <id>central</id>
-                    <url>http://repo.maven.apache.org/maven2</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-                <repository>
-                    <id>boundlessgeo</id>
-                    <url>http://repo.boundlessgeo.com/main</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-                <repository>
-                    <id>osgeo</id>
-                    <url>http://download.osgeo.org/webdav/geotools</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-                <repository>
-                    <id>conjars.org</id>
-                    <url>http://conjars.org/repo</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
         </profile>
+
+        <profile>
+            <id>locationtech</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadoc</id>
+                                <goals>
+                                    <goal>doc-jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <distributionManagement>
+                <repository>
+                    <id>repo.locationtech.org</id>
+                    <name>GeoMesa Repository - Releases</name>
+                    <url>https://repo.locationtech.org/content/repositories/geomesa-releases/</url>
+                </repository>
+                <snapshotRepository>
+                    <id>repo.locationtech.org</id>
+                    <name>GeoMesa Repository - Snapshots</name>
+                    <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+
         <profile>
             <id>eclipse-sign</id>
             <build>
@@ -334,19 +387,6 @@
             </pluginRepositories>
         </profile>
     </profiles>
-
-    <distributionManagement>
-        <repository>
-            <id>repo.locationtech.org</id>
-            <name>GeoMesa Repository - Releases</name>
-            <url>https://repo.locationtech.org/content/repositories/geomesa-releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>repo.locationtech.org</id>
-            <name>GeoMesa Repository - Snapshots</name>
-            <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -2530,12 +2570,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.7</version>
+                    <version>3.0.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.4</version>
+                    <version>3.0.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2545,7 +2585,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>3.1.0</version>
                     <configuration>
                       <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>
@@ -2613,7 +2653,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.1</version>
+                    <version>2.8.2</version>
                     <configuration>
                         <deployAtEnd>true</deployAtEnd>
                     </configuration>
@@ -2625,8 +2665,13 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.0.0-M1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.4</version>
+                    <version>2.5.3</version>
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                     </configuration>
@@ -2719,6 +2764,11 @@
                             <version>1.7.5</version>
                         </dependency>
                     </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.5</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -2842,6 +2892,39 @@
         <url>https://github.com/locationtech/geomesa</url>
         <tag>HEAD</tag>
     </scm>
+
+    <developers>
+        <developer>
+            <name>Anthony Fox</name>
+            <email>anthony@ccri.com</email>
+            <organization>CCRi</organization>
+            <organizationUrl>http://www.ccri.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>James Hughes</name>
+            <email>jhughes@ccri.com</email>
+            <organization>CCRi</organization>
+            <organizationUrl>http://www.ccri.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Emilio Lahr-Vivaz</name>
+            <email>elahrvivaz@ccri.com</email>
+            <organization>CCRi</organization>
+            <organizationUrl>http://www.ccri.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Andrew Hulbert</name>
+            <email>ahulbert@ccri.com</email>
+            <organization>CCRi</organization>
+            <organizationUrl>http://www.ccri.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Austin Heyne</name>
+            <email>aheyne@ccri.com</email>
+            <organization>CCRi</organization>
+            <organizationUrl>http://www.ccri.com</organizationUrl>
+        </developer>
+    </developers>
 
     <repositories>
         <repository>

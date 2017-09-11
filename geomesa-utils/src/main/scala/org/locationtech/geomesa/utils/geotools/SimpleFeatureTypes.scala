@@ -43,6 +43,7 @@ object SimpleFeatureTypes {
     val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
     val Z_SPLITS_KEY        = "geomesa.z.splits"
     val ATTR_SPLITS_KEY     = "geomesa.attr.splits"
+    val LOGICAL_TIME_KEY    = "geomesa.logical.time"
   }
 
   private [geomesa] object InternalConfigs {

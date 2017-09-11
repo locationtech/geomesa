@@ -24,10 +24,20 @@ class Z2SFC(precision: Int) extends SpaceFillingCurve[Z2] {
   override val lon: NormalizedDimension = NormalizedLon(precision)
   override val lat: NormalizedDimension = NormalizedLat(precision)
 
-  override def index(x: Double, y: Double): Z2 = {
-    require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max,
-      s"Value(s) out of bounds ([${lon.min},${lon.max}], [${lat.min},${lat.max}]): $x, $y")
-    Z2(lon.normalize(x), lat.normalize(y))
+  override def index(x: Double, y: Double, lenient: Boolean = false): Z2 = {
+    try {
+      require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max,
+        s"Value(s) out of bounds ([${lon.min},${lon.max}], [${lat.min},${lat.max}]): $x, $y")
+      Z2(lon.normalize(x), lat.normalize(y))
+    } catch {
+      case _: IllegalArgumentException if lenient => lenientIndex(x, y)
+    }
+  }
+
+  protected def lenientIndex(x: Double, y: Double): Z2 = {
+    val bx = if (x < lon.min) { lon.min } else if (x > lon.max) { lon.max } else { x }
+    val by = if (y < lat.min) { lat.min } else if (y > lat.max) { lat.max } else { y }
+    Z2(lon.normalize(bx), lat.normalize(by))
   }
 
   override def invert(z: Z2): (Double, Double) = {

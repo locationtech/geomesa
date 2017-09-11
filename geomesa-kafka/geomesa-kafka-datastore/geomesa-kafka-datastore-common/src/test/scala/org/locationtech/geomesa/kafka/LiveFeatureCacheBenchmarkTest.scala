@@ -15,7 +15,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Instant}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -192,7 +191,7 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
   val overlapWhere2 = ECQL.toFilter("BBOX(Where, -90, -90, 0, 90)")
   val overlapOR1 = ff.or(overlapWhere1, overlapWhere2)
   val overlapOR2 = ECQL.toFilter("Who = 'Addams' OR What = 1")
-  val overlapORpathological = ff.or(List[Filter](
+  val overlapORpathological = ff.or(List(
     "Who = 'Addams'",
     "What = 1",
     "Who = 'Bierce'",
@@ -208,7 +207,7 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
     "Who = 'Goliath'",
     "What = 7",
     "Who = 'Harry'",
-    "What = 8"))
+    "What = 8").map(ECQL.toFilter))
 
   val filters = Seq(ab, cd, w14, where, justified, justifiedAB, justifiedCD, just, justBBOX, justBBOX2, bbox2, overlapOR1, overlapOR2, overlapORpathological)
 

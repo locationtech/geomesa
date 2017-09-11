@@ -260,7 +260,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   def fromInputType(i: I): Seq[Array[Any]]
   def parseOpts: ConvertParseOpts
 
-  private val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
+  protected val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
     (sf: SimpleFeature, ec: EvaluationContext) => {
       val v = parseOpts.validator.validate(sf)
       if (v) {
@@ -276,7 +276,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
       }
     }
 
-  private val requiredFields: IndexedSeq[Field] = {
+  protected val requiredFields: IndexedSeq[Field] = {
     import SimpleFeatureConverter.{addDependencies, topologicalOrder}
 
     val fieldNameMap = inputFields.map(f => (f.name, f)).toMap
@@ -295,8 +295,8 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     topologicalOrder(dag)
   }
 
-  private val nfields = requiredFields.length
-  private val sftIndices = requiredFields.map(f => targetSFT.indexOf(f.name))
+  protected val requiredFieldsCount: Int = requiredFields.length
+  protected val requiredFieldsIndices: IndexedSeq[Int] = requiredFields.map(f => targetSFT.indexOf(f.name))
 
   /**
    * Convert input values into a simple feature with attributes
@@ -305,7 +305,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     val sfValues = Array.ofDim[AnyRef](targetSFT.getAttributeCount)
 
     var i = 0
-    while (i < nfields) {
+    while (i < requiredFieldsCount) {
       try {
         ec.set(i, requiredFields(i).eval(t)(ec))
       } catch {
@@ -325,7 +325,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
             throw new IOException(msg, e)
           }
       }
-      val sftIndex = sftIndices(i)
+      val sftIndex = requiredFieldsIndices(i)
       if (sftIndex != -1) {
         sfValues.update(sftIndex, ec.get(i).asInstanceOf[AnyRef])
       }

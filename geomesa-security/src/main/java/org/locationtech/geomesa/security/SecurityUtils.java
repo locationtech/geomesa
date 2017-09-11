@@ -32,7 +32,7 @@ public class SecurityUtils {
     }
 
     /**
-     * Sets the visbility to an expression created by joining the given {@code visibilities} with "&".
+     * Sets the visbility to an expression created by joining the given {@code visibilities} with "&amp;".
      *
      * @param feature the <tt>SimpleFeature</tt> to add or update visibility
      * @param visibilities a set of visbilities that will be and-ed together

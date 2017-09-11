@@ -6,14 +6,8 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.filter
+package org.locationtech.geomesa.index.iterators
 
-import org.opengis.filter.expression.Literal
-
-/**
- * Holder for a property name, literal value(s), and the order they are in
- */
-case class PropertyLiteral(name: String,
-                           literal: Literal,
-                           secondary: Option[Literal],
-                           flipped: Boolean = false)
+trait ConfiguredScan {
+  def init(options: Map[String, String]): Unit
+}

@@ -46,7 +46,7 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    val toIndexKey = XZ2Index.toIndexKey(sft)
+    val toIndexKey = XZ2Index.toIndexKey(sft, lenient = true)
     (wf) => Seq(createDelete(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 
@@ -113,7 +113,7 @@ object XZ2Index extends IndexKeySpace[Z2ProcessingValues] {
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.nonPoints
 
-  override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
 
@@ -123,7 +123,9 @@ object XZ2Index extends IndexKeySpace[Z2ProcessingValues] {
         throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
       }
       val envelope = geom.getEnvelopeInternal
-      val xz = try { sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY) } catch {
+      val xz = try {
+        sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY, lenient)
+      } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid xz value from geometry: $geom", e)
       }
       Longs.toByteArray(xz)

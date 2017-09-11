@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 
 object TubeBuilder {
   val DefaultDtgField = "dtg"
@@ -78,7 +79,6 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
 
   // transform the input tubeFeatures into the intermediate SF used by the
   // tubing code consisting of three attributes (geom, startTime, endTime)
-  //
   // handle date parsing from input -> TODO revisit date parsing...
   def transform(tubeFeatures: SimpleFeatureCollection, dtgField: String): Iterator[SimpleFeature] = {
     SelfClosingIterator(tubeFeatures.features).map { sf =>
@@ -97,6 +97,31 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     }
   }
 
+  /**
+    * Return an Array containing either 1 or 2 LineStrings that straddle but
+    * do not cross the IDL.
+    * @param input1 The first point in the segment
+    * @param input2 The second point in the segment
+    * @return an array of LineString containing either 1 or 2 LineStrings that do not
+    *         span the IDL.
+    */
+  def makeIDLSafeLineString(input1:Coordinate, input2:Coordinate): Geometry = {
+    //If the points cross the IDL we must generate two line segments
+    if (GeometryUtils.crossesIDL(input1, input2)) {
+      //Find the latitude where the segment intercepts the IDL
+      val latIntercept = GeometryUtils.calcIDLIntercept(input1, input2)
+      val p1 = new Coordinate(-180, latIntercept)
+      val p2 = new Coordinate(180, latIntercept)
+      //This orders the points so that point1 is always the east-most point
+      val (point1, point2) = if (input1.x > 0) (input1, input2) else (input2, input1)
+      val westLine = new LineString(new CoordinateArraySequence(Array(p1, point2)), geoFac)
+      val eastLine = new LineString(new CoordinateArraySequence(Array(point1, p2)), geoFac)
+      new MultiLineString(Array[LineString](westLine,eastLine), geoFac)
+    } else {
+      new LineString(new CoordinateArraySequence(Array(input1, input2)), geoFac)
+    }
+  }
+
   def createTube: Iterator[SimpleFeature]
 }
 
@@ -110,11 +135,14 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
   // Bin ordered features into maxBins that retain order by date then union by geometry
   def timeBinAndUnion(features: Iterable[SimpleFeature], maxBins: Int): Iterator[SimpleFeature] = {
     val numFeatures = features.size
+
     if (numFeatures == 0) { Iterator.empty } else {
-      val binSize = if (maxBins > 0) {
-        numFeatures / maxBins + (if (numFeatures % maxBins == 0 ) 0 else 1)
-      } else {
-        numFeatures
+      //If 0 is passed in then don't bin the features, if 1 then make one bin, otherwise calculate number
+      //of bins based on numFeatures and maxBins
+      val binSize = maxBins match {
+        case 0 => 1
+        case 1 => numFeatures
+        case _ => numFeatures / maxBins + (if (numFeatures % maxBins == 0 ) 0 else 1)
       }
       features.grouped(binSize).zipWithIndex.map { case(bin, idx) => unionFeatures(bin.toSeq, idx.toString) }
     }
@@ -144,6 +172,9 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
   }
 }
 
+
+
+
 /**
  * Build a tube with gap filling that draws a line between time-ordered features
  * from the given tubeFeatures
@@ -164,21 +195,79 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
     val pointsAndTimes = sortedTube.map(sf => (getGeom(sf).safeCentroid(), getStartTime(sf)))
-
     val lineFeatures = if (pointsAndTimes.length == 1) {
       val (p1, t1) = pointsAndTimes.head
       logger.debug("Only a single result - can't create a line")
       Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
     } else {
       pointsAndTimes.sliding(2).map { case Seq((p1, t1), (p2, t2)) =>
-        val geo = if (p1.equals(p2)) { p1 } else {
-          new LineString(new CoordinateArraySequence(Array(p1.getCoordinate, p2.getCoordinate)), geoFac)
-        }
-        logger.debug(s"Created line-filled geom: ${WKTUtils.write(geo)} from ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
+        val geo = if (p1.equals(p2)) p1 else makeIDLSafeLineString(p1.getCoordinate,p2.getCoordinate)
+        logger.debug(s"Created Line-filled Geometry: ${WKTUtils.write(geo)} From ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
         builder.buildFeature(nextId, Array(geo, t1, t2))
       }
     }
+    buffer(lineFeatures, bufferDistance)
+  }
+}
 
+/**
+  * Class to create an interpolated line-gap filled tube
+  * @param tubeFeatures
+  * @param bufferDistance
+  * @param maxBins
+  */
+class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
+                          bufferDistance: Double,
+                          maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with LazyLogging {
+
+  val id = new AtomicInteger(0)
+
+  def nextId: String = id.getAndIncrement.toString
+
+  override def createTube: Iterator[SimpleFeature] = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+
+    logger.debug("Creating tube with line interpolated line gap fill")
+
+    val transformed = transform(tubeFeatures, dtgField)
+    val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
+    val pointsAndTimes = sortedTube.map(sf => (getGeom(sf).safeCentroid(), getStartTime(sf)))
+    val lineFeatures = if (pointsAndTimes.length == 1) {
+      val (p1, t1) = pointsAndTimes.head
+      logger.debug("Only a single result - can't create a line")
+      Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
+    } else {
+      pointsAndTimes.sliding(2).flatMap { case Seq((p1, t1), (p2, t2)) =>
+        calc.setStartingGeographicPoint(p1.getX, p1.getY)
+        calc.setDestinationGeographicPoint(p2.getX, p2.getY)
+        val dist = calc.getOrthodromicDistance
+        //If the distance between points is greater than the buffer distance, segment the line
+        //So that no segment is larger than the buffer. This ensures that each segment has an
+        //times and distance.
+        if (dist > bufferDistance) {
+          val heading = calc.getAzimuth
+          val timeDiffMillis = t2.toInstant.toEpochMilli - t1.toInstant.toEpochMilli
+          val segCount = (dist / bufferDistance).toInt
+          val segDuration = timeDiffMillis / segCount
+          var segStep = new Coordinate(p1.getX, p1.getY, 0)
+          val segPoints = (t1.toInstant.toEpochMilli to t2.toInstant.toEpochMilli).by(segDuration).sliding(2).map { times =>
+            val segP1 = segStep
+            calc.setStartingGeographicPoint(segP1.x, segP1.y)
+            calc.setDirection(heading, bufferDistance)
+            val destPoint = calc.getDestinationGeographicPoint
+            segStep = new Coordinate(destPoint.getX, destPoint.getY, 0)
+            (makeIDLSafeLineString(segP1, segStep), times)
+          }.toList
+          segPoints.map { case (geo, times) =>
+            builder.buildFeature(nextId, Array(geo, new Date(times(0)), new Date(times(1))))
+          }
+        } else {
+          val geo = if (p1.equals(p2)) p1 else makeIDLSafeLineString(p1.getCoordinate, p2.getCoordinate)
+          logger.debug(s"Created Line-filled Geometry: ${WKTUtils.write(geo)} From ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
+          Seq(builder.buildFeature(nextId, Array(geo, t1, t2)))
+        }
+      }
+    }
     buffer(lineFeatures, bufferDistance)
   }
 }
