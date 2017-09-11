@@ -49,7 +49,7 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
   private val lastCompaction = new AtomicLong(0L)
 
   private val running = new AtomicBoolean(true)
-  private var scheduledCompaction: ScheduledFuture[_] = null
+  private var scheduledCompaction: ScheduledFuture[_] = _
 
   private val compactor = new Runnable() {
     override def run(): Unit = {

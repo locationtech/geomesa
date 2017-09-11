@@ -113,6 +113,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
     }
 
+    "prevent opening connections after dispose is called" in {
+      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      ds.dispose()
+      ds.createSchema(SimpleFeatureTypes.createType("dispose", defaultSpec)) must throwAn[IllegalStateException]
+    }
+
     "escape a ~ in the feature name" in {
       val sft = SimpleFeatureTypes.createType("name~name", "name:String,geom:Point:srid=4326")
       ds.createSchema(sft)
