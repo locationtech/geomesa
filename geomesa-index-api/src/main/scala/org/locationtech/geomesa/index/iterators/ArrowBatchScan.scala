@@ -218,7 +218,7 @@ object ArrowBatchScan {
           Map.empty[String, TopK[AnyRef]]
         }
         if (toLookup.forall(cached.contains)) {
-          cached.map { case (name, k) => name -> ArrowDictionary.create(sort(k.topK(1000).map(_._1))) }
+          cached.map { case (name, k) => name -> ArrowDictionary.create(sort(k.topK(1000).map(_._1).toSeq)) }
         } else {
           // if we have to run a query, might as well generate all values
           val query = Stat.SeqStat(toLookup.map(Stat.Enumeration))

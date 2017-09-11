@@ -174,11 +174,6 @@
                             </filters>
                             <relocations>
                                 <relocation>
-                                    <pattern>com.clearspring.analytics</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.hbase.shaded.com.clearspring.analytics
-                                    </shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.locationtech.geomesa.hbase.shaded.com.google.common</shadedPattern>
                                 </relocation>

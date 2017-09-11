@@ -11,13 +11,12 @@ package org.locationtech.geomesa.utils.stats
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date
 
-import com.clearspring.analytics.stream.StreamSummary
-import com.clearspring.analytics.stream.cardinality.HyperLogLog
-import com.clearspring.analytics.stream.frequency.RichCountMinSketch
+import com.clearspring.analytics.stream.cardinality.RegisterSet
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal}
+import org.locationtech.geomesa.utils.clearspring.{HyperLogLog, StreamSummary}
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxDefaults
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -67,27 +66,29 @@ class KryoStatSerializer(sft: SimpleFeatureType) extends StatSerializer {
 
 object KryoStatSerializer {
 
-  private [stats] val inputs  = new SoftThreadLocal[Input]()
-  private [stats] val outputs = new SoftThreadLocal[Output]()
+  private val inputs  = new SoftThreadLocal[Input]()
+  private val outputs = new SoftThreadLocal[Output]()
 
   // bytes indicating the type of stat
-  private [stats] val SeqStatByte: Byte         = 0
-  private [stats] val CountByte: Byte           = 1
-  private [stats] val MinMaxByte: Byte          = 2
-  private [stats] val IteratorStackByte: Byte   = 3
-  private [stats] val EnumerationByte: Byte     = 4
-  private [stats] val HistogramByte: Byte       = 5
-  private [stats] val FrequencyByteV1: Byte     = 6
-  private [stats] val Z3HistogramByteV1: Byte   = 7
-  private [stats] val Z3FrequencyByteV1: Byte   = 8
-  private [stats] val TopKByte: Byte            = 9
-  private [stats] val FrequencyByte: Byte       = 10
-  private [stats] val Z3HistogramByte: Byte     = 11
-  private [stats] val Z3FrequencyByte: Byte     = 12
-  private [stats] val DescriptiveStatByte: Byte = 13
-  private [stats] val GroupByByte: Byte         = 14
+  private val SeqStatByte: Byte         = 0
+  private val CountByte: Byte           = 1
+  private val MinMaxByteV1: Byte        = 2
+  private val IteratorStackByte: Byte   = 3
+  private val EnumerationByte: Byte     = 4
+  private val HistogramByte: Byte       = 5
+  private val FrequencyByteV1: Byte     = 6
+  private val Z3HistogramByteV1: Byte   = 7
+  private val Z3FrequencyByteV1: Byte   = 8
+  private val TopKByteV1: Byte          = 9
+  private val FrequencyByte: Byte       = 10
+  private val Z3HistogramByte: Byte     = 11
+  private val Z3FrequencyByte: Byte     = 12
+  private val DescriptiveStatByte: Byte = 13
+  private val GroupByByte: Byte         = 14
+  private val TopKByte: Byte            = 15
+  private val MinMaxByte: Byte          = 16
 
-  private [stats] def write(output: Output, sft: SimpleFeatureType, stat: Stat): Unit = {
+  private def write(output: Output, sft: SimpleFeatureType, stat: Stat): Unit = {
     stat match {
       case s: CountStat           => output.writeByte(CountByte);           writeCount(output, s)
       case s: MinMax[_]           => output.writeByte(MinMaxByte);          writeMinMax(output, sft, s)
@@ -104,27 +105,29 @@ object KryoStatSerializer {
     }
   }
 
-  private [stats] def read(input: Input, sft: SimpleFeatureType, immutable: Boolean): Stat = {
+  private def read(input: Input, sft: SimpleFeatureType, immutable: Boolean): Stat = {
     input.readByte() match {
       case CountByte           => readCount(input, immutable)
-      case MinMaxByte          => readMinMax(input, sft, immutable)
+      case MinMaxByte          => readMinMax(input, sft, immutable, 2)
       case EnumerationByte     => readEnumeration(input, sft, immutable)
-      case TopKByte            => readTopK(input, sft, immutable)
+      case TopKByte            => readTopK(input, sft, immutable, 2)
       case HistogramByte       => readHistogram(input, sft, immutable)
       case FrequencyByte       => readFrequency(input, sft, immutable, 2)
       case Z3HistogramByte     => readZ3Histogram(input, sft, immutable, 2)
       case Z3FrequencyByte     => readZ3Frequency(input, sft, immutable, 2)
       case IteratorStackByte   => readIteratorStackCount(input, immutable)
       case SeqStatByte         => readSeqStat(input, sft, immutable)
+      case DescriptiveStatByte => readDescriptiveStat(input, sft, immutable)
+      case GroupByByte         => readGroupBy(input, sft, immutable)
       case FrequencyByteV1     => readFrequency(input, sft, immutable, 1)
       case Z3HistogramByteV1   => readZ3Histogram(input, sft, immutable, 1)
       case Z3FrequencyByteV1   => readZ3Frequency(input, sft, immutable, 1)
-      case DescriptiveStatByte => readDescriptiveStat(input, sft, immutable)
-      case GroupByByte         => readGroupBy(input, sft, immutable)
+      case MinMaxByteV1        => readMinMax(input, sft, immutable, 1)
+      case TopKByteV1          => readTopK(input, sft, immutable, 1)
     }
   }
 
-  private [stats] def writeGroupBy(output: Output, sft: SimpleFeatureType, stat: GroupBy[_]): Unit = {
+  private def writeGroupBy(output: Output, sft: SimpleFeatureType, stat: GroupBy[_]): Unit = {
     output.writeInt(stat.attribute, true)
     output.writeString(stat.exampleStat)
     output.writeInt(stat.groupedStats.keys.size, true)
@@ -134,7 +137,7 @@ object KryoStatSerializer {
     }
   }
 
-  private [stats] def readGroupBy(input: Input, sft: SimpleFeatureType, immutable: Boolean): GroupBy[_] = {
+  private def readGroupBy(input: Input, sft: SimpleFeatureType, immutable: Boolean): GroupBy[_] = {
     val attribute   = input.readInt(true)
     val exampleStat = input.readString()
     val keyLength   = input.readInt(true)
@@ -158,12 +161,13 @@ object KryoStatSerializer {
     stat
   }
 
-  private [stats] def writeDescriptiveStats(output: Output, sft: SimpleFeatureType, stat: DescriptiveStats): Unit = {
+  private def writeDescriptiveStats(output: Output, sft: SimpleFeatureType, stat: DescriptiveStats): Unit = {
     val size = stat.size
     output.writeInt(size, true)
     stat.attributes.foreach(output.writeInt(_, true))
     
-    def writeArray(array: Array[Double]) = for(v <- array) output.writeDouble(v)
+    def writeArray(array: Array[Double]): Unit = for(v <- array) { output.writeDouble(v) }
+
     writeArray(stat._min.getMatrix.data)
     writeArray(stat._max.getMatrix.data)
     writeArray(stat._sum.getMatrix.data)
@@ -176,7 +180,7 @@ object KryoStatSerializer {
     output.writeLong(stat._count, true)
   }
 
-  private [stats] def readDescriptiveStat(input: Input, sft: SimpleFeatureType, immutable: Boolean): DescriptiveStats = {
+  private def readDescriptiveStat(input: Input, sft: SimpleFeatureType, immutable: Boolean): DescriptiveStats = {
     val size = input.readInt(true)
     val attributes = for(_ <- 0 until size) yield input.readInt(true)
 
@@ -186,7 +190,8 @@ object KryoStatSerializer {
       new DescriptiveStats(attributes)
     }
 
-    def readArray(array: Array[Double]) = for(i <- array.indices) array(i) = input.readDouble
+    def readArray(array: Array[Double]): Unit = for(i <- array.indices) { array(i) = input.readDouble }
+
     readArray(stats._min.getMatrix.data)
     readArray(stats._max.getMatrix.data)
     readArray(stats._sum.getMatrix.data)
@@ -201,10 +206,10 @@ object KryoStatSerializer {
     stats
   }
 
-  private [stats] def writeSeqStat(output: Output, sft: SimpleFeatureType, stat: SeqStat): Unit =
+  private def writeSeqStat(output: Output, sft: SimpleFeatureType, stat: SeqStat): Unit =
     stat.stats.foreach(write(output, sft, _))
 
-  private [stats] def readSeqStat(input: Input, sft: SimpleFeatureType, immutable: Boolean): SeqStat = {
+  private def readSeqStat(input: Input, sft: SimpleFeatureType, immutable: Boolean): SeqStat = {
     val stats = ArrayBuffer.empty[Stat]
     while (input.available() > 0) {
       stats.append(read(input, sft, immutable))
@@ -216,9 +221,9 @@ object KryoStatSerializer {
     }
   }
 
-  private [stats] def writeCount(output: Output, stat: CountStat): Unit = output.writeLong(stat.counter, true)
+  private def writeCount(output: Output, stat: CountStat): Unit = output.writeLong(stat.counter, true)
 
-  private [stats] def readCount(input: Input, immutable: Boolean): CountStat = {
+  private def readCount(input: Input, immutable: Boolean): CountStat = {
     val stat = if (immutable) {
       new CountStat with ImmutableStat
     } else {
@@ -228,23 +233,37 @@ object KryoStatSerializer {
     stat
   }
 
-  private [stats] def writeMinMax(output: Output, sft: SimpleFeatureType, stat: MinMax[_]): Unit = {
+  private def writeMinMax(output: Output, sft: SimpleFeatureType, stat: MinMax[_]): Unit = {
     output.writeInt(stat.attribute, true)
-    val hpp = stat.hpp.getBytes
-    output.writeInt(hpp.length, true)
-    output.write(hpp)
+    output.writeInt(stat.hpp.log2m, true)
+    output.writeInt(stat.hpp.registerSet.size, true)
+    stat.hpp.registerSet.rawBits.foreach(output.writeInt)
 
     val write = writer(output, sft.getDescriptor(stat.attribute).getType.getBinding)
     write(stat.minValue)
     write(stat.maxValue)
   }
 
-  private [stats] def readMinMax(input: Input, sft: SimpleFeatureType, immutable: Boolean): MinMax[_] = {
+  private def readMinMax(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): MinMax[_] = {
     val attribute = input.readInt(true)
-    val hpp = {
+    val hpp = if (version > 1) {
+      val log2m = input.readInt(true)
+      val size = input.readInt(true)
+      val bytes = Array.fill(size)(input.readInt)
+      HyperLogLog(log2m, bytes)
+    } else {
       val hppBytes = Array.ofDim[Byte](input.readInt(true))
       input.read(hppBytes)
-      HyperLogLog.Builder.build(hppBytes)
+      val clearspring = com.clearspring.analytics.stream.cardinality.HyperLogLog.Builder.build(hppBytes)
+      // use reflection to access private variables
+      def getField[T](name: String): T = {
+        val field = clearspring.getClass.getDeclaredField(name)
+        field.setAccessible(true)
+        field.get(clearspring).asInstanceOf[T]
+      }
+      val log2m = getField[Int]("log2m")
+      val registerSet = getField[RegisterSet]("registerSet").bits
+      HyperLogLog(log2m, registerSet)
     }
 
     val binding = sft.getDescriptor(attribute).getType.getBinding
@@ -253,16 +272,15 @@ object KryoStatSerializer {
     val max = read()
 
     val defaults = MinMaxDefaults[Any](binding)
-    val classTag = ClassTag[Any](binding)
 
     if (immutable) {
-      new MinMax[Any](attribute, min, max, hpp)(defaults, classTag) with ImmutableStat
+      new MinMax[Any](attribute, min, max, hpp)(defaults) with ImmutableStat
     } else {
-      new MinMax[Any](attribute, min, max, hpp)(defaults, classTag)
+      new MinMax[Any](attribute, min, max, hpp)(defaults)
     }
   }
 
-  private [stats] def writeEnumeration(output: Output, sft: SimpleFeatureType, stat: EnumerationStat[_]): Unit = {
+  private def writeEnumeration(output: Output, sft: SimpleFeatureType, stat: EnumerationStat[_]): Unit = {
     output.writeInt(stat.attribute, true)
     output.writeInt(stat.enumeration.size, true)
 
@@ -270,7 +288,7 @@ object KryoStatSerializer {
     stat.enumeration.foreach { case (key, count) => write(key); output.writeLong(count, true) }
   }
 
-  private [stats] def readEnumeration(input: Input, sft: SimpleFeatureType, immutable: Boolean): EnumerationStat[_] = {
+  private def readEnumeration(input: Input, sft: SimpleFeatureType, immutable: Boolean): EnumerationStat[_] = {
     val attribute = input.readInt(true)
     val size = input.readInt(true)
 
@@ -293,32 +311,41 @@ object KryoStatSerializer {
     stat
   }
 
-  private [stats] def writeTopK(output: Output, sft: SimpleFeatureType, stat: TopK[_]): Unit = {
+  private def writeTopK(output: Output, sft: SimpleFeatureType, stat: TopK[_]): Unit = {
     output.writeInt(stat.attribute, true)
-    val summary = stat.summary.toBytes
-    output.writeInt(summary.length, true)
-    output.write(summary)
+    output.writeInt(stat.size, true)
+
+    val write = writer(output, sft.getDescriptor(stat.attribute).getType.getBinding)
+
+    stat.topK(Int.MaxValue).foreach { case (item, count) => write(item); output.writeLong(count, true) }
   }
 
-  private [stats] def readTopK(input: Input, sft: SimpleFeatureType, immutable: Boolean): TopK[_] = {
+  private def readTopK(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): TopK[_] = {
     val attribute = input.readInt(true)
-    val summary = {
-      val summaryBytes = Array.ofDim[Byte](input.readInt(true))
-      input.read(summaryBytes)
-      new StreamSummary[Any](summaryBytes)
-    }
-
     val binding = sft.getDescriptor(attribute).getType.getBinding
-    val classTag = ClassTag[Any](binding)
+    val read = reader(input, binding)
+
+    val summary = if (version > 1) {
+      val size = input.readInt(true)
+      val counters = (0 until size).map(_ => (read(), input.readLong(true)))
+      StreamSummary[Any](TopK.StreamCapacity, counters)
+    } else {
+      import scala.collection.JavaConversions._
+      val summaryBytes = input.readBytes(input.readInt(true))
+      val clearspring = new com.clearspring.analytics.stream.StreamSummary[Any](summaryBytes)
+      val geomesa = StreamSummary[Any](TopK.StreamCapacity)
+      clearspring.topK(clearspring.size()).foreach(c => geomesa.offer(c.getItem, c.getCount))
+      geomesa
+    }
 
     if (immutable) {
-      new TopK[Any](attribute, summary)(classTag) with ImmutableStat
+      new TopK[Any](attribute, summary) with ImmutableStat
     } else {
-      new TopK[Any](attribute, summary)(classTag)
+      new TopK[Any](attribute, summary)
     }
   }
 
-  private [stats] def writeHistogram(output: Output, sft: SimpleFeatureType, stat: Histogram[_]): Unit = {
+  private def writeHistogram(output: Output, sft: SimpleFeatureType, stat: Histogram[_]): Unit = {
     output.writeInt(stat.attribute, true)
     output.writeInt(stat.length, true)
 
@@ -329,7 +356,7 @@ object KryoStatSerializer {
     writeCountArray(output, stat.bins.counts)
   }
 
-  private [stats] def readHistogram(input: Input, sft: SimpleFeatureType, immutable: Boolean): Histogram[_] = {
+  private def readHistogram(input: Input, sft: SimpleFeatureType, immutable: Boolean): Histogram[_] = {
     val attribute = input.readInt(true)
     val length = input.readInt(true)
 
@@ -352,7 +379,7 @@ object KryoStatSerializer {
     stat
   }
 
-  private [stats] def writeZ3Histogram(output: Output, sft: SimpleFeatureType, stat: Z3Histogram): Unit = {
+  private def writeZ3Histogram(output: Output, sft: SimpleFeatureType, stat: Z3Histogram): Unit = {
     output.writeInt(stat.geomIndex, true)
     output.writeInt(stat.dtgIndex, true)
     output.writeAscii(stat.period.toString)
@@ -368,10 +395,10 @@ object KryoStatSerializer {
     }
   }
 
-  private [stats] def readZ3Histogram(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Z3Histogram = {
+  private def readZ3Histogram(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Z3Histogram = {
     val geomIndex = input.readInt(true)
     val dtgIndex  = input.readInt(true)
-    val period = if (version > 1) TimePeriod.withName(input.readString()) else TimePeriod.Week
+    val period = if (version > 1) { TimePeriod.withName(input.readString()) } else { TimePeriod.Week }
     val length = input.readInt(true)
 
     val stat = if (immutable) {
@@ -393,7 +420,7 @@ object KryoStatSerializer {
     stat
   }
 
-  private [stats] def writeFrequency(output: Output, sft: SimpleFeatureType, stat: Frequency[_]): Unit = {
+  private def writeFrequency(output: Output, sft: SimpleFeatureType, stat: Frequency[_]): Unit = {
     output.writeInt(stat.attribute, true)
     output.writeInt(stat.dtgIndex, true)
     output.writeAscii(stat.period.toString)
@@ -406,20 +433,19 @@ object KryoStatSerializer {
 
     sketches.foreach { case (w, sketch) =>
       output.writeShort(w)
-      val table = new RichCountMinSketch(sketch).table
       var i = 0
-      while (i < table.length) {
-        writeCountArray(output, table(i))
+      while (i < sketch.table.length) {
+        writeCountArray(output, sketch.table(i))
         i += 1
       }
       output.writeLong(sketch.size, true)
     }
   }
 
-  private [stats] def readFrequency(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Frequency[_] = {
+  private def readFrequency(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Frequency[_] = {
     val attribute = input.readInt(true)
     val dtgIndex = input.readInt(true)
-    val period = if (version > 1) TimePeriod.withName(input.readString()) else TimePeriod.Week
+    val period = if (version > 1) { TimePeriod.withName(input.readString()) } else { TimePeriod.Week }
     val precision = input.readInt(true)
     val eps = input.readDouble()
     val confidence = input.readDouble()
@@ -437,20 +463,19 @@ object KryoStatSerializer {
       val week = input.readShort
       val sketch = stat.newSketch
       stat.sketchMap.put(week, sketch)
-      val table = new RichCountMinSketch(sketch).table
       var i = 0
-      while (i < table.length) {
-        readCountArray(input, table(i))
+      while (i < sketch.table.length) {
+        readCountArray(input, sketch.table(i))
         i += 1
       }
-      new RichCountMinSketch(sketch).setSize(input.readLong(true))
+      sketch._size = input.readLong(true)
       c += 1
     }
 
     stat
   }
 
-  private [stats] def writeZ3Frequency(output: Output, sft: SimpleFeatureType, stat: Z3Frequency): Unit = {
+  private def writeZ3Frequency(output: Output, sft: SimpleFeatureType, stat: Z3Frequency): Unit = {
     output.writeInt(stat.geomIndex, true)
     output.writeInt(stat.dtgIndex, true)
     output.writeAscii(stat.period.toString)
@@ -463,10 +488,9 @@ object KryoStatSerializer {
 
     sketches.foreach { case (w, sketch) =>
       output.writeShort(w)
-      val table = new RichCountMinSketch(sketch).table
       var i = 0
-      while (i < table.length) {
-        writeCountArray(output, table(i))
+      while (i < sketch.table.length) {
+        writeCountArray(output, sketch.table(i))
         i += 1
       }
 
@@ -474,10 +498,10 @@ object KryoStatSerializer {
     }
   }
 
-  private [stats] def readZ3Frequency(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Z3Frequency = {
+  private def readZ3Frequency(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Z3Frequency = {
     val geomIndex = input.readInt(true)
     val dtgIndex  = input.readInt(true)
-    val period = if (version > 1) TimePeriod.withName(input.readString()) else TimePeriod.Week
+    val period = if (version > 1) { TimePeriod.withName(input.readString()) } else { TimePeriod.Week }
     val precision = input.readInt(true)
     val eps = input.readDouble()
     val confidence = input.readDouble()
@@ -494,14 +518,13 @@ object KryoStatSerializer {
     while (sketchCount < numSketches) {
       val sketch = stat.newSketch
       stat.sketches.put(input.readShort, sketch)
-      val table = new RichCountMinSketch(sketch).table
       var i = 0
-      while (i < table.length) {
-        readCountArray(input, table(i))
+      while (i < sketch.table.length) {
+        readCountArray(input, sketch.table(i))
         i += 1
       }
 
-      new RichCountMinSketch(sketch).setSize(input.readLong(true))
+      sketch._size = input.readLong(true)
 
       sketchCount += 1
     }
@@ -509,10 +532,10 @@ object KryoStatSerializer {
     stat
   }
 
-  private [stats] def writeIteratorStackCount(output: Output, stat: IteratorStackCount): Unit =
+  private def writeIteratorStackCount(output: Output, stat: IteratorStackCount): Unit =
     output.writeLong(stat.counter, true)
 
-  private [stats] def readIteratorStackCount(input: Input, immutable: Boolean): IteratorStackCount = {
+  private def readIteratorStackCount(input: Input, immutable: Boolean): IteratorStackCount = {
     val stat = if (immutable) {
       new IteratorStackCount() with ImmutableStat
     } else {
