@@ -88,10 +88,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         ds.stats.getAttributeBounds[String](sft, "height") must beNone
         ds.stats.getAttributeBounds[Date](sft, "dtg") must beSome(AttributeBounds(new Date(baseMillis), new Date(baseMillis), 1))
 
-        ds.stats.getStats[TopK[String]](sft, Seq("name")).map(_.topK(10)) mustEqual Seq(Seq(("alpha", 1)))
-        ds.stats.getStats[TopK[Int]](sft, Seq("age")).map(_.topK(10)) mustEqual Seq(Seq((10, 1)))
+        ds.stats.getStats[TopK[String]](sft, Seq("name")).map(_.topK(10).toSeq) mustEqual Seq(Seq(("alpha", 1)))
+        ds.stats.getStats[TopK[Int]](sft, Seq("age")).map(_.topK(10).toSeq) mustEqual Seq(Seq((10, 1)))
         ds.stats.getStats[TopK[Int]](sft, Seq("height")) must beEmpty
-        ds.stats.getStats[TopK[Date]](sft, Seq("dtg")).map(_.topK(10)) must beEmpty
+        ds.stats.getStats[TopK[Date]](sft, Seq("dtg")) must beEmpty
 
         ds.stats.getStats[Frequency[String]](sft, Seq("name")) must haveLength(1)
         ds.stats.getStats[Frequency[Int]](sft, Seq("age")) must beEmpty
@@ -232,11 +232,11 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         val nameTopK = ds.stats.getStats[TopK[String]](sft, Seq("name"))
         nameTopK must haveLength(1)
-        nameTopK.head.topK(10) must containTheSameElementsAs((0 until 10).map(i => (s"$i", 1)))
+        nameTopK.head.topK(10).toSeq must containTheSameElementsAs((0 until 10).map(i => (s"$i", 1)))
 
         val ageTopK = ds.stats.getStats[TopK[Int]](sft, Seq("age"))
         ageTopK must haveLength(1)
-        ageTopK.head.topK(10) mustEqual Seq((2, 7), (1, 3))
+        ageTopK.head.topK(10).toSeq mustEqual Seq((2, 7), (1, 3))
 
         ds.stats.getStats[TopK[Int]](sft, Seq("height")) must beEmpty
         ds.stats.getStats[TopK[Date]](sft, Seq("dtg")) must beEmpty

@@ -10,14 +10,14 @@ package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
-import com.clearspring.analytics.stream.cardinality.HyperLogLog
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.locationtech.geomesa.utils.clearspring.HyperLogLog
+import org.locationtech.geomesa.utils.stats.MinMax.CardinalityBits
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.immutable.ListMap
-import scala.reflect.ClassTag
 
 /**
  * The MinMax stat merely returns the min/max of an attribute's values.
@@ -26,33 +26,21 @@ import scala.reflect.ClassTag
  * @param attribute attribute index for the attribute the histogram is being made for
  * @tparam T the type of the attribute the stat is targeting (needs to be comparable)
  */
-class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLog)
-                        (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
+class MinMax[T] private [stats] (val attribute: Int,
+                                 private [stats] var minValue: T,
+                                 private [stats] var maxValue: T,
+                                 private [stats] val hpp: HyperLogLog)
+                                (implicit val defaults: MinMax.MinMaxDefaults[T])
     extends Stat with LazyLogging with Serializable {
+
+  // use a secondary constructor instead of companion apply to allow mixin types (i.e. ImmutableStat)
+  def this(attribute: Int)(implicit defaults: MinMax.MinMaxDefaults[T]) =
+    this(attribute, defaults.max, defaults.min, HyperLogLog(CardinalityBits))(defaults)
 
   override type S = MinMax[T]
 
-  def this(attribute: Int)(implicit defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) {
-    this(attribute, new HyperLogLog(10))
-    this.minValue = defaults.max
-    this.maxValue = defaults.min
-  }
-
-  private [stats] def this(attribute: Int, minValue: T, maxValue: T, hpp: HyperLogLog)
-                          (implicit defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) {
-    this(attribute, hpp)
-    this.minValue = minValue
-    this.maxValue = maxValue
-  }
-
-  private [stats] var minValue: T = _
-  private [stats] var maxValue: T = _
-
-  lazy val stringify = Stat.stringifier(ct.runtimeClass)
-  private lazy val jsonStringify = Stat.stringifier(ct.runtimeClass, json = true)
-
-  def min: T = if (isEmpty) maxValue else minValue
-  def max: T = if (isEmpty) minValue else maxValue
+  def min: T = if (isEmpty) { maxValue } else { minValue }
+  def max: T = if (isEmpty) { minValue } else { maxValue }
   def bounds: (T, T) = (min, max)
   def cardinality: Long = hpp.cardinality()
 
@@ -74,11 +62,11 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
 
   override def +(other: MinMax[T]): MinMax[T] = {
     if (other.isEmpty) {
-      new MinMax(attribute, minValue, maxValue, hpp.merge().asInstanceOf[HyperLogLog])
+      new MinMax[T](attribute, minValue, maxValue, hpp.merge())
     } else if (this.isEmpty) {
-      new MinMax(attribute, other.minValue, other.maxValue, other.hpp.merge().asInstanceOf[HyperLogLog])
+      new MinMax[T](attribute, other.minValue, other.maxValue, other.hpp.merge())
     } else {
-      val plus = new MinMax(attribute, minValue, maxValue, hpp.merge().asInstanceOf[HyperLogLog])
+      val plus = new MinMax[T](attribute, minValue, maxValue, hpp.merge())
       plus += other
       plus
     }
@@ -90,15 +78,15 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
     } else if (isEmpty) {
       minValue = other.minValue
       maxValue = other.maxValue
-      hpp.addAll(other.hpp)
+      hpp += other.hpp
     } else {
       minValue = defaults.min(minValue, other.minValue)
       maxValue = defaults.max(maxValue, other.maxValue)
-      hpp.addAll(other.hpp)
+      hpp += other.hpp
     }
   }
 
-  override def toJsonObject =
+  override def toJsonObject: Any =
     if (isEmpty) {
       ListMap("min" -> null, "max" -> null, "cardinality" -> 0)
     } else {
@@ -110,7 +98,7 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
   override def clear(): Unit = {
     minValue = defaults.max
     maxValue = defaults.min
-    hpp = new HyperLogLog(10)
+    java.util.Arrays.fill(hpp.registerSet.rawBits, 0)
   }
 
   override def isEquivalent(other: Stat): Boolean = other match {
@@ -122,6 +110,8 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
 }
 
 object MinMax {
+
+  val CardinalityBits: Int = 10
 
   trait MinMaxDefaults[T] {
     def min: T
