@@ -13,7 +13,7 @@ import java.util.{Date, Locale, Collection => JCollection}
 
 import com.google.common.primitives.{Bytes, Shorts, UnsignedBytes}
 import com.typesafe.scalalogging.LazyLogging
-import org.calrissian.mango.types.LexiTypeEncoders
+import org.calrissian.mango.types.{LexiTypeEncoders, TypeRegistry}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.util.Converters
@@ -131,47 +131,55 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 
     require(classOf[Comparable[_]].isAssignableFrom(binding), s"Attribute '$attribute' is not comparable")
 
+    val shards = getShards(sft)
     val fb = FilterHelper.extractAttributeBounds(primary, attribute, binding)
 
-    implicit val byteComparator = UnsignedBytes.lexicographicalComparator()
-    lazy val lowerSecondary = secondaryRanges.map(_._1).minOption.getOrElse(Array.empty)
-    lazy val upperSecondary = secondaryRanges.map(_._2).maxOption.getOrElse(Array.empty)
+    if (fb.isEmpty) {
+      // we have an attribute, but weren't able to extract any bounds... scan all values and apply the filter
+      logger.warn(s"Unable to extract any attribute bounds from: ${filterToString(primary)}")
+      val starts = lowerBounds(sft, i, shards)
+      val ends = upperBounds(sft, i, shards)
+      val ranges = shards.indices.map(i => range(starts(i), ends(i)))
+      scanPlan(sft, ds, filter, hints, ranges, filter.filter)
+    } else {
+      val ordering = Ordering.comparatorToOrdering(UnsignedBytes.lexicographicalComparator)
+      lazy val lowerSecondary = secondaryRanges.map(_._1).minOption(ordering).getOrElse(Array.empty)
+      lazy val upperSecondary = secondaryRanges.map(_._2).maxOption(ordering).getOrElse(Array.empty)
 
-    val shards = getShards(sft)
+      val ranges = fb.values.flatMap { bounds =>
+        bounds.bounds match {
+          case (None, None) => // not null
+            val starts = lowerBounds(sft, i, shards)
+            val ends = upperBounds(sft, i, shards)
+            shards.indices.map(i => range(starts(i), ends(i)))
 
-    val ranges = fb.values.flatMap { bounds =>
-      bounds.bounds match {
-        case (None, None) => // not null
-          val starts = lowerBounds(sft, i, shards)
-          val ends = upperBounds(sft, i, shards)
-          shards.indices.map(i => range(starts(i), ends(i)))
-
-        case (Some(lower), None) =>
-          val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
-          val ends = upperBounds(sft, i, shards)
-          shards.indices.map(i => range(starts(i), ends(i)))
-
-        case (None, Some(upper)) =>
-          val starts = lowerBounds(sft, i, shards)
-          val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
-          shards.indices.map(i => range(starts(i), ends(i)))
-
-        case (Some(lower), Some(upper)) =>
-          if (lower == upper) {
-            equals(sft, i, shards, lower, secondaryRanges)
-          } else if (lower + WILDCARD_SUFFIX == upper) {
-            val prefix = rowPrefix(sft, i)
-            val value = encodeForQuery(lower, sft.getDescriptor(i))
-            shards.map(shard => rangePrefix(Bytes.concat(prefix, shard, value)))
-          } else {
+          case (Some(lower), None) =>
             val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
+            val ends = upperBounds(sft, i, shards)
+            shards.indices.map(i => range(starts(i), ends(i)))
+
+          case (None, Some(upper)) =>
+            val starts = lowerBounds(sft, i, shards)
             val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
             shards.indices.map(i => range(starts(i), ends(i)))
-          }
-      }
-    }
 
-    scanPlan(sft, ds, filter, hints, ranges, filter.secondary)
+          case (Some(lower), Some(upper)) =>
+            if (lower == upper) {
+              equals(sft, i, shards, lower, secondaryRanges)
+            } else if (lower + WILDCARD_SUFFIX == upper) {
+              val prefix = rowPrefix(sft, i)
+              val value = encodeForQuery(lower, sft.getDescriptor(i))
+              shards.map(shard => rangePrefix(Bytes.concat(prefix, shard, value)))
+            } else {
+              val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
+              val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
+              shards.indices.map(i => range(starts(i), ends(i)))
+            }
+        }
+      }
+
+      scanPlan(sft, ds, filter, hints, ranges, if (fb.precise) { filter.secondary } else { filter.filter })
+    }
   }
 
   /**
@@ -257,7 +265,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 
   private def getSecondaryIndexKey(sft: SimpleFeatureType): (F) => Array[Byte] = {
     secondaryIndex(sft).map(_.toIndexKey(sft)) match {
-      case None        => (f) => Array.empty
+      case None        => (_) => Array.empty
       case Some(toKey) => (f) => toKey(f.feature)
     }
   }
@@ -347,9 +355,9 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
 object AttributeIndex {
 
   val NullByte: Byte = 0
-  val NullByteArray  = Array(NullByte)
+  val NullByteArray = Array(NullByte)
 
-  val typeRegistry   = LexiTypeEncoders.LEXI_TYPES
+  val typeRegistry: TypeRegistry[String] = LexiTypeEncoders.LEXI_TYPES
 
   // store 2 bytes for the index of the attribute in the sft - this allows up to 32k attributes in the sft.
   def indexToBytes(i: Int): Array[Byte] = Shorts.toByteArray(i.toShort)

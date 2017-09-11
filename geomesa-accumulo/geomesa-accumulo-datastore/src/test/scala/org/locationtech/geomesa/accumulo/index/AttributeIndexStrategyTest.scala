@@ -21,12 +21,12 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -267,6 +267,27 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
         features must haveLength(1)
         features must contain("bob")
       }
+    }
+
+    "handle functions" in {
+      val filters = Seq (
+        "strToUpperCase(name) = 'BILL'",
+        "strCapitalize(name) = 'Bill'",
+        "strConcat(name, 'foo') = 'billfoo'",
+        "strIndexOf(name, 'ill') = 1",
+        "strReplace(name, 'ill', 'all', false) = 'ball'",
+        "strSubstring(name, 0, 2) = 'bi'",
+        "strToLowerCase(name) = 'bill'",
+        "strTrim(name) = 'bill'",
+        "abs(age) = 21",
+        "ceil(age) = 21",
+        "floor(age) = 21",
+        "'BILL' = strToUpperCase(name)",
+        "strToUpperCase('bill') = strToUpperCase(name)",
+        "strToUpperCase(name) = strToUpperCase('bill')",
+        "name = strToLowerCase('bill')"
+      )
+      foreach(filters) { filter => execute(filter) mustEqual Seq("bill") }
     }
 
     "support sampling" in {

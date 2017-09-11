@@ -195,14 +195,14 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       if (indexSft.indexOf(hints.getBinTrackIdField) != -1 &&
           hints.getBinGeomField.forall(indexSft.indexOf(_) != -1) &&
           hints.getBinLabelField.forall(indexSft.indexOf(_) != -1) &&
-          filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
-        val iter = BinAggregatingIterator.configureDynamic(indexSft, this, filter.secondary, hints, dedupe)
+          ecql.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
+        val iter = BinAggregatingIterator.configureDynamic(indexSft, this, ecql, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, dedupe)
       } else {
         // have to do a join against the record table
-        joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
+        joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
       }
     } else if (hints.isArrowQuery) {
       lazy val dictionaryFields = hints.getArrowDictionaryFields
@@ -244,13 +244,13 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
       } else {
         // have to do a join against the record table
-        joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
+        joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
       }
     } else if (hints.isDensityQuery) {
       // noinspection ExistsEquals
       // check to see if we can execute against the index values
       val weightIsAttribute = hints.getDensityWeight.exists(_ == attribute)
-      if (filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _)) &&
+      if (ecql.forall(IteratorTrigger.supportsFilter(indexSft, _)) &&
           (weightIsAttribute || hints.getDensityWeight.forall(indexSft.indexOf(_) != -1))) {
         val visIter = visibilityIter(indexSft)
         val iters = if (weightIsAttribute) {
@@ -271,38 +271,38 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
           }
           // priority needs to be between vis iter (21) and density iter (25)
           val keyValueIter = KryoAttributeKeyValueIterator.configure(this, transform, attribute, 23)
-          val densityIter = KryoLazyDensityIterator.configure(transform, this, filter.secondary, hints, dedupe)
+          val densityIter = KryoLazyDensityIterator.configure(transform, this, ecql, hints, dedupe)
           visIter :+ keyValueIter :+ densityIter
         } else {
-          visIter :+ KryoLazyDensityIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
+          visIter :+ KryoLazyDensityIterator.configure(indexSft, this, ecql, hints, dedupe)
         }
         val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, hasDuplicates = false)
       } else {
         // have to do a join against the record table
-        joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
+        joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
       }
     } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
       if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess &&
-          filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
-        val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, dedupe)
+          ecql.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
+        val iter = KryoLazyStatsIterator.configure(indexSft, this, ecql, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
         val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
         val reduce = Some(KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_))
         BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
       } else {
         // have to do a join against the record table
-        joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
+        joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
       }
-    } else if (IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform)) {
+    } else if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
       // we can use the index value
       // transform has to be non-empty to get here and can only include items
       // in the index value (not the index keys aka the attribute indexed)
-      singleAttrValueOnlyPlan(indexSft, filter.secondary, hints.getTransform)
-    } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
+      singleAttrValueOnlyPlan(indexSft, ecql, hints.getTransform)
+    } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, ecql, transform)) {
       // we can use the index PLUS the value
-      val plan = singleAttrValueOnlyPlan(indexSft, filter.secondary, hints.getTransform)
+      val plan = singleAttrValueOnlyPlan(indexSft, ecql, hints.getTransform)
       val transformSft = hints.getTransformSchema.getOrElse {
         throw new IllegalStateException("Must have a transform for attribute key plus value scan")
       }
@@ -311,7 +311,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       plan.copy(iterators = plan.iterators :+ KryoAttributeKeyValueIterator.configure(this, transformSft, attribute))
     } else {
       // have to do a join against the record table
-      joinQuery(ds, sft, indexSft, filter, hints, dedupe, singleAttrValueOnlyPlan)
+      joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
     }
   }
 
@@ -323,6 +323,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
                         sft: SimpleFeatureType,
                         indexSft: SimpleFeatureType,
                         filter: AccumuloFilterStrategyType,
+                        ecql: Option[Filter],
                         hints: Hints,
                         hasDupes: Boolean,
                         attributePlan: ScanPlanFn): JoinPlan = {
@@ -332,7 +333,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     // break out the st filter to evaluate against the attribute table
-    val (stFilter, ecqlFilter) = filter.secondary.map { f =>
+    val (stFilter, ecqlFilter) = ecql.map { f =>
       val (geomFilters, otherFilters) = partitionPrimarySpatials(f, sft)
       val (temporalFilters, nonSTFilters) = partitionPrimaryTemporals(otherFilters, sft)
       (andOption(geomFilters ++ temporalFilters), andOption(nonSTFilters))
@@ -469,7 +470,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         }
         // range queries don't allow us to use our secondary z-index
         val secondaryIndexMultiplier = {
-          val isEqualsQuery = bounds.forall(_.isExact)
+          val isEqualsQuery = bounds.precise && !bounds.exists(_.isRange)
           if (isEqualsQuery) { 1 } else { 10 }
         }
         // join queries are much more expensive than non-join queries
