@@ -31,6 +31,7 @@ class OsmWaysConverter(val targetSFT: SimpleFeatureType,
                        val idBuilder: Expr,
                        val inputFields: IndexedSeq[Field],
                        val userDataBuilder: Map[String, Expr],
+                       val caches: Map[String, EnrichmentCache],
                        val parseOpts: ConvertParseOpts,
                        val pbf: Boolean,
                        val needsMetadata: Boolean,
@@ -136,13 +137,14 @@ class OsmWaysConverterFactory extends AbstractSimpleFeatureConverterFactory[OsmW
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
+                                        cacheServices: Map[String, EnrichmentCache],
                                         parseOpts: ConvertParseOpts): SimpleFeatureConverter[OsmWay] = {
     val pbf = if (conf.hasPath("format")) conf.getString("format").toLowerCase.trim.equals("pbf") else false
     val needsMetadata = OsmField.requiresMetadata(fields)
 
     if (conf.hasPath("jdbc")) {
       val connection = DriverManager.getConnection(conf.getString("jdbc"))
-      new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, parseOpts, pbf, needsMetadata, connection)
+      new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, cacheServices, parseOpts, pbf, needsMetadata, connection)
     } else {
       // create a temporary h2 database to store our nodes
       // the ways only refer to nodes by reference, but we can't keep the whole file in memory
@@ -150,7 +152,7 @@ class OsmWaysConverterFactory extends AbstractSimpleFeatureConverterFactory[OsmW
       Class.forName("org.h2.Driver")
       val connection = DriverManager.getConnection(s"jdbc:h2:split:${h2Dir.getAbsolutePath}/osm")
 
-      new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, parseOpts, pbf, needsMetadata, connection) {
+      new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, cacheServices, parseOpts, pbf, needsMetadata, connection) {
         override protected def dropNodesTable(): Unit = {
           PathUtils.deleteRecursively(h2Dir.toPath)
         }

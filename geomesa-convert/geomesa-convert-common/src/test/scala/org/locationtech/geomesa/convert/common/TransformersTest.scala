@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.convert.common
 
+import java.time.{LocalDateTime, ZoneOffset}
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 import com.google.common.hash.Hashing
@@ -258,6 +260,13 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("secsToDate($1)")
           exp.eval(Array("", secs)).asInstanceOf[Date] must be equalTo testDate
         }
+
+        "transform a date to a string" >> {
+          val d = LocalDateTime.now()
+          val fmt = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss.SSSSSS")
+          val exp = Transformers.parseTransform("dateToString('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
+          exp.eval(Array("", Date.from(d.toInstant(ZoneOffset.UTC)))).asInstanceOf[String] must be equalTo fmt.format(d)
+        }
       }
 
       "handle point geometries" >> {
@@ -328,7 +337,7 @@ class TransformersTest extends Specification {
       }
 
       "handle named values" >> {
-        implicit val ctx = EvaluationContext(IndexedSeq(null, "foo", null), Array[Any](null, "bar", null), null)
+        implicit val ctx = EvaluationContext(IndexedSeq(null, "foo", null), Array[Any](null, "bar", null), null, Map.empty)
         val exp = Transformers.parseTransform("capitalize($foo)")
         exp.eval(Array(null))(ctx) must be equalTo "Bar"
       }
@@ -619,7 +628,7 @@ class TransformersTest extends Specification {
     }
 
     "return null for non-existing fields" >> {
-      val fieldsCtx = new EvaluationContextImpl(IndexedSeq("foo", "bar"), Array("5", "10"), null)
+      val fieldsCtx = new EvaluationContextImpl(IndexedSeq("foo", "bar"), Array("5", "10"), null, Map.empty)
       Transformers.parseTransform("$b").eval(Array())(fieldsCtx) mustEqual null
       Transformers.parseTransform("$bar").eval(Array())(fieldsCtx) mustEqual "10"
     }

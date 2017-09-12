@@ -85,8 +85,9 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
     val fields = buildFields(conf)
 
     val userDataBuilder = buildUserDataBuilder(conf)
+    val cacheServices = buildCacheService(conf)
     val parseOpts = getParsingOptions(conf, sft)
-    buildConverter(sft, conf, idBuilder, fields, userDataBuilder, parseOpts)
+    buildConverter(sft, conf, idBuilder, fields, userDataBuilder, cacheServices, parseOpts)
   }
 
   protected def typeToProcess: String
@@ -96,6 +97,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
                                idBuilder: Expr,
                                fields: IndexedSeq[Field],
                                userDataBuilder: Map[String, Expr],
+                               cacheServices: Map[String, EnrichmentCache],
                                parseOpts: ConvertParseOpts): SimpleFeatureConverter[I]
 
   protected def buildFields(conf: Config): IndexedSeq[Field] =
@@ -116,6 +118,18 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
     if (conf.hasPath("user-data")) {
       conf.getConfig("user-data").entrySet.map { e =>
         e.getKey -> Transformers.parseTransform(e.getValue.unwrapped().toString)
+      }.toMap
+    } else {
+      Map.empty
+    }
+  }
+
+  protected def buildCacheService(config: Config): Map[String, EnrichmentCache] = {
+    if(config.hasPath("caches")) {
+      val cacheConfig = config.getConfig("caches")
+      cacheConfig.root().keys.map { k =>
+        val specificConf = cacheConfig.getConfig(k)
+        k -> EnrichmentCache(specificConf)
       }.toMap
     } else {
       Map.empty
@@ -183,6 +197,7 @@ trait SimpleFeatureConverter[I] extends Closeable {
    * Result feature type
    */
   def targetSFT: SimpleFeatureType
+  def caches: Map[String, EnrichmentCache]
 
   /**
    * Stream process inputs into simple features
@@ -200,7 +215,7 @@ trait SimpleFeatureConverter[I] extends Closeable {
                               counter: Counter = new DefaultCounter): EvaluationContext = {
     val keys = globalParams.keys.toIndexedSeq
     val values = keys.map(globalParams.apply).toArray
-    EvaluationContext(keys, values, counter)
+    EvaluationContext(keys, values, counter, caches)
   }
 
   override def close(): Unit = {}
@@ -257,6 +272,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   def inputFields: Seq[Field]
   def idBuilder: Expr
   def userDataBuilder: Map[String, Expr]
+  def caches: Map[String, EnrichmentCache]
   def fromInputType(i: I): Seq[Array[Any]]
   def parseOpts: ConvertParseOpts
 
@@ -367,7 +383,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     val values = Array.ofDim[Any](names.length)
     // note, globalKeys are maintained even through EvaluationContext.clear()
     globalKeys.zipWithIndex.foreach { case (k, i) => values(requiredFields.length + i) = globalParams(k) }
-    new EvaluationContextImpl(names, values, counter)
+    new EvaluationContextImpl(names, values, counter, caches)
   }
 
   override def processInput(is: Iterator[I], ec: EvaluationContext): Iterator[SimpleFeature] = {

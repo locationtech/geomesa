@@ -567,3 +567,16 @@ delimiters for a map:
 ::
 
     { name = "numbers", transform = "parseMap('int -> string', $2, ',', '->')" }
+
+
+Enrichment Functions
+~~~~~~~~~~~~~~~~~~~~
+
+cacheLookup
+^^^^^^^^^^^
+
+Description: Looks up a value from a cache
+
+Usage: ``cacheLookup(<cacheName>, <entityKey>, <attributeKey>)``
+
+Example: ``cacheLookup('test', $id, 'name')``
