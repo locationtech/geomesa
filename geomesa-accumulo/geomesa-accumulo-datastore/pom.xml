@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-accumulo_2.11</artifactId>
-        <version>1.3.4-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
