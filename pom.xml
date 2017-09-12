@@ -79,7 +79,6 @@
 
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
-        <!-- to compile against Accumulo 1.8.0, use the accumulo-1.8 profile -->
         <accumulo.version>1.8.1</accumulo.version>
         <zookeeper.version>3.4.5</zookeeper.version>
         <thrift.version>0.9.3</thrift.version>
@@ -221,14 +220,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <profile>
-            <id>accumulo-1.8</id>
-            <properties>
-               <accumulo.version>1.8.0</accumulo.version>
-               <thrift.version>0.9.3</thrift.version>
-            </properties>
         </profile>
 
         <profile>
