@@ -25,7 +25,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 /**
@@ -70,6 +70,8 @@ class AttributeIndexValueIterator extends SortedKeyValueIterator[Key, Value] wit
       }
     }
 
+    cql = Option(options.get(CQL_OPT)).map(IteratorCache.filter(sft, spec, _))
+
     val index = try {
       AccumuloFeatureIndex.index(options.get(INDEX_OPT)).asInstanceOf[AccumuloFeatureIndex with AttributeRowDecoder]
     } catch {
@@ -88,8 +90,6 @@ class AttributeIndexValueIterator extends SortedKeyValueIterator[Key, Value] wit
       val getFromRow = index.getIdFromRow(sft)
       (row) => original.setId(getFromRow(row.getBytes, 0, row.getLength))
     }
-
-    cql = Option(options.get(CQL_OPT)).map(IteratorCache.filter(sft, spec, _))
   }
 
   override def seek(range: Range, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
@@ -103,23 +103,26 @@ class AttributeIndexValueIterator extends SortedKeyValueIterator[Key, Value] wit
   }
   override def hasTop: Boolean = source.hasTop
   override def getTopKey: Key = source.getTopKey
-
   override def getTopValue: Value = topValue
 
   def findTop(): Unit = {
     var found = false
     while (!found && source.hasTop) {
       val row = source.getTopKey.getRow
-      decodeRowValue(row.getBytes, 0, row.getLength).foreach { value =>
-        original.setBuffer(source.getTopValue.get())
-        setId(row)
-        if (cql.forall(_.evaluate(original))) {
-          mappings.foreach { case (to, from) => withAttribute.setAttributeNoConvert(to, original.getAttribute(from)) }
-          withAttribute.setAttributeNoConvert(attribute, value)
-          withAttribute.setId(original.getID)
-          topValue.set(serializer.serialize(withAttribute))
-          found = true
-        }
+      decodeRowValue(row.getBytes, 0, row.getLength) match {
+        case Failure(_)     => source.next()
+        case Success(value) =>
+          original.setBuffer(source.getTopValue.get())
+          setId(row)
+          if (cql.forall(_.evaluate(original))) {
+            mappings.foreach { case (to, from) => withAttribute.setAttributeNoConvert(to, original.getAttribute(from)) }
+            withAttribute.setAttributeNoConvert(attribute, value)
+            withAttribute.setId(original.getID)
+            topValue.set(serializer.serialize(withAttribute))
+            found = true
+          } else {
+            source.next()
+          }
       }
     }
   }
