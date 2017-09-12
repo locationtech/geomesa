@@ -13,15 +13,15 @@ import java.nio.file.Files
 import java.time.temporal.ChronoUnit
 
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.Coordinate
 import org.apache.commons.io.FileUtils
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.{DateTimeScheme, PartitionScheme}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -34,19 +34,15 @@ class FileSystemDataStoreTest extends Specification {
 
   sequential
 
+  val gf = JTSFactoryFinder.getGeometryFactory
+  val dir = Files.createTempDirectory("fsds-test").toFile
+
+  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+  val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily, ChronoUnit.DAYS, 1, "dtg", false)
+  val sf = ScalaSimpleFeature.create(sft, "1", "test", 100, "2017-06-05T04:03:02.0001Z", "POINT(10 10)")
 
   "FileSystemDataStore" should {
-    val gf = JTSFactoryFinder.getGeometryFactory
-    val dir = Files.createTempDirectory("fsds-test").toFile
-
     "create a DS" >> {
-      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily, ChronoUnit.DAYS, 1, "dtg", false)
-
-      val sf = new ScalaSimpleFeature(sft, "1", Array("test", Integer.valueOf(100),
-        ISODateTimeFormat.dateTime().parseDateTime("2017-06-05T04:03:02.0001Z").toDate,
-        gf.createPoint(new Coordinate(10, 10))))
-
       val ds = DataStoreFinder.getDataStore(Map(
         "fs.path" -> dir.getPath,
         "fs.encoding" -> "parquet",
@@ -77,11 +73,10 @@ class FileSystemDataStoreTest extends Specification {
       ds.getTypeNames must have size 1
       val fs = ds.getFeatureSource("test")
       fs must not(beNull)
-      import org.locationtech.geomesa.utils.geotools.Conversions._
-      val q = new Query("test", Filter.INCLUDE)
-      val features = fs.getFeatures(q).features().toList
 
-      features.size mustEqual 1
+      val features = SelfClosingIterator(fs.getFeatures(new Query("test")).features()).toList
+      features must haveSize(1)
+      features.head mustEqual sf
     }
 
     "create a second ds with the same path" >> {
@@ -91,15 +86,10 @@ class FileSystemDataStoreTest extends Specification {
         "fs.encoding" -> "parquet")).asInstanceOf[FileSystemDataStore]
       ds2.getTypeNames.toList must containTheSameElementsAs(Seq("test"))
 
-      import org.locationtech.geomesa.utils.geotools.Conversions._
-      val fs = ds2.getFeatureSource("test").getFeatures(Filter.INCLUDE).features().toList
+      val features = SelfClosingIterator(ds2.getFeatureSource("test").getFeatures(Filter.INCLUDE).features()).toList
 
-      fs.size mustEqual 1
-      fs.head.getAttributes.toList must containTheSameElementsAs(
-        List("test",
-          Integer.valueOf(100),
-          ISODateTimeFormat.dateTime().parseDateTime("2017-06-05T04:03:02.0001Z").toDate,
-          gf.createPoint(new Coordinate(10, 10))))
+      features must haveSize(1)
+      features.head mustEqual sf
     }
 
     "call create schema on existing type" >> {
@@ -114,9 +104,44 @@ class FileSystemDataStoreTest extends Specification {
       ds2.createSchema(sameSft) must not(throwA[Throwable])
     }
 
-    step {
-      FileUtils.deleteDirectory(dir)
+    "support transforms" >> {
+      val ds = DataStoreFinder.getDataStore(Map(
+        "fs.path" -> dir.getPath,
+        "fs.encoding" -> "parquet")).asInstanceOf[FileSystemDataStore]
+
+      val filters = Seq(
+        "INCLUDE",
+        "name = 'test'",
+        "bbox(geom, 5, 5, 15, 15)",
+        "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-05T04:04:00.0000Z",
+        "dtg > '2017-06-05T04:03:00.0000Z' AND dtg < '2017-06-05T04:04:00.0000Z'",
+        "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-05T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
+      ).map(ECQL.toFilter)
+      val transforms = Seq(null, Array("name"), Array("dtg", "geom")) // note: geom is always returned
+
+      foreach(filters) { filter =>
+        foreach(transforms) { transform =>
+          val query = new Query("test", filter, transform)
+          val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          features must haveLength(1)
+          val feature = features.head
+          if (transform == null) {
+            feature.getAttributeCount mustEqual 4
+            feature.getAttributes mustEqual sf.getAttributes
+          } else if (transform.contains("geom")) {
+            feature.getAttributeCount mustEqual transform.length
+            foreach(transform)(t => feature.getAttribute(t) mustEqual sf.getAttribute(t))
+          } else {
+            feature.getAttributeCount mustEqual transform.length + 1
+            foreach(transform)(t => feature.getAttribute(t) mustEqual sf.getAttribute(t))
+            feature.getAttribute("geom") mustEqual sf.getAttribute("geom")
+          }
+        }
+      }
     }
   }
 
+  step {
+    FileUtils.deleteDirectory(dir)
+  }
 }

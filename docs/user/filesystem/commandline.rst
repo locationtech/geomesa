@@ -47,9 +47,7 @@ After installing the tarball you should be able to run the ``geomesa-fs`` comman
     $ cd $GEOMESA_FS_HOME
     $ bin/geomesa-fs
 
-The output should look like this:
-
-.. code-block::
+The output should look like this::
 
     INFO  Usage: geomesa-fs [command] [command options]
       Commands:
@@ -90,8 +88,8 @@ can also be stored in a remote filesystem such as HDFS, S3, GCS, or WASB.
 Commonly used arguments for ingest are:
 
 * ``-p`` - Root path for storage (e.g. s3a://bucket/datastores/myds)
-* ``-e``` - Encoding to use for file storage (e.g. parquet)
-* ``--partition-scheme`` - Common partition scheme name (e.g. daily,z2) or path to a file containing a scheme config
+* ``-e`` - Encoding to use for file storage (e.g. parquet)
+* ``--partition-scheme`` - Common partition scheme name (e.g. daily, z2) or path to a file containing a scheme config
 * ``--temp-dir`` - A temp dir in HDFS to use when doing S3 ingest (can speed up writes for parquet)
 * ``--num-reducers`` - The number of reducers to use when performing distributed ingest (try to set to num-partitions / 2)
 * ``-C`` - Path to a converter or named convert available in the environment

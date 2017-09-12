@@ -10,14 +10,14 @@ package org.locationtech.geomesa.parquet
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.parquet.hadoop.ParquetReader
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemPartitionIterator
 import org.locationtech.geomesa.utils.io.CloseQuietly
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class FilteringIterator(partition: String,
                         builder: ParquetReader.Builder[SimpleFeature],
                         gtFilter: org.opengis.filter.Filter) extends FileSystemPartitionIterator with LazyLogging {
-
 
   private lazy val reader: ParquetReader[SimpleFeature] = {
     logger.info(s"Opening reader for partition $partition")
@@ -53,6 +53,23 @@ class FilteringIterator(partition: String,
   override def getPartition: String = partition
 }
 
+class FilteringTransformIterator(partition: String,
+                                 builder: ParquetReader.Builder[SimpleFeature],
+                                 gtFilter: org.opengis.filter.Filter,
+                                 sft: SimpleFeatureType,
+                                 transform: SimpleFeatureType)
+    extends FilteringIterator(partition, builder, gtFilter) {
+
+  import scala.collection.JavaConversions._
+
+  private val transformIndices = transform.getAttributeDescriptors.map(d => sft.indexOf(d.getLocalName)).toArray
+
+  override def next(): SimpleFeature = {
+    val f = super.next()
+    val attributes = transformIndices.map(f.getAttribute)
+    new ScalaSimpleFeature(transform, f.getID, attributes, f.getUserData)
+  }
+}
 
 class MultiIterator(partition: String,
                     itrs: Iterator[FileSystemPartitionIterator])
@@ -73,7 +90,7 @@ class MultiIterator(partition: String,
     cur.next()
   }
 
-  private def loadNext() = {
+  private def loadNext(): Unit = {
     if (cur != null) {
       CloseQuietly(cur)
     }
