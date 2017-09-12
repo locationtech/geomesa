@@ -15,7 +15,6 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
 import org.locationtech.geomesa.accumulo.iterators.Z2DensityIterator.TableSharingKey
 import org.locationtech.geomesa.curve.LegacyZ3SFC
-import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
@@ -26,7 +25,7 @@ import org.opengis.filter.Filter
  */
 class Z3DensityIterator extends KryoLazyDensityIterator {
 
-  val zBytes = Array.fill[Byte](8)(0)
+  private val zBytes = Array.fill[Byte](8)(0)
 
   override protected def initResult(sft: SimpleFeatureType,
                                     transform: Option[SimpleFeatureType],
@@ -49,20 +48,23 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
       val baseWeight = getWeight
       getWeight = (sf) => normalizeWeight(baseWeight(sf))
 
-
       val sfc = LegacyZ3SFC(sft.getZ3Interval)
       // 1 for split plus optional 1 for table sharing
       val zPrefix = if (options(TableSharingKey).toBoolean) { 2 } else { 1 }
       writeGeom = (_, weight, result) => {
         val row = topKey.getRowData
         val zOffset = row.offset() + 3 // two for week and 1 for split
-        var i = 0
-        while (i < Z3IndexV2.GEOM_Z_NUM_BYTES) {
-          zBytes(i) = row.byteAt(zOffset + i)
-          i += 1
+        var k = 0
+        while (k < Z3IndexV2.GEOM_Z_NUM_BYTES) {
+          zBytes(k) = row.byteAt(zOffset + k)
+          k += 1
         }
         val (x, y, _) = sfc.invert(Z3(Longs.fromByteArray(zBytes)))
-        DensityScan.writePointToResult(x, y, weight, gridSnap, result)
+        val i = gridSnap.i(x)
+        val j = gridSnap.j(y)
+        if (i != -1 && j != -1) {
+          result(i, j) += weight
+        }
       }
     }
 

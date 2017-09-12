@@ -12,7 +12,6 @@ package org.locationtech.geomesa.utils.geotools
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -70,42 +69,30 @@ class GridSnapTest extends Specification with LazyLogging {
       val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
       val gridSnap = new GridSnap(bbox, 100, 10)
 
-      gridSnap.i(-1.0) mustEqual 0
-      gridSnap.j(-1.0) mustEqual 0
+      gridSnap.i(-1.0) mustEqual -1
+      gridSnap.j(-1.0) mustEqual -1
 
-      gridSnap.i(11.0) mustEqual 99
-      gridSnap.j(11.0) mustEqual 9
-    }
-
-    "compute a SimpleFeatureSource Grid over the bbox" in {
-      val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
-      val gridSnap = new GridSnap(bbox, 10, 10)
-
-      val grid = gridSnap.generateCoverageGrid
-
-      grid must not(beNull)
-
-      val featureIterator = SelfClosingIterator(grid.getFeatures.features)
-      featureIterator must haveLength(100)
+      gridSnap.i(11.0) mustEqual -1
+      gridSnap.j(11.0) mustEqual -1
     }
 
     "compute a sequence of points between various sets of coordinates" in {
       val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
       val gridSnap = new GridSnap(bbox, 10, 10)
 
-      val resultDiagonal = gridSnap.genBresenhamCoordList(0, 0, 9, 9)
+      val resultDiagonal = gridSnap.bresenhamLine(0, 0, 9, 9)
       resultDiagonal must haveLength(9)
 
-      val resultVertical = gridSnap.genBresenhamCoordList(0, 0, 0, 9)
+      val resultVertical = gridSnap.bresenhamLine(0, 0, 0, 9)
       resultVertical must haveLength(9)
 
-      val resultHorizontal = gridSnap.genBresenhamCoordList(0, 0, 9, 0)
+      val resultHorizontal = gridSnap.bresenhamLine(0, 0, 9, 0)
       resultHorizontal must haveLength(9)
 
-      val resultSamePoint = gridSnap.genBresenhamCoordList(0, 0, 0, 0)
-      resultSamePoint must haveLength(0)
+      val resultSamePoint = gridSnap.bresenhamLine(0, 0, 0, 0)
+      resultSamePoint must haveLength(1)
 
-      val resultInverse = gridSnap.genBresenhamCoordList(9, 9, 0, 0)
+      val resultInverse = gridSnap.bresenhamLine(9, 9, 0, 0)
       resultInverse must haveLength(9)
     }
 
