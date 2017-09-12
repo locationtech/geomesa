@@ -345,7 +345,7 @@ case class GeoMesaJoinRelation(sqlContext: SQLContext,
 
     // Extract geometry indexes and spatial function from condition expression and relation SFTs
     val (leftIndex, rightIndex, conditionFunction) = condition match {
-      case ScalaUDF(function: ((Geometry, Geometry) => Boolean), _, children: Seq[AttributeReference], _) =>
+      case ScalaUDF(function: ((Geometry, Geometry) => Boolean), _, children: Seq[AttributeReference], _, _) =>
         // Because the predicate may not have parameters in the right order, we must check both
         val leftAttr = children(0).name
         val rightAttr = children(1).name

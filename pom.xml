@@ -65,8 +65,8 @@
         <scala.xml.version>1.0.5</scala.xml.version>
         <scala.parsers.version>1.0.5</scala.parsers.version>
 
-        <geoserver.version>2.9.1</geoserver.version>
-        <gt.version>15.1</gt.version>
+        <geoserver.version>2.12.2</geoserver.version>
+        <gt.version>17.2</gt.version>
         <jaiext.version>1.0.9</jaiext.version>
         <imageio-ext.version>1.1.15</imageio-ext.version>
         <jts.version>1.13</jts.version>
@@ -80,12 +80,12 @@
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
         <!-- to compile against Accumulo 1.8.0, use the accumulo-1.8 profile -->
-        <accumulo.version>1.7.2</accumulo.version>
+        <accumulo.version>1.8.1</accumulo.version>
         <zookeeper.version>3.4.5</zookeeper.version>
-        <thrift.version>0.9.1</thrift.version>
-        <hadoop.version>2.5.2</hadoop.version>
-        <spark.version>2.0.0</spark.version>
-        <hbase.version>1.2.3</hbase.version>
+        <thrift.version>0.9.3</thrift.version>
+        <hadoop.version>2.6.4</hadoop.version>
+        <spark.version>2.2.0</spark.version>
+        <hbase.version>1.3.1</hbase.version>
         <hbase.guava.version>12.0.1</hbase.guava.version>
         <cassandra.version>3.0.0</cassandra.version>
         <cassandra.guava.version>18.0</cassandra.guava.version>
@@ -97,17 +97,17 @@
 
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
-        <accumulo.version.recommended>1.7.3</accumulo.version.recommended>
-        <hbase.version.recommended>1.2.6</hbase.version.recommended>
-        <hadoop.version.recommended>2.7.3</hadoop.version.recommended>
+        <accumulo.version.recommended>1.8.1</accumulo.version.recommended>
+        <hbase.version.recommended>1.3.1</hbase.version.recommended>
+        <hadoop.version.recommended>2.7.4</hadoop.version.recommended>
         <zookeeper.version.recommended>3.4.9</zookeeper.version.recommended>
 
         <!-- Minimum installation versions -->
         <!-- These are the oldest versions supported -->
         <accumulo.version.minimum>1.6.0</accumulo.version.minimum>
         <hbase.version.minimum>1.2.3</hbase.version.minimum>
-        <hadoop.version.minimum>2.2.0</hadoop.version.minimum>
-        <zookeeper.version.minimum>3.3.6</zookeeper.version.minimum>
+        <hadoop.version.minimum>2.5.0</hadoop.version.minimum>
+        <zookeeper.version.minimum>3.4.6</zookeeper.version.minimum>
         <thrift.version.minimum>0.9.1</thrift.version.minimum>
 
         <!-- logging properties - we expect logging jars to be provided -->
@@ -1474,7 +1474,7 @@
             <dependency>
                 <groupId>com.esotericsoftware.kryo</groupId>
                 <artifactId>kryo</artifactId>
-                <version>2.21</version>
+                <version>2.24.0</version>
                 <exclusions>
                     <!-- included as shaded and relocated package in encapsulating dependency -->
                     <exclusion>
@@ -1994,7 +1994,7 @@
                 <!-- This should match what Hadoop uses (and thus Hbase and Accumulo) -->
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.4</version>
+                <version>2.5</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
