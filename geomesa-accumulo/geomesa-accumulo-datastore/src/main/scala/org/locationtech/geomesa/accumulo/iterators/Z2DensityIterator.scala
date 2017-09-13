@@ -14,7 +14,6 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1
 import org.locationtech.geomesa.curve.LegacyZ2SFC
-import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.sfcurve.zorder.Z2
@@ -56,13 +55,17 @@ class Z2DensityIterator extends KryoLazyDensityIterator {
       writeGeom = (_, weight, result) => {
         val row = topKey.getRowData
         val zOffset = row.offset() + zPrefix
-        var i = 0
-        while (i < Z2IndexV1.GEOM_Z_NUM_BYTES) {
-          zBytes(i) = row.byteAt(zOffset + i)
-          i += 1
+        var k = 0
+        while (k < Z2IndexV1.GEOM_Z_NUM_BYTES) {
+          zBytes(k) = row.byteAt(zOffset + k)
+          k += 1
         }
         val (x, y) = LegacyZ2SFC.invert(Z2(Longs.fromByteArray(zBytes)))
-        DensityScan.writePointToResult(x, y, weight, gridSnap, result)
+        val i = gridSnap.i(x)
+        val j = gridSnap.j(y)
+        if (i != -1 && j != -1) {
+          result(i, j) += weight
+        }
       }
     }
 

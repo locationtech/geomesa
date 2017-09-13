@@ -30,30 +30,28 @@ class BucketIndex[T](xBuckets: Int = 360,
 
   override def insert(envelope: Envelope, item: T): Unit = {
     val (i, j) = getBucket(envelope)
-    val bucket = buckets(i)(j)
-    bucket.add(item)
+    buckets(i)(j).add(item)
   }
 
   override def remove(envelope: Envelope, item: T): Boolean = {
     val (i, j) = getBucket(envelope)
-    val bucket = buckets(i)(j)
-    bucket.remove(item)
+    buckets(i)(j).remove(item)
   }
 
   override def query(envelope: Envelope): Iterator[T] = {
-    val mini = gridSnap.i(envelope.getMinX)
-    val maxi = gridSnap.i(envelope.getMaxX)
-    val minj = gridSnap.j(envelope.getMinY)
-    val maxj = gridSnap.j(envelope.getMaxY)
+    val mini = snapX(envelope.getMinX)
+    val maxi = snapX(envelope.getMaxX)
+    val minj = snapY(envelope.getMinY)
+    val maxj = snapY(envelope.getMaxY)
 
     new Iterator[T]() {
       import scala.collection.JavaConverters._
 
-      var i = mini
-      var j = minj
-      var iter = Iterator.empty.asInstanceOf[Iterator[T]].asJava
+      private var i = mini
+      private var j = minj
+      private var iter = Iterator.empty.asInstanceOf[Iterator[T]].asJava
 
-      override def hasNext = {
+      override def hasNext: Boolean = {
         while (!iter.hasNext && i <= maxi && j <= maxj) {
           val bucket = buckets(i)(j)
           if (j < maxj) {
@@ -67,12 +65,22 @@ class BucketIndex[T](xBuckets: Int = 360,
         iter.hasNext
       }
 
-      override def next() = iter.next()
+      override def next(): T = iter.next()
     }
   }
 
   private def getBucket(envelope: Envelope): (Int, Int) = {
     val (x, y) = SpatialIndex.getCenter(envelope)
-    (gridSnap.i(x), gridSnap.j(y))
+    (snapX(x), snapY(y))
+  }
+
+  private def snapX(x: Double): Int = {
+    val i = gridSnap.i(x)
+    if (i != -1) { i } else if (x < extents.getMinX) { 0 } else { xBuckets - 1 }
+  }
+
+  private def snapY(y: Double): Int = {
+    val j = gridSnap.j(y)
+    if (j != -1) { j } else if (y < extents.getMinY) { 0 } else { yBuckets - 1 }
   }
 }

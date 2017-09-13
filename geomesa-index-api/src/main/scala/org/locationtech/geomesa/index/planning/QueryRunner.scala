@@ -11,13 +11,16 @@ package org.locationtech.geomesa.index.planning
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.filter.visitor.BindingFilterVisitor
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
+import org.locationtech.geomesa.filter.{andFilters, decomposeAnd, ff}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.opengis.filter.spatial.BBOX
 
 trait QueryRunner {
 
@@ -32,6 +35,8 @@ trait QueryRunner {
     * @param sft simple feature type associated with the query
     */
   protected [geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
     val query = new Query(original) // note: this ends up sharing a hints object between the two queries
 
     // set query hints - we need this in certain situations where we don't have access to the query directly
@@ -48,6 +53,23 @@ trait QueryRunner {
     QueryPlanner.setQueryTransforms(query, sft)
     // set return SFT in the query
     query.getHints.put(QueryHints.Internal.RETURN_SFT, getReturnSft(sft, query.getHints))
+
+    // add the bbox from the density query to the filter
+    if (query.getHints.isDensityQuery) {
+      val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
+      val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
+      if (query.getFilter == Filter.INCLUDE) {
+        query.setFilter(bbox)
+      } else {
+        // add the bbox - try to not duplicate an existing bbox
+        val bounds = bbox.getBounds
+        val filters = decomposeAnd(query.getFilter).filter {
+          case b: BBOX if bounds.contains(b.getBounds) => false
+          case _ => true
+        }
+        query.setFilter(andFilters(filters ++ Seq(bbox)))
+      }
+    }
 
     query
   }
