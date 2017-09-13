@@ -7,7 +7,10 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.iterators
-import com.vividsolutions.jts.geom.{Coordinate, Envelope, Geometry, Point}
+import java.awt.image.BufferedImage
+
+import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom._
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
@@ -15,11 +18,14 @@ import org.geotools.util.Converters
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
-import org.locationtech.geomesa.utils.geotools.GridSnap
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
+
+import scala.annotation.tailrec
+import scala.util.control.NonFatal
 
 trait DensityScan extends AggregatingScan[DensityResult] {
 
@@ -42,7 +48,7 @@ trait DensityScan extends AggregatingScan[DensityResult] {
     getWeight = DensityScan.getWeight(sft, options.get(WeightOpt))
     writeGeom = DensityScan.writeGeometry(sft, gridSnap)
 
-    scala.collection.mutable.Map.empty[(Int, Int), Double]
+    scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)
   }
 
   override protected def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit =
@@ -51,12 +57,12 @@ trait DensityScan extends AggregatingScan[DensityResult] {
   override protected def encodeResult(result: DensityResult): Array[Byte] = DensityScan.encodeResult(result)
 }
 
-object DensityScan {
+object DensityScan extends LazyLogging {
 
   type DensityResult = scala.collection.mutable.Map[(Int, Int), Double]
   type GridIterator  = (SimpleFeature) => Iterator[(Double, Double, Double)]
 
-  val DensitySft = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
+  val DensitySft: SimpleFeatureType = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
   val DensityValueKey = new ClassKey(classOf[Array[Byte]])
 
   // configuration keys
@@ -146,10 +152,12 @@ object DensityScan {
   def writeGeometry(sft: SimpleFeatureType, grid: GridSnap): (SimpleFeature, Double, DensityResult) => Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val geomIndex = sft.getGeomIndex
-    if (sft.isPoints) {
-      (sf, weight, result) => writePoint(sf, geomIndex, weight, grid, result)
-    } else {
-      (sf, weight, result) => writeNonPoint(sf.getAttribute(geomIndex).asInstanceOf[Geometry], weight, grid, result)
+    sft.getGeometryDescriptor.getType.getBinding match {
+      case b if b == classOf[Point]           => writePoint(geomIndex, grid)
+      case b if b == classOf[MultiPoint]      => writeMultiPoint(geomIndex, grid)
+      case b if b == classOf[LineString]      => writeLineString(geomIndex, grid)
+      case b if b == classOf[MultiLineString] => writeMultiLineString(geomIndex, grid)
+      case _                                  => writeGeometry(geomIndex, grid)
     }
   }
 
@@ -183,26 +191,204 @@ object DensityScan {
   /**
     * Writes a density record from a feature that has a point geometry
     */
-  private def writePoint(sf: SimpleFeature, geomIndex: Int, weight: Double, grid: GridSnap, result: DensityResult): Unit =
+  private def writePoint(geomIndex: Int, grid: GridSnap)
+                        (sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
     writePointToResult(sf.getAttribute(geomIndex).asInstanceOf[Point], weight, grid, result)
+
+  /**
+    * Writes a density record from a feature that has a multi-point geometry
+    */
+  private def writeMultiPoint(geomIndex: Int, grid: GridSnap)
+                             (sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
+    writeMultiPointToResult(sf.getAttribute(geomIndex).asInstanceOf[MultiPoint], weight, grid, result)
+
+  /**
+    * Writes a density record from a feature that has a line geometry
+    */
+  private def writeLineString(geomIndex: Int, grid: GridSnap)
+                             (sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
+    writeLineToResult(sf.getAttribute(geomIndex).asInstanceOf[LineString], weight, grid, result)
+
+  /**
+    * Writes a density record from a feature that has a multi-line geometry
+    */
+  private def writeMultiLineString(geomIndex: Int, grid: GridSnap)
+                                  (sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
+    writeMultiLineToResult(sf.getAttribute(geomIndex).asInstanceOf[MultiLineString], weight, grid, result)
+
+  /**
+    * Writes a density record from a feature that has a polygon geometry
+    */
+  private def writePolygon(geomIndex: Int, grid: GridSnap)
+                          (sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
+    writePolygonToResult(sf.getAttribute(geomIndex).asInstanceOf[Polygon], weight, grid, result)
+
+  /**
+    * Writes a density record from a feature that has a polygon geometry
+    */
+  private def writeMultiPolygon(geomIndex: Int, grid: GridSnap)
+                               (sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
+    writeMultiPolygonToResult(sf.getAttribute(geomIndex).asInstanceOf[MultiPolygon], weight, grid, result)
 
   /**
     * Writes a density record from a feature that has an arbitrary geometry
     */
-  private def writeNonPoint(geom: Geometry, weight: Double, grid: GridSnap, result: DensityResult): Unit = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-    writePointToResult(geom.safeCentroid(), weight, grid, result)
-  }
+  private def writeGeometry(geomIndex: Int, grid: GridSnap)
+                           (sf: SimpleFeature, weight: Double, result: DensityResult): Unit =
+    writeGeometryToResult(sf.getAttribute(geomIndex).asInstanceOf[Geometry], weight, grid, result)
 
   private def writePointToResult(pt: Point, weight: Double, grid: GridSnap, result: DensityResult): Unit =
-    writeSnappedPoint((grid.i(pt.getX), grid.j(pt.getY)), weight, result)
+    writeSnappedPoint(grid.i(pt.getX), grid.j(pt.getY), weight, result)
 
-  private def writePointToResult(pt: Coordinate, weight: Double, grid: GridSnap, result: DensityResult): Unit =
-    writeSnappedPoint((grid.i(pt.x), grid.j(pt.y)), weight, result)
+  private def writeMultiPointToResult(pts: MultiPoint, weight: Double, grid: GridSnap, result: DensityResult): Unit = {
+    var i = 0
+    while (i < pts.getNumGeometries) {
+      writePointToResult(pts.getGeometryN(i).asInstanceOf[Point], weight, grid, result)
+      i += 1
+    }
+  }
 
-  def writePointToResult(x: Double, y: Double, weight: Double, grid: GridSnap, result: DensityResult): Unit =
-    writeSnappedPoint((grid.i(x), grid.j(y)), weight, result)
+  private def writeLineToResult(ls: LineString, weight: Double, grid: GridSnap, result: DensityResult): Unit = {
+    if (ls.getNumPoints < 1) {
+      logger.warn(s"Encountered line string with fewer than two points: $ls")
+    } else {
+      var iN, jN = -1 // track the last pixel we've written to avoid double-counting
+      val points = Seq.tabulate(ls.getNumPoints) { i => val p = ls.getCoordinateN(i); (p, grid.i(p.x), grid.j(p.y)) }
 
-  private def writeSnappedPoint(xy: (Int, Int), weight: Double, result: DensityResult): Unit =
-    result.update(xy, result.getOrElse(xy, 0.0) + weight)
+      points.sliding(2).foreach { case Seq((p0, i0, j0), (p1, i1, j1)) =>
+        if (i0 == -1 || j0 == -1 || i1 == -1 || j1 == -1) {
+          // line is not entirely contained in the grid region
+          // find the intersection of the line segment with the grid region
+          try {
+            val intersection = GeometryUtils.geoFactory.createLineString(Array(p0, p1)).intersection(grid.envelope)
+            if (!intersection.isEmpty) {
+              writeGeometryToResult(intersection, weight, grid, result)
+            }
+          } catch {
+            case NonFatal(e) => logger.error(s"Error intersecting line string [$p0 $p1] with ${grid.envelope}", e)
+          }
+        } else {
+          val bresenham = grid.bresenhamLine(i0, j0, i1, j1)
+          // check the first point for overlap with last line segment
+          val (iF, jF) = bresenham.next
+          if (iF != iN || jF != jN) {
+            writeSnappedPoint(iF, jF, weight, result)
+          }
+          var next = bresenham.hasNext
+          if (!next) {
+            iN = iF
+            jN = jF
+          } else {
+            @tailrec
+            def writeNext(): Unit = {
+              val (i, j) = bresenham.next
+              writeSnappedPoint(i, j, weight, result)
+              if (bresenham.hasNext) {
+                writeNext()
+              } else {
+                iN = i
+                jN = j
+              }
+            }
+            writeNext()
+          }
+        }
+      }
+    }
+  }
+
+  private def writeMultiLineToResult(lines: MultiLineString, weight: Double, grid: GridSnap, result: DensityResult): Unit = {
+    var i = 0
+    while (i < lines.getNumGeometries) {
+      writeLineToResult(lines.getGeometryN(i).asInstanceOf[LineString], weight, grid, result)
+      i += 1
+    }
+  }
+
+  private def writePolygonToResult(poly: Polygon, weight: Double, grid: GridSnap, result: DensityResult): Unit = {
+    val envelope = poly.getEnvelopeInternal
+    val imin = grid.i(envelope.getMinX)
+    val imax = grid.i(envelope.getMaxX)
+    val jmin = grid.j(envelope.getMinY)
+    val jmax = grid.j(envelope.getMaxY)
+
+    if (imin == -1 || imax == -1 || jmin == -1 || jmax == -1) {
+      // polygon is not entirely contained in the grid region
+      // find the intersection of the polygon with the grid region
+      try {
+        val intersection = poly.intersection(grid.envelope)
+        if (!intersection.isEmpty) {
+          writeGeometryToResult(intersection, weight, grid, result)
+        }
+      } catch {
+        case NonFatal(e) => logger.error(s"Error intersecting polygon [$poly] with ${grid.envelope}", e)
+      }
+    } else {
+      val iLength = imax - imin + 1
+      val jLength = jmax - jmin + 1
+
+      val raster = {
+        // use java awt graphics to draw our polygon on the grid
+        val image = new BufferedImage(iLength, jLength, BufferedImage.TYPE_BYTE_BINARY)
+        val graphics = image.createGraphics()
+
+        val border = poly.getExteriorRing
+        val xPoints = Array.ofDim[Int](border.getNumPoints)
+        val yPoints = Array.ofDim[Int](border.getNumPoints)
+        var i = 0
+        while (i < xPoints.length) {
+          val coord = border.getCoordinateN(i)
+          xPoints(i) = grid.i(coord.x) - imin
+          yPoints(i) = grid.j(coord.y) - jmin
+          i += 1
+        }
+        graphics.fillPolygon(xPoints, yPoints, xPoints.length)
+        image.getRaster
+      }
+
+      var i, j = 0
+      while (i < iLength) {
+        while (j < jLength) {
+          if (raster.getSample(i, j, 0) != 0) {
+            writeSnappedPoint(i + imin, j + jmin, weight, result)
+          }
+          j += 1
+        }
+        j = 0
+        i += 1
+      }
+    }
+  }
+
+  private def writeMultiPolygonToResult(polys: MultiPolygon, weight: Double, grid: GridSnap, result: DensityResult): Unit = {
+    var i = 0
+    while (i < polys.getNumGeometries) {
+      writePolygonToResult(polys.getGeometryN(i).asInstanceOf[Polygon], weight, grid, result)
+      i += 1
+    }
+  }
+
+  private def writeGeometryToResult(geometry: Geometry, weight: Double, grid: GridSnap, result: DensityResult): Unit = {
+    geometry match {
+      case g: Point              => writePointToResult(g, weight, grid, result)
+      case g: LineString         => writeLineToResult(g, weight, grid, result)
+      case g: Polygon            => writePolygonToResult(g, weight, grid, result)
+      case g: MultiPoint         => writeMultiPointToResult(g, weight, grid, result)
+      case g: MultiLineString    => writeMultiLineToResult(g, weight, grid, result)
+      case g: MultiPolygon       => writeMultiPolygonToResult(g, weight, grid, result)
+
+      case g: GeometryCollection =>
+        var i = 0
+        while (i < g.getNumGeometries) {
+          writeGeometryToResult(g.getGeometryN(i), weight, grid, result)
+          i += 1
+        }
+    }
+  }
+
+  private def writeSnappedPoint(i: Int, j: Int, weight: Double, result: DensityResult): Unit = {
+    if (i != -1 && j != -1) {
+      result(i, j) += weight
+    }
+  }
 }
