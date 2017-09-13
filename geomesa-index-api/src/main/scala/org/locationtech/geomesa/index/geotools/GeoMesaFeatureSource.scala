@@ -76,7 +76,7 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
   override def getBounds(query: Query): ReferencedEnvelope =
     ds.stats.getBounds(getSchema, query.getFilter)
 
-  override def getQueryCapabilities = GeoMesaQueryCapabilities
+  override def getQueryCapabilities: QueryCapabilities = GeoMesaQueryCapabilities
 
   override def getFeatures: SimpleFeatureCollection = getFeatures(Filter.INCLUDE)
 
@@ -137,24 +137,22 @@ class GeoMesaFeatureCollection(private [geotools] val source: GeoMesaFeatureSour
       case v: MinVisitor if v.getExpression.isInstanceOf[PropertyName] =>
         val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
         minMax(attribute, exact = false).orElse(minMax(attribute, exact = true)) match {
-          case Some((min, max)) => v.setValue(min)
-          case None             => super.accepts(visitor, progress)
+          case Some((min, _)) => v.setValue(min)
+          case None           => super.accepts(visitor, progress)
         }
 
       case v: MaxVisitor if v.getExpression.isInstanceOf[PropertyName] =>
         val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
         minMax(attribute, exact = false).orElse(minMax(attribute, exact = true)) match {
-          case Some((min, max)) => v.setValue(max)
-          case None             => super.accepts(visitor, progress)
+          case Some((_, max)) => v.setValue(max)
+          case None           => super.accepts(visitor, progress)
         }
 
       case _ => super.accepts(visitor, progress)
     }
 
-  private def minMax(attribute: String, exact: Boolean): Option[(Any, Any)] = {
-    val bounds = source.ds.stats.getAttributeBounds[Any](source.getSchema, attribute, query.getFilter, exact)
-    bounds.map(b => (b.lower, b.upper))
-  }
+  private def minMax(attribute: String, exact: Boolean): Option[(Any, Any)] =
+    source.ds.stats.getAttributeBounds[Any](source.getSchema, attribute, query.getFilter, exact).map(_.bounds)
 
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] =
     source.ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
@@ -201,7 +199,7 @@ trait CachingFeatureSource extends GeoMesaFeatureSource {
 class CachingFeatureCollection(delegate: SimpleFeatureCollection) extends SimpleFeatureCollection {
 /*_*/
 
-  lazy val featureList = {
+  lazy private val featureList = {
     // use ListBuffer for constant append time and size
     val buf = scala.collection.mutable.ListBuffer.empty[SimpleFeature]
     val iter = delegate.features

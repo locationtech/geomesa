@@ -15,7 +15,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.stats.{Histogram, Stat}
+import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -51,8 +51,8 @@ trait GeoMesaStats extends Closeable {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val filterBounds = BoundsFilterVisitor.visit(filter)
     Option(sft.getGeomField).flatMap(getAttributeBounds[Geometry](sft, _, filter, exact)).map { bounds =>
-      val env = bounds.lower.getEnvelopeInternal
-      env.expandToInclude(bounds.upper.getEnvelopeInternal)
+      val env = bounds.min.getEnvelopeInternal
+      env.expandToInclude(bounds.max.getEnvelopeInternal)
       filterBounds.intersection(env)
     }.getOrElse(filterBounds)
   }
@@ -70,7 +70,7 @@ trait GeoMesaStats extends Closeable {
   def getAttributeBounds[T](sft: SimpleFeatureType,
                             attribute: String,
                             filter: Filter = Filter.INCLUDE,
-                            exact: Boolean = false): Option[AttributeBounds[T]]
+                            exact: Boolean = false): Option[MinMax[T]]
 
   /**
     * Gets existing stats for the given schema
@@ -125,13 +125,13 @@ object GeoMesaStats {
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   // date bucket size in milliseconds for the date frequency - one day
-  val DateFrequencyPrecision = 1000 * 60 * 60 * 24
+  val DateFrequencyPrecision: Int = 1000 * 60 * 60 * 24
 
   // how many buckets to sort each attribute into
   // max space on disk = 8 bytes * size - we use optimized serialization so likely 1-3 bytes * size
   // buckets up to ~2M values will take 3 bytes or less
-  val MaxHistogramSize = 10000 // with ~1B records ~100k records per bin and ~29 kb on disk
-  val DefaultHistogramSize = 1000
+  val MaxHistogramSize: Int = 10000 // with ~1B records ~100k records per bin and ~29 kb on disk
+  val DefaultHistogramSize: Int = 1000
 
   val StatClasses = Seq(classOf[Geometry], classOf[String], classOf[Integer],
     classOf[jLong], classOf[jFloat], classOf[jDouble], classOf[Date])
@@ -191,8 +191,4 @@ trait HasGeoMesaStats {
 trait StatUpdater extends Closeable with Flushable {
   def add(sf: SimpleFeature): Unit
   def remove(sf: SimpleFeature): Unit
-}
-
-case class AttributeBounds[T](lower: T, upper: T, cardinality: Long) {
-  def bounds: (T, T) = (lower, upper)
 }

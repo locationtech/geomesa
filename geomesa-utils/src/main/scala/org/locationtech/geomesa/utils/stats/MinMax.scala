@@ -43,6 +43,7 @@ class MinMax[T] private [stats] (val attribute: Int,
   def max: T = if (isEmpty) { minValue } else { maxValue }
   def bounds: (T, T) = (min, max)
   def cardinality: Long = hpp.cardinality()
+  def tuple: (T, T, Long) = (min, max, cardinality)
 
   override def observe(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute).asInstanceOf[T]
