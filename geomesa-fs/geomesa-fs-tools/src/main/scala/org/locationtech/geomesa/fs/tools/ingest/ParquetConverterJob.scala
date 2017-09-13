@@ -8,40 +8,35 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import java.io.{File, IOException}
+import java.io.File
 import java.lang.Iterable
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileUtil, Path}
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.{BytesWritable, LongWritable, Text}
-import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
-import org.apache.hadoop.mapreduce.security.TokenCache
-import org.apache.hadoop.tools.{DistCp, DistCpOptions}
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
+import org.apache.parquet.hadoop.ParquetOutputFormat
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
-import org.apache.parquet.hadoop.util.ContextUtil
-import org.apache.parquet.hadoop.{ParquetOutputCommitter, ParquetOutputFormat}
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
-import org.locationtech.geomesa.fs.storage.common.StorageUtils
+import org.locationtech.geomesa.fs.storage.common.FileType
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
-import org.locationtech.geomesa.parquet.{SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
+import org.locationtech.geomesa.parquet.SimpleFeatureWriteSupport
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 class ParquetConverterJob(sft: SimpleFeatureType,
                           converterConfig: Config,
@@ -79,6 +74,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
 
     // Output format
     job.setOutputFormatClass(classOf[SchemeOutputFormat])
+    SchemeOutputFormat.setFileType(job.getConfiguration, FileType.Written)
     job.setOutputKeyClass(classOf[Void])
     job.setOutputValueClass(classOf[SimpleFeature])
 
@@ -96,7 +92,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
 
     // More Parquet config
     ParquetOutputFormat.setWriteSupportClass(job, classOf[SimpleFeatureWriteSupport])
-    ParquetConverterJob.setSimpleFeatureType(job.getConfiguration, sft)
+    ParquetJobUtils.setSimpleFeatureType(job.getConfiguration, sft)
 
     FileOutputFormat.setOutputPath(job, tempPath.getOrElse(dsPath))
 
@@ -136,7 +132,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     val res = (written(job), failed(job))
 
     val ret = job.isSuccessful &&
-        tempPath.forall(tp => distCopy(tp, dsPath, sft, job.getConfiguration, statusCallback)) && {
+        tempPath.forall(tp => ParquetJobUtils.distCopy(tp, dsPath, sft, job.getConfiguration, statusCallback)) && {
       Command.user.info("Attempting to update metadata")
       // We sleep here to allow a chance for S3 to become "consistent" with its storage listings
       Thread.sleep(5000)
@@ -152,103 +148,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     res
   }
 
-  def distCopy(srcRoot: Path, dest: Path, sft: SimpleFeatureType, conf: Configuration, statusCallback: StatusCallback): Boolean = {
-    val typeName = sft.getTypeName
-    val typePath = new Path(srcRoot, typeName)
-    val destTypePath = new Path(dest, typeName)
-
-    statusCallback.reset()
-
-    Command.user.info("Submitting distcp job - please wait...")
-    val opts = new DistCpOptions(List(typePath), destTypePath)
-    opts.setAppend(false)
-    opts.setOverwrite(true)
-    opts.setCopyStrategy("dynamic")
-    val job = new DistCp(new Configuration, opts).execute()
-
-    Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
-
-    // distCp has no reduce phase
-    while (!job.isComplete) {
-      if (job.getStatus.getState != JobStatus.State.PREP) {
-          statusCallback("DistCp (stage 3/3): ", job.mapProgress(), Seq.empty, done = false)
-      }
-      Thread.sleep(1000)
-    }
-    statusCallback("DistCp (stage 3/3): ", job.mapProgress(), Seq.empty, done = true)
-
-    val success = job.isSuccessful
-    if (success) {
-      Command.user.info(s"Successfully copied data to $dest")
-    } else {
-      Command.user.error(s"failed to copy data to $dest")
-    }
-    success
-  }
-
-  // TODO probably make a better method for this and extract it to a static utility class
-  // TODO parallelize if the filesystems are not the same
-  def copyData(srcRoot: Path, destRoot: Path, sft: SimpleFeatureType, conf: Configuration): Boolean = {
-    val typeName = sft.getTypeName
-    Command.user.info(s"Job finished...copying data from $srcRoot to $destRoot for type $typeName")
-
-    val srcFS = srcRoot.getFileSystem(conf)
-    val destFS = destRoot.getFileSystem(conf)
-
-    val typePath = new Path(srcRoot, typeName)
-    val foundFiles = srcFS.listFiles(typePath, true)
-
-    val storageFiles = mutable.ListBuffer.empty[Path]
-    while (foundFiles.hasNext) {
-      val f = foundFiles.next()
-      if (!f.isDirectory) {
-        storageFiles += f.getPath
-      }
-    }
-
-    storageFiles.forall { f =>
-      val child = f.toString.replace(srcRoot.toString, "")
-      val target = new Path(destRoot, if (child.startsWith("/")) child.drop(1) else child)
-      logger.info(s"Moving $f to $target")
-      if (!destFS.exists(target.getParent)) {
-        destFS.mkdirs(target.getParent)
-      }
-      FileUtil.copy(srcFS, f, destFS, target, true, true, conf)
-    }
-  }
-
   def reduced(job: Job): Long = job.getCounters.findCounter(GeoMesaOutputFormat.Counters.Group, "reduced").getValue
-}
-
-object ParquetConverterJob {
-
-  def listFiles(path: Path, conf: Configuration, suffix: String): Seq[Path] = {
-    val fs = path.getFileSystem(conf)
-    val listing = fs.listFiles(path, true)
-
-    val result = mutable.ListBuffer.empty[Path]
-    while(listing.hasNext) {
-      val next = listing.next()
-      if (next.isFile) {
-        val p = next.getPath
-        if (p.getName.endsWith(suffix)) {
-          result += p
-        }
-      }
-    }
-
-    result
-  }
-
-  def setSimpleFeatureType(conf: Configuration, sft: SimpleFeatureType): Unit = {
-    // Validate that there is a partition scheme
-    org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft)
-    SimpleFeatureReadSupport.setSft(sft, conf)
-  }
-
-  def getSimpleFeatureType(conf: Configuration): SimpleFeatureType = {
-    SimpleFeatureReadSupport.getSft(conf)
-  }
 }
 
 class IngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritable] with LazyLogging {
@@ -263,7 +163,7 @@ class IngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritab
 
   override def setup(context: Context): Unit = {
     super.setup(context)
-    val sft = ParquetConverterJob.getSimpleFeatureType(context.getConfiguration)
+    val sft = ParquetJobUtils.getSimpleFeatureType(context.getConfiguration)
     serializer = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
     partitionScheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft)
 
@@ -297,7 +197,7 @@ class DummyReducer extends Reducer[Text, BytesWritable, Void, SimpleFeature] {
 
   override def setup(context: Context): Unit = {
     super.setup(context)
-    val sft = ParquetConverterJob.getSimpleFeatureType(context.getConfiguration)
+    val sft = ParquetJobUtils.getSimpleFeatureType(context.getConfiguration)
     serializer = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
     reduced = context.getCounter(GeoMesaOutputFormat.Counters.Group, "reduced")
   }
@@ -309,86 +209,4 @@ class DummyReducer extends Reducer[Text, BytesWritable, Void, SimpleFeature] {
     }
   }
 
-}
-
-class SchemeOutputCommitter(extension: String,
-                            outputPath: Path,
-                            context: TaskAttemptContext)
-  extends FileOutputCommitter(outputPath, context) with LazyLogging {
-
-  @throws[IOException]
-  override def commitJob(jobContext: JobContext) {
-    super.commitJob(jobContext)
-    val conf = ContextUtil.getConfiguration(jobContext)
-    ParquetConverterJob.listFiles(outputPath, conf, extension).map(_.getParent).distinct.foreach { path =>
-      ParquetOutputCommitter.writeMetaDataFile(conf, path)
-      logger.info(s"Wrote metadata file for path $path")
-    }
-  }
-}
-
-class SchemeOutputFormat extends ParquetOutputFormat[SimpleFeature] {
-
-  val extension = ".parquet" // TODO this has to match the FS from the geomesa-fs abstraction need to do that
-  private var commiter: SchemeOutputCommitter = _
-
-  override def getOutputCommitter(context: TaskAttemptContext): OutputCommitter = {
-    if (commiter == null) {
-      val output = FileOutputFormat.getOutputPath(context)
-      commiter = new SchemeOutputCommitter(extension, output, context)
-    }
-    commiter
-  }
-
-  override def getRecordWriter(context: TaskAttemptContext): RecordWriter[Void, SimpleFeature] = {
-
-    val sft = ParquetConverterJob.getSimpleFeatureType(context.getConfiguration)
-    val name = sft.getTypeName
-    val conf = context.getConfiguration
-    new RecordWriter[Void, SimpleFeature] with LazyLogging {
-
-      private val partitionScheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft)
-
-      var curPartition: String = _
-      var writer: RecordWriter[Void, SimpleFeature] = _
-      var sentToParquet: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, "sentToParquet")
-
-      override def write(key: Void, value: SimpleFeature): Unit = {
-        val keyPartition = partitionScheme.getPartitionName(value)
-
-        def initWriter() = {
-          val committer = getOutputCommitter(context).asInstanceOf[FileOutputCommitter]
-          val root = committer.getWorkPath
-          val fs = root.getFileSystem(conf)
-          // TODO combine this with the same code in ParquetFileSystemStorage
-          val file = StorageUtils.nextFile(fs, root, name, keyPartition, partitionScheme.isLeafStorage, "parquet")
-          logger.info(s"Creating Date scheme record writer at path ${file.toString}")
-          curPartition = keyPartition
-          writer = getRecordWriter(context, file)
-        }
-
-        if (writer == null) {
-          initWriter()
-        } else if (keyPartition != curPartition) {
-          writer.close(context)
-          logger.info(s"Closing writer for $curPartition")
-          initWriter()
-        }
-        writer.write(key, value)
-        sentToParquet.increment(1)
-      }
-
-      override def close(context: TaskAttemptContext): Unit = {
-        if (writer != null) writer.close(context)
-      }
-    }
-  }
-
-  override def checkOutputSpecs(job: JobContext): Unit = {
-    // Ensure that the output directory is set and not already there
-    val outDir = FileOutputFormat.getOutputPath(job)
-    if (outDir == null) throw new InvalidJobConfException("Output directory not set.")
-    // get delegation token for outDir's file system
-    TokenCache.obtainTokensForNamenodes(job.getCredentials, Array[Path](outDir), job.getConfiguration)
-  }
 }

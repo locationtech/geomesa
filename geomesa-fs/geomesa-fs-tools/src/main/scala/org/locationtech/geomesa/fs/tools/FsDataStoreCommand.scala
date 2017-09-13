@@ -10,6 +10,8 @@ package org.locationtech.geomesa.fs.tools
 
 import java.io.File
 import java.net.{MalformedURLException, URL}
+import java.util
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
@@ -24,7 +26,7 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   override def params: FsParams
 
   override def connection: Map[String, String] = {
-    URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory())
+    FsDataStoreCommand.configureURLFactory()
     val url = if (params.path.matches("""\w+://.*""")) {
       try {
         new URL(params.path)
@@ -43,6 +45,17 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   }
 }
 
+object FsDataStoreCommand {
+  val facSet = new AtomicBoolean(false)
+  def configureURLFactory(): Unit =
+    synchronized {
+      if (!facSet.get()) {
+        URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory())
+        facSet.set(true)
+      }
+    }
+}
+
 trait PathParam {
   @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
   var path: String = _
@@ -52,6 +65,12 @@ trait PathParam {
 trait EncodingParam {
   @Parameter(names = Array("--encoding", "-e"), description = "Encoding (parquet, csv, etc)", required = true)
   var encoding: String = _
+}
+
+
+trait PartitionParam {
+  @Parameter(names = Array("--partitions"), description = "Partitions (if empty all partitions will be used)", required = false, variableArity = true)
+  var partitions: java.util.List[String] = new util.ArrayList[String]()
 }
 
 trait FsParams extends PathParam with EncodingParam
