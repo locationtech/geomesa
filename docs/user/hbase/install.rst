@@ -276,7 +276,7 @@ There are two ways to get the coprocessor code on the classpath.
 
     .. tab:: DS-Parameter
 
-        If you are using GeoMesa-HBase programmatically you can use the datastore parameter ``coprocessors.url`` to set an HDFS or
+        If you are using GeoMesa-HBase programmatically you can use the datastore parameter ``coprocessor.url`` to set an HDFS or
         S3 path to the ``geomesa-hbase-distributed-runtime`` JAR.
 
 For more information on managing coprocessors see
