@@ -9,35 +9,34 @@
 package org.locationtech.geomesa.index.stats
 
 import org.geotools.data.{DataStore, Query, Transaction}
-import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
-import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-/**
-  * Allows for running of stats in a non-distributed fashion, and doesn't store any stats results
-  *
-  * @param ds datastore
-  */
-class UnoptimizedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]) extends MetadataBackedStats {
+class DistributedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]) extends MetadataBackedStats {
 
   override protected val generateStats: Boolean = false
 
   override private [geomesa] val metadata: GeoMesaMetadata[Stat] = new NoOpMetadata[Stat]
 
   override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
-    val stat = Stat(sft, stats)
     val query = new Query(sft.getTypeName, filter)
+    query.getHints.put(QueryHints.STATS_STRING, stats)
+    query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
+
     try {
-      val reader = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       val result = try {
-        reader.foreach(stat.observe)
+        // stats should always return exactly one result, even if there are no features in the table
+        KryoLazyStatsUtils.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
       } finally {
         reader.close()
       }
-      stat match {
+      result match {
         case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
         case s => Seq(s).asInstanceOf[Seq[T]]
       }
