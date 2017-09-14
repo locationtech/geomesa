@@ -667,27 +667,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalmrsid</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>imageio-ext-gdalecw</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdaldted</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalkakadujp2</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalmrsidjp2</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
@@ -712,6 +692,31 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-gdalframework</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-gdalidrisi</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-gdalkakadujp2</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-gdalmrsid</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-gdalmrsidjp2</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>imageio-ext-gdalnitf</artifactId>
                     </exclusion>
                     <exclusion>
@@ -722,12 +727,37 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalidrisi</artifactId>
+                        <artifactId>imageio-ext-gdaldted</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-gdalvrt</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-gdal-bindings</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-geocore</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>imageio-ext-imagereadmt</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-streams</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>imageio-ext-utilities</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

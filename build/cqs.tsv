@@ -77,12 +77,6 @@ io.netty:netty-codec	4.0.41.Final	compile
 io.netty:netty-common	4.0.41.Final	compile
 io.netty:netty-handler	4.0.41.Final	compile
 io.netty:netty-transport	4.0.41.Final	compile
-it.geosolutions.imageio-ext:imageio-ext-gdal-bindings	1.9.2	compile
-it.geosolutions.imageio-ext:imageio-ext-gdalframework	1.1.15	compile
-it.geosolutions.imageio-ext:imageio-ext-gdalvrt	1.1.17	compile
-it.geosolutions.imageio-ext:imageio-ext-geocore	1.1.15	compile
-it.geosolutions.imageio-ext:imageio-ext-streams	1.1.15	compile
-it.geosolutions.imageio-ext:imageio-ext-utilities	1.1.15	compile
 it.geosolutions.jaiext.affine:jt-affine	1.0.9	compile
 it.geosolutions.jaiext.algebra:jt-algebra	1.0.9	compile
 it.geosolutions.jaiext.bandcombine:jt-bandcombine	1.0.9	compile
