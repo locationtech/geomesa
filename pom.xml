@@ -61,12 +61,12 @@
         <scala.binary.version>2.11</scala.binary.version>
         <scala.version>2.11.7</scala.version>
 
-        <scala.xml.version>1.0.5</scala.xml.version>
-        <scala.parsers.version>1.0.5</scala.parsers.version>
+        <scala.xml.version>1.0.6</scala.xml.version>
+        <scala.parsers.version>1.0.6</scala.parsers.version>
 
         <geoserver.version>2.12.2</geoserver.version>
         <gt.version>18-SNAPSHOT</gt.version>
-        <jaiext.version>1.0.9</jaiext.version>
+        <jaiext.version>1.0.15</jaiext.version>
         <imageio-ext.version>1.1.15</imageio-ext.version>
         <jts.version>1.14.0</jts.version>
         <avro.version>1.7.5</avro.version>
@@ -80,7 +80,7 @@
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
         <accumulo.version>1.8.1</accumulo.version>
-        <zookeeper.version>3.4.5</zookeeper.version>
+        <zookeeper.version>3.4.10</zookeeper.version>
         <thrift.version>0.9.3</thrift.version>
         <hadoop.version>2.6.4</hadoop.version>
         <spark.version>2.2.0</spark.version>
@@ -99,7 +99,7 @@
         <accumulo.version.recommended>1.8.1</accumulo.version.recommended>
         <hbase.version.recommended>1.3.1</hbase.version.recommended>
         <hadoop.version.recommended>2.7.4</hadoop.version.recommended>
-        <zookeeper.version.recommended>3.4.9</zookeeper.version.recommended>
+        <zookeeper.version.recommended>3.4.10</zookeeper.version.recommended>
 
         <!-- Minimum installation versions -->
         <!-- These are the oldest versions supported -->
@@ -2266,6 +2266,10 @@
                     </exclusion>
                     <exclusion>
                         <groupId>org.jboss.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
                         <artifactId>netty</artifactId>
                     </exclusion>
                 </exclusions>
