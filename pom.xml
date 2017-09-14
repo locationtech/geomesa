@@ -75,6 +75,7 @@
         <gdal.version>2.0.0</gdal.version>
         <json4s.version>3.2.10</json4s.version>
         <scalatra.version>2.3.0</scalatra.version>
+        <kryo.version>3.0.3</kryo.version>
 
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
@@ -1401,7 +1402,7 @@
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>kryo-shaded</artifactId>
-                <version>3.0.3</version>
+                <version>${kryo.version}</version>
             </dependency>
             <dependency>
                 <groupId>xerces</groupId>
