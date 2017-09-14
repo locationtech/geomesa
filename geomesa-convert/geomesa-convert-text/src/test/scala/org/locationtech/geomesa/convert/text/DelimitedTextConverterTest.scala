@@ -665,5 +665,42 @@ class DelimitedTextConverterTest extends Specification {
         SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
       }
     }
+
+    "handle escaped newlines" >> {
+      val data =
+        """
+          |1;'he\nllo';45.0;45.0
+          |2;world;90.0;90.0
+        """.stripMargin
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          |   options = {
+          |      delimiter = ";"
+          |      escape = "\\"
+          |      quote = "'"
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not(beNull)
+      val res = converter.processInput(data.split("\n").toIterator).toList
+      converter.close()
+      res must haveLength(2)
+      res(0).getAttribute("phrase") mustEqual "he\nllo"
+      res(1).getAttribute("phrase") mustEqual "world"
+    }
   }
 }
