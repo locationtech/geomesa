@@ -75,6 +75,10 @@
             <artifactId>gt-epsg-hsql</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-xml_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
             <!-- 'works with' due to license issues -->
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
@@ -109,22 +113,6 @@
             <artifactId>specs2_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>scala-2.11</id>
-            <activation>
-                <property><name>!scala-2.10</name></property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <!-- needed in the lib dir -->
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-xml_${scala.binary.version}</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
     <build>
         <plugins>

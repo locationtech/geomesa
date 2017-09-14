@@ -35,7 +35,6 @@
         <module>geomesa-jupyter</module>
         <module>geomesa-kafka</module>
         <module>geomesa-lambda</module>
-        <module>geomesa-logger</module>
         <module>geomesa-memory</module>
         <module>geomesa-metrics</module>
         <module>geomesa-native-api</module>
@@ -131,97 +130,6 @@
     </properties>
 
     <profiles>
-        <profile>
-            <id>scala-2.11</id>
-            <activation>
-                <property><name>!scala-2.10</name></property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>enforce-versions</id>
-                                <goals>
-                                    <goal>enforce</goal>
-                                </goals>
-                                <configuration>
-                                    <rules>
-                                        <bannedDependencies>
-                                            <excludes combine.children="append">
-                                                <exclude>*:*_2.10</exclude>
-                                            </excludes>
-                                        </bannedDependencies>
-                                        <requireProperty>
-                                            <message>property scala.version must be set</message>
-                                            <property>scala.version</property>
-                                            <regexMessage>property scala.version doesn't match expected compiler version (2.11.*)</regexMessage>
-                                            <regex>2.11.*</regex>
-                                        </requireProperty>
-                                        <requireProperty>
-                                            <message>property scala.binary.version must be set</message>
-                                            <property>scala.binary.version</property>
-                                            <regexMessage>property scala.binary.version doesn't match compiler version</regexMessage>
-                                            <regex>2.11</regex>
-                                        </requireProperty>
-                                    </rules>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>scala-2.10</id>
-            <activation>
-                <property><name>scala-2.10</name></property>
-            </activation>
-            <properties>
-                <scala.version>2.10.6</scala.version>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>enforce-versions</id>
-                                <goals>
-                                    <goal>enforce</goal>
-                                </goals>
-                                <configuration>
-                                    <rules>
-                                        <bannedDependencies>
-                                            <excludes combine.children="append">
-                                                <exclude>*:*_2.11</exclude>
-                                            </excludes>
-                                        </bannedDependencies>
-                                        <requireProperty>
-                                            <message>property scala.version must be set</message>
-                                            <property>scala.version</property>
-                                            <regexMessage>property scala.version doesn't match expected compiler version (2.10.*)</regexMessage>
-                                            <regex>2.10.*</regex>
-                                        </requireProperty>
-                                        <requireProperty>
-                                            <message>property scala.binary.version must be set</message>
-                                            <property>scala.binary.version</property>
-                                            <regexMessage>property scala.binary.version doesn't match compiler version</regexMessage>
-                                            <regex>2.10</regex>
-                                        </requireProperty>
-                                    </rules>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
         <profile>
             <id>zinc</id>
             <build>
@@ -424,17 +332,10 @@
                 <artifactId>scala-xml_${scala.binary.version}</artifactId>
                 <version>${scala.xml.version}</version>
             </dependency>
-            <!-- scala 2.11 logging -->
             <dependency>
                 <groupId>com.typesafe.scala-logging</groupId>
                 <artifactId>scala-logging_${scala.binary.version}</artifactId>
                 <version>${scalalogging.version}</version>
-            </dependency>
-            <!-- scala 2.10 logging -->
-            <dependency>
-                <groupId>com.typesafe.scala-logging</groupId>
-                <artifactId>scala-logging-slf4j_${scala.binary.version}</artifactId>
-                <version>2.1.2</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
@@ -1516,11 +1417,6 @@
                 <groupId>org.calrissian.mango</groupId>
                 <artifactId>mango-core</artifactId>
                 <version>1.2.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-logger_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -2646,19 +2542,6 @@
                         <target>1.8</target>
                         <scalaVersion>${scala.version}</scalaVersion>
                     </configuration>
-                    <executions>
-                        <execution>
-                            <id>add-source</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>add-source</goal>
-                            </goals>
-                            <configuration>
-                                <sourceDir>src/main/scala_${scala.binary.version}</sourceDir>
-                                <testSourceDir>src/test/scala_${scala.binary.version}</testSourceDir>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2903,6 +2786,39 @@
                             </checkstyleRules>
                             <excludes>**/*</excludes>
                             <resourceIncludes>META-INF/services/*</resourceIncludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes combine.children="append">
+                                        <exclude>*:*_2.10</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                                <requireProperty>
+                                    <message>property scala.version must be set</message>
+                                    <property>scala.version</property>
+                                    <regexMessage>property scala.version doesn't match expected compiler version (2.11.*)</regexMessage>
+                                    <regex>2.11.*</regex>
+                                </requireProperty>
+                                <requireProperty>
+                                    <message>property scala.binary.version must be set</message>
+                                    <property>scala.binary.version</property>
+                                    <regexMessage>property scala.binary.version doesn't match compiler version</regexMessage>
+                                    <regex>2.11</regex>
+                                </requireProperty>
+                            </rules>
                         </configuration>
                     </execution>
                 </executions>
