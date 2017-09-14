@@ -69,7 +69,7 @@
         <gt.version>18-SNAPSHOT</gt.version>
         <jaiext.version>1.0.9</jaiext.version>
         <imageio-ext.version>1.1.15</imageio-ext.version>
-        <jts.version>1.13</jts.version>
+        <jts.version>1.14.0</jts.version>
         <avro.version>1.7.5</avro.version>
         <parquet.version>1.9.0</parquet.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
@@ -448,7 +448,12 @@
             </dependency>
             <dependency>
                 <groupId>com.vividsolutions</groupId>
-                <artifactId>jts</artifactId>
+                <artifactId>jts-core</artifactId>
+                <version>${jts.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.vividsolutions</groupId>
+                <artifactId>jts-io</artifactId>
                 <version>${jts.version}</version>
             </dependency>
             <dependency>
