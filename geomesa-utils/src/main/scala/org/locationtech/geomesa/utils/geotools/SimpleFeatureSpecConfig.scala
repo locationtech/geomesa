@@ -108,11 +108,12 @@ object SimpleFeatureSpecConfig {
   def toConfigString(sft: SimpleFeatureType,
                      includeUserData: Boolean,
                      concise: Boolean,
-                     includePrefix: Boolean): String = {
+                     includePrefix: Boolean,
+                     json: Boolean): String = {
     val opts = if (concise) {
-      ConfigRenderOptions.concise
+      ConfigRenderOptions.concise.setJson(json)
     } else {
-      ConfigRenderOptions.defaults().setFormatted(true).setComments(false).setOriginComments(false).setJson(false)
+      ConfigRenderOptions.defaults().setFormatted(true).setComments(false).setOriginComments(false).setJson(json)
     }
     toConfig(sft, includeUserData, includePrefix).root().render(opts)
   }
@@ -139,8 +140,10 @@ object SimpleFeatureSpecConfig {
     }
   }
 
+  def normalizeKey(k: String): String = ConfigUtil.splitPath(k).mkString(".")
+
   private def getOptions(conf: Config): Map[String, String] = {
-    val asMap = conf.entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
+    val asMap = conf.entrySet().map(e => normalizeKey(e.getKey) -> e.getValue.unwrapped()).toMap
     asMap.filterKeys(!NonOptions.contains(_)).map {
       // Special case to handle adding keywords
       case (KEYWORDS_KEY, v: jList[String]) => KEYWORDS_KEY -> v.mkString(KEYWORDS_DELIMITER)

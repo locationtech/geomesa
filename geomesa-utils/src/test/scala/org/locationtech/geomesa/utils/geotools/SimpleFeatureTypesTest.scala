@@ -494,7 +494,7 @@ class SimpleFeatureTypesTest extends Specification {
           |    { name = "geom",     type = "Point" , srid = 4326, default = true }
           |  ]
           |  user-data = {
-          |    geomesa.one = "true"
+          |    "geomesa.one" = "true"
           |    geomesa.two = "two"
           |  }
           |}
