@@ -20,8 +20,6 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ParquetJobUtilsTest extends Specification {
 
-
-
   "ParquetJobUtils" should {
     "properly serialize sft with partition scheme user data" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
@@ -35,6 +33,5 @@ class ParquetJobUtilsTest extends Specification {
       extractedScheme.name mustEqual partitionScheme.name()
     }
   }
-
 
 }

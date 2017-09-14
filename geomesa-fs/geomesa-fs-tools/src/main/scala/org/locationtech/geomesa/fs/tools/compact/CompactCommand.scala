@@ -30,6 +30,9 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
   override val params = new CompactParams
 
   override def execute(): Unit = {
+    if (!Seq(RunModes.Distributed, RunModes.Local).contains(params.runMode)) {
+      throw new ParameterException(s"Invalid run mode '${params.runMode}'")
+    }
     withDataStore(compact)
   }
 
@@ -59,24 +62,22 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
     Command.user.info(s"Compacting ${toCompact.size} partitions")
 
     params.runMode match {
-      case "local" =>
+      case RunModes.Local =>
         toCompact.foreach { p =>
           logger.info(s"Compacting ${params.featureName}:$p")
           ds.storage.compact(params.featureName, p)
           logger.info(s"Completed compaction of ${params.featureName}:$p")
         }
 
-      case "distributed" =>
-        withDataStore { ds =>
-          val tempDir = Option(params.tempDir).map(t => new Path(t))
-          val job = new ParquetCompactionJob(ds.getSchema(params.featureName), ds.root, tempDir)
-          val statusCallback = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
+      case RunModes.Distributed =>
+        val tempDir = Option(params.tempDir).map(t => new Path(t))
+        val job = new ParquetCompactionJob(ds.getSchema(params.featureName), ds.root, tempDir)
+        val statusCallback = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
 
-          val start = System.currentTimeMillis()
-          val (success, failed) = job.run(connection, params.featureName, toCompact, libjarsFile, libjarsPaths, statusCallback)
-          Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
-          Command.user.info(AbstractIngest.getStatInfo(success, failed))
-        }
+        val start = System.currentTimeMillis()
+        val (success, failed) = job.run(connection, params.featureName, toCompact, libjarsFile, libjarsPaths, statusCallback)
+        Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
+        Command.user.info(AbstractIngest.getStatInfo(success, failed))
     }
 
     Command.user.info(s"Compaction completed")
@@ -87,4 +88,9 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
 class CompactParams extends FsParams with RequiredTypeNameParam with TempDirParam with PartitionParam {
   @Parameter(names = Array("--mode"), description = "Run mode for compaction ('local' or 'distributed' via mapreduce)", required = false)
   var runMode: String = "distributed"
+}
+
+object RunModes {
+  val Distributed = "distributed"
+  val Local = "local"
 }

@@ -23,14 +23,20 @@ import scala.collection.mutable
 
 object ParquetJobUtils extends LazyLogging {
 
-  def distCopy(srcRoot: Path, dest: Path, sft: SimpleFeatureType, conf: Configuration, statusCallback: StatusCallback): Boolean = {
+  def distCopy(srcRoot: Path,
+               dest: Path,
+               sft: SimpleFeatureType,
+               conf: Configuration,
+               statusCallback: StatusCallback,
+               stageId: Int,
+               numStages: Int): Boolean = {
     val typeName = sft.getTypeName
     val typePath = new Path(srcRoot, typeName)
     val destTypePath = new Path(dest, typeName)
 
     statusCallback.reset()
 
-    Command.user.info("Submitting distcp job - please wait...")
+    Command.user.info("Submitting DistCp job - please wait...")
     val opts = new DistCpOptions(List(typePath), destTypePath)
     opts.setAppend(false)
     opts.setOverwrite(true)
@@ -42,17 +48,17 @@ object ParquetJobUtils extends LazyLogging {
     // distCp has no reduce phase
     while (!job.isComplete) {
       if (job.getStatus.getState != JobStatus.State.PREP) {
-        statusCallback("DistCp (stage 3/3): ", job.mapProgress(), Seq.empty, done = false)
+        statusCallback(s"DistCp (stage $stageId/$numStages): ", job.mapProgress(), Seq.empty, done = false)
       }
       Thread.sleep(1000)
     }
-    statusCallback("DistCp (stage 3/3): ", job.mapProgress(), Seq.empty, done = true)
+    statusCallback(s"DistCp (stage $stageId/$numStages): ", job.mapProgress(), Seq.empty, done = true)
 
     val success = job.isSuccessful
     if (success) {
       Command.user.info(s"Successfully copied data to $dest")
     } else {
-      Command.user.error(s"failed to copy data to $dest")
+      Command.user.error(s"Failed to copy data to $dest")
     }
     success
   }
@@ -86,7 +92,6 @@ object ParquetJobUtils extends LazyLogging {
       FileUtil.copy(srcFS, f, destFS, target, true, true, conf)
     }
   }
-
 
   //
   // Common configuration options

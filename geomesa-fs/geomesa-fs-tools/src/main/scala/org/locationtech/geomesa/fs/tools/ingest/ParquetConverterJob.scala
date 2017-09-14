@@ -106,7 +106,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
     def reduceCounters = Seq(("ingested", reduced(job)))
 
-    val stageCount = if (tempPath.isDefined) { "3" } else { "2" }
+    val stageCount = if (tempPath.isDefined) { 3 } else { 2 }
 
     var mapping = true
     while (!job.isComplete) {
@@ -132,7 +132,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
     val res = (written(job), failed(job))
 
     val ret = job.isSuccessful &&
-        tempPath.forall(tp => ParquetJobUtils.distCopy(tp, dsPath, sft, job.getConfiguration, statusCallback)) && {
+        tempPath.forall(tp => ParquetJobUtils.distCopy(tp, dsPath, sft, job.getConfiguration, statusCallback, 3, stageCount)) && {
       Command.user.info("Attempting to update metadata")
       // We sleep here to allow a chance for S3 to become "consistent" with its storage listings
       Thread.sleep(5000)

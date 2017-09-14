@@ -46,12 +46,12 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
 }
 
 object FsDataStoreCommand {
-  val facSet = new AtomicBoolean(false)
+  private var urlStreamHandlerSet = false
   def configureURLFactory(): Unit =
     synchronized {
-      if (!facSet.get()) {
+      if (!urlStreamHandlerSet) {
         URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory())
-        facSet.set(true)
+        urlStreamHandlerSet = true
       }
     }
 }

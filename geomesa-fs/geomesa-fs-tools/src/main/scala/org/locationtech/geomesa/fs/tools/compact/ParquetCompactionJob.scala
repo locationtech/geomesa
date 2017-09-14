@@ -106,9 +106,10 @@ class ParquetCompactionJob(sft: SimpleFeatureType,
 
     def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
 
-    val stageCount = if (tempPath.isDefined) { "2" } else { "1" }
+    val stageCount = if (tempPath.isDefined) { 2 } else { 1 }
 
     while (!job.isComplete) {
+      Thread.sleep(1000)
       if (job.getStatus.getState != JobStatus.State.PREP) {
         val mapProgress = job.mapProgress()
         if (mapProgress < 1f) {
@@ -118,13 +119,12 @@ class ParquetCompactionJob(sft: SimpleFeatureType,
           statusCallback.reset()
         }
       }
-      Thread.sleep(1000)
     }
 
-    val res = (written(job), failed(job))
+    val counterResult = (written(job), failed(job))
 
-    val ret = job.isSuccessful &&
-      tempPath.forall(tp => ParquetJobUtils.distCopy(tp, dsPath, sft, job.getConfiguration, statusCallback)) && {
+    val success = job.isSuccessful &&
+      tempPath.forall(tp => ParquetJobUtils.distCopy(tp, dsPath, sft, job.getConfiguration, statusCallback, 2, stageCount)) && {
 
         Command.user.info("Removing old files")
         val fs = ds.root.getFileSystem(job.getConfiguration)
@@ -132,18 +132,18 @@ class ParquetCompactionJob(sft: SimpleFeatureType,
         Command.user.info(s"Removed ${existingDataFiles.size} files")
 
         Command.user.info("Updating metadata")
-        // We sleep here to allow a chance for S3 to become "consistent" with its storage listings
+        // TODO GEOMESA-2018 We sleep here to allow a chance for S3 to become "consistent" with its storage listings
         Thread.sleep(5000)
         ds.storage.updateMetadata(typeName)
         Command.user.info("Metadata Updated")
         true
       }
 
-    if (!ret) {
+    if (!success) {
       Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
     }
 
-    res
+    counterResult
   }
 
   override def inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]] = null
@@ -241,8 +241,8 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
         val path = PartitionInputFormat.getFsPath(context.getConfiguration)
         val encoding = PartitionInputFormat.getFsEncoding(context.getConfiguration)
         val dsParams = Map(
-          "fs.path" -> path,
-          "fs.encoding" -> encoding
+          FileSystemDataStoreParams.PathParam.getName -> path,
+          FileSystemDataStoreParams.EncodingParam.getName -> encoding
         )
         val ds: FileSystemDataStore = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
 
@@ -257,8 +257,8 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
 }
 
 object PartitionInputFormat {
-  val FsPathParam     = "geomesa.fs.path"
-  val FsEncodingParam = "geomesa.fs.encoding"
+  val FsPathParam     = s"geomesa.${FileSystemDataStoreParams.PathParam.getName}"
+  val FsEncodingParam = s"geomesa.${FileSystemDataStoreParams.EncodingParam.getName}"
   val PartitionsParam = "geomesa.fs.compaction.partitions"
 
   def setFsPath(conf: Configuration, path: String): Unit = conf.set(FsPathParam, path)
@@ -280,18 +280,18 @@ class CompactionMapper extends Mapper[Void, SimpleFeature, Void, SimpleFeature] 
 
   type Context = Mapper[Void, SimpleFeature, Void, SimpleFeature]#Context
 
-  var written: Counter = _
-  var failed: Counter = _
+  private var written: Counter = _
+  private var mapped: Counter = _
 
   override def setup(context: Context): Unit = {
     super.setup(context)
     written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
-    failed = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
+    mapped = context.getCounter("org.locationtech.geomesa.fs.compaction", "mapped")
   }
 
   override def map(key: Void, sf: SimpleFeature, context: Context): Unit = {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-    context.getCounter("geomesa", "map").increment(1)
+    mapped.increment(1)
     context.write(null, sf)
     written.increment(1)
   }
