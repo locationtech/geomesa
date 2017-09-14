@@ -68,7 +68,12 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
     val count = if (useExactCount) { exactCount } else {
       ds.stats.getCount(getSchema, query.getFilter, exact = false).getOrElse(exactCount)
     }
-    if (count > Int.MaxValue) Int.MaxValue else count.toInt
+    if (count > Int.MaxValue) {
+      logger.warn(s"Truncating count $count to Int.MaxValue (${Int.MaxValue})")
+      Int.MaxValue
+    } else {
+      count.toInt
+    }
   }
 
   override def getBounds: ReferencedEnvelope = getBounds(new Query(sft.getTypeName, Filter.INCLUDE))
@@ -76,7 +81,7 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
   override def getBounds(query: Query): ReferencedEnvelope =
     ds.stats.getBounds(getSchema, query.getFilter)
 
-  override def getQueryCapabilities = GeoMesaQueryCapabilities
+  override def getQueryCapabilities: QueryCapabilities = GeoMesaQueryCapabilities
 
   override def getFeatures: SimpleFeatureCollection = getFeatures(Filter.INCLUDE)
 
