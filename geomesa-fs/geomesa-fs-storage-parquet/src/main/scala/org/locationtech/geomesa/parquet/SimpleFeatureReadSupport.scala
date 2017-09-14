@@ -43,7 +43,7 @@ object SimpleFeatureReadSupport {
 
   def setSft(sft: SimpleFeatureType, conf: Configuration): Unit = {
     // This must be serialized as conf due to the spec's inability to serialize user data completely
-    conf.set(SftConfKey, SimpleFeatureTypes.toConfigString(sft, includeUserData = true, concise = true, includePrefix = false))
+    conf.set(SftConfKey, SimpleFeatureTypes.toConfigString(sft, includeUserData = true, concise = true, includePrefix = false, json = true))
   }
 
   def getSft(conf: Configuration): SimpleFeatureType = {
