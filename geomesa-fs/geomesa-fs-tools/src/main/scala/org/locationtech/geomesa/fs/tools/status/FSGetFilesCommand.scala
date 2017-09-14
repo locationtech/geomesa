@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.tools.status
 
-import com.beust.jcommander.Parameters
+import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
@@ -20,10 +20,14 @@ class FSGetFilesCommand extends FsDataStoreCommand {
   override val name: String = "get-files"
 
   override def execute(): Unit = withDataStore { ds =>
+    val existingPartitions = ds.storage.getMetadata(params.featureName).getPartitions
     val toList = if (params.partitions.nonEmpty) {
+      params.partitions.filterNot(existingPartitions.contains).headOption.foreach { p =>
+        throw new ParameterException(s"Partition $p cannot be found in metadata")
+      }
       params.partitions
     } else {
-      ds.storage.getMetadata(params.featureName).getPartitions
+      existingPartitions
     }
 
     Command.user.info(s"Listing files for ${toList.size()} partitions")
