@@ -113,4 +113,7 @@ class ConverterStorage(root: Path,
   override def updateMetadata(typeName: String): Unit =
     throw new UnsupportedOperationException("Cannot append to converter datastore")
 
+  override def compact(typeName: String, partition: String): Unit =
+    throw new UnsupportedOperationException("Converter datastore does not support compactions")
+
 }

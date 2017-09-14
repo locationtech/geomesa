@@ -177,6 +177,9 @@ else
       "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
       "${base_url}com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar"
       "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
+      "${base_url}org/apache/httpcomponents/httpclient/4.3.4/httpclient-4.3.4.jar"
+      "${base_url}org/apache/httpcomponents/httpcore/4.3.3/httpcore-4.3.3.jar"
+      "${base_url}commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar"
     )
 
     # Download dependencies
