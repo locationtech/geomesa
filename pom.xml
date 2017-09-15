@@ -2367,6 +2367,13 @@
                 <version>${cassandra.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <!-- needs to be provided due to license issues -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.6.1</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!-- Netty 4.x used by arrow, hadoop, hbase, and c* -->
             <dependency>
