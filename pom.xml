@@ -354,11 +354,6 @@
                 <version>${jts.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.vividsolutions</groupId>
-                <artifactId>jts-io</artifactId>
-                <version>${jts.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.locationtech.spatial4j</groupId>
                 <artifactId>spatial4j</artifactId>
                 <version>0.6</version>
@@ -536,6 +531,10 @@
                         <!-- excluded due to license issues -->
                         <groupId>org.jaitools</groupId>
                         <artifactId>jt-utils</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.vividsolutions</groupId>
+                        <artifactId>jts-example</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -733,6 +732,10 @@
                         <groupId>javax.media</groupId>
                         <artifactId>jai_imageio</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.vividsolutions</groupId>
+                        <artifactId>jts-example</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -755,6 +758,10 @@
                         <groupId>javax.media</groupId>
                         <artifactId>jai_codec</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.vividsolutions</groupId>
+                        <artifactId>jts-example</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -775,6 +782,10 @@
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
                         <artifactId>jai_imageio</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.vividsolutions</groupId>
+                        <artifactId>jts-example</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

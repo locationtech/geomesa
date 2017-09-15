@@ -47,8 +47,6 @@ com.thoughtworks.paranamer:paranamer	2.6	compile
 com.typesafe:config	1.2.1	compile
 com.typesafe.scala-logging:scala-logging_2.11	3.1.0	compile
 com.vividsolutions:jts-core	1.14.0	compile
-com.vividsolutions:jts-example	1.14.0	compile
-com.vividsolutions:jts-io	1.14.0	compile
 com.vlkan:flatbuffers	1.2.0-3f79e055	compile
 com.yammer.metrics:metrics-core	2.2.0	compile
 de.topobyte:adt-geo	0.0.2	compile
