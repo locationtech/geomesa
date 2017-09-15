@@ -24,7 +24,7 @@ package object coprocessor {
   val FILTER_OPT = "filter"
   val SCAN_OPT   = "scan"
 
-  lazy val coprocessorList: Seq[Class[_ <: Coprocessor]] = Seq(
+  lazy val AllCoprocessors: Seq[Class[_ <: Coprocessor]] = Seq(
     classOf[GeoMesaCoprocessor]
   )
 
