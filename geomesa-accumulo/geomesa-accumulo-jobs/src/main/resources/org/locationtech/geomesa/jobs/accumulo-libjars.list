@@ -1,3 +1,4 @@
+accumulo-core
 accumulo-fate
 accumulo-start
 accumulo-trace
@@ -17,6 +18,7 @@ kryo
 libthrift
 mango
 minlog
+parboiled
 scala
 spatial4j
 sfcurve
