@@ -14,6 +14,7 @@ import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.{ArrowDataStoreCommand, UrlParam}
 import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
+import org.locationtech.geomesa.utils.io.PathUtils
 
 class ArrowIngestCommand extends IngestCommand[ArrowDataStore] with ArrowDataStoreCommand {
 
@@ -25,7 +26,7 @@ class ArrowIngestCommand extends IngestCommand[ArrowDataStore] with ArrowDataSto
 
   override def execute(): Unit = {
     import scala.collection.JavaConversions._
-    if (params.files.exists(IngestCommand.isDistributedUrl)) {
+    if (params.files.exists(PathUtils.isRemote)) {
       throw new ParameterException(s"Only local ingestion supported: ${params.files}")
     }
     super.execute()

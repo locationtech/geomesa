@@ -28,9 +28,9 @@ import org.locationtech.geomesa.tools.export._
 import org.locationtech.geomesa.tools.export.formats._
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
-import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

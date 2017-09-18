@@ -22,7 +22,7 @@ import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
-import org.locationtech.geomesa.utils.classpath.PathUtils
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.IndexedSeq
