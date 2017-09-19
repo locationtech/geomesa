@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.stats
 
-import org.locationtech.geomesa.utils.stats.Stat
+import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -21,7 +21,7 @@ object NoopStats extends GeoMesaStats {
   override def getAttributeBounds[T](sft: SimpleFeatureType,
                                      attribute: String,
                                      filter: Filter,
-                                     exact: Boolean): Option[AttributeBounds[T]] = None
+                                     exact: Boolean): Option[MinMax[T]] = None
 
   override def getStats[T <: Stat](sft: SimpleFeatureType,
                                    attributes: Seq[String],

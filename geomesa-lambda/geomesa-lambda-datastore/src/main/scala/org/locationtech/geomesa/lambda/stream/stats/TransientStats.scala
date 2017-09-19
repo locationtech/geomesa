@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.lambda.stream.stats
 
-import org.locationtech.geomesa.index.stats.{AttributeBounds, GeoMesaStats, NoopStatUpdater, StatUpdater}
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatUpdater, StatUpdater}
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.stats.{MinMax, SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -24,10 +24,10 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
   override def getAttributeBounds[T](sft: SimpleFeatureType,
                                      attribute: String,
                                      filter: Filter,
-                                     exact: Boolean): Option[AttributeBounds[T]] = {
+                                     exact: Boolean): Option[MinMax[T]] = {
     val stat = Stat(store.sft, Stat.MinMax(attribute)).asInstanceOf[MinMax[T]]
     store.read(Option(filter)).foreach(stat.observe)
-    Some(AttributeBounds(stat.min, stat.max, stat.cardinality))
+    Some(stat)
   }
 
   override def getStats[T <: Stat](sft: SimpleFeatureType,
