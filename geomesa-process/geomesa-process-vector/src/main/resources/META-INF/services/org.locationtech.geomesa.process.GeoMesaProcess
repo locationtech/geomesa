@@ -1,4 +1,5 @@
 org.locationtech.geomesa.process.analytic.DensityProcess
+org.locationtech.geomesa.process.analytic.MinMaxProcess
 org.locationtech.geomesa.process.analytic.Point2PointProcess
 org.locationtech.geomesa.process.analytic.SamplingProcess
 org.locationtech.geomesa.process.analytic.StatsProcess

@@ -120,6 +120,10 @@ object QueryHints {
       Option(hints.get(Internal.TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
     def getTransform: Option[(String, SimpleFeatureType)] =
       hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
+    def clearTransforms(): Unit = {
+      hints.remove(Internal.TRANSFORM_SCHEMA)
+      hints.remove(Internal.TRANSFORMS)
+    }
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
     def isLambdaQueryPersistent: Boolean =
       Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)

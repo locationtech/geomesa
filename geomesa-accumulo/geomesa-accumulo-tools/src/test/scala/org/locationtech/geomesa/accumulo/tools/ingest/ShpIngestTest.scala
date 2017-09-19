@@ -20,7 +20,6 @@ import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
-import org.locationtech.geomesa.index.stats.AttributeBounds
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -84,8 +83,8 @@ class ShpIngestTest extends Specification {
       bounds.getMaxY mustEqual maxY
 
       command.withDataStore { (ds) =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema("shpingest"), "dtg") must
-            beSome(AttributeBounds(minDate, maxDate, 2))
+        ds.stats.getAttributeBounds[Date](ds.getSchema("shpingest"), "dtg").map(_.tuple) must
+            beSome((minDate, maxDate, 2L))
       }
     }
 
@@ -105,8 +104,8 @@ class ShpIngestTest extends Specification {
       bounds.getMaxY mustEqual maxY
 
       command.withDataStore { (ds) =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg") must
-            beSome(AttributeBounds(minDate, maxDate, 2))
+        ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
+            beSome((minDate, maxDate, 2L))
       }
     }
   }

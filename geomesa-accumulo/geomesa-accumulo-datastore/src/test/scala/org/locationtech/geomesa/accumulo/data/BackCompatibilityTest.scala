@@ -124,10 +124,10 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     writer.close()
 
     // make sure we can read it back
-    foreach(addQueries) { query =>
+    forall(addQueries) { query =>
       val filter = ECQL.toFilter(query)
       doQuery(fs, new Query(sftName, filter)) mustEqual Seq(10)
-      foreach(transforms) { transform =>
+      forall(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) mustEqual Seq(10)
       }
     }
@@ -141,21 +141,21 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     remover.close()
 
     // make sure that it no longer comes back
-    foreach(addQueries) { query =>
+    forall(addQueries) { query =>
       val filter = ECQL.toFilter(query)
       doQuery(fs, new Query(sftName, filter)) must beEmpty
-      foreach(transforms) { transform =>
+      forall(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) must beEmpty
       }
     }
 
     // test queries
-    foreach(queries) { case (q, results) =>
+    forall(queries) { case (q, results) =>
       val filter = ECQL.toFilter(q)
       logger.debug(s"Running query $q")
       doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
       doArrowQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
-      foreach(transforms) { transform =>
+      forall(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
         doArrowQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
       }
