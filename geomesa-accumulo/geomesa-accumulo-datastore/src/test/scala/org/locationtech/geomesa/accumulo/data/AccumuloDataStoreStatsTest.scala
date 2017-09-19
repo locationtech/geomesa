@@ -20,7 +20,6 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.stats.AttributeBounds
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
 import org.locationtech.geomesa.utils.stats._
@@ -83,10 +82,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         ds.stats.getCount(sft) must beSome(1)
 
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 0, 0, 0, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("alpha", "alpha", 1))
-        ds.stats.getAttributeBounds[Int](sft, "age") must beSome(AttributeBounds(10, 10, 1))
+        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("alpha", "alpha", 1L))
+        ds.stats.getAttributeBounds[Int](sft, "age").map(_.tuple) must beSome((10, 10, 1L))
         ds.stats.getAttributeBounds[String](sft, "height") must beNone
-        ds.stats.getAttributeBounds[Date](sft, "dtg") must beSome(AttributeBounds(new Date(baseMillis), new Date(baseMillis), 1))
+        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must beSome((new Date(baseMillis), new Date(baseMillis), 1L))
 
         ds.stats.getStats[TopK[String]](sft, Seq("name")).map(_.topK(10).toSeq) mustEqual Seq(Seq(("alpha", 1)))
         ds.stats.getStats[TopK[Int]](sft, Seq("age")).map(_.topK(10).toSeq) mustEqual Seq(Seq((10, 1)))
@@ -114,9 +113,9 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         ds.stats.getCount(sft) must beSome(2)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 10, 0, 10, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("alpha", "cappa", 2))
-        ds.stats.getAttributeBounds[Date](sft, "dtg") must
-            beSome(AttributeBounds(new Date(baseMillis), new Date(baseMillis + dayInMillis / 2), 2))
+        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("alpha", "cappa", 2L))
+        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
+            beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis / 2), 2L))
       }
 
       "through feature source add features" >> {
@@ -135,9 +134,9 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         ds.stats.getCount(sft) must beSome(3)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 10, -10, 10, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name") must beSome (AttributeBounds("alpha", "gamma", 3))
-        ds.stats.getAttributeBounds[Date](sft, "dtg") must
-            beSome(AttributeBounds(new Date(baseMillis), new Date(baseMillis + dayInMillis), 3))
+        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome (("alpha", "gamma", 3L))
+        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
+            beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis), 3L))
       }
 
       "not expand bounds when not necessary" >> {
@@ -154,9 +153,9 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         ds.stats.getCount(sft) must beSome(4)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 10, -10, 10, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("alpha", "gamma", 4))
-        ds.stats.getAttributeBounds[Date](sft, "dtg") must
-            beSome(AttributeBounds(new Date(baseMillis), new Date(baseMillis + dayInMillis), 3))
+        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("alpha", "gamma", 4L))
+        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
+            beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis), 3L))
       }
 
       "through feature source set features" >> {
@@ -182,8 +181,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         ds.stats.getCount(sft) must beSome(1)
         // note - we don't reduce bounds during delete...
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 15, -10, 10, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[Date](sft, "dtg") must
-            beSome(AttributeBounds(new Date(baseMillis - dayInMillis), new Date(baseMillis + dayInMillis), 4))
+        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
+            beSome((new Date(baseMillis - dayInMillis), new Date(baseMillis + dayInMillis), 4L))
       }
 
       "update all stats" >> {
@@ -225,10 +224,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         ds.stats.getCount(sft) must beSome(10)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 27, 0, 9, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("0", "9", 10))
-        ds.stats.getAttributeBounds[Int](sft, "age") must beSome(AttributeBounds(1, 2, 2))
+        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("0", "9", 10L))
+        ds.stats.getAttributeBounds[Int](sft, "age").map(_.tuple) must beSome((1, 2, 2L))
         ds.stats.getAttributeBounds[Int](sft, "height") must beNone
-        ds.stats.getAttributeBounds[Date](sft, "dtg") must beSome(AttributeBounds(minDate, maxDate, 10))
+        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must beSome((minDate, maxDate, 10L))
 
         val nameTopK = ds.stats.getStats[TopK[String]](sft, Seq("name"))
         nameTopK must haveLength(1)
@@ -385,8 +384,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         ds.stats.getCount(sft) must beSome(10)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 27, 0, 9, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("0", "9", 10))
-        ds.stats.getAttributeBounds[Int](sft, "age") must beSome(AttributeBounds(1, 2, 2))
+        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("0", "9", 10L))
+        ds.stats.getAttributeBounds[Int](sft, "age").map(_.tuple) must beSome((1, 2, 2L))
         ds.stats.getAttributeBounds[Int](sft, "height") must beNone
       }
     }
