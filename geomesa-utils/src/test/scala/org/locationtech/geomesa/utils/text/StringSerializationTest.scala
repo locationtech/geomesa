@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.utils.text
 
+import java.util.Date
+
+import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -19,17 +22,25 @@ class StringSerializationTest extends Specification {
     "encode and decode single values to string" >> {
       val values = Map("foo" -> Seq("bar", "baz"))
       val encoded = StringSerialization.encodeSeqMap(values)
-      StringSerialization.decodeSeqMap(encoded) mustEqual values
+      StringSerialization.decodeSeqMap(encoded, Map.empty[String, Class[_]]) mustEqual values
     }
     "encode and decode multiple values to string" >> {
       val values = Map("foo" -> Seq("bar", "baz"), "bar" -> Seq("foo", "baz"))
       val encoded = StringSerialization.encodeSeqMap(values)
-      StringSerialization.decodeSeqMap(encoded) mustEqual values
+      StringSerialization.decodeSeqMap(encoded, Map.empty[String, Class[_]]) mustEqual values
     }
     "encode and decode escaped values to string" >> {
       val values = Map("foo" -> Seq("bar", "baz"), "bar:String" -> Seq("'\"],blerg", "blah", "", "test"))
       val encoded = StringSerialization.encodeSeqMap(values)
-      StringSerialization.decodeSeqMap(encoded) mustEqual values
+      StringSerialization.decodeSeqMap(encoded, Map.empty[String, Class[_]]) mustEqual values
+    }
+    "encode and decode non-string values" >> {
+      val dt = ISODateTimeFormat.dateTime.withZoneUTC
+      val dates = Seq("2017-01-01T00:00:00.000Z", "2017-01-01T01:00:00.000Z").map(dt.parseDateTime(_).toDate)
+      val values = Map("dtg" -> dates, "age" -> Seq(0, 1, 2).map(Int.box), "height" -> Seq(0.1f, 0.2f, 0.5f).map(Float.box))
+      val encoded = StringSerialization.encodeSeqMap(values)
+      val bindings = Map("dtg" -> classOf[Date], "age" -> classOf[Integer], "height" -> classOf[java.lang.Float])
+      StringSerialization.decodeSeqMap(encoded, bindings) mustEqual values
     }
   }
 }

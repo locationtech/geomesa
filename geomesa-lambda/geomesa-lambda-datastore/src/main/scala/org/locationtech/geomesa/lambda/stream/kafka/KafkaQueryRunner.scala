@@ -140,7 +140,7 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
     }
     val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
     val dictionaryFields = hints.getArrowDictionaryFields
-    val providedDictionaries = hints.getArrowDictionaryEncodedValues
+    val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid)
 
     if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
