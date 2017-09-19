@@ -89,11 +89,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
 }
 
 @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-class FsIngestParams extends IngestParams with FsParams {
-  @Parameter(names = Array("--temp-path"), description = "Path to temp dir for parquet ingest. " +
-    "Note that this may be useful when using s3 since its slow as a sink", required = false)
-  var tempDir: String = _
-
+class FsIngestParams extends IngestParams with FsParams with TempDirParam {
   @Parameter(names = Array("--num-reducers"), description = "Num reducers (required for distributed ingest)", required = false)
   var reducers: java.lang.Integer = _
 
@@ -105,4 +101,10 @@ class FsIngestParams extends IngestParams with FsParams {
 
   @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", required = false)
   var storageOpts: java.util.List[java.lang.String] = new util.ArrayList[String]()
+}
+
+trait TempDirParam {
+  @Parameter(names = Array("--temp-path"), description = "Path to temp dir for parquet ingest. " +
+    "Note that this may be useful when using s3 since its slow as a sink", required = false)
+  var tempDir: String = _
 }

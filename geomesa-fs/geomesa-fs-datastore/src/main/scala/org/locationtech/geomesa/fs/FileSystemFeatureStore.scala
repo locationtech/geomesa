@@ -70,7 +70,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
         try {
           storage.updateMetadata(typeName)
         } catch {
-          case e: Throwable => logger.error(s"Error updating metadata for type $typeName")
+          case e: Throwable => logger.error(s"Error updating metadata for type $typeName", e)
         }
       }
     }

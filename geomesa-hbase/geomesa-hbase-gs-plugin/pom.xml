@@ -144,7 +144,7 @@
                             </filters>
                             <relocations>
                                 <relocation>
-                                    <pattern>com.google</pattern>
+                                    <pattern>com.google.common</pattern>
                                     <shadedPattern>org.locationtech.geomesa.hbase.shade.google</shadedPattern>
                                 </relocation>
                             </relocations>
