@@ -72,11 +72,21 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     }
   }
 
-  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[Any] = {
+  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[AnyRef] = {
     val shard = getShards(sft).head.length
     // exclude feature byte and 2 index bytes and shard bytes
     val from = if (sft.isTableSharing) { 3 + shard } else { 2 + shard }
     val descriptor = sft.getDescriptor(index)
+    val decode: (String) => AnyRef = if (descriptor.isList) {
+      // get the alias from the type of values in the collection
+      val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)
+      // Note that for collection types, only a single entry of the collection will be decoded - this is
+      // because the collection entries have been broken up into multiple rows
+      (encoded) => Seq(typeRegistry.decode(alias, encoded)).asJava
+    } else {
+      val alias = descriptor.getType.getBinding.getSimpleName.toLowerCase(Locale.US)
+      typeRegistry.decode(alias, _)
+    }
     (row, offset, length) => Try {
       val valueStart = offset + from // start of the encoded value
       val end = offset + length // end of the row, max search space
@@ -84,8 +94,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
       while (valueEnd < end && row(valueEnd) != NullByte) { // null byte indicates end of value
         valueEnd += 1
       }
-      val encoded = new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8)
-      decode(encoded, descriptor)
+      decode(new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8))
     }
   }
 
@@ -290,7 +299,7 @@ trait AttributeRowDecoder {
     * @param i attribute index
     * @return (bytes, offset, length) => decoded value
     */
-  def decodeRowValue(sft: SimpleFeatureType, i: Int): (Array[Byte], Int, Int) => Try[Any]
+  def decodeRowValue(sft: SimpleFeatureType, i: Int): (Array[Byte], Int, Int) => Try[AnyRef]
 }
 
 /**
@@ -407,25 +416,6 @@ object AttributeIndex {
 
   // Lexicographically encode a value using it's runtime class
   private def typeEncode(value: Any): String = Try(typeRegistry.encode(value)).getOrElse(value.toString)
-
-  /**
-    * Decode an encoded value. Note that for collection types, only a single entry of the collection
-    * will be decoded - this is because the collection entries have been broken up into multiple rows.
-    *
-    * @param encoded lexicoded value
-    * @param descriptor attribute descriptor
-    * @return
-    */
-  def decode(encoded: String, descriptor: AttributeDescriptor): Any = {
-    if (descriptor.isList) {
-      // get the alias from the type of values in the collection
-      val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)
-      Seq(typeRegistry.decode(alias, encoded)).asJava
-    } else {
-      val alias = descriptor.getType.getBinding.getSimpleName.toLowerCase(Locale.US)
-      typeRegistry.decode(alias, encoded)
-    }
-  }
 
   // gets a lower bound for a range
   private def startRows(sft: SimpleFeatureType,
