@@ -136,7 +136,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       }
     } else if (hints.isArrowQuery) {
       val dictionaryFields = hints.getArrowDictionaryFields
-      val providedDictionaries = hints.getArrowDictionaryEncodedValues
+      val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
       def arrowPlan(indexSft: SimpleFeatureType): BatchScanPlan = {
         if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
             dictionaryFields.forall(providedDictionaries.contains)) {
@@ -229,7 +229,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     val attributeScan = attributePlan(IndexValueEncoder.getIndexSft(sft), stFilter, None)
 
     lazy val dictionaryFields = hints.getArrowDictionaryFields
-    lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
+    lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val arrowBatch = hints.isArrowQuery &&
         (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains))
     lazy val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,

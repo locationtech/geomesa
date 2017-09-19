@@ -46,13 +46,13 @@ trait ArrowBatchScan extends AggregatingScan[ArrowBatchAggregate] {
     import ArrowBatchScan.{aggregateCache, decodeDictionaries}
 
     batchSize = options(BatchSizeKey).toInt
-    val encodedDictionaries = options(DictionaryKey)
-    lazy val dictionaries = decodeDictionaries(encodedDictionaries)
     val encoding = SimpleFeatureEncoding.min(options(IncludeFidsKey).toBoolean)
     val (arrowSft, arrowSftString) = transform match {
       case Some(tsft) => (tsft, options(TransformSchemaOpt))
       case None       => (sft, options(SftOpt))
     }
+    val encodedDictionaries = options(DictionaryKey)
+    lazy val dictionaries = decodeDictionaries(arrowSft, encodedDictionaries)
     val sortIndex = options.get(SortKey).map(arrowSft.indexOf).getOrElse(-1)
     val sortReverse = options.get(SortReverseKey).exists(_.toBoolean)
     aggregateCache.getOrElseUpdate(arrowSftString + encoding + sortIndex + sortReverse + encodedDictionaries,
@@ -234,10 +234,10 @@ object ArrowBatchScan {
     if (values.isEmpty || !classOf[Comparable[_]].isAssignableFrom(values.head.getClass)) {
       values
     } else {
-      implicit val ordering = new Ordering[AnyRef] {
+      val ordering = new Ordering[AnyRef] {
         def compare(left: AnyRef, right: AnyRef): Int = left.asInstanceOf[Comparable[AnyRef]].compareTo(right)
       }
-      values.sorted
+      values.sorted(ordering)
     }
   }
 
@@ -311,6 +311,6 @@ object ArrowBatchScan {
     * @param encoded dictionary string
     * @return
     */
-  private def decodeDictionaries(encoded: String): Map[String, ArrowDictionary] =
-    StringSerialization.decodeSeqMap(encoded).map { case (k, v) => k -> ArrowDictionary.create(v) }
+  private def decodeDictionaries(sft: SimpleFeatureType, encoded: String): Map[String, ArrowDictionary] =
+    StringSerialization.decodeSeqMap(sft, encoded).map { case (k, v) => k -> ArrowDictionary.create(v) }
 }

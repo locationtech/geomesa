@@ -28,12 +28,12 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,team:String,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=true,team:String,age:Int,dtg:Date,*geom:Point:srid=4326"
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   val features = (0 until 10).map { i =>
-    ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"team$i", s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
+    ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"team$i", s"${i % 5}", s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
   }
 
   // hit all major indices
@@ -65,6 +65,21 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        val out = new ByteArrayOutputStream
+        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+        def in() = new ByteArrayInputStream(out.toByteArray)
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+              containTheSameElementsAs(features)
+        }
+      }
+    }
+    "return arrow dictionary encoded ints" in {
+      foreach(filters) { filter =>
+        val query = new Query(sft.getTypeName, filter)
+        query.getHints.put(QueryHints.ARROW_ENCODE, true)
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "age")
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))

@@ -100,8 +100,8 @@ object QueryHints {
       Option(hints.get(ARROW_DICTIONARY_COMPUTE).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
     def isArrowCachedDictionaries: Boolean =
       Option(hints.get(ARROW_DICTIONARY_CACHED).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
-    def getArrowDictionaryEncodedValues: Map[String, Seq[AnyRef]] =
-      Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap).getOrElse(Map.empty)
+    def getArrowDictionaryEncodedValues(sft: SimpleFeatureType): Map[String, Seq[AnyRef]] =
+      Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap(sft, _)).getOrElse(Map.empty)
     def setArrowDictionaryEncodedValues(values: Map[String, Seq[AnyRef]]): Unit =
       hints.put(ARROW_DICTIONARY_VALUES, StringSerialization.encodeSeqMap(values))
     def getArrowBatchSize: Option[Int] = Option(hints.get(ARROW_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue)
