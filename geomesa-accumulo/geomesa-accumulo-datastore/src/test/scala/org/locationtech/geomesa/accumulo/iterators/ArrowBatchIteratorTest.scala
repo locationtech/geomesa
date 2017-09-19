@@ -149,7 +149,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
     "return arrow encoded projections" in {
       import scala.collection.JavaConverters._
       foreach(filters) { filter =>
-        foreach(Seq(Array("dtg", "geom"))) { transform =>
+        foreach(Seq(Array("dtg", "geom"), Array("name", "geom"))) { transform =>
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
