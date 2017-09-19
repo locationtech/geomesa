@@ -45,7 +45,7 @@ class StorageUtilsTest extends Specification with AllExpectations {
       val sft = SimpleFeatureTypes.createType(typeName, "age:Int,date:Date,*geom:Point:srid=4326")
       val scheme = new DateTimeScheme(DateTimeScheme.Formats.Hourly, ChronoUnit.HOURS, 1, "date", true)
       import scala.collection.JavaConversions._
-      val partitionsAndFiles = StorageUtils.partitionsAndFiles(new Path(tempDir), fs, typeName, scheme, 3, "parquet")
+      val partitionsAndFiles = StorageUtils.partitionsAndFiles(new Path(tempDir), fs, typeName, scheme, "parquet")
       val list = partitionsAndFiles.keySet().toList
       list.size mustEqual 7
       val expected = List(

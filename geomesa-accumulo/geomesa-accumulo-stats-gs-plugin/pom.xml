@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>geomesa-stats-gs-plugin_2.11</artifactId>
-    <name>GeoMesa Statistics Geoserver Plugin</name>
+    <name>GeoMesa Accumulo Statistics Geoserver Plugin</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

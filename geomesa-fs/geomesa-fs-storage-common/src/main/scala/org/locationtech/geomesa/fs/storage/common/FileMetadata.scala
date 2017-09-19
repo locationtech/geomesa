@@ -136,8 +136,10 @@ object FileMetadata extends LazyLogging {
     // Load encoding
     val encoding = config.getString("encoding")
 
-    // Load partition scheme
+    // Load partition scheme - note we currently have to reload the SFT user data manually
+    // which is why we have to add the partition scheme back to the SFT.
     val scheme = PartitionScheme(sft, config.getConfig("partitionScheme"))
+    PartitionScheme.addToSft(sft, scheme)
 
     // Load Partitions
     val partitions = {

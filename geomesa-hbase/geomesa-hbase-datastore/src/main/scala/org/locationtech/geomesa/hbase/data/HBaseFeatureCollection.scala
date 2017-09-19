@@ -13,6 +13,7 @@ import org.geotools.data._
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.process.analytic.MinMaxProcess.MinMaxVisitor
 import org.locationtech.geomesa.process.analytic.{AttributeVisitor, StatsVisitor}
+import org.locationtech.geomesa.process.query.QueryVisitor
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
 import org.locationtech.geomesa.process.transform.BinVisitor
 import org.opengis.feature.FeatureVisitor
@@ -26,6 +27,7 @@ class HBaseFeatureCollection(source: GeoMesaFeatureSource, query: Query)
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
     visitor match {
+      case v: QueryVisitor     => v.execute(source, query)
       case v: AttributeVisitor => v.execute(source, query)
       case v: ArrowVisitor     => v.execute(source, query)
       case v: BinVisitor       => v.execute(source, query)

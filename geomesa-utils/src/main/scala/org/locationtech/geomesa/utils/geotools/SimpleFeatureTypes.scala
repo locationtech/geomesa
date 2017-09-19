@@ -153,8 +153,9 @@ object SimpleFeatureTypes {
   def toConfigString(sft: SimpleFeatureType,
                      includeUserData: Boolean = true,
                      concise: Boolean = false,
-                     includePrefix: Boolean = true): String =
-    SimpleFeatureSpecConfig.toConfigString(sft, includeUserData, concise, includePrefix)
+                     includePrefix: Boolean = true,
+                     json: Boolean = false): String =
+    SimpleFeatureSpecConfig.toConfigString(sft, includeUserData, concise, includePrefix, json)
 
   /**
     * Renames a simple feature type. Preserves user data

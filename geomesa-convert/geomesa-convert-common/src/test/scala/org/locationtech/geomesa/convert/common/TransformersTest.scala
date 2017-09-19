@@ -284,11 +284,24 @@ class TransformersTest extends Specification {
         res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
       }
 
-      "handle linestring wkt" >> {
+      "handle multipoint wkt and objects" >> {
+        val geoFac = new GeometryFactory()
+        val multiPoint = geoFac.createMultiPoint(Array(new Coordinate(45.0, 45.0), new Coordinate(50, 52)))
+        val trans = Transformers.parseTransform("multipoint($0)")
+        trans.eval(Array("Multipoint((45.0 45.0), (50 52))")).asInstanceOf[MultiPoint] mustEqual multiPoint
+
+        // convert objects
+        val geom = multiPoint.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must beAnInstanceOf[MultiPoint]
+        res.asInstanceOf[MultiPoint] mustEqual WKTUtils.read("Multipoint((45.0 45.0), (50 52))")
+      }
+
+      "handle linestring wkt and objects" >> {
         val geoFac = new GeometryFactory()
         val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val trans = Transformers.parseTransform("linestring($0)")
-        trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[LineString] must be equalTo lineStr
+        trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[LineString] mustEqual lineStr
 
         // type conversion
         val geom = lineStr.asInstanceOf[Geometry]
@@ -297,11 +310,27 @@ class TransformersTest extends Specification {
         res.asInstanceOf[LineString] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
       }
 
-      "handle polygon wkt" >> {
+      "handle multilinestring wkt and objects" >> {
+        val geoFac = new GeometryFactory()
+        val multiLineStr = geoFac.createMultiLineString(Array(
+          geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray),
+            geoFac.createLineString(Seq((0, 0), (1, 2), (2, 3), (4, 5)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+        ))
+        val trans = Transformers.parseTransform("multilinestring($0)")
+        trans.eval(Array("MultiLinestring((102 0, 103 1, 104 0, 105 1), (0 0, 1 2, 2 3, 4 5))")).asInstanceOf[MultiLineString] mustEqual multiLineStr
+
+        // type conversion
+        val geom = multiLineStr.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must beAnInstanceOf[MultiLineString]
+        res.asInstanceOf[MultiLineString] mustEqual WKTUtils.read("MultiLinestring((102 0, 103 1, 104 0, 105 1), (0 0, 1 2, 2 3, 4 5))")
+      }
+
+      "handle polygon wkt and objects" >> {
         val geoFac = new GeometryFactory()
         val poly = geoFac.createPolygon(Seq((100, 0), (101, 0), (101, 1), (100, 1), (100, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val trans = Transformers.parseTransform("polygon($0)")
-        trans.eval(Array("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")).asInstanceOf[Polygon] must be equalTo poly
+        trans.eval(Array("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")).asInstanceOf[Polygon] mustEqual poly
 
         // type conversion
         val geom = poly.asInstanceOf[Polygon]
@@ -310,11 +339,56 @@ class TransformersTest extends Specification {
         res.asInstanceOf[Polygon] mustEqual WKTUtils.read("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")
       }
 
-      "handle geometry wkt" >> {
+      "handle multipolygon wkt and objects" >> {
+        val geoFac = new GeometryFactory()
+        val multiPoly = geoFac.createMultiPolygon(Array(
+          geoFac.createPolygon(Seq((100, 0), (101, 0), (101, 1), (100, 1), (100, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray),
+          geoFac.createPolygon(Seq((10, 0), (11, 0), (11, 1), (10, 1), (10, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+        ))
+        val trans = Transformers.parseTransform("multipolygon($0)")
+        trans.eval(Array("multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0)))")).asInstanceOf[MultiPolygon] mustEqual multiPoly
+
+        // type conversion
+        val geom = multiPoly.asInstanceOf[MultiPolygon]
+        val res = trans.eval(Array(geom))
+        res must beAnInstanceOf[MultiPolygon]
+        res.asInstanceOf[MultiPolygon] mustEqual WKTUtils.read("multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0)))")
+      }
+
+      "handle geometry wkt and objects" >> {
         val geoFac = new GeometryFactory()
         val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val trans = Transformers.parseTransform("geometry($0)")
         trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[Geometry] must be equalTo lineStr
+
+        // type conversion
+        val geom = lineStr.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must beAnInstanceOf[Geometry]
+        res.asInstanceOf[Geometry] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)\"")
+      }
+
+      "handle geometrycollection wkt and objects" >> {
+        val geoFac = new GeometryFactory()
+        val geoCol = geoFac.createGeometryCollection(Array(
+          geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray),
+          geoFac.createMultiPolygon(Array(
+            geoFac.createPolygon(Seq((100, 0), (101, 0), (101, 1), (100, 1), (100, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray),
+            geoFac.createPolygon(Seq((10, 0), (11, 0), (11, 1), (10, 1), (10, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+          ))
+        ))
+        val trans = Transformers.parseTransform("geometrycollection($0)")
+        trans.eval(Array("GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1)," +
+          "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), " +
+          "((10 0, 11 0, 11 1, 10 1, 10 0))))")).asInstanceOf[GeometryCollection] mustEqual geoCol
+
+        // type conversion
+        val geom = geoCol.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must beAnInstanceOf[GeometryCollection]
+        res.asInstanceOf[GeometryCollection] mustEqual WKTUtils.read(
+          "GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1), " +
+          "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0))))")
       }
 
       "handle identity functions" >> {
