@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{FileInputStream, _}
+import java.io._
 import java.util.zip.Deflater
 
 import com.beust.jcommander.{ParameterException, Parameters}
@@ -21,7 +21,7 @@ import org.geotools.data.store.DataFeatureCollection
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters, Transformers}
+import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.tools.ConvertParameters.ConvertParameters
 import org.locationtech.geomesa.tools.export._
@@ -42,7 +42,7 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
   override val params = new ConvertParameters
 
   override def execute(): Unit = {
-    implicit val timing = new Timing
+    implicit val timing: Timing = new Timing
     val count = profile(convertAndExport())
     Command.user.info(s"Conversion complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
         s"in ${timing.time}ms${count.map(c => s" for $c features").getOrElse("")}")
@@ -137,9 +137,9 @@ object ConvertCommand extends LazyLogging {
                             filter: Option[Filter],
                             maxFeatures: Option[Int]): SimpleFeatureCollection = {
     def convert(): Iterator[SimpleFeature] = {
-      val features = files.iterator.flatMap { file =>
-        ec.set(ec.indexOf("inputFilePath"), file)
-        val is = PathUtils.handleCompression(new FileInputStream(file), file)
+      val features = files.iterator.flatMap(PathUtils.interpretPath).flatMap { file =>
+        ec.set(ec.indexOf("inputFilePath"), file.path)
+        val is = PathUtils.handleCompression(file.open, file.path)
         converter.process(is, ec)
       }
       val filtered = filter.map(f => features.filter(f.evaluate)).getOrElse(features)
