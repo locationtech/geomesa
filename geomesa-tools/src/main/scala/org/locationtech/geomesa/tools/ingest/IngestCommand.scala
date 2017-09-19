@@ -15,6 +15,7 @@ import com.typesafe.config.Config
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
@@ -30,7 +31,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   override def execute(): Unit = {
     import DataFormats.{Avro, Csv, Shp, Tsv}
 
-    ensureSameFs(IngestCommand.RemotePrefixes)
+    ensureSameFs(PathUtils.RemotePrefixes)
 
     val ingest = if (params.fmt == Shp) {
       new ShapefileIngest(connection, Option(params.featureName), params.files, params.threads)
@@ -42,7 +43,8 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       }
       // auto-detect the import schema
       Command.user.info("No schema or converter defined - will attempt to detect schema from input files")
-      new AutoIngest(params.featureName, connection, params.files, params.fmt, libjarsFile, libjarsPaths, params.threads)
+      new AutoIngest(params.featureName, connection, params.files, params.fmt, Option(params.mode),
+        libjarsFile, libjarsPaths, params.threads)
     } else {
       // validate arguments
       if (params.config == null) {
@@ -61,7 +63,8 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   }
 
   protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
-    new ConverterIngest(sft, connection, converterConfig, params.files, libjarsFile, libjarsPaths, params.threads)
+    new ConverterIngest(sft, connection, converterConfig, params.files, Option(params.mode),
+      libjarsFile, libjarsPaths, params.threads)
   }
 
   def ensureSameFs(prefixes: Seq[String]): Unit = {
@@ -76,14 +79,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
 // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
 trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam
-  with OptionalConverterConfigParam with OptionalInputFormatParam {
+    with OptionalConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
-}
-
-object IngestCommand {
-  // If you change this, update the regex in GeneralShapefileIngest for URLs
-  private val RemotePrefixes = Seq("hdfs", "s3n", "s3a", "wasb", "wasbs")
-
-  def isDistributedUrl(url: String): Boolean = RemotePrefixes.exists(url.startsWith)
 }

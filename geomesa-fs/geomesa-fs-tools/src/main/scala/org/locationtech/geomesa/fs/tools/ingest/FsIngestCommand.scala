@@ -79,6 +79,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
         connection,
         converterConfig,
         params.files,
+        Option(params.mode),
         libjarsFile,
         libjarsPaths,
         params.threads,
