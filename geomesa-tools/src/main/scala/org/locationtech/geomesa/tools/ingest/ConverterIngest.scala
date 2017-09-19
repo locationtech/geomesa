@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -37,10 +38,11 @@ class ConverterIngest(sft: SimpleFeatureType,
                       dsParams: Map[String, String],
                       converterConfig: Config,
                       inputs: Seq[String],
+                      mode: Option[RunMode],
                       libjarsFile: String,
                       libjarsPaths: Iterator[() => Seq[File]],
                       numLocalThreads: Int)
-    extends AbstractIngest(dsParams, sft.getTypeName, inputs, libjarsFile, libjarsPaths, numLocalThreads) {
+    extends AbstractIngest(dsParams, sft.getTypeName, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
   override def beforeRunTasks(): Unit = {
     // create schema for the feature prior to Ingest job
@@ -56,7 +58,7 @@ class ConverterIngest(sft: SimpleFeatureType,
   private val converterPool =
     new GenericObjectPool[SimpleFeatureConverter[_]](factory)
 
-  override def createLocalConverter(file: File, failures: AtomicLong): LocalIngestConverter =
+  override def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter =
     new LocalIngestConverter {
 
       class LocalIngestCounter extends DefaultCounter {
@@ -65,8 +67,8 @@ class ConverterIngest(sft: SimpleFeatureType,
         override def getFailure: Long          = failures.get()
       }
 
-      val converter = converterPool.borrowObject()
-      val ec = converter.createEvaluationContext(Map("inputFilePath" -> file.getAbsolutePath), new LocalIngestCounter)
+      private val converter = converterPool.borrowObject()
+      private val ec = converter.createEvaluationContext(Map("inputFilePath" -> path), new LocalIngestCounter)
 
       override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = (sft, converter.process(is, ec))
       override def close(): Unit = {

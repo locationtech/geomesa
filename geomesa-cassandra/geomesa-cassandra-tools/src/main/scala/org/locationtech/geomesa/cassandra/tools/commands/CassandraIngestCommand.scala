@@ -16,6 +16,7 @@ import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand.CassandraDataStoreParams
 import org.locationtech.geomesa.cassandra.tools.commands.CassandraIngestCommand.CassandraIngestParams
 import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
+import org.locationtech.geomesa.utils.io.PathUtils
 
 import scala.collection.JavaConversions._
 
@@ -28,7 +29,7 @@ class CassandraIngestCommand extends IngestCommand[CassandraDataStore] with Cass
   override def libjarsPaths: Iterator[() => Seq[File]] = Iterator[() => Seq[File]]()
 
   override def execute(): Unit = {
-    if (params.files.exists(IngestCommand.isDistributedUrl)) {
+    if (params.files.exists(PathUtils.isRemote)) {
       throw new ParameterException("The Cassandra ingest tool does not support distributed ingest.")
     }
     super.execute()

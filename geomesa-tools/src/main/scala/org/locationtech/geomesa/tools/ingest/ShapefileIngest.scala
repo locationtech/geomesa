@@ -13,6 +13,7 @@ import java.net.URL
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
 
@@ -29,7 +30,7 @@ class ShapefileIngest(connection: java.util.Map[String, String],
     val start = System.currentTimeMillis()
 
     // If someone is ingesting file from hdfs, S3, or wasb we add the Hadoop URL Factories to the JVM.
-    if (files.exists(IngestCommand.isDistributedUrl)) {
+    if (files.exists(PathUtils.isRemote)) {
       import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
       val factory = new FsUrlStreamHandlerFactory
       URL.setURLStreamHandlerFactory(factory)

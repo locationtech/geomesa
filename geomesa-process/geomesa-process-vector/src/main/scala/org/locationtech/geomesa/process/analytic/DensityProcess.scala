@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.process.analytic
 
+import java.awt.image.DataBuffer
+import javax.media.jai.RasterFactory
+
 import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.data.Query
@@ -32,6 +35,8 @@ import org.opengis.util.ProgressListener
 )
 class DensityProcess extends GeoMesaProcess {
 
+  import DensityProcess.DefaultRadiusPixels
+
   @throws(classOf[ProcessException])
   @DescribeResult(name = "result", description = "Output raster")
   def execute(@DescribeParameter(name = "data", description = "Input features")
@@ -48,12 +53,19 @@ class DensityProcess extends GeoMesaProcess {
               argOutputHeight: Integer,
               monitor: ProgressListener): GridCoverage2D = {
 
-    val gridWidth: Int = argOutputWidth
-    val gridHeight: Int = argOutputHeight
-    val radiusCells: Int = if (argRadiusPixels == null) 10 else argRadiusPixels
+    val pixels = Option(argRadiusPixels).map(_.intValue).getOrElse(DefaultRadiusPixels)
 
-    val heatMap = new HeatmapSurface(radiusCells, argOutputEnv, gridWidth, gridHeight)
-    val decode = DensityScan.decodeResult(argOutputEnv, gridWidth, gridHeight)
+    // buffer our calculations based on the pixel radius to avoid edge artifacts
+    val outputWidth  = argOutputWidth + 2 * pixels
+    val outputHeight = argOutputHeight + 2 * pixels
+    val bufferWidth  = pixels * argOutputEnv.getWidth / argOutputWidth
+    val bufferHeight = pixels * argOutputEnv.getHeight / argOutputHeight
+    val envelope = new ReferencedEnvelope(argOutputEnv)
+    envelope.expandBy(bufferWidth, bufferHeight)
+
+    val decode = DensityScan.decodeResult(envelope, outputWidth, outputHeight)
+
+    val heatMap = new HeatmapSurface(pixels, envelope, outputWidth, outputHeight)
 
     try {
       val features = obsFeatures.features()
@@ -70,8 +82,23 @@ class DensityProcess extends GeoMesaProcess {
     }
 
     val heatMapGrid = DensityProcess.flipXY(heatMap.computeSurface)
+
+    // create the raster from our unbuffered envelope and discard the buffered pixels in our final image
+    val raster = RasterFactory.createBandedRaster(DataBuffer.TYPE_FLOAT, argOutputWidth, argOutputHeight, 1, null)
+
+    var i, j = pixels
+    while (j < heatMapGrid.length - pixels) {
+      val row = heatMapGrid(j)
+      while (i < row.length - pixels) {
+        raster.setSample(i - pixels, j - pixels, 0, row(i))
+        i += 1
+      }
+      j += 1
+      i = pixels
+    }
+
     val gcf = CoverageFactoryFinder.getGridCoverageFactory(GeoTools.getDefaultHints)
-    gcf.create("Process Results", heatMapGrid, argOutputEnv)
+    gcf.create("Process Results", raster, argOutputEnv)
   }
 
   /**
@@ -103,16 +130,30 @@ class DensityProcess extends GeoMesaProcess {
                   argOutputHeight: Integer,
                   targetQuery: Query,
                   targetGridGeometry: GridGeometry): Query = {
-    val radiusPixels: Int = math.max(0, argRadiusPixels)
-    val pixelSize = if (argOutputEnv.getWidth <= 0) 0 else  argOutputWidth / argOutputEnv.getWidth
-    val queryBuffer: Double = radiusPixels / pixelSize
-    val filter = BBOXExpandingVisitor.expand(targetQuery.getFilter, queryBuffer)
+    if (argOutputWidth == null || argOutputHeight == null) {
+      throw new IllegalArgumentException("outputWidth and/or outputHeight not specified")
+    } else if (argOutputWidth < 0 || argOutputHeight < 0) {
+      throw new IllegalArgumentException("outputWidth and outputHeight must both be positive")
+    }
+
+    val pixels = Option(argRadiusPixels).map(_.intValue).getOrElse(DefaultRadiusPixels)
+
+    // buffer our calculations based on the pixel radius to avoid edge artifacts
+    val outputWidth  = argOutputWidth + 2 * pixels
+    val outputHeight = argOutputHeight + 2 * pixels
+
+    val bufferWidth  = pixels * argOutputEnv.getWidth / argOutputWidth
+    val bufferHeight = pixels * argOutputEnv.getHeight / argOutputHeight
+
+    val envelope = new ReferencedEnvelope(argOutputEnv)
+    envelope.expandBy(bufferWidth, bufferHeight)
+
     val invertedQuery = new Query(targetQuery)
-    invertedQuery.setFilter(filter)
+    invertedQuery.setFilter(BBOXExpandingVisitor.expand(targetQuery.getFilter, math.max(bufferWidth, bufferHeight)))
     invertedQuery.setProperties(null)
-    invertedQuery.getHints.put(QueryHints.DENSITY_BBOX, argOutputEnv)
-    invertedQuery.getHints.put(QueryHints.DENSITY_WIDTH, argOutputWidth)
-    invertedQuery.getHints.put(QueryHints.DENSITY_HEIGHT, argOutputHeight)
+    invertedQuery.getHints.put(QueryHints.DENSITY_BBOX, envelope)
+    invertedQuery.getHints.put(QueryHints.DENSITY_WIDTH, outputWidth)
+    invertedQuery.getHints.put(QueryHints.DENSITY_HEIGHT, outputHeight)
     if (argWeightAttr != null) {
       invertedQuery.getHints.put(QueryHints.DENSITY_WEIGHT, argWeightAttr)
     }
@@ -121,6 +162,8 @@ class DensityProcess extends GeoMesaProcess {
 }
 
 object DensityProcess {
+
+  val DefaultRadiusPixels: Int = 10
 
   /**
    * Flips an XY matrix along the X=Y axis, and inverts the Y axis. Used to convert from

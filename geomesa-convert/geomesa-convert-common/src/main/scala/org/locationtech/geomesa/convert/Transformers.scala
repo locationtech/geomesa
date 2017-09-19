@@ -454,9 +454,16 @@ class DateFunctionFactory extends TransformerFunctionFactory {
 }
 
 class GeometryFunctionFactory extends TransformerFunctionFactory {
-  override def functions = Seq(pointParserFn, lineStringParserFn, polygonParserFn, geometryParserFn)
+  override def functions = Seq(pointParserFn,
+    multiPointParserFn,
+    lineStringParserFn,
+    multiLineStringParserFn,
+    polygonParserFn,
+    multiPolygonParserFn,
+    geometryParserFn,
+    geometryCollectionParserFn)
 
-  val gf = JTSFactoryFinder.getGeometryFactory
+  private val gf = JTSFactoryFinder.getGeometryFactory
   val pointParserFn = TransformerFn("point") { args =>
     args.length match {
       case 1 =>
@@ -471,12 +478,30 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     }
   }
 
+  val multiPointParserFn = TransformerFn("multipoint") { args =>
+    args(0) match {
+      case g: Geometry => g.asInstanceOf[MultiPoint]
+      case s: String   => WKTUtils.read(s).asInstanceOf[MultiPoint]
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid multipoint conversion argument: ${args.toList}")
+    }
+  }
+
   val lineStringParserFn = TransformerFn("linestring") { args =>
     args(0) match {
       case g: Geometry => g.asInstanceOf[LineString]
       case s: String   => WKTUtils.read(s).asInstanceOf[LineString]
       case _ =>
         throw new IllegalArgumentException(s"Invalid linestring conversion argument: ${args.toList}")
+    }
+  }
+
+  val multiLineStringParserFn = TransformerFn("multilinestring") { args =>
+    args(0) match {
+      case g: Geometry => g.asInstanceOf[MultiLineString]
+      case s: String   => WKTUtils.read(s).asInstanceOf[MultiLineString]
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid multilinestring conversion argument: ${args.toList}")
     }
   }
 
@@ -489,11 +514,30 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     }
   }
 
+  val multiPolygonParserFn = TransformerFn("multipolygon") { args =>
+    args(0) match {
+      case g: Geometry => g.asInstanceOf[MultiPolygon]
+      case s: String   => WKTUtils.read(s).asInstanceOf[MultiPolygon]
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid multipolygon conversion argument: ${args.toList}")
+    }
+  }
+
   val geometryParserFn = TransformerFn("geometry") { args =>
     args(0) match {
+      case g: Geometry => g.asInstanceOf[Geometry]
       case s: String   => WKTUtils.read(s)
       case _ =>
         throw new IllegalArgumentException(s"Invalid geometry conversion argument: ${args.toList}")
+    }
+  }
+
+  val geometryCollectionParserFn = TransformerFn("geometrycollection") { args =>
+    args(0) match {
+      case g: Geometry => g.asInstanceOf[GeometryCollection]
+      case s: String   => WKTUtils.read(s)
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid geometrycollection conversion argument: ${args.toList}")
     }
   }
 }

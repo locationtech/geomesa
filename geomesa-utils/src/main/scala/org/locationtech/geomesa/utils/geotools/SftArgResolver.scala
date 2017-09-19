@@ -14,9 +14,8 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
-import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.conf.ArgResolver
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
@@ -51,7 +50,7 @@ object SftArgResolver extends ArgResolver[SimpleFeatureType, SftArgs] with LazyL
     }
   }
 
-  override val parseMethodList = Seq[SftArgs => ResEither](
+  override val parseMethodList: Seq[(SftArgs) => ResEither] = Seq[SftArgs => ResEither](
     getLoadedSft,
     parseSpecString,
     parseConfStr,
@@ -91,8 +90,8 @@ object SftArgResolver extends ArgResolver[SimpleFeatureType, SftArgs] with LazyL
         throw new RuntimeException("Feature name was not provided.")
       }
       val file = Option(args.spec).getOrElse(throw new RuntimeException("No input file specified."))
-      val spec = FileUtils.readFileToString(new File(file))
-      Right(SimpleFeatureTypes.createType(name, args.spec))
+      val spec = FileUtils.readFileToString(new File(file), StandardCharsets.UTF_8)
+      Right(SimpleFeatureTypes.createType(name, spec))
     } catch {
       case NonFatal(e) => Left((s"Unable to parse sft spec from file ${args.spec}.", e, PATH))
     }
@@ -124,7 +123,9 @@ object SftArgResolver extends ArgResolver[SimpleFeatureType, SftArgs] with LazyL
   // parse spec conf file
   private [SftArgResolver] def parseConfFile(args: SftArgs): ResEither = {
     try {
-      val is = PathUtils.getInputStream(args.spec)
+      val is = PathUtils.interpretPath(args.spec).headOption.map(_.open).getOrElse {
+        throw new RuntimeException(s"Could not read file at ${args.spec}")
+      }
       WithClose(new InputStreamReader(is, StandardCharsets.UTF_8)) { reader =>
         parseConf(reader, args.featureName).left.map { e =>
           (s"Unable to parse sft spec from file '${args.spec}'.", e, PATH)
