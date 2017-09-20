@@ -218,7 +218,7 @@ class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry))
       case p: Point => p
       case g => g.safeCentroid()
     }
-    Z2SFC.index(centroid.getX, centroid.getY).z
+    Z2SFC.index(centroid.getX, centroid.getY, lenient = true).z
   }
 
   override protected def convertFromLong(value: Long): Geometry = {
@@ -327,9 +327,9 @@ class BinnedStringArray(length: Int, rawBounds: (String, String))
 
 object BinnedStringArray {
 
-  val Base36Chars   = (0 until 36).map(Integer.toString(_, 36).toLowerCase(Locale.US).charAt(0)).toArray
-  val Base36Lowest  = Base36Chars.head
-  val Base36Highest = Base36Chars.last
+  private val Base36Chars = (0 until 36).map(Integer.toString(_, 36).toLowerCase(Locale.US).charAt(0)).toArray
+  val Base36Lowest: Char  = Base36Chars.head
+  val Base36Highest: Char = Base36Chars.last
 
   def normalize(s: String): String = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", Base36Lowest.toString)
 

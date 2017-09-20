@@ -10,11 +10,11 @@ package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
-import com.clearspring.analytics.stream.frequency.{CountMinSketch, RichCountMinSketch}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.utils.clearspring.CountMinSketch
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.immutable.ListMap
@@ -43,7 +43,7 @@ class Z3Frequency(val geomIndex: Int,
   private val timeToBin = BinnedTime.timeToBinnedTime(period)
 
   private [stats] val sketches = scala.collection.mutable.Map.empty[Short, CountMinSketch]
-  private [stats] def newSketch: CountMinSketch = new CountMinSketch(eps, confidence, Frequency.Seed)
+  private [stats] def newSketch: CountMinSketch = CountMinSketch(eps, confidence, Frequency.Seed)
 
   private def toKey(geom: Geometry, dtg: Date): (Short, Long) = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
@@ -79,7 +79,7 @@ class Z3Frequency(val geomIndex: Int,
     *
     * @return number of observations
     */
-  def size: Long = sketches.values.map(_.size()).sum
+  def size: Long = sketches.values.map(_.size).sum
 
   /**
     * Split the stat into a separate stat per time bin of z data. Allows for separate handling of the reduced
@@ -120,28 +120,27 @@ class Z3Frequency(val geomIndex: Int,
 
   override def +=(other: Z3Frequency): Unit = {
     other.sketches.filter(_._2.size > 0).foreach { case (w, sketch) =>
-      new RichCountMinSketch(sketches.getOrElseUpdate(w, newSketch)).add(sketch)
+      sketches.getOrElseUpdate(w, newSketch) += sketch
     }
   }
 
-  override def clear(): Unit = sketches.values.foreach(sketch => new RichCountMinSketch(sketch).clear())
+  override def clear(): Unit = sketches.values.foreach(_.clear())
 
   override def isEmpty: Boolean = sketches.values.forall(_.size == 0)
 
-  override def toJsonObject = {
-    val sketch = sketches.values.headOption.map(new RichCountMinSketch(_))
-    val (w, d) = sketch.map(s => (s.width, s.depth)).getOrElse((0, 0))
-    ListMap("width" -> w, "depth" -> d, "size" -> size)
+  override def toJsonObject: Any = {
+    val (e, c) = sketches.values.headOption.map(s => (s.eps, s.confidence)).getOrElse((0d, 0d))
+    ListMap("eps" -> e, "confidence" -> c, "size" -> size)
   }
 
   override def isEquivalent(other: Stat): Boolean = {
     other match {
       case s: Z3Frequency =>
         geomIndex == s.geomIndex && dtgIndex == s.dtgIndex && period == s.period && precision == s.precision && {
-          val nonEmpty = sketches.filter(_._2.size() > 0)
-          val sNonEmpty = s.sketches.filter(_._2.size() > 0)
+          val nonEmpty = sketches.filter(_._2.size > 0)
+          val sNonEmpty = s.sketches.filter(_._2.size > 0)
           nonEmpty.keys == sNonEmpty.keys && nonEmpty.keys.forall { k =>
-            new RichCountMinSketch(sketches(k)).isEquivalent(s.sketches(k))
+            sketches(k).isEquivalent(s.sketches(k))
           }
         }
       case _ => false

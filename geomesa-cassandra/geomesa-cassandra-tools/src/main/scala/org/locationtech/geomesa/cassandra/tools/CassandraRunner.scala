@@ -30,6 +30,7 @@ object CassandraRunner extends Runner {
     new CassandraDeleteFeaturesCommand,
     new CassandraIngestCommand,
     new CassandraExportCommand,
+    new CassandraExplainCommand,
     new ConfigureCommand,
     new ClasspathCommand
   )

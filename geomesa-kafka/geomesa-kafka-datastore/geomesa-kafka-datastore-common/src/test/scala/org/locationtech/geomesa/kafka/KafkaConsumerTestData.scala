@@ -23,7 +23,7 @@ object KafkaConsumerTestData {
   val sft = KafkaDataStoreHelper.createStreamingSFT(
     SimpleFeatureTypes.createType(typeName, "trackId:String,*geom:LineString:srid=4326"), "/test")
 
-  val track0v0 = track("track0", "LineString (30 30, 30 30)")
+  val track0v0 = track("track0", "LineString (30 30, 30 31)")
   val track0v1 = track("track0", "LineString (30 30, 35 30)")
   val track0v2 = track("track0", "LineString (30 30, 35 30, 40 34)")
   val track0v3 = track("track0", "LineString (30 30, 35 32, 40 34, 45 36)")
@@ -33,12 +33,12 @@ object KafkaConsumerTestData {
   val track1v1 = track("track1", "LineString (50 20, 40 30)")
   val track1v2 = track("track1", "LineString (50 20, 40 30, 30 30)")
 
-  val track2v0 = track("track2", "LineString (30 30, 30 30)")
+  val track2v0 = track("track2", "LineString (30 30, 30 31)")
   val track2v1 = track("track2", "LineString (30 30, 30 25)")
   val track2v2 = track("track2", "LineString (30 30, 30 25, 28 20)")
   val track2v3 = track("track2", "LineString (30 30, 30 25, 25 20, 20 15)")
 
-  val track3v0 = track("track3", "LineString (0 60,  0 60)")
+  val track3v0 = track("track3", "LineString (0 60,  1 60)")
   val track3v1 = track("track3", "LineString (0 60, 10 60)")
   val track3v2 = track("track3", "LineString (0 60, 10 60, 20 55)")
   val track3v3 = track("track3", "LineString (0 60, 10 60, 20 55, 30 40)")

@@ -36,6 +36,7 @@ artifact with the ``data`` classifier. For example, for Maven add the following 
     geonames
     gtd
     nyctaxi
+    osm
     osm-gpx
     tdrive
     twitter

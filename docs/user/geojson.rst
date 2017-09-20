@@ -640,6 +640,7 @@ Query features with a predicate.
 | **Notes**       | See `Querying Features`_ for full query syntax                                       |
 +-----------------+--------------------------------------------------------------------------------------+
 
+.. _json_attributes:
 
 JSON Attributes
 ---------------

@@ -9,11 +9,15 @@
 package org.locationtech.geomesa.tools
 
 import java.util
+import java.util.Locale
 import java.util.regex.Pattern
 
+import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.tools.DistributedRunParam.ModeConverter
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
@@ -187,6 +191,27 @@ trait OptionalIndexParam extends TypeNameParam {
       matched.getOrElse {
         throw new ParameterException(s"Specified index ' $index' not found. " +
         s"Available indices are: ${indices.map(_.identifier).mkString(", ")}")
+      }
+    }
+  }
+}
+
+trait DistributedRunParam {
+  @Parameter(names = Array("--run-mode"), description = "Run locally or on a cluster", required = false, converter = classOf[ModeConverter])
+  var mode: RunMode = _
+}
+
+object DistributedRunParam {
+  object RunModes extends Enumeration {
+    type RunMode = Value
+    val Distributed, Local = Value
+  }
+
+  class ModeConverter(name: String) extends BaseConverter[RunMode](name) {
+    override def convert(value: String): RunMode = {
+      Option(value).flatMap(v => RunModes.values.find(_.toString.equalsIgnoreCase(v))).getOrElse {
+        val error = s"run-mode. Valid values are: ${RunModes.values.map(_.toString.toLowerCase(Locale.US)).mkString(", ")}"
+        throw new ParameterException(getErrorString(value, error))
       }
     }
   }

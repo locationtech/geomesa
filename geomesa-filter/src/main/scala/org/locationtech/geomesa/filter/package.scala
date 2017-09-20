@@ -10,9 +10,11 @@ package org.locationtech.geomesa
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.filter.expression.AttributeExpression
+import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, Literal, PropertyName}
+import org.opengis.filter.expression.{Expression, Function, Literal, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 
@@ -24,21 +26,7 @@ package object filter {
   // Claim: FilterFactory implementations seem to be thread-safe away from
   //  'namespace' and 'function' calls.
   // As such, we can get away with using a shared Filter Factory.
-  implicit val ff = CommonFactoryFinder.getFilterFactory2
-
-  implicit class RichFilter(val filter: Filter) {
-    def &&(that: Filter) = ff.and(filter, that)
-
-    def ||(that: Filter) = ff.or(filter, that)
-
-    def ! = ff.not(filter)
-  }
-
-  implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
-
-  implicit def intToAttributeFilter(i: Int): Filter = s"attr$i = val$i"
-
-  implicit def intToFilter(i: Int): RichFilter = intToAttributeFilter(i)
+  implicit val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
 
   def filterToString(filter: Filter): String = Try(ECQL.toCQL(filter)).getOrElse(filter.toString)
   def filterToString(filter: Option[Filter]): String = filter.map(filterToString).getOrElse("None")
@@ -95,7 +83,7 @@ package object filter {
       not.getFilter match {
         case and: And => logicDistributionDNF(deMorgan(and))
         case or:  Or => logicDistributionDNF(deMorgan(or))
-        case f: Filter => List(List(not))
+        case _: Filter => List(List(not))
       }
 
     case f: Filter => List(List(f))
@@ -210,7 +198,7 @@ package object filter {
       not.getFilter match {
         case and: And => logicDistributionCNF(deMorgan(and))
         case or:  Or => logicDistributionCNF(deMorgan(or))
-        case f: Filter => List(List(not))
+        case _: Filter => List(List(not))
       }
 
     case f: Filter => List(List(f))
@@ -255,7 +243,7 @@ package object filter {
   def partitionIndexedAttributes(filters: Seq[Filter], sft: SimpleFeatureType): PartionedFilter =
     filters.partition(isIndexedAttributeFilter(_, sft))
 
-  def partitionID(filter: Filter) = partitionSubFilters(filter, isIdFilter)
+  def partitionID(filter: Filter): (Seq[Filter], Seq[Filter]) = partitionSubFilters(filter, isIdFilter)
 
   def isIdFilter(f: Filter): Boolean = f.isInstanceOf[Id]
 
@@ -285,45 +273,42 @@ package object filter {
     }
   }
 
-  def isTemporalFilter(f: Filter, dtg: String): Boolean = getAttributeProperty(f).exists(_.name == dtg)
+  // noinspection ExistsEquals
+  def isTemporalFilter(f: Filter, dtg: String): Boolean = getAttributeProperty(f).exists(_ == dtg)
 
   def isPrimaryTemporalFilter(f: Filter, sft: SimpleFeatureType): Boolean = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     sft.getDtgField.exists(isTemporalFilter(f, _))
   }
 
-  def attrIndexed(p: PropertyLiteral, sft: SimpleFeatureType): Boolean = attrIndexed(p.name, sft)
-
   def attrIndexed(name: String, sft: SimpleFeatureType): Boolean = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
     Option(sft.getDescriptor(name)).exists(_.isIndexed)
   }
 
-  def isIndexedAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean = {
-    val attrProp = getAttributeProperty(f)
-    attrProp.exists(attrIndexed(_, sft))
-  }
+  def isIndexedAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean =
+    getAttributeProperty(f).exists(attrIndexed(_, sft))
 
-  def getAttributeProperty(f: Filter): Option[PropertyLiteral] = {
+  private def getAttributeProperty(f: Filter): Option[String] = {
     f match {
       // equals checks
-      case f: PropertyIsEqualTo => checkOrder(f.getExpression1, f.getExpression2)
-      case f: TEquals           => checkOrder(f.getExpression1, f.getExpression2)
+      case f: PropertyIsEqualTo => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
+      case f: TEquals           => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
 
       // like checks
       case f: PropertyIsLike =>
         if (likeEligible(f)) {
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          Some(PropertyLiteral(prop, ff.literal(f.getLiteral), None))
+          Some(prop)
         } else {
           None
         }
 
       // range checks
-      case f: PropertyIsGreaterThan          => checkOrder(f.getExpression1, f.getExpression2)
-      case f: PropertyIsGreaterThanOrEqualTo => checkOrder(f.getExpression1, f.getExpression2)
-      case f: PropertyIsLessThan             => checkOrder(f.getExpression1, f.getExpression2)
-      case f: PropertyIsLessThanOrEqualTo    => checkOrder(f.getExpression1, f.getExpression2)
+      case f: PropertyIsGreaterThan          => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
+      case f: PropertyIsGreaterThanOrEqualTo => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
+      case f: PropertyIsLessThan             => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
+      case f: PropertyIsLessThanOrEqualTo    => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
       case f: PropertyIsBetween =>
         val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
         val (left, right) = (f.getLowerBoundary, f.getUpperBoundary) match {
@@ -331,21 +316,20 @@ package object filter {
           case _ => (null, null)
         }
         if (left != null && right != null) {
-          Some(PropertyLiteral(prop, left, Some(right)))
+          Some(prop)
         } else {
           None
         }
 
       // date range checks
-      case f: Before => checkOrder(f.getExpression1, f.getExpression2)
-      case f: After  => checkOrder(f.getExpression1, f.getExpression2)
-      case f: During => checkOrder(f.getExpression1, f.getExpression2)
+      case f: Before => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
+      case f: After  => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
+      case f: During => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
 
       // not check - we only support 'not null' for an indexed attribute
       case n: Not =>
         Option(n.getFilter).collect { case f: PropertyIsNull => f }.map { f =>
-          val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          PropertyLiteral(prop, null, None)
+          f.getExpression.asInstanceOf[PropertyName].getPropertyName
         }
 
       case _ => None
@@ -421,22 +405,44 @@ package object filter {
    * @param two second expression
    * @return (prop, literal, whether the order was flipped)
    */
-  def checkOrder(one: Expression, two: Expression): Option[PropertyLiteral] =
+  def checkOrder(one: Expression, two: Expression): Option[AttributeExpression] = {
     (one, two) match {
-      case (p: PropertyName, l: Literal) => Some(PropertyLiteral(p.getPropertyName, l, None, flipped = false))
-      case (l: Literal, p: PropertyName) => Some(PropertyLiteral(p.getPropertyName, l, None, flipped = true))
+      case (p: PropertyName, l: Literal) => Some(PropertyLiteral(p.getPropertyName, l, flipped = false))
+      case (l: Literal, p: PropertyName) => Some(PropertyLiteral(p.getPropertyName, l, flipped = true))
+      case (f: Function, l: Literal)     => attribute(f).map(FunctionLiteral(_, f, l, flipped = false))
+      case (l: Literal, f: Function)     => attribute(f).map(FunctionLiteral(_, f, l, flipped = true))
+
+      case (p: PropertyName, f: Function) if attribute(f).isEmpty =>
+        Some(PropertyLiteral(p.getPropertyName, ff.literal(f.evaluate(null)), flipped = false))
+
+      case (f: Function, p: PropertyName) if attribute(f).isEmpty =>
+        Some(PropertyLiteral(p.getPropertyName, ff.literal(f.evaluate(null)), flipped = true))
+
+      case (f1: Function, f2: Function) =>
+        (attribute(f1), attribute(f2)) match {
+          case (Some(a), None) => Some(FunctionLiteral(a, f1, ff.literal(f2.evaluate(null))))
+          case (None, Some(a)) => Some(FunctionLiteral(a, f2, ff.literal(f1.evaluate(null))))
+          case _ => None
+        }
+
       case _ => None
     }
+  }
 
   /**
    * Checks the order of properties and literals in the expression - if the expression does not contain
    * a property and a literal, throws an exception.
    *
-   * @param one
-   * @param two
-   * @return
+   * @param one first expression
+    * @param two second expression
+    * @return (prop, literal, whether the order was flipped)
    */
-  def checkOrderUnsafe(one: Expression, two: Expression): PropertyLiteral =
-    checkOrder(one, two)
-        .getOrElse(throw new RuntimeException("Expressions did not contain valid property and literal"))
+  def checkOrderUnsafe(one: Expression, two: Expression): AttributeExpression = {
+    checkOrder(one, two).getOrElse {
+      throw new RuntimeException(s"Expressions did not contain valid property and literal: $one, $two")
+    }
+  }
+
+  private def attribute(f: Function): Option[String] =
+    f.getParameters.collect { case p: PropertyName => p.getPropertyName }.headOption
 }

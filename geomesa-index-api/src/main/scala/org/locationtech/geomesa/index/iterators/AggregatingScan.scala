@@ -19,7 +19,8 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] extends SamplingIterator {
+trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
+    extends SamplingIterator with ConfiguredScan {
 
   import AggregatingScan.Configuration._
 
@@ -39,7 +40,7 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }] e
   private var getId: (Array[Byte], Int, Int) => String = _
   private var hasTransform: Boolean = _
 
-  def init(options: Map[String, String]): Unit = {
+  override def init(options: Map[String, String]): Unit = {
     val spec = options(SftOpt)
     sft = IteratorCache.sft(spec)
 

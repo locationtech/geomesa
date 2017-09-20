@@ -20,6 +20,8 @@ import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.AttributeSplittable
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex.{NullByteArray, decode}
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AttributeSplittable}
 import org.locationtech.geomesa.index.index.AttributeIndex.AttributeRowDecoder
@@ -81,7 +83,7 @@ trait AttributeWritableIndex extends AccumuloFeatureIndex
     AttributeWritableIndex.getRowKeys(indexedAttributes, prefix, getSuffix)
   }
 
-  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[Any] = {
+  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[AnyRef] = {
     val from = if (sft.isTableSharing) 3 else 2 // exclude feature byte and index bytes
     val descriptor = sft.getDescriptor(index)
     (row, offset, length) => Try {
@@ -291,7 +293,7 @@ object AttributeWritableIndex extends LazyLogging {
    * @param descriptor
    * @return
    */
-  def decode(encoded: String, descriptor: AttributeDescriptor): Any = {
+  def decode(encoded: String, descriptor: AttributeDescriptor): AnyRef = {
     if (descriptor.isList) {
       // get the alias from the type of values in the collection
       val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)

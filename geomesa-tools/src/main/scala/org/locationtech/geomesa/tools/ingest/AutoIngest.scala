@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.ingest
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.tools.utils.DataFormats._
 
@@ -28,10 +29,11 @@ class AutoIngest(typeName: String,
                  dsParams: Map[String, String],
                  inputs: Seq[String],
                  format: DataFormat,
+                 mode: Option[RunMode],
                  libjarsFile: String,
                  libjarsPaths: Iterator[() => Seq[File]],
                  numLocalThreads: Int)
-    extends AbstractIngest(dsParams, typeName, inputs, libjarsFile, libjarsPaths, numLocalThreads) {
+    extends AbstractIngest(dsParams, typeName, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
   import org.locationtech.geomesa.tools.utils.DataFormats._
 
@@ -39,7 +41,7 @@ class AutoIngest(typeName: String,
 
   override def beforeRunTasks(): Unit = {}
 
-  override def createLocalConverter(file: File, failures: AtomicLong): LocalIngestConverter = {
+  override def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter = {
     format match {
       case Avro      => new AvroIngestConverter(ds, typeName)
       case Tsv | Csv => new DelimitedIngestConverter(ds, typeName, format)

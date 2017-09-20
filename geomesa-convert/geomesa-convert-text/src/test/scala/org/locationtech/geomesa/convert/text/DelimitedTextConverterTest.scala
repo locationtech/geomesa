@@ -491,6 +491,42 @@ class DelimitedTextConverterTest extends Specification {
       "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "he'llo" }
     }
 
+    "handle custom delimiter" >> {
+
+      val data =
+        """
+          |1;hello;45.0;45.0
+          |2;world;90.0;90.0
+        """.stripMargin
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          |   options = {
+          |      delimiter = ";"
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not(beNull)
+      val res = converter.processInput(data.split("\n").toIterator).toList
+      converter.close()
+      res must haveLength(2)
+      res(0).getAttribute("phrase") mustEqual "hello"
+      res(1).getAttribute("phrase") mustEqual "world"
+    }
+
     "throw error on escape length > 1" >> {
       val conf = ConfigFactory.parseString(
         """

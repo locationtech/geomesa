@@ -50,7 +50,6 @@ trait SimpleFeatureMatchers extends Specification {
 
     actual: JList[_] => {
       actual must not(beNull)
-      actual.size() mustEqual expected.size
       actual.asScala.toSet mustEqual expectedSet
     }
   }

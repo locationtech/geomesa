@@ -12,14 +12,18 @@ import java.io._
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicLong
 
+import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
+import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
-import org.joda.time.format.PeriodFormatterBuilder
+import org.joda.time.format.{PeriodFormatter, PeriodFormatterBuilder}
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.utils.classpath.PathUtils
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
+import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.stats.CountingInputStream
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -41,6 +45,7 @@ import scala.util.control.NonFatal
 abstract class AbstractIngest(val dsParams: Map[String, String],
                               typeName: String,
                               inputs: Seq[String],
+                              mode: Option[RunMode],
                               libjarsFile: String,
                               libjarsPaths: Iterator[() => Seq[File]],
                               numLocalThreads: Int) extends Runnable with LazyLogging {
@@ -53,13 +58,13 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
   def beforeRunTasks(): Unit
 
   /**
-   * Create a local ingestion converter
-   *
-   * @param file file being operated on
-   * @param failures used to tracks failures
-   * @return local converter
-   */
-  def createLocalConverter(file: File, failures: AtomicLong): LocalIngestConverter
+    * Create a local ingestion converter
+    *
+    * @param path path of the file being operated on
+    * @param failures used to tracks failures
+    * @return local converter
+    */
+  def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter
 
   /**
     * Run a distributed ingestion
@@ -69,20 +74,34 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     */
   def runDistributedJob(statusCallback: StatusCallback): (Long, Long)
 
-  protected val ds = DataStoreFinder.getDataStore(dsParams)
+  protected val ds: DataStore = DataStoreFinder.getDataStore(dsParams)
 
   /**
    * Main method to kick off ingestion
    */
   override def run(): Unit = {
-    beforeRunTasks()
-    val distPrefixes = Seq("hdfs://", "s3n://", "s3a://", "wasb://", "wasbs://")
-    if (distPrefixes.exists(inputs.head.toLowerCase.startsWith)) {
-      Command.user.info("Running ingestion in distributed mode")
-      runDistributed()
-    } else {
+    def local(): Unit = {
+      beforeRunTasks()
       Command.user.info("Running ingestion in local mode")
       runLocal()
+    }
+
+    def distributed(): Unit = {
+      beforeRunTasks()
+      Command.user.info("Running ingestion in distributed mode")
+      runDistributed()
+    }
+
+    if (PathUtils.isRemote(inputs.head)) {
+      if (mode.contains(RunModes.Local)) {
+        local()
+      } else {
+        distributed()
+      }
+    } else if (mode.forall(_ == RunModes.Local)) {
+      local()
+    } else {
+      throw new ParameterException("To run in distributed mode, please copy input files to a distributed file system")
     }
     ds.dispose()
   }
@@ -94,16 +113,16 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
     val bytesRead = new AtomicLong(0L)
 
-    class LocalIngestWorker(file: File) extends Runnable {
+    class LocalIngestWorker(file: FileHandle) extends Runnable {
       override def run(): Unit = {
         try {
           // only create the feature writer after the converter runs
           // so that we can create the schema based off the input file
           var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
-          val converter = createLocalConverter(file, failed)
+          val converter = createLocalConverter(file.path, failed)
           // count the raw bytes read from the file, as that's what we based our total on
-          val countingStream = new CountingInputStream(new FileInputStream(file))
-          val is = PathUtils.handleCompression(countingStream, file.getPath)
+          val countingStream = new CountingInputStream(file.open)
+          val is = PathUtils.handleCompression(countingStream, file.path)
           try {
             val (sft, features) = converter.convert(is)
             if (features.hasNext) {
@@ -141,9 +160,9 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
           case NonFatal(e) =>
             // Don't kill the entire program bc this thread was bad! use outer try/catch
-            val msg = s"Fatal error running local ingest worker on file ${file.getPath}"
+            val msg = s"Fatal error running local ingest worker on file ${file.path}"
             Command.user.error(msg)
-            logger.error(s"Fatal error running local ingest worker on file ${file.getPath}", e)
+            logger.error(msg, e)
         }
       }
     }
@@ -164,7 +183,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     val start = System.currentTimeMillis()
     val statusCallback = createCallback()
     val es = Executors.newFixedThreadPool(threads)
-    val futures = files.map(f => es.submit(new LocalIngestWorker(f)))
+    val futures = files.map(f => es.submit(new LocalIngestWorker(f))).toList
     es.shutdown()
 
     def counters = Seq(("ingested", written.get()), ("failed", failed.get()))
@@ -202,7 +221,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
 object AbstractIngest {
 
-  val PeriodFormatter =
+  val PeriodFormatter: PeriodFormatter =
     new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways()
       .appendHours().appendSeparator(":").appendMinutes().appendSeparator(":").appendSeconds().toFormatter
 

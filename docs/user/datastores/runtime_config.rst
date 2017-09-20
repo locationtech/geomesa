@@ -55,6 +55,8 @@ slowdowns. The optimal value depends on the environment. Note that for temporal 
 Z3 or XZ3 index, the number of ranges will be multiplied by the number of time periods (e.g. weeks by
 default) being queried.
 
+.. _stats_generate_config:
+
 geomesa.stats.generate
 ++++++++++++++++++++++
 

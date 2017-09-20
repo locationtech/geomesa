@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-hbase_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.3.4-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -135,11 +135,6 @@
                                 </filter>
                             </filters>
                             <relocations>
-                                <relocation>
-                                    <pattern>com.clearspring.analytics</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.bigtable.shaded.com.clearspring.analytics
-                                    </shadedPattern>
-                                </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.locationtech.geomesa.bigtable.shaded.com.google.common</shadedPattern>

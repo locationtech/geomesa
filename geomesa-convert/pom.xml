@@ -11,7 +11,7 @@
     <parent>
         <artifactId>geomesa_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.3.4-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -29,6 +29,7 @@
         <module>geomesa-convert-scripting</module>
         <module>geomesa-convert-osm</module>
         <module>geomesa-convert-all</module>
+        <module>geomesa-convert-redis-cache</module>
     </modules>
 
 </project>

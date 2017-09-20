@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.utils
 import org.apache.commons.codec.binary.Base64
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.conf.QueryHints.{ENCODE_STATS, RichHints, STATS_STRING}
+import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
@@ -19,7 +19,8 @@ import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object KryoLazyStatsUtils {
-  val StatsSft = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
+
+  val StatsSft: SimpleFeatureType = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
 
   /**
     * Encodes a stat as a base64 string.

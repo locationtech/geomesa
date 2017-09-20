@@ -89,8 +89,8 @@ class AttributeIndexTest extends Specification {
         val q = new Query(typeName, ECQL.toFilter(filter))
         // validate that ranges do not overlap
         foreach(ds.getQueryPlan(q, explainer = explain)) { qp =>
-          implicit val ordering = Ordering.comparatorToOrdering(TestGeoMesaDataStore.byteComparator)
-          val ranges = qp.asInstanceOf[TestQueryPlan].ranges.sortBy(_.start)
+          val ordering = Ordering.comparatorToOrdering(TestGeoMesaDataStore.byteComparator)
+          val ranges = qp.asInstanceOf[TestQueryPlan].ranges.sortBy(_.start)(ordering)
           forall(ranges.sliding(2)) { case Seq(left, right) => overlaps(left, right) must beFalse }
         }
         SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
@@ -104,6 +104,40 @@ class AttributeIndexTest extends Specification {
       val results = execute(s"height = 12.0 AND $stFilter")
       results must haveLength(1)
       results must contain("bob")
+    }
+
+    "handle functions" in {
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach { f =>
+          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+          writer.write()
+        }
+      }
+
+      val filters = Seq (
+        "strToUpperCase(name) = 'BILL'",
+        "strCapitalize(name) = 'Bill'",
+        "strConcat(name, 'foo') = 'billfoo'",
+        "strIndexOf(name, 'ill') = 1",
+        "strReplace(name, 'ill', 'all', false) = 'ball'",
+        "strSubstring(name, 0, 2) = 'bi'",
+        "strToLowerCase(name) = 'bill'",
+        "strTrim(name) = 'bill'",
+        "abs(age) = 21",
+        "ceil(age) = 21",
+        "floor(age) = 21",
+        "'BILL' = strToUpperCase(name)",
+        "strToUpperCase('bill') = strToUpperCase(name)",
+        "strToUpperCase(name) = strToUpperCase('bill')",
+        "name = strToLowerCase('bill')"
+      )
+      foreach(filters) { filter =>
+        val query = new Query(typeName, ECQL.toFilter(filter))
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq mustEqual features.slice(1, 2)
+      }
     }
 
     "handle open-ended secondary filters" in {
@@ -137,7 +171,7 @@ class AttributeIndexTest extends Specification {
 
       val numFeatures = 5000
       val features = (0 until numFeatures).map { i =>
-        val a = (0 until 20).map(i => r.nextInt(9).toString).mkString + "<foobar>"
+        val a = (0 until 20).map(_ => r.nextInt(9).toString).mkString + "<foobar>"
         val day = i % 30
         val values = Array[AnyRef](a, f"2014-01-$day%02dT01:00:00.000Z", WKTUtils.read(s"POINT(45.0 45)") )
         val sf = new ScalaSimpleFeature(sft, i.toString, values)

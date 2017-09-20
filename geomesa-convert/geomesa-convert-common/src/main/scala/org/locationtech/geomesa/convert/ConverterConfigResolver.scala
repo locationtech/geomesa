@@ -13,8 +13,8 @@ import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.conf.ArgResolver
+import org.locationtech.geomesa.utils.io.PathUtils
 
 import scala.util.control.NonFatal
 
@@ -41,7 +41,7 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
     }
   }
 
-  override val parseMethodList = List[ConfArgs => ResEither](
+  override val parseMethodList: List[(ConfArgs) => ResEither] = List[ConfArgs => ResEither](
     getLoadedConf,
     parseFile,
     parseString
@@ -69,7 +69,10 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
 
   private [ConverterConfigResolver] def parseFile(args: ConfArgs): ResEither = {
     try {
-      val reader = new InputStreamReader(PathUtils.getInputStream(args.config), StandardCharsets.UTF_8)
+      val is = PathUtils.interpretPath(args.config).headOption.map(_.open).getOrElse {
+        throw new RuntimeException(s"Could not read file at ${args.config}")
+      }
+      val reader = new InputStreamReader(is, StandardCharsets.UTF_8)
       val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseReader(reader, parseOpts))
       if (confs.size > 1) {
         logger.warn(s"Found more than one SFT conf in arg '${args.config}'")

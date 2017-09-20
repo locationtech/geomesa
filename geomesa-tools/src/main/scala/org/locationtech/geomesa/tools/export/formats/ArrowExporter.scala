@@ -20,11 +20,11 @@ import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, SimpleFeatur
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable.ArrayBuffer
-import scala.math.Ordering
 
 class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[String, Seq[AnyRef]])
     extends FeatureExporter {
@@ -129,13 +129,7 @@ object ArrowExporter {
     val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
     val batchWriter = new RecordBatchUnloader(vector)
 
-    val ordering = new Ordering[SimpleFeature] {
-      override def compare(x: SimpleFeature, y: SimpleFeature): Int = {
-        val left = x.getAttribute(sortField).asInstanceOf[Comparable[Any]]
-        val right = y.getAttribute(sortField).asInstanceOf[Comparable[Any]]
-        left.compareTo(right)
-      }
-    }
+    val ordering = SimpleFeatureOrdering(sft.indexOf(sortField))
 
     val batches = ArrayBuffer.empty[Array[Byte]]
     val batch = Array.ofDim[SimpleFeature](batchSize)

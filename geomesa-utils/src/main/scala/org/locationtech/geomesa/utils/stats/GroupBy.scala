@@ -71,13 +71,13 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     newGB
   }
 
-  override def toJsonObject = {
+  override def toJsonObject: Any = {
     val keyClass = groupedStats.keys.headOption.map(_.getClass).getOrElse(ct.runtimeClass)
     if (classOf[Comparable[T]].isAssignableFrom(keyClass)) {
-      implicit val ordering = new Ordering[T] {
+      val ordering = new Ordering[T] {
         def compare(l: T, r: T): Int = l.asInstanceOf[Comparable[T]].compareTo(r)
       }
-      groupedStats.toSeq.sortBy(_._1)
+      groupedStats.toSeq.sortBy(_._1)(ordering)
     } else {
       groupedStats.toSeq
     }
