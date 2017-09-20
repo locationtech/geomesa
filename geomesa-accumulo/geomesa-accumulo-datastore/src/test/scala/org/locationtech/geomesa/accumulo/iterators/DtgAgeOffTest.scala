@@ -8,30 +8,23 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{DateTime, DateTimeZone, Period}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class DtgAgeOffTest extends Specification with TestWithDataStore {
@@ -39,27 +32,13 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
   sequential
 
   override val spec = "some_id:String,dtg:Date,geom:Point:srid=4326"
+  override val tableSharing = false
 
   "DTGAgeOff" should {
 
     def configAgeOff(ads: AccumuloDataStore, days: Int): Unit = {
-
-      val tOpt = ads.connector.tableOperations()
-      val reloadedSft = ads.getSchema(sft.getTypeName)
-
-      AccumuloFeatureIndex.indices(reloadedSft, IndexMode.Any).foreach { afi =>
-        val tableName = afi.getTableName(reloadedSft.getTypeName, ds)
-        tOpt.listIterators(tableName).filter(_._1 == "ageoff").foreach { case (i, e) =>
-          tOpt.removeIterator(tableName, i, e)
-        }
-
-        val is = new IteratorSetting(5, "ageoff", classOf[DtgAgeOffIterator].getCanonicalName)
-        is.addOption(AgeOffFilter.Options.SftOpt, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-        is.addOption(DtgAgeOffIterator.Options.RetentionPeriodOpt, s"P${days}D")
-        is.addOption(AgeOffFilter.Options.IndexOpt, afi.identifier)
-
-        tOpt.attachIterator(tableName, is)
-      }
+      DtgAgeOffIterator.clear(ads, ads.getSchema(sft.getTypeName))
+      DtgAgeOffIterator.set(ads, ads.getSchema(sft.getTypeName), Period.days(days), "dtg")
     }
 
     val today: DateTime = DateTime.now(DateTimeZone.UTC)
@@ -77,17 +56,17 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
       sf
     }
 
-    def testDays(d: Int): mutable.Buffer[SimpleFeature] = {
+    def testDays(d: Int): Seq[SimpleFeature] = {
       configAgeOff(ds, d)
-      SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toBuffer
+      SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toSeq
     }
 
     "run at scan time" >> {
       addFeatures((1 to 10).map(i => createSF(i, s"id_$i", Some("A"))))
-      testDays(11).size mustEqual 10
-      testDays(10).size mustEqual 9
-      testDays(5).size mustEqual 4
-      testDays(1).size mustEqual 0
+      testDays(11) must haveSize(10)
+      testDays(10) must haveSize(9)
+      testDays(5) must haveSize(4)
+      testDays(1) must haveSize(0)
 
       success
     }
@@ -95,10 +74,10 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
     "respect vis with ageoff (vis trumps ageoff)" >> {
       // these exist but shouldn't be read!
       addFeatures((1 to 10).map(i => createSF(i, s"anotherid_$i", Some("D"))))
-      testDays(11).size mustEqual 10
-      testDays(10).size mustEqual 9
-      testDays(5).size mustEqual 4
-      testDays(1).size mustEqual 0
+      testDays(11) must haveSize(10)
+      testDays(10) must haveSize(9)
+      testDays(5) must haveSize(4)
+      testDays(1) must haveSize(0)
 
       val dsWithExtraAuth = {
         val connWithExtraAuth = {
@@ -115,29 +94,28 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
           "tableName" -> sftName).asJava).asInstanceOf[AccumuloDataStore]
       }
 
-      def testWithExtraAuth(d: Int): mutable.Buffer[SimpleFeature] = {
+      def testWithExtraAuth(d: Int): Seq[SimpleFeature] = {
         configAgeOff(dsWithExtraAuth, d)
-        SelfClosingIterator(dsWithExtraAuth.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toBuffer
+        SelfClosingIterator(dsWithExtraAuth.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toSeq
       }
-      testWithExtraAuth(11).size mustEqual 20
-      testWithExtraAuth(10).size mustEqual 18
-      testWithExtraAuth(5).size mustEqual 8
-      testWithExtraAuth(1).size mustEqual 0
+
+      testWithExtraAuth(11) must haveSize(20)
+      testWithExtraAuth(10) must haveSize(18)
+      testWithExtraAuth(5) must haveSize(8)
+      testWithExtraAuth(1) must haveSize(0)
 
       // these can be read
       addFeatures((1 to 10).map(i => createSF(i, s"anotherid_$i", Some("C"))))
-      testDays(11).size mustEqual 20
-      testDays(10).size mustEqual 18
-      testDays(5).size mustEqual 8
-      testDays(1).size mustEqual 0
+      testDays(11) must haveSize(20)
+      testDays(10) must haveSize(18)
+      testDays(5) must haveSize(8)
+      testDays(1) must haveSize(0)
 
       // these are 3x
-      testWithExtraAuth(11).size mustEqual 30
-      testWithExtraAuth(10).size mustEqual 27
-      testWithExtraAuth(5).size mustEqual 12
-      testWithExtraAuth(1).size mustEqual 0
-
-      success
+      testWithExtraAuth(11) must haveSize(30)
+      testWithExtraAuth(10) must haveSize(27)
+      testWithExtraAuth(5) must haveSize(12)
+      testWithExtraAuth(1) must haveSize(0)
     }
   }
 }

@@ -16,6 +16,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption._
+import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
 import org.opengis.feature.`type`.Name
@@ -37,7 +38,6 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
                               options: Set[SerializationOption]) extends SimpleFeature {
   private var offset: Int = _
   private var length: Int = _
-
 
   private val input = new Input
   private val offsets = Array.ofDim[Int](sft.getAttributeCount)
@@ -126,8 +126,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     // transforms by evaluating the transform expressions and then serializing the resulting feature
     // we use this for transform expressions and for data that was written using an old schema
     reserializeTransform = {
-      val serializer = new KryoFeatureSerializer(transformSchema, options)
-      val sf = new ScalaSimpleFeature("", transformSchema)
+      val serializer = KryoFeatureSerializer(transformSchema, options)
+      val sf = new ScalaSimpleFeature(transformSchema, "")
       () => {
         sf.setId(getID)
         var i = 0
@@ -284,5 +284,5 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 }
 
 object KryoBufferSimpleFeature {
-  val longReader = KryoFeatureSerializer.matchReader(ObjectType.LONG)
+  val longReader = KryoFeatureDeserialization.matchReader(ObjectType.LONG)
 }

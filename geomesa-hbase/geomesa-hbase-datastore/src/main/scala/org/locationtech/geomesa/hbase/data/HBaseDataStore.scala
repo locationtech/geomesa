@@ -13,7 +13,6 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.security.visibility.Authorizations
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
@@ -21,8 +20,9 @@ import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMes
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
+import org.locationtech.geomesa.index.stats.{DistributedRunnableStats, GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils._
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -35,7 +35,8 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
 
   override def manager: HBaseIndexManagerType = HBaseFeatureIndex
 
-  override def stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
+  override def stats: GeoMesaStats =
+    if (config.remoteFilter) { new DistributedRunnableStats(this) } else { new UnoptimizedRunnableStats(this) }
 
   override def createFeatureWriterAppend(sft: SimpleFeatureType,
                                          indices: Option[Seq[HBaseFeatureIndexType]]): HBaseFeatureWriterType =
@@ -75,9 +76,7 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
     super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[HBaseQueryPlan]]
   }
 
-  override def dispose(): Unit = {
-    super.dispose()
-  }
+  override def dispose(): Unit = super.dispose()
 
   override protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
     new HBaseFeatureCollection(source, query)

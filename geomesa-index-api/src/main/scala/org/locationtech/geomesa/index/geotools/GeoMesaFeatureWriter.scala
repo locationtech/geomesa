@@ -203,7 +203,7 @@ trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedF
     throw new UnsupportedOperationException("Use getFeatureWriter instead of getFeatureWriterAppend")
 
   override def next(): SimpleFeature = {
-    currentFeature = new ScalaSimpleFeature(nextFeatureId, sft)
+    currentFeature = new ScalaSimpleFeature(sft, nextFeatureId)
     currentFeature
   }
 

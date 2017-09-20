@@ -15,6 +15,8 @@ import com.vividsolutions.jts.geom._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.spatial.BBOXImpl
 import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.filter.Bounds.Bound
+import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
@@ -26,7 +28,6 @@ import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
 
-import scala.collection.GenTraversableOnce
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
@@ -35,9 +36,6 @@ object FilterHelper {
 
   import org.locationtech.geomesa.utils.geotools.GeometryUtils.{geoFactory => gf}
   import org.locationtech.geomesa.utils.geotools.WholeWorldPolygon
-
-  val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
-  val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
 
   private val SafeGeomString = "gm-safe"
 
@@ -144,15 +142,15 @@ object FilterHelper {
                              args: Any): Filter = {
     val (e1, e2) = if (flipped) (ff.literal(geom), ff.property(property)) else (ff.property(property), ff.literal(geom))
     op match {
-      case op: Within     => ff.within(e1, e2)
-      case op: Intersects => ff.intersects(e1, e2)
-      case op: Overlaps   => ff.overlaps(e1, e2)
+      case _: Within     => ff.within(e1, e2)
+      case _: Intersects => ff.intersects(e1, e2)
+      case _: Overlaps   => ff.overlaps(e1, e2)
       // note: The ECQL spec doesn't allow for us to put the measurement
       // in "degrees", but that's how this filter will be used.
-      case op: DWithin    => ff.dwithin(e1, e2, args.asInstanceOf[Double], "meters")
+      case _: DWithin    => ff.dwithin(e1, e2, args.asInstanceOf[Double], "meters")
       // use the direct constructor so that we preserve our geom user data
-      case op: BBOX       => new BBOXImpl(e1, e2)
-      case op: Contains   => ff.contains(e1, e2)
+      case _: BBOX       => new BBOXImpl(e1, e2)
+      case _: Contains   => ff.contains(e1, e2)
     }
   }
 
@@ -237,7 +235,7 @@ object FilterHelper {
           val buffered = filter match {
             // note: the dwithin should have already between rewritten
             case dwithin: DWithin => geom.buffer(dwithin.getDistance)
-            case bbox: BBOX =>
+            case _: BBOX =>
               val geomCopy = gf.createGeometry(geom)
               val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
               addWayPointsToBBOX(trimmedGeom)
@@ -269,28 +267,35 @@ object FilterHelper {
   def extractIntervals(filter: Filter,
                        attribute: String,
                        intersect: Boolean = true,
-                       handleExclusiveBounds: Boolean = false): FilterValues[(DateTime, DateTime)] = {
+                       handleExclusiveBounds: Boolean = false): FilterValues[Bounds[DateTime]] = {
     extractAttributeBounds(filter, attribute, classOf[Date]).map { bounds =>
-      var lower, upper: DateTime = null
-      if (bounds.inclusive || !handleExclusiveBounds) {
-        lower = bounds.lower.map(new DateTime(_, DateTimeZone.UTC)).getOrElse(MinDateTime)
-        upper = bounds.upper.map(new DateTime(_, DateTimeZone.UTC)).getOrElse(MaxDateTime)
-      } else if (bounds.lower.isEmpty || bounds.upper.isEmpty) {
-        lower = bounds.lower.map(new DateTime(_, DateTimeZone.UTC)).map(roundSecondsUp).getOrElse(MinDateTime)
-        upper = bounds.upper.map(new DateTime(_, DateTimeZone.UTC)).map(roundSecondsDown).getOrElse(MaxDateTime)
+      var lower, upper: Bound[DateTime] = null
+      if (!handleExclusiveBounds || bounds.lower.value.isEmpty || bounds.upper.value.isEmpty ||
+          (bounds.lower.inclusive && bounds.upper.inclusive)) {
+        lower = createDateTime(bounds.lower, roundSecondsUp, handleExclusiveBounds)
+        upper = createDateTime(bounds.upper, roundSecondsDown, handleExclusiveBounds)
       } else {
-        val lo = bounds.lower.get
-        val up = bounds.upper.get
-        // check for extremely narrow filters where our rounding causes out-of-order
-        if (up.getTime - lo.getTime < 2000) {
-          lower = new DateTime(lo, DateTimeZone.UTC)
-          upper = new DateTime(up, DateTimeZone.UTC)
-        } else {
-          lower = roundSecondsUp(new DateTime(lo, DateTimeZone.UTC))
-          upper = roundSecondsDown(new DateTime(up, DateTimeZone.UTC))
-        }
+        // check for extremely narrow filters where our rounding makes the result out-of-order
+        // note: both upper and lower are known to be defined based on hitting this else branch
+        val margin = if (bounds.lower.inclusive || bounds.upper.inclusive) { 1000 } else { 2000 }
+        val round = bounds.upper.value.get.getTime - bounds.lower.value.get.getTime > margin
+        lower = createDateTime(bounds.lower, roundSecondsUp, round)
+        upper = createDateTime(bounds.upper, roundSecondsDown, round)
       }
-      (lower, upper)
+      Bounds(lower, upper)
+    }
+  }
+
+  private def createDateTime(bound: Bound[Date],
+                             round: (DateTime) => DateTime,
+                             roundExclusive: Boolean): Bound[DateTime] = {
+    if (bound.value.isEmpty) { Bound.unbounded } else {
+      val dt = bound.value.map(new DateTime(_, DateTimeZone.UTC))
+      if (roundExclusive && !bound.inclusive) {
+        Bound(dt.map(round), inclusive = true)
+      } else {
+        Bound(dt, bound.inclusive)
+      }
     }
   }
 
@@ -308,45 +313,45 @@ object FilterHelper {
     * @param filter filter to evaluate
     * @param attribute attribute name to consider
     * @param binding attribute type
-    * @param intersect intersect resulting values, or return all separately
-    *                  note if not intersected, 'and/or' distinction will be lost
     * @return a sequence of bounds, if any
     */
-  def extractAttributeBounds[T](filter: Filter,
-                                attribute: String,
-                                binding: Class[T],
-                                intersect: Boolean = true): FilterValues[Bounds[T]] = {
+  def extractAttributeBounds[T](filter: Filter, attribute: String, binding: Class[T]): FilterValues[Bounds[T]] = {
     filter match {
       case o: Or =>
-        val all = o.getChildren.map(extractAttributeBounds(_, attribute, binding)).filter(_.nonEmpty)
-        val join = FilterValues.or[Bounds[T]](Bounds.union[T]) _
-        all.reduceLeftOption[FilterValues[Bounds[T]]](join).getOrElse(FilterValues.empty)
+        val all = o.getChildren.flatMap { f =>
+          val child = extractAttributeBounds(f, attribute, binding)
+          if (child.isEmpty) { Seq.empty } else { Seq(child) }
+        }
+        val union = FilterValues.or[Bounds[T]](Bounds.union[T]) _
+        all.reduceLeftOption[FilterValues[Bounds[T]]](union).getOrElse(FilterValues.empty)
 
       case a: And =>
-        val all = a.getChildren.map(extractAttributeBounds(_, attribute, binding)).filter(_.nonEmpty)
-        if (intersect) {
-          val intersection = FilterValues.and[Bounds[T]](Bounds.intersection[T]) _
-          all.reduceLeftOption[FilterValues[Bounds[T]]](intersection).getOrElse(FilterValues.empty)
-        } else {
-          FilterValues(all.flatMap(_.values))
+        val all = a.getChildren.flatMap { f =>
+          val child = extractAttributeBounds(f, attribute, binding)
+          if (child.isEmpty) { Seq.empty } else { Seq(child) }
         }
+        val intersection = FilterValues.and[Bounds[T]](Bounds.intersection[T]) _
+        all.reduceLeftOption[FilterValues[Bounds[T]]](intersection).getOrElse(FilterValues.empty)
 
       case f: PropertyIsEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, binding)).map { lit =>
-            FilterValues(Seq(Bounds(Some(lit), Some(lit), inclusive = true)))
-          }
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
+          case e: PropertyLiteral =>
+            Option(e.literal.evaluate(null, binding)).map { lit =>
+              val bound = Bound(Some(lit), inclusive = true)
+              FilterValues(Seq(Bounds(bound, bound)))
+            }
+
+          case e: FunctionLiteral => extractFunctionBounds(e, inclusive = true, binding)
         }.getOrElse(FilterValues.empty)
 
       case f: PropertyIsBetween =>
         try {
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
           if (prop != attribute) { FilterValues.empty } else {
-            val lower = f.getLowerBoundary.evaluate(null, binding)
-            val upper = f.getUpperBoundary.evaluate(null, binding)
             // note that between is inclusive
-            val bounds = Bounds(Option(lower), Option(upper), inclusive = true)
-            FilterValues(Seq(bounds))
+            val lower = Bound(Option(f.getLowerBoundary.evaluate(null, binding)), inclusive = true)
+            val upper = Bound(Option(f.getUpperBoundary.evaluate(null, binding)), inclusive = true)
+            FilterValues(Seq(Bounds(lower, upper)))
           }
         } catch {
           case e: Exception =>
@@ -355,70 +360,90 @@ object FilterHelper {
         }
 
       case f: During if classOf[Date].isAssignableFrom(binding) =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, classOf[Period])).map { p =>
-            val lower = p.getBeginning.getPosition.getDate.asInstanceOf[T]
-            val upper = p.getEnding.getPosition.getDate.asInstanceOf[T]
-            // note that during is exclusive
-            val bounds = Bounds(Option(lower), Option(upper), inclusive = false)
-            FilterValues(Seq(bounds))
-          }
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
+          case e: PropertyLiteral =>
+            Option(e.literal.evaluate(null, classOf[Period])).map { p =>
+              // note that during is exclusive
+              val lower = Bound(Option(p.getBeginning.getPosition.getDate.asInstanceOf[T]), inclusive = false)
+              val upper = Bound(Option(p.getEnding.getPosition.getDate.asInstanceOf[T]), inclusive = false)
+              FilterValues(Seq(Bounds(lower, upper)))
+            }
+
+          case e: FunctionLiteral => extractFunctionBounds(e, inclusive = false, binding)
         }.getOrElse(FilterValues.empty)
 
       case f: PropertyIsGreaterThan =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, binding)).map { lit =>
-            val (lower, upper) = if (prop.flipped) (None, Some(lit)) else (Some(lit), None)
-            val bounds = Bounds(lower, upper, inclusive = false)
-            FilterValues(Seq(bounds))
-          }
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
+          case e: PropertyLiteral =>
+            Option(e.literal.evaluate(null, binding)).map { lit =>
+              val bound = Bound(Some(lit), inclusive = false)
+              val (lower, upper) = if (e.flipped) { (Bound.unbounded[T], bound) } else { (bound, Bound.unbounded[T]) }
+              FilterValues(Seq(Bounds(lower, upper)))
+            }
+
+          case e: FunctionLiteral => extractFunctionBounds(e, inclusive = false, binding)
         }.getOrElse(FilterValues.empty)
 
       case f: PropertyIsGreaterThanOrEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, binding)).map { lit =>
-            val (lower, upper) = if (prop.flipped) (None, Some(lit)) else (Some(lit), None)
-            val bounds = Bounds(lower, upper, inclusive = true)
-            FilterValues(Seq(bounds))
-          }
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
+          case e: PropertyLiteral =>
+            Option(e.literal.evaluate(null, binding)).map { lit =>
+              val bound = Bound(Some(lit), inclusive = true)
+              val (lower, upper) = if (e.flipped) { (Bound.unbounded[T], bound) } else { (bound, Bound.unbounded[T]) }
+              FilterValues(Seq(Bounds(lower, upper)))
+            }
+
+          case e: FunctionLiteral => extractFunctionBounds(e, inclusive = true, binding)
         }.getOrElse(FilterValues.empty)
 
       case f: PropertyIsLessThan =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, binding)).map { lit =>
-            val (lower, upper) = if (prop.flipped) (Some(lit), None) else (None, Some(lit))
-            val bounds = Bounds(lower, upper, inclusive = false)
-            FilterValues(Seq(bounds))
-          }
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
+          case e: PropertyLiteral =>
+            Option(e.literal.evaluate(null, binding)).map { lit =>
+              val bound = Bound(Some(lit), inclusive = false)
+              val (lower, upper) = if (e.flipped) { (bound, Bound.unbounded[T]) } else { (Bound.unbounded[T], bound) }
+              FilterValues(Seq(Bounds(lower, upper)))
+            }
+
+          case e: FunctionLiteral => extractFunctionBounds(e, inclusive = false, binding)
         }.getOrElse(FilterValues.empty)
 
       case f: PropertyIsLessThanOrEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, binding)).map { lit =>
-            val (lower, upper) = if (prop.flipped) (Some(lit), None) else (None, Some(lit))
-            val bounds = Bounds(lower, upper, inclusive = true)
-            FilterValues(Seq(bounds))
-          }
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
+          case e: PropertyLiteral =>
+            Option(e.literal.evaluate(null, binding)).map { lit =>
+              val bound = Bound(Some(lit), inclusive = true)
+              val (lower, upper) = if (e.flipped) { (bound, Bound.unbounded[T]) } else { (Bound.unbounded[T], bound) }
+              FilterValues(Seq(Bounds(lower, upper)))
+            }
+
+          case e: FunctionLiteral => extractFunctionBounds(e, inclusive = true, binding)
         }.getOrElse(FilterValues.empty)
 
       case f: Before =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, binding)).map { lit =>
-            val (lower, upper) = if (prop.flipped) (Option(lit), None) else (None, Option(lit))
-            // note that before is exclusive
-            val bounds = Bounds(lower, upper, inclusive = false)
-            FilterValues(Seq(bounds))
-          }
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
+          case e: PropertyLiteral =>
+            Option(e.literal.evaluate(null, binding)).map { lit =>
+              // note that before is exclusive
+              val bound = Bound(Some(lit), inclusive = false)
+              val (lower, upper) = if (e.flipped) { (bound, Bound.unbounded[T]) } else { (Bound.unbounded[T], bound) }
+              FilterValues(Seq(Bounds(lower, upper)))
+            }
+
+          case e: FunctionLiteral => extractFunctionBounds(e, inclusive = false, binding)
         }.getOrElse(FilterValues.empty)
 
       case f: After =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, binding)).map { lit =>
-            val (lower, upper) = if (prop.flipped) (None, Option(lit)) else (Option(lit), None)
-            // note that after is exclusive
-            val bounds = Bounds(lower, upper, inclusive = false)
-            FilterValues(Seq(bounds))
-          }
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
+          case e: PropertyLiteral =>
+            Option(e.literal.evaluate(null, binding)).map { lit =>
+              // note that after is exclusive
+              val bound = Bound(Some(lit), inclusive = false)
+              val (lower, upper) = if (e.flipped) { (Bound.unbounded[T], bound) } else { (bound, Bound.unbounded[T]) }
+              FilterValues(Seq(Bounds(lower, upper)))
+            }
+
+          case e: FunctionLiteral => extractFunctionBounds(e, inclusive = false, binding)
         }.getOrElse(FilterValues.empty)
 
       case f: PropertyIsLike if binding == classOf[String] =>
@@ -432,9 +457,8 @@ object FilterHelper {
             } else {
               literal
             }
-            val upper = Some(lower + WILDCARD_SUFFIX).asInstanceOf[Some[T]]
-            val bounds = Bounds(Some(lower.asInstanceOf[T]), upper, inclusive = true)
-            FilterValues(Seq(bounds))
+            val upper = Bound(Some(lower + WILDCARD_SUFFIX), inclusive = true).asInstanceOf[Bound[T]]
+            FilterValues(Seq(Bounds(Bound(Some(lower.asInstanceOf[T]), inclusive = true), upper)))
           }
         } catch {
           case e: Exception =>
@@ -447,8 +471,7 @@ object FilterHelper {
           val isNull = f.getFilter.asInstanceOf[PropertyIsNull]
           val prop = isNull.getExpression.asInstanceOf[PropertyName].getPropertyName
           if (prop != attribute) { FilterValues.empty } else {
-            val bounds = Bounds[T](None, None, inclusive = true)
-            FilterValues(Seq(bounds))
+            FilterValues(Seq(Bounds.everything[T]))
           }
         } catch {
           case e: Exception =>
@@ -462,17 +485,22 @@ object FilterHelper {
         if (inverted.isEmpty) {
           inverted
         } else if (inverted.disjoint) {
-          FilterValues(Seq(Bounds(None, None, inclusive = true))) // equivalent to not null
+          FilterValues(Seq(Bounds.everything[T])) // equivalent to not null
+        } else if (!inverted.precise) {
+          FilterHelperLogger.log.warn(s"Falling back to full table scan for inverted query: '${filterToString(f)}'")
+          FilterValues(Seq(Bounds.everything[T]), precise = false)
         } else {
           // NOT(A OR B) turns into NOT(A) AND NOT(B)
-          val uninverted = inverted.values.map { bound =>
+          val uninverted = inverted.values.map { bounds =>
             // NOT the single bound
-            val not = bound.bounds match {
+            val not = bounds.bounds match {
               case (None, None) => Seq.empty
-              case (Some(lo), None) => Seq(Bounds(None, Some(lo), !bound.inclusive))
-              case (None, Some(hi)) => Seq(Bounds(Some(hi), None, !bound.inclusive))
-              case (Some(lo), Some(hi)) =>
-                Seq(Bounds(None, Some(lo), !bound.inclusive), Bounds(Some(hi), None, !bound.inclusive))
+              case (Some(lo), None) => Seq(Bounds(Bound.unbounded, Bound(Some(lo), !bounds.lower.inclusive)))
+              case (None, Some(hi)) => Seq(Bounds(Bound(Some(hi), !bounds.upper.inclusive), Bound.unbounded))
+              case (Some(lo), Some(hi)) => Seq(
+                  Bounds(Bound.unbounded, Bound(Some(lo), !bounds.lower.inclusive)),
+                  Bounds(Bound(Some(hi), !bounds.upper.inclusive), Bound.unbounded)
+                )
             }
             FilterValues(not)
           }
@@ -484,8 +512,8 @@ object FilterHelper {
       case f: TEquals =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
-            val bounds = Bounds(Some(lit), Some(lit), inclusive = true)
-            FilterValues(Seq(bounds))
+            val bound = Bound(Some(lit), inclusive = true)
+            FilterValues(Seq(Bounds(bound, bound)))
           }
         }.getOrElse(FilterValues.empty)
 
@@ -493,8 +521,15 @@ object FilterHelper {
     }
   }
 
+  private def extractFunctionBounds[T](function: FunctionLiteral,
+                                       inclusive: Boolean,
+                                       binding: Class[T]): Option[FilterValues[Bounds[T]]] = {
+    // TODO GEOMESA-1990 extract some meaningful bounds from the function
+    Some(FilterValues(Seq(Bounds.everything[T]), precise = false))
+  }
+
   def propertyNames(filter: Filter, sft: SimpleFeatureType): Seq[String] =
-    DataUtilities.propertyNames(filter, sft).map(_.getPropertyName).toSeq.sorted
+    DataUtilities.attributeNames(filter, sft).toSeq.sorted
 
   def hasIdFilter(filter: Filter): Boolean =
     filter.accept(new IdDetectingFilterVisitor, false).asInstanceOf[Boolean]
@@ -579,53 +614,4 @@ object FilterHelper {
     type SpatialOpOrder = Value
     val PropertyFirst, LiteralFirst, AnyOrder = Value
   }
-}
-
-/**
-  * Holds values extracted from a filter. Values may be empty, in which case nothing was extracted from
-  * the filter. May be marked as 'disjoint', which means that mutually exclusive values were extracted
-  * from the filter. This may be checked to short-circuit queries that will not result in any hits.
-  *
-  * @param values values extracted from the filter. If nothing was extracted, will be empty
-  * @param disjoint mutually exclusive values were extracted, e.g. 'a < 1 && a > 2'
-  * @tparam T type parameter
-  */
-case class FilterValues[T](values: Seq[T], disjoint: Boolean = false) {
-  def map[U](f: T => U): FilterValues[U] = FilterValues(values.map(f), disjoint)
-  def flatMap[U](f: T => GenTraversableOnce[U]): FilterValues[U] = FilterValues(values.flatMap(f), disjoint)
-  def foreach[U](f: T => U): Unit = values.foreach(f)
-  def forall(p: T => Boolean): Boolean = values.forall(p)
-  def filter(f: T => Boolean): FilterValues[T] = FilterValues(values.filter(f), disjoint)
-  def nonEmpty: Boolean = values.nonEmpty || disjoint
-  def isEmpty: Boolean = !nonEmpty
-}
-
-object FilterValues {
-
-  def empty[T]: FilterValues[T] = FilterValues[T](Seq.empty)
-
-  def disjoint[T]: FilterValues[T] = FilterValues[T](Seq.empty, disjoint = true)
-
-  def or[T](join: (Seq[T], Seq[T]) => Seq[T])(left: FilterValues[T], right: FilterValues[T]): FilterValues[T] = {
-    (left.disjoint, right.disjoint) match {
-      case (false, false) => FilterValues(join(left.values, right.values))
-      case (false, true)  => left
-      case (true,  false) => right
-      case (true,  true)  => FilterValues.disjoint
-    }
-  }
-
-  def and[T](intersect: (T, T) => Option[T])(left: FilterValues[T], right: FilterValues[T]): FilterValues[T] = {
-    if (left.disjoint || right.disjoint) {
-      FilterValues.disjoint
-    } else {
-      val intersections = left.values.flatMap(v => right.values.flatMap(intersect(_, v)))
-      if (intersections.isEmpty) {
-        FilterValues.disjoint
-      } else {
-        FilterValues(intersections)
-      }
-    }
-  }
-
 }

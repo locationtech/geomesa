@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.hbase.coprocessor.aggregators
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.hbase.HBaseFeatureIndexType
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, ByteBufferResult}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -21,12 +20,9 @@ import org.opengis.filter.Filter
 class HBaseBinAggregator extends BinAggregatingScan with HBaseAggregator[ByteBufferResult]
 
 object HBaseBinAggregator {
-  def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", BinaryOutputEncoder.BinEncodedSft)
-    sf.setAttribute(1, GeometryUtils.zeroPoint)
-    sf.setAttribute(BIN_ATTRIBUTE_INDEX, bytes)
-    sf
-  }
+
+  def bytesToFeatures(bytes : Array[Byte]): SimpleFeature =
+    new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, "", Array(bytes, GeometryUtils.zeroPoint))
 
   def configure(sft: SimpleFeatureType,
                 index: HBaseFeatureIndexType,

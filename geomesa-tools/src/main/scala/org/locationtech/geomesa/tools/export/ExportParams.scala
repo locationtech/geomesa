@@ -11,8 +11,8 @@ package org.locationtech.geomesa.tools.export
 import java.io.File
 
 import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.tools.OptionalCqlFilterParam
 import org.locationtech.geomesa.tools.utils.ParameterConverters.HintConverter
-import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, OptionalIndexParam, RequiredTypeNameParam}
 
 trait FileExportParams extends OptionalCqlFilterParam {
   @Parameter(names = Array("-o", "--output"), description = "Output to a file instead of std out")
@@ -35,10 +35,6 @@ trait FileExportParams extends OptionalCqlFilterParam {
 }
 
 trait ExportParams extends FileExportParams {
-  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
-    "(comma-separated)...Comma-separated expressions with each in the format " +
-    "attribute[=filter_function_expression]|derived-attribute=filter_function_expression|'id'. " +
-    "'id' will export the feature ID, filter_function_expression is an expression of filter function applied " +
-      "to attributes, literals and filter functions, i.e. can be nested")
+  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export (comma-separated)...Comma-separated expressions with each in the format attribute[=filter_function_expression]|derived-attribute=filter_function_expression|'id'. 'id' will export the feature ID, filter_function_expression is an expression of filter function applied to attributes, literals and filter functions, i.e. can be nested")
   var attributes: java.util.List[String] = _
 }

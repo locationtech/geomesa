@@ -63,7 +63,7 @@ class CassandraDataStoreTest extends Specification {
       val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
 
       val toAdd = (0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, f"2014-01-${i + 1}%02dT00:00:01.000Z")
@@ -83,6 +83,7 @@ class CassandraDataStoreTest extends Specification {
           testQuery(ds, typeName, "bbox(geom,42,48,52,62)", transforms, toAdd.drop(2))
           testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
           testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
+          testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5), toAdd(6)))
         }
       }
 
@@ -144,7 +145,7 @@ class CassandraDataStoreTest extends Specification {
       val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
 
       val toAdd = (0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
@@ -160,6 +161,7 @@ class CassandraDataStoreTest extends Specification {
       testQuery(ds, typeName, "bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", null, toAdd.dropRight(2))
       testQuery(ds, typeName, "bbox(geom,-126,42,-119,45)", null, toAdd.dropRight(4))
       testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
+      testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", null, Seq(toAdd(5), toAdd(6)))
     }
 
     "delete schemas" in {
@@ -184,7 +186,7 @@ class CassandraDataStoreTest extends Specification {
       val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
 
       val toAdd = (0 until 2).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, f"2014-01-${i + 1}%02dT00:00:01.000Z")

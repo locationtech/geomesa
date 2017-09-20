@@ -29,7 +29,7 @@ class HBaseModifyFeatureWriter(sft: SimpleFeatureType,
 
 trait HBaseFeatureWriter extends HBaseFeatureWriterType {
 
-  private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+  private val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
   override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[BufferedMutator] = {
     val batchSize = WriteBatchSize.option.map(_.toLong)

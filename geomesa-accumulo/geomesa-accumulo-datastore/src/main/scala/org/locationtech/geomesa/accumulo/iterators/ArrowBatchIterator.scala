@@ -49,7 +49,7 @@ object ArrowBatchIterator {
     * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
     */
   def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
-    val sf = new ScalaSimpleFeature("", ArrowEncodedSft)
+    val sf = new ScalaSimpleFeature(ArrowEncodedSft, "")
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
       sf.setAttribute(0, e.getValue.get())

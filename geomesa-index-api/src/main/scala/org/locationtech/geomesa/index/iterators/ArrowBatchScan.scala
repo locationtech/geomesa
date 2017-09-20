@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureOrdering}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat, TopK}
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -119,13 +119,7 @@ class ArrowSortingBatchAggregate(sft: SimpleFeatureType,
   private val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
   private val batchWriter = new RecordBatchUnloader(vector)
 
-  private val ordering = new Ordering[SimpleFeature] {
-    override def compare(x: SimpleFeature, y: SimpleFeature): Int = {
-      val left = x.getAttribute(sortField).asInstanceOf[Comparable[Any]]
-      val right = y.getAttribute(sortField).asInstanceOf[Comparable[Any]]
-      left.compareTo(right)
-    }
-  }
+  private val ordering = SimpleFeatureOrdering(sortField)
 
   override def add(sf: SimpleFeature): Unit = {
     // we have to copy since the feature might be re-used
@@ -224,7 +218,7 @@ object ArrowBatchScan {
           Map.empty[String, TopK[AnyRef]]
         }
         if (toLookup.forall(cached.contains)) {
-          cached.map { case (name, k) => name -> ArrowDictionary.create(sort(k.topK(1000).map(_._1))) }
+          cached.map { case (name, k) => name -> ArrowDictionary.create(sort(k.topK(1000).map(_._1).toSeq)) }
         } else {
           // if we have to run a query, might as well generate all values
           val query = Stat.SeqStat(toLookup.map(Stat.Enumeration))
@@ -262,17 +256,17 @@ object ArrowBatchScan {
   CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = {
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid)
     val sortField = hints.getArrowSort
-    val header = new ScalaSimpleFeature("", ArrowEncodedSft,
+    val header = new ScalaSimpleFeature(ArrowEncodedSft, "",
       Array(fileMetadata(sft, dictionaries, encoding, sortField), GeometryUtils.zeroPoint))
     // per arrow streaming format footer is the encoded int '0'
-    val footer = new ScalaSimpleFeature("", ArrowEncodedSft, Array(Array[Byte](0, 0, 0, 0), GeometryUtils.zeroPoint))
+    val footer = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(Array[Byte](0, 0, 0, 0), GeometryUtils.zeroPoint))
     val sort: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = sortField match {
       case None => (iter) => iter
       case Some((attribute, reverse)) =>
         val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
         (iter) => {
           import SimpleFeatureArrowIO.sortBatches
-          val sf = new ScalaSimpleFeature("", ArrowEncodedSft, Array(null, GeometryUtils.zeroPoint))
+          val sf = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
           val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
           val sorted = sortBatches(sft, dictionaries, encoding, attribute, reverse, batchSize, bytes)
           sorted.map { bytes => sf.setAttribute(0, bytes); sf }

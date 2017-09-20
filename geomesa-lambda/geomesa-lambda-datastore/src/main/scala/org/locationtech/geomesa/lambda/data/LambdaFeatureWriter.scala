@@ -29,7 +29,7 @@ object LambdaFeatureWriter {
     override def hasNext: Boolean = false
 
     override def next(): SimpleFeature = {
-      feature = new ScalaSimpleFeature(featureIds.getAndIncrement().toString, transient.sft)
+      feature = new ScalaSimpleFeature(transient.sft, featureIds.getAndIncrement().toString)
       feature
     }
 

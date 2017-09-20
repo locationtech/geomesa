@@ -85,7 +85,6 @@ class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties
 
   // non-optimized visit
   override def visit(feature: Feature): Unit = {
-    // TODO:  GEOMESA-1755 Add any necessary transform support to the QueryProcess
     val sf = feature.asInstanceOf[SimpleFeature]
     if (filter.evaluate(sf)) {
       manualVisitResults.add(retype(sf))

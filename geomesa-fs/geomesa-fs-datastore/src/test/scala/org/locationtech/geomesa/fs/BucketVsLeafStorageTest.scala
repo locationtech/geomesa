@@ -10,6 +10,8 @@ package org.locationtech.geomesa.fs
 
 import java.nio.file.Files
 import java.time.temporal.ChronoUnit
+import java.util
+import java.util.stream.Collectors
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.commons.io.FileUtils
@@ -47,10 +49,10 @@ class BucketVsLeafStorageTest extends Specification {
     def date(str: String) = ISODateTimeFormat.date().parseDateTime(str).toDate
 
     def features(sft: SimpleFeatureType) = List(
-      new ScalaSimpleFeature("1", sft, Array("first",  date("2016-01-01"), gf.createPoint(new Coordinate(-5, 5)))), // z2 = 2
-      new ScalaSimpleFeature("2", sft, Array("second", date("2016-01-02"), gf.createPoint(new Coordinate(5, 5)))),  // z2 = 3
-      new ScalaSimpleFeature("3", sft, Array("third",  date("2016-01-03"), gf.createPoint(new Coordinate(5, -5)))), // z2 = 1
-      new ScalaSimpleFeature("3", sft, Array("fourth", date("2016-01-04"), gf.createPoint(new Coordinate(-5, -5)))) // z2 = 0
+      new ScalaSimpleFeature(sft, "1", Array("first",  date("2016-01-01"), gf.createPoint(new Coordinate(-5, 5)))), // z2 = 2
+      new ScalaSimpleFeature(sft, "2", Array("second", date("2016-01-02"), gf.createPoint(new Coordinate(5, 5)))),  // z2 = 3
+      new ScalaSimpleFeature(sft, "3", Array("third",  date("2016-01-03"), gf.createPoint(new Coordinate(5, -5)))), // z2 = 1
+      new ScalaSimpleFeature(sft, "3", Array("fourth", date("2016-01-04"), gf.createPoint(new Coordinate(-5, -5)))) // z2 = 0
     )
 
     def addFeatures(sft: SimpleFeatureType) =
@@ -76,11 +78,10 @@ class BucketVsLeafStorageTest extends Specification {
         fp.resolve("2016/01").toFile.exists must beTrue
 
         Seq(
-          "2016/01/01_0000.parquet",
-          "2016/01/02_0000.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01_W[0-9a-f]{32}\\.parquet",
+          "2016/01/02_W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 1
         }
         toList(ds.getFeatureSource(sft.getTypeName).getFeatures.features).size mustEqual 2
 
@@ -88,13 +89,12 @@ class BucketVsLeafStorageTest extends Specification {
           .addFeatures(new ListFeatureCollection(sft, features(sft).drop(2)))
 
         Seq(
-          "2016/01/01_0000.parquet",
-          "2016/01/02_0000.parquet",
-          "2016/01/03_0000.parquet",
-          "2016/01/04_0000.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01_W[0-9a-f]{32}\\.parquet",
+          "2016/01/02_W[0-9a-f]{32}\\.parquet",
+          "2016/01/03_W[0-9a-f]{32}\\.parquet",
+          "2016/01/04_W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 1
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toSeq.size mustEqual 4
 
@@ -103,17 +103,12 @@ class BucketVsLeafStorageTest extends Specification {
         ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features(sft)))
         Seq(
-          "2016/01/01_0000.parquet",
-          "2016/01/02_0000.parquet",
-          "2016/01/03_0000.parquet",
-          "2016/01/04_0000.parquet",
-          "2016/01/01_0001.parquet",
-          "2016/01/02_0001.parquet",
-          "2016/01/03_0001.parquet",
-          "2016/01/04_0001.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01_W[0-9a-f]{32}\\.parquet",
+          "2016/01/02_W[0-9a-f]{32}\\.parquet",
+          "2016/01/03_W[0-9a-f]{32}\\.parquet",
+          "2016/01/04_W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 2
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toSeq.size mustEqual 8
 
@@ -135,13 +130,12 @@ class BucketVsLeafStorageTest extends Specification {
         fp.toFile.exists must beTrue
 
         Seq(
-          "2016/01/01/2_0000.parquet",
-          "2016/01/02/3_0000.parquet",
-          "2016/01/03/1_0000.parquet",
-          "2016/01/04/0_0000.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01/2_W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/3_W[0-9a-f]{32}\\.parquet",
+          "2016/01/03/1_W[0-9a-f]{32}\\.parquet",
+          "2016/01/04/0_W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(x => x.toString.matches(f)) mustEqual 1
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toList.size mustEqual 4
         // For now adding more features results in a next seq file
@@ -149,17 +143,12 @@ class BucketVsLeafStorageTest extends Specification {
           .addFeatures(new ListFeatureCollection(sft, features(sft)))
 
         Seq(
-          "2016/01/01/2_0000.parquet",
-          "2016/01/02/3_0000.parquet",
-          "2016/01/03/1_0000.parquet",
-          "2016/01/04/0_0000.parquet",
-          "2016/01/01/2_0001.parquet",
-          "2016/01/02/3_0001.parquet",
-          "2016/01/03/1_0001.parquet",
-          "2016/01/04/0_0001.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01/2_W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/3_W[0-9a-f]{32}\\.parquet",
+          "2016/01/03/1_W[0-9a-f]{32}\\.parquet",
+          "2016/01/04/0_W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(x => x.toString.matches(f)) mustEqual 2
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toList.size mustEqual 8
       }
@@ -179,11 +168,10 @@ class BucketVsLeafStorageTest extends Specification {
         val fp = tempDir.resolve("bucket-one")
 
         Seq(
-          "2016/01/01/0000.parquet",
-          "2016/01/02/0000.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01/W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 1
         }
         toList(ds.getFeatureSource(sft.getTypeName).getFeatures.features).size mustEqual 2
 
@@ -191,13 +179,12 @@ class BucketVsLeafStorageTest extends Specification {
           .addFeatures(new ListFeatureCollection(sft, features(sft).drop(2)))
 
         Seq(
-          "2016/01/01/0000.parquet",
-          "2016/01/02/0000.parquet",
-          "2016/01/03/0000.parquet",
-          "2016/01/04/0000.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01/W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/W[0-9a-f]{32}\\.parquet",
+          "2016/01/03/W[0-9a-f]{32}\\.parquet",
+          "2016/01/04/W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 1
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toSeq.size mustEqual 4
 
@@ -206,17 +193,16 @@ class BucketVsLeafStorageTest extends Specification {
         ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features(sft)))
         Seq(
-          "2016/01/01/0000.parquet",
-          "2016/01/02/0000.parquet",
-          "2016/01/03/0000.parquet",
-          "2016/01/04/0000.parquet",
-          "2016/01/01/0001.parquet",
-          "2016/01/02/0001.parquet",
-          "2016/01/03/0001.parquet",
-          "2016/01/04/0001.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01/W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/W[0-9a-f]{32}\\.parquet",
+          "2016/01/03/W[0-9a-f]{32}\\.parquet",
+          "2016/01/04/W[0-9a-f]{32}\\.parquet",
+          "2016/01/01/W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/W[0-9a-f]{32}\\.parquet",
+          "2016/01/03/W[0-9a-f]{32}\\.parquet",
+          "2016/01/04/W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 2
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toSeq.size mustEqual 8
       }
@@ -238,13 +224,12 @@ class BucketVsLeafStorageTest extends Specification {
         fp.toFile.exists must beTrue
 
         Seq(
-          "2016/01/01/2/0000.parquet",
-          "2016/01/02/3/0000.parquet",
-          "2016/01/03/1/0000.parquet",
-          "2016/01/04/0/0000.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01/2/W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/3/W[0-9a-f]{32}\\.parquet",
+          "2016/01/03/1/W[0-9a-f]{32}\\.parquet",
+          "2016/01/04/0/W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 1
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toList.size mustEqual 4
         // For now adding more features results in a next seq file
@@ -252,17 +237,16 @@ class BucketVsLeafStorageTest extends Specification {
           .addFeatures(new ListFeatureCollection(sft, features(sft)))
 
         Seq(
-          "2016/01/01/2/0000.parquet",
-          "2016/01/02/3/0000.parquet",
-          "2016/01/03/1/0000.parquet",
-          "2016/01/04/0/0000.parquet",
-          "2016/01/01/2/0001.parquet",
-          "2016/01/02/3/0001.parquet",
-          "2016/01/03/1/0001.parquet",
-          "2016/01/04/0/0001.parquet"
-        ).forall { f =>
-          val p = fp.resolve(f)
-          p.toFile.exists() must beTrue
+          "2016/01/01/2/W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/3/W[0-9a-f]{32}\\.parquet",
+          "2016/01/03/1/W[0-9a-f]{32}\\.parquet",
+          "2016/01/04/0/W[0-9a-f]{32}\\.parquet",
+          "2016/01/01/2/W[0-9a-f]{32}\\.parquet",
+          "2016/01/02/3/W[0-9a-f]{32}\\.parquet",
+          "2016/01/03/1/W[0-9a-f]{32}\\.parquet",
+          "2016/01/04/0/W[0-9a-f]{32}\\.parquet"
+        ).map(fp.toString + "/" + _).forall { f =>
+          Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 2
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toList.size mustEqual 8
       }

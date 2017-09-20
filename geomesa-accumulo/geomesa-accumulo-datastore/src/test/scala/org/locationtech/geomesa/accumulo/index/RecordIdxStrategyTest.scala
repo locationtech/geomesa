@@ -12,10 +12,9 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.ExplainNull
@@ -57,7 +56,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
     val track = if (i < 10) "track1" else "track2"
     val dtg = f"2010-05-07T$i%02d:00:00.000Z"
     val geom = s"POINT(${i * 2} $i)"
-    val sf = new ScalaSimpleFeature(s"$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"$i")
     sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
     sf
   }
@@ -76,14 +75,14 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support bin queries" in {
-      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("IN ('2', '3')"))
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       // have to evaluate attributes before pulling into collection, as the same sf is reused
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(2)
       bins.map(_.trackId) must containTheSameElementsAs(Seq("name2", "name3").map(_.hashCode))
     }
@@ -130,7 +129,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support sampling with bin queries" in {
-      import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       // important - id filters will create multiple ranges and cause multiple iterators to be created
       val query = new Query(sftName, ECQL.toFilter("dtg AFTER 2010-05-07T07:30:00.000Z"))
       query.getHints.put(BIN_TRACK, "track")
@@ -140,7 +139,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       // have to evaluate attributes before pulling into collection, as the same sf is reused
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins.length must beLessThan(5)
       bins.map(_.trackId) must containAllOf(Seq("track1", "track2").map(_.hashCode))
     }

@@ -29,7 +29,7 @@ class QueryProcessTest extends Specification {
   val fc = new ListFeatureCollection(sft)
 
   val features = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(i.toString, sft)
+    val sf = new ScalaSimpleFeature(sft, i.toString)
     sf.setAttribute(0, s"t-${i % 2}")
     sf.setAttribute(1, s"2017-05-24T00:00:0$i.000Z")
     sf.setAttribute(2, s"POINT(45 5$i)")

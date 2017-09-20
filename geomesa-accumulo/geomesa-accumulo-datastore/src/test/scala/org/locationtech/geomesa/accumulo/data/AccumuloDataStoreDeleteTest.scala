@@ -208,8 +208,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val sft1 = createFeature(tableSharing = true, spec)
       val sft2 = createFeature(tableSharing = false, spec)
 
-      val feature1 = new ScalaSimpleFeature("fid", sft1)
-      val feature2 = new ScalaSimpleFeature("fid", sft2)
+      val feature1 = new ScalaSimpleFeature(sft1, "fid")
+      val feature2 = new ScalaSimpleFeature(sft2, "fid")
 
       feature1.setAttribute(0, "name")
       feature1.setAttribute(1, "POLYGON((41 28, 42 28, 42 29, 41 29, 41 28))")

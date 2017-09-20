@@ -24,7 +24,7 @@ class ArrowBatchAggregator extends ArrowBatchScan with HBaseAggregator[ArrowBatc
 object ArrowBatchAggregator {
 
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature =
-    new ScalaSimpleFeature("", ArrowEncodedSft, Array(bytes, GeometryUtils.zeroPoint))
+    new ScalaSimpleFeature(ArrowEncodedSft, "", Array(bytes, GeometryUtils.zeroPoint))
 
   def configure(sft: SimpleFeatureType,
                 index: GeoMesaFeatureIndex[_, _, _],

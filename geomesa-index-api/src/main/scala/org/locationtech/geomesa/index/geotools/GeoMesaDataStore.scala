@@ -23,8 +23,11 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.utils.{DistributedLocking, ExplainLogging, Releasable}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.SHARING_PREFIX_KEY
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+
+import scala.util.control.NonFatal
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
@@ -56,7 +59,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
   private val projectVersionCheck = new AtomicLong(0)
 
-  lazy val queryPlanner = createQueryPlanner()
+  lazy val queryPlanner: QueryPlanner[DS, F, W] = createQueryPlanner()
 
   // abstract methods to be implemented by subclasses
 
@@ -109,6 +112,22 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     */
   protected def getIteratorVersion: Set[String] = Set.empty
 
+  /**
+    * Inspect and update the simple feature type as required. Called before writing
+    * the schema metadata
+    *
+    * @param sft simple feature type being created
+    */
+  @throws(classOf[IllegalArgumentException])
+  protected def validateNewSchema(sft: SimpleFeatureType): Unit = GeoMesaSchemaValidator.validate(sft)
+
+  /**
+    * Hook to allow further tasks after creation of schema. Distributed lock will still be held for this call.
+    *
+    * @param sft newly created simple feature type
+    */
+  protected def afterCreateSchemaTasks(sft: SimpleFeatureType): Unit = {}
+
   // methods from org.geotools.data.DataStore
 
   /**
@@ -139,7 +158,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
         if (getSchema(sft.getTypeName) == null) {
           // inspect and update the simple feature type for various components
           // do this before anything else so that any modifications will be in place
-          GeoMesaSchemaValidator.validate(sft)
+          validateNewSchema(sft)
 
           try {
             // write out the metadata to the catalog table
@@ -153,13 +172,15 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
             // create the tables
             manager.indices(reloadedSft, IndexMode.Any).foreach(_.configure(reloadedSft, this))
+
+            afterCreateSchemaTasks(sft)
           } catch {
-            case e: Exception =>
+            case NonFatal(e) =>
               // If there was an error creating a schema, clean up.
               try {
                 metadata.delete(sft.getTypeName)
               } catch {
-                case e2: Throwable => e.addSuppressed(e2)
+                case NonFatal(e2) => e.addSuppressed(e2)
               }
               throw e
           }
@@ -516,14 +537,17 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     if (sft.isTableSharing) {
       sft.setTableSharing(true) // explicitly set it in case this was just the default
       sft.setTableSharingPrefix(schemaIdString)
+    } else {
+      sft.setTableSharing(false)
+      sft.getUserData.remove(SHARING_PREFIX_KEY)
     }
 
     // set the enabled indices
     manager.setIndices(sft)
 
     // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
-    val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-    val statDateValue     = GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
+    val attributesValue = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+    val statDateValue   = GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
 
     // store each metadata in the associated key
     val metadataMap = Map(

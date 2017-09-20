@@ -4,7 +4,7 @@
     <parent>
         <artifactId>geomesa_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.3.3-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -232,7 +232,9 @@
                                 <goal>single</goal>
                             </goals>
                             <configuration>
-                                <descriptor>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
+                                <descriptors>
+                                    <descriptor>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
+                                </descriptors>
                             </configuration>
                         </execution>
                     </executions>

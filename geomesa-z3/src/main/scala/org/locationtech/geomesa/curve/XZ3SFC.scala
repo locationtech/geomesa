@@ -41,26 +41,18 @@ class XZ3SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double), zBo
   /**
     * Index a polygon by it's bounding box
     *
-    * @param bounds (xmin, ymin, zmin, xmax, ymax, zmax)
-    * @return z value for the bounding box
-    */
-  def index(bounds: (Double, Double, Double, Double, Double, Double)): Long =
-    index(bounds._1, bounds._2, bounds._3, bounds._4, bounds._5, bounds._6)
-
-  /**
-    * Index a polygon by it's bounding box
-    *
     * @param xmin min x value in xBounds
     * @param ymin min y value in yBounds
     * @param zmin min z value in zBounds
     * @param xmax max x value in xBounds, must be >= xmin
     * @param ymax max y value in yBounds, must be >= ymin
     * @param zmax max z value in zBounds, must be >= tmin
+    * @param lenient standardize boundaries to valid values, or raise an exception
     * @return z value for the bounding box
     */
-  def index(xmin: Double, ymin: Double, zmin: Double, xmax: Double, ymax: Double, zmax: Double): Long = {
+  def index(xmin: Double, ymin: Double, zmin: Double, xmax: Double, ymax: Double, zmax: Double, lenient: Boolean = false): Long = {
     // normalize inputs to [0,1]
-    val (nxmin, nymin, nzmin, nxmax, nymax, nzmax) = normalize(xmin, ymin, zmin, xmax, ymax, zmax)
+    val (nxmin, nymin, nzmin, nxmax, nymax, nzmax) = normalize(xmin, ymin, zmin, xmax, ymax, zmax, lenient)
 
     // calculate the length of the sequence code (section 4.1 of XZ-Ordering paper)
 
@@ -148,7 +140,7 @@ class XZ3SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double), zBo
              maxRanges: Option[Int] = None): Seq[IndexRange] = {
     // normalize inputs to [0,1]
     val windows = queries.map { case (xmin, ymin, zmin, xmax, ymax, zmax) =>
-      val (nxmin, nymin, nzmin, nxmax, nymax, nzmax) = normalize(xmin, ymin, zmin, xmax, ymax, zmax)
+      val (nxmin, nymin, nzmin, nxmax, nymax, nzmax) = normalize(xmin, ymin, zmin, xmax, ymax, zmax, lenient = false)
       QueryWindow(nxmin, nymin, nzmin, nxmax, nymax, nzmax)
     }
     ranges(windows.toArray, maxRanges.getOrElse(Int.MaxValue))
@@ -340,6 +332,7 @@ class XZ3SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double), zBo
     * @param xmax max x value in user space, must be >= xmin
     * @param ymax max y value in user space, must be >= ymin
     * @param zmax max z value in user space, must be >= zmin
+    * @param lenient standardize boundaries to valid values, or raise an exception
     * @return
     */
   private def normalize(xmin: Double,
@@ -347,20 +340,42 @@ class XZ3SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double), zBo
                         zmin: Double,
                         xmax: Double,
                         ymax: Double,
-                        zmax: Double): (Double, Double, Double, Double, Double, Double) = {
+                        zmax: Double,
+                        lenient: Boolean): (Double, Double, Double, Double, Double, Double) = {
     require(xmin <= xmax && ymin <= ymax && zmin <= zmax,
       s"Bounds must be ordered: [$xmin $xmax] [$ymin $ymax] [$zmin $zmax]")
-    require(xmin >= xLo && xmax <= xHi && ymin >= yLo && ymax <= yHi && zmin >= zLo && zmax <= zHi,
-      s"Values out of bounds ([$xLo $xHi] [$yLo $yHi] [$zLo $zHi]): [$xmin $xmax] [$ymin $ymax] [$zmin $zmax]")
 
-    val nxmin = (xmin - xLo) / xSize
-    val nymin = (ymin - yLo) / ySize
-    val nzmin = (zmin - zLo) / zSize
-    val nxmax = (xmax - xLo) / xSize
-    val nymax = (ymax - yLo) / ySize
-    val nzmax = (zmax - zLo) / zSize
+    try {
+      require(xmin >= xLo && xmax <= xHi && ymin >= yLo && ymax <= yHi && zmin >= zLo && zmax <= zHi,
+        s"Values out of bounds ([$xLo $xHi] [$yLo $yHi] [$zLo $zHi]): [$xmin $xmax] [$ymin $ymax] [$zmin $zmax]")
 
-    (nxmin, nymin, nzmin, nxmax, nymax, nzmax)
+      val nxmin = (xmin - xLo) / xSize
+      val nymin = (ymin - yLo) / ySize
+      val nzmin = (zmin - zLo) / zSize
+      val nxmax = (xmax - xLo) / xSize
+      val nymax = (ymax - yLo) / ySize
+      val nzmax = (zmax - zLo) / zSize
+
+      (nxmin, nymin, nzmin, nxmax, nymax, nzmax)
+    } catch {
+      case _: IllegalArgumentException if lenient =>
+
+        val bxmin = if (xmin < xLo) { xLo } else if (xmin > xHi) { xHi } else { xmin }
+        val bymin = if (ymin < yLo) { yLo } else if (ymin > yHi) { yHi } else { ymin }
+        val bzmin = if (zmin < zLo) { zLo } else if (zmin > zHi) { zHi } else { zmin }
+        val bxmax = if (xmax < xLo) { xLo } else if (xmax > xHi) { xHi } else { xmax }
+        val bymax = if (ymax < yLo) { yLo } else if (ymax > yHi) { yHi } else { ymax }
+        val bzmax = if (zmax < zLo) { zLo } else if (zmax > zHi) { zHi } else { zmax }
+
+        val nxmin = (bxmin - xLo) / xSize
+        val nymin = (bymin - yLo) / ySize
+        val nzmin = (bzmin - zLo) / zSize
+        val nxmax = (bxmax - xLo) / xSize
+        val nymax = (bymax - yLo) / ySize
+        val nzmax = (bzmax - zLo) / zSize
+
+        (nxmin, nymin, nzmin, nxmax, nymax, nzmax)
+    }
   }
 }
 

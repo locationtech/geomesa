@@ -28,7 +28,7 @@ class FastPropertyTest extends Specification {
     "evaluate" >> {
       val filter = ECQL.toFilter("bbox(geom,-180,-90,180,90)")
       val sft = SimpleFeatureTypes.createType("FastPropertyTest", "name:String,*geom:Point:srid=4326")
-      val sf = new ScalaSimpleFeature("id", sft)
+      val sf = new ScalaSimpleFeature(sft, "id")
       sf.setAttributes(Array[AnyRef]("myname", "POINT(45 45)"))
       filter.asInstanceOf[BBOXImpl].setExpression1(new FastProperty(1))
       filter.evaluate(sf)
@@ -46,7 +46,7 @@ class FastPropertyTest extends Specification {
       builder.setName("FastPropertyNsTest")
       val sft = builder.buildFeatureType()
 
-      val sf = new ScalaSimpleFeature("id", sft)
+      val sf = new ScalaSimpleFeature(sft, "id")
       sf.setAttributes(Array[AnyRef]("myname", "POINT(45 45)"))
 
       val filter = FastFilterFactory.toFilter(sft, "testns:name = 'myname'")

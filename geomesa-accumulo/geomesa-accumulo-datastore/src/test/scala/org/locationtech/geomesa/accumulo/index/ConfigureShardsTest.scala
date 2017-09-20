@@ -30,7 +30,7 @@ class ConfigureShardsTest extends Specification with TestWithDataStore {
 
   val features: Seq[ScalaSimpleFeature] = {
     (0 until 100).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       i match {
         case a if a < 24 => sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-07T$i:00:00.000Z",
           s"POINT(40 $i)"))

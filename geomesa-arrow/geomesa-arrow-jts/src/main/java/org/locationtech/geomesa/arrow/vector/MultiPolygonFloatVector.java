@@ -69,7 +69,7 @@ public class MultiPolygonFloatVector extends AbstractMultiPolygonVector {
 
     @Override
     protected void writeOrdinal(int index, double ordinal) {
-      mutator.set(index, (float) ordinal);
+      mutator.setSafe(index, (float) ordinal);
     }
   }
 

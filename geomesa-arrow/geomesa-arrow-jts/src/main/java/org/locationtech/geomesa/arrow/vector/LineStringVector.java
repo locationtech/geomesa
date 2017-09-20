@@ -71,7 +71,7 @@ public class LineStringVector extends AbstractLineStringVector {
 
     @Override
     protected void writeOrdinal(int index, double ordinal) {
-      mutator.set(index, ordinal);
+      mutator.setSafe(index, ordinal);
     }
   }
 

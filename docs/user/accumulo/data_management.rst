@@ -42,6 +42,131 @@ be answered without joining against the record table. This is the only option fo
 To use a full index, the keyword ``full`` must be used in place of ``true`` when specifying an attribute
 index in the ``SimpleFeatureType``.  Note that join indices are the default in the Accumulo data store.
 
+.. _logical_timestamps:
+
+Accumulo Logical Timestamps
+---------------------------
+
+By default, GeoMesa index tables are created using Accumulo's logical time. This ensures that updates to a given
+simple feature will be ordered correctly, however it obscures the actual insert time for the underlying data
+row. For advanced use cases, standard system time can be used instead of logical time. To disble logical
+time, add the following user data hint to the simple feature type before calling ``createSchema``:
+
+.. code-block:: java
+
+    // append the hints to the end of the string, separated by a semi-colon
+    String spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.logical.time='false'";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+
+.. warning::
+
+    If table sharing is enabled, then the index tables may have already been created with logical
+    time enabled. If this is the case, then disabling it will have no effect. To ensure the
+    tables are created correctly, you may wish to disable table sharing by adding the user data string
+    ``geomesa.table.sharing='false'``
+
+Splitting the Record Index
+--------------------------
+
+By default, GeoMesa assumes that feature IDs are UUIDs, and have an even distribution. If your
+feature IDs do not follow this pattern, you may define a custom table splitter for the record index.
+This will ensure that your features are spread across several different tablet servers, speeding
+up ingestion and queries.
+
+GeoMesa supplies three different table splitter options:
+
+- ``org.locationtech.geomesa.index.conf.HexSplitter`` (used by default)
+
+  Assumes an even distribution of IDs starting with 0-9, a-f, A-F
+
+- ``org.locationtech.geomesa.index.conf.AlphaNumericSplitter``
+
+  Assumes an even distribution of IDs starting with 0-9, a-z, A-Z
+
+- ``org.locationtech.geomesa.index.conf.DigitSplitter``
+
+  Assumes an even distribution of IDs starting with numeric values, which are specified as options
+
+Custom splitters may also be used - any class that extends ``org.locationtech.geomesa.index.conf.TableSplitter``.
+
+Specifying a Table Splitter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Table splitter may be specified by setting a hint when creating a simple feature type,
+similar to enabling indices (above).
+
+Setting the hint can be done in three ways. If you are using a string to indicate your simple feature type
+(e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
+the hint to the end of the string, like so:
+
+.. code-block:: java
+
+    // append the hints to the end of the string, separated by a semi-colon
+    String spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
+        "table.splitter.class=org.locationtech.geomesa.index.conf.AlphaNumericSplitter";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+
+If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
+you may set the hint directly in the feature type:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getUserData().put("table.splitter.class",
+        "org.locationtech.geomesa.index.conf.DigitSplitter");
+    sft.getUserData().put("table.splitter.options", "fmt:%02d,min:0,max:99");
+
+If you are using TypeSafe configuration files to define your simple feature type, you may include
+a 'user-data' key:
+
+.. code-block:: javascript
+
+    geomesa {
+      sfts {
+        "mySft" = {
+          attributes = [
+            { name = name, type = String             }
+            { name = dtg,  type = Date               }
+            { name = geom, type = Point, srid = 4326 }
+          ]
+          user-data = {
+            table.splitter.class = "org.locationtech.geomesa.index.conf.DigitSplitter"
+            table.splitter.options = "fmt:%01d,min:0,max:9"
+          }
+        }
+      }
+    }
+
+
+Moving and Migrating Data
+-------------------------
+
+If you want an offline copy of your data, or you want to move data between networks, you can
+export compressed Avro files containing your simple features. To do this using the command line
+tools, use the export command with the ``format`` and ``gzip`` options:
+
+.. code-block:: bash
+
+    $ geomesa export -c myTable -f mySft --format avro --gzip 6 -o myFeatures.avro
+
+To re-import the data into another environment, you may use the import command. Because the Avro file
+is self-describing, you do not need to specify any converter config or simple feature type definition:
+
+.. code-block:: bash
+
+    $ geomesa import -c myTable -f mySft myFeatures.avro
+
+If your data is too large for a single file, you may run multiple exports and use CQL
+filters to separate your data.
+
+If you prefer to not use Avro files, you may do the same process with delimited text files:
+
+.. code-block:: bash
+
+    $ geomesa export -c myTable -f mySft --format tsv --gzip 6 -o myFeatures.tsv.gz
+    $ geomesa import -c myTable -f mySft myFeatures.tsv.gz
+
 .. _index_upgrades:
 
 Upgrading Existing Indices
@@ -158,110 +283,3 @@ only populate features matching a CQL filter (e.g. the last month), or choose to
 data. The update is seamless, and clients can continue to query and ingest while it runs.
 
 See :ref:`add_index_command` for more details on the command line tools.
-
-
-
-
-
-Splitting the Record Index
---------------------------
-
-By default, GeoMesa assumes that feature IDs are UUIDs, and have an even distribution. If your
-feature IDs do not follow this pattern, you may define a custom table splitter for the record index.
-This will ensure that your features are spread across several different tablet servers, speeding
-up ingestion and queries.
-
-GeoMesa supplies three different table splitter options:
-
-- ``org.locationtech.geomesa.index.conf.HexSplitter`` (used by default)
-
-  Assumes an even distribution of IDs starting with 0-9, a-f, A-F
-
-- ``org.locationtech.geomesa.index.conf.AlphaNumericSplitter``
-
-  Assumes an even distribution of IDs starting with 0-9, a-z, A-Z
-
-- ``org.locationtech.geomesa.index.conf.DigitSplitter``
-
-  Assumes an even distribution of IDs starting with numeric values, which are specified as options
-
-Custom splitters may also be used - any class that extends ``org.locationtech.geomesa.index.conf.TableSplitter``.
-
-Specifying a Table Splitter
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Table splitter may be specified by setting a hint when creating a simple feature type,
-similar to enabling indices (above).
-
-Setting the hint can be done in three ways. If you are using a string to indicate your simple feature type
-(e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
-the hint to the end of the string, like so:
-
-.. code-block:: java
-
-    // append the hints to the end of the string, separated by a semi-colon
-    String spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
-        "table.splitter.class=org.locationtech.geomesa.index.conf.AlphaNumericSplitter";
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-
-If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
-you may set the hint directly in the feature type:
-
-.. code-block:: java
-
-    // set the hint directly
-    SimpleFeatureType sft = ...
-    sft.getUserData().put("table.splitter.class",
-        "org.locationtech.geomesa.index.conf.DigitSplitter");
-    sft.getUserData().put("table.splitter.options", "fmt:%02d,min:0,max:99");
-
-If you are using TypeSafe configuration files to define your simple feature type, you may include
-a 'user-data' key:
-
-.. code-block:: javascript
-
-    geomesa {
-      sfts {
-        "mySft" = {
-          attributes = [
-            { name = name, type = String             }
-            { name = dtg,  type = Date               }
-            { name = geom, type = Point, srid = 4326 }
-          ]
-          user-data = {
-            table.splitter.class = "org.locationtech.geomesa.index.conf.DigitSplitter"
-            table.splitter.options = "fmt:%01d,min:0,max:9"
-          }
-        }
-      }
-    }
-
-
-Moving and Migrating Data
--------------------------
-
-If you want an offline copy of your data, or you want to move data between networks, you can
-export compressed Avro files containing your simple features. To do this using the command line
-tools, use the export command with the ``format`` and ``gzip`` options:
-
-.. code-block:: bash
-
-    $ geomesa export -c myTable -f mySft --format avro --gzip 6 -o myFeatures.avro
-
-To re-import the data into another environment, you may use the import command. Because the Avro file
-is self-describing, you do not need to specify any converter config or simple feature type definition:
-
-.. code-block:: bash
-
-    $ geomesa import -c myTable -f mySft myFeatures.avro
-
-If your data is too large for a single file, you may run multiple exports and use CQL
-filters to separate your data.
-
-If you prefer to not use Avro files, you may do the same process with delimited text files:
-
-.. code-block:: bash
-
-    $ geomesa export -c myTable -f mySft --format tsv --gzip 6 -o myFeatures.tsv.gz
-    $ geomesa import -c myTable -f mySft myFeatures.tsv.gz
-

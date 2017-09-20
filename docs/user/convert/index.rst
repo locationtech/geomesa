@@ -47,3 +47,4 @@ by the `Typesafe Config`_ library.
     avro
     extending
     parsing_and_validation
+    cache

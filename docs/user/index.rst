@@ -18,6 +18,7 @@ User Manual
    cassandra/index
    kafka/index
    lambda/index
+   filesystem/index
    geoserver
    blobstore
    convert/index
@@ -29,7 +30,6 @@ User Manual
    spark/index
    stream
    web_data
-   filesystem/index
 
 
 Appendix

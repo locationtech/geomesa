@@ -18,6 +18,7 @@ import java.util.Date
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.DataAccessFactory.Param
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.FilterHelper.extractGeometries
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
@@ -43,12 +44,12 @@ object PartitionOpts {
     fmtStr
   }
 
-  def parseDtgAttr(opts: Map[String, String]): String      = opts(DtgAttribute)
-  def parseGeomAttr(opts: Map[String, String]): String     = opts(GeomAttribute)
-  def parseStepUnit(opts: Map[String, String]): ChronoUnit = ChronoUnit.valueOf(opts(StepUnitOpt).toUpperCase)
-  def parseStep(opts: Map[String, String]): Int            = opts(StepOpt).toInt
-  def parseZ2Resolution(opts: Map[String, String]): Int    = opts(Z2Resolution).toInt
-  def parseLeafStorage(opts: Map[String, String]): Boolean = opts(LeafStorage).toBoolean
+  def parseDtgAttr(opts: Map[String, String]): Option[String]  = opts.get(DtgAttribute)
+  def parseGeomAttr(opts: Map[String, String]): Option[String] = opts.get(GeomAttribute)
+  def parseStepUnit(opts: Map[String, String]): ChronoUnit     = ChronoUnit.valueOf(opts(StepUnitOpt).toUpperCase)
+  def parseStep(opts: Map[String, String]): Int                = opts.get(StepOpt).map(_.toInt).getOrElse(1)
+  def parseZ2Resolution(opts: Map[String, String]): Int        = opts(Z2Resolution).toInt
+  def parseLeafStorage(opts: Map[String, String]): Boolean     = opts.get(LeafStorage).map(_.toBoolean).getOrElse(true)
 }
 
 object CommonSchemeLoader {
@@ -127,17 +128,20 @@ object PartitionScheme {
   // TODO delegate out, etc. make a loader, etc
   def apply(sft: SimpleFeatureType, pName: String, opts: Map[String, String]): PartitionScheme = {
     import PartitionOpts._
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
     val leaf = parseLeafStorage(opts)
     val schemes = pName.split(SchemeSeparator).map {
       case DateTimeScheme.Name =>
-        val attr = parseDtgAttr(opts)
+        val attr = parseDtgAttr(opts).orElse(sft.getDtgField)
+          .getOrElse(throw new IllegalArgumentException("SFT must have a Date attribute"))
         val fmt = parseDateTimeFormat(opts)
         val su = parseStepUnit(opts)
         val s = parseStep(opts)
         new DateTimeScheme(fmt, su, s, attr, leaf)
 
       case Z2Scheme.Name =>
-        val geomAttr = parseGeomAttr(opts)
+        val geomAttr = parseGeomAttr(opts).orElse(Option(sft.getGeomField))
+          .getOrElse(throw new IllegalArgumentException("SFT must have Geometry attribute"))
         val z2Res = parseZ2Resolution(opts)
         new Z2Scheme(z2Res, geomAttr, leaf)
 
@@ -190,6 +194,10 @@ class DateTimeScheme(fmtStr: String,
                      dtgAttribute: String,
                      leafStorage: Boolean)
   extends PartitionScheme {
+
+  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
+  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+
   private val fmt = DateTimeFormatter.ofPattern(fmtStr)
   override def getPartitionName(sf: SimpleFeature): String = {
     val instant = sf.getAttribute(dtgAttribute).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC)
@@ -197,11 +205,14 @@ class DateTimeScheme(fmtStr: String,
   }
 
   override def getCoveringPartitions(f: Filter): java.util.List[String] = {
-    val intervals = FilterHelper.extractIntervals(f, dtgAttribute).values.map { case (s,e) =>
-      (Instant.ofEpochMilli(s.getMillis).atZone(ZoneOffset.UTC), Instant.ofEpochMilli(e.getMillis).atZone(ZoneOffset.UTC))
+    val bounds = FilterHelper.extractIntervals(f, dtgAttribute, handleExclusiveBounds = true)
+    val intervals = bounds.values.map { b =>
+      (Instant.ofEpochMilli(b.lower.value.getOrElse(MinDateTime).getMillis).atZone(ZoneOffset.UTC),
+          Instant.ofEpochMilli(b.upper.value.getOrElse(MaxDateTime).getMillis).atZone(ZoneOffset.UTC))
     }
+
     intervals.flatMap { case (start, end) =>
-      val count = start.until(end, stepUnit).toInt
+      val count = stepUnit.between(start, end).toInt + 1
       Seq.tabulate(count)(i => fmt.format(start.plus(step * i, stepUnit)))
     }
   }

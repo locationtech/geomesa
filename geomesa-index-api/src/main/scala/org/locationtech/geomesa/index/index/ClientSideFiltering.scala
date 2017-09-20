@@ -90,7 +90,7 @@ trait ClientSideFiltering[R] {
     */
   def toFeaturesDirect(sft: SimpleFeatureType): EVALFEATURE = {
     val getId = getIdFromRow(sft)
-    val deserializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    val deserializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
     (result) => {
       val RowAndValue(row, rowOffset, rowLength, value, valueOffset, valueLength) = rowAndValue(result)
       val sf = deserializer.deserialize(value, valueOffset, valueLength)
@@ -109,7 +109,7 @@ trait ClientSideFiltering[R] {
     */
   def toFeaturesWithFilter(sft: SimpleFeatureType, ecql: Filter): EVALFEATUREOPTION = {
     val getId = getIdFromRow(sft)
-    val deserializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    val deserializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
     (result) => {
       val RowAndValue(row, rowOffset, rowLength, value, valueOffset, valueLength) = rowAndValue(result)
       val sf = deserializer.deserialize(value, valueOffset, valueLength)
@@ -139,14 +139,14 @@ trait ClientSideFiltering[R] {
     val getId = getIdFromRow(sft)
     if (indices.contains(-1)) {
       // need to evaluate the expressions against the original feature
-      val reusableSf = new KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+      val reusableSf = KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
       (result) => {
         val RowAndValue(row, rowOffset, rowLength, value, valueOffset, valueLength) = rowAndValue(result)
         val id = getId(row, rowOffset, rowLength)
         reusableSf.setBuffer(value, valueOffset, valueLength)
         reusableSf.setId(id)
         val values = transforms.map(_.expression.evaluate(reusableSf))
-        new ScalaSimpleFeature(id, transformSft, values)
+        new ScalaSimpleFeature(transformSft, id, values)
       }
     } else {
       // we can do a projecting deserialization
@@ -180,7 +180,7 @@ trait ClientSideFiltering[R] {
     if (indices.contains(-1)) {
       // need to evaluate the expressions against the original feature
       // can filter at the same time
-      val deserializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      val deserializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
       (result) => {
         val RowAndValue(row, rowOffset, rowLength, value, valueOffset, valueLength) = rowAndValue(result)
         val sf = deserializer.deserialize(value, valueOffset, valueLength)
@@ -188,14 +188,14 @@ trait ClientSideFiltering[R] {
         sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
         if (ecql.evaluate(sf)) {
           val values = transforms.map(_.expression.evaluate(sf))
-          Some(new ScalaSimpleFeature(id, transformSft, values))
+          Some(new ScalaSimpleFeature(transformSft, id, values))
         } else {
           None
         }
       }
     } else {
       // we can project attributes, but we have to deserialize the full feature to filter
-      val reusableSf = new KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+      val reusableSf = KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
       (result) => {
         val RowAndValue(row, rowOffset, rowLength, value, valueOffset, valueLength) = rowAndValue(result)
         val id = getId(row, rowOffset, rowLength)
@@ -203,7 +203,7 @@ trait ClientSideFiltering[R] {
         reusableSf.setId(id)
         if (ecql.evaluate(reusableSf)) {
           val values = indices.map(reusableSf.getAttribute)
-          Some(new ScalaSimpleFeature(id, transformSft, values))
+          Some(new ScalaSimpleFeature(transformSft, id, values))
         } else {
           None
         }

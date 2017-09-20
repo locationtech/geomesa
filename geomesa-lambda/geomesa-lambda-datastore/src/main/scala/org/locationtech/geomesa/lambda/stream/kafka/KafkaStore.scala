@@ -24,6 +24,7 @@ import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
@@ -36,6 +37,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 
 class KafkaStore(ds: DataStore,
@@ -52,7 +54,12 @@ class KafkaStore(ds: DataStore,
 
   private val cache = new KafkaFeatureCache(topic)
 
-  private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.builder.withUserData.immutable.build())
+  private val serializer = {
+    // use immutable so we can return query results without copying or worrying about user modification
+    // use lazy so that we don't create lots of objects that get replaced/updated before actually being read
+    val options = SerializationOptions.builder.withUserData.immutable.`lazy`.build
+    KryoFeatureSerializer(sft, options)
+  }
 
   private val queryRunner = new KafkaQueryRunner(cache, stats, authProvider)
 
@@ -233,25 +240,38 @@ object KafkaStore {
 
   private [kafka] class OffsetRebalanceListener(consumer: Consumer[Array[Byte], Array[Byte]],
                                                 manager: OffsetManager,
-                                                callback: (Int, Long) => Unit) extends ConsumerRebalanceListener {
+                                                callback: (Int, Long) => Unit)
+      extends ConsumerRebalanceListener with LazyLogging {
 
     override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
     override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
       import scala.collection.JavaConversions._
 
+      // ensure we have queues for each partition
+      // read our last committed offsets and seek to them
       topicPartitions.foreach { tp =>
-        // ensure we have queues for each partition
-        // read our last committed offsets and seek to them
-        KafkaConsumerVersions.pause(consumer, tp)
-        val lastRead = manager.getOffset(tp.topic(), tp.partition())
-        if (lastRead > -1) {
-          consumer.seek(tp, lastRead + 1)
-          callback.apply(tp.partition, lastRead)
-        } else {
+
+        // seek to earliest existing offset and return the offset
+        def seekToBeginning(): Long = {
           KafkaConsumerVersions.seekToBeginning(consumer, tp)
-          callback.apply(tp.partition, consumer.position(tp) - 1)
+          consumer.position(tp) - 1
         }
+
+        val lastRead = manager.getOffset(tp.topic(), tp.partition())
+
+        KafkaConsumerVersions.pause(consumer, tp)
+
+        val offset = if (lastRead < 0) { seekToBeginning() } else {
+          try { consumer.seek(tp, lastRead + 1); lastRead } catch {
+            case NonFatal(e) =>
+              logger.warn(s"Error seeking to initial offset: [${tp.topic}:${tp.partition}:$lastRead]" +
+                  ", seeking to beginning")
+              seekToBeginning()
+          }
+        }
+        callback.apply(tp.partition, offset)
+
         KafkaConsumerVersions.resume(consumer, tp)
       }
     }
@@ -270,7 +290,7 @@ object KafkaStore {
                            cluster: Cluster): Int = {
       val count = cluster.partitionsForTopic(topic).size
       // feature id starts at position 5
-      val id = KryoFeatureSerializer.getInput(valueBytes, 5, valueBytes.length - 5).readString()
+      val id = KryoFeatureDeserialization.getInput(valueBytes, 5, valueBytes.length - 5).readString()
       Math.abs(MurmurHash3.stringHash(id)) % count
     }
 

@@ -48,7 +48,7 @@ case object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Q
     val sharing = sharingPrefix(sft)
     val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature) => Seq[Array[Byte]] =
-      if (sft.isPoints) getPointRowKey(sharing, splitArray) else getGeomRowKeys(sharing, splitArray)
+      if (sft.isPoints) getPointRowKey(sharing, splitArray, lenient = false) else getGeomRowKeys(sharing, splitArray)
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf)
@@ -68,7 +68,7 @@ case object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Q
     val sharing = sharingPrefix(sft)
     val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature) => Seq[Array[Byte]] =
-      if (sft.isPoints) getPointRowKey(sharing, splitArray) else getGeomRowKeys(sharing, splitArray)
+      if (sft.isPoints) getPointRowKey(sharing, splitArray, lenient = true) else getGeomRowKeys(sharing, splitArray)
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf)

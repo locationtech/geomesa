@@ -54,7 +54,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends Specification {
   }
 
   val user = {
-    val sf = new ScalaSimpleFeature("user", sft)
+    val sf = new ScalaSimpleFeature(sft, "user")
     sf.setAttribute(0, "name-user")
     sf.setAttribute(1, "10")
     sf.setAttribute(2, "2014-01-01T01:00:00.000Z")
@@ -64,7 +64,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends Specification {
     sf
   }
   val admin = {
-    val sf = new ScalaSimpleFeature("admin", sft)
+    val sf = new ScalaSimpleFeature(sft, "admin")
     sf.setAttribute(0, "name-admin")
     sf.setAttribute(1, "11")
     sf.setAttribute(2, "2014-01-02T01:00:00.000Z")
@@ -74,7 +74,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends Specification {
     sf
   }
   val mixed = {
-    val sf = new ScalaSimpleFeature("mixed", sft)
+    val sf = new ScalaSimpleFeature(sft, "mixed")
     sf.setAttribute(0, "name-mixed")
     sf.setAttribute(1, "12")
     sf.setAttribute(2, "2014-01-03T01:00:00.000Z")

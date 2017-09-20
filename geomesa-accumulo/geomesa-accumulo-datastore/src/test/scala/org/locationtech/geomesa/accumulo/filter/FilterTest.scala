@@ -37,7 +37,7 @@ class FilterTest extends Specification with TestWithDataStore with LazyLogging {
   override val spec = SimpleFeatureTypes.encodeType(TestData.featureType, includeUserData = true)
 
   val mediumDataFeatures: Seq[SimpleFeature] =
-    TestData.mediumData.map(TestData.createSF).map(f => new ScalaSimpleFeature(f.getID, sft, f.getAttributes.toArray))
+    TestData.mediumData.map(TestData.createSF).map(f => new ScalaSimpleFeature(sft, f.getID, f.getAttributes.toArray))
 
   addFeatures(mediumDataFeatures)
 

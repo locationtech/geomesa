@@ -12,9 +12,9 @@ import java.io.OutputStream
 
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, GeometryAttribute}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 
 class BinExporter(hints: Hints, os: OutputStream) extends FeatureExporter {
@@ -36,9 +36,13 @@ class BinExporter(hints: Hints, os: OutputStream) extends FeatureExporter {
     } else {
       import org.locationtech.geomesa.index.conf.QueryHints.RichHints
       // do the encoding here
-      val geom = hints.getBinGeomField.map(GeometryAttribute(_))
-      val options = EncodingOptions(geom, hints.getBinDtgField, Option(hints.getBinTrackIdField), hints.getBinLabelField)
-      val count = BinaryOutputEncoder.encodeFeatureCollection(fc, os, options)
+      val geom = hints.getBinGeomField.map(sft.indexOf)
+      val dtg = hints.getBinDtgField.map(sft.indexOf)
+      val track = Option(hints.getBinTrackIdField).filter(_ != "id").map(sft.indexOf)
+      val options = EncodingOptions(geom, dtg, track, hints.getBinLabelField.map(sft.indexOf))
+      val features = CloseableIterator(fc.features)
+      val encoder = BinaryOutputEncoder(fc.getSchema, options)
+      val count = encoder.encode(features, os)
       Some(count)
     }
   }

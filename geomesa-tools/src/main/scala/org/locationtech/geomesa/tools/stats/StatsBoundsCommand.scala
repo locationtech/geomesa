@@ -52,7 +52,8 @@ trait StatsBoundsCommand[DS <: DataStore with HasGeoMesaStats] extends DataStore
             e.expandToInclude(mm.max.asInstanceOf[Geometry].getEnvelopeInternal)
             s"[ ${e.getMinX}, ${e.getMinY}, ${e.getMaxX}, ${e.getMaxY} ] cardinality: ${mm.cardinality}"
           } else {
-            s"[ ${mm.stringify(mm.min)} to ${mm.stringify(mm.max)} ] cardinality: ${mm.cardinality}"
+            val stringify = Stat.stringifier(sft.getDescriptor(i).getType.getBinding)
+            s"[ ${stringify(mm.min)} to ${stringify(mm.max)} ] cardinality: ${mm.cardinality}"
           }
       }
       Command.output.info(s"  $attribute $out")

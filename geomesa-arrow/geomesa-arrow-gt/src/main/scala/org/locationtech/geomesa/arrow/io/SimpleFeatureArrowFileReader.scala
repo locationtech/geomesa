@@ -20,6 +20,7 @@ import org.locationtech.geomesa.arrow.io.reader.{CachingSimpleFeatureArrowFileRe
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{EncodingPrecision, SimpleFeatureEncoding}
 import org.locationtech.geomesa.arrow.vector.{ArrowAttributeReader, ArrowDictionary, GeometryFields, SimpleFeatureVector}
 import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureSpecParser
 import org.opengis.feature.simple.SimpleFeatureType
@@ -178,7 +179,7 @@ object SimpleFeatureArrowFileReader {
     * @param vector simple feature vector
     * @param filter filter
     * @param skip will be toggled if no further vectors need to be queried due to sort order and filter bounds
-    * @param bounds bounds for the sort field, extracted from the filter
+    * @param filterBounds bounds for the sort field, extracted from the filter
     * @param sortField field that the features are sorted by
     * @param reverse if the sort order is reversed or not
     * @return
@@ -186,7 +187,7 @@ object SimpleFeatureArrowFileReader {
   private def sortedFeatures(vector: SimpleFeatureVector,
                              filter: Filter,
                              skip: SkipIndicator,
-                             bounds: Seq[Bounds[Comparable[Any]]],
+                             filterBounds: Seq[Bounds[Comparable[Any]]],
                              sortField: Int,
                              reverse: Boolean): Iterator[ArrowSimpleFeature] = {
     val total = vector.reader.getValueCount
@@ -196,37 +197,28 @@ object SimpleFeatureArrowFileReader {
       val feature = vector.reader.feature
 
       // bounds for the current batch
-      val b = {
+      val currentBatchBounds = {
         vector.reader.load(0)
-        val lo = Option(feature.getAttribute(sortField).asInstanceOf[Comparable[Any]])
+        val lo = Bound(Option(feature.getAttribute(sortField).asInstanceOf[Comparable[Any]]), inclusive = true)
         vector.reader.load(total - 1)
-        val hi = Option(feature.getAttribute(sortField).asInstanceOf[Comparable[Any]])
-        if (reverse) { Bounds(hi, lo, inclusive = true) } else { Bounds(lo, hi, inclusive = true) }
+        val hi = Bound(Option(feature.getAttribute(sortField).asInstanceOf[Comparable[Any]]), inclusive = true)
+        if (reverse) { Bounds(hi, lo) } else { Bounds(lo, hi) }
       }
 
-      if (bounds.forall(Bounds.intersection(_, b).isEmpty)) {
+      if (filterBounds.exists(Bounds.intersection(_, currentBatchBounds).isDefined)) {
+        // we have a match in this batch
+        val all = Iterator.range(0, vector.reader.getValueCount).map { i => vector.reader.load(i); feature }
+        all.filter(filter.evaluate)
+      } else {
         // nothing from this batch matches, check to see if any further batches could match
         val hasMore = if (reverse) {
-          bounds.exists { bound =>
-            (bound.lower, b.lower) match {
-              case (Some(b1), Some(b2)) if b1.compareTo(b2) > 0 => false
-              case _ => true
-            }
-          }
+          filterBounds.exists(fb => Bounds.smallerLowerBound(fb.lower, currentBatchBounds.lower).eq(fb.lower))
         } else {
-          bounds.exists { bound =>
-            (bound.upper, b.upper) match {
-              case (Some(b1), Some(b2)) if b1.compareTo(b2) < 0 => false
-              case _ => true
-            }
-          }
+          filterBounds.exists(fb => Bounds.largerUpperBound(fb.upper, currentBatchBounds.upper).eq(fb.upper))
         }
         // toggle the skip indicator if there are no further batches that could match
         skip.skip = !hasMore
         Iterator.empty
-      } else {
-        val all = Iterator.range(0, vector.reader.getValueCount).map { i => vector.reader.load(i); feature }
-        all.filter(filter.evaluate)
       }
     }
   }

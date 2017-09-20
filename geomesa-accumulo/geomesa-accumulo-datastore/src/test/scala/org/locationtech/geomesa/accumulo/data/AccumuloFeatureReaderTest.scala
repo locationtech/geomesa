@@ -33,7 +33,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
   override def spec = s"name:String,dtg:Date,*geom:Point"
 
   val features = (0 until 100).map { i =>
-    val sf = new ScalaSimpleFeature(i.toString, sft)
+    val sf = new ScalaSimpleFeature(sft, i.toString)
     sf.setAttribute(0, s"name$i")
     sf.setAttribute(1, f"2010-05-07T${i % 24}%02d:01:00.000Z")
     sf.setAttribute(2, s"POINT(${i % 10} ${i % 5})")

@@ -120,14 +120,14 @@ interface:
          *
          * @return
          */
-        public Authorizations getAuthorizations();
+        List<String> getAuthorizations();
 
         /**
          * Configures this instance with parameters passed into the DataStoreFinder
          *
          * @param params
          */
-        public void configure(Map<String, Serializable> params);
+        void configure(Map<String, Serializable> params);
     }
 
 When a GeoMesa ``DataStore`` is instantiated, it will scan for available

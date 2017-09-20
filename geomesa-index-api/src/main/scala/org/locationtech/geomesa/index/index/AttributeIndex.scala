@@ -13,10 +13,11 @@ import java.util.{Date, Locale, Collection => JCollection}
 
 import com.google.common.primitives.{Bytes, Shorts, UnsignedBytes}
 import com.typesafe.scalalogging.LazyLogging
-import org.calrissian.mango.types.LexiTypeEncoders
+import org.calrissian.mango.types.{LexiTypeEncoders, TypeRegistry}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.util.Converters
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -71,11 +72,21 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     }
   }
 
-  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[Any] = {
+  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[AnyRef] = {
     val shard = getShards(sft).head.length
     // exclude feature byte and 2 index bytes and shard bytes
     val from = if (sft.isTableSharing) { 3 + shard } else { 2 + shard }
     val descriptor = sft.getDescriptor(index)
+    val decode: (String) => AnyRef = if (descriptor.isList) {
+      // get the alias from the type of values in the collection
+      val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)
+      // Note that for collection types, only a single entry of the collection will be decoded - this is
+      // because the collection entries have been broken up into multiple rows
+      (encoded) => Seq(typeRegistry.decode(alias, encoded)).asJava
+    } else {
+      val alias = descriptor.getType.getBinding.getSimpleName.toLowerCase(Locale.US)
+      typeRegistry.decode(alias, _)
+    }
     (row, offset, length) => Try {
       val valueStart = offset + from // start of the encoded value
       val end = offset + length // end of the row, max search space
@@ -83,8 +94,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
       while (valueEnd < end && row(valueEnd) != NullByte) { // null byte indicates end of value
         valueEnd += 1
       }
-      val encoded = new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8)
-      decode(encoded, descriptor)
+      decode(new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8))
     }
   }
 
@@ -130,47 +140,55 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 
     require(classOf[Comparable[_]].isAssignableFrom(binding), s"Attribute '$attribute' is not comparable")
 
+    val shards = getShards(sft)
     val fb = FilterHelper.extractAttributeBounds(primary, attribute, binding)
 
-    implicit val byteComparator = UnsignedBytes.lexicographicalComparator()
-    lazy val lowerSecondary = secondaryRanges.map(_._1).minOption.getOrElse(Array.empty)
-    lazy val upperSecondary = secondaryRanges.map(_._2).maxOption.getOrElse(Array.empty)
+    if (fb.isEmpty) {
+      // we have an attribute, but weren't able to extract any bounds... scan all values and apply the filter
+      logger.warn(s"Unable to extract any attribute bounds from: ${filterToString(primary)}")
+      val starts = lowerBounds(sft, i, shards)
+      val ends = upperBounds(sft, i, shards)
+      val ranges = shards.indices.map(i => range(starts(i), ends(i)))
+      scanPlan(sft, ds, filter, hints, ranges, filter.filter)
+    } else {
+      val ordering = Ordering.comparatorToOrdering(UnsignedBytes.lexicographicalComparator)
+      lazy val lowerSecondary = secondaryRanges.map(_._1).minOption(ordering).getOrElse(Array.empty)
+      lazy val upperSecondary = secondaryRanges.map(_._2).maxOption(ordering).getOrElse(Array.empty)
 
-    val shards = getShards(sft)
-
-    val ranges = fb.values.flatMap { bounds =>
-      bounds.bounds match {
-        case (None, None) => // not null
-          val starts = lowerBounds(sft, i, shards)
-          val ends = upperBounds(sft, i, shards)
-          shards.indices.map(i => range(starts(i), ends(i)))
-
-        case (Some(lower), None) =>
-          val starts = startRows(sft, i, shards, lower, bounds.inclusive, lowerSecondary)
-          val ends = upperBounds(sft, i, shards)
-          shards.indices.map(i => range(starts(i), ends(i)))
-
-        case (None, Some(upper)) =>
-          val starts = lowerBounds(sft, i, shards)
-          val ends = endRows(sft, i, shards, upper, bounds.inclusive, upperSecondary)
-          shards.indices.map(i => range(starts(i), ends(i)))
-
-        case (Some(lower), Some(upper)) =>
-          if (lower == upper) {
-            equals(sft, i, shards, lower, secondaryRanges)
-          } else if (lower + WILDCARD_SUFFIX == upper) {
-            val prefix = rowPrefix(sft, i)
-            val value = encodeForQuery(lower, sft.getDescriptor(i))
-            shards.map(shard => rangePrefix(Bytes.concat(prefix, shard, value)))
-          } else {
-            val starts = startRows(sft, i, shards, lower, bounds.inclusive, lowerSecondary)
-            val ends = endRows(sft, i, shards, upper, bounds.inclusive, upperSecondary)
+      val ranges = fb.values.flatMap { bounds =>
+        bounds.bounds match {
+          case (None, None) => // not null
+            val starts = lowerBounds(sft, i, shards)
+            val ends = upperBounds(sft, i, shards)
             shards.indices.map(i => range(starts(i), ends(i)))
-          }
-      }
-    }
 
-    scanPlan(sft, ds, filter, hints, ranges, filter.secondary)
+          case (Some(lower), None) =>
+            val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
+            val ends = upperBounds(sft, i, shards)
+            shards.indices.map(i => range(starts(i), ends(i)))
+
+          case (None, Some(upper)) =>
+            val starts = lowerBounds(sft, i, shards)
+            val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
+            shards.indices.map(i => range(starts(i), ends(i)))
+
+          case (Some(lower), Some(upper)) =>
+            if (lower == upper) {
+              equals(sft, i, shards, lower, secondaryRanges)
+            } else if (lower + WILDCARD_SUFFIX == upper) {
+              val prefix = rowPrefix(sft, i)
+              val value = encodeForQuery(lower, sft.getDescriptor(i))
+              shards.map(shard => rangePrefix(Bytes.concat(prefix, shard, value)))
+            } else {
+              val starts = startRows(sft, i, shards, lower, bounds.lower.inclusive, lowerSecondary)
+              val ends = endRows(sft, i, shards, upper, bounds.upper.inclusive, upperSecondary)
+              shards.indices.map(i => range(starts(i), ends(i)))
+            }
+        }
+      }
+
+      scanPlan(sft, ds, filter, hints, ranges, if (fb.precise) { filter.secondary } else { filter.filter })
+    }
   }
 
   /**
@@ -256,7 +274,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 
   private def getSecondaryIndexKey(sft: SimpleFeatureType): (F) => Array[Byte] = {
     secondaryIndex(sft).map(_.toIndexKey(sft)) match {
-      case None        => (f) => Array.empty
+      case None        => (_) => Array.empty
       case Some(toKey) => (f) => toKey(f.feature)
     }
   }
@@ -281,7 +299,7 @@ trait AttributeRowDecoder {
     * @param i attribute index
     * @return (bytes, offset, length) => decoded value
     */
-  def decodeRowValue(sft: SimpleFeatureType, i: Int): (Array[Byte], Int, Int) => Try[Any]
+  def decodeRowValue(sft: SimpleFeatureType, i: Int): (Array[Byte], Int, Int) => Try[AnyRef]
 }
 
 /**
@@ -292,6 +310,9 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
 
   import AttributeIndex._
 
+  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
+  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+
   override protected def secondaryIndex(sft: SimpleFeatureType): Option[IndexKeySpace[_]] =
     Some(DateIndexKeySpace).filter(_.supports(sft))
 
@@ -301,7 +322,7 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
 
     override val indexKeyLength: Int = 12
 
-    override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+    override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
       val dtgIndex = sft.getDtgIndex.getOrElse(-1)
       (feature) => {
         val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
@@ -313,8 +334,9 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
                            filter: Filter,
                            explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
       val intervals = sft.getDtgField.map(FilterHelper.extractIntervals(filter, _)).getOrElse(FilterValues.empty)
-      intervals.values.iterator.map { case (lo, hi) =>
-        (timeToBytes(lo.getMillis), roundUpTime(timeToBytes(hi.getMillis)))
+      intervals.values.iterator.map { bounds =>
+        (timeToBytes(bounds.lower.value.getOrElse(MinDateTime).getMillis),
+            roundUpTime(timeToBytes(bounds.upper.value.getOrElse(MaxDateTime).getMillis)))
       }
     }
 
@@ -342,9 +364,9 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
 object AttributeIndex {
 
   val NullByte: Byte = 0
-  val NullByteArray  = Array(NullByte)
+  val NullByteArray = Array(NullByte)
 
-  val typeRegistry   = LexiTypeEncoders.LEXI_TYPES
+  val typeRegistry: TypeRegistry[String] = LexiTypeEncoders.LEXI_TYPES
 
   // store 2 bytes for the index of the attribute in the sft - this allows up to 32k attributes in the sft.
   def indexToBytes(i: Int): Array[Byte] = Shorts.toByteArray(i.toShort)
@@ -394,25 +416,6 @@ object AttributeIndex {
 
   // Lexicographically encode a value using it's runtime class
   private def typeEncode(value: Any): String = Try(typeRegistry.encode(value)).getOrElse(value.toString)
-
-  /**
-    * Decode an encoded value. Note that for collection types, only a single entry of the collection
-    * will be decoded - this is because the collection entries have been broken up into multiple rows.
-    *
-    * @param encoded lexicoded value
-    * @param descriptor attribute descriptor
-    * @return
-    */
-  def decode(encoded: String, descriptor: AttributeDescriptor): Any = {
-    if (descriptor.isList) {
-      // get the alias from the type of values in the collection
-      val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)
-      Seq(typeRegistry.decode(alias, encoded)).asJava
-    } else {
-      val alias = descriptor.getType.getBinding.getSimpleName.toLowerCase(Locale.US)
-      typeRegistry.decode(alias, encoded)
-    }
-  }
 
   // gets a lower bound for a range
   private def startRows(sft: SimpleFeatureType,

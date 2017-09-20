@@ -34,6 +34,7 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
                                  val inputFields: IndexedSeq[Field],
                                  val idBuilder: Expr,
                                  val userDataBuilder: Map[String, Expr],
+                                 val caches: Map[String, EnrichmentCache],
                                  val parseOpts: ConvertParseOpts,
                                  val lineMode: LineMode) extends ToSimpleFeatureConverter[String] {
 
@@ -77,10 +78,11 @@ class JsonSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
+                                        cacheServices: Map[String, EnrichmentCache],
                                         parseOpts: ConvertParseOpts): SimpleFeatureConverter[String] = {
     val lineMode = LineMode.getLineMode(conf)
     val root = if (conf.hasPath("feature-path")) Some(JsonPath.compile(conf.getString("feature-path"))) else None
-    new JsonSimpleFeatureConverter(jsonConfig, sft, root, fields, idBuilder, userDataBuilder, parseOpts, lineMode)
+    new JsonSimpleFeatureConverter(jsonConfig, sft, root, fields, idBuilder, userDataBuilder, cacheServices, parseOpts, lineMode)
   }
 
   override protected def buildField(field: Config): Field = {
@@ -197,11 +199,14 @@ case class JsonObjectField(name: String, expression: JsonPath, jsonConfig: Confi
 }
 
 trait GeoJsonParsing {
+
+  private val CoordsPath = "coordinates"
+
   val geoFac = new GeometryFactory
 
   def toPointCoords(el: JsonElement): Coordinate = {
-    val arr = el.getAsJsonArray.iterator.map(_.getAsDouble).toArray
-    new Coordinate(arr(0), arr(1))
+    val Seq(x, y) = el.getAsJsonArray.iterator.map(_.getAsDouble).toSeq
+    new Coordinate(x, y)
   }
 
   def toCoordSeq(el: JsonElement): CoordinateSequence = {
@@ -209,7 +214,16 @@ trait GeoJsonParsing {
     new CoordinateArraySequence(arr)
   }
 
-  private val CoordsPath = "coordinates"
+  def toPolygon(el: JsonElement): Polygon = {
+    val rings = el.getAsJsonArray.iterator.map(c => geoFac.createLinearRing(toCoordSeq(c)))
+    val shell = rings.next
+    if (rings.hasNext) {
+      geoFac.createPolygon(shell, rings.toArray)
+    } else {
+      geoFac.createPolygon(shell)
+    }
+  }
+
   def parseGeometry(el: JsonElement): Geometry = {
     if (el.isJsonObject) {
       val geomType = el.getAsJsonObject.get("type").getAsString.toLowerCase
@@ -219,9 +233,16 @@ trait GeoJsonParsing {
         case "linestring" =>
           geoFac.createLineString(toCoordSeq(el.getAsJsonObject.get(CoordsPath)))
         case "polygon" =>
-          // Only simple polygons for now (one linear ring)
-          val coords = el.getAsJsonObject.get(CoordsPath).getAsJsonArray.iterator.map(toCoordSeq).toArray
-          geoFac.createPolygon(coords(0))
+          toPolygon(el.getAsJsonObject.get(CoordsPath))
+        case "multipoint" =>
+          geoFac.createMultiPoint(toCoordSeq(el.getAsJsonObject.get(CoordsPath)))
+        case "multilinestring" =>
+          val coords = el.getAsJsonObject.get(CoordsPath).getAsJsonArray
+              .iterator.map(c => geoFac.createLineString(toCoordSeq(c))).toArray
+          geoFac.createMultiLineString(coords)
+        case "multipolygon" =>
+          val polys = el.getAsJsonObject.get(CoordsPath).getAsJsonArray.iterator.map(toPolygon).toArray
+          geoFac.createMultiPolygon(polys)
       }
     } else if (el.isJsonNull) {
       null.asInstanceOf[Geometry]

@@ -14,8 +14,8 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.CommonSchemeLoader
-import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.conf.ArgResolver
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
@@ -63,7 +63,10 @@ object PartitionSchemeArgResolver extends ArgResolver[PartitionScheme, SchemeArg
 
   private [PartitionSchemeArgResolver] def parseFile(args: SchemeArgs): ResEither = {
     try {
-      val reader = new InputStreamReader(PathUtils.getInputStream(args.scheme), StandardCharsets.UTF_8)
+      val is = PathUtils.interpretPath(args.scheme).headOption.map(_.open).getOrElse {
+        throw new RuntimeException(s"Could not read file at ${args.scheme}")
+      }
+      val reader = new InputStreamReader(is, StandardCharsets.UTF_8)
       val conf = ConfigFactory.parseReader(reader, parseOpts)
       Right(org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(args.sft, conf))
     } catch {

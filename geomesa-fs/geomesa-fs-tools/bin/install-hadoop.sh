@@ -168,20 +168,19 @@ else
       "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
       "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
       "${base_url}org/apache/hadoop/hadoop-aws/${hadoop_version}/hadoop-aws-${hadoop_version}.jar"
+      "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar"
       "${base_url}com/amazonaws/aws-java-sdk/${aws_sdk_version}/aws-java-sdk-${aws_sdk_version}.jar"
       "${base_url}org/xerial/snappy/snappy-java/${snappy_version}/snappy-java-${snappy_version}.jar"
       "${base_url}commons-configuration/commons-configuration/${commons_config_version}/commons-configuration-${commons_config_version}.jar"
       "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
       "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
       "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
-      "${base_url}com/google/protobuf/protobuf-java/1.5.0/protobuf-java-2.5.0.jar"
+      "${base_url}com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar"
       "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
+      "${base_url}org/apache/httpcomponents/httpclient/4.3.4/httpclient-4.3.4.jar"
+      "${base_url}org/apache/httpcomponents/httpcore/4.3.3/httpcore-4.3.3.jar"
+      "${base_url}commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar"
     )
-
-
-    if [[ -n "${htrace_version}" ]]; then
-      urls=("${urls[@]}" "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar")
-    fi
 
     # Download dependencies
     for x in "${urls[@]}"; do

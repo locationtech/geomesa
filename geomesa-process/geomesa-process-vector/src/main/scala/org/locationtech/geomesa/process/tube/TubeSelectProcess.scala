@@ -108,6 +108,7 @@ object GapFill extends Enumeration{
   type GapFill = Value
   val NOFILL = Value("nofill")
   val LINE = Value("line")
+  val INTERPOLATED = Value("interpolated")
 }
 
 class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
@@ -144,6 +145,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
 
     val tubeBuilder = gapFill match {
       case GapFill.LINE => new LineGapFill(tubeFeatures, bufferDistance, maxBins)
+      case GapFill.INTERPOLATED => new InterpolatedGapFill(tubeFeatures, bufferDistance, maxBins)
       case _ => new NoGapFill(tubeFeatures, bufferDistance, maxBins)
     }
 

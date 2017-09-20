@@ -42,7 +42,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
     Array("bob",     30,   3, dtf.parseDateTime("2014-01-03T12:00:00.000Z").toDate, WKTUtils.read("POINT(47.0 49.0)")),
     Array("charles", null, 4, dtf.parseDateTime("2014-01-04T12:00:00.000Z").toDate, WKTUtils.read("POINT(48.0 49.0)"))
   ).map { entry =>
-    val feature = new ScalaSimpleFeature(entry.head.toString, sft)
+    val feature = new ScalaSimpleFeature(sft, entry.head.toString)
     feature.setAttributes(entry.asInstanceOf[Array[AnyRef]])
     feature
   }

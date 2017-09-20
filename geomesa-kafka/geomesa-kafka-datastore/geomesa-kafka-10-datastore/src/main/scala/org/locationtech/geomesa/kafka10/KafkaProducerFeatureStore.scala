@@ -102,7 +102,7 @@ abstract class KafkaFeatureWriter(sft: SimpleFeatureType, producer: KafkaProduce
 class KafkaFeatureWriterAppend(sft: SimpleFeatureType, producer: KafkaProducer[Array[Byte], Array[Byte]], topic: String)
   extends KafkaFeatureWriter(sft, producer, topic) {
 
-  protected val reuse = new ScalaSimpleFeature("", sft)
+  protected val reuse = new ScalaSimpleFeature(sft, "")
 
   protected def nextId: String = KafkaProducerFeatureStoreFactory.FeatureIds.getAndIncrement().toString
 
@@ -113,8 +113,8 @@ class KafkaFeatureWriterAppend(sft: SimpleFeatureType, producer: KafkaProducer[A
     reuse.setId(nextId)
     reuse.getUserData.clear()
     var i = 0
-    while (i < reuse.values.length) {
-      reuse.values(i) = null
+    while (i < reuse.getAttributeCount) {
+      reuse.setAttribute(i, null)
       i += 1
     }
     reuse

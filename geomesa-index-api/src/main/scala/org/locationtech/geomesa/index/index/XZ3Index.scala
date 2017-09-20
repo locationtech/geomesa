@@ -49,7 +49,7 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    val toIndexKey = XZ3Index.toIndexKey(sft)
+    val toIndexKey = XZ3Index.toIndexKey(sft, lenient = true)
     (wf) => Seq(createDelete(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 
@@ -116,7 +116,7 @@ object XZ3Index extends IndexKeySpace[XZ3ProcessingValues] {
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.nonPoints
 
-  override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
     val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("XZ3 index requires a valid date"))
@@ -132,7 +132,9 @@ object XZ3Index extends IndexKeySpace[XZ3ProcessingValues] {
       val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) { 0L } else { dtg.getTime }
       val BinnedTime(b, t) = timeToIndex(time)
-      val xz = try { sfc.index(envelope.getMinX, envelope.getMinY, t, envelope.getMaxX, envelope.getMaxY, t) } catch {
+      val xz = try {
+        sfc.index(envelope.getMinX, envelope.getMinY, t, envelope.getMaxX, envelope.getMaxY, t, lenient)
+      } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid xz value from geometry/time: $geom,$dtg", e)
       }
       ByteArrays.toBytes(b, xz)
@@ -184,6 +186,7 @@ object XZ3Index extends IndexKeySpace[XZ3ProcessingValues] {
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, (Double, Double)]
     val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
+    val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getZ3Interval)
 
     def updateTime(week: Short, lt: Double, ut: Double): Unit = {
       val times = timesByBin.get(week) match {
@@ -195,8 +198,9 @@ object XZ3Index extends IndexKeySpace[XZ3ProcessingValues] {
 
     // note: intervals shouldn't have any overlaps
     intervals.foreach { interval =>
-      val BinnedTime(lb, lt) = dateToIndex(interval._1)
-      val BinnedTime(ub, ut) = dateToIndex(interval._2)
+      val (lower, upper) = boundsToDates(interval.bounds)
+      val BinnedTime(lb, lt) = dateToIndex(lower)
+      val BinnedTime(ub, ut) = dateToIndex(upper)
       if (lb == ub) {
         updateTime(lb, lt, ut)
       } else {
@@ -225,5 +229,5 @@ object XZ3Index extends IndexKeySpace[XZ3ProcessingValues] {
 case class XZ3ProcessingValues(sfc: XZ3SFC,
                                geometries: FilterValues[Geometry],
                                spatialBounds: Seq[ (Double, Double, Double, Double)],
-                               intervals: FilterValues[(DateTime, DateTime)],
+                               intervals: FilterValues[Bounds[DateTime]],
                                temporalBounds: Map[Short, (Double, Double)])

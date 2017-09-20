@@ -14,6 +14,7 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RowEncodingIterator
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -24,9 +25,9 @@ import org.opengis.feature.simple.SimpleFeatureType
   */
 class KryoVisibilityRowEncoder extends RowEncodingIterator {
 
-  private var sft: SimpleFeatureType = null
-  private var nullBytes: Array[Array[Byte]] = null
-  private var offsets: Array[Int] = null
+  private var sft: SimpleFeatureType = _
+  private var nullBytes: Array[Array[Byte]] = _
+  private var offsets: Array[Int] = _
   private var offsetStart: Int = -1
 
   private val output: Output = new Output(128, -1)
@@ -41,7 +42,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       offsets = Array.ofDim[Int](sft.getAttributeCount)
     }
     val cacheKey = CacheKeyGenerator.cacheKey(sft)
-    nullBytes = KryoFeatureSerializer.getWriters(cacheKey, sft).map { writer =>
+    nullBytes = KryoFeatureSerialization.getWriters(cacheKey, sft).map { writer =>
       output.clear()
       writer(output, null)
       output.toBytes
@@ -96,7 +97,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     * @return
     */
   private def readOffsets(bytes: Array[Byte]): Unit = {
-    val input = KryoFeatureSerializer.getInput(bytes, 0, bytes.length)
+    val input = KryoFeatureDeserialization.getInput(bytes, 0, bytes.length)
     // reset our offsets
     input.setPosition(1) // skip version
     offsetStart = input.readInt()

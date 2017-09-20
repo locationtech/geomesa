@@ -30,7 +30,7 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
   override val spec = s"name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='${Z3Index.name}'"
 
   val features = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"f-$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"f-$i")
     sf.setAttribute(0, s"name-$i")
     sf.setAttribute(1, s"2016-01-01T0$i:01:00.000Z")
     sf.setAttribute(2, s"POINT(4$i 5$i)")
@@ -92,7 +92,7 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
       var results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must beEmpty
 
-      val sf = new ScalaSimpleFeature(s"f-10", ds.getSchema(sftName))
+      val sf = new ScalaSimpleFeature(ds.getSchema(sftName), s"f-10")
       sf.setAttribute(0, "name-10")
       sf.setAttribute(1, "2016-01-01T10:01:00.000Z")
       sf.setAttribute(2, "POINT(50 60)")

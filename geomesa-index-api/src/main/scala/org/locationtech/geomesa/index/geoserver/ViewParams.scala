@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -24,9 +25,15 @@ import scala.util.control.NonFatal
 
 object ViewParams extends LazyLogging {
 
-  import org.locationtech.geomesa.index.conf.QueryHints._
-
   import scala.collection.JavaConversions._
+
+  // note: keys in the view params map are always uppercase
+  private val hints = {
+    val methods = QueryHints.getClass.getDeclaredMethods.filter { m =>
+      m.getParameterCount == 0 && classOf[Hints.Key].isAssignableFrom(m.getReturnType)
+    }
+    methods.map(m => m.getName.toUpperCase -> m.invoke(QueryHints).asInstanceOf[Hints.Key]).toMap
+  }
 
   private val envelope = """\[\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)\s*]""".r
 
@@ -43,54 +50,30 @@ object ViewParams extends LazyLogging {
       Option(viewParams).map(_.toMap).getOrElse(Map.empty)
     }
 
-    // note: keys in the map are always uppercase.
-    params.foreach { case (key, value) =>
-      val setHint = setQueryHint(query, key) _
-      key match {
-        case "QUERY_INDEX"     => setHint(QUERY_INDEX, value)
-        case "STRATEGY"        => setHint(QUERY_INDEX, value) // back-compatible check for strategy
-        case "COST_EVALUATION" => toCost(value).foreach(setHint(COST_EVALUATION, _))
-
-        case "DENSITY_BBOX"    => toEnvelope(key, value).foreach(setHint(DENSITY_BBOX, _))
-        case "DENSITY_WEIGHT"  => setHint(DENSITY_WEIGHT, value)
-        case "DENSITY_WIDTH"   => toInt(key, value).foreach(setHint(DENSITY_WIDTH, _))
-        case "DENSITY_HEIGHT"  => toInt(key, value).foreach(setHint(DENSITY_HEIGHT, _))
-
-        case "STATS_STRING "   => setHint(STATS_STRING, value)
-        case "ENCODE_STATS"    => toBoolean(key, value).foreach(setHint(ENCODE_STATS, _))
-
-        case "EXACT_COUNT"     => toBoolean(key, value).foreach(setHint(EXACT_COUNT, _))
-        case "LOOSE_BBOX"      => toBoolean(key, value).foreach(setHint(LOOSE_BBOX, _))
-
-        case "SAMPLING"        => toFloat(key, value).foreach(setHint(SAMPLING, _))
-        case "SAMPLE_BY"       => setHint(SAMPLE_BY, value)
-
-        case "BIN_TRACK"       => setHint(BIN_TRACK, value)
-        case "BIN_GEOM"        => setHint(BIN_GEOM, value)
-        case "BIN_DTG"         => setHint(BIN_DTG, value)
-        case "BIN_LABEL"       => setHint(BIN_LABEL, value)
-        case "BIN_SORT"        => toBoolean(key, value).foreach(setHint(BIN_SORT, _))
-        case "BIN_BATCH_SIZE"  => toInt(key, value).foreach(setHint(BIN_BATCH_SIZE, _))
-
-        case "ARROW_ENCODE"             => toBoolean(key, value).foreach(setHint(ARROW_ENCODE, _))
-        case "ARROW_INCLUDE_FID"        => toBoolean(key, value).foreach(setHint(ARROW_INCLUDE_FID, _))
-        case "ARROW_DICTIONARY_FIELDS"  => setHint(ARROW_DICTIONARY_FIELDS, value)
-        case "ARROW_DICTIONARY_VALUES"  => setHint(ARROW_DICTIONARY_VALUES, value)
-        case "ARROW_DICTIONARY_COMPUTE" => toBoolean(key, value).foreach(setHint(ARROW_DICTIONARY_COMPUTE, _))
-        case "ARROW_DICTIONARY_CACHED"  => toBoolean(key, value).foreach(setHint(ARROW_DICTIONARY_CACHED, _))
-        case "ARROW_BATCH_SIZE"         => toInt(key, value).foreach(setHint(ARROW_BATCH_SIZE, _))
-        case "ARROW_SORT_FIELD"         => setHint(ARROW_SORT_FIELD, value)
-        case "ARROW_SORT_REVERSE"       => toBoolean(key, value).foreach(setHint(ARROW_SORT_REVERSE, _))
-
-        case "LAMBDA_QUERY_PERSISTENT"  => toBoolean(key, value).foreach(setHint(LAMBDA_QUERY_PERSISTENT, _))
-        case "LAMBDA_QUERY_TRANSIENT"   => toBoolean(key, value).foreach(setHint(LAMBDA_QUERY_TRANSIENT, _))
-
-        case _ => logger.debug(s"Ignoring view param $key=$value")
+    params.foreach { case (original, value) =>
+      val key = if (original == "STRATEGY") { "QUERY_INDEX" } else { original }
+      hints.get(key) match {
+        case None => logger.debug(s"Ignoring view param $key=$value")
+        case Some(hint) =>
+          try {
+            val setHint = setQueryHint(query, key, hint) _
+            hint.getValueClass match {
+              case c if c == classOf[String]             => setHint(value)
+              case c if c == classOf[java.lang.Boolean]  => toBoolean(key, value).foreach(setHint.apply)
+              case c if c == classOf[java.lang.Integer]  => toInt(key, value).foreach(setHint.apply)
+              case c if c == classOf[java.lang.Float]    => toFloat(key, value).foreach(setHint.apply)
+              case c if c == classOf[ReferencedEnvelope] => toEnvelope(key, value).foreach(setHint.apply)
+              case c if c == classOf[CostEvaluation]     => toCost(value).foreach(setHint.apply)
+              case c => logger.warn(s"Unhandled hint type for '$key'")
+            }
+          } catch {
+            case NonFatal(e) => logger.warn(s"Error invoking query hint for $key=$value", e)
+          }
       }
     }
   }
 
-  private def setQueryHint(query: Query, name: String)(hint: Hints.Key, value: Any): Unit = {
+  private def setQueryHint(query: Query, name: String, hint: Hints.Key)(value: Any): Unit = {
     val old = query.getHints.get(hint)
     if (old == null) {
       logger.debug(s"Using query hint from geoserver view params: $name=$value")

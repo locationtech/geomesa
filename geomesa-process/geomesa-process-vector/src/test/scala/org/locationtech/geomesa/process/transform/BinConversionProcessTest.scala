@@ -14,7 +14,8 @@ import com.vividsolutions.jts.geom.Point
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, EncodedValues, ExtendedValues}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,7 +31,7 @@ class BinConversionProcessTest extends Specification {
   val process = new BinConversionProcess
 
   val features = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"0$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"0$i")
     sf.setAttribute("name", s"name$i")
     sf.setAttribute("track", s"$i")
     sf.setAttribute("dtg", s"2017-02-20T00:00:0$i.000Z")
@@ -54,8 +55,8 @@ class BinConversionProcessTest extends Specification {
 
   // converts to tuples that we can compare to zipped values
   def toTuples(value: EncodedValues): Any = value match {
-    case BasicValues(lat, lon, dtg, trackId) => ((trackId, dtg), (lat, lon))
-    case ExtendedValues(lat, lon, dtg, trackId, label) => (((trackId, dtg), (lat, lon)), label)
+    case EncodedValues(trackId, lat, lon, dtg, label) if label == -1L => ((trackId, dtg), (lat, lon))
+    case EncodedValues(trackId, lat, lon, dtg, label) => (((trackId, dtg), (lat, lon)), label)
   }
 
   "BinConversionProcess" should {
@@ -67,21 +68,21 @@ class BinConversionProcessTest extends Specification {
     "encode a generic feature collection" in {
       val bytes = process.execute(listCollection, null, null, null, null, "lonlat").toList
       bytes must haveLength(10)
-      val decoded = bytes.map(Convert2ViewerFunction.decode).map(toTuples)
+      val decoded = bytes.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(ids.zip(dates).zip(lonlat))
     }
 
     "encode a generic feature collection with alternate values" in {
       val bytes = process.execute(listCollection, "name", "geom2", "dtg2", null, "lonlat").toList
       bytes must haveLength(10)
-      val decoded = bytes.map(Convert2ViewerFunction.decode).map(toTuples)
+      val decoded = bytes.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates2).zip(lonlat2))
     }
 
     "encode a generic feature collection with labels" in {
       val bytes = process.execute(listCollection, null, null, null, "track", "lonlat").toList
       bytes must haveLength(10)
-      val decoded = bytes.map(Convert2ViewerFunction.decode).map(toTuples)
+      val decoded = bytes.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(ids.zip(dates).zip(lonlat).zip(tracks))
     }
   }

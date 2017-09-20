@@ -320,43 +320,43 @@ object ArrowAttributeWriter {
 
   class ArrowIntWriter(mutator: NullableIntVector#Mutator) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.set(i, value.asInstanceOf[Int])
+      mutator.setSafe(i, value.asInstanceOf[Int])
     }
   }
 
   class ArrowLongWriter(mutator: NullableBigIntVector#Mutator) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.set(i, value.asInstanceOf[Long])
+      mutator.setSafe(i, value.asInstanceOf[Long])
     }
   }
 
   class ArrowFloatWriter(mutator: NullableFloat4Vector#Mutator) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.set(i, value.asInstanceOf[Float])
+      mutator.setSafe(i, value.asInstanceOf[Float])
     }
   }
 
   class ArrowDoubleWriter(mutator: NullableFloat8Vector#Mutator) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.set(i, value.asInstanceOf[Double])
+      mutator.setSafe(i, value.asInstanceOf[Double])
     }
   }
 
   class ArrowBooleanWriter(mutator: NullableBitVector#Mutator) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.set(i, if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
+      mutator.setSafe(i, if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
     }
   }
 
   class ArrowDateMillisWriter(mutator: NullableBigIntVector#Mutator) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.set(i, value.asInstanceOf[Date].getTime)
+      mutator.setSafe(i, value.asInstanceOf[Date].getTime)
     }
   }
 
   class ArrowDateSecondsWriter(mutator: NullableIntVector#Mutator) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.set(i, (value.asInstanceOf[Date].getTime / 1000L).toInt)
+      mutator.setSafe(i, (value.asInstanceOf[Date].getTime / 1000L).toInt)
     }
   }
 

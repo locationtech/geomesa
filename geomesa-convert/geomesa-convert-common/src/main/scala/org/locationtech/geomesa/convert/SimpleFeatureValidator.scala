@@ -116,13 +116,14 @@ class ZIndexValidator extends SimpleFeatureValidator {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
       val maxDate = BinnedTime.maxDate(sft.getZ3Interval).toDate
+      val minDate = BinnedTime.ZMinDate.toDate
       val dtgFn: (SimpleFeature) => Boolean = sft.getDtgIndex match {
         case Some(dtgIdx) => (sf: SimpleFeature) =>
           lastErr = null
           if (sf.getAttribute(dtgIdx) == null){
             lastErr = "Null date attribute"
             false
-          } else if (sf.get[Date](dtgIdx).before(BinnedTime.ZMinDate)) {
+          } else if (sf.get[Date](dtgIdx).before(minDate)) {
             lastErr = "Date is before Z3 Min Date"
             false
           } else if (sf.get[Date](dtgIdx).after(maxDate)) {

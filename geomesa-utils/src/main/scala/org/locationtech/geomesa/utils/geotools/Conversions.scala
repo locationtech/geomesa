@@ -201,6 +201,8 @@ object RichSimpleFeatureType {
     def getStIndexSchema: String = userData[String](ST_INDEX_SCHEMA_KEY).orNull
     def setStIndexSchema(schema: String): Unit = sft.getUserData.put(ST_INDEX_SCHEMA_KEY, schema)
 
+    def isLogicalTime: Boolean = userData[String](LOGICAL_TIME_KEY).forall(_.toBoolean)
+
     def getBinTrackId: Option[String] = sft.getAttributeDescriptors.find(_.isBinTrackId()).map(_.getLocalName)
 
     def getSchemaVersion: Int =
@@ -275,7 +277,8 @@ object RichSimpleFeatureType {
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
 
-    def getKeywords: Set[String] = userData[String](KEYWORDS_KEY).getOrElse("").split(KEYWORDS_DELIMITER).toSet
+    def getKeywords: Set[String] =
+      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).getOrElse(Set.empty)
 
     def addKeywords(keywords: Set[String]): Unit =
       sft.getUserData.put(KEYWORDS_KEY, getKeywords.union(keywords).mkString(KEYWORDS_DELIMITER))

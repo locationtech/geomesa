@@ -49,7 +49,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
       override def hasNext: Boolean = false
 
       override def next(): SimpleFeature = {
-        feature = new ScalaSimpleFeature(featureIds.getAndIncrement().toString, sft)
+        feature = new ScalaSimpleFeature(sft, featureIds.getAndIncrement().toString)
         feature
       }
 
@@ -70,7 +70,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
         try {
           storage.updateMetadata(typeName)
         } catch {
-          case e: Throwable => logger.error(s"Error updating metadata for type $typeName")
+          case e: Throwable => logger.error(s"Error updating metadata for type $typeName", e)
         }
       }
     }
@@ -79,7 +79,9 @@ class FileSystemFeatureStore(entry: ContentEntry,
   override def getBoundsInternal(query: Query): ReferencedEnvelope = ReferencedEnvelope.EVERYTHING
   override def buildFeatureType(): SimpleFeatureType = _sft
   override def getCountInternal(query: Query): Int = -1
-  override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+
+  override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+    val query = new Query(original)
     // The type name can sometimes be empty such as Query.ALL
     query.setTypeName(_sft.getTypeName)
 
@@ -88,10 +90,9 @@ class FileSystemFeatureStore(entry: ContentEntry,
     QueryPlanner.setQueryTransforms(query, _sft)
     val transformSft = query.getHints.getTransformSchema.getOrElse(_sft)
 
-    new DelegateSimpleFeatureReader(transformSft,
-      new DelegateSimpleFeatureIterator(
-        new FileSystemFeatureIterator(fs, storage.getPartitionScheme(transformSft.getTypeName),
-          transformSft, query, readThreads, storage)))
+    val scheme = storage.getPartitionScheme(_sft.getTypeName)
+    val iter = new FileSystemFeatureIterator(fs, scheme, _sft, query, readThreads, storage)
+    new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 
 

@@ -48,13 +48,13 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
   override def getAttributeBounds[T](sft: SimpleFeatureType,
                                      attribute: String,
                                      filter: Filter,
-                                     exact: Boolean): Option[AttributeBounds[T]] = {
+                                     exact: Boolean): Option[MinMax[T]] = {
     val stat = if (exact) {
       runStats[MinMax[T]](sft, Stat.MinMax(attribute), filter).headOption
     } else {
       readStat[MinMax[T]](sft, MetadataBackedStats.minMaxKey(attribute))
     }
-    stat.filterNot(_.isEmpty).map(s => AttributeBounds(s.min, s.max, s.cardinality))
+    stat.filterNot(_.isEmpty)
   }
 
   override def getStats[T <: Stat](sft: SimpleFeatureType,
@@ -145,7 +145,7 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
 
   override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
 
-  override def close(): Unit = {}
+  override def close(): Unit = metadata.close()
 
   /**
     * Write a stat to accumulo. If merge == true, will write the stat but not remove the old stat,
@@ -274,7 +274,7 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
         val binding = sft.getDescriptor(attribute).getType.getBinding
       // calculate the endpoints for the histogram
       // the histogram will expand as needed, but this is a starting point
-      val bounds = {
+      val (lower, upper, cardinality) = {
         val mm = try {
           readStat[MinMax[Any]](sft, minMaxKey(attribute))
         } catch {
@@ -288,13 +288,13 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
           case Some(b) if b.min == b.max => Histogram.buffer(b.min)
           case Some(b) => b.bounds
         }
-        AttributeBounds(min, max, mm.map(_.cardinality).getOrElse(0L))
+        (min, max, mm.map(_.cardinality).getOrElse(0L))
       }
       // estimate 10k entries per bin, but cap at 10k bins (~29k on disk)
       val size = if (attribute == sft.getGeomField) { MaxHistogramSize } else {
-        math.min(MaxHistogramSize, math.max(DefaultHistogramSize, bounds.cardinality / 10000).toInt)
+        math.min(MaxHistogramSize, math.max(DefaultHistogramSize, cardinality / 10000).toInt)
       }
-      Stat.Histogram[Any](attribute, size, bounds.lower, bounds.upper)(ClassTag[Any](binding))
+      Stat.Histogram[Any](attribute, size, lower, upper)(ClassTag[Any](binding))
     }
 
     val z3Histogram = for {

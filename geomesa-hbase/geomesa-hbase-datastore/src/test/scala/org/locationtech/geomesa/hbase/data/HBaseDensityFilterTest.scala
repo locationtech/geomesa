@@ -21,6 +21,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.DensityScan
@@ -64,14 +65,14 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
         sf.setAttribute(3, "POINT(-77 38)")
         sf
       }  :+ {
-        val sf2 = new ScalaSimpleFeature("200", sft)
+        val sf2 = new ScalaSimpleFeature(sft, "200")
         sf2.setAttribute(0, "200")
         sf2.setAttribute(1, "1.0")
         sf2.setAttribute(2, new DateTime("2010-01-01T19:00:00", DateTimeZone.UTC).toDate)
@@ -82,7 +83,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       val features_list = new ListFeatureCollection(sft, toAdd)
       fs.addFeatures(features_list)
 
-      val q = " BBOX(geom, 0, 0, 10, 10)"
+      val q = "BBOX(geom, 0, 0, 10, 10)"
       val density = getDensity(typeName, q, fs)
       density.length must equalTo(1)
     }
@@ -91,7 +92,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
@@ -112,7 +113,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
@@ -134,7 +135,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
       val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
       val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new Date(date + i * 60000))
@@ -158,7 +159,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       val toAdd = (0 until 150).map { i =>
         // space out the points very slightly around 5 primary latitudes 1 degree apart
         val lat = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, new Date(date + i * 60000))
@@ -197,12 +198,16 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
   }
 
   def getDensity(typeName: String, query: String, fs: SimpleFeatureStore): List[(Double, Double, Double)] = {
-    val q = new Query(typeName, ECQL.toFilter(query))
-    val env = ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
-    q.getHints.put(QueryHints.DENSITY_BBOX, env)
+    val filter = ECQL.toFilter(query)
+    val envelope = FilterHelper.extractGeometries(filter, "geom").values.headOption match {
+      case None    => ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+      case Some(g) => ReferencedEnvelope.create(g.getEnvelopeInternal,  DefaultGeographicCRS.WGS84)
+    }
+    val q = new Query(typeName, filter)
+    q.getHints.put(QueryHints.DENSITY_BBOX, envelope)
     q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
-    val decode = DensityScan.decodeResult(env, 500, 500)
+    val decode = DensityScan.decodeResult(envelope, 500, 500)
     SelfClosingIterator(fs.getFeatures(q).features).flatMap(decode).toList
   }
 }
