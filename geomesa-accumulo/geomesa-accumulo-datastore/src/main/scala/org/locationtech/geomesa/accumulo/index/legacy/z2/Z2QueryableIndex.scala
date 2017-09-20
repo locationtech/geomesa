@@ -155,7 +155,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
         }
       }
 
-      val zIter = Z2Iterator.configure(sft, xy, Z2Index.Z2IterPriority)
+      val zIter = Z2Iterator.configure(sft, LegacyZ2SFC, xy, Z2Index.Z2IterPriority)
 
       (ranges, Some(zIter))
     }

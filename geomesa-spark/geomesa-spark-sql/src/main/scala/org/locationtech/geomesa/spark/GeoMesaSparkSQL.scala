@@ -33,6 +33,7 @@ import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.apache.spark.sql.sources.Filter
 import com.vividsolutions.jts.index.sweepline.{SweepLineIndex, SweepLineInterval, SweepLineOverlapAction}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.collection.Iterator
@@ -634,14 +635,11 @@ object RelationUtils extends LazyLogging {
 
     val extractors = SparkUtils.getExtractors(requiredColumns, schema)
 
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
-
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val result = indexRDD.flatMap { engine =>
       val cqlFilter = ECQL.toFilter(filterString)
       val query = new Query(params(GEOMESA_SQL_FEATURE), cqlFilter, requiredAttributes)
-      val fr = engine.getFeatureReader(query, Transaction.AUTO_COMMIT)
-      fr.toIterator
+      SelfClosingIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
     }.map(SparkUtils.sf2row(schema, _, extractors))
 
     result.asInstanceOf[RDD[Row]]
@@ -671,14 +669,11 @@ object RelationUtils extends LazyLogging {
 
     val extractors = SparkUtils.getExtractors(requiredColumns, schema)
 
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
-
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val result = reducedRdd.flatMap { case (key, engine) =>
       val cqlFilter = ECQL.toFilter(filterString)
       val query = new Query(params(GEOMESA_SQL_FEATURE), cqlFilter, requiredAttributes)
-      val fr = engine.getFeatureReader(query, Transaction.AUTO_COMMIT)
-      fr.toIterator
+      SelfClosingIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
     }.map(SparkUtils.sf2row(schema, _, extractors))
     result.asInstanceOf[RDD[Row]]
   }

@@ -10,13 +10,11 @@ package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.index.index.XZ2Index
+import org.locationtech.geomesa.index.index.z2.XZ2Index
 
-case object HBaseXZ2Index
-    extends HBaseXZ2LikeIndex with HBasePlatform
+case object HBaseXZ2Index extends HBaseLikeXZ2Index with HBasePlatform
 
-trait HBaseXZ2LikeIndex
-  extends HBaseFeatureIndex with XZ2Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
+trait HBaseLikeXZ2Index extends HBaseFeatureIndex with XZ2Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 1
 
   // TODO GEOMESA-1807 deal with non-points in a pushdown XZ filter
