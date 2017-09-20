@@ -62,7 +62,7 @@ object NormalizedDimension {
     private val normalizer = bins / (max - min)
     private val denormalizer = (max - min) / bins
 
-    override val maxIndex = (bins - 1).toInt // note: call .toInt after subtracting 1 to avoid sign issues
+    override val maxIndex: Int = (bins - 1).toInt // note: call .toInt after subtracting 1 to avoid sign issues
 
     override def normalize(x: Double): Int =
       if (x >= max) { maxIndex } else { math.floor((x - min) * normalizer).toInt }
@@ -79,16 +79,20 @@ object NormalizedDimension {
 
 
   // legacy normalization, doesn't correctly bin lower bound
+  @deprecated("use BitNormalizedDimension instead")
   class SemiNormalizedDimension(val min: Double, val max: Double, precision: Long) extends NormalizedDimension {
-    override val maxIndex = precision.toInt
+    override val maxIndex: Int = precision.toInt
     override def normalize(x: Double): Int = math.ceil((x - min) / (max - min) * precision).toInt
     override def denormalize(x: Int): Double = if (x == 0) { min } else { (x - 0.5d) * (max - min) / precision + min }
   }
 
+  @deprecated("use NormalizedLat instead")
   case class SemiNormalizedLat(precision: Long) extends SemiNormalizedDimension(-90d, 90d, precision)
 
+  @deprecated("use NormalizedLon instead")
   case class SemiNormalizedLon(precision: Long) extends SemiNormalizedDimension(-180d, 180d, precision)
 
+  @deprecated("use NormalizedTime instead")
   case class SemiNormalizedTime(precision: Long, override val max: Double)
       extends SemiNormalizedDimension(0d, max, precision)
 }
