@@ -89,7 +89,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
   }
 
   @throws(classOf[IllegalArgumentException])
-  override protected def onSchemaCreate(sft: SimpleFeatureType): Unit = {
+  override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
     // note: kafka doesn't allow slashes in topic names
     KafkaDataStore.topic(sft) match {
       case null  => KafkaDataStore.setTopic(sft, s"${config.catalog}-${sft.getTypeName}".replaceAll("/", "-"))
@@ -102,7 +102,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
   }
 
   @throws(classOf[IllegalArgumentException])
-  override protected def onSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+  override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     val topic = KafkaDataStore.topic(sft)
     if (topic == null) {
       throw new IllegalArgumentException(s"Topic must be defined in user data under '$TopicKey'")

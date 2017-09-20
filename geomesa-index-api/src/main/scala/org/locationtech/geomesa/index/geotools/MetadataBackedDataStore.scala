@@ -60,7 +60,7 @@ abstract class MetadataBackedDataStore extends DataStore
     * @throws java.lang.IllegalArgumentException if schema is invalid and shouldn't be written
     */
   @throws(classOf[IllegalArgumentException])
-  protected def onSchemaCreate(sft: SimpleFeatureType): Unit
+  protected def preSchemaCreate(sft: SimpleFeatureType): Unit
 
   /**
     * Called just before updating schema metadata. Allows for validation or configuration of user data
@@ -70,7 +70,7 @@ abstract class MetadataBackedDataStore extends DataStore
     * @throws java.lang.IllegalArgumentException if schema is invalid and shouldn't be updated
     */
   @throws(classOf[IllegalArgumentException])
-  protected def onSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit
+  protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit
 
   /**
     * Called after schema metadata has been persisted. Allows for creating tables, etc
@@ -231,7 +231,7 @@ abstract class MetadataBackedDataStore extends DataStore
         throw new UnsupportedOperationException("Updating schema columns is not allowed")
       }
 
-      onSchemaUpdate(sft, previousSft)
+      preSchemaUpdate(sft, previousSft)
 
       // If all is well, update the metadata
       val attributesValue = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
@@ -372,7 +372,7 @@ abstract class MetadataBackedDataStore extends DataStore
     }
 
     // set the enabled indices
-    onSchemaCreate(sft)
+    preSchemaCreate(sft)
 
     // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
     val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)

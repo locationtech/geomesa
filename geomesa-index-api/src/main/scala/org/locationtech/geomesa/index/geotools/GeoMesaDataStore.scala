@@ -115,10 +115,10 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
   // set the enabled indices
   @throws(classOf[IllegalArgumentException])
-  override protected def onSchemaCreate(sft: SimpleFeatureType): Unit = manager.setIndices(sft)
+  override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = manager.setIndices(sft)
 
   @throws(classOf[IllegalArgumentException])
-  override protected def onSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+  override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     // update the configured indices if needed
     val previousIndices = previous.getIndices.map { case (name, version, _) => (name, version)}
     val newIndices = sft.getIndices.filterNot {
