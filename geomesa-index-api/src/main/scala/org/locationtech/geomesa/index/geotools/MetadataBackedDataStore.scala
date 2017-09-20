@@ -45,6 +45,15 @@ abstract class MetadataBackedDataStore extends DataStore
   // hooks to allow extended functionality
 
   /**
+    * Inspect and update the simple feature type as required. Called before writing
+    * the schema metadata
+    *
+    * @param sft simple feature type being created
+    */
+  @throws(classOf[IllegalArgumentException])
+  protected def validateNewSchema(sft: SimpleFeatureType): Unit = GeoMesaSchemaValidator.validate(sft)
+
+  /**
     * Called just before persisting schema metadata. Allows for validation or configuration of user data
     *
     * @param sft simple feature type
@@ -108,7 +117,7 @@ abstract class MetadataBackedDataStore extends DataStore
         if (getSchema(sft.getTypeName) == null) {
           // inspect and update the simple feature type for various components
           // do this before anything else so that any modifications will be in place
-          GeoMesaSchemaValidator.validate(sft)
+          validateNewSchema(sft)
 
           try {
             // write out the metadata to the catalog table
