@@ -45,14 +45,6 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
   val reader = new Reader(this)
 
   /**
-    * double underlying vector capacity
-    */
-  def expand(): Unit = {
-    underlying.reAlloc()
-    maxIndex = underlying.getValueCapacity - 1
-  }
-
-  /**
     * Clear any simple features currently stored in the vector
     */
   def clear(): Unit = underlying.getMutator.setValueCount(0)
@@ -68,10 +60,6 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
     private [arrow] val attributeWriters = ArrowAttributeWriter(sft, vector.underlying, dictionaries, encoding).toArray
 
     def set(index: Int, feature: SimpleFeature): Unit = {
-      // make sure we have space to write the value
-      while (index > vector.maxIndex ) {
-        vector.expand()
-      }
       arrowWriter.setPosition(index)
       arrowWriter.start()
       idWriter.apply(index, feature.getID)

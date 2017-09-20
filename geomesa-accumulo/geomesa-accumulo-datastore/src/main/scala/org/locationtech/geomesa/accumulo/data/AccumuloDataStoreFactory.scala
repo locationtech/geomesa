@@ -48,9 +48,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     new AccumuloDataStore(connector, config)
   }
 
-  override def getDisplayName = AccumuloDataStoreFactory.DISPLAY_NAME
+  override def getDisplayName: String = AccumuloDataStoreFactory.DISPLAY_NAME
 
-  override def getDescription = AccumuloDataStoreFactory.DESCRIPTION
+  override def getDescription: String = AccumuloDataStoreFactory.DESCRIPTION
 
   override def getParametersInfo =
     Array(

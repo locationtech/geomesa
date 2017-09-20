@@ -48,7 +48,7 @@ case object Z2IndexV2 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Q
     val splitArray = SplitArrays.apply(sft.getZShards)
 
     (wf: AccumuloFeature) => {
-      val rows = getPointRowKey(sharing, splitArray)(wf)
+      val rows = getPointRowKey(sharing, splitArray, lenient = false)(wf)
       rows.map { row =>
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value => mutation.put(value.cf, value.cq, value.vis, value.value) }
@@ -63,7 +63,7 @@ case object Z2IndexV2 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Q
     val sharing = sharingPrefix(sft)
     val splitArray = SplitArrays.apply(sft.getZShards)
     (wf: AccumuloFeature) => {
-      val rows = getPointRowKey(sharing, splitArray)(wf)
+      val rows = getPointRowKey(sharing, splitArray, lenient = true)(wf)
       rows.map { row =>
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value =>

@@ -9,63 +9,93 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.joda.time.format.{ISOPeriodFormat, PeriodFormatter}
-import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.accumulo.iterators.DtgAgeOffIterator._
-import org.locationtech.geomesa.index.iterators.IteratorCache
-import org.opengis.feature.simple.SimpleFeature
-
-import scala.util.control.NonFatal
+import org.joda.time.Period
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloIndexManagerType}
+import org.locationtech.geomesa.index.filters.DtgAgeOffFilter
+import org.locationtech.geomesa.utils.index.IndexMode
+import org.opengis.feature.simple.SimpleFeatureType
 
 /**
   * Age off data based on the dtg value stored in the SimpleFeature
   */
-class DtgAgeOffIterator extends AgeOffFilter {
+class DtgAgeOffIterator extends AgeOffIterator with DtgAgeOffFilter {
 
-  private var dtgIdx: Int = -1
-  private var minTs: Long = -1
-
-  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
-    val copy = super[AgeOffFilter].deepCopy(env).asInstanceOf[DtgAgeOffIterator]
-
-    copy.dtgIdx = dtgIdx
-    copy.minTs = minTs
-
-    copy
-  }
+  override protected val manager: AccumuloIndexManagerType = AccumuloFeatureIndex
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    super[AgeOffFilter].init(source, options, env)
+    import scala.collection.JavaConversions._
 
-    val now = DateTime.now(DateTimeZone.UTC)
-    minTs = try { minimumTimestamp(now, options.get(Options.RetentionPeriodOpt)) }  catch {
-      case NonFatal(e) => throw new RuntimeException(s"Retention option not configured correctly: ${options.get(Options.RetentionPeriodOpt)}")
+    super.init(source, options, env)
+    try {
+      super.init(options.toMap)
+    } catch {
+      case _: NoSuchElementException => dtgIndex = sft.getDtgIndex.get // fallback for old configuration
     }
-    dtgIdx = IteratorCache.dtgIndex(spec, sft)
   }
 
-  override def accept(sf: SimpleFeature): Boolean = {
-    val ts = reusableSF.getDateAsLong(dtgIdx)
-    ts > minTs
+  override def accept(k: Key, v: Value): Boolean = {
+    val value = v.get()
+    accept(null, -1, -1, value, 0, value.length, -1)
+  }
+
+  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
+    val copy = super.deepCopy(env).asInstanceOf[DtgAgeOffIterator]
+    copy.sft = sft
+    copy.index = index
+    copy.reusableSf = reusableSf
+    copy.dtgIndex = dtgIndex
+    copy
   }
 }
 
 object DtgAgeOffIterator {
 
-  object Options {
-    val RetentionPeriodOpt = "retention"
+  val Name = "dtg-age-off"
+
+  def configure(sft: SimpleFeatureType,
+                index: AccumuloFeatureIndexType,
+                expiry: Period,
+                dtgField: Option[String],
+                priority: Int = 5): IteratorSetting = {
+    val is = new IteratorSetting(priority, Name, classOf[DtgAgeOffIterator])
+    DtgAgeOffFilter.configure(sft, index, expiry, dtgField).foreach { case (k, v) => is.addOption(k, v) }
+    is
   }
 
-  val periodFormat: PeriodFormatter = ISOPeriodFormat.standard()
-
-  def minimumTimestamp(now: DateTime, pStr: String): Long = {
-    val p = periodFormat.parsePeriod(pStr)
-    now.minus(p).getMillis
+  def list(ds: AccumuloDataStore, sft: SimpleFeatureType): Option[String] = {
+    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
+    val tableOps = ds.connector.tableOperations()
+    ds.getAllIndexTableNames(sft.getTypeName).iterator.filter(tableOps.exists).flatMap { table =>
+      IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).headOption
+    }.headOption.map(_.toString)
   }
 
+  def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Period, dtg: String): Unit = {
+    val tableOps = ds.connector.tableOperations()
+    ds.manager.indices(sft, IndexMode.Any).foreach { index =>
+      val table = index.getTableName(sft.getTypeName, ds)
+      if (tableOps.exists(table)) {
+        tableOps.attachIterator(table, configure(sft, index, expiry, Option(dtg))) // all scopes
+      }
+    }
+  }
+
+  def clear(ds: AccumuloDataStore, sft: SimpleFeatureType): Unit = {
+    val tableOps = ds.connector.tableOperations()
+    ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists).foreach { table =>
+      if (IteratorScope.values.exists(scope => tableOps.getIteratorSetting(table, Name, scope) != null)) {
+        tableOps.removeIterator(table, Name, java.util.EnumSet.allOf(classOf[IteratorScope]))
+      }
+    }
+  }
 }

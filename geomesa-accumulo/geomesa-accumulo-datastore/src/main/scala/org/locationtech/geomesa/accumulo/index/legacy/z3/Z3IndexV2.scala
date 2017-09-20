@@ -58,7 +58,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray) }
+      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray, lenient = false) }
       else { getGeomRowKeys(timeToIndex, sfc, splitArray) }
 
     (wf: AccumuloFeature) => {
@@ -81,7 +81,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     val sfc = LegacyZ3SFC(sft.getZ3Interval)
     val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray) }
+      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray, lenient = true) }
       else { getGeomRowKeys(timeToIndex, sfc, splitArray) }
 
     (wf: AccumuloFeature) => {

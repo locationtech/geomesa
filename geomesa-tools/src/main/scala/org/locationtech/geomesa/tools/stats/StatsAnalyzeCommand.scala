@@ -57,7 +57,8 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreComm
           e.expandToInclude(s.max.asInstanceOf[Geometry].getEnvelopeInternal)
           s"[ ${e.getMinX}, ${e.getMinY}, ${e.getMaxX}, ${e.getMaxY} ] cardinality: ${s.cardinality}"
         } else {
-          s"[ ${s.stringify(s.min)} to ${s.stringify(s.max)} ] cardinality: ${s.cardinality}"
+          val stringify = Stat.stringifier(sft.getDescriptor(attribute).getType.getBinding)
+          s"[ ${stringify(s.min)} to ${stringify(s.max)} ] cardinality: ${s.cardinality}"
         }
         s"Bounds for $attribute: $bounds"
     }

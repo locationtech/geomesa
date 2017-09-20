@@ -37,6 +37,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
                    val xsd: Option[String],
                    val inputFields: IndexedSeq[Field],
                    val userDataBuilder: Map[String, Expr],
+                   val caches: Map[String, EnrichmentCache],
                    val parseOpts: ConvertParseOpts,
                    val lineMode: LineMode) extends ToSimpleFeatureConverter[String] with LazyLogging {
 
@@ -97,6 +98,7 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
+                                        cacheServices: Map[String, EnrichmentCache],
                                         parseOpts: ConvertParseOpts): XMLConverter = {
     // feature path can be any xpath that resolves to a node set (or a single node)
     // it can be absolute, or relative to the root node
@@ -106,7 +108,7 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
     val xsd         = if (conf.hasPath("xsd")) Some(conf.getString("xsd")) else None
     val lineMode    = LineMode.getLineMode(conf)
 
-    new XMLConverter(sft, idBuilder, featurePath, xsd, fields, userDataBuilder, parseOpts, lineMode)
+    new XMLConverter(sft, idBuilder, featurePath, xsd, fields, userDataBuilder, cacheServices, parseOpts, lineMode)
   }
 
   override protected def buildField(field: Config): Field = {

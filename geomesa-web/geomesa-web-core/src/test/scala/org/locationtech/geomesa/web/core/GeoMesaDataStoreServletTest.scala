@@ -14,7 +14,7 @@ import java.nio.file.Files
 import org.json4s.{DefaultFormats, Formats}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.cache.FilePersistence
-import org.locationtech.geomesa.utils.classpath.PathUtils
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.scalatra.Ok
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.test.specs2.MutableScalatraSpec

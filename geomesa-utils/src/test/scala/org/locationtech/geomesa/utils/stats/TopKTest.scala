@@ -78,7 +78,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq(("name100", 50), ("name50", 20), ("name30", 15), ("name10", 10), ("name15", 5))
+        stat.topK(10).toSeq mustEqual Seq(("name100", 50), ("name50", 20), ("name30", 15), ("name10", 10), ("name15", 5))
       }
 
       "serialize and deserialize" >> {
@@ -132,17 +132,17 @@ class TopKTest extends Specification {
         features2.foreach(stat2.observe)
 
         stat2.size mustEqual 5
-        stat2.topK(10) mustEqual Seq(("name100-2", 50), ("name50-2", 20), ("name30-2", 15), ("name10-2", 10), ("name15-2", 5))
+        stat2.topK(10).toSeq mustEqual Seq(("name100-2", 50), ("name50-2", 20), ("name30-2", 15), ("name10-2", 10), ("name15-2", 5))
 
         stat += stat2
 
         stat.size mustEqual 10
 
-        stat.topK(10) mustEqual Seq(("name100", 50), ("name100-2", 50), ("name50", 20), ("name50-2", 20),
+        stat.topK(10).toSeq mustEqual Seq(("name100", 50), ("name100-2", 50), ("name50", 20), ("name50-2", 20),
           ("name30", 15), ("name30-2", 15), ("name10", 10), ("name10-2", 10), ("name15", 5), ("name15-2", 5))
 
         stat2.size mustEqual 5
-        stat2.topK(10) mustEqual Seq(("name100-2", 50), ("name50-2", 20), ("name30-2", 15), ("name10-2", 10), ("name15-2", 5))
+        stat2.topK(10).toSeq mustEqual Seq(("name100-2", 50), ("name50-2", 20), ("name30-2", 15), ("name10-2", 10), ("name15-2", 5))
       }
 
       "clear" >> {
@@ -152,7 +152,7 @@ class TopKTest extends Specification {
 
         stat.isEmpty must beTrue
         stat.size mustEqual 0
-        stat.topK(10) must beEmpty
+        stat.topK(10).toSeq must beEmpty
       }
     }
 
@@ -162,7 +162,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq((100L, 50), (50L, 20), (30L, 15), (10L, 10), (15L, 5))
+        stat.topK(10).toSeq mustEqual Seq((100L, 50), (50L, 20), (30L, 15), (10L, 10), (15L, 5))
       }
 
       "serialize and deserialize" >> {
@@ -185,7 +185,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq((100.0, 50), (50.0, 20), (30.0, 15), (10.0, 10), (15.0, 5))
+        stat.topK(10).toSeq mustEqual Seq((100.0, 50), (50.0, 20), (30.0, 15), (10.0, 10), (15.0, 5))
       }
 
       "serialize and deserialize" >> {
@@ -211,7 +211,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq((toDate(100), 50), (toDate(50), 20), (toDate(30), 15), (toDate(10), 10), (toDate(15), 5))
+        stat.topK(10).toSeq mustEqual Seq((toDate(100), 50), (toDate(50), 20), (toDate(30), 15), (toDate(10), 10), (toDate(15), 5))
       }
 
       "serialize and deserialize" >> {
@@ -237,7 +237,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq((toGeom(100), 50), (toGeom(50), 20), (toGeom(30), 15), (toGeom(10), 10), (toGeom(15), 5))
+        stat.topK(10).toSeq mustEqual Seq((toGeom(100), 50), (toGeom(50), 20), (toGeom(30), 15), (toGeom(10), 10), (toGeom(15), 5))
       }
 
       "serialize and deserialize" >> {

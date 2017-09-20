@@ -67,12 +67,12 @@ object AccumuloVersion extends Enumeration {
     }
   }
 
-  def ensureTableExists(connector: Connector, table: String, versioning: Boolean = true): Unit = {
+  def ensureTableExists(connector: Connector, table: String, logical: Boolean = true): Unit = {
     val tableOps = connector.tableOperations()
     if (!tableOps.exists(table)) {
       try {
         ensureNamespaceExists(connector, table)
-        tableOps.create(table, versioning, TimeType.LOGICAL)
+        tableOps.create(table, true, if (logical) TimeType.LOGICAL else TimeType.MILLIS)
       } catch {
         // this can happen with multiple threads but shouldn't cause any issues
         case e: TableExistsException =>

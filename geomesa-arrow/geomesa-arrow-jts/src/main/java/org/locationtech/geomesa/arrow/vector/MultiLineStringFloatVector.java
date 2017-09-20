@@ -69,7 +69,7 @@ public class MultiLineStringFloatVector extends AbstractMultiLineStringVector {
 
     @Override
     protected void writeOrdinal(int index, double ordinal) {
-      mutator.set(index, (float) ordinal);
+      mutator.setSafe(index, (float) ordinal);
     }
   }
 

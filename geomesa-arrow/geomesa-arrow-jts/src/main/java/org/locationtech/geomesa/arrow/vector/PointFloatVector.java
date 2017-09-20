@@ -69,7 +69,7 @@ public class PointFloatVector extends AbstractPointVector {
 
     @Override
     protected void writeOrdinal(int index, double ordinal) {
-      mutator.set(index, (float) ordinal);
+      mutator.setSafe(index, (float) ordinal);
     }
   }
 

@@ -61,14 +61,18 @@ author = u''
 #
 # Warning: current version numbers are handled in versions.py, which is preprocessed
 # by Maven. Do not hardcode current GeoMesa version numbers here!
-from target.versions import release,version,version_devel
+from target.versions import release,version,version_devel,release_last
 
 # Other versions and variables unlikely to change on every point release
 release_1_2 = '1.2.7.3'
 release_eclipse = '1.2.0'
 release_tutorial = '1.3.0.0-m2'
-url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
+
+url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
+
+
+
 
 # RST appended to every file. Used for global substitions.
 # (the "%(release)s" substitutions are done by the Python format() method
@@ -81,21 +85,21 @@ rst_epilog = """
 
 .. _Java JDK 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
-.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release)s/geomesa-accumulo-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release_last)s/geomesa-accumulo-dist_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_2.11/%(release)s/geomesa-kafka-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_2.11/%(release_last)s/geomesa-kafka-dist_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release)s/geomesa-hbase-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release_last)s/geomesa-hbase-dist_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release)s/geomesa-cassandra-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release_last)s/geomesa-cassandra-dist_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release)s.tar.gz
+.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release_last)s.tar.gz
 
-.. |release_kafka08_plugin| replace:: `geomesa-kafka-08-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-08-gs-plugin_2.11/%(release)s/geomesa-kafka-08-gs-plugin_2.11-%(release)s-install.tar.gz>`__
+.. |release_kafka08_plugin| replace:: `geomesa-kafka-08-gs-plugin-2.11-%(release_last)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-08-gs-plugin_2.11/%(release_last)s/geomesa-kafka-08-gs-plugin_2.11-%(release)s-install.tar.gz>`__
 
-.. |release_kafka09_plugin| replace:: `geomesa-kafka-09-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-09-gs-plugin_2.11/%(release)s/geomesa-kafka-09-gs-plugin_2.11-%(release)s-install.tar.gz>`__
+.. |release_kafka09_plugin| replace:: `geomesa-kafka-09-gs-plugin-2.11-%(release_last)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-09-gs-plugin_2.11/%(release_last)s/geomesa-kafka-09-gs-plugin_2.11-%(release)s-install.tar.gz>`__
 
-.. |release_kafka10_plugin| replace:: `geomesa-kafka-10-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-10-gs-plugin_2.11/%(release)s/geomesa-kafka-10-gs-plugin_2.11-%(release)s-install.tar.gz>`__
+.. |release_kafka10_plugin| replace:: `geomesa-kafka-10-gs-plugin-2.11-%(release_last)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-10-gs-plugin_2.11/%(release_last)s/geomesa-kafka-10-gs-plugin_2.11-%(release)s-install.tar.gz>`__
 
 .. |eclipse_release| replace:: %(release_eclipse)s
 
@@ -129,7 +133,10 @@ rst_epilog = """
 
 .. |cassandra_version| replace:: 3.x
 
+.. |release_last| replace:: %(release_last)s
+
 """ % {"release": release,
+       "release_last": release_last,
        "release_1_2": release_1_2,
        "release_eclipse": release_eclipse,
        "release_tutorial": release_tutorial,

@@ -16,8 +16,6 @@ import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.opengis.filter.Filter
 
-import scala.math.Ordering
-
 trait StatsTopKCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {
 
   override val name = "stats-top-k"
@@ -45,10 +43,8 @@ trait StatsTopKCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCo
       stat match {
         case None => Command.output.info("  unavailable")
         case Some(s) =>
-          val binding = sft.getDescriptor(attribute).getType.getBinding
-          val ordering = StatsTopKCommand.ordering(binding)
-          val stringify = Stat.stringifier(binding)
-          s.topK(k.getOrElse(s.size)).sorted(ordering).foreach { case (value, count) =>
+          val stringify = Stat.stringifier(sft.getDescriptor(attribute).getType.getBinding)
+          s.topK(k.getOrElse(s.size)).foreach { case (value, count) =>
             Command.output.info(s"  ${stringify(value)} ($count)")
           }
       }
@@ -62,31 +58,4 @@ trait StatsTopKCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCo
 trait StatsTopKParams extends StatsParams with AttributeStatsParams {
   @Parameter(names = Array("-k"), description = "Number of top values to show")
   var k: Integer = null
-}
-
-object StatsTopKCommand {
-
-  def ordering(binding: Class[_]): Ordering[Tuple2[Any, Long]] = {
-    if (classOf[Comparable[Any]].isAssignableFrom(binding)) {
-      new Ordering[Tuple2[Any, Long]] {
-        override def compare(x: (Any, Long), y: (Any, Long)): Int = {
-          // swap positions to get reverse sorting with large counts first
-          val compareCount = y._2.compareTo(x._2)
-          if (compareCount != 0) {
-            compareCount
-          } else {
-            x._1.asInstanceOf[Comparable[Any]].compareTo(y._1)
-          }
-        }
-      }
-    } else {
-      new Ordering[Tuple2[Any, Long]] {
-        override def compare(x: (Any, Long), y: (Any, Long)): Int = {
-          // swap positions to get reverse sorting with large counts first
-          y._2.compareTo(x._2)
-        }
-      }
-    }
-  }
-
 }

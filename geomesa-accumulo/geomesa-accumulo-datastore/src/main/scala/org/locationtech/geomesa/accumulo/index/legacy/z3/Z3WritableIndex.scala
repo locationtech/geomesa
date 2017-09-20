@@ -55,7 +55,7 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
   }
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
-  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: LegacyZ3SFC, splitArray: Seq[Array[Byte]])
+  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: LegacyZ3SFC, splitArray: Seq[Array[Byte]], lenient: Boolean)
                               (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val numSplits = splitArray.length
     val split = splitArray(wf.idHash % numSplits)
@@ -67,7 +67,7 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
       if (geom == null) {
         throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
       }
-      (b, sfc.index(geom.getX, geom.getY, t).z)
+      (b, sfc.index(geom.getX, geom.getY, t, lenient).z)
     }
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
     Seq(Bytes.concat(split, Shorts.toByteArray(timeBin), Longs.toByteArray(z), id))

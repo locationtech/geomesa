@@ -38,6 +38,9 @@ class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
 class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(Predicate, SimpleFeatureConverter[I])])
     extends SimpleFeatureConverter[I] {
 
+
+  override val caches: Map[String, EnrichmentCache] = Map.empty
+
   val predsWithIndex = converters.map(_._1).zipWithIndex.toIndexedSeq
   val indexedConverters = converters.map(_._2).toIndexedSeq
 
@@ -110,4 +113,6 @@ case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) e
   override def counter: Counter = current.counter
 
   override def clear(): Unit = contexts.foreach(_.clear())
+
+  override def getCache(k: String): EnrichmentCache = current.getCache(k)
 }

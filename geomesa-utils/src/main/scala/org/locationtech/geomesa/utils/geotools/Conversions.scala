@@ -248,6 +248,8 @@ object RichSimpleFeatureType {
     def getStIndexSchema: String = userData[String](ST_INDEX_SCHEMA_KEY).orNull
     def setStIndexSchema(schema: String): Unit = sft.getUserData.put(ST_INDEX_SCHEMA_KEY, schema)
 
+    def isLogicalTime: Boolean = userData[String](LOGICAL_TIME_KEY).forall(_.toBoolean)
+
     def getBinTrackId: Option[String] = sft.getAttributeDescriptors.find(_.isBinTrackId()).map(_.getLocalName)
 
     def getSchemaVersion: Int =

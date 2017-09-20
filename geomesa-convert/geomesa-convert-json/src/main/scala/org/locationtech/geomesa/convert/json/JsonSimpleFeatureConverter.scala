@@ -34,6 +34,7 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
                                  val inputFields: IndexedSeq[Field],
                                  val idBuilder: Expr,
                                  val userDataBuilder: Map[String, Expr],
+                                 val caches: Map[String, EnrichmentCache],
                                  val parseOpts: ConvertParseOpts,
                                  val lineMode: LineMode) extends ToSimpleFeatureConverter[String] {
 
@@ -77,10 +78,11 @@ class JsonSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
                                         idBuilder: Expr,
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
+                                        cacheServices: Map[String, EnrichmentCache],
                                         parseOpts: ConvertParseOpts): SimpleFeatureConverter[String] = {
     val lineMode = LineMode.getLineMode(conf)
     val root = if (conf.hasPath("feature-path")) Some(JsonPath.compile(conf.getString("feature-path"))) else None
-    new JsonSimpleFeatureConverter(jsonConfig, sft, root, fields, idBuilder, userDataBuilder, parseOpts, lineMode)
+    new JsonSimpleFeatureConverter(jsonConfig, sft, root, fields, idBuilder, userDataBuilder, cacheServices, parseOpts, lineMode)
   }
 
   override protected def buildField(field: Config): Field = {

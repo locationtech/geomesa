@@ -12,5 +12,5 @@ object XZSFC {
 
   val DefaultPrecision: Short = 12
 
-  val LogPointFive = math.log(0.5)
+  val LogPointFive: Double = math.log(0.5)
 }

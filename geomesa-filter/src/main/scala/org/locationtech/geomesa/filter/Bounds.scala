@@ -39,11 +39,11 @@ case class Bounds[T](lower: Bound[T], upper: Bound[T]) {
   def isBoundedBothSides: Boolean = lower.value.nonEmpty && upper.value.nonEmpty
 
   /**
-    * Only covers a single exact value
+    * Covers multiple values
     *
     * @return
     */
-  def isExact: Boolean = lower.value.isDefined && lower.value == upper.value
+  def isRange: Boolean = lower.value.isEmpty || lower.value != upper.value
 
   override def toString: String = {
     (if (lower.inclusive) { "[" } else { "(" }) + lower.value.getOrElse("-\u221E") + "," +

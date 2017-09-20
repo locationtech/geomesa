@@ -10,17 +10,14 @@ the command line.
 Installing SFT and Converter Definitions
 ----------------------------------------
 
-Starting with version 1.2.3, GeoMesa Tools ships with embedded SimpleFeatureType and GeoMesa Converter definitions for common data types including Twitter, GeoNames, T-drive, and many more. See :ref:`installing_sft_and_converter_definitions`.
+Starting with version 1.2.3, GeoMesa Tools ships with embedded SimpleFeatureType and GeoMesa Converter definitions
+for common data types including Twitter, GeoNames, T-drive, and many more.
+See :ref:`installing_sft_and_converter_definitions`.
 
-To see which SFT and converter configurations are installed,
-try the ``geomesa env`` command described below.
+To see which SFT and converter configurations are installed, try the ``geomesa env`` command described below.
 
 Running the command line tools
 ------------------------------
-
-.. note::
-
-    Some command names have changed in GeoMesa 1.3.0; see :doc:`/user/appendix/commandline_old_commands`
 
 Run ``geomesa`` without any arguments to produce the following usage text::
 
@@ -32,6 +29,7 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         classpath              Display the GeoMesa classpath
         config-table           Perform table configuration operations
         configure              Configure the local environment for GeoMesa
+        configure-age-off      List/set/remove age-off for a GeoMesa feature type
         convert                Convert files using GeoMesa's internal SFT converter framework
         create-schema          Create a GeoMesa feature type
         delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
@@ -611,6 +609,8 @@ Explain how a given GeoMesa query will be executed::
       -c test_catalog -f test_feature \
       -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
 
+.. _accumulo_tools_stats_analyze:
+
 stats-analyze
 ~~~~~~~~~~~~~
 
@@ -760,6 +760,24 @@ Example commands::
     $ geomesa config-table update -u username -p password \
       -c test_catalog -f test_feature -t records \
       --param table.bloom.enabled -n true
+
+configure-age-off
+~~~~~~~~~~~~~~~~~
+
+List, add or remove age-off on a given feature type.
+
+Age-off can be configured based on ingest time, or on a date-type simple feature attribute with the ``--dtg`` option.
+See :ref:`ageoff_accumulo` for more information.
+
+Example commands::
+
+    $ geomesa configure-age-off -c test_catalog -f test_feature --list
+
+    $ geomesa configure-age-off -c test_catalog -f test_feature --set --expiry '1 day'
+
+    $ geomesa configure-age-off -c test_catalog -f test_feature --set --expiry '1 day' --dtg dtg
+
+    $ geomesa configure-age-off -c test_catalog -f test_feature --remove
 
 version
 ~~~~~~~

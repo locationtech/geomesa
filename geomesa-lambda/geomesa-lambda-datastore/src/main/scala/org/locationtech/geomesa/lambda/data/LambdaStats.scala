@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.lambda.data
 
 import com.github.benmanes.caffeine.cache.LoadingCache
-import org.locationtech.geomesa.index.stats.{AttributeBounds, GeoMesaStats, StatUpdater}
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, StatUpdater}
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -34,17 +34,10 @@ class LambdaStats(persistent: GeoMesaStats, transients: LoadingCache[String, Tra
   override def getAttributeBounds[T](sft: SimpleFeatureType,
                                      attribute: String,
                                      filter: Filter,
-                                     exact: Boolean): Option[AttributeBounds[T]] = {
+                                     exact: Boolean): Option[MinMax[T]] = {
     val t = transient(sft).getAttributeBounds[T](sft, attribute, filter, exact)
         .getOrElse(throw new IllegalStateException("Transient stats returned None"))
-    persistent.getAttributeBounds[T](sft, attribute, filter, exact) match {
-      case None => Some(t)
-      case Some(p) =>
-        val defaults = Stat(sft, Stat.MinMax(attribute)).asInstanceOf[MinMax[T]].defaults
-        val lower = defaults.min(p.lower, t.lower)
-        val upper = defaults.min(p.upper, t.upper)
-        Some(AttributeBounds(lower, upper, math.max(p.cardinality, t.cardinality)))
-    }
+    persistent.getAttributeBounds[T](sft, attribute, filter, exact).map(_ + t).orElse(Some(t))
   }
 
   override def getStats[T <: Stat](sft: SimpleFeatureType,

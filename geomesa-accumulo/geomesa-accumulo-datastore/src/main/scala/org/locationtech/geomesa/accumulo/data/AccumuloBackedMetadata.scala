@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, GeoMesaMetadata, MetadataSerializer, MetadataAdapter}
+import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, GeoMesaMetadata, MetadataAdapter, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 
@@ -27,11 +27,14 @@ trait AccumuloMetadataAdapter extends MetadataAdapter {
   protected def catalog: String
   protected def connector: Connector
 
-  protected val config = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(2)
+  protected val config: BatchWriterConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(2)
 
   private var writerCreated = false
 
-  lazy private val writer = {
+  lazy private val writer = synchronized {
+    if (writerCreated) {
+      throw new IllegalStateException("Trying to write using a closed instance")
+    }
     writerCreated = true
     connector.createBatchWriter(catalog, config)
   }
@@ -82,7 +85,13 @@ trait AccumuloMetadataAdapter extends MetadataAdapter {
     CloseableIterator(scanner.iterator.map(_.getKey.getRow.copyBytes), scanner.close())
   }
 
-  override def close(): Unit = if (writerCreated) { CloseWithLogging(writer) }
+  override def close(): Unit = synchronized {
+    if (writerCreated) {
+      CloseWithLogging(writer)
+    } else {
+      writerCreated = true // indicate that we've closed and don't want to open any more resources
+    }
+  }
 }
 
 /**

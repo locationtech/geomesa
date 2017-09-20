@@ -88,7 +88,7 @@ private class StatParser extends BasicParser {
     "MinMax(" ~ string ~ ")" ~~> { attribute =>
       val index = getIndex(attribute)
       val binding = sft.getDescriptor(attribute).getType.getBinding
-      new MinMax[Any](index)(MinMaxDefaults(binding), ClassTag(binding))
+      new MinMax[Any](index)(MinMaxDefaults(binding))
     }
   }
 
@@ -108,7 +108,7 @@ private class StatParser extends BasicParser {
     "TopK(" ~ string ~ ")" ~~> { attribute =>
       val index = getIndex(attribute)
       val binding = sft.getDescriptor(attribute).getType.getBinding
-      new TopK[Any](index)(ClassTag(binding))
+      new TopK[Any](index)
     }
   }
 

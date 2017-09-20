@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.stats
 
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -47,23 +47,4 @@ class UnoptimizedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]
         Seq.empty
     }
   }
-}
-
-class NoOpMetadata[T] extends GeoMesaMetadata[T] {
-
-  override def getFeatureTypes: Array[String] = Array.empty
-
-  override def insert(typeName: String, key: String, value: T): Unit = {}
-
-  override def insert(typeName: String, kvPairs: Map[String, T]): Unit = {}
-
-  override def remove(typeName: String, key: String): Unit = {}
-
-  override def read(typeName: String, key: String, cache: Boolean): Option[T] = None
-
-  override def invalidateCache(typeName: String, key: String): Unit = {}
-
-  override def delete(typeName: String): Unit = {}
-
-  override def close(): Unit = {}
 }
