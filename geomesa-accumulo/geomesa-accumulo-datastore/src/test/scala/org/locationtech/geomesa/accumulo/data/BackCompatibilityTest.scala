@@ -277,6 +277,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     "support backward compatibility to 1.2.6"   >> { testVersion("1.2.6") }
     "support backward compatibility to 1.2.7.3" >> { testVersion("1.2.7.3") }
     "support backward compatibility to 1.3.1"   >> { testVersion("1.3.1") }
+    "support backward compatibility to 1.3.2"   >> { testVersion("1.3.2") }
 
     "delete invalid indexed data" >> { testBoundsDelete() }
   }
