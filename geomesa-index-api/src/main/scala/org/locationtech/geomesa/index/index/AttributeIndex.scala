@@ -17,7 +17,6 @@ import org.calrissian.mango.types.{LexiTypeEncoders, TypeRegistry}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.util.Converters
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -54,12 +53,12 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     sft.getAttributeDescriptors.exists(_.isIndexed)
 
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val getRows = getRowKeys(sft)
+    val getRows = getRowKeys(sft, lenient = false)
     (wf) => getRows(wf).map { case (_, r) => createInsert(r, wf) }
   }
 
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val getRows = getRowKeys(sft)
+    val getRows = getRowKeys(sft, lenient = true)
     (wf) => getRows(wf).map { case (_, r) => createDelete(r, wf) }
   }
 
@@ -215,9 +214,9 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     * - n bytes storing the secondary z-index of the feature - identified by getSecondaryIndexKeyLength
     * - n bytes storing the feature ID
     */
-  protected def getRowKeys(sft: SimpleFeatureType): (F) => Seq[(Int, Array[Byte])] = {
+  protected def getRowKeys(sft: SimpleFeatureType, lenient: Boolean): (F) => Seq[(Int, Array[Byte])] = {
     val prefix = sft.getTableSharingBytes
-    val getSecondaryKey = getSecondaryIndexKey(sft)
+    val getSecondaryKey = getSecondaryIndexKey(sft, lenient)
     val getShard: (F) => Array[Byte] = {
       val shards = getShards(sft)
       if (shards.length == 1) {
@@ -275,8 +274,8 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     }
   }
 
-  private def getSecondaryIndexKey(sft: SimpleFeatureType): (F) => Array[Byte] = {
-    secondaryIndex(sft).map(_.toIndexKey(sft)) match {
+  private def getSecondaryIndexKey(sft: SimpleFeatureType, lenient: Boolean): (F) => Array[Byte] = {
+    secondaryIndex(sft).map(_.toIndexKey(sft, lenient)) match {
       case None        => (_) => Array.empty
       case Some(toKey) => (f) => toKey(f.feature)
     }

@@ -42,7 +42,7 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    val toIndexKey = keySpace.toIndexKey(sft)
+    val toIndexKey = keySpace.toIndexKey(sft, lenient = true)
     (wf) => Seq(createDelete(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 

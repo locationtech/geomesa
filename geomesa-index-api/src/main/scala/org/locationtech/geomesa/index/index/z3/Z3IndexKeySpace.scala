@@ -39,7 +39,7 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3ProcessingValues] {
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.isPoints
 
-  override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
     val z3 = sfc(sft.getZ3Interval)
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
@@ -53,7 +53,7 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3ProcessingValues] {
       val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) { 0 } else { dtg.getTime }
       val BinnedTime(b, t) = timeToIndex(time)
-      val z = try { z3.index(geom.getX, geom.getY, t).z } catch {
+      val z = try { z3.index(geom.getX, geom.getY, t, lenient).z } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry/time: $geom,$dtg", e)
       }
       ByteArrays.toBytes(b, z)

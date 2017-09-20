@@ -22,7 +22,7 @@ import org.opengis.filter.Filter
 import scala.util.control.NonFatal
 
 object Z2IndexKeySpace extends Z2IndexKeySpace {
-  override val sfc = Z2SFC
+  override val sfc: Z2SFC = Z2SFC
 }
 
 trait Z2IndexKeySpace extends IndexKeySpace[Z2ProcessingValues] {
@@ -35,14 +35,14 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2ProcessingValues] {
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.isPoints
 
-  override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
     val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
     (feature) => {
       val geom = feature.getAttribute(geomIndex).asInstanceOf[Point]
       if (geom == null) {
         throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
       }
-      val z = try { sfc.index(geom.getX, geom.getY).z } catch {
+      val z = try { sfc.index(geom.getX, geom.getY, lenient).z } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry: $geom", e)
       }
       Longs.toByteArray(z)

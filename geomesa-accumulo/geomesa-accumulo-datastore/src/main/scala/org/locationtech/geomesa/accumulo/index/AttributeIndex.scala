@@ -53,7 +53,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   override val hasPrecomputedBins: Boolean = false
 
   // hook to allow for not returning join plans
-  val AllowJoinPlans = new ThreadLocal[Boolean] {
+  val AllowJoinPlans: ThreadLocal[Boolean] = new ThreadLocal[Boolean] {
     override def initialValue: Boolean = true
   }
 
@@ -67,13 +67,13 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   }
 
   override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
-    val getRows = getRowKeys(sft)
+    val getRows = getRowKeys(sft, lenient = false)
     val coverages = sft.getAttributeDescriptors.map(_.getIndexCoverage()).toArray
     (wf) => getRows(wf).map { case (i, r) => createInsert(r, wf, coverages(i)) }
   }
 
   override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
-    val getRows = getRowKeys(sft)
+    val getRows = getRowKeys(sft, lenient = true)
     val coverages = sft.getAttributeDescriptors.map(_.getIndexCoverage()).toArray
     (wf) => getRows(wf).map { case (i, r) => createDelete(r, wf, coverages(i)) }
   }

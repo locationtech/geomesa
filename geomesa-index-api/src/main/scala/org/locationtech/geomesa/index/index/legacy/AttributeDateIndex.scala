@@ -41,7 +41,7 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
 
     override val indexKeyLength: Int = 12
 
-    override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+    override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
       val dtgIndex = sft.getDtgIndex.getOrElse(-1)
       (feature) => {
         val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
