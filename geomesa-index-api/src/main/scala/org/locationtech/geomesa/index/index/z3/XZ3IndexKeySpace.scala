@@ -6,109 +6,27 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index.index
+package org.locationtech.geomesa.index.index.z3
 
-import java.nio.charset.StandardCharsets
 import java.util.Date
 
-import com.google.common.primitives.{Bytes, Shorts}
-import com.typesafe.scalalogging.LazyLogging
+import com.google.common.primitives.Shorts
 import com.vividsolutions.jts.geom.Geometry
-import org.geotools.factory.Hints
-import org.joda.time.DateTime
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
-import org.locationtech.geomesa.filter.{filterToString, _}
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
+import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.conf.QueryProperties
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
-import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer, SplitArrays}
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
+import org.locationtech.geomesa.index.index.IndexKeySpace
+import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer}
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
-    with IndexAdapter[DS, F, W, R] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
+object XZ3IndexKeySpace extends XZ3IndexKeySpace
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-  override val name: String = "xz3"
-
-  override def supports(sft: SimpleFeatureType): Boolean = XZ3Index.supports(sft)
-
-  override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val sharing = sft.getTableSharingBytes
-    val shards = SplitArrays(sft)
-    val toIndexKey = XZ3Index.toIndexKey(sft)
-    (wf) => Seq(createInsert(getRowKey(sharing, shards, toIndexKey, wf), wf))
-  }
-
-  override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val sharing = sft.getTableSharingBytes
-    val shards = SplitArrays(sft)
-    val toIndexKey = XZ3Index.toIndexKey(sft, lenient = true)
-    (wf) => Seq(createDelete(getRowKey(sharing, shards, toIndexKey, wf), wf))
-  }
-
-  private def getRowKey(sharing: Array[Byte],
-                        shards: IndexedSeq[Array[Byte]],
-                        toIndexKey: (SimpleFeature) => Array[Byte],
-                        wrapper: F): Array[Byte] = {
-    val split = shards(wrapper.idHash % shards.length)
-    val binAndZ = toIndexKey(wrapper.feature)
-    Bytes.concat(sharing, split, binAndZ, wrapper.idBytes)
-  }
-
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
-    val start = if (sft.isTableSharing) { 12 } else { 11 } // table sharing + shard + 2 byte short + 8 byte long
-    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
-  }
-
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val splits = SplitArrays(sft).drop(1) // drop the first so we don't get an empty tablet
-    if (sft.isTableSharing) {
-      val sharing = sft.getTableSharingBytes
-      splits.map(s => Bytes.concat(sharing, s))
-    } else {
-      splits
-    }
-  }
-
-  override def getQueryPlan(sft: SimpleFeatureType,
-                            ds: DS,
-                            filter: FilterStrategy[DS, F, W],
-                            hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
-    val sharing = sft.getTableSharingBytes
-
-    try {
-      val ranges = filter.primary match {
-        case None =>
-          filter.secondary.foreach { f =>
-            logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
-          }
-          Seq(rangePrefix(sharing))
-
-        case Some(f) =>
-          val splits = SplitArrays(sft)
-          val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
-          XZ3Index.getRanges(sft, f, explain).flatMap { case (s, e) =>
-            prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
-          }.toSeq
-      }
-
-      scanPlan(sft, ds, filter, hints, ranges, filter.filter)
-    } finally {
-      XZ3Index.clearProcessingValues()
-    }
-  }
-}
-
-object XZ3Index extends IndexKeySpace[XZ3ProcessingValues] {
+trait XZ3IndexKeySpace extends IndexKeySpace[XZ3ProcessingValues] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -225,9 +143,3 @@ object XZ3Index extends IndexKeySpace[XZ3ProcessingValues] {
     }
   }
 }
-
-case class XZ3ProcessingValues(sfc: XZ3SFC,
-                               geometries: FilterValues[Geometry],
-                               spatialBounds: Seq[ (Double, Double, Double, Double)],
-                               intervals: FilterValues[Bounds[DateTime]],
-                               temporalBounds: Map[Short, (Double, Double)])

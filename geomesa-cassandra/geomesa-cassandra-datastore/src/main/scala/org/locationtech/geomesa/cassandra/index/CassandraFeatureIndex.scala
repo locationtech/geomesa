@@ -17,6 +17,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.cassandra._
 import org.locationtech.geomesa.cassandra.data._
+import org.locationtech.geomesa.cassandra.index.legacy.{CassandraAttributeIndexV1, CassandraZ2IndexV1, CassandraZ3IndexV1}
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.index.utils.Explainer
@@ -27,7 +28,8 @@ object CassandraFeatureIndex extends CassandraIndexManagerType {
 
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[CassandraFeatureIndex] =
-    Seq(CassandraZ3Index, CassandraXZ3Index, CassandraZ2Index, CassandraXZ2Index, CassandraIdIndex, CassandraAttributeIndex)
+    Seq(CassandraZ3Index, CassandraZ3IndexV1, CassandraXZ3Index, CassandraZ2Index, CassandraZ2IndexV1,
+      CassandraXZ2Index, CassandraIdIndex, CassandraAttributeIndex, CassandraAttributeIndexV1)
 
   override val CurrentIndices: Seq[CassandraFeatureIndex] = AllIndices
 

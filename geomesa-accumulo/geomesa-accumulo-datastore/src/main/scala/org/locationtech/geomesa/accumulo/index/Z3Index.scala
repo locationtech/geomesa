@@ -14,11 +14,11 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.iterators.Z3Iterator
 import org.locationtech.geomesa.index.api.FilterStrategy
-import org.locationtech.geomesa.index.index.{Z3Index, Z3ProcessingValues}
+import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3ProcessingValues}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-// current version - normal table sharing
+// current version - new z-curve
 case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
     with Z3Index[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
 
@@ -26,7 +26,7 @@ case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
 
   val Z3IterPriority = 23
 
-  override val version: Int = 4
+  override val version: Int = 5
 
   override val serializedWithId: Boolean = false
 
@@ -39,7 +39,7 @@ case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
                                     ecql: Option[Filter],
                                     dedupe: Boolean): ScanConfig = {
     val config = super.scanConfig(sft, ds, filter, hints, ecql, dedupe)
-    org.locationtech.geomesa.index.index.Z3Index.currentProcessingValues match {
+    keySpace.currentProcessingValues match {
       case None => config
       case Some(Z3ProcessingValues(sfc, _, xy, _, times)) =>
         // we know we're only going to scan appropriate periods, so leave out whole ones

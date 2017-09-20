@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.index
 
 import java.nio.charset.StandardCharsets
-import java.util.{Date, Locale, Collection => JCollection}
+import java.util.{Locale, Collection => JCollection}
 
 import com.google.common.primitives.{Bytes, Shorts, UnsignedBytes}
 import com.typesafe.scalalogging.LazyLogging
@@ -17,17 +17,19 @@ import org.calrissian.mango.types.{LexiTypeEncoders, TypeRegistry}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.util.Converters
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.index.AttributeIndex.AttributeRowDecoder
+import org.locationtech.geomesa.index.index.z2.{XZ2IndexKeySpace, Z2IndexKeySpace}
+import org.locationtech.geomesa.index.index.z3.{XZ3IndexKeySpace, Z3IndexKeySpace}
 import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
@@ -51,12 +53,12 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     sft.getAttributeDescriptors.exists(_.isIndexed)
 
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val getRows = getRowKeys(sft)
+    val getRows = getRowKeys(sft, lenient = false)
     (wf) => getRows(wf).map { case (_, r) => createInsert(r, wf) }
   }
 
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val getRows = getRowKeys(sft)
+    val getRows = getRowKeys(sft, lenient = true)
     (wf) => getRows(wf).map { case (_, r) => createDelete(r, wf) }
   }
 
@@ -212,9 +214,9 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     * - n bytes storing the secondary z-index of the feature - identified by getSecondaryIndexKeyLength
     * - n bytes storing the feature ID
     */
-  protected def getRowKeys(sft: SimpleFeatureType): (F) => Seq[(Int, Array[Byte])] = {
+  protected def getRowKeys(sft: SimpleFeatureType, lenient: Boolean): (F) => Seq[(Int, Array[Byte])] = {
     val prefix = sft.getTableSharingBytes
-    val getSecondaryKey = getSecondaryIndexKey(sft)
+    val getSecondaryKey = getSecondaryIndexKey(sft, lenient)
     val getShard: (F) => Array[Byte] = {
       val shards = getShards(sft)
       if (shards.length == 1) {
@@ -241,7 +243,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
   }
 
   protected def secondaryIndex(sft: SimpleFeatureType): Option[IndexKeySpace[_]] =
-    Seq(Z3Index, XZ3Index, Z2Index, XZ2Index).find(_.supports(sft))
+    Seq(Z3IndexKeySpace, XZ3IndexKeySpace, Z2IndexKeySpace, XZ2IndexKeySpace).find(_.supports(sft))
 
   protected def getSecondaryIndexKeyLength(sft: SimpleFeatureType): Int =
     secondaryIndex(sft).map(_.indexKeyLength).getOrElse(0)
@@ -272,8 +274,8 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     }
   }
 
-  private def getSecondaryIndexKey(sft: SimpleFeatureType): (F) => Array[Byte] = {
-    secondaryIndex(sft).map(_.toIndexKey(sft)) match {
+  private def getSecondaryIndexKey(sft: SimpleFeatureType, lenient: Boolean): (F) => Array[Byte] = {
+    secondaryIndex(sft).map(_.toIndexKey(sft, lenient)) match {
       case None        => (_) => Array.empty
       case Some(toKey) => (f) => toKey(f.feature)
     }
@@ -287,77 +289,6 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
         secondary.clearProcessingValues()
       }
     }.getOrElse(Seq.empty)
-  }
-}
-
-trait AttributeRowDecoder {
-
-  /**
-    * Decodes an attribute value out of row string
-    *
-    * @param sft simple feature type
-    * @param i attribute index
-    * @return (bytes, offset, length) => decoded value
-    */
-  def decodeRowValue(sft: SimpleFeatureType, i: Int): (Array[Byte], Int, Int) => Try[AnyRef]
-}
-
-/**
-  * Attribute plus date composite index
-  */
-trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends AttributeIndex[DS, F, W, R] {
-
-  import AttributeIndex._
-
-  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
-  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
-
-  override protected def secondaryIndex(sft: SimpleFeatureType): Option[IndexKeySpace[_]] =
-    Some(DateIndexKeySpace).filter(_.supports(sft))
-
-  object DateIndexKeySpace extends IndexKeySpace[Unit] {
-
-    override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined
-
-    override val indexKeyLength: Int = 12
-
-    override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
-      val dtgIndex = sft.getDtgIndex.getOrElse(-1)
-      (feature) => {
-        val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
-        timeToBytes(if (dtg == null) { 0L } else { dtg.getTime })
-      }
-    }
-
-    override def getRanges(sft: SimpleFeatureType,
-                           filter: Filter,
-                           explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
-      val intervals = sft.getDtgField.map(FilterHelper.extractIntervals(filter, _)).getOrElse(FilterValues.empty)
-      intervals.values.iterator.map { bounds =>
-        (timeToBytes(bounds.lower.value.getOrElse(MinDateTime).getMillis),
-            roundUpTime(timeToBytes(bounds.upper.value.getOrElse(MaxDateTime).getMillis)))
-      }
-    }
-
-    // store the first 12 hex chars of the time - that is roughly down to the minute interval
-    private def timeToBytes(t: Long): Array[Byte] =
-      typeRegistry.encode(t).substring(0, 12).getBytes(StandardCharsets.UTF_8)
-
-    // rounds up the time to ensure our range covers all possible times given our time resolution
-    private def roundUpTime(time: Array[Byte]): Array[Byte] = {
-      // find the last byte in the array that is not 0xff
-      var changeIndex: Int = time.length - 1
-      while (changeIndex > -1 && time(changeIndex) == 0xff.toByte) { changeIndex -= 1 }
-
-      if (changeIndex < 0) {
-        // the array is all 1s - it's already at time max given our resolution
-        time
-      } else {
-        // increment the selected byte
-        time.updated(changeIndex, (time(changeIndex) + 1).asInstanceOf[Byte])
-      }
-    }
   }
 }
 
@@ -476,5 +407,17 @@ object AttributeIndex {
   private def upperBounds(sft: SimpleFeatureType, i: Int, shards: Seq[Array[Byte]]): Seq[Array[Byte]] = {
     val prefix = rowPrefix(sft, i)
     shards.map(shard => IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, shard)))
+  }
+
+  trait AttributeRowDecoder {
+
+    /**
+      * Decodes an attribute value out of row string
+      *
+      * @param sft simple feature type
+      * @param i attribute index
+      * @return (bytes, offset, length) => decoded value
+      */
+    def decodeRowValue(sft: SimpleFeatureType, i: Int): (Array[Byte], Int, Int) => Try[Any]
   }
 }

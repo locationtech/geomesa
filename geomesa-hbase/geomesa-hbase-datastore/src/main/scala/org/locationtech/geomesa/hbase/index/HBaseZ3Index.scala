@@ -15,17 +15,27 @@ import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.Z3HBaseFilter
 import org.locationtech.geomesa.index.filters.Z3Filter
-import org.locationtech.geomesa.index.index.{Z3Index, Z3ProcessingValues}
+import org.locationtech.geomesa.index.index.BaseFeatureIndex
+import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3ProcessingValues}
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
+case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform
+
+trait HBaseLikeZ3Index extends HBaseFeatureIndex with HBaseZ3PushDown
+    with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query]  {
+  override val version: Int = 2
+}
+
+trait HBaseZ3PushDown extends HBasePlatform {
+
+  this: BaseFeatureIndex[HBaseDataStore, HBaseFeature, Mutation, Query, Z3ProcessingValues] =>
 
   override protected def createPushDownFilters(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
                                                transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val z3Filter = Z3Index.currentProcessingValues.map { case Z3ProcessingValues(sfc, _, xy, _, times) =>
+    val z3Filter = keySpace.currentProcessingValues.map { case Z3ProcessingValues(sfc, _, xy, _, times) =>
       val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard - note: currently sharing is always false
       configureZ3PushDown(sfc, xy, times, offset)
     }
@@ -57,8 +67,4 @@ case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform {
     val filter = new Z3HBaseFilter(new Z3Filter(normalizedXY, tOpts, minEpoch.toShort, maxEpoch.toShort, 8), offset)
     (Z3HBaseFilter.Priority, filter)
   }
-}
-
-trait HBaseLikeZ3Index extends HBaseFeatureIndex with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query]  {
-  override val version: Int = 1
 }

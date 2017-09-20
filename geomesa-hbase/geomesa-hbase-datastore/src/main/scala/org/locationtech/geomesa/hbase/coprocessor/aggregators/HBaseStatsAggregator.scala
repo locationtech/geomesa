@@ -13,7 +13,6 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
