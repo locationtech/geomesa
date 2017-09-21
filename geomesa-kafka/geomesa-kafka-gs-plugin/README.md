@@ -1,6 +1,6 @@
 ###Installation
 
-To install in geoserver, extract and copy all jars from ```target/geomesa-kafka-<kafka.maj.version>-gs-plugin-install.tar.gz``` to
+To install in geoserver, extract and copy all jars from ```target/geomesa-kafka-gs-plugin-install.tar.gz``` to
 geoserver/WEB-INF/lib.
 
 You will also need to install the the following jars into geoserver/WEB-INF/lib for kafka ${kafka.version}:

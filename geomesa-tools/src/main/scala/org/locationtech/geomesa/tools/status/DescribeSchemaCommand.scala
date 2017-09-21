@@ -12,29 +12,31 @@ import com.beust.jcommander.ParameterException
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.stats.IndexCoverage
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ArrayBuffer
-import scala.util.control.NonFatal
 
 trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name: String = "describe-schema"
   override def params: TypeNameParam
 
-  override def execute(): Unit = withDataStore(describe)
-
-  protected def describe(ds: DS): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-
-    import scala.collection.JavaConversions._
-
+  override def execute(): Unit = withDataStore { ds =>
     Command.user.info(s"Describing attributes of feature '${params.featureName}'")
 
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
       throw new ParameterException(s"Feature '${params.featureName}' not found")
     }
+
+    describe(sft)
+  }
+
+  protected def describe(sft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+
+    import scala.collection.JavaConversions._
 
     val namesAndDescriptions = sft.getAttributeDescriptors.map { descriptor =>
       val name = descriptor.getLocalName

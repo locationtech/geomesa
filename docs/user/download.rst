@@ -30,12 +30,10 @@ To build and install the source distribution requires:
 Release distributions:
 
 * Accumulo: |release_tarball_accumulo|
-* Kafka 0.8.x: |release_tarball_kafka08|
-* Kafka 0.9.x: |release_tarball_kafka09|
-* Kafka 0.10.x: |release_tarball_kafka10|
 * HBase: |release_tarball_hbase|
 * Bigtable: must be built from source
 * Cassandra: |release_tarball_cassandra|
+* Kafka: |release_tarball_kafka|
 
 Source: |release_source_tarball|
 

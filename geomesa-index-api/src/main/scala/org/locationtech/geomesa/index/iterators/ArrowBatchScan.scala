@@ -252,7 +252,8 @@ object ArrowBatchScan {
     */
   def reduceFeatures(sft: SimpleFeatureType,
                      hints: Hints,
-                     dictionaries: Map[String, ArrowDictionary]):
+                     dictionaries: Map[String, ArrowDictionary],
+                     skipSort: Boolean = false):
   CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = {
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid)
     val sortField = hints.getArrowSort
@@ -260,9 +261,9 @@ object ArrowBatchScan {
       Array(fileMetadata(sft, dictionaries, encoding, sortField), GeometryUtils.zeroPoint))
     // per arrow streaming format footer is the encoded int '0'
     val footer = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(Array[Byte](0, 0, 0, 0), GeometryUtils.zeroPoint))
-    val sort: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = sortField match {
-      case None => (iter) => iter
-      case Some((attribute, reverse)) =>
+    val sort: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] =
+      if (skipSort || sortField.isEmpty) { (iter) => iter } else {
+        val (attribute, reverse) = sortField.get
         val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
         (iter) => {
           import SimpleFeatureArrowIO.sortBatches

@@ -36,4 +36,21 @@ object ScalaImplicits {
     def head: T = iter.next()
     def headOption: Option[T] = iter.find(_ != null)
   }
+
+  object TieredOrdering {
+    // noinspection LanguageFeature
+    implicit def toTieredOrdering[T](orderings: Seq[Ordering[T]]): Ordering[T] = TieredOrdering(orderings)
+  }
+
+  case class TieredOrdering[T](orderings: Seq[Ordering[T]]) extends Ordering[T] {
+    override def compare(x: T, y: T): Int = {
+      orderings.foreach { o =>
+        val i = o.compare(x, y)
+        if (i != 0) {
+          return i
+        }
+      }
+      0
+    }
+  }
 }

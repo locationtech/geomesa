@@ -57,7 +57,7 @@ trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     }
   }
 
-  protected def promptConfirm(featureNames: Seq[String]) =
+  protected def promptConfirm(featureNames: Seq[String]): Boolean =
     Prompt.confirm(s"Remove schema(s) ${featureNames.mkString(", ")}? (yes/no): ")
 
 }
