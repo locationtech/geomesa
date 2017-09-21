@@ -50,6 +50,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
       foreach(filters) { filter =>
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -65,6 +66,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -80,6 +82,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
       val query = new Query(sft.getTypeName, filter)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -97,6 +100,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -114,6 +118,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
         query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0")
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -137,6 +142,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         foreach(Seq(Array("dtg", "geom"), Array("name", "geom"))) { transform =>
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
           results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -154,6 +160,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -167,6 +174,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.SAMPLING, 0.2f)
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -175,6 +183,25 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq
         results must haveLength(2)
         foreach(results)(features must contain(_))
+      }
+    }
+    "work with different batch sizes" in {
+      foreach(Seq(2,4,10,20)) { batchSize =>
+        val query = new Query(sft.getTypeName, Filter.INCLUDE)
+        // ensure we create a unique cache key so we can test out the batch size change
+        query.getHints.put(QueryHints.ARROW_ENCODE, true)
+        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0,name1,name2,foo,bar,baz")
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
+        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        val out = new ByteArrayOutputStream
+        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+        def in() = new ByteArrayInputStream(out.toByteArray)
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+              containTheSameElementsAs(features)
+        }
       }
     }
   }
