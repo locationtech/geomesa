@@ -132,8 +132,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
           cache.cleanUp()
 
-          cache.query(track0v0.getID) must beNone
-          cache.query(wholeWorldFilter).toSeq must beEmpty
+          cache.query(track0v0.getID) must eventually(40, 100.millis)(beNone)
+          cache.query(wholeWorldFilter).toSeq must eventually(40, 100.millis)
           cache.size() mustEqual 0
         } finally {
           cache.close()
