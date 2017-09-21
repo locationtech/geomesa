@@ -17,12 +17,12 @@ import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
 import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.index.legacy.Z2LegacyIndex
-import org.locationtech.geomesa.index.index.z2.Z2ProcessingValues
+import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 // legacy z curve - no delete checks for old col qualifiers
-case object Z2IndexV3 extends AccumuloFeatureIndex with AccumuloIndexAdapter
+case object Z2IndexV3 extends AccumuloFeatureIndex with AccumuloIndexAdapter[Z2IndexValues]
     with Z2LegacyIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
 
   val Z2IterPriority = 23
@@ -36,13 +36,14 @@ case object Z2IndexV3 extends AccumuloFeatureIndex with AccumuloIndexAdapter
   override protected def scanConfig(sft: SimpleFeatureType,
                                     ds: AccumuloDataStore,
                                     filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                                    hints: Hints,
+                                    indexValues: Option[Z2IndexValues],
                                     ecql: Option[Filter],
+                                    hints: Hints,
                                     dedupe: Boolean): ScanConfig = {
-    val config = super.scanConfig(sft, ds, filter, hints, ecql, dedupe)
-    keySpace.currentProcessingValues match {
+    val config = super.scanConfig(sft, ds, filter, indexValues, ecql, hints, dedupe)
+    indexValues match {
       case None => config
-      case Some(Z2ProcessingValues(sfc, _, xy)) =>
+      case Some(Z2IndexValues(sfc, _, xy)) =>
         val zIter = Z2Iterator.configure(sft, sfc, xy, Z2IterPriority)
         config.copy(iterators = config.iterators :+ zIter)
     }

@@ -12,17 +12,15 @@ package org.locationtech.geomesa.cassandra.index
 import java.nio.ByteBuffer
 
 import com.datastax.driver.core._
-import com.datastax.driver.core.querybuilder.QueryBuilder
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.cassandra._
 import org.locationtech.geomesa.cassandra.data._
 import org.locationtech.geomesa.cassandra.index.legacy.{CassandraAttributeIndexV1, CassandraZ2IndexV1, CassandraZ3IndexV1}
+import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
-import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 object CassandraFeatureIndex extends CassandraIndexManagerType {
 
@@ -38,13 +36,9 @@ object CassandraFeatureIndex extends CassandraIndexManagerType {
   }
 }
 
-trait CassandraFeatureIndex extends CassandraFeatureIndexType
-    with IndexAdapter[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]]
-    with ClientSideFiltering[Row] with LazyLogging {
+trait CassandraFeatureIndex extends CassandraFeatureIndexType with ClientSideFiltering[Row] with LazyLogging {
 
-  private val sfts = new ThreadLocal[SimpleFeatureType]
-
-  private val FeatureColumn = NamedColumn("sf", -1, "blob", classOf[ByteBuffer])
+  protected val sfts = new ThreadLocal[SimpleFeatureType]
 
   protected def columns: Seq[NamedColumn]
 
@@ -91,61 +85,6 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType
       sfts.remove()
     }
   }
-
-  override protected def createInsert(row: Array[Byte], cf: CassandraFeature): Seq[RowValue] =
-    rowToColumns(cf.feature.getFeatureType, row) :+ RowValue(FeatureColumn, ByteBuffer.wrap(cf.fullValue))
-
-  override protected def createDelete(row: Array[Byte], cf: CassandraFeature): Seq[RowValue] =
-    rowToColumns(cf.feature.getFeatureType, row)
-
-  override protected def scanPlan(sft: SimpleFeatureType,
-                                  ds: CassandraDataStore,
-                                  filter: CassandraFilterStrategyType,
-                                  hints: Hints,
-                                  ranges: Seq[Seq[RowRange]],
-                                  ecql: Option[Filter]): CassandraQueryPlanType = {
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
-    if (ranges.isEmpty) {
-      EmptyPlan(filter)
-    } else {
-      val ks = ds.session.getLoggedKeyspace
-      val tableName = getTableName(sft.getTypeName, ds)
-      val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
-      val statements = ranges.map { criteria =>
-        val select = QueryBuilder.select.all.from(ks, tableName)
-        criteria.foreach { c =>
-          if (c.start == c.end) {
-            if (c.start != null) {
-              select.where(QueryBuilder.eq(c.column.name, c.start))
-            }
-          } else {
-            if (c.start != null) {
-              select.where(QueryBuilder.gte(c.column.name, c.start))
-            }
-            if (c.end != null) {
-              select.where(QueryBuilder.lt(c.column.name, c.end))
-            }
-          }
-        }
-        select
-      }
-      QueryPlan(filter, tableName, statements, ds.config.queryThreads, ecql, toFeatures)
-    }
-  }
-
-  override protected def range(start: Array[Byte], end: Array[Byte]): Seq[RowRange] = {
-    val sft = sfts.get
-
-    val startValues = rowToColumns(sft, start)
-    val endValues = rowToColumns(sft, end)
-
-    // TODO avoid zip...
-    startValues.zip(endValues).map { case (s, e) => RowRange(s.column, s.value, e.value) }
-  }
-
-  override protected def rangeExact(row: Array[Byte]): Seq[RowRange] =
-    rowToColumns(sfts.get, row).map { case RowValue(col, v) => RowRange(col, v, v) }
 
   override def rowAndValue(result: Row): RowAndValue = {
     val values = columns.map(c => RowValue(c, result.get(c.i, c.jType).asInstanceOf[AnyRef]))

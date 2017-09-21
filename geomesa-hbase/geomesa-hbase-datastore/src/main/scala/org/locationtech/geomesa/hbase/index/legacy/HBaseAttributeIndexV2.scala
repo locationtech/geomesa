@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.index.legacy.AttributeZIndex
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseAttributeIndexV2 extends HBaseLikeAttributeIndexV2 with HBasePlatform
+case object HBaseAttributeIndexV2 extends HBaseLikeAttributeIndexV2 with HBasePlatform[Unit]
 
 // no shards
 trait HBaseLikeAttributeIndexV2 extends HBaseFeatureIndex

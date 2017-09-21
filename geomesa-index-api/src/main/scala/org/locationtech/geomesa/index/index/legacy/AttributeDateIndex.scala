@@ -26,8 +26,8 @@ import org.opengis.filter.Filter
 trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
     extends AttributeIndex[DS, F, W, R] {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
   import AttributeIndex._
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
   private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
@@ -35,7 +35,7 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
   override protected def secondaryIndex(sft: SimpleFeatureType): Option[IndexKeySpace[_]] =
     Some(DateIndexKeySpace).filter(_.supports(sft))
 
-  object DateIndexKeySpace extends IndexKeySpace[Unit] {
+  object DateIndexKeySpace extends IndexKeySpace[Filter] {
 
     override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined
 
@@ -49,10 +49,10 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
       }
     }
 
-    override def getRanges(sft: SimpleFeatureType,
-                           filter: Filter,
-                           explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
-      val intervals = sft.getDtgField.map(FilterHelper.extractIntervals(filter, _)).getOrElse(FilterValues.empty)
+    override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): Filter = filter
+
+    override def getRanges(sft: SimpleFeatureType, indexValues: Filter): Iterator[(Array[Byte], Array[Byte])] = {
+      val intervals = sft.getDtgField.map(FilterHelper.extractIntervals(indexValues, _)).getOrElse(FilterValues.empty)
       intervals.values.iterator.map { bounds =>
         (timeToBytes(bounds.lower.value.getOrElse(MinDateTime).getMillis),
             roundUpTime(timeToBytes(bounds.upper.value.getOrElse(MaxDateTime).getMillis)))

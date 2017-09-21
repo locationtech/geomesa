@@ -11,11 +11,13 @@ package org.locationtech.geomesa.hbase.data
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.arrow.memory.RootAllocator
+import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{BigTableNameParam, ConnectionParam}
+import org.locationtech.geomesa.hbase.filters.Z3HBaseFilter
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -24,12 +26,12 @@ import org.opengis.filter.Filter
 
 class HBaseArrowTest extends HBaseTest with LazyLogging  {
 
-  implicit val allocator = new RootAllocator(Long.MaxValue)
+  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   val sft = SimpleFeatureTypes.createType("arrow", "name:String,dtg:Date,*geom:Point:srid=4326")
 
   val features = (0 until 10).map { i =>
-    ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"2017-02-03T00:0$i:00.000Z", s"POINT(40 6$i)")
+    ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
   }
 
   var ds: HBaseDataStore = _
@@ -151,6 +153,25 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
         val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq
         results must haveLength(4) // TODO this seems to indicate two region servers?
         foreach(results)(features must contain(_))
+      }
+    }
+    "return arrow dictionary encoded data without caching and with z-values" in {
+      val filter = ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
+      val query = new Query(sft.getTypeName, filter)
+      query.getHints.put(QueryHints.ARROW_ENCODE, true)
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
+      foreach(ds.getQueryPlan(query)) { plan =>
+        plan must beAnInstanceOf[CoprocessorPlan]
+        plan.asInstanceOf[CoprocessorPlan].remoteFilters.map(_._2.getClass) mustEqual Seq(classOf[Z3HBaseFilter])
+      }
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      val out = new ByteArrayOutputStream
+      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      def in() = new ByteArrayInputStream(out.toByteArray)
+      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+            containTheSameElementsAs(features.filter(filter.evaluate))
       }
     }
   }

@@ -16,30 +16,29 @@ import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.Z2HBaseFilter
 import org.locationtech.geomesa.index.filters.Z2Filter
 import org.locationtech.geomesa.index.index.BaseFeatureIndex
-import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2ProcessingValues}
+import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform
+case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform[Z2IndexValues]
 
-trait HBaseLikeZ2Index extends HBaseFeatureIndex with HBaseZ2PushDown
+trait HBaseLikeZ2Index extends HBaseFeatureIndex with HBaseIndexAdapter[Z2IndexValues] with HBaseZ2PushDown
     with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 2
 }
 
-trait HBaseZ2PushDown extends HBasePlatform {
-
-  this: BaseFeatureIndex[HBaseDataStore, HBaseFeature, Mutation, Query, Z2ProcessingValues] =>
+trait HBaseZ2PushDown extends HBasePlatform[Z2IndexValues] {
 
   override protected def createPushDownFilters(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
+                                               indexValues: Option[Z2IndexValues],
                                                transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val z2Filter = keySpace.currentProcessingValues.map { case Z2ProcessingValues(sfc, _, bounds) =>
+    val z2Filter = indexValues.map { case Z2IndexValues(sfc, _, bounds) =>
       val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard - note: currently sharing is always false
       configureZ2PushDown(sfc, bounds, offset)
     }
-    super.createPushDownFilters(ds, sft, filter, transform) ++ z2Filter.toSeq
+    super.createPushDownFilters(ds, sft, filter, indexValues, transform) ++ z2Filter.toSeq
   }
 
   private def configureZ2PushDown(sfc: Z2SFC, xy: Seq[(Double, Double, Double, Double)], offset: Int): (Int, HFilter) = {

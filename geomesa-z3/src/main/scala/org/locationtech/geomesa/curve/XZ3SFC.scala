@@ -23,7 +23,7 @@ import scala.collection.mutable.ArrayBuffer
   * @param g resolution level of the curve - i.e. how many times the space will be recursively quartered
 
   */
-class XZ3SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double), zBounds: (Double, Double)) {
+class XZ3SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, Double), val zBounds: (Double, Double)) {
 
   // TODO see what the max value of g can be where we can use Ints instead of Longs and possibly refactor to use Ints
 

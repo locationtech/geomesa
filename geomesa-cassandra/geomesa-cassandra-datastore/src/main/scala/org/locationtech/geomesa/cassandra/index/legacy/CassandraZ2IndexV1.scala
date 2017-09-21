@@ -10,12 +10,13 @@
 package org.locationtech.geomesa.cassandra.index.legacy
 
 import org.locationtech.geomesa.cassandra.data._
-import org.locationtech.geomesa.cassandra.index.{CassandraFeatureIndex, CassandraZ2Layout}
+import org.locationtech.geomesa.cassandra.index.{CassandraFeatureIndex, CassandraIndexAdapter, CassandraZ2Layout}
 import org.locationtech.geomesa.cassandra.{RowRange, RowValue}
 import org.locationtech.geomesa.index.index.legacy.Z2LegacyIndex
+import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 
 case object CassandraZ2IndexV1
     extends Z2LegacyIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]]
-    with CassandraFeatureIndex with CassandraZ2Layout {
+    with CassandraFeatureIndex with CassandraZ2Layout with CassandraIndexAdapter[Z2IndexValues] {
   override val version: Int = 1
 }

@@ -27,6 +27,8 @@ class Z3SFC(period: TimePeriod, precision: Int = 21) extends SpaceTimeFillingCur
   override val lat: NormalizedDimension  = NormalizedLat(precision)
   override val time: NormalizedDimension = NormalizedTime(precision, BinnedTime.maxOffset(period).toDouble)
 
+  val wholePeriod = Seq((time.min.toLong, time.max.toLong))
+
   override def index(x: Double, y: Double, t: Long, lenient: Boolean = false): Z3 = {
     try {
       require(x >= lon.min && x <= lon.max && y >= lat.min && y <= lat.max && t >= time.min && t <= time.max,

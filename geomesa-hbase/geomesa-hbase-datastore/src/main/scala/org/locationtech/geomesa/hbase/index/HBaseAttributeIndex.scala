@@ -11,13 +11,10 @@ package org.locationtech.geomesa.hbase.index
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.index.AttributeIndex
-import org.locationtech.geomesa.index.index.legacy.{AttributeDateIndex, AttributeZIndex}
-import org.locationtech.geomesa.index.utils.SplitArrays
-import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseAttributeIndex extends HBaseLikeAttributeIndex with HBasePlatform
+case object HBaseAttributeIndex extends HBaseLikeAttributeIndex with HBasePlatform[Unit]
 
-trait HBaseLikeAttributeIndex extends HBaseFeatureIndex
+trait HBaseLikeAttributeIndex extends HBaseFeatureIndex with HBaseIndexAdapter[Unit]
     with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 4
 }

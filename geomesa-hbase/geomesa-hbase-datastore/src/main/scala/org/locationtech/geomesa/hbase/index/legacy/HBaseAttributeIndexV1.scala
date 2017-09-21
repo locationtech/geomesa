@@ -13,7 +13,7 @@ import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBasePlatform}
 import org.locationtech.geomesa.index.index.legacy.AttributeDateIndex
 
-case object HBaseAttributeIndexV1 extends HBaseLikeAttributeIndexV1 with HBasePlatform
+case object HBaseAttributeIndexV1 extends HBaseLikeAttributeIndexV1 with HBasePlatform[Unit]
 
 trait HBaseLikeAttributeIndexV1 extends HBaseFeatureIndex
     with AttributeDateIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {

@@ -6,15 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.hbase.index
+package org.locationtech.geomesa.index.index.z2
 
-import org.apache.hadoop.hbase.client._
-import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.index.index.IdIndex
+import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.curve.XZ2SFC
+import org.locationtech.geomesa.filter.FilterValues
 
-case object HBaseIdIndex extends HBaseIdLikeIndex with HBasePlatform[Unit]
-
-trait HBaseIdLikeIndex extends HBaseFeatureIndex with HBaseIndexAdapter[Unit]
-    with IdIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
-  override val version: Int = 1
-}
+case class XZ2IndexValues(sfc: XZ2SFC,
+                          geometries: FilterValues[Geometry],
+                          bounds: Seq[(Double, Double, Double, Double)])

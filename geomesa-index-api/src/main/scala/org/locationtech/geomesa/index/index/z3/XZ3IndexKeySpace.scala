@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
 
 object XZ3IndexKeySpace extends XZ3IndexKeySpace
 
-trait XZ3IndexKeySpace extends IndexKeySpace[XZ3ProcessingValues] {
+trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -59,15 +59,15 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3ProcessingValues] {
     }
   }
 
-  override def getRanges(sft: SimpleFeatureType,
-                         filter: Filter,
-                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
+  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): XZ3IndexValues = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     // note: z3 requires a date field
     val dtgField = sft.getDtgField.getOrElse {
       throw new RuntimeException("Trying to execute an xz3 query but the schema does not have a date")
     }
+
+    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
 
     // standardize the two key query arguments:  polygon and date-range
 
@@ -87,15 +87,8 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3ProcessingValues] {
     // disjoint geometries are ok since they could still intersect a polygon
     if (intervals.disjoint) {
       explain("Disjoint dates extracted, short-circuiting to empty query")
-      return Iterator.empty
+      return XZ3IndexValues(sfc, FilterValues.empty, Seq.empty, FilterValues.empty, Map.empty)
     }
-
-    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
-    val minTime = 0.0
-    val maxTime = BinnedTime.maxOffset(sft.getZ3Interval).toDouble
-    val wholePeriod = (minTime, maxTime)
-
-    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
     // compute our ranges based on the coarse bounds for our query
 
@@ -122,23 +115,30 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3ProcessingValues] {
       if (lb == ub) {
         updateTime(lb, lt, ut)
       } else {
-        updateTime(lb, lt, maxTime)
-        updateTime(ub, minTime, ut)
-        Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = wholePeriod)
+        updateTime(lb, lt, sfc.zBounds._2)
+        updateTime(ub, sfc.zBounds._1, ut)
+        Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = sfc.zBounds)
       }
     }
 
     // make our underlying index values available to other classes in the pipeline for processing
-    processingValues.set(XZ3ProcessingValues(sfc, geometries, xy, intervals, timesByBin.toMap))
+    XZ3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap)
+  }
+
+  override def getRanges(sft: SimpleFeatureType, indexValues: XZ3IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
+
+    val XZ3IndexValues(sfc, _, xy, _, timesByBin) = indexValues
+
+    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
     def toZRanges(t: (Double, Double)): Seq[IndexRange] =
       sfc.ranges(xy.map { case (xmin, ymin, xmax, ymax) => (xmin, ymin, t._1, xmax, ymax, t._2) }, rangeTarget)
 
-    lazy val wholePeriodRanges = toZRanges(wholePeriod)
+    lazy val wholePeriodRanges = toZRanges(sfc.zBounds)
 
     timesByBin.iterator.flatMap { case (bin, times) =>
       val b = Shorts.toByteArray(bin)
-      val zs = if (times.eq(wholePeriod)) { wholePeriodRanges } else { toZRanges(times) }
+      val zs = if (times.eq(sfc.zBounds)) { wholePeriodRanges } else { toZRanges(times) }
       zs.map(r => (ByteArrays.toBytes(b, r.lower), ByteArrays.toBytesFollowingPrefix(b, r.upper)))
     }
   }

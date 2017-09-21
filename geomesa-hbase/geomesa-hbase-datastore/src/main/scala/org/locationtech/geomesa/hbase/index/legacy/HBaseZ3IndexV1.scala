@@ -12,8 +12,9 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBasePlatform, HBaseZ3PushDown}
 import org.locationtech.geomesa.index.index.legacy.Z3LegacyIndex
+import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 
-case object HBaseZ3IndexV1 extends HBaseLikeZ3IndexV1 with HBasePlatform
+case object HBaseZ3IndexV1 extends HBaseLikeZ3IndexV1 with HBasePlatform[Z3IndexValues]
 
 trait HBaseLikeZ3IndexV1 extends HBaseFeatureIndex with HBaseZ3PushDown
     with Z3LegacyIndex[HBaseDataStore, HBaseFeature, Mutation, Query]  {

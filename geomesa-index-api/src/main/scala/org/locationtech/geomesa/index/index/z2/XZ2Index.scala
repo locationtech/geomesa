@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends BaseFeatureIndex[DS, F, W, R, XZ2ProcessingValues] with SpatialFilterStrategy[DS, F, W] {
+    extends BaseFeatureIndex[DS, F, W, R, XZ2IndexValues] with SpatialFilterStrategy[DS, F, W] {
 
   override val name: String = "xz2"
 
@@ -26,5 +26,6 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
   override protected def useFullFilter(sft: SimpleFeatureType,
                                        ds: DS,
                                        filter: FilterStrategy[DS, F, W],
+                                       indexValues: Option[XZ2IndexValues],
                                        hints: Hints): Boolean = true
 }

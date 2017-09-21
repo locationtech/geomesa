@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends BaseFeatureIndex[DS, F, W, R, XZ3ProcessingValues] with SpatioTemporalFilterStrategy[DS, F, W] {
+    extends BaseFeatureIndex[DS, F, W, R, XZ3IndexValues] with SpatioTemporalFilterStrategy[DS, F, W] {
 
   override val name: String = "xz3"
 
@@ -26,6 +26,7 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
   override protected def useFullFilter(sft: SimpleFeatureType,
                                        ds: DS,
                                        filter: FilterStrategy[DS, F, W],
+                                       indexValues: Option[XZ3IndexValues],
                                        hints: Hints): Boolean = true
 }
 

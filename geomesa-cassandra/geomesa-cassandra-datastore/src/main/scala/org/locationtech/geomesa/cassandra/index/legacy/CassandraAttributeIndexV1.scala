@@ -10,12 +10,12 @@
 package org.locationtech.geomesa.cassandra.index.legacy
 
 import org.locationtech.geomesa.cassandra.data._
-import org.locationtech.geomesa.cassandra.index.{CassandraAttributeLayout, CassandraFeatureIndex}
+import org.locationtech.geomesa.cassandra.index.{CassandraAttributeLayout, CassandraFeatureIndex, CassandraIndexAdapter}
 import org.locationtech.geomesa.cassandra.{RowRange, RowValue}
 import org.locationtech.geomesa.index.index.legacy.AttributeZIndex
 
 case object CassandraAttributeIndexV1
     extends AttributeZIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]]
-    with CassandraAttributeLayout with CassandraFeatureIndex {
+    with CassandraAttributeLayout with CassandraFeatureIndex with CassandraIndexAdapter[Unit] {
   override val version: Int = 1
 }

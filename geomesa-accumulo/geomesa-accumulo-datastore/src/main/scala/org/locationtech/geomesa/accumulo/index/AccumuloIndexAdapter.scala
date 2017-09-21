@@ -26,7 +26,7 @@ import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
+trait AccumuloIndexAdapter[K] extends IndexAdapter[AccumuloDataStore, AccumuloFeature, Mutation, Range, K] {
 
   this: AccumuloFeatureIndex =>
 
@@ -63,14 +63,15 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: AccumuloDataStore,
                                   filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                                  hints: Hints,
+                                  indexValues: Option[K],
                                   ranges: Seq[Range],
-                                  ecql: Option[Filter]): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
+                                  ecql: Option[Filter],
+                                  hints: Hints): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = getTableName(sft.getTypeName, ds)
       val numThreads = queryThreads(ds)
       val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(iters, cf, eToF, reduce) = scanConfig(sft, ds, filter, hints, ecql, dedupe)
+      val ScanConfig(iters, cf, eToF, reduce) = scanConfig(sft, ds, filter, indexValues, ecql, hints, dedupe)
       BatchScanPlan(filter, table, ranges, iters, Seq(cf), eToF, reduce, numThreads, dedupe)
     }
   }
@@ -93,8 +94,9 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
   protected def scanConfig(sft: SimpleFeatureType,
                            ds: AccumuloDataStore,
                            filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                           hints: Hints,
+                           indexValues: Option[K],
                            ecql: Option[Filter],
+                           hints: Hints,
                            dedupe: Boolean): ScanConfig = {
     import AccumuloFeatureIndex.{AttributeColumnFamily, BinColumnFamily, FullColumnFamily}
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints

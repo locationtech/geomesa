@@ -22,6 +22,8 @@ import org.locationtech.geomesa.hbase.index._
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
 import org.locationtech.geomesa.index.index.IndexAdapter
+import org.locationtech.geomesa.index.index.z2.{XZ2IndexValues, Z2IndexValues}
+import org.locationtech.geomesa.index.index.z3.{XZ3IndexValues, Z3IndexValues}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -43,7 +45,7 @@ object BigtableFeatureIndex extends HBaseIndexManagerType {
   override def index(identifier: String): HBaseFeatureIndex = super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 }
 
-trait BigtablePlatform extends HBasePlatform with LazyLogging {
+trait BigtablePlatform[K] extends HBasePlatform[K] with LazyLogging {
 
   override def buildPlatformScanPlan(ds: HBaseDataStore,
                                      sft: SimpleFeatureType,
@@ -108,15 +110,15 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
   }
 }
 
-case object BigtableZ2Index extends HBaseLikeZ2Index with BigtablePlatform
-case object BigtableZ2IndexV1 extends HBaseLikeZ2IndexV1 with BigtablePlatform
-case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform
-case object BigtableZ3IndexV1 extends HBaseLikeZ3IndexV1 with BigtablePlatform
-case object BigtableIdIndex extends HBaseIdLikeIndex with BigtablePlatform
-case object BigtableXZ2Index extends HBaseLikeXZ2Index with BigtablePlatform
-case object BigtableXZ3Index extends HBaseLikeXZ3Index with BigtablePlatform
+case object BigtableZ2Index extends HBaseLikeZ2Index with BigtablePlatform[Z2IndexValues]
+case object BigtableZ2IndexV1 extends HBaseLikeZ2IndexV1 with BigtablePlatform[Z2IndexValues]
+case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform[Z3IndexValues]
+case object BigtableZ3IndexV1 extends HBaseLikeZ3IndexV1 with BigtablePlatform[Z3IndexValues]
+case object BigtableIdIndex extends HBaseIdLikeIndex with BigtablePlatform[Unit]
+case object BigtableXZ2Index extends HBaseLikeXZ2Index with BigtablePlatform[XZ2IndexValues]
+case object BigtableXZ3Index extends HBaseLikeXZ3Index with BigtablePlatform[XZ3IndexValues]
 
-case object BigtableAttributeIndex extends HBaseLikeAttributeIndex with BigtablePlatform
-case object BigtableAttributeIndexV3 extends HBaseLikeAttributeIndexV3 with BigtablePlatform
-case object BigtableAttributeIndexV2 extends HBaseLikeAttributeIndexV2 with BigtablePlatform
-case object BigtableAttributeIndexV1 extends HBaseLikeAttributeIndexV1 with BigtablePlatform
+case object BigtableAttributeIndex extends HBaseLikeAttributeIndex with BigtablePlatform[Unit]
+case object BigtableAttributeIndexV3 extends HBaseLikeAttributeIndexV3 with BigtablePlatform[Unit]
+case object BigtableAttributeIndexV2 extends HBaseLikeAttributeIndexV2 with BigtablePlatform[Unit]
+case object BigtableAttributeIndexV1 extends HBaseLikeAttributeIndexV1 with BigtablePlatform[Unit]

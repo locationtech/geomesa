@@ -15,6 +15,6 @@ import org.locationtech.geomesa.index.index.AttributeIndex
 
 case object CassandraAttributeIndex
     extends AttributeIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]]
-    with CassandraAttributeLayout with CassandraFeatureIndex {
+    with CassandraAttributeLayout with CassandraFeatureIndex with CassandraIndexAdapter[Unit]  {
   override val version: Int = 2
 }

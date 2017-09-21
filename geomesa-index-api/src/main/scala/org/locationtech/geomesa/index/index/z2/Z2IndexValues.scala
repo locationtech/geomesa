@@ -12,6 +12,6 @@ import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.FilterValues
 
-case class Z2ProcessingValues(sfc: Z2SFC,
-                              geometries: FilterValues[Geometry],
-                              bounds: Seq[(Double, Double, Double, Double)])
+case class Z2IndexValues(sfc: Z2SFC,
+                         geometries: FilterValues[Geometry],
+                         bounds: Seq[(Double, Double, Double, Double)])

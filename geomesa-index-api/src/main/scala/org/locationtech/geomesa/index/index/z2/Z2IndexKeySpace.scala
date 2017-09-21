@@ -25,7 +25,7 @@ object Z2IndexKeySpace extends Z2IndexKeySpace {
   override val sfc: Z2SFC = Z2SFC
 }
 
-trait Z2IndexKeySpace extends IndexKeySpace[Z2ProcessingValues] {
+trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -49,10 +49,7 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2ProcessingValues] {
     }
   }
 
-  override def getRanges(sft: SimpleFeatureType,
-                         filter: Filter,
-                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
-
+  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): Z2IndexValues = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     val geometries: FilterValues[Geometry] = {
@@ -64,17 +61,20 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2ProcessingValues] {
 
     if (geometries.disjoint) {
       explain("Non-intersecting geometries extracted, short-circuiting to empty query")
-      return Iterator.empty
+      return Z2IndexValues(sfc, geometries, Seq.empty)
     }
 
     val xy = geometries.values.map(GeometryUtils.bounds)
 
-    // make our underlying index values available to other classes in the pipeline for processing
-    processingValues.set(Z2ProcessingValues(sfc, geometries, xy))
+    Z2IndexValues(sfc, geometries, xy)
+  }
 
-    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+  override def getRanges(sft: SimpleFeatureType, indexValues: Z2IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
+    val Z2IndexValues(_, _, xy) = indexValues
 
-    val zs = sfc.ranges(xy, 64, rangeTarget)
-    zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
+    if (xy.isEmpty) { Iterator.empty } else {
+      val zs = sfc.ranges(xy, 64, QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt))
+      zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
+    }
   }
 }

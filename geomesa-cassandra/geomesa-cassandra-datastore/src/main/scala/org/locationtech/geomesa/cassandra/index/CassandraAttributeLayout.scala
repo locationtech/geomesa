@@ -13,7 +13,6 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.locationtech.geomesa.cassandra.data._
-import org.locationtech.geomesa.cassandra.index.CassandraAttributeIndex._
 import org.locationtech.geomesa.cassandra.{NamedColumn, RowRange, RowValue}
 import org.locationtech.geomesa.index.index.AttributeIndex
 import org.locationtech.geomesa.index.utils.SplitArrays

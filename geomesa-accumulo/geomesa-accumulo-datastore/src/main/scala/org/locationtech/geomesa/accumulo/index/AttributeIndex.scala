@@ -41,7 +41,7 @@ case object AttributeIndex extends AccumuloAttributeIndex {
 }
 
 // secondary z-index
-trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
+trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter[Unit]
     with AttributeIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] with AttributeSplittable {
 
   import scala.collection.JavaConversions._
@@ -134,9 +134,10 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: AccumuloDataStore,
                                   filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                                  hints: Hints,
+                                  indexValues: Option[Unit],
                                   ranges: Seq[Range],
-                                  ecql: Option[Filter]): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
+                                  ecql: Option[Filter],
+                                  hints: Hints): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
       val primary = filter.primary.getOrElse {
         throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
@@ -151,7 +152,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       val descriptor = sft.getDescriptor(attribute)
 
       descriptor.getIndexCoverage() match {
-        case IndexCoverage.FULL => super.scanPlan(sft, ds, filter, hints, ranges, ecql)
+        case IndexCoverage.FULL => super.scanPlan(sft, ds, filter, None, ranges, ecql, hints)
         case IndexCoverage.JOIN => joinCoveragePlan(sft, ds, filter, hints, ranges, ecql, attribute)
         case coverage => throw new IllegalStateException(s"Expected index coverage, got $coverage")
       }
