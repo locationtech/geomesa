@@ -17,7 +17,7 @@ fi
 . "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
 if [[ -n "$KAFKA_HOME" ]]; then
-  GM_KAFKA_CP="$(findJars $KAFKA_HOME/libs)"
+  GM_KAFKA_CP="$(findJars $KAFKA_HOME/libs true)"
 else
   GM_KAFKA_CP=""
 fi
