@@ -155,7 +155,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
           ticker.millis += 1000L
 
           cache.query(track0v0.getID) must eventually(40, 100.millis)(beNone)
-          cache.query(wholeWorldFilter).toSeq must beEmpty
+          cache.query(wholeWorldFilter).toSeq must eventually(40, 100.millis)(beEmpty)
           cache.size() mustEqual 0
         } finally {
           cache.close()
