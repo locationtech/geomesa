@@ -28,7 +28,7 @@ import org.opengis.filter.Filter
 import scala.util.control.NonFatal
 
 trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
-    with IndexAdapter[DS, F, W, R] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
+    with IndexAdapter[DS, F, W, R, XZ2IndexValues] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -82,30 +82,28 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
                             explain: Explainer): QueryPlan[DS, F, W] = {
     val sharing = sft.getTableSharingBytes
 
-    try {
-      val ranges = filter.primary match {
-        case None =>
-          filter.secondary.foreach { f =>
-            logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
-          }
-          Seq(rangePrefix(sharing))
+    val (ranges, indexValues) = filter.primary match {
+      case None =>
+        filter.secondary.foreach { f =>
+          logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
+        }
+        (Seq(rangePrefix(sharing)), None)
 
-        case Some(f) =>
-          val splits = SplitArrays(sft)
-          val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
-          XZ2Index.getRanges(sft, f, explain).flatMap { case (s, e) =>
-            prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
-          }.toSeq
-      }
-
-      scanPlan(sft, ds, filter, hints, ranges, filter.filter)
-    } finally {
-      XZ2Index.clearProcessingValues()
+      case Some(f) =>
+        val splits = SplitArrays(sft)
+        val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
+        val indexValues = XZ2Index.getIndexValues(sft, f, explain)
+        val ranges = XZ2Index.getRanges(sft, indexValues).flatMap { case (s, e) =>
+          prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
+        }.toSeq
+        (ranges, Some(indexValues))
     }
+
+    scanPlan(sft, ds, filter, indexValues, ranges, filter.filter, hints)
   }
 }
 
-object XZ2Index extends IndexKeySpace[Z2ProcessingValues] {
+object XZ2Index extends IndexKeySpace[XZ2IndexValues] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -132,9 +130,7 @@ object XZ2Index extends IndexKeySpace[Z2ProcessingValues] {
     }
   }
 
-  override def getRanges(sft: SimpleFeatureType,
-                         filter: Filter,
-                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
+  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): XZ2IndexValues = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     val geometries: FilterValues[Geometry] = {
@@ -149,8 +145,11 @@ object XZ2Index extends IndexKeySpace[Z2ProcessingValues] {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val xy = geometries.values.map(GeometryUtils.bounds)
 
-    // make our underlying index values available to other classes in the pipeline for processing
-    processingValues.set(Z2ProcessingValues(geometries, xy))
+    XZ2IndexValues(sfc, geometries, xy)
+  }
+
+  override def getRanges(sft: SimpleFeatureType, values: XZ2IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
+    val XZ2IndexValues(sfc, geometries, xy) = values
 
     val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
@@ -158,3 +157,5 @@ object XZ2Index extends IndexKeySpace[Z2ProcessingValues] {
     zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
   }
 }
+
+case class XZ2IndexValues(sfc: XZ2SFC, geometries: FilterValues[Geometry], bounds: Seq[(Double, Double, Double, Double)])

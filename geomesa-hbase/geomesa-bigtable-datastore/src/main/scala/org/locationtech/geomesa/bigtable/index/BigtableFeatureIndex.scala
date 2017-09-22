@@ -20,7 +20,7 @@ import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseQueryPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.index._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
-import org.locationtech.geomesa.index.index.IndexAdapter
+import org.locationtech.geomesa.index.index._
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -41,7 +41,7 @@ object BigtableFeatureIndex extends HBaseIndexManagerType {
   override def index(identifier: String): HBaseFeatureIndex = super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 }
 
-trait BigtablePlatform extends HBasePlatform with LazyLogging {
+trait BigtablePlatform[K] extends HBasePlatform[K] with LazyLogging {
 
   override def buildPlatformScanPlan(ds: HBaseDataStore,
                                      sft: SimpleFeatureType,
@@ -106,19 +106,19 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
   }
 }
 
-case object BigtableZ2Index extends HBaseLikeZ2Index with BigtablePlatform
-case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform
-case object BigtableIdIndex extends HBaseIdLikeIndex with BigtablePlatform
-case object BigtableXZ2Index extends HBaseXZ2LikeIndex with BigtablePlatform
-case object BigtableXZ3Index extends HBaseXZ3LikeIndex with BigtablePlatform
+case object BigtableZ2Index extends HBaseLikeZ2Index with BigtablePlatform[Z2IndexValues]
+case object BigtableZ3Index extends HBaseLikeZ3Index with BigtablePlatform[Z3IndexValues]
+case object BigtableIdIndex extends HBaseIdLikeIndex with BigtablePlatform[Unit]
+case object BigtableXZ2Index extends HBaseXZ2LikeIndex with BigtablePlatform[XZ2IndexValues]
+case object BigtableXZ3Index extends HBaseXZ3LikeIndex with BigtablePlatform[XZ3IndexValues]
 
-case object BigtableAttributeIndex extends HBaseAttributeLikeIndex with BigtablePlatform {
+case object BigtableAttributeIndex extends HBaseAttributeLikeIndex with BigtablePlatform[Unit] {
   override val version: Int = 3
 }
 // no shards
-case object BigtableAttributeIndexV2 extends HBaseAttributeLikeIndex with BigtablePlatform {
+case object BigtableAttributeIndexV2 extends HBaseAttributeLikeIndex with BigtablePlatform[Unit] {
   override val version: Int = 2
 
   override protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = SplitArrays.EmptySplits
 }
-case object BigtableAttributeDateIndex extends HBaseAttributeDateLikeIndex with BigtablePlatform
+case object BigtableAttributeDateIndex extends HBaseAttributeDateLikeIndex with BigtablePlatform[Unit]

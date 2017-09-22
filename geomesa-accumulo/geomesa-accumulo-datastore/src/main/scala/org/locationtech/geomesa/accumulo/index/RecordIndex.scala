@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.conf.{HexSplitter, TableSplitter}
 import org.locationtech.geomesa.index.index.IdIndex
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object RecordIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
+case object RecordIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter[Unit]
     with IdIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType

@@ -12,8 +12,9 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.index.IdIndex
 
-case object HBaseIdIndex extends HBaseIdLikeIndex with HBasePlatform
+case object HBaseIdIndex extends HBaseIdLikeIndex with HBasePlatform[Unit]
 
-trait HBaseIdLikeIndex extends HBaseFeatureIndex with IdIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+trait HBaseIdLikeIndex extends HBaseFeatureIndex with HBaseIndexAdapter[Unit]
+    with IdIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 1
 }

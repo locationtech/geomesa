@@ -11,10 +11,10 @@ package org.locationtech.geomesa.cassandra.index
 
 import org.locationtech.geomesa.cassandra.data._
 import org.locationtech.geomesa.cassandra.{RowRange, RowValue}
-import org.locationtech.geomesa.index.index.XZ3Index
+import org.locationtech.geomesa.index.index.{XZ3Index, XZ3IndexValues}
 
 case object CassandraXZ3Index
     extends XZ3Index[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]]
-    with CassandraFeatureIndex with CassandraZ3Layout {
+    with CassandraFeatureIndex with CassandraZ3Layout with CassandraIndexAdapter[XZ3IndexValues] {
   override val version: Int = 1
 }

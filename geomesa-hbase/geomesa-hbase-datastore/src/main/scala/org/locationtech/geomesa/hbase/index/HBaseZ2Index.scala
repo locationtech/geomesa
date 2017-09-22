@@ -15,21 +15,29 @@ import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.Z2HBaseFilter
 import org.locationtech.geomesa.index.filters.Z2Filter
-import org.locationtech.geomesa.index.index.{Z2Index, Z2ProcessingValues}
+import org.locationtech.geomesa.index.index.{Z2Index, Z2IndexValues}
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform {
+case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform[Z2IndexValues]
+
+trait HBaseLikeZ2Index extends HBaseFeatureIndex with HBaseIndexAdapter[Z2IndexValues] with HBaseZ2PushDown
+    with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
+  override val version: Int = 1
+}
+
+trait HBaseZ2PushDown extends HBasePlatform[Z2IndexValues] {
 
   override protected def createPushDownFilters(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
+                                               indexValues: Option[Z2IndexValues],
                                                transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val z2Filter = Z2Index.currentProcessingValues.map { case Z2ProcessingValues(_, bounds) =>
+    val z2Filter = indexValues.map { case Z2IndexValues(_, bounds) =>
       val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard - note: currently sharing is always false
       configureZ2PushDown(bounds, offset)
     }
-    super.createPushDownFilters(ds, sft, filter, transform) ++ z2Filter.toSeq
+    super.createPushDownFilters(ds, sft, filter, indexValues, transform) ++ z2Filter.toSeq
   }
 
   private def configureZ2PushDown(xy: Seq[(Double, Double, Double, Double)], offset: Int): (Int, HFilter) = {
@@ -40,8 +48,4 @@ case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform {
 
     (Z2HBaseFilter.Priority, new Z2HBaseFilter(new Z2Filter(normalizedXY, 8), offset))
   }
-}
-
-trait HBaseLikeZ2Index extends HBaseFeatureIndex with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
-  override val version: Int = 1
 }

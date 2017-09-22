@@ -14,12 +14,12 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.iterators.Z3Iterator
 import org.locationtech.geomesa.index.api.FilterStrategy
-import org.locationtech.geomesa.index.index.{Z3Index, Z3ProcessingValues}
+import org.locationtech.geomesa.index.index.{Z3Index, Z3IndexValues}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 // current version - normal table sharing
-case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
+case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter[Z3IndexValues]
     with Z3Index[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -35,13 +35,14 @@ case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
   override protected def scanConfig(sft: SimpleFeatureType,
                                     ds: AccumuloDataStore,
                                     filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                                    hints: Hints,
+                                    indexValues: Option[Z3IndexValues],
                                     ecql: Option[Filter],
+                                    hints: Hints,
                                     dedupe: Boolean): ScanConfig = {
-    val config = super.scanConfig(sft, ds, filter, hints, ecql, dedupe)
-    org.locationtech.geomesa.index.index.Z3Index.currentProcessingValues match {
+    val config = super.scanConfig(sft, ds, filter, indexValues, ecql, hints, dedupe)
+    indexValues match {
       case None => config
-      case Some(Z3ProcessingValues(sfc, _, xy, _, times)) =>
+      case Some(Z3IndexValues(sfc, _, xy, _, times, _)) =>
         // we know we're only going to scan appropriate periods, so leave out whole ones
         val wholePeriod = Seq((sfc.time.min.toLong, sfc.time.max.toLong))
         val filteredTimes = times.filter(_._2 != wholePeriod)
