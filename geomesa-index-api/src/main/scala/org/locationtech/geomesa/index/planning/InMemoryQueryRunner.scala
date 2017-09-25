@@ -145,7 +145,7 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
                              filter: Filter): Iterator[SimpleFeature] = {
     val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
     val dictionaryFields = hints.getArrowDictionaryFields
-    val providedDictionaries = hints.getArrowDictionaryEncodedValues
+    val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid)
     val sort = hints.getArrowSort
 
