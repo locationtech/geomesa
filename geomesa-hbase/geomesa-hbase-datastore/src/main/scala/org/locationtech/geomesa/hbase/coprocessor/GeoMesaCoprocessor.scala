@@ -10,7 +10,6 @@ package org.locationtech.geomesa.hbase.coprocessor
 
 import java.io._
 
-import com.google.common.primitives.Bytes
 import com.google.protobuf.{ByteString, RpcCallback, RpcController, Service}
 import org.apache.hadoop.hbase.client.coprocessor.Batch.Call
 import org.apache.hadoop.hbase.client.{Scan, Table}
@@ -76,7 +75,8 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
           scanner.close()
         }
       }
-      GeoMesaCoprocessorResponse.newBuilder.setSf(ByteString.copyFrom(Bytes.concat(results: _*))).build
+      import scala.collection.JavaConversions._
+      GeoMesaCoprocessorResponse.newBuilder.addAllPayload(results.map(ByteString.copyFrom)).build
     } catch {
       case ioe: IOException =>
         ResponseConverter.setControllerException(controller, ioe)
@@ -105,8 +105,8 @@ object GeoMesaCoprocessor {
   def execute(table: Table, options: Array[Byte]): List[ByteString] = {
     val requestArg = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
 
-    val callable = new Call[GeoMesaCoprocessorService, ByteString]() {
-      override def call(instance: GeoMesaCoprocessorService): ByteString = {
+    val callable = new Call[GeoMesaCoprocessorService, java.util.List[ByteString]]() {
+      override def call(instance: GeoMesaCoprocessorService): java.util.List[ByteString] = {
         val controller: RpcController = new GeoMesaHBaseRpcController()
         val rpcCallback = new BlockingRpcCallback[GeoMesaCoprocessorResponse]()
         instance.getResult(controller, requestArg, rpcCallback)
@@ -114,7 +114,7 @@ object GeoMesaCoprocessor {
         if (controller.failed()) {
           throw new IOException(controller.errorText())
         }
-        response.getSf
+        response.getPayloadList
       }
     }
 
