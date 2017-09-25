@@ -39,26 +39,24 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
                     env: IteratorEnvironment): Unit = {
     this.source = source
 
-    var minEpoch: Short = Short.MinValue
+    var minEpoch: Short = Short.MaxValue
     var maxEpoch: Short = Short.MinValue
     keyT = options.get(ZKeyT)
     val epochsAndTimes = keyT.split(EpochSeparator).filterNot(_.isEmpty).map { times =>
       val parts = times.split(TermSeparator)
       val epoch = parts(0).toShort
       // set min/max epochs - note: side effect in map
-      if (minEpoch == Short.MinValue) {
+      if (epoch < minEpoch) {
         minEpoch = epoch
-        maxEpoch = epoch
-      } else if (epoch < minEpoch) {
-        minEpoch = epoch
-      } else if (epoch > maxEpoch) {
+      }
+      if (epoch > maxEpoch) {
         maxEpoch = epoch
       }
       (epoch, parts.drop(1).map(_.split(RangeSeparator).map(_.toInt)))
     }
 
     val tvals: Array[Array[Array[Int]]] =
-      if (minEpoch == Short.MinValue) Array.empty else Array.ofDim(maxEpoch - minEpoch + 1)
+      if (minEpoch == Short.MaxValue && maxEpoch == Short.MinValue) Array.empty else Array.ofDim(maxEpoch - minEpoch + 1)
     epochsAndTimes.foreach { case (w, times) => tvals(w - minEpoch) = times }
 
     keyXY = options.get(ZKeyXY)

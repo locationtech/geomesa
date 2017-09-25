@@ -15,11 +15,11 @@ import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.{Filter, FilterBase}
 import org.locationtech.geomesa.index.filters.{Z2Filter, Z3Filter}
 
-class Z3HBaseFilter(filt: Z3Filter, offset: Int) extends FilterBase with LazyLogging {
+class Z3HBaseFilter(val filter: Z3Filter, offset: Int) extends FilterBase with LazyLogging {
 
   override def filterKeyValue(v: Cell): Filter.ReturnCode = {
     logger.trace("In filterKeyValue()")
-    if (filt.inBounds(v.getRowArray, v.getRowOffset + offset)) {
+    if (filter.inBounds(v.getRowArray, v.getRowOffset + offset)) {
       Filter.ReturnCode.INCLUDE
     } else {
       Filter.ReturnCode.SKIP
@@ -28,7 +28,7 @@ class Z3HBaseFilter(filt: Z3Filter, offset: Int) extends FilterBase with LazyLog
 
   override def toByteArray: Array[Byte] = {
     logger.trace("Serializing Z3HBaseFilter")
-    Bytes.concat(Z3Filter.toByteArray(filt), Ints.toByteArray(offset))
+    Bytes.concat(Z3Filter.toByteArray(filter), Ints.toByteArray(offset))
   }
 }
 
@@ -45,11 +45,11 @@ object Z3HBaseFilter extends LazyLogging {
 }
 
 
-class Z2HBaseFilter(filt: Z2Filter, offset: Int) extends FilterBase with LazyLogging {
+class Z2HBaseFilter(val filter: Z2Filter, offset: Int) extends FilterBase with LazyLogging {
 
   override def filterKeyValue(v: Cell): Filter.ReturnCode = {
     logger.trace("In filterKeyValue()")
-    if (filt.inBounds(v.getRowArray, v.getRowOffset + offset)) {
+    if (filter.inBounds(v.getRowArray, v.getRowOffset + offset)) {
       Filter.ReturnCode.INCLUDE
     } else {
       Filter.ReturnCode.SKIP
@@ -58,7 +58,7 @@ class Z2HBaseFilter(filt: Z2Filter, offset: Int) extends FilterBase with LazyLog
 
   override def toByteArray: Array[Byte] = {
     logger.trace("Serializing Z2HBaseFilter")
-    Bytes.concat(Z2Filter.toByteArray(filt), Ints.toByteArray(offset))
+    Bytes.concat(Z2Filter.toByteArray(filter), Ints.toByteArray(offset))
   }
 }
 
