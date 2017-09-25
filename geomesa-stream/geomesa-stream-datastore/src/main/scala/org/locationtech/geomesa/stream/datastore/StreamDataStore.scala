@@ -19,8 +19,9 @@ import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data._
-import org.geotools.data.simple.SimpleFeatureReader
+import org.geotools.data.simple.{DelegateSimpleFeatureReader, SimpleFeatureReader}
 import org.geotools.data.store._
+import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.FidFilterImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -120,29 +121,27 @@ class StreamFeatureStore(entry: ContentEntry,
 
   override def canFilter: Boolean = true
 
-  override def getBoundsInternal(query: Query) =
+  override def getBoundsInternal(query: Query): ReferencedEnvelope =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
 
   override def buildFeatureType(): SimpleFeatureType = sft
 
   override def getCountInternal(query: Query): Int = SelfClosingIterator(getReaderInternal(query)).length
 
-  override def getReaderInternal(query: Query): FR = getReaderForFilter(query.getFilter)
+  override def getReaderInternal(query: Query): FR = reader(this.query(query.getFilter))
 
   override def allFeatures(): Iterator[SimpleFeature] = features.asMap().valuesIterator.map(_.sf)
 
-  override def getReaderForFilter(f: Filter): SimpleFeatureReader =
+  override def query(f: Filter): Iterator[SimpleFeature] =
     f match {
-      case id: FidFilterImpl => fid(id)
-      case _                 => super.getReaderForFilter(f)
+      case id: FidFilterImpl => id.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
+      case _                 => super.query(f)
     }
 
-  def fid(ids: FidFilterImpl): SimpleFeatureReader = {
-    val iter = ids.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
-    reader(iter)
-  }
-
   override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
+
+  protected def reader(iter: Iterator[SimpleFeature]): SimpleFeatureReader =
+    new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter))
 }
 
 object StreamDataStoreParams {
@@ -162,7 +161,7 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
     new StreamDataStore(source, timeout)
   }
 
-  override def createNewDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = ???
+  override def createNewDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = createDataStore(params)
   override def getDescription: String = "SimpleFeature Stream Source"
   override def getParametersInfo: Array[Param] = Array(STREAM_DATASTORE_CONFIG, CACHE_TIMEOUT)
   override def getDisplayName: String = "SimpleFeature Stream Source"

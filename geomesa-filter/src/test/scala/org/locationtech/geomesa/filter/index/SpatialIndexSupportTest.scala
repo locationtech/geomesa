@@ -12,7 +12,6 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -38,12 +37,12 @@ class SpatialIndexSupportTest extends Specification {
 
     "properly handle bbox queries" in {
       val filter = ECQL.toFilter("bbox(geom, 49.0, 79.0, 51.0, 81.0)")
-      SelfClosingIterator(sis.getReaderForFilter(filter)).toList mustEqual List(f2)
+      sis.query(filter).toList mustEqual List(f2)
     }
 
     "properly handle bbox queries on secondary geometries" in {
       val filter = ECQL.toFilter("bbox(geom2, 38.0, 79.0, 39.0, 81.0)")
-      SelfClosingIterator(sis.getReaderForFilter(filter)).toList mustEqual List(f1)
+      sis.query(filter).toList mustEqual List(f1)
     }
   }
 }

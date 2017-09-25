@@ -47,6 +47,7 @@
         <module>geomesa-utils</module>
         <module>geomesa-web</module>
         <module>geomesa-z3</module>
+        <module>geomesa-zk-utils</module>
         <module>docs</module>
     </modules>
 
@@ -1484,6 +1485,11 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-zk-utils_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-filter_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1579,32 +1585,17 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-08-datastore_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-kafka-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-09-datastore_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-kafka-utils_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-10-datastore_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-08-tools_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-09-tools_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-10-tools_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-kafka-tools_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -46,18 +46,27 @@ trait ArrowBatchScan extends AggregatingScan[ArrowBatchAggregate] {
     import ArrowBatchScan.{aggregateCache, decodeDictionaries}
 
     batchSize = options(BatchSizeKey).toInt
-    val encodedDictionaries = options(DictionaryKey)
-    lazy val dictionaries = decodeDictionaries(encodedDictionaries)
     val encoding = SimpleFeatureEncoding.min(options(IncludeFidsKey).toBoolean)
     val (arrowSft, arrowSftString) = transform match {
       case Some(tsft) => (tsft, options(TransformSchemaOpt))
       case None       => (sft, options(SftOpt))
     }
+    val encodedDictionaries = options(DictionaryKey)
+    lazy val dictionaries = decodeDictionaries(arrowSft, encodedDictionaries)
     val sortIndex = options.get(SortKey).map(arrowSft.indexOf).getOrElse(-1)
     val sortReverse = options.get(SortReverseKey).exists(_.toBoolean)
-    aggregateCache.getOrElseUpdate(arrowSftString + encoding + sortIndex + sortReverse + encodedDictionaries,
-      if (sortIndex == -1) { new ArrowBatchAggregateImpl(arrowSft, dictionaries, encoding) } else {
-        new ArrowSortingBatchAggregate(arrowSft, sortIndex, sortReverse, batchSize, dictionaries, encoding) } )
+
+    val cacheKey = arrowSftString + encoding + sortIndex + sortReverse + encodedDictionaries
+
+    if (sortIndex == -1) {
+      aggregateCache.getOrElseUpdate(cacheKey, new ArrowBatchAggregateImpl(arrowSft, dictionaries, encoding))
+    } else {
+      def create() = new ArrowSortingBatchAggregate(arrowSft, sortIndex, sortReverse, dictionaries, encoding)
+      val aggregator = aggregateCache.getOrElseUpdate(cacheKey, create()).asInstanceOf[ArrowSortingBatchAggregate]
+      aggregator.setBatchSize(batchSize)
+      aggregator
+    }
+
   }
 
   override protected def notFull(result: ArrowBatchAggregate): Boolean = result.size < batchSize
@@ -107,19 +116,24 @@ class ArrowBatchAggregateImpl(sft: SimpleFeatureType,
 class ArrowSortingBatchAggregate(sft: SimpleFeatureType,
                                  sortField: Int,
                                  reverse: Boolean,
-                                 batchSize: Int,
                                  dictionaries: Map[String, ArrowDictionary],
                                  encoding: SimpleFeatureEncoding) extends ArrowBatchAggregate {
 
   import org.locationtech.geomesa.arrow.allocator
 
   private var index = 0
-  private val features = Array.ofDim[SimpleFeature](batchSize)
+  private var features: Array[SimpleFeature] = _
 
   private val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
   private val batchWriter = new RecordBatchUnloader(vector)
 
   private val ordering = SimpleFeatureOrdering(sortField)
+
+  def setBatchSize(size: Int): Unit = {
+    if (features == null || features.length < size) {
+      features = Array.ofDim[SimpleFeature](size)
+    }
+  }
 
   override def add(sf: SimpleFeature): Unit = {
     // we have to copy since the feature might be re-used
@@ -234,10 +248,10 @@ object ArrowBatchScan {
     if (values.isEmpty || !classOf[Comparable[_]].isAssignableFrom(values.head.getClass)) {
       values
     } else {
-      implicit val ordering = new Ordering[AnyRef] {
+      val ordering = new Ordering[AnyRef] {
         def compare(left: AnyRef, right: AnyRef): Int = left.asInstanceOf[Comparable[AnyRef]].compareTo(right)
       }
-      values.sorted
+      values.sorted(ordering)
     }
   }
 
@@ -252,7 +266,8 @@ object ArrowBatchScan {
     */
   def reduceFeatures(sft: SimpleFeatureType,
                      hints: Hints,
-                     dictionaries: Map[String, ArrowDictionary]):
+                     dictionaries: Map[String, ArrowDictionary],
+                     skipSort: Boolean = false):
   CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = {
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid)
     val sortField = hints.getArrowSort
@@ -260,9 +275,9 @@ object ArrowBatchScan {
       Array(fileMetadata(sft, dictionaries, encoding, sortField), GeometryUtils.zeroPoint))
     // per arrow streaming format footer is the encoded int '0'
     val footer = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(Array[Byte](0, 0, 0, 0), GeometryUtils.zeroPoint))
-    val sort: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = sortField match {
-      case None => (iter) => iter
-      case Some((attribute, reverse)) =>
+    val sort: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] =
+      if (skipSort || sortField.isEmpty) { (iter) => iter } else {
+        val (attribute, reverse) = sortField.get
         val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
         (iter) => {
           import SimpleFeatureArrowIO.sortBatches
@@ -311,6 +326,6 @@ object ArrowBatchScan {
     * @param encoded dictionary string
     * @return
     */
-  private def decodeDictionaries(encoded: String): Map[String, ArrowDictionary] =
-    StringSerialization.decodeSeqMap(encoded).map { case (k, v) => k -> ArrowDictionary.create(v) }
+  private def decodeDictionaries(sft: SimpleFeatureType, encoded: String): Map[String, ArrowDictionary] =
+    StringSerialization.decodeSeqMap(sft, encoded).map { case (k, v) => k -> ArrowDictionary.create(v) }
 }

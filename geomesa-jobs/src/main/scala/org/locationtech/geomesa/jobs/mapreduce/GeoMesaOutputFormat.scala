@@ -14,10 +14,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat
+import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.index.api.WrappedFeature
-import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseQuietly
@@ -83,7 +84,7 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
   val ds: GeoMesaDataStore[DS, F, W] = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
 
   val sftCache    = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-  val writerCache = scala.collection.mutable.Map.empty[String, GeoMesaFeatureWriter[_, _, _, _]]
+  val writerCache = scala.collection.mutable.Map.empty[String, SimpleFeatureWriter]
 
   val written: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
   val failed: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)

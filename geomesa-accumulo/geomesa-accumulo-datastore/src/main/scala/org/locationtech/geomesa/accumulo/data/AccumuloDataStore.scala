@@ -157,7 +157,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     }
   }
 
-  override protected def afterCreateSchemaTasks(sft: SimpleFeatureType): Unit = {
+  override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
+    super.onSchemaCreated(sft)
     // configure the stats combining iterator on the table for this sft
     stats.configureStatCombiner(connector, sft)
   }
@@ -228,10 +229,10 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       if (config.generateStats && metadata.read(typeName, STATS_GENERATION_KEY).isEmpty) {
         // configure the stats combining iterator - we only use this key for older data stores
         val configuredKey = "stats-configured"
-        if (!metadata.read(typeName, configuredKey).exists(_ == "true")) {
+        if (!metadata.read(typeName, configuredKey).contains("true")) {
           val lock = acquireCatalogLock()
           try {
-            if (!metadata.read(typeName, configuredKey, cache = false).exists(_ == "true")) {
+            if (!metadata.read(typeName, configuredKey, cache = false).contains("true")) {
               stats.configureStatCombiner(connector, sft)
               metadata.insert(typeName, configuredKey, "true")
             }

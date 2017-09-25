@@ -16,15 +16,14 @@ import com.googlecode.cqengine.index.hash.HashIndex
 import com.googlecode.cqengine.index.navigable.NavigableIndex
 import com.googlecode.cqengine.index.radix.RadixTreeIndex
 import com.googlecode.cqengine.index.unique.UniqueIndex
-import com.googlecode.cqengine.{ConcurrentIndexedCollection, IndexedCollection}
 import com.googlecode.cqengine.query.option.DeduplicationStrategy
-import com.googlecode.cqengine.query.{QueryFactory, Query}
-import com.googlecode.cqengine.query.simple.{Equal, All}
+import com.googlecode.cqengine.query.simple.{All, Equal}
+import com.googlecode.cqengine.query.{Query, QueryFactory}
+import com.googlecode.cqengine.{ConcurrentIndexedCollection, IndexedCollection}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
 import org.locationtech.geomesa.memory.cqengine.utils._
-import org.locationtech.geomesa.utils.geotools._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -45,7 +44,7 @@ class GeoCQEngine(val sft: SimpleFeatureType,
   if (enableFidIndex) addFidIndex()
 
   // Add other indexes
-  sft.getAttributeDescriptors.foreach {addIndex(_)}
+  sft.getAttributeDescriptors.foreach(addIndex)
 
   def remove(sf: SimpleFeature): Boolean = {
     cqcache.remove(sf)
@@ -77,13 +76,13 @@ class GeoCQEngine(val sft: SimpleFeatureType,
   }
 
   // NB: We expect that FID filters have been handled previously
-  def getReaderForFilter(filter: Filter): FR =
+  def getReaderForFilter(filter: Filter): Iterator[SimpleFeature] =
     filter match {
       case f: IncludeFilter => include(f)
       case f => queryCQ(f, dedup = true)
     }
 
-  def queryCQ(f: Filter, dedup: Boolean = true): FR = {
+  def queryCQ(f: Filter, dedup: Boolean = true): Iterator[SimpleFeature] = {
     val visitor = new CQEngineQueryVisitor(sft)
 
     val query: Query[SimpleFeature] = f.accept(visitor, null) match {
@@ -93,16 +92,14 @@ class GeoCQEngine(val sft: SimpleFeatureType,
     if (dedup) {
       val dedupOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)
       val queryOptions = QueryFactory.queryOptions(dedupOpt)
-      new DFR(sft, new DFI(cqcache.retrieve(query, queryOptions).iterator()))
+      cqcache.retrieve(query, queryOptions).iterator()
+    } else {
+      cqcache.retrieve(query).iterator()
     }
-    else
-      new DFR(sft, new DFI(cqcache.retrieve(query).iterator()))
   }
 
-  def include(i: IncludeFilter): FR = {
-    logger.warn("Running Filter.INCLUDE")
-    new DFR(sft, new DFI(cqcache.retrieve(new All(classOf[SimpleFeature])).iterator()))
-  }
+  def include(i: IncludeFilter): Iterator[SimpleFeature] =
+    cqcache.retrieve(new All(classOf[SimpleFeature])).iterator()
 
   private def addIndex(ad: AttributeDescriptor): Unit = {
     CQIndexingOptions.getCQIndexType(ad) match {
