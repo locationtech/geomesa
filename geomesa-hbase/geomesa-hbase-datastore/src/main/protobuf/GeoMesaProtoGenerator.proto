@@ -19,7 +19,7 @@ message GeoMesaCoprocessorRequest {
 }
 
 message GeoMesaCoprocessorResponse {
-    required bytes sf = 1;
+    repeated bytes payload = 1;
 }
 
 service GeoMesaCoprocessorService {
