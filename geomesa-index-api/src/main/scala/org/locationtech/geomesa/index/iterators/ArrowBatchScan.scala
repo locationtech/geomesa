@@ -55,9 +55,18 @@ trait ArrowBatchScan extends AggregatingScan[ArrowBatchAggregate] {
     }
     val sortIndex = options.get(SortKey).map(arrowSft.indexOf).getOrElse(-1)
     val sortReverse = options.get(SortReverseKey).exists(_.toBoolean)
-    aggregateCache.getOrElseUpdate(arrowSftString + encoding + sortIndex + sortReverse + encodedDictionaries,
-      if (sortIndex == -1) { new ArrowBatchAggregateImpl(arrowSft, dictionaries, encoding) } else {
-        new ArrowSortingBatchAggregate(arrowSft, sortIndex, sortReverse, batchSize, dictionaries, encoding) } )
+
+    val cacheKey = arrowSftString + encoding + sortIndex + sortReverse + encodedDictionaries
+
+    if (sortIndex == -1) {
+      aggregateCache.getOrElseUpdate(cacheKey, new ArrowBatchAggregateImpl(arrowSft, dictionaries, encoding))
+    } else {
+      def create() = new ArrowSortingBatchAggregate(arrowSft, sortIndex, sortReverse, dictionaries, encoding)
+      val aggregator = aggregateCache.getOrElseUpdate(cacheKey, create()).asInstanceOf[ArrowSortingBatchAggregate]
+      aggregator.setBatchSize(batchSize)
+      aggregator
+    }
+
   }
 
   override protected def notFull(result: ArrowBatchAggregate): Boolean = result.size < batchSize
@@ -107,19 +116,24 @@ class ArrowBatchAggregateImpl(sft: SimpleFeatureType,
 class ArrowSortingBatchAggregate(sft: SimpleFeatureType,
                                  sortField: Int,
                                  reverse: Boolean,
-                                 batchSize: Int,
                                  dictionaries: Map[String, ArrowDictionary],
                                  encoding: SimpleFeatureEncoding) extends ArrowBatchAggregate {
 
   import org.locationtech.geomesa.arrow.allocator
 
   private var index = 0
-  private val features = Array.ofDim[SimpleFeature](batchSize)
+  private var features: Array[SimpleFeature] = _
 
   private val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
   private val batchWriter = new RecordBatchUnloader(vector)
 
   private val ordering = SimpleFeatureOrdering(sortField)
+
+  def setBatchSize(size: Int): Unit = {
+    if (features == null || features.length < size) {
+      features = Array.ofDim[SimpleFeature](size)
+    }
+  }
 
   override def add(sf: SimpleFeature): Unit = {
     // we have to copy since the feature might be re-used
@@ -234,10 +248,10 @@ object ArrowBatchScan {
     if (values.isEmpty || !classOf[Comparable[_]].isAssignableFrom(values.head.getClass)) {
       values
     } else {
-      implicit val ordering = new Ordering[AnyRef] {
+      val ordering = new Ordering[AnyRef] {
         def compare(left: AnyRef, right: AnyRef): Int = left.asInstanceOf[Comparable[AnyRef]].compareTo(right)
       }
-      values.sorted
+      values.sorted(ordering)
     }
   }
 
