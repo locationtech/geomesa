@@ -208,7 +208,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       }
     } else if (hints.isArrowQuery) {
       lazy val dictionaryFields = hints.getArrowDictionaryFields
-      lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
+      lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
       lazy val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
         providedDictionaries, hints.isArrowCachedDictionaries)
       // check to see if we can execute against the index values
@@ -343,7 +343,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     val attributeScan = attributePlan(indexSft, stFilter, None)
 
     lazy val dictionaryFields = hints.getArrowDictionaryFields
-    lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues
+    lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     lazy val arrowDictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
       providedDictionaries, hints.isArrowCachedDictionaries)
 

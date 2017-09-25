@@ -72,7 +72,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
     } else if (query.getHints.isArrowQuery) {
       // calculate merged dictionaries up front if required
       val dictionaryFields = query.getHints.getArrowDictionaryFields
-      val providedDictionaries = query.getHints.getArrowDictionaryEncodedValues
+      val providedDictionaries = query.getHints.getArrowDictionaryEncodedValues(sft)
       if (query.getHints.getArrowSort.isDefined || query.getHints.isArrowComputeDictionaries ||
           dictionaryFields.forall(providedDictionaries.contains)) {
         val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE).map(FastFilterFactory.optimize(sft, _))

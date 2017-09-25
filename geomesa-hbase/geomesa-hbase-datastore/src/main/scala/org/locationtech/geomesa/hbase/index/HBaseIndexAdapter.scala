@@ -109,7 +109,7 @@ trait HBaseIndexAdapter[K] extends HBaseFeatureIndexType
         Some(CoprocessorConfig(options, HBaseDensityAggregator.bytesToFeatures))
       } else if (hints.isArrowQuery) {
         val dictionaryFields = hints.getArrowDictionaryFields
-        val providedDictionaries = hints.getArrowDictionaryEncodedValues
+        val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
         if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
             dictionaryFields.forall(providedDictionaries.contains)) {
           val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,

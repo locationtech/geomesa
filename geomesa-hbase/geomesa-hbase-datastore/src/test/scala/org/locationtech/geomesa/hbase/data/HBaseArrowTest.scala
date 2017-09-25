@@ -28,10 +28,10 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
-  val sft = SimpleFeatureTypes.createType("arrow", "name:String,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createType("arrow", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
   val features = (0 until 10).map { i =>
-    ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
+    ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"${i % 5}", s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
   }
 
   var ds: HBaseDataStore = _
@@ -54,7 +54,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
     "return arrow dictionary encoded data" in {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_COMPUTE, false)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
@@ -72,6 +72,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
     "return arrow encoded data" in {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -84,7 +85,8 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
     "return arrow dictionary encoded data" in {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -99,6 +101,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0")
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -119,6 +122,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       import scala.collection.JavaConverters._
       val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("dtg", "geom"))
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -133,6 +137,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -145,6 +150,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.SAMPLING, 0.2f)
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -161,6 +167,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
+      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
       foreach(ds.getQueryPlan(query)) { plan =>
         plan must beAnInstanceOf[CoprocessorPlan]
         plan.asInstanceOf[CoprocessorPlan].remoteFilters.map(_._2.getClass) mustEqual Seq(classOf[Z3HBaseFilter])
