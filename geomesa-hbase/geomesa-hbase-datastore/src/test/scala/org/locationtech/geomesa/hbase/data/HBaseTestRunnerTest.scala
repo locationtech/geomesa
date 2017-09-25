@@ -22,7 +22,8 @@ import org.specs2.runner.JUnitRunner
   */
 @RunWith(classOf[JUnitRunner])
 class HBaseTestRunnerTest extends Specification with LazyLogging {
-   sequential
+
+  sequential
 
   var cluster: HBaseTestingUtility = new HBaseTestingUtility()
   var connection: Connection = _
