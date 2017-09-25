@@ -46,7 +46,7 @@ class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[St
       val dictionaryFields = hints.getArrowDictionaryFields
 
       if (hints.isArrowComputeDictionaries || dictionaryFields.isEmpty) {
-        val dictionaries = (queryDictionaries ++ hints.getArrowDictionaryEncodedValues).map {
+        val dictionaries = (queryDictionaries ++ hints.getArrowDictionaryEncodedValues(sft)).map {
           case (k, v) => k -> ArrowDictionary.create(v)
         }
         WithClose(new SimpleFeatureArrowFileWriter(sft, os, dictionaries, encoding, sort)) { writer =>
@@ -99,7 +99,7 @@ object ArrowExporter {
 
     val hints = query.getHints
     val dictionaryFields = {
-      val provided = hints.getArrowDictionaryEncodedValues
+      val provided = hints.getArrowDictionaryEncodedValues(ds.getSchema(query.getTypeName))
       hints.getArrowDictionaryFields.filterNot(provided.contains)
     }
 
