@@ -12,7 +12,7 @@ import java.io.{File, FileInputStream, FileOutputStream}
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.apache.arrow.memory.RootAllocator
+import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
@@ -26,17 +26,17 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureArrowFileTest extends Specification {
 
-  implicit val allocator = new RootAllocator(Long.MaxValue)
+  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   val fileCount = new AtomicInteger(0)
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
   val features0 = (0 until 10).map { i =>
-    ScalaSimpleFeature.create(sft, s"0$i", s"name0$i", s"foo${i % 2}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
+    ScalaSimpleFeature.create(sft, s"0$i", s"name0$i", s"foo${i % 2}", s"${i % 5}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
   }
   val features1 = (10 until 20).map { i =>
-    ScalaSimpleFeature.create(sft, s"$i", s"name$i", s"foo${i % 3}", s"2017-03-15T00:$i:00.000Z", s"POINT (4${i -10} 5${i -10})")
+    ScalaSimpleFeature.create(sft, s"$i", s"name$i", s"foo${i % 3}", s"${i % 5}", s"2017-03-15T00:$i:00.000Z", s"POINT (4${i -10} 5${i -10})")
   }
 
   // note: we clone the features before comparing them as they aren't valid once 'next' is called again,
@@ -130,6 +130,22 @@ class SimpleFeatureArrowFileTest extends Specification {
     "write and read dictionary encoded values" >> {
       val dictionaries = Map("foo:String" -> ArrowDictionary.create(Seq("foo0", "foo1", "foo2")))
       withTestFile("dictionary") { file =>
+        WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file), dictionaries, SimpleFeatureEncoding.max(true))) { writer =>
+          features0.foreach(writer.add)
+          writer.flush()
+          features1.foreach(writer.add)
+        }
+        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+          WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features0 ++ features1)
+        }
+        WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
+          WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features0 ++ features1)
+        }
+      }
+    }
+    "write and read dictionary encoded ints" >> {
+      val dictionaries = Map("age" -> ArrowDictionary.create(Seq(0, 1, 2, 3, 4, 5).map(Int.box)))
+      withTestFile("dictionary-int") { file =>
         WithClose(new SimpleFeatureArrowFileWriter(sft, new FileOutputStream(file), dictionaries, SimpleFeatureEncoding.max(true))) { writer =>
           features0.foreach(writer.add)
           writer.flush()
