@@ -12,7 +12,6 @@ import java.util.concurrent._
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.Filter
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 
 class HBaseBatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)

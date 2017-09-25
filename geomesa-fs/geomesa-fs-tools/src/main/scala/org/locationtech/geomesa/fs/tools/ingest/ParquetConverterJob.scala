@@ -124,7 +124,7 @@ class ParquetConverterJob(sft: SimpleFeatureType,
           statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = false)
         }
       }
-      Thread.sleep(1000)
+      Thread.sleep(500)
     }
     statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = true)
 

@@ -20,6 +20,7 @@ import org.geotools.feature.FeatureTypes
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, GeoMesaFeatureStore}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStats}
+import org.locationtech.geomesa.kafka.AdminUtilsVersions
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.data.LambdaFeatureWriter.{AppendLambdaFeatureWriter, ModifyLambdaFeatureWriter}
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore
@@ -80,7 +81,7 @@ class LambdaDataStore(val persistence: DataStore,
         logger.warn(s"Topic [$topic] already exists - it may contain stale data")
       } else {
         val replication = SystemProperty("geomesa.kafka.replication").option.map(_.toInt).getOrElse(1)
-        AdminUtils.createTopic(zk, topic, config.partitions, replication)
+        AdminUtilsVersions.createTopic(zk, topic, config.partitions, replication)
       }
     }
   }

@@ -19,12 +19,10 @@ object GeoMesaSystemProperties extends LazyLogging {
 
     val threadLocalValue = new ThreadLocal[String]()
 
-    def get: String = Option(threadLocalValue.get).getOrElse {
-      ConfigLoader.Config.get(property) match {
-        case Some((value, true))  => value // final value - can't be overridden
-        case Some((value, false)) => sys.props.get(property).getOrElse(value)
-        case None => sys.props.get(property).filter(_.nonEmpty).getOrElse(default)
-      }
+    def get: String = ConfigLoader.Config.get(property) match {
+      case Some((value, true))  => value // final value - can't be overridden
+      case Some((value, false)) => fromSysProps.getOrElse(value)
+      case None => fromSysProps.getOrElse(default)
     }
 
     def option: Option[String] = Option(get)
@@ -35,6 +33,9 @@ object GeoMesaSystemProperties extends LazyLogging {
         case Failure(e) => logger.warn(s"Invalid duration for property $property: $value"); None
       }
     }
+
+    private def fromSysProps: Option[String] =
+      Option(threadLocalValue.get).orElse(sys.props.get(property).filterNot(_.isEmpty))
   }
 
   // For dynamic properties that are not in geomesa-site.xml.template, this is intended

@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools.utils.KeywordParamSplitter
-import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand, RequiredTypeNameParam}
 
-trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait KeywordsCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name: String = "keywords"
 
-  override def params: CatalogParam with KeywordsParams
+  override def params: KeywordsParams
 
   override def execute(): Unit = withDataStore(modifyKeywords)
 
@@ -58,10 +58,10 @@ trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[
 trait KeywordsParams extends RequiredTypeNameParam {
 
   @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[KeywordParamSplitter])
-  var keywordsToAdd: java.util.List[String] = null
+  var keywordsToAdd: java.util.List[String] = _
 
   @Parameter(names = Array("-r", "--remove"), description = "A keyword to remove. Can be specified multiple times", splitter = classOf[KeywordParamSplitter])
-  var keywordsToRemove: java.util.List[String] = null
+  var keywordsToRemove: java.util.List[String] = _
 
   @Parameter(names = Array("-l", "--list"), description = "List all keywords on the schema")
   var list: Boolean = false

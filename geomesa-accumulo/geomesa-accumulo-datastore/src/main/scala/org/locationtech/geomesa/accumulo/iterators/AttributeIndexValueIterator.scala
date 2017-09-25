@@ -19,14 +19,14 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
-import org.locationtech.geomesa.index.index.AttributeRowDecoder
+import org.locationtech.geomesa.index.index.AttributeIndex.AttributeRowDecoder
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
   * Runs at the bottom of the iterator stack - takes the index simple feature type and adds the value
@@ -39,7 +39,7 @@ class AttributeIndexValueIterator extends SortedKeyValueIterator[Key, Value] wit
   private var source: SortedKeyValueIterator[Key, Value] = _
   private val topValue: Value = new Value
 
-  private var decodeRowValue: (Array[Byte], Int, Int) => Try[AnyRef] = _
+  private var decodeRowValue: (Array[Byte], Int, Int) => Try[Any] = _
   private var serializer: KryoFeatureSerializer = _
   private var attribute: Int = -1
 
@@ -116,7 +116,7 @@ class AttributeIndexValueIterator extends SortedKeyValueIterator[Key, Value] wit
           setId(row)
           if (cql.forall(_.evaluate(original))) {
             mappings.foreach { case (to, from) => withAttribute.setAttributeNoConvert(to, original.getAttribute(from)) }
-            withAttribute.setAttributeNoConvert(attribute, value)
+            withAttribute.setAttributeNoConvert(attribute, value.asInstanceOf[AnyRef])
             withAttribute.setId(original.getID)
             topValue.set(serializer.serialize(withAttribute))
             found = true

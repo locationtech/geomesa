@@ -10,17 +10,11 @@
     <packaging>pom</packaging>
 
     <artifactId>geomesa-kafka-gs-plugin_2.11</artifactId>
-    <name>GeoMesa Kafka GeoServer Plugins Parent</name>
+    <name>GeoMesa Kafka GeoServer Plugin</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <modules>
-        <module>geomesa-kafka-08-gs-plugin</module>
-        <module>geomesa-kafka-09-gs-plugin</module>
-        <module>geomesa-kafka-10-gs-plugin</module>
-    </modules>
 
     <dependencyManagement>
         <dependencies>
@@ -33,29 +27,21 @@
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-kafka-datastore_${scala.binary.version}</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <configuration>
-                        <descriptors>
-                            <descriptor>${project.basedir}/../../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
-                        </descriptors>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>create-archive</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>single</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+        </plugins>
     </build>
+
 </project>
 

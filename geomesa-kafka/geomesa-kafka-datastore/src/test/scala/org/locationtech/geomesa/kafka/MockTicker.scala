@@ -1,0 +1,18 @@
+/***********************************************************************
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
+
+package org.locationtech.geomesa.kafka
+
+import com.github.benmanes.caffeine.cache.Ticker
+
+class MockTicker extends Ticker {
+
+  var millis: Long = 0L
+
+  def read(): Long = millis * 1000000 // nanos
+}
