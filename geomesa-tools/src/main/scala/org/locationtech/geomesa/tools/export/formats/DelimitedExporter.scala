@@ -42,11 +42,12 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
 
     // write out a header line
     if (withHeader) {
-      if (withId) {
-        printer.print("id")
-      }
       val headers = names.map(sft.getDescriptor).map(SimpleFeatureTypes.encodeDescriptor(sft, _))
-      printer.printRecord(headers: _*)
+      if (withId) {
+        printer.printRecord("id" +: headers: _*)
+      } else {
+        printer.printRecord(headers: _*)
+      }
     }
 
     var count = 0L

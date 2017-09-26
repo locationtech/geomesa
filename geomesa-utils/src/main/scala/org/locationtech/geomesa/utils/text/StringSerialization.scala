@@ -34,7 +34,8 @@ object StringSerialization extends LazyLogging {
         case _ => v
       }
       printer.print(k)
-      printer.printRecord(strings: _*)
+      strings.foreach(printer.print)
+      printer.println()
     }
     sb.toString
   }

@@ -32,7 +32,7 @@ class UnoptimizedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]
     val query = new Query(sft.getTypeName, filter)
     try {
       val reader = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-      val result = try {
+      try {
         reader.foreach(stat.observe)
       } finally {
         reader.close()
