@@ -30,7 +30,7 @@ object SQLRules extends LazyLogging {
   import SQLSpatialFunctions._
 
   def scalaUDFtoGTFilter(udf: Expression): Option[GTFilter] = {
-    val ScalaUDF(func, _, expressions, _) = udf
+    val ScalaUDF(func, _, expressions, _, _) = udf
 
     if (expressions.size == 2) {
       val Seq(exprA, exprB) = expressions
@@ -102,21 +102,21 @@ object SQLRules extends LazyLogging {
     // JNH: NB: Unused.
     def extractGeometry(e: org.apache.spark.sql.catalyst.expressions.Expression): Option[Geometry] = e match {
       case And(l, r) => extractGeometry(l).orElse(extractGeometry(r))
-      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(geom)
+      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _, _) => Some(geom)
       case _ => None
     }
 
     private def extractScalaUDFs(f: Expression) = {
       splitConjunctivePredicates(f).partition {
         // TODO: Add guard which checks to see if the function can be pushed down
-        case ScalaUDF(_, _, _, _) => true
+        case ScalaUDF(_, _, _, _, _) => true
         case _ => false
       }
     }
 
     private def extractGridId(envelopes: List[Envelope], e: org.apache.spark.sql.catalyst.expressions.Expression): Option[List[Int]] = e match {
       case And(l, r) => Some(extractGridId(envelopes, l).getOrElse(List()) ++  extractGridId(envelopes, r).getOrElse(List()))
-      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(RelationUtils.gridIdMapper(geom, envelopes))
+      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _, _) => Some(RelationUtils.gridIdMapper(geom, envelopes))
       case GeometryLiteral(_,geom) => Some(RelationUtils.gridIdMapper(geom, envelopes))
       case _ => None
     }
@@ -135,7 +135,7 @@ object SQLRules extends LazyLogging {
                   joinType,
                   condition) =>
           val isSpatialUDF = condition.get match {
-            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, children, _) =>
+            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, children, _, _) =>
               children(0).isInstanceOf[AttributeReference] && children(1).isInstanceOf[AttributeReference]
             case _ => false
           }
@@ -145,7 +145,7 @@ object SQLRules extends LazyLogging {
               join
             } else {
               val joinRelation = alterRelation(leftRel, rightRel, condition.get)
-              val newLogicalRelLeft = leftLr.copy(expectedOutputAttributes = Some(leftLr.output ++ rightLr.output), relation = joinRelation)
+              val newLogicalRelLeft = leftLr.copy(output = leftLr.output ++ rightLr.output, relation = joinRelation)
               Join(newLogicalRelLeft, rightLr, joinType, condition)
             }
           } else {
@@ -156,7 +156,7 @@ object SQLRules extends LazyLogging {
                   joinType,
                   condition) =>
           val isSpatialUDF = condition.get match {
-            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, children, _) =>
+            case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, children, _, _) =>
               children(0).isInstanceOf[AttributeReference] && children(1).isInstanceOf[AttributeReference]
             case _ => false
           }
@@ -166,7 +166,7 @@ object SQLRules extends LazyLogging {
               join
             } else {
               val joinRelation = alterRelation(leftRel, rightRel, condition.get)
-              val newLogicalRelLeft = leftLr.copy(expectedOutputAttributes = Some(leftLr.output ++ rightLr.output), relation = joinRelation)
+              val newLogicalRelLeft = leftLr.copy(output = leftLr.output ++ rightLr.output, relation = joinRelation)
               val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
               Join(newProjectLeft, rightProject, joinType, condition)
             }
@@ -218,7 +218,7 @@ object SQLRules extends LazyLogging {
 
           if (gtFilters.nonEmpty) {
             val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt), partitionHints = partitionHints)
-            val newrel = lr.copy(expectedOutputAttributes = Some(lr.output), relation = relation)
+            val newrel = lr.copy(output = lr.output, relation = relation)
             if (sFilters.nonEmpty) {
               Filter(sFilters.reduce(And), newrel)
             } else {
@@ -237,7 +237,7 @@ object SQLRules extends LazyLogging {
     override def apply(plan: LogicalPlan): LogicalPlan = {
       plan.transform {
         case q: LogicalPlan => q.transformExpressionsDown {
-          case s@ScalaUDF(_, _, _, _) =>
+          case s@ScalaUDF(_, _, _, _, _) =>
             // TODO: Break down by GeometryType
             Try {
                 s.eval(null) match {

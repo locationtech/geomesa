@@ -24,7 +24,7 @@
         </dependency>
         <dependency>
             <groupId>com.vividsolutions</groupId>
-            <artifactId>jts</artifactId>
+            <artifactId>jts-core</artifactId>
         </dependency>
 
         <!-- not used, but we can't exclude direct inherited dependencies, so just mark it provided -->

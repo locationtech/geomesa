@@ -135,12 +135,14 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_${scala.binary.version}</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-xml_${scala.binary.version}</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -161,20 +163,6 @@
     </dependencies>
 
     <profiles>
-        <profile>
-            <id>scala-2.11</id>
-            <activation>
-                <property><name>!scala-2.10</name></property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <!-- needed in the lib dir -->
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-xml_${scala.binary.version}</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-
         <profile>
             <id>python</id>
             <dependencies>

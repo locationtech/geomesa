@@ -37,6 +37,10 @@
                     <groupId>de.topobyte</groupId>
                     <artifactId>commons-cli-helper</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.vividsolutions</groupId>
+                    <artifactId>jts</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

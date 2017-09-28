@@ -36,9 +36,15 @@
             <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_${scala.binary.version}</artifactId>
@@ -50,20 +56,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>scala-2.11</id>
-            <activation>
-                <property><name>!scala-2.10</name></property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
 </project>
