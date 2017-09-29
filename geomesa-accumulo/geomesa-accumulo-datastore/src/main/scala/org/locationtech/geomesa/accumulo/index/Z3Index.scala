@@ -9,18 +9,15 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.apache.accumulo.core.data.{Mutation, Range}
-import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.iterators.Z3Iterator
-import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 // current version - new z-curve
-case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter[Z3IndexValues]
-    with Z3Index[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
+case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
+    with Z3Index[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -32,14 +29,9 @@ case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter[Z3Ind
 
   override val hasPrecomputedBins: Boolean = true
 
-  override protected def scanConfig(sft: SimpleFeatureType,
-                                    ds: AccumuloDataStore,
-                                    filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                                    indexValues: Option[Z3IndexValues],
-                                    ecql: Option[Filter],
-                                    hints: Hints,
-                                    dedupe: Boolean): ScanConfig = {
-    val config = super.scanConfig(sft, ds, filter, indexValues, ecql, hints, dedupe)
+  override protected def updateScanConfig(sft: SimpleFeatureType,
+                                          config: ScanConfig,
+                                          indexValues: Option[Z3IndexValues]): ScanConfig = {
     indexValues match {
       case None => config
       case Some(Z3IndexValues(sfc, _, xy, _, times)) =>

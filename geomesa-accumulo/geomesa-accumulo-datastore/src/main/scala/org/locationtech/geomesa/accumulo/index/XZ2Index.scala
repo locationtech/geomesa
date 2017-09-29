@@ -10,10 +10,11 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.apache.accumulo.core.data.{Mutation, Range}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
-import org.locationtech.geomesa.index.index.z2.{XZ2Index, XZ2IndexValues}
+import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
+import org.locationtech.geomesa.index.index.z2.XZ2Index
 
-case object XZ2Index extends AccumuloFeatureIndex with AccumuloIndexAdapter[XZ2IndexValues]
-    with XZ2Index[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
+case object XZ2Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
+    with XZ2Index[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] {
 
   override val version: Int = 1
 

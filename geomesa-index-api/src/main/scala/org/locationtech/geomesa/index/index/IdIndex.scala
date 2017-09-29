@@ -21,8 +21,8 @@ import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
-    with IndexAdapter[DS, F, W, R, Unit] with IdFilterStrategy[DS, F, W] with LazyLogging {
+trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] extends GeoMesaFeatureIndex[DS, F, W]
+    with IndexAdapter[DS, F, W, R, C] with IdFilterStrategy[DS, F, W] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -86,7 +86,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }
-        scanPlan(sft, ds, filter, None, Seq(rangePrefix(prefix)), filter.secondary, hints)
+        scanPlan(sft, ds, filter, scanConfig(sft, ds, filter, Seq(rangePrefix(prefix)), filter.secondary, hints))
 
       case Some(primary) =>
         // Multiple sets of IDs in a ID Filter are ORs. ANDs of these call for the intersection to be taken.
@@ -96,7 +96,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
         val ranges = identifiers.toSeq.map { id =>
           rangeExact(Bytes.concat(prefix, id.getBytes(StandardCharsets.UTF_8)))
         }
-        scanPlan(sft, ds, filter, None, ranges, filter.secondary, hints)
+        scanPlan(sft, ds, filter, scanConfig(sft, ds, filter, ranges, filter.secondary, hints))
     }
   }
 }

@@ -13,7 +13,7 @@ import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexKeySpace}
 
-trait Z2LegacyIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends Z2Index[DS, F, W, R] {
+trait Z2LegacyIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] extends Z2Index[DS, F, W, R, C] {
   override protected val keySpace = Z2LegacyIndexKeySpace
 }
 

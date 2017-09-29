@@ -17,8 +17,8 @@ import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends BaseFeatureIndex[DS, F, W, R, Z3IndexValues] with SpatioTemporalFilterStrategy[DS, F, W] {
+trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
+    extends BaseFeatureIndex[DS, F, W, R, C, Z3IndexValues] with SpatioTemporalFilterStrategy[DS, F, W] {
 
   override val name: String = "z3"
 

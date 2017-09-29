@@ -9,21 +9,17 @@
 package org.locationtech.geomesa.accumulo.index.legacy.z2
 
 import org.apache.accumulo.core.data.{Mutation, Range}
-import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloIndexAdapter}
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
-import org.locationtech.geomesa.curve.LegacyZ2SFC
-import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.index.legacy.Z2LegacyIndex
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 // legacy z curve - no delete checks for old col qualifiers
-case object Z2IndexV3 extends AccumuloFeatureIndex with AccumuloIndexAdapter[Z2IndexValues]
-    with Z2LegacyIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
+case object Z2IndexV3 extends AccumuloFeatureIndex with AccumuloIndexAdapter
+    with Z2LegacyIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] {
 
   val Z2IterPriority = 23
 
@@ -33,14 +29,9 @@ case object Z2IndexV3 extends AccumuloFeatureIndex with AccumuloIndexAdapter[Z2I
 
   override val hasPrecomputedBins: Boolean = true
 
-  override protected def scanConfig(sft: SimpleFeatureType,
-                                    ds: AccumuloDataStore,
-                                    filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                                    indexValues: Option[Z2IndexValues],
-                                    ecql: Option[Filter],
-                                    hints: Hints,
-                                    dedupe: Boolean): ScanConfig = {
-    val config = super.scanConfig(sft, ds, filter, indexValues, ecql, hints, dedupe)
+  override protected def updateScanConfig(sft: SimpleFeatureType,
+                                          config: ScanConfig,
+                                          indexValues: Option[Z2IndexValues]): ScanConfig = {
     indexValues match {
       case None => config
       case Some(Z2IndexValues(sfc, _, xy)) =>

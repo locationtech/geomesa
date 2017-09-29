@@ -16,7 +16,7 @@ import org.locationtech.geomesa.hbase.coprocessor.aggregators._
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseFeature, HBaseQueryPlan}
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.ScanConfig
+import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.hbase.{HBaseFeatureIndexType, HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
@@ -26,8 +26,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-trait HBaseIndexAdapter[K] extends HBaseFeatureIndexType
-    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query, K] with ClientSideFiltering[Result] {
+trait HBaseIndexAdapter extends HBaseFeatureIndexType
+    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] with ClientSideFiltering[Result] {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
@@ -58,49 +58,33 @@ trait HBaseIndexAdapter[K] extends HBaseFeatureIndexType
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: HBaseDataStore,
                                   filter: HBaseFilterStrategyType,
-                                  indexValues: Option[K],
-                                  ranges: Seq[Query],
-                                  ecql: Option[Filter],
-                                  hints: Hints): HBaseQueryPlanType = {
-    if (ranges.isEmpty) { EmptyPlan(filter) } else {
+                                  config: ScanConfig): HBaseQueryPlanType = {
+    if (config.ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
-      val dedupe = hasDuplicates(sft, filter.primary)
-      val ScanConfig(hbaseFilters, coprocessor, toFeatures) = scanConfig(ds, sft, filter, indexValues, ecql, hints, dedupe)
-      buildPlatformScanPlan(ds, sft, filter, hints, ranges, table, hbaseFilters, coprocessor, toFeatures)
+      val ScanConfig(ranges, hbaseFilters, coprocessor, toFeatures) = config
+      buildPlatformScanPlan(ds, sft, filter, ranges, table, hbaseFilters, coprocessor, toFeatures)
     }
   }
 
-  /**
-    * Sets up everything needed to execute the scan - iterators, column families, deserialization, etc
-    *
-    * @param ds     data store
-    * @param sft    simple feature type
-    * @param filter hbase filter strategy type
-    * @param hints  query hints
-    * @param ecql   secondary filter being applied, if any
-    * @param dedupe scan may have duplicate results or not
-    * @return
-    */
-  protected def scanConfig(ds: HBaseDataStore,
-                           sft: SimpleFeatureType,
+  protected def scanConfig(sft: SimpleFeatureType,
+                           ds: HBaseDataStore,
                            filter: HBaseFilterStrategyType,
-                           indexValues: Option[K],
+                           ranges: Seq[Query],
                            ecql: Option[Filter],
-                           hints: Hints,
-                           dedupe: Boolean): ScanConfig = {
+                           hints: Hints): ScanConfig = {
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
+    val dedupe = hasDuplicates(sft, filter.primary)
 
     if (!ds.config.remoteFilter) {
       // everything is done client side
-      ScanConfig(Seq.empty, None, resultsToFeatures(sft, ecql, transform))
+      ScanConfig(ranges, Seq.empty, None, resultsToFeatures(sft, ecql, transform))
     } else {
 
       val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
 
-      val additionalFilters = createPushDownFilters(ds, sft, filter, indexValues, transform)
       // TODO not actually used for coprocessors
       val toFeatures = resultsToFeatures(returnSchema, None, None)
 
@@ -141,26 +125,25 @@ trait HBaseIndexAdapter[K] extends HBaseFeatureIndexType
         Seq((JSimpleFeatureFilter.Priority, filter))
       }
 
-      ScanConfig(filters ++ additionalFilters, coprocessorConfig, toFeatures)
+      ScanConfig(ranges, filters, coprocessorConfig, toFeatures)
     }
   }
 
   protected def hasDuplicates(sft: SimpleFeatureType, filter: Option[Filter]): Boolean = false
 
-  // default implementation does nothing, override in subclasses
-  protected def createPushDownFilters(ds: HBaseDataStore,
-                                      sft: SimpleFeatureType,
-                                      filter: HBaseFilterStrategyType,
-                                      indexValues: Option[K],
-                                      transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = Seq.empty
-
   protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                       sft: SimpleFeatureType,
                                       filter: HBaseFilterStrategyType,
-                                      hints: Hints,
                                       ranges: Seq[Query],
                                       table: TableName,
                                       hbaseFilters: Seq[(Int, HFilter)],
                                       coprocessor: Option[CoprocessorConfig],
                                       toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
+}
+
+object HBaseIndexAdapter {
+  case class ScanConfig(ranges: Seq[Query],
+                        filters: Seq[(Int, HFilter)],
+                        coprocessor: Option[CoprocessorConfig],
+                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 }

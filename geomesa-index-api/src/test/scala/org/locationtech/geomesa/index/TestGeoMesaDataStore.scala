@@ -18,8 +18,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
 import org.locationtech.geomesa.index.index._
 import org.locationtech.geomesa.index.index.legacy.AttributeDateIndex
-import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
-import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
+import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
@@ -56,9 +56,9 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 object TestGeoMesaDataStore {
 
   type TestFeatureIndexType = GeoMesaFeatureIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
-  type TestFeatureWriterType = GeoMesaFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex[_]]
-  type TestAppendFeatureWriterType = GeoMesaAppendFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex[_]]
-  type TestModifyFeatureWriterType = GeoMesaModifyFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex[_]]
+  type TestFeatureWriterType = GeoMesaFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
+  type TestAppendFeatureWriterType = GeoMesaAppendFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
+  type TestModifyFeatureWriterType = GeoMesaModifyFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
   type TestIndexManagerType = GeoMesaIndexManager[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
   type TestQueryPlanType = QueryPlan[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
   type TestFilterStrategyType = FilterStrategy[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
@@ -85,6 +85,8 @@ object TestGeoMesaDataStore {
     override def toString: String = s"TestRange(${start.mkString(":")}, ${end.mkString(":")}}"
   }
 
+  case class TestScanConfig(ranges: Seq[TestRange], ecql: Option[Filter])
+
   case class TestConfig(looseBBox: Boolean) extends GeoMesaDataStoreConfig {
     override val catalog: String = "test"
     override val audit: Option[(AuditWriter, AuditProvider, String)] = None
@@ -95,35 +97,35 @@ object TestGeoMesaDataStore {
   }
 
   class TestIndexManager extends GeoMesaIndexManager[TestGeoMesaDataStore, TestWrappedFeature, TestWrite] {
-    override val CurrentIndices: Seq[TestFeatureIndex[_]] =
+    override val CurrentIndices: Seq[TestFeatureIndex] =
       Seq(new TestZ3Index, new TestZ2Index, new TestIdIndex, new TestAttributeIndex)
-    override val AllIndices: Seq[TestFeatureIndex[_]] = CurrentIndices :+ new TestAttributeDateIndex
-    override def lookup: Map[(String, Int), TestFeatureIndex[_]] =
-      super.lookup.asInstanceOf[Map[(String, Int), TestFeatureIndex[_]]]
-    override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[TestFeatureIndex[_]] =
-      super.indices(sft, mode).asInstanceOf[Seq[TestFeatureIndex[_]]]
-    override def index(identifier: String): TestFeatureIndex[_] = super.index(identifier).asInstanceOf[TestFeatureIndex[_]]
+    override val AllIndices: Seq[TestFeatureIndex] = CurrentIndices :+ new TestAttributeDateIndex
+    override def lookup: Map[(String, Int), TestFeatureIndex] =
+      super.lookup.asInstanceOf[Map[(String, Int), TestFeatureIndex]]
+    override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[TestFeatureIndex] =
+      super.indices(sft, mode).asInstanceOf[Seq[TestFeatureIndex]]
+    override def index(identifier: String): TestFeatureIndex = super.index(identifier).asInstanceOf[TestFeatureIndex]
   }
 
-  class TestZ3Index extends TestFeatureIndex[Z3IndexValues]
-      with Z3Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+  class TestZ3Index extends TestFeatureIndex
+      with Z3Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
 
-  class TestZ2Index extends TestFeatureIndex[Z2IndexValues]
-      with Z2Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+  class TestZ2Index extends TestFeatureIndex
+      with Z2Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
 
-  class TestIdIndex extends TestFeatureIndex[Unit]
-      with IdIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+  class TestIdIndex extends TestFeatureIndex
+      with IdIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
 
-  class TestAttributeIndex extends TestFeatureIndex[Unit]
-      with AttributeIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange] {
+  class TestAttributeIndex extends TestFeatureIndex
+      with AttributeIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig] {
     override val version: Int = 2
   }
 
-  class TestAttributeDateIndex extends TestFeatureIndex[Unit]
-     with AttributeDateIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+  class TestAttributeDateIndex extends TestFeatureIndex
+     with AttributeDateIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
 
-  trait TestFeatureIndex[K] extends TestFeatureIndexType
-      with IndexAdapter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, K] {
+  trait TestFeatureIndex extends TestFeatureIndexType
+      with IndexAdapter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig] {
 
     private val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
       override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
@@ -146,13 +148,17 @@ object TestGeoMesaDataStore {
 
     override protected def rangeExact(row: Array[Byte]): TestRange = TestRange(row, IndexAdapter.rowFollowingRow(row))
 
+    override protected def scanConfig(sft: SimpleFeatureType,
+                                      ds: TestGeoMesaDataStore,
+                                      filter: TestFilterStrategyType,
+                                      ranges: Seq[TestRange],
+                                      ecql: Option[Filter],
+                                      hints: Hints): TestScanConfig = TestScanConfig(ranges, ecql)
+
     override protected def scanPlan(sft: SimpleFeatureType,
                                     ds: TestGeoMesaDataStore,
                                     filter: TestFilterStrategyType,
-                                    indexValues: Option[K],
-                                    ranges: Seq[TestRange],
-                                    ecql: Option[Filter],
-                                    hints: Hints): TestQueryPlanType = TestQueryPlan(this, filter, ranges, ecql)
+                                    config: TestScanConfig): TestQueryPlanType = TestQueryPlan(this, filter, config.ranges, config.ecql)
 
     override def toString: String = getClass.getSimpleName
   }
@@ -170,20 +176,20 @@ object TestGeoMesaDataStore {
 
   trait TestFeatureWriter extends TestFeatureWriterType {
 
-    override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[TestFeatureIndex[_]] =
+    override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[TestFeatureIndex] =
       tables.map(t => ds.manager.indices(sft, IndexMode.Write).find(_.getTableName(sft.getTypeName, ds) == t).orNull)
 
-    override protected def executeWrite(mutator: TestFeatureIndex[_], writes: Seq[TestWrite]): Unit = {
+    override protected def executeWrite(mutator: TestFeatureIndex, writes: Seq[TestWrite]): Unit = {
       writes.foreach { case TestWrite(row, feature, _) => mutator.features.add((row, feature)) }
     }
 
-    override protected def executeRemove(mutator: TestFeatureIndex[_], removes: Seq[TestWrite]): Unit =
+    override protected def executeRemove(mutator: TestFeatureIndex, removes: Seq[TestWrite]): Unit =
       removes.foreach { case TestWrite(row, feature, _) => mutator.features.remove((row, feature)) }
 
     override def wrapFeature(feature: SimpleFeature): TestWrappedFeature = TestWrappedFeature(feature)
   }
 
-  case class TestQueryPlan(index: TestFeatureIndex[_],
+  case class TestQueryPlan(index: TestFeatureIndex,
                            filter: TestFilterStrategyType,
                            ranges: Seq[TestRange],
                            ecql: Option[Filter]) extends TestQueryPlanType {

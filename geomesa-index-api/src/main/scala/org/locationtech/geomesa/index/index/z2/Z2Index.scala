@@ -17,8 +17,8 @@ import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends BaseFeatureIndex[DS, F, W, R, Z2IndexValues] with SpatialFilterStrategy[DS, F, W] {
+trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
+    extends BaseFeatureIndex[DS, F, W, R, C, Z2IndexValues] with SpatialFilterStrategy[DS, F, W] {
 
   override val name: String = "z2"
 

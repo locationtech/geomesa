@@ -23,8 +23,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * Base feature index that consists of an optional table sharing, a configurable shard, an index key,
   * and the feature id
   */
-trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, K]
-    extends GeoMesaFeatureIndex[DS, F, W] with IndexAdapter[DS, F, W, R, K] with LazyLogging {
+trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C, K]
+    extends GeoMesaFeatureIndex[DS, F, W] with IndexAdapter[DS, F, W, R, C] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -96,8 +96,11 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
     }
 
     val ecql = if (useFullFilter(sft, ds, filter, indexValues, hints)) { filter.filter } else { filter.secondary }
-    scanPlan(sft, ds, filter, indexValues, ranges, ecql, hints)
+    val config = updateScanConfig(sft, scanConfig(sft, ds, filter, ranges, ecql, hints), indexValues)
+    scanPlan(sft, ds, filter, config)
   }
+
+  protected def updateScanConfig(sft: SimpleFeatureType, config: C, indexValues: Option[K]): C = config
 
   protected def useFullFilter(sft: SimpleFeatureType,
                               ds: DS,

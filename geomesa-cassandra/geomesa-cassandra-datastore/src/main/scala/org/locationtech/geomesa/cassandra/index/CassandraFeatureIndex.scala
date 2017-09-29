@@ -9,8 +9,6 @@
 
 package org.locationtech.geomesa.cassandra.index
 
-import java.nio.ByteBuffer
-
 import com.datastax.driver.core._
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints

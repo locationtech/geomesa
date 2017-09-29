@@ -16,8 +16,8 @@ import org.locationtech.geomesa.index.index.{AttributeIndex, IndexKeySpace}
 import org.opengis.feature.simple.SimpleFeatureType
 
 // attribute index with legacy z-curves as secondary index scheme
-trait AttributeZIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends AttributeIndex[DS, F, W, R] {
+trait AttributeZIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
+    extends AttributeIndex[DS, F, W, R, C] {
 
   override protected def secondaryIndex(sft: SimpleFeatureType): Option[IndexKeySpace[_]] =
     Seq(Z3LegacyIndexKeySpace, XZ3IndexKeySpace, Z2LegacyIndexKeySpace, XZ2IndexKeySpace).find(_.supports(sft))

@@ -10,13 +10,13 @@ package org.locationtech.geomesa.hbase.index.legacy
 
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBasePlatform, HBaseZ2PushDown}
 import org.locationtech.geomesa.index.index.legacy.Z2LegacyIndex
-import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 
-case object HBaseZ2IndexV1 extends HBaseLikeZ2IndexV1 with HBasePlatform[Z2IndexValues]
+case object HBaseZ2IndexV1 extends HBaseLikeZ2IndexV1 with HBasePlatform with HBaseZ2PushDown
 
-trait HBaseLikeZ2IndexV1 extends HBaseFeatureIndex with HBaseZ2PushDown
-    with Z2LegacyIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+trait HBaseLikeZ2IndexV1 extends HBaseFeatureIndex
+    with Z2LegacyIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
   override val version: Int = 1
 }

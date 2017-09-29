@@ -40,8 +40,8 @@ import scala.util.Try
   * Attribute index with secondary z-curve indexing. Z-indexing is based on the sft and will be
   * one of Z3, XZ3, Z2, XZ2.
   */
-trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends GeoMesaFeatureIndex[DS, F, W] with IndexAdapter[DS, F, W, R, Unit] with AttributeFilterStrategy[DS, F, W]
+trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
+    extends GeoMesaFeatureIndex[DS, F, W] with IndexAdapter[DS, F, W, R, C] with AttributeFilterStrategy[DS, F, W]
     with AttributeRowDecoder with LazyLogging {
 
   import AttributeIndex._
@@ -151,7 +151,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
       val starts = lowerBounds(sft, i, shards)
       val ends = upperBounds(sft, i, shards)
       val ranges = shards.indices.map(i => range(starts(i), ends(i)))
-      scanPlan(sft, ds, filter, None, ranges, filter.filter, hints)
+      scanPlan(sft, ds, filter, scanConfig(sft, ds, filter, ranges, filter.filter, hints))
     } else {
       val ordering = Ordering.comparatorToOrdering(UnsignedBytes.lexicographicalComparator)
       lazy val lowerSecondary = secondaryRanges.map(_._1).minOption(ordering).getOrElse(Array.empty)
@@ -189,7 +189,8 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
         }
       }
 
-      scanPlan(sft, ds, filter, None, ranges, if (fb.precise) { filter.secondary } else { filter.filter }, hints)
+      val ecql = if (fb.precise) { filter.secondary } else { filter.filter }
+      scanPlan(sft, ds, filter, scanConfig(sft, ds, filter, ranges, ecql, hints))
     }
   }
 

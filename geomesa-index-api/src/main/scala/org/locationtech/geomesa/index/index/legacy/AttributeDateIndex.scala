@@ -23,8 +23,8 @@ import org.opengis.filter.Filter
 /**
   * Attribute plus date composite index
   */
-trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends AttributeIndex[DS, F, W, R] {
+trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
+    extends AttributeIndex[DS, F, W, R, C] {
 
   import AttributeIndex._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType

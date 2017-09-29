@@ -13,17 +13,16 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
-import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, Filter => HFilter}
+import org.apache.hadoop.hbase.filter.KeyOnlyFilter
 import org.apache.hadoop.hbase.util.Bytes
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.AllCoprocessors
-import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
@@ -45,10 +44,6 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
   val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
-
-  case class ScanConfig(filters: Seq[(Int, HFilter)],
-                        coprocessor: Option[CoprocessorConfig],
-                        entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[Result] with LazyLogging {

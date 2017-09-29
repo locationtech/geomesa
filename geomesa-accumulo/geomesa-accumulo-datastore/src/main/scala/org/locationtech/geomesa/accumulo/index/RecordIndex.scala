@@ -13,12 +13,13 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Mutation, Range}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
+import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.index.conf.{HexSplitter, TableSplitter}
 import org.locationtech.geomesa.index.index.IdIndex
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object RecordIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter[Unit]
-    with IdIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
+case object RecordIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
+    with IdIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 

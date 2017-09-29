@@ -10,16 +10,17 @@ package org.locationtech.geomesa.hbase.index.legacy
 
 import org.apache.hadoop.hbase.client.{Mutation, Query}
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
+import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBasePlatform}
 import org.locationtech.geomesa.index.index.legacy.AttributeZIndex
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseAttributeIndexV2 extends HBaseLikeAttributeIndexV2 with HBasePlatform[Unit]
+case object HBaseAttributeIndexV2 extends HBaseLikeAttributeIndexV2 with HBasePlatform
 
 // no shards
 trait HBaseLikeAttributeIndexV2 extends HBaseFeatureIndex
-    with AttributeZIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+    with AttributeZIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
   override val version: Int = 2
   override protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = SplitArrays.EmptySplits
 }
