@@ -15,6 +15,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -69,6 +70,18 @@ class ConverterSpatialRDDProviderTest extends Specification {
 
       val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, new Query("example-csv"))
       rdd.count() mustEqual 3l
+    }
+
+    "handle projections" in {
+      val params = Map (
+        InputFilesKey    -> getClass.getResource("/example.csv").getPath,
+        IngestTypeKey -> "example-csv"
+      )
+      val requestedProps : Array[String] = Array("name")
+      val q = new Query("example-csv", Filter.INCLUDE, requestedProps)
+      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, q)
+      val returnedProps = rdd.first.getProperties.map{_.getName.toString}.toArray
+      returnedProps mustEqual requestedProps
     }
   }
 }

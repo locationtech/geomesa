@@ -20,6 +20,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.Query
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.{ConverterConfigLoader, SimpleFeatureConverters}
 import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat
@@ -66,7 +67,9 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
 
     if (query.getPropertyNames != null && query.getPropertyNames.length > 0) {
-      logger.warn("Ignoring query transform - modify converter definition instead")
+      logger.info("Query transform retyping results")
+      val modifiedSft = SimpleFeatureTypeBuilder.retype(sft, query.getPropertyNames)
+      ConverterInputFormat.setRetypeSft(conf, modifiedSft)
     }
 
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
