@@ -64,7 +64,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
 
     "read from a local file using Converter Name lookup" in {
       val params = Map (
-        InputFilesKey    -> getClass.getResource("/example.csv").getPath,
+        InputFilesKey -> getClass.getResource("/example.csv").getPath,
         IngestTypeKey -> "example-csv"
       )
 
@@ -74,7 +74,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
 
     "handle projections" in {
       val params = Map (
-        InputFilesKey    -> getClass.getResource("/example.csv").getPath,
+        InputFilesKey -> getClass.getResource("/example.csv").getPath,
         IngestTypeKey -> "example-csv"
       )
       val requestedProps : Array[String] = Array("name")

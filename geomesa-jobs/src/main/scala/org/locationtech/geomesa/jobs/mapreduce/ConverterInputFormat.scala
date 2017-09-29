@@ -98,7 +98,7 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
 
     import scala.collection.JavaConversions._
     val featureReader = if (retypedSpec != null) {
-      val retypedSft = SimpleFeatureTypes.createType("retyped", retypedSpec)
+      val retypedSft = SimpleFeatureTypes.createType(sft.getTypeName, retypedSpec)
       val reader = new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter))
       new ReTypeFeatureReader(reader, retypedSft)
     } else {

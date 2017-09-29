@@ -67,7 +67,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
 
     if (query.getPropertyNames != null && query.getPropertyNames.length > 0) {
-      logger.info("Query transform retyping results")
+      logger.debug("Query transform retyping results")
       val modifiedSft = SimpleFeatureTypeBuilder.retype(sft, query.getPropertyNames)
       ConverterInputFormat.setRetypeSft(conf, modifiedSft)
     }
