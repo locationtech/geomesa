@@ -21,8 +21,13 @@ import org.opengis.filter.{Filter, Id}
 
 import scala.concurrent.duration.Duration
 
-class FeatureCacheGuava(val sft: SimpleFeatureType, expiry: Duration, cleanup: Duration)(implicit ticker: Ticker)
-    extends AbstractKafkaFeatureCache[FeatureHolder](expiry, cleanup)(ticker) with SpatialIndexSupport with LazyLogging {
+class FeatureCacheGuava(val sft: SimpleFeatureType,
+                        expiry: Duration,
+                        cleanup: Duration = Duration.Inf,
+                        consistency: Duration = Duration.Inf)
+                       (implicit ticker: Ticker)
+    extends AbstractKafkaFeatureCache[FeatureHolder](expiry, cleanup, consistency)(ticker)
+      with SpatialIndexSupport with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -30,40 +35,6 @@ class FeatureCacheGuava(val sft: SimpleFeatureType, expiry: Duration, cleanup: D
   private var index = newSpatialIndex()
 
   override def spatialIndex: SpatialIndex[SimpleFeature] = index
-
-  /**
-    * WARNING: this method is not thread-safe
-    *
-    * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
-    */
-  override def put(feature: SimpleFeature): Unit = {
-    val id = feature.getID
-    val old = cache.getIfPresent(id)
-    if (old != null) {
-      index.remove(old.env, old.sf)
-    }
-    val env = feature.geometry.getEnvelopeInternal
-    index.insert(env, feature)
-    cache.put(id, FeatureHolder(feature, env))
-  }
-
-  /**
-    * WARNING: this method is not thread-safe
-    *
-    * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
-    */
-  override def remove(id: String): Unit = {
-    val old = cache.getIfPresent(id)
-    if (old != null) {
-      index.remove(old.env, old.sf)
-      cache.invalidate(id)
-    }
-  }
-
-  override def clear(): Unit = {
-    cache.invalidateAll()
-    index = newSpatialIndex()
-  }
 
   override def query(id: String): Option[SimpleFeature] = Option(cache.getIfPresent(id)).map(_.sf)
 
@@ -76,7 +47,28 @@ class FeatureCacheGuava(val sft: SimpleFeatureType, expiry: Duration, cleanup: D
 
   override def allFeatures(): Iterator[SimpleFeature] = map.valuesIterator.map(_.sf)
 
-  override protected def expired(value: FeatureHolder): Unit = index.remove(value.env, value.sf)
+  override protected def wrap(value: SimpleFeature): FeatureHolder =
+    FeatureHolder(value, value.geometry.getEnvelopeInternal)
+
+  override protected def addToIndex(value: FeatureHolder): Unit = index.insert(value.env, value.sf)
+
+  override protected def removeFromIndex(value: FeatureHolder): Unit = index.remove(value.env, value.sf)
+
+  override protected def clearIndex(): Unit = index = newSpatialIndex()
+
+  override protected def inconsistencies(): Set[SimpleFeature] = {
+    import org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
+
+    val cacheInconsistencies = map.iterator.collect {
+      case (id, holder) if index.query(holder.env, (f) => f.getID == id).isEmpty => holder.sf
+    }
+    val spatialInconsistencies = index.query(wholeWorldEnvelope).filter { sf =>
+      val cached = cache.getIfPresent(sf.getID)
+      cached == null || cached.sf.geometry.getEnvelopeInternal != sf.geometry.getEnvelopeInternal
+    }
+
+    cacheInconsistencies.toSet | spatialInconsistencies.toSet
+  }
 
   private def newSpatialIndex(): SpatialIndex[SimpleFeature] = new BucketIndex[SimpleFeature]
 }
