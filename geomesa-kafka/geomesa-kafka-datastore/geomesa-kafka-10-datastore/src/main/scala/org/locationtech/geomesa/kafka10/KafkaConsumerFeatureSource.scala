@@ -77,8 +77,12 @@ object KafkaConsumerFeatureSourceFactory extends LazyLogging {
 
   def apply(brokers: String, zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
 
-    lazy val expirationPeriod: Option[Long] = {
+    val expirationPeriod: Option[Long] = {
       Option(KafkaDataStoreFactoryParams.EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).filter(_ > 0)
+    }
+
+    val consistencyCheck: Option[Long] = {
+      Option(KafkaDataStoreFactoryParams.CONSISTENCY_CHECK.lookUp(params)).map(_.toString.toLong).filter(_ > 0)
     }
 
     val cleanUpCache: Boolean = {
@@ -115,7 +119,7 @@ object KafkaConsumerFeatureSourceFactory extends LazyLogging {
 
       fc.replayConfig match {
         case None =>
-          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, useCQCache, query, monitor, cacheCleanUpPeriod)
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, consistencyCheck, cleanUpCache, useCQCache, query, monitor, cacheCleanUpPeriod)
 
         case Some(rc) =>
           val replaySFT = fc.sft
