@@ -32,11 +32,11 @@ class SimpleFeatureSimpleFeatureConverterTest extends Specification {
           |   type         = "simple-feature"
           |   input-sft    = "intype"
           |   fields = [
-          |     { name = "number"    , attribute = "number"  }
-          |     { name = "color"     , attribute = "color"   }
-          |     { name = "weight"    , attribute = "weight"  }
-          |     { name = "geom"      , attribute = "geom"    }
-          |     { name = "numberx2"  , attribute = "number"   , transform = "add($0, $0)::int" }
+          |     { name = "number"    , transform = "$number"  }
+          |     { name = "color"     , transform = "$color"   }
+          |     { name = "weight"    , transform = "$weight"  }
+          |     { name = "geom"      , transform = "$geom"    }
+          |     { name = "numberx2"  , transform = "add($number, $number)::int" }
           |   ]
           | }
         """.stripMargin)
@@ -61,12 +61,12 @@ class SimpleFeatureSimpleFeatureConverterTest extends Specification {
     }
 
     "copy default fields" >> {
+      // we drop the weight field and add numberx2 field
       val outConfPoint = ConfigFactory.parseString(
         """{ type-name = "outtype"
           |  attributes = [
           |    { name = "number"   , type = "Integer" }
           |    { name = "color"    , type = "String"  }
-          |    { name = "weight"   , type = "Double"  }
           |    { name = "numberx2" , type = "Integer" }
           |    { name = "geom"     , type = "Point"   }
           |  ]
@@ -79,7 +79,7 @@ class SimpleFeatureSimpleFeatureConverterTest extends Specification {
           |   type         = "simple-feature"
           |   input-sft    = "intype"
           |   fields = [
-          |     { name = "numberx2"  , attribute = "number"   , transform = "add($0, $0)::int" }
+          |     { name = "numberx2"  , transform = "add($number, $number)::int" }
           |   ]
           | }
         """.stripMargin)

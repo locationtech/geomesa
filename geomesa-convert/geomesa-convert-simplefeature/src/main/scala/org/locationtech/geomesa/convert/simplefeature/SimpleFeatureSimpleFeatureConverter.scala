@@ -14,7 +14,23 @@ class SimpleFeatureSimpleFeatureConverter(inputSFT: SimpleFeatureType,
                                           val parseOpts: ConvertParseOpts) extends ToSimpleFeatureConverter[SimpleFeature] {
 
 
-  override def fromInputType(i: SimpleFeature): Seq[Array[Any]] = Seq(i.getAttributes.toArray.asInstanceOf[Array[Any]] ++ Array(i.getID))
+  /**
+    * Process a single input (e.g. line)
+    */
+  override def processSingleInput(i: SimpleFeature, ec: EvaluationContext): Seq[SimpleFeature] = {
+    import scala.collection.JavaConversions._
+    ec.clear()
+    ec.counter.incLineCount()
+
+    val in = i.getAttributes ++ Array(i.getID)
+    val res = convert(in.toArray, ec)
+    if(res == null) ec.counter.incFailure()
+    else ec.counter.incSuccess()
+    Seq(res)
+  }
+
+
+  override def fromInputType(i: SimpleFeature): Seq[Array[Any]] = ???
 
   override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] = ???
 }

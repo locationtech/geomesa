@@ -1,14 +1,14 @@
 package org.locationtech.geomesa.convert.simplefeature
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.Expr
+import org.locationtech.geomesa.convert.Transformers.{Expr, FieldLookup}
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable
 
-class SimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFactory[SimpleFeature] {
+class SimpleFeatureSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFactory[SimpleFeature] {
 
   override protected def typeToProcess: String = "simple-feature"
 
@@ -45,26 +45,25 @@ class SimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFactor
     import scala.collection.JavaConversions._
     val fields = conf.getConfigList("fields").map(buildField(_, inputSFT)).toIndexedSeq
     val undefined = inputSFT.getAttributeDescriptors.map(_.getLocalName).toSet.diff(fields.map(_.name).toSet)
-    val defaultFields = undefined.map { f => SimpleFeatureField(f, Transformers.Col(0), f, inputSFT.indexOf(f)) }
-    fields ++ defaultFields
+    val defaultFields = undefined.map { f => SimpleFeatureField(f, Transformers.Col(inputSFT.indexOf(f))) }.toIndexedSeq
+    defaultFields ++ fields
   }
 
   def buildField(field: Config, inputSFT: SimpleFeatureType): Field =
-    SimpleFeatureField(
-      field.getString("name"),
-      buildTransform(field),
-      field.getString("attribute"),
-      inputSFT.indexOf(field.getString("attribute"))
-    )
+    SimpleFeatureField(field.getString("name"), buildTransform(field, inputSFT))
 
 
-  private def buildTransform(field: Config) = {
-    if(!field.hasPath("transform")) Transformers.Col(0)
-    else Transformers.parseTransform(field.getString("transform"))
+  private def buildTransform(field: Config, inputSFT: SimpleFeatureType) = {
+    if(!field.hasPath("transform")) Transformers.Col(inputSFT.indexOf(field.getString("name")))
+    else Transformers.parseTransform(field.getString("transform")) match {
+      // convert field lookups to col lookups
+      case FieldLookup(n) => Transformers.Col(inputSFT.indexOf(n))
+      case t => t
+    }
   }
 }
 
-case class SimpleFeatureField(name: String, transform: Expr, attr: String, attrIdx: Int) extends Field {
+case class SimpleFeatureField(name: String, transform: Expr) extends Field {
   override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any =
-    transform.eval(Array(args(attrIdx)))
+    transform.eval(args)
 }
