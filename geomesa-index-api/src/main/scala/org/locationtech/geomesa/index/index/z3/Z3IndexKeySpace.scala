@@ -29,7 +29,7 @@ object Z3IndexKeySpace extends Z3IndexKeySpace {
   override def sfc(period: TimePeriod): Z3SFC = Z3SFC(period)
 }
 
-trait Z3IndexKeySpace extends IndexKeySpace[Z3ProcessingValues] {
+trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -60,15 +60,15 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3ProcessingValues] {
     }
   }
 
-  override def getRanges(sft: SimpleFeatureType,
-                         filter: Filter,
-                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
+  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): Z3IndexValues = {
 
     import org.locationtech.geomesa.filter.FilterHelper._
 
     val dtgField = sft.getDtgField.getOrElse {
       throw new RuntimeException("Trying to execute a z3 query but the schema does not have a date")
     }
+
+    val z3 = sfc(sft.getZ3Interval)
 
     // standardize the two key query arguments:  polygon and date-range
 
@@ -87,13 +87,11 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3ProcessingValues] {
 
     if (geometries.disjoint || intervals.disjoint) {
       explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
-      return Iterator.empty
+      return Z3IndexValues(z3, geometries, Seq.empty, intervals, Map.empty)
     }
 
-    val z3 = sfc(sft.getZ3Interval)
     val minTime = z3.time.min.toLong
     val maxTime = z3.time.max.toLong
-    val wholePeriod = Seq((minTime, maxTime))
 
     // compute our accumulo ranges based on the coarse bounds for our query
     val xy = geometries.values.map(GeometryUtils.bounds)
@@ -113,22 +111,26 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3ProcessingValues] {
       } else {
         timesByBin(lb) ++= Seq((lt, maxTime))
         timesByBin(ub) ++= Seq((minTime, ut))
-        Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = wholePeriod)
+        Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = z3.wholePeriod)
       }
     }
 
-    // make our underlying index values available to other classes in the pipeline for processing
-    processingValues.set(Z3ProcessingValues(z3, geometries, xy, intervals, timesByBin.toMap))
+    Z3IndexValues(z3, geometries, xy, intervals, timesByBin.toMap)
+  }
+
+  override def getRanges(sft: SimpleFeatureType, values: Z3IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
+
+    val Z3IndexValues(z3, _, xy, _, timesByBin) = values
 
     val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
     def toZRanges(t: Seq[(Long, Long)]): Seq[IndexRange] = z3.ranges(xy, t, 64, rangeTarget)
 
-    lazy val wholePeriodRanges = toZRanges(wholePeriod)
+    lazy val wholePeriodRanges = toZRanges(z3.wholePeriod)
 
     timesByBin.iterator.flatMap { case (bin, times) =>
       val b = Shorts.toByteArray(bin)
-      val zs = if (times.eq(wholePeriod)) { wholePeriodRanges } else { toZRanges(times) }
+      val zs = if (times.eq(z3.wholePeriod)) { wholePeriodRanges } else { toZRanges(times) }
       zs.map(range => (ByteArrays.toBytes(b, range.lower), ByteArrays.toBytesFollowingPrefix(b, range.upper)))
     }
   }

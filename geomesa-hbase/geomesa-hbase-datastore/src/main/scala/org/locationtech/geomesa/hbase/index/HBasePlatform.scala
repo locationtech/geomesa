@@ -13,19 +13,17 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{Get, Query, Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
-import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
 import org.locationtech.geomesa.index.index.IndexAdapter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-trait HBasePlatform extends HBaseFeatureIndex {
+trait HBasePlatform extends HBaseIndexAdapter {
 
   override protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
-                                               hints: Hints,
                                                ranges: Seq[Query],
                                                table: TableName,
                                                hbaseFilters: Seq[(Int, HFilter)],

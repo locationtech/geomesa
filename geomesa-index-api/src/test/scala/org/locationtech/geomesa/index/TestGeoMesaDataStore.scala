@@ -85,6 +85,8 @@ object TestGeoMesaDataStore {
     override def toString: String = s"TestRange(${start.mkString(":")}, ${end.mkString(":")}}"
   }
 
+  case class TestScanConfig(ranges: Seq[TestRange], ecql: Option[Filter])
+
   case class TestConfig(looseBBox: Boolean) extends GeoMesaDataStoreConfig {
     override val catalog: String = "test"
     override val audit: Option[(AuditWriter, AuditProvider, String)] = None
@@ -107,24 +109,24 @@ object TestGeoMesaDataStore {
   }
 
   class TestZ3Index extends TestFeatureIndex
-      with Z3Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+      with Z3Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
 
   class TestZ2Index extends TestFeatureIndex
-      with Z2Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+      with Z2Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
 
   class TestIdIndex extends TestFeatureIndex
-      with IdIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+      with IdIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
 
   class TestAttributeIndex extends TestFeatureIndex
-      with AttributeIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange] {
+      with AttributeIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig] {
     override val version: Int = 2
   }
 
   class TestAttributeDateIndex extends TestFeatureIndex
-     with AttributeDateIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange]
+     with AttributeDateIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
 
   trait TestFeatureIndex extends TestFeatureIndexType
-      with IndexAdapter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange] {
+      with IndexAdapter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig] {
 
     private val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
       override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
@@ -147,12 +149,17 @@ object TestGeoMesaDataStore {
 
     override protected def rangeExact(row: Array[Byte]): TestRange = TestRange(row, IndexAdapter.rowFollowingRow(row))
 
+    override protected def scanConfig(sft: SimpleFeatureType,
+                                      ds: TestGeoMesaDataStore,
+                                      filter: TestFilterStrategyType,
+                                      ranges: Seq[TestRange],
+                                      ecql: Option[Filter],
+                                      hints: Hints): TestScanConfig = TestScanConfig(ranges, ecql)
+
     override protected def scanPlan(sft: SimpleFeatureType,
                                     ds: TestGeoMesaDataStore,
                                     filter: TestFilterStrategyType,
-                                    hints: Hints,
-                                    ranges: Seq[TestRange],
-                                    ecql: Option[Filter]): TestQueryPlanType = TestQueryPlan(this, filter, ranges, ecql)
+                                    config: TestScanConfig): TestQueryPlanType = TestQueryPlan(this, filter, config.ranges, config.ecql)
 
     override def toString: String = getClass.getSimpleName
   }

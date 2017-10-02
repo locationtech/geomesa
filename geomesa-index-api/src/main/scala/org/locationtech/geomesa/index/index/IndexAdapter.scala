@@ -13,7 +13,7 @@
 
 package org.locationtech.geomesa.index.index
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.utils.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] {
+trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] {
 
   /**
     * Create an insert 'statement' (but don't execute it)
@@ -68,23 +68,37 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] 
   protected def rangePrefix(prefix: Array[Byte]): R = range(prefix, IndexAdapter.rowFollowingPrefix(prefix))
 
   /**
+    * Create a config as an intermediate step for creating the query plan
+    *
+    * @param sft simple feature type
+    * @param ds data store
+    * @param filter filter
+    * @param ranges ranges being scanned
+    * @param ecql secondary ecql filter to apply - some filters may have already been extracted
+    *             and handled by range planning
+    * @param hints query hints
+    * @return
+    */
+  protected def scanConfig(sft: SimpleFeatureType,
+                           ds: DS,
+                           filter: FilterStrategy[DS, F, W],
+                           ranges: Seq[R],
+                           ecql: Option[Filter],
+                           hints: Hints): C
+
+  /**
     * Create a query plan
     *
     * @param sft simple feature type
     * @param ds data store
     * @param filter filter
-    * @param hints query hints
-    * @param ranges ranges being scanned
-    * @param ecql secondary ecql filter to apply - some filters may have already been extracted
-    *             and handled by range planning
+    * @param config scan config
     * @return
     */
   protected def scanPlan(sft: SimpleFeatureType,
                          ds: DS,
                          filter: FilterStrategy[DS, F, W],
-                         hints: Hints,
-                         ranges: Seq[R],
-                         ecql: Option[Filter]): QueryPlan[DS, F, W]
+                         config: C): QueryPlan[DS, F, W]
 }
 
 object IndexAdapter {
@@ -96,7 +110,7 @@ object IndexAdapter {
 
   // helper shim to let other classes avoid importing IndexAdapter.logger
   object IndexAdapterLogger extends LazyLogging {
-    def log = logger
+    def log: Logger = logger
   }
 
   /**

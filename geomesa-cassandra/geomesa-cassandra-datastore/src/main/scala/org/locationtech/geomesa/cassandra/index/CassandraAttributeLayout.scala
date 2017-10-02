@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.locationtech.geomesa.cassandra.data._
-import org.locationtech.geomesa.cassandra.index.CassandraAttributeIndex._
+import org.locationtech.geomesa.cassandra.index.CassandraIndexAdapter.ScanConfig
 import org.locationtech.geomesa.cassandra.{NamedColumn, RowRange, RowValue}
 import org.locationtech.geomesa.index.index.AttributeIndex
 import org.locationtech.geomesa.index.utils.SplitArrays
@@ -21,7 +21,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 trait CassandraAttributeLayout extends CassandraFeatureIndex {
 
-  this: AttributeIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]] =>
+  this: AttributeIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange], ScanConfig] =>
 
   private val Index     = NamedColumn("attrIdx",   0, "smallint", classOf[Short],  partition = true)
   private val Value     = NamedColumn("attrVal",   1, "text",     classOf[String])

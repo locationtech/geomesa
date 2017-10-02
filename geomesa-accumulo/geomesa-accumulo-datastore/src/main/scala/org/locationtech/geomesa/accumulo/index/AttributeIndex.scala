@@ -8,15 +8,18 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import java.util.Map.Entry
+
 import com.google.common.collect.ImmutableSortedSet
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Mutation, Range}
+import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.AttributeSplittable
+import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.{AttributeSplittable, JoinScanConfig}
+import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.accumulo.iterators._
@@ -27,11 +30,12 @@ import org.locationtech.geomesa.index.index.AttributeIndex
 import org.locationtech.geomesa.index.iterators.ArrowBatchScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage, Stat}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.util.Try
@@ -42,11 +46,11 @@ case object AttributeIndex extends AccumuloAttributeIndex {
 
 // secondary z-index
 trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
-    with AttributeIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] with AttributeSplittable {
+    with AttributeIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] with AttributeSplittable {
 
   import scala.collection.JavaConversions._
 
-  type ScanPlanFn = (SimpleFeatureType, Option[Filter], Option[(String, SimpleFeatureType)]) => BatchScanPlan
+  type ScanConfigFn = (SimpleFeatureType, Option[Filter], Option[(String, SimpleFeatureType)]) => ScanConfig
 
   override val serializedWithId: Boolean = false
 
@@ -134,44 +138,54 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: AccumuloDataStore,
                                   filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                                  hints: Hints,
-                                  ranges: Seq[Range],
-                                  ecql: Option[Filter]): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
-    if (ranges.isEmpty) { EmptyPlan(filter) } else {
-      val primary = filter.primary.getOrElse {
-        throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
-      }
-      val attributes = FilterHelper.propertyNames(primary, sft)
-      // ensure we only have 1 prop we're working on
-      if (attributes.length != 1) {
-        throw new IllegalStateException(s"Expected one attribute in filter, got: ${attributes.mkString(", ")}")
-      }
-
-      val attribute = attributes.head
-      val descriptor = sft.getDescriptor(attribute)
-
-      descriptor.getIndexCoverage() match {
-        case IndexCoverage.FULL => super.scanPlan(sft, ds, filter, hints, ranges, ecql)
-        case IndexCoverage.JOIN => joinCoveragePlan(sft, ds, filter, hints, ranges, ecql, attribute)
-        case coverage => throw new IllegalStateException(s"Expected index coverage, got $coverage")
+                                  config: ScanConfig): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
+    if (config.ranges.isEmpty) { EmptyPlan(filter) } else {
+      config match {
+        case c: JoinScanConfig => joinScanPlan(sft, ds, filter, c)
+        case c => super.scanPlan(sft, ds, filter, config)
       }
     }
   }
 
-  private def joinCoveragePlan(sft: SimpleFeatureType,
-                               ds: AccumuloDataStore,
-                               filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                               hints: Hints,
-                               ranges: Seq[Range],
-                               ecql: Option[Filter],
-                               attribute: String): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
+  override protected def scanConfig(sft: SimpleFeatureType,
+                                    ds: AccumuloDataStore,
+                                    filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
+                                    ranges: Seq[Range],
+                                    ecql: Option[Filter],
+                                    hints: Hints): ScanConfig = {
+    val primary = filter.primary.getOrElse {
+      throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
+    }
+    val attributes = FilterHelper.propertyNames(primary, sft)
+    // ensure we only have 1 prop we're working on
+    if (attributes.length != 1) {
+      throw new IllegalStateException(s"Expected one attribute in filter, got: ${attributes.mkString(", ")}")
+    }
+
+    val attribute = attributes.head
+    val descriptor = sft.getDescriptor(attribute)
+
+    descriptor.getIndexCoverage() match {
+      case IndexCoverage.FULL => super.scanConfig(sft, ds, filter, ranges, ecql, hints)
+      case IndexCoverage.JOIN => joinCoverageConfig(sft, ds, filter, ranges, ecql, attribute, hints)
+      case coverage => throw new IllegalStateException(s"Expected index coverage, got $coverage")
+    }
+  }
+
+  private def joinCoverageConfig(sft: SimpleFeatureType,
+                                 ds: AccumuloDataStore,
+                                 filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
+                                 ranges: Seq[Range],
+                                 ecql: Option[Filter],
+                                 attribute: String,
+                                 hints: Hints): ScanConfig = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    val table = getTableName(sft.getTypeName, ds)
-    val numThreads = queryThreads(ds)
+//    val table = getTableName(sft.getTypeName, ds)
+//    val numThreads = queryThreads(ds)
     val dedupe = hasDuplicates(sft, filter.primary)
-    val cfs = Seq(AccumuloFeatureIndex.IndexColumnFamily)
+    val cf = AccumuloFeatureIndex.IndexColumnFamily
 
     val indexSft = IndexValueEncoder.getIndexSft(sft)
     val transform = hints.getTransformSchema
@@ -183,12 +197,12 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     }
 
     // query against the attribute table
-    val singleAttrValueOnlyPlan: ScanPlanFn = (schema, ecql, transform) => {
+    val singleAttrValueOnlyConfig: ScanConfigFn = (schema, ecql, transform) => {
       val iter = KryoLazyFilterTransformIterator.configure(schema, this, ecql, transform, sampling)
       val iters = visibilityIter(schema) ++ iter.toSeq
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = entriesToFeatures(sft, transform.map(_._2).getOrElse(schema))
-      BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, dedupe)
+      ScanConfig(ranges, cf, iters, kvsToFeatures, None, dedupe)
     }
 
     if (hints.isBinQuery) {
@@ -200,10 +214,10 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         val iter = BinAggregatingIterator.configureDynamic(indexSft, this, ecql, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, dedupe)
+        ScanConfig(ranges, cf, iters, kvsToFeatures, None, duplicates = false)
       } else {
         // have to do a join against the record table
-        joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
+        joinConfig(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyConfig)
       }
     } else if (hints.isArrowQuery) {
       lazy val dictionaryFields = hints.getArrowDictionaryFields
@@ -222,7 +236,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
           (iter, None, ArrowFileIterator.kvsToFeatures())
         }
         val iters = visibilityIter(indexSft) :+ iter
-        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
+        ScanConfig(ranges, cf, iters, kvsToFeatures, reduce, duplicates = false)
       } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, ecql, transform)) {
         val transformSft = transform.getOrElse {
           throw new IllegalStateException("Must have a transform for attribute key plus value scan")
@@ -240,10 +254,10 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         // note: ECQL is handled here so we don't pass it to the arrow iters, above
         val indexValueIter = AttributeIndexValueIterator.configure(this, indexSft, transformSft, attribute, ecql)
         val iters = visibilityIter(indexSft) :+ indexValueIter :+ iter
-        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
+        ScanConfig(ranges, cf, iters, kvsToFeatures, reduce, duplicates = false)
       } else {
         // have to do a join against the record table
-        joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
+        joinConfig(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyConfig)
       }
     } else if (hints.isDensityQuery) {
       // noinspection ExistsEquals
@@ -276,10 +290,10 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
           visIter :+ KryoLazyDensityIterator.configure(indexSft, this, ecql, hints, dedupe)
         }
         val kvsToFeatures = KryoLazyDensityIterator.kvsToFeatures()
-        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, None, numThreads, hasDuplicates = false)
+        ScanConfig(ranges, cf, iters, kvsToFeatures, None, duplicates = false)
       } else {
         // have to do a join against the record table
-        joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
+        joinConfig(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyConfig)
       }
     } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
@@ -289,19 +303,19 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         val iters = visibilityIter(indexSft) :+ iter
         val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
         val reduce = Some(KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_))
-        BatchScanPlan(filter, table, ranges, iters, cfs, kvsToFeatures, reduce, numThreads, hasDuplicates = false)
+        ScanConfig(ranges, cf, iters, kvsToFeatures, reduce, duplicates = false)
       } else {
         // have to do a join against the record table
-        joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
+        joinConfig(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyConfig)
       }
     } else if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
       // we can use the index value
       // transform has to be non-empty to get here and can only include items
       // in the index value (not the index keys aka the attribute indexed)
-      singleAttrValueOnlyPlan(indexSft, ecql, hints.getTransform)
+      singleAttrValueOnlyConfig(indexSft, ecql, hints.getTransform)
     } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, ecql, transform)) {
       // we can use the index PLUS the value
-      val plan = singleAttrValueOnlyPlan(indexSft, ecql, hints.getTransform)
+      val plan = singleAttrValueOnlyConfig(indexSft, ecql, hints.getTransform)
       val transformSft = hints.getTransformSchema.getOrElse {
         throw new IllegalStateException("Must have a transform for attribute key plus value scan")
       }
@@ -310,7 +324,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       plan.copy(iterators = plan.iterators :+ KryoAttributeKeyValueIterator.configure(this, transformSft, attribute))
     } else {
       // have to do a join against the record table
-      joinQuery(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyPlan)
+      joinConfig(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyConfig)
     }
   }
 
@@ -318,14 +332,14 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     * Gets a query plan comprised of a join against the record table. This is the slowest way to
     * execute a query, so we avoid it if possible.
     */
-  private def joinQuery(ds: AccumuloDataStore,
+  private def joinConfig(ds: AccumuloDataStore,
                         sft: SimpleFeatureType,
                         indexSft: SimpleFeatureType,
                         filter: AccumuloFilterStrategyType,
                         ecql: Option[Filter],
                         hints: Hints,
                         hasDupes: Boolean,
-                        attributePlan: ScanPlanFn): JoinPlan = {
+                        attributePlan: ScanConfigFn): JoinScanConfig = {
     import AccumuloFeatureIndex.{AttributeColumnFamily, FullColumnFamily}
     import org.locationtech.geomesa.filter.ff
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
@@ -364,9 +378,9 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     } else {
       KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
     }
-    val (visibilityIter, recordCfs) = sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature   => (Seq.empty, Seq(FullColumnFamily))
-      case VisibilityLevel.Attribute => (Seq(KryoVisibilityRowEncoder.configure(sft)), Seq(AttributeColumnFamily))
+    val (visibilityIter, recordCf) = sft.getVisibilityLevel match {
+      case VisibilityLevel.Feature   => (Seq.empty, FullColumnFamily)
+      case VisibilityLevel.Attribute => (Seq(KryoVisibilityRowEncoder.configure(sft)), AttributeColumnFamily)
     }
     val recordIterators = visibilityIter ++ recordIter
 
@@ -388,6 +402,20 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
     }
 
+    new JoinScanConfig(recordIndex, recordIterators, recordCf, attributeScan.ranges, attributeScan.columnFamily,
+      attributeScan.iterators, kvsToFeatures, reduce, hasDupes)
+  }
+
+  private def joinScanPlan(sft: SimpleFeatureType,
+                           ds: AccumuloDataStore,
+                           filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
+                           config: JoinScanConfig): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    val table = getTableName(sft.getTypeName, ds)
+    val recordTable = config.recordIndex.getTableName(sft.getTypeName, ds)
+    val recordThreads = ds.config.recordThreads
+
     // function to join the attribute index scan results to the record table
     // have to pull the feature id from the row
     val prefix = sft.getTableSharingPrefix
@@ -397,14 +425,12 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       new Range(RecordIndex.getRowKey(prefix, getId(row.getBytes, 0, row.getLength)))
     }
 
-    val recordTable = recordIndex.getTableName(sft.getTypeName, ds)
-    val recordThreads = ds.config.recordThreads
     val recordRanges = Seq.empty // this will get overwritten in the join method
-    val joinQuery = BatchScanPlan(filter, recordTable, recordRanges, recordIterators, recordCfs,
-      kvsToFeatures, reduce, recordThreads, hasDupes)
+    val joinQuery = BatchScanPlan(filter, recordTable, recordRanges, config.recordIterators,
+      Seq(config.recordColumnFamily), config.entriesToFeatures, config.reduce, recordThreads, hasDuplicates = false)
 
-    JoinPlan(filter, attributeScan.table, attributeScan.ranges, attributeScan.iterators,
-      attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
+    JoinPlan(filter, table, config.ranges, config.iterators,
+      Seq(config.columnFamily), recordThreads, config.duplicates, joinFunction, joinQuery)
   }
 
   override def getCost(sft: SimpleFeatureType,
@@ -511,4 +537,15 @@ object AccumuloAttributeIndex {
   trait AttributeSplittable {
     def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit
   }
+
+  class JoinScanConfig(val recordIndex: AccumuloFeatureIndex,
+                       val recordIterators: Seq[IteratorSetting],
+                       val recordColumnFamily: Text,
+                       ranges: Seq[Range],
+                       columnFamily: Text,
+                       iterators: Seq[IteratorSetting],
+                       entriesToFeatures: (Entry[Key, Value]) => SimpleFeature,
+                       reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]],
+                       duplicates: Boolean)
+      extends ScanConfig(ranges, columnFamily, iterators, entriesToFeatures, reduce, duplicates)
 }

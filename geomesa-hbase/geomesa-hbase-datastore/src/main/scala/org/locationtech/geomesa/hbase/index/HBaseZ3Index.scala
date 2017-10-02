@@ -11,35 +11,31 @@ package org.locationtech.geomesa.hbase.index
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{Filter => HFilter}
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.Z3HBaseFilter
+import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.index.filters.Z3Filter
-import org.locationtech.geomesa.index.index.BaseFeatureIndex
-import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3ProcessingValues}
+import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.opengis.feature.simple.SimpleFeatureType
 
-case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform
+case object HBaseZ3Index extends HBaseLikeZ3Index with HBasePlatform with HBaseZ3PushDown
 
-trait HBaseLikeZ3Index extends HBaseFeatureIndex with HBaseZ3PushDown
-    with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query]  {
+trait HBaseLikeZ3Index extends HBaseFeatureIndex with HBaseIndexAdapter
+    with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
   override val version: Int = 2
 }
 
-trait HBaseZ3PushDown extends HBasePlatform {
+trait HBaseZ3PushDown extends Z3Index[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
 
-  this: BaseFeatureIndex[HBaseDataStore, HBaseFeature, Mutation, Query, Z3ProcessingValues] =>
-
-  override protected def createPushDownFilters(ds: HBaseDataStore,
-                                               sft: SimpleFeatureType,
-                                               filter: HBaseFilterStrategyType,
-                                               transform: Option[(String, SimpleFeatureType)]): Seq[(Int, HFilter)] = {
+  override protected def updateScanConfig(sft: SimpleFeatureType,
+                                          config: ScanConfig,
+                                          indexValues: Option[Z3IndexValues]): ScanConfig = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val z3Filter = keySpace.currentProcessingValues.map { case Z3ProcessingValues(sfc, _, xy, _, times) =>
+    val z3Filter = indexValues.map { case Z3IndexValues(sfc, _, xy, _, times) =>
       val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard - note: currently sharing is always false
       configureZ3PushDown(sfc, xy, times, offset)
     }
-    super.createPushDownFilters(ds, sft, filter, transform) ++ z3Filter.toSeq
+    config.copy(filters = config.filters ++ z3Filter)
   }
 
   private def configureZ3PushDown(sfc: Z3SFC,

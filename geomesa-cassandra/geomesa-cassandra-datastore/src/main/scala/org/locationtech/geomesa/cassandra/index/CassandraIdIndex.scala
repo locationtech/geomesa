@@ -14,12 +14,13 @@ import java.nio.charset.StandardCharsets
 
 import org.locationtech.geomesa.cassandra._
 import org.locationtech.geomesa.cassandra.data._
+import org.locationtech.geomesa.cassandra.index.CassandraIndexAdapter.ScanConfig
 import org.locationtech.geomesa.index.index.IdIndex
 import org.opengis.feature.simple.SimpleFeatureType
 
 case object CassandraIdIndex
-    extends IdIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]]
-    with CassandraFeatureIndex {
+    extends IdIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange], ScanConfig]
+    with CassandraFeatureIndex with CassandraIndexAdapter {
 
   override val version: Int = 1
 

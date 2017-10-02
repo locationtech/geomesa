@@ -10,12 +10,13 @@ package org.locationtech.geomesa.hbase.index.legacy
 
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBasePlatform}
 import org.locationtech.geomesa.index.index.legacy.AttributeZIndex
 
 case object HBaseAttributeIndexV3 extends HBaseLikeAttributeIndexV3 with HBasePlatform
 
 trait HBaseLikeAttributeIndexV3 extends HBaseFeatureIndex
-    with AttributeZIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+    with AttributeZIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
   override val version: Int = 3
 }

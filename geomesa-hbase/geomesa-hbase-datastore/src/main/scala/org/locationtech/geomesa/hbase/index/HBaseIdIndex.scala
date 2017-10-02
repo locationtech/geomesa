@@ -10,10 +10,12 @@ package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.index.index.IdIndex
 
 case object HBaseIdIndex extends HBaseIdLikeIndex with HBasePlatform
 
-trait HBaseIdLikeIndex extends HBaseFeatureIndex with IdIndex[HBaseDataStore, HBaseFeature, Mutation, Query] {
+trait HBaseIdLikeIndex extends HBaseFeatureIndex with HBaseIndexAdapter
+    with IdIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
   override val version: Int = 1
 }

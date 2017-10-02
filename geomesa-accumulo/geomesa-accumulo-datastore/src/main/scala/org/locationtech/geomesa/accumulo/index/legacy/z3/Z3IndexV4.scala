@@ -9,20 +9,17 @@
 package org.locationtech.geomesa.accumulo.index.legacy.z3
 
 import org.apache.accumulo.core.data.{Mutation, Range}
-import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloIndexAdapter}
 import org.locationtech.geomesa.accumulo.iterators.Z3Iterator
-import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.index.legacy.Z3LegacyIndex
-import org.locationtech.geomesa.index.index.z3.Z3ProcessingValues
+import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 // legacy z curve - normal table sharing
 case object Z3IndexV4 extends AccumuloFeatureIndex with AccumuloIndexAdapter
-    with Z3LegacyIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
+    with Z3LegacyIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -34,16 +31,12 @@ case object Z3IndexV4 extends AccumuloFeatureIndex with AccumuloIndexAdapter
 
   override val hasPrecomputedBins: Boolean = true
 
-  override protected def scanConfig(sft: SimpleFeatureType,
-                                    ds: AccumuloDataStore,
-                                    filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
-                                    hints: Hints,
-                                    ecql: Option[Filter],
-                                    dedupe: Boolean): ScanConfig = {
-    val config = super.scanConfig(sft, ds, filter, hints, ecql, dedupe)
-    keySpace.currentProcessingValues match {
+  override protected def updateScanConfig(sft: SimpleFeatureType,
+                                          config: ScanConfig,
+                                          indexValues: Option[Z3IndexValues]): ScanConfig = {
+    indexValues match {
       case None => config
-      case Some(Z3ProcessingValues(sfc, _, xy, _, times)) =>
+      case Some(Z3IndexValues(sfc, _, xy, _, times)) =>
         // we know we're only going to scan appropriate periods, so leave out whole ones
         val wholePeriod = Seq((sfc.time.min.toLong, sfc.time.max.toLong))
         val filteredTimes = times.filter(_._2 != wholePeriod)

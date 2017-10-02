@@ -13,11 +13,12 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.sfcurve.zorder.Z3
 
 @deprecated("Z3SFC", "1.3.2")
-class LegacyZ3SFC(period: TimePeriod) extends Z3SFC(period, 21) {
+class LegacyZ3SFC(period: TimePeriod) extends {
+  // early initialization of lat/lon/time to allow for 'wholePeriod' val creation in Z3SFC
   override val lon  = SemiNormalizedLon(math.pow(2, 21).toLong - 1)
   override val lat  = SemiNormalizedLat(math.pow(2, 21).toLong - 1)
   override val time = SemiNormalizedTime(math.pow(2, 20).toLong - 1, BinnedTime.maxOffset(period).toDouble)
-
+} with Z3SFC(period, 21) {
   // old impl required for deleting existing values that may have been written
   override protected def lenientIndex(x: Double, y: Double, t: Long): Z3 = {
     val nx = math.max(lon.min, math.ceil((x - lon.min) / (lon.max - lon.min) * lon.precision)).toInt

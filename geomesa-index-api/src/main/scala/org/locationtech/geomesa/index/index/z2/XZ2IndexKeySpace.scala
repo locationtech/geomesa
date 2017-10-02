@@ -23,7 +23,7 @@ import scala.util.control.NonFatal
 
 object XZ2IndexKeySpace extends XZ2IndexKeySpace
 
-trait XZ2IndexKeySpace extends IndexKeySpace[XZ2ProcessingValues] {
+trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -48,9 +48,7 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2ProcessingValues] {
     }
   }
 
-  override def getRanges(sft: SimpleFeatureType,
-                         filter: Filter,
-                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
+  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): XZ2IndexValues = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     val geometries: FilterValues[Geometry] = {
@@ -65,12 +63,12 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2ProcessingValues] {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val xy = geometries.values.map(GeometryUtils.bounds)
 
-    // make our underlying index values available to other classes in the pipeline for processing
-    processingValues.set(XZ2ProcessingValues(sfc, geometries, xy))
+    XZ2IndexValues(sfc, geometries, xy)
+  }
 
-    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
-
-    val zs = sfc.ranges(xy, rangeTarget)
+  override def getRanges(sft: SimpleFeatureType, indexValues: XZ2IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
+    val XZ2IndexValues(sfc, _, xy) = indexValues
+    val zs = sfc.ranges(xy, QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt))
     zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
   }
 }

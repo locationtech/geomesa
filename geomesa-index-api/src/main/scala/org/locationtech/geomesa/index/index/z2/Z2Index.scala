@@ -17,8 +17,8 @@ import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
-    extends BaseFeatureIndex[DS, F, W, R, Z2ProcessingValues] with SpatialFilterStrategy[DS, F, W] {
+trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
+    extends BaseFeatureIndex[DS, F, W, R, C, Z2IndexValues] with SpatialFilterStrategy[DS, F, W] {
 
   override val name: String = "z2"
 
@@ -27,6 +27,7 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
   override protected def useFullFilter(sft: SimpleFeatureType,
                                        ds: DS,
                                        filter: FilterStrategy[DS, F, W],
+                                       indexValues: Option[Z2IndexValues],
                                        hints: Hints): Boolean = {
     // if the user has requested strict bounding boxes, we apply the full filter
     // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
@@ -34,8 +35,7 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R]
     // fine resolutions, but the performance is worth it
     // if we have a complicated geometry predicate, we need to pass it through to be evaluated
     val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
-    lazy val simpleGeoms =
-      keySpace.currentProcessingValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
+    lazy val simpleGeoms = indexValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
 
     !looseBBox || !simpleGeoms
   }

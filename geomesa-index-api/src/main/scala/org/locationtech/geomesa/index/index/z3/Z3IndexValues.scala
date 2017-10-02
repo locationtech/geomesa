@@ -6,12 +6,15 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index.index.z2
+package org.locationtech.geomesa.index.index.z3
 
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.curve.XZ2SFC
-import org.locationtech.geomesa.filter.FilterValues
+import org.joda.time.DateTime
+import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 
-case class XZ2ProcessingValues(sfc: XZ2SFC,
-                               geometries: FilterValues[Geometry],
-                               bounds: Seq[(Double, Double, Double, Double)])
+case class Z3IndexValues(sfc: Z3SFC,
+                         geometries: FilterValues[Geometry],
+                         spatialBounds: Seq[(Double, Double, Double, Double)],
+                         intervals: FilterValues[Bounds[DateTime]],
+                         temporalBounds: Map[Short, Seq[(Long, Long)]])

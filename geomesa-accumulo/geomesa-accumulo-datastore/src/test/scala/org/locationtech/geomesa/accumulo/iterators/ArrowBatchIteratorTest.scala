@@ -127,6 +127,25 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         reader.dictionaries.mapValues(_.values) mustEqual Map("name" -> Seq("name0"))
       }
     }
+    "return arrow dictionary encoded data without caching and with z-values" in {
+      val filter = ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
+      val query = new Query(sft.getTypeName, filter)
+      query.getHints.put(QueryHints.ARROW_ENCODE, true)
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
+      foreach(ds.getQueryPlan(query)) { plan =>
+        plan.iterators.map(_.getIteratorClass) must
+            containTheSameElementsAs(Seq(classOf[Z3Iterator].getName, classOf[ArrowBatchIterator].getName))
+      }
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      val out = new ByteArrayOutputStream
+      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      def in() = new ByteArrayInputStream(out.toByteArray)
+      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+            containTheSameElementsAs(features.filter(filter.evaluate))
+      }
+    }
     "return arrow dictionary encoded data with provided dictionaries" in {
       foreach(filters) { filter =>
         val query = new Query(sft.getTypeName, filter)

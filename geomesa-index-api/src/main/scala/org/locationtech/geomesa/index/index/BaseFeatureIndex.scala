@@ -23,8 +23,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * Base feature index that consists of an optional table sharing, a configurable shard, an index key,
   * and the feature id
   */
-trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, K]
-    extends GeoMesaFeatureIndex[DS, F, W] with IndexAdapter[DS, F, W, R] with LazyLogging {
+trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C, K]
+    extends GeoMesaFeatureIndex[DS, F, W] with IndexAdapter[DS, F, W, R, C] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -78,28 +78,33 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
                             explain: Explainer): QueryPlan[DS, F, W] = {
     val sharing = sft.getTableSharingBytes
 
-    try {
-      val ranges = filter.primary match {
-        case None =>
-          filter.secondary.foreach { f =>
-            logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
-          }
-          Seq(rangePrefix(sharing))
+    val indexValues = filter.primary.map(keySpace.getIndexValues(sft, _, explain))
 
-        case Some(f) =>
-          val splits = SplitArrays(sft)
-          val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
-          keySpace.getRanges(sft, f, explain).flatMap { case (s, e) =>
-            prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
-          }.toSeq
-      }
+    val ranges = indexValues match {
+      case None =>
+        filter.secondary.foreach { f =>
+          logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
+        }
+        Seq(rangePrefix(sharing))
 
-      val ecql = if (useFullFilter(sft, ds, filter, hints)) { filter.filter } else { filter.secondary }
-      scanPlan(sft, ds, filter, hints, ranges, ecql)
-    } finally {
-      keySpace.clearProcessingValues()
+      case Some(values) =>
+        val splits = SplitArrays(sft)
+        val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
+        keySpace.getRanges(sft, values).flatMap { case (s, e) =>
+          prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
+        }.toSeq
     }
+
+    val ecql = if (useFullFilter(sft, ds, filter, indexValues, hints)) { filter.filter } else { filter.secondary }
+    val config = updateScanConfig(sft, scanConfig(sft, ds, filter, ranges, ecql, hints), indexValues)
+    scanPlan(sft, ds, filter, config)
   }
 
-  protected def useFullFilter(sft: SimpleFeatureType, ds: DS, filter: FilterStrategy[DS, F, W], hints: Hints): Boolean
+  protected def updateScanConfig(sft: SimpleFeatureType, config: C, indexValues: Option[K]): C = config
+
+  protected def useFullFilter(sft: SimpleFeatureType,
+                              ds: DS,
+                              filter: FilterStrategy[DS, F, W],
+                              indexValues: Option[K],
+                              hints: Hints): Boolean
 }
