@@ -20,7 +20,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 case object CassandraAttributeIndex
     extends AttributeIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange]]
-    with CassandraFeatureIndex {
+    with CassandraFeatureIndex with CassandraIndexAdapter[Unit] {
 
   override val version: Int = 1
 

@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.utils.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] {
+trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, K] {
 
   /**
     * Create an insert 'statement' (but don't execute it)
@@ -82,9 +82,10 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] 
   protected def scanPlan(sft: SimpleFeatureType,
                          ds: DS,
                          filter: FilterStrategy[DS, F, W],
-                         hints: Hints,
+                         indexValues: Option[K],
                          ranges: Seq[R],
-                         ecql: Option[Filter]): QueryPlan[DS, F, W]
+                         ecql: Option[Filter],
+                         hints: Hints): QueryPlan[DS, F, W]
 }
 
 object IndexAdapter {

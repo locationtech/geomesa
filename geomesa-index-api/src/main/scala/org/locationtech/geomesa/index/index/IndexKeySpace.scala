@@ -17,8 +17,6 @@ import org.opengis.filter.Filter
   */
 trait IndexKeySpace[T] {
 
-  protected val processingValues: ThreadLocal[T] = new ThreadLocal[T]
-
   /**
     * Can be used with the simple feature type or not
     *
@@ -44,29 +42,21 @@ trait IndexKeySpace[T] {
   def toIndexKey(sft: SimpleFeatureType, lenient: Boolean = false): (SimpleFeature) => Array[Byte]
 
   /**
-    * Ranges over the index keys. Calling this method will populate
-    * currentProcessingValues for the current thread.
-    *
-    * <b>Make sure to call `clearProcessingValues()` in a try/finally block around this method.</b>
+    * Creates ranges over the index keys
     *
     * @param sft simple feature type
-    * @param filter spatio(temporal) filter to evaluate
+    * @param values index values @see getIndexValues
+    * @return
+    */
+  def getRanges(sft: SimpleFeatureType, values: T): Iterator[(Array[Byte], Array[Byte])]
+
+  /**
+    * Extracts values out of the filter used for range and push-down predicate creation
+    *
+    * @param sft simple feature type
+    * @param filter query filter
     * @param explain explainer
     * @return
     */
-  def getRanges(sft: SimpleFeatureType, filter: Filter, explain: Explainer): Iterator[(Array[Byte], Array[Byte])]
-
-  /**
-    * Hook back into values extracted during range processing.
-    * Processing values will be populated after a call to getRanges,
-    * and should be cleared afterwards.
-    *
-    * @return values extracted during range processing, if any
-    */
-  def currentProcessingValues: Option[T] = Option(processingValues.get)
-
-  /**
-    * Clears any existing processing value
-    */
-  def clearProcessingValues(): Unit = processingValues.remove()
+  def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): T
 }

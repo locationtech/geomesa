@@ -20,7 +20,7 @@ import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBa
 import org.locationtech.geomesa.index.index.IndexAdapter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-trait HBasePlatform extends HBaseFeatureIndex {
+trait HBasePlatform[K] extends HBaseIndexAdapter[K] {
 
   override protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,

@@ -32,7 +32,7 @@ import org.opengis.filter.Filter
 import scala.util.control.NonFatal
 
 trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
-    with IndexAdapter[DS, F, W, R] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
+    with IndexAdapter[DS, F, W, R, Z3IndexValues] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -86,45 +86,41 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
                             explain: Explainer): QueryPlan[DS, F, W] = {
     val sharing = sft.getTableSharingBytes
 
-    try {
-      // compute our accumulo ranges based on the coarse bounds for our query
-      val ranges = filter.primary match {
-        case None =>
-          filter.secondary.foreach { f =>
-            logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
-          }
-          Seq(rangePrefix(sharing))
+    // compute our accumulo ranges based on the coarse bounds for our query
+    val (ranges, indexValues) = filter.primary match {
+      case None =>
+        filter.secondary.foreach { f =>
+          logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
+        }
+        (Seq(rangePrefix(sharing)), None)
 
-        case Some(f) =>
-          val splits = SplitArrays(sft)
-          val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
-          Z3Index.getRanges(sft, f, explain).flatMap { case (s, e) =>
-            prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
-          }.toSeq
-      }
-
-      val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
-
-      // if the user has requested strict bounding boxes, we apply the full filter
-      // if this is a non-point geometry type, the index is coarse-grained, so we apply the full filter
-      // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
-      // don't need to apply the filter on top of it. this may cause some minor errors at extremely
-      // fine resolutions, but the performance is worth it
-      // if we have a complicated geometry predicate, we need to pass it through to be evaluated
-      lazy val simpleGeoms =
-        Z3Index.currentProcessingValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
-
-      val ecql = if (looseBBox && simpleGeoms) { filter.secondary } else { filter.filter }
-
-      scanPlan(sft, ds, filter, hints, ranges, ecql)
-    } finally {
-      // ensure we clear our indexed values
-      Z3Index.clearProcessingValues()
+      case Some(f) =>
+        val splits = SplitArrays(sft)
+        val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
+        val indexValues = Z3Index.getIndexValues(sft, f, explain)
+        val ranges = Z3Index.getRanges(sft, indexValues).flatMap { case (s, e) =>
+          prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
+        }.toSeq
+        (ranges, Some(indexValues))
     }
+
+    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
+
+    // if the user has requested strict bounding boxes, we apply the full filter
+    // if this is a non-point geometry type, the index is coarse-grained, so we apply the full filter
+    // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
+    // don't need to apply the filter on top of it. this may cause some minor errors at extremely
+    // fine resolutions, but the performance is worth it
+    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+    lazy val simpleGeoms = indexValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
+
+    val ecql = if (looseBBox && simpleGeoms) { filter.secondary } else { filter.filter }
+
+    scanPlan(sft, ds, filter, indexValues, ranges, ecql, hints)
   }
 }
 
-object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
+object Z3Index extends IndexKeySpace[Z3IndexValues] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -153,10 +149,7 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
     }
   }
 
-  override def getRanges(sft: SimpleFeatureType,
-                         filter: Filter,
-                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
-
+  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): Z3IndexValues = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     val dtgField = sft.getDtgField.getOrElse {
@@ -178,15 +171,16 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
     explain(s"Geometries: $geometries")
     explain(s"Intervals: $intervals")
 
-    if (geometries.disjoint || intervals.disjoint) {
-      explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
-      return Iterator.empty
-    }
-
     val sfc = LegacyZ3SFC(sft.getZ3Interval)
+
     val minTime = sfc.time.min.toLong
     val maxTime = sfc.time.max.toLong
     val wholePeriod = Seq((minTime, maxTime))
+
+    if (geometries.disjoint || intervals.disjoint) {
+      explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
+      return Z3IndexValues(sfc, geometries, Seq.empty, intervals, Map.empty, wholePeriod)
+    }
 
     // compute our accumulo ranges based on the coarse bounds for our query
     val xy = geometries.values.map(GeometryUtils.bounds)
@@ -210,8 +204,13 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
       }
     }
 
-    // make our underlying index values available to other classes in the pipeline for processing
-    processingValues.set(Z3ProcessingValues(sfc, geometries, xy, intervals, timesByBin.toMap))
+    Z3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap, Seq((minTime, maxTime)))
+  }
+
+
+  override def getRanges(sft: SimpleFeatureType, values: Z3IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
+
+    val Z3IndexValues(sfc, _, xy, _, timesByBin, wholePeriod) = values
 
     val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
@@ -227,8 +226,9 @@ object Z3Index extends IndexKeySpace[Z3ProcessingValues] {
   }
 }
 
-case class Z3ProcessingValues(sfc: Z3SFC,
-                              geometries: FilterValues[Geometry],
-                              spatialBounds: Seq[ (Double, Double, Double, Double)],
-                              intervals: FilterValues[Bounds[DateTime]],
-                              temporalBounds: Map[Short, Seq[(Long, Long)]])
+case class Z3IndexValues(sfc: Z3SFC,
+                         geometries: FilterValues[Geometry],
+                         spatialBounds: Seq[ (Double, Double, Double, Double)],
+                         intervals: FilterValues[Bounds[DateTime]],
+                         temporalBounds: Map[Short, Seq[(Long, Long)]],
+                         wholePeriod: Seq[(Long, Long)])

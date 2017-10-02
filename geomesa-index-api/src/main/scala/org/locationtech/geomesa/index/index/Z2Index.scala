@@ -29,7 +29,7 @@ import org.opengis.filter.Filter
 import scala.util.control.NonFatal
 
 trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
-    with IndexAdapter[DS, F, W, R] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
+    with IndexAdapter[DS, F, W, R, Z2IndexValues] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -85,44 +85,40 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
 
     val sharing = sft.getTableSharingBytes
 
-    try {
-      val ranges = filter.primary match {
-        case None =>
-          filter.secondary.foreach { f =>
-            logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
-          }
-          Seq(rangePrefix(sharing))
+    val (ranges, indexValues) = filter.primary match {
+      case None =>
+        filter.secondary.foreach { f =>
+          logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
+        }
+        (Seq(rangePrefix(sharing)), None)
 
-        case Some(f) =>
-          val splits = SplitArrays(sft)
-          val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
-          Z2Index.getRanges(sft, f, explain).flatMap { case (s, e) =>
-            prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
-          }.toSeq
-      }
-
-      val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
-
-      // if the user has requested strict bounding boxes, we apply the full filter
-      // if this is a non-point geometry type, the index is coarse-grained, so we apply the full filter
-      // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
-      // don't need to apply the filter on top of it. this may cause some minor errors at extremely
-      // fine resolutions, but the performance is worth it
-      // if we have a complicated geometry predicate, we need to pass it through to be evaluated
-      lazy val simpleGeoms =
-        Z2Index.currentProcessingValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
-
-      val ecql = if (looseBBox && simpleGeoms) { filter.secondary } else { filter.filter }
-
-      scanPlan(sft, ds, filter, hints, ranges, ecql)
-    } finally {
-      // ensure we clear our indexed values
-      Z2Index.clearProcessingValues()
+      case Some(f) =>
+        val splits = SplitArrays(sft)
+        val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
+        val indexValues = Z2Index.getIndexValues(sft, f, explain)
+        val ranges = Z2Index.getRanges(sft, indexValues).flatMap { case (s, e) =>
+          prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
+        }.toSeq
+        (ranges, Some(indexValues))
     }
+
+    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
+
+    // if the user has requested strict bounding boxes, we apply the full filter
+    // if this is a non-point geometry type, the index is coarse-grained, so we apply the full filter
+    // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
+    // don't need to apply the filter on top of it. this may cause some minor errors at extremely
+    // fine resolutions, but the performance is worth it
+    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+    lazy val simpleGeoms = indexValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
+
+    val ecql = if (looseBBox && simpleGeoms) { filter.secondary } else { filter.filter }
+
+    scanPlan(sft, ds, filter, indexValues, ranges, ecql, hints)
   }
 }
 
-object Z2Index extends IndexKeySpace[Z2ProcessingValues] {
+object Z2Index extends IndexKeySpace[Z2IndexValues] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -144,9 +140,7 @@ object Z2Index extends IndexKeySpace[Z2ProcessingValues] {
     }
   }
 
-  override def getRanges(sft: SimpleFeatureType,
-                         filter: Filter,
-                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
+  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): Z2IndexValues = {
 
     import org.locationtech.geomesa.filter.FilterHelper._
 
@@ -159,19 +153,25 @@ object Z2Index extends IndexKeySpace[Z2ProcessingValues] {
 
     if (geometries.disjoint) {
       explain("Non-intersecting geometries extracted, short-circuiting to empty query")
-      return Iterator.empty
+      return Z2IndexValues(geometries, Seq.empty)
     }
 
     val xy = geometries.values.map(GeometryUtils.bounds)
+    Z2IndexValues(geometries, xy)
+  }
 
-    // make our underlying index values available to other classes in the pipeline for processing
-    processingValues.set(Z2ProcessingValues(geometries, xy))
+  override def getRanges(sft: SimpleFeatureType, values: Z2IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
+    val Z2IndexValues(geometries, xy) = values
 
-    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+    if (geometries.disjoint) {
+      Iterator.empty
+    } else {
+      val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
-    val zs = LegacyZ2SFC.ranges(xy, 64, rangeTarget)
-    zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
+      val zs = LegacyZ2SFC.ranges(xy, 64, rangeTarget)
+      zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
+    }
   }
 }
 
-case class Z2ProcessingValues(geometries: FilterValues[Geometry], bounds: Seq[ (Double, Double, Double, Double)])
+case class Z2IndexValues(geometries: FilterValues[Geometry], bounds: Seq[(Double, Double, Double, Double)])
