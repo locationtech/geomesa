@@ -132,7 +132,7 @@ trait AccumuloIndexAdapter[K] extends IndexAdapter[AccumuloDataStore, AccumuloFe
     } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, dedupe)
       val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
-      ScanConfig(Seq(iter), FullColumnFamily, KryoLazyStatsIterator.kvsToFeatures(sft), reduce)
+      ScanConfig(Seq(iter), FullColumnFamily, KryoLazyStatsIterator.kvsToFeatures(), reduce)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, dedupe)
       val reduce = Some(KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(hints)(_))

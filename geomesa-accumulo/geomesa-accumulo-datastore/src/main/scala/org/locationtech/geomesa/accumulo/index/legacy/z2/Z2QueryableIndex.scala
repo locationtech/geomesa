@@ -107,7 +107,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
     } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
-      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce, FullColumnFamily, false)
+      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(), reduce, FullColumnFamily, false)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       val reduce = Some(KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(hints)(_))

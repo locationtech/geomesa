@@ -28,7 +28,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,team:String,age:Int,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=true,team:String:index-value=true,age:Int,dtg:Date,*geom:Point:srid=4326"
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
@@ -198,6 +198,26 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq
         results must haveLength(2)
         foreach(results)(features must contain(_))
+      }
+    }
+    "return sorted, dictionary encoded projections for non-indexed attributes" in {
+      import scala.collection.JavaConverters._
+      foreach(filters) { filter =>
+        val transform = Array("team", "dtg", "geom")
+        val query = new Query(sft.getTypeName, filter, transform)
+        query.getHints.put(QueryHints.ARROW_ENCODE, true)
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team")
+        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        val out = new ByteArrayOutputStream
+        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+        def in() = new ByteArrayInputStream(out.toByteArray)
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+          reader.dictionaries.keySet mustEqual Set("team")
+          SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
+              containTheSameElementsAs(features.map(f => transform.toSeq.map(f.getAttribute)))
+        }
       }
     }
     "work with different batch sizes" in {

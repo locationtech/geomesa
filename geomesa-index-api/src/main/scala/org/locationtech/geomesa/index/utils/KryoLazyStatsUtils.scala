@@ -55,11 +55,7 @@ object KryoLazyStatsUtils {
   def reduceFeatures(sft: SimpleFeatureType,
                      hints: Hints)
                     (features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-    val decode = hints.getTransform match {
-      case Some((tdef, tsft)) => decodeStat(tsft)
-      case None               => decodeStat(sft)
-    }
-
+    val decode = decodeStat(hints.getTransformSchema.getOrElse(sft))
     val decodedStats = features.map(f => decode(f.getAttribute(0).toString))
 
     val sum = if (decodedStats.isEmpty) {
