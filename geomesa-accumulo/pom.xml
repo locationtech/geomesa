@@ -19,10 +19,8 @@
         <module>geomesa-accumulo-gs-plugin</module>
         <module>geomesa-accumulo-jobs</module>
         <module>geomesa-accumulo-native-api</module>
-<!--
         <module>geomesa-accumulo-raster</module>
         <module>geomesa-accumulo-raster-distributed-runtime</module>
--->
         <module>geomesa-accumulo-security</module>
         <module>geomesa-accumulo-spark</module>
         <module>geomesa-accumulo-spark-runtime</module>
