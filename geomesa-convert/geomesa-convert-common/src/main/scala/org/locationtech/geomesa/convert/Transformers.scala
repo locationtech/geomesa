@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.convert
 
 import java.nio.charset.StandardCharsets
-import java.util.{Date, ServiceLoader, UUID}
+import java.util.{Date, DoubleSummaryStatistics, ServiceLoader, UUID}
 
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.LazyLogging
@@ -688,7 +688,7 @@ class CastFunctionFactory extends TransformerFunctionFactory {
 }
 
 class MathFunctionFactory extends TransformerFunctionFactory {
-  override def functions = Seq(add, subtract, multiply, divide)
+  override def functions = Seq(add, subtract, multiply, divide, mean, min, max)
 
   def parseDouble(v: Any): Double = {
     v match {
@@ -723,6 +723,24 @@ class MathFunctionFactory extends TransformerFunctionFactory {
     var s: Double = parseDouble(args(0))
     args.drop(1).foreach(s /= parseDouble(_))
     s
+  }
+
+  val mean = TransformerFn("mean") { args =>
+    val stats = new DoubleSummaryStatistics
+    args.map(parseDouble).foreach { d => stats.accept(d) }
+    stats.getAverage
+  }
+
+  val min = TransformerFn("min") { args =>
+    val stats = new DoubleSummaryStatistics
+    args.map(parseDouble).foreach { d => stats.accept(d) }
+    stats.getMin
+  }
+
+  val max = TransformerFn("max") { args =>
+    val stats = new DoubleSummaryStatistics
+    args.map(parseDouble).foreach { d => stats.accept(d) }
+    stats.getMax
   }
 }
 
