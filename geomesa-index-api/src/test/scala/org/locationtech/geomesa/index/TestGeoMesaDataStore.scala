@@ -92,6 +92,7 @@ object TestGeoMesaDataStore {
     override val queryThreads: Int = 1
     override val queryTimeout: Option[Long] = None
     override val caching: Boolean = false
+    override val namespace: Option[String] = None
   }
 
   class TestIndexManager extends GeoMesaIndexManager[TestGeoMesaDataStore, TestWrappedFeature, TestWrite] {

@@ -17,6 +17,7 @@ import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureWriter}
 import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
+import org.locationtech.geomesa.index.geotools.MetadataBackedDataStore.NamespaceConfig
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
@@ -35,7 +36,7 @@ import scala.util.control.NonFatal
 /**
   * Abstract base class for data store implementations using metadata to track schemas
   */
-abstract class MetadataBackedDataStore extends DataStore
+abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStore
     with HasGeoMesaMetadata[String] with DistributedLocking with LazyLogging {
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
@@ -98,7 +99,14 @@ abstract class MetadataBackedDataStore extends DataStore
     * @see org.geotools.data.DataAccess#getNames()
     * @return existing simple feature type names
     */
-  override def getNames: jList[Name] = getTypeNames.map(new NameImpl(_)).toList
+  override def getNames: jList[Name] = {
+    val names = new java.util.ArrayList[Name]
+    config.namespace match {
+      case None     => getTypeNames.foreach(name => names.add(new NameImpl(name)))
+      case Some(ns) => getTypeNames.foreach(name => names.add(new NameImpl(ns, name)))
+    }
+    names
+  }
 
   /**
     * Validates the schema and writes metadata to catalog.If the schema already exists,
@@ -161,7 +169,7 @@ abstract class MetadataBackedDataStore extends DataStore
    * @return feature type, or null if it does not exist
    */
   override def getSchema(typeName: String): SimpleFeatureType =
-    metadata.read(typeName, ATTRIBUTES_KEY).map(SimpleFeatureTypes.createType(typeName, _)).orNull
+    metadata.read(typeName, ATTRIBUTES_KEY).map(SimpleFeatureTypes.createType(config.namespace.orNull, typeName, _)).orNull
 
   /**
     * Allows the following modifications to the schema:
@@ -386,5 +394,11 @@ abstract class MetadataBackedDataStore extends DataStore
     )
 
     metadata.insert(sft.getTypeName, metadataMap)
+  }
+}
+
+object MetadataBackedDataStore {
+  trait NamespaceConfig {
+    def namespace: Option[String]
   }
 }

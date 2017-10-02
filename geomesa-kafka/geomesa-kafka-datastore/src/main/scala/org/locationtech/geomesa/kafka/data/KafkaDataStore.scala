@@ -20,6 +20,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore, SimpleFeatureWriter}
 import org.geotools.data.{Query, Transaction}
+import org.locationtech.geomesa.index.geotools.MetadataBackedDataStore.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
@@ -40,7 +41,7 @@ import org.opengis.filter.Filter
 import scala.concurrent.duration.Duration
 
 class KafkaDataStore(val config: KafkaDataStoreConfig)
-    extends MetadataBackedDataStore with HasGeoMesaStats with ZookeeperLocking {
+    extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
   import KafkaDataStore.{MetadataPath, TopicKey}
 
@@ -278,5 +279,6 @@ object KafkaDataStore extends LazyLogging {
                                   cqEngine: Boolean,
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,
-                                  audit: Option[(AuditWriter, AuditProvider, String)])
+                                  audit: Option[(AuditWriter, AuditProvider, String)],
+                                  namespace: Option[String]) extends NamespaceConfig
 }

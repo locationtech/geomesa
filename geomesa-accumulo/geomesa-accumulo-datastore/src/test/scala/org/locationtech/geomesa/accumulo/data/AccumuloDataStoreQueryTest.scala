@@ -272,7 +272,9 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle requests with namespaces" in {
-      // create the data store
+      import AccumuloDataStoreParams.NamespaceParam
+      import scala.collection.JavaConversions._
+
       val ns = "mytestns"
       val typeName = "namespacetest"
 
@@ -283,6 +285,11 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       ds.getSchema(typeName) mustEqual sft
       ds.getSchema(new NameImpl(ns, typeName)) mustEqual sft
+
+      val dsWithNs = DataStoreFinder.getDataStore(dsParams ++ Map(NamespaceParam.key -> "ns0"))
+      val name = dsWithNs.getSchema(typeName).getName
+      name.getNamespaceURI mustEqual "ns0"
+      name.getLocalPart mustEqual typeName
     }
 
     "handle cql functions" in {

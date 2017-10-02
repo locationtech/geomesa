@@ -330,4 +330,5 @@ case class AccumuloDataStoreConfig(catalog: String,
                                    caching: Boolean,
                                    writeThreads: Int,
                                    queryThreads: Int,
-                                   recordThreads: Int) extends GeoMesaDataStoreConfig
+                                   recordThreads: Int,
+                                   namespace: Option[String]) extends GeoMesaDataStoreConfig

@@ -98,6 +98,26 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
       }
     }
 
+    "use namespaces" >> {
+      import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams._
+      val path = newPath
+      val ds = getStore(path, 0, Map(Namespace.key -> "ns0"))
+      try {
+        ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
+        ds.getSchema("kafka").getName.getNamespaceURI mustEqual "ns0"
+        ds.getSchema("kafka").getName.getLocalPart mustEqual "kafka"
+      } finally {
+        ds.dispose()
+      }
+      val ds2 = getStore(path, 0, Map(Namespace.key -> "ns1"))
+      try {
+        ds2.getSchema("kafka").getName.getNamespaceURI mustEqual "ns1"
+        ds2.getSchema("kafka").getName.getLocalPart mustEqual "kafka"
+      } finally {
+        ds2.dispose()
+      }
+    }
+
     "allow schemas to be created and deleted" >> {
       foreach(Seq("true", "false")) { cqEngine =>
         CachedLazyMetadata.Expiry.threadLocalValue.set("10ms")

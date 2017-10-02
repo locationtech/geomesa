@@ -12,6 +12,7 @@ import java.io.Serializable
 
 import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
+import org.locationtech.geomesa.index.geotools.MetadataBackedDataStore.NamespaceConfig
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 
 object GeoMesaDataStoreFactory {
@@ -42,7 +43,7 @@ object GeoMesaDataStoreFactory {
         .getOrElse(GenerateStatsParam.getDefaultValue.asInstanceOf[Boolean])
   }
 
-  trait GeoMesaDataStoreConfig {
+  trait GeoMesaDataStoreConfig extends NamespaceConfig {
     def catalog: String
     def audit: Option[(AuditWriter, AuditProvider, String)]
     def generateStats: Boolean

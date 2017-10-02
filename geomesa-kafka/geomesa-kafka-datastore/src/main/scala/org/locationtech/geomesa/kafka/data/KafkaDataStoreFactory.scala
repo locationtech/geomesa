@@ -53,7 +53,8 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
       CqEngineCache,
       ConsumeEarliest,
       AuditQueries,
-      LooseBBox
+      LooseBBox,
+      Namespace
     )
 
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
@@ -105,9 +106,11 @@ object KafkaDataStoreFactory {
     }
     val authProvider = buildAuthProvider(params)
 
+    val ns = Option(Namespace.lookUp(params).asInstanceOf[String])
+
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, partitions, replication,
       producerConfig, consumerConfig, consumeFromBeginning, cacheExpiry, cacheCleanup, ticker, cqEngine,
-      looseBBox, authProvider, audit)
+      looseBBox, authProvider, audit, ns)
   }
 
   private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
@@ -175,5 +178,6 @@ object KafkaDataStoreFactory {
     val LooseBBox        = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries     = GeoMesaDataStoreFactory.AuditQueriesParam
     val Authorizations   = org.locationtech.geomesa.security.AuthsParam
+    val Namespace        = new Param("namespace", classOf[String], "Namespace", false)
   }
 }

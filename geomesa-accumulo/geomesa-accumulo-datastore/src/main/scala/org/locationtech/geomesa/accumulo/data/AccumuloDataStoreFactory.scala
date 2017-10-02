@@ -70,7 +70,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       generateStatsParam,
       auditQueriesParam,
       cachingParam,
-      forceEmptyAuthsParam
+      forceEmptyAuthsParam,
+      NamespaceParam
     )
 
   def canProcess(params: JMap[String,Serializable]): Boolean = AccumuloDataStoreFactory.canProcess(params)
@@ -153,6 +154,8 @@ object AccumuloDataStoreFactory {
     val queryTimeout = GeoMesaDataStoreFactory.queryTimeout(params)
     val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
 
+    val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
+
     AccumuloDataStoreConfig(
       catalog,
       visibility,
@@ -164,7 +167,8 @@ object AccumuloDataStoreFactory {
       cachingParam.lookupWithDefault(params),
       writeThreadsParam.lookupWithDefault(params),
       queryThreadsParam.lookupWithDefault(params),
-      recordThreadsParam.lookupWithDefault(params)
+      recordThreadsParam.lookupWithDefault(params),
+      ns
     )
   }
 
@@ -255,4 +259,5 @@ object AccumuloDataStoreParams {
   val cachingParam           = GeoMesaDataStoreFactory.CachingParam
   val mockParam              = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
   val forceEmptyAuthsParam   = org.locationtech.geomesa.security.ForceEmptyAuthsParam
+  val NamespaceParam         = new Param("namespace", classOf[String], "Namespace", false)
 }
