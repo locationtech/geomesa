@@ -218,8 +218,6 @@ object ArrowBatchScan {
                          attributes: Seq[String],
                          provided: Map[String, Seq[AnyRef]],
                          useCached: Boolean): Map[String, ArrowDictionary] = {
-    def name(i: Int): String = sft.getDescriptor(i).getLocalName
-
     if (attributes.isEmpty) { Map.empty } else {
       // note: sort values to return same dictionary cache
       val providedDictionaries = provided.map { case (k, v) => k -> ArrowDictionary.create(sort(v)) }
@@ -227,6 +225,7 @@ object ArrowBatchScan {
       val queriedDictionaries = if (toLookup.isEmpty) { Map.empty } else {
         // use topk if available, otherwise run a live stats query to get the dictionary values
         val cached = if (useCached) {
+          def name(i: Int): String = sft.getDescriptor(i).getLocalName
           stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => name(k.attribute) -> k).toMap
         } else {
           Map.empty[String, TopK[AnyRef]]
@@ -237,7 +236,10 @@ object ArrowBatchScan {
           // if we have to run a query, might as well generate all values
           val query = Stat.SeqStat(toLookup.map(Stat.Enumeration))
           val enumerations = stats.runStats[EnumerationStat[String]](sft, query, filter.getOrElse(Filter.INCLUDE))
-          enumerations.map { e => name(e.attribute) -> ArrowDictionary.create(sort(e.values.toSeq)) }.toMap
+          // enumerations should come back in the same order
+          // we can't use the enumeration attribute number b/c it may reflect a transform sft
+          val nameIter = toLookup.iterator
+          enumerations.map(e => nameIter.next -> ArrowDictionary.create(sort(e.values.toSeq))).toMap
         }
       }
       providedDictionaries ++ queriedDictionaries
