@@ -60,6 +60,11 @@ class CassandraDataStoreTest extends Specification {
 
       sft must not(beNull)
 
+      val ns = DataStoreFinder.getDataStore(CassandraDataStoreTest.params ++
+          Map(CassandraDataStoreFactory.Params.NamespaceParam.key -> "ns0")).getSchema(typeName).getName
+      ns.getNamespaceURI mustEqual "ns0"
+      ns.getLocalPart mustEqual typeName
+
       val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
 
       val toAdd = (0 until 10).map { i =>

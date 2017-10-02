@@ -12,16 +12,16 @@ import java.io.ByteArrayInputStream
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.arrow.memory.RootAllocator
+import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.LambdaTest
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -40,7 +40,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
     logger.info("LambdaDataStoreTest starting")
   }
 
-  implicit val allocator = new RootAllocator(Long.MaxValue)
+  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   val sft = SimpleFeatureTypes.createType("lambda", "name:String,dtg:Date,*geom:Point:srid=4326")
   val features = Seq(
@@ -114,6 +114,11 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
       try {
         ds.createSchema(sft)
         ds.getSchema(sft.getTypeName) mustEqual sft
+
+        // check namespaces
+        val ns = DataStoreFinder.getDataStore(dsParams ++ Map("namespace" -> "ns0")).getSchema(sft.getTypeName).getName
+        ns.getNamespaceURI mustEqual "ns0"
+        ns.getLocalPart mustEqual sft.getTypeName
 
         // note: instantiate after creating the schema so it's not cached as missing
         val readOnly = DataStoreFinder.getDataStore(dsParams ++ Map("expiry" -> "Inf")).asInstanceOf[LambdaDataStore]

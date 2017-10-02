@@ -47,6 +47,10 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
       sft must not(beNull)
 
+      val ns = DataStoreFinder.getDataStore(params ++ Map(NamespaceParam.key -> "ns0")).getSchema(typeName).getName
+      ns.getNamespaceURI mustEqual "ns0"
+      ns.getLocalPart mustEqual typeName
+
       val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
 
       val toAdd = (0 until 10).map { i =>

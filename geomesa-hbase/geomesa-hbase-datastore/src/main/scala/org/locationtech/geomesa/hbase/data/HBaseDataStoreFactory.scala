@@ -84,8 +84,10 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       } else None
     val coprocessorUrl = CoprocessorUrl.lookupOpt[Path](params)
 
+    val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
+
     val config = HBaseDataStoreConfig(catalog, remoteFilters, generateStats, audit, queryThreads, queryTimeout,
-      maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl)
+      maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl, ns)
     buildDataStore(connection, config)
   }
 
@@ -116,7 +118,8 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       CachingParam,
       EnableSecurityParam,
       AuthsParam,
-      ForceEmptyAuthsParam)
+      ForceEmptyAuthsParam,
+      NamespaceParam)
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
@@ -141,6 +144,7 @@ object HBaseDataStoreParams {
   val EnableSecurityParam  = new Param("security.enabled", classOf[java.lang.Boolean], "Enable HBase Security (Visibilities)", false, false)
   val AuthsParam           = org.locationtech.geomesa.security.AuthsParam
   val ForceEmptyAuthsParam = org.locationtech.geomesa.security.ForceEmptyAuthsParam
+  val NamespaceParam       = new Param("namespace", classOf[String], "Namespace", false)
 
 }
 
@@ -165,7 +169,8 @@ object HBaseDataStoreFactory extends LazyLogging {
                                   looseBBox: Boolean,
                                   caching: Boolean,
                                   authProvider: Option[AuthorizationsProvider],
-                                  coprocessorUrl: Option[Path]) extends GeoMesaDataStoreConfig
+                                  coprocessorUrl: Option[Path],
+                                  namespace: Option[String]) extends GeoMesaDataStoreConfig
 
   // check that the hbase-site.xml does not have bigtable keys
   def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean = {

@@ -36,7 +36,7 @@ import org.opengis.filter.Filter
   * @tparam W write result - feature writers will transform simple features into these
   */
 abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](val config: GeoMesaDataStoreConfig)
-    extends MetadataBackedDataStore with HasGeoMesaStats {
+    extends MetadataBackedDataStore(config) with HasGeoMesaStats {
 
   this: DS =>
 

@@ -96,7 +96,8 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     VisibilitiesParam,
     LooseBBoxParam,
     GenerateStatsParam,
-    AuditQueriesParam
+    AuditQueriesParam,
+    NamespaceParam
   )
 
   override def getDisplayName: String = LambdaDataStoreFactory.DisplayName
@@ -143,6 +144,7 @@ object LambdaDataStoreFactory {
     val LooseBBoxParam     = GeoMesaDataStoreFactory.LooseBBoxParam
     val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
     val AuditQueriesParam  = GeoMesaDataStoreFactory.AuditQueriesParam
+    val NamespaceParam     = new Param("namespace", classOf[String], "Namespace", false)
 
     // test params
     val ClockParam         = new Param("clock", classOf[Clock], "Clock instance to use for timing", false)

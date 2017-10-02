@@ -73,7 +73,9 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     val queryTimeout = GeoMesaDataStoreFactory.queryTimeout(params)
     val looseBBox = LooseBBoxParam.lookupWithDefault[Boolean](params)
 
-    val cfg = CassandraDataStoreConfig(catalog, generateStats, audit, caching, queryThreads, queryTimeout, looseBBox)
+    val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
+
+    val cfg = CassandraDataStoreConfig(catalog, generateStats, audit, caching, queryThreads, queryTimeout, looseBBox, ns)
 
     new CassandraDataStore(session, cfg)
   }
@@ -84,7 +86,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 
   override def getParametersInfo: Array[Param] = Array(ContactPointParam, KeySpaceParam, CatalogParam,
     UserNameParam, PasswordParam, GenerateStatsParam, AuditQueriesParam, LooseBBoxParam, CachingParam,
-    QueryThreadsParam, QueryTimeoutParam)
+    QueryThreadsParam, QueryTimeoutParam, NamespaceParam)
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean = params.containsKey(KeySpaceParam.key)
 
@@ -111,6 +113,7 @@ object CassandraDataStoreFactory {
     val LooseBBoxParam     = GeoMesaDataStoreFactory.LooseBBoxParam
     val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
     val QueryTimeoutParam  = GeoMesaDataStoreFactory.QueryTimeoutParam
+    val NamespaceParam     = new Param("namespace", classOf[String], "Namespace", false)
   }
 
   case class CassandraDataStoreConfig(catalog: String,
@@ -119,5 +122,6 @@ object CassandraDataStoreFactory {
                                   caching: Boolean,
                                   queryThreads: Int,
                                   queryTimeout: Option[Long],
-                                  looseBBox: Boolean) extends GeoMesaDataStoreConfig
+                                  looseBBox: Boolean,
+                                  namespace: Option[String]) extends GeoMesaDataStoreConfig
 }
