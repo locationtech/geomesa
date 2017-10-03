@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.arrow.vector
 
-import java.security.SecureRandom
 import java.util.concurrent.atomic.AtomicLong
 
 import com.google.common.collect.ImmutableBiMap
@@ -65,7 +64,8 @@ class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding)
 
 object ArrowDictionary {
 
-  private val values = new SecureRandom().longs(0, Long.MaxValue).iterator()
+  private val values = new java.util.Random().longs(0, Long.MaxValue).iterator()
+
   private val ids = new AtomicLong(values.next)
 
   trait HasArrowDictionary {
