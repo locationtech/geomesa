@@ -40,7 +40,7 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
                                     (implicit ticker: Ticker = Ticker.systemTicker())
   extends KafkaConsumerFeatureSource(e, sft, q, monitor) with Runnable with Closeable with LazyLogging {
 
-  private [kafka09] val featureCache: LiveFeatureCache = if (useCQCache) {
+  private[kafka09] val featureCache: LiveFeatureCache = if (useCQCache) {
     new LiveFeatureCacheCQEngine(sft, expirationPeriod)
   } else {
     new LiveFeatureCacheGuava(sft, expirationPeriod, consistencyCheck)
