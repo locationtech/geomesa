@@ -52,6 +52,12 @@ from the data.
 
 Click on the "Save" button when you are done.
 
+.. warning::
+
+   When configuring a time-enabled layer, generally you should set the presentation to "Continuous interval."
+   Setting presentation to "List" will require displaying all unique time values in the layer, and cause WMS
+   ``GetCapabilities`` requests to be slow.
+
 Preview a Layer
 ---------------
 
