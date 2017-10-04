@@ -13,32 +13,25 @@ import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import com.typesafe.config.Config
-import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericKeyedObjectPool}
-import org.apache.commons.pool2.{BaseKeyedPooledObjectFactory, KeyedPooledObjectFactory, PooledObject}
 import org.locationtech.geomesa.convert.{EnrichmentCache, EnrichmentCacheFactory}
-import redis.clients.jedis.Jedis
+import redis.clients.jedis.{Jedis, JedisPool}
 
 import scala.util.Try
 
 trait RedisConnectionBuilder {
-  def buildConnection(url: String): Jedis
+  def getConn: Jedis
 }
 
-class RedisEnrichmentCache(connBuilder: RedisConnectionBuilder, url: String,
+class RedisEnrichmentCache(jedisPool: RedisConnectionBuilder,
                            expiration: Long = -1,
                            localCache: Boolean) extends EnrichmentCache {
-  private val fac: KeyedPooledObjectFactory[String, Jedis] = new BaseKeyedPooledObjectFactory[String, Jedis] {
-    override def create(key: String): Jedis = connBuilder.buildConnection(url)
-    override def wrap(value: Jedis): PooledObject[Jedis] = new DefaultPooledObject[Jedis](value)
-  }
-  private val connPool = new GenericKeyedObjectPool[String,Jedis](fac)
-
   type KV = java.util.Map[String, String]
 
   private val builder =
-    if (expiration > 0) CacheBuilder.newBuilder().expireAfterWrite(expiration, TimeUnit.MILLISECONDS)
-    else {
-      if(!localCache) {
+    if (expiration > 0) {
+      CacheBuilder.newBuilder().expireAfterWrite(expiration, TimeUnit.MILLISECONDS)
+    } else {
+      if (!localCache) {
         CacheBuilder.newBuilder().expireAfterWrite(0, TimeUnit.MILLISECONDS).maximumSize(0)
       } else {
         CacheBuilder.newBuilder()
@@ -49,11 +42,13 @@ class RedisEnrichmentCache(connBuilder: RedisConnectionBuilder, url: String,
     builder
       .build(new CacheLoader[String, KV] {
         override def load(k: String): KV = {
-          val conn = connPool.borrowObject(url)
+          val conn = jedisPool.getConn
           try {
             conn.hgetAll(k)
           } finally {
-            connPool.returnObject(url, conn)
+            // Note: for a JedisPool this only returns it to the pool instead of actionally
+            // closing the connection (so it's safe to call close() on the conn)
+            conn.close()
           }
         }
       })
@@ -63,16 +58,25 @@ class RedisEnrichmentCache(connBuilder: RedisConnectionBuilder, url: String,
   override def clear(): Unit = ???
 }
 
-
 class RedisEnrichmentCacheFactory extends EnrichmentCacheFactory {
   override def canProcess(conf: Config): Boolean = conf.hasPath("type") && conf.getString("type").equals("redis")
+
   override def build(conf: Config): EnrichmentCache = {
-    val url = conf.getString("redis-url")
-    val timeout = if(conf.hasPath("expiration")) conf.getLong("expiration") else -1
+    val Array(host, port) = parseRedisURL(conf.getString("redis-url"))
+    val timeout = if (conf.hasPath("expiration")) conf.getLong("expiration") else -1
     val connBuilder = new RedisConnectionBuilder {
-      override def buildConnection(url: String): Jedis = new Jedis(url)
+      val pool = new JedisPool(host, port.toInt)
+      override def getConn: Jedis = {
+        pool.getResource
+      }
     }
+
     val localCache = Try { conf.getBoolean("local-cache") }.getOrElse(true)
-    new RedisEnrichmentCache(connBuilder, url, timeout, localCache)
+    new RedisEnrichmentCache(connBuilder, timeout, localCache)
+  }
+
+  private def parseRedisURL(url: String) = {
+    if (url.indexOf(":") != -1) url.split(":")
+    else Array(url, "6379")
   }
 }
