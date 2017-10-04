@@ -173,7 +173,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
         joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
       }
     } else if (hints.isStatsQuery) {
-      val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
+      val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures()
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, hasDupes)
         val iters = visibilityIter(sft) :+ iter
@@ -275,7 +275,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
         (ArrowFileIterator.kvsToFeatures(), None)
       }
     } else if (hints.isStatsQuery) {
-      (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
+      (KryoLazyStatsIterator.kvsToFeatures(), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
     } else {
       (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
     }
