@@ -301,7 +301,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
           ecql.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
         val iter = KryoLazyStatsIterator.configure(indexSft, this, ecql, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
-        val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
+        val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures()
         val reduce = Some(KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_))
         ScanConfig(ranges, cf, iters, kvsToFeatures, reduce, duplicates = false)
       } else {
@@ -395,7 +395,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         (ArrowFileIterator.kvsToFeatures(), None)
       }
     } else if (hints.isStatsQuery) {
-      (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
+      (KryoLazyStatsIterator.kvsToFeatures(), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
     } else if (hints.isDensityQuery) {
       (KryoLazyDensityIterator.kvsToFeatures(), None)
     } else {
