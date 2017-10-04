@@ -496,6 +496,19 @@ class TransformersTest extends Specification {
         exp2.eval(Array("","1","2","3.0")) mustEqual (1.0/2/3) // 0.166666666666
         exp2.eval(Array("","-1","2","3.0")) mustEqual (-1.0/2/3) // -0.166666666666
       }
+      "mean" >> {
+        val exp1 = Transformers.parseTransform("mean($1,$2,$3,$4)")
+        exp1.eval(Array("","1","2","3","4")) mustEqual 2.5
+      }
+      "min" >> {
+        val exp1 = Transformers.parseTransform("min($1,$2,$3,$4)::int")
+        exp1.eval(Array("","1","2","3","4")) mustEqual 1
+      }
+      "max" >> {
+        val exp1 = Transformers.parseTransform("max($1,$2,$3,$4)::int")
+        exp1.eval(Array("","1","2","3","4")) mustEqual 4
+      }
+
     }
 
     "handle predicates" >> {
