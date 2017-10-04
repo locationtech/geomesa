@@ -28,9 +28,10 @@ class RedisEnrichmentCache(jedisPool: RedisConnectionBuilder,
   type KV = java.util.Map[String, String]
 
   private val builder =
-    if (expiration > 0) CacheBuilder.newBuilder().expireAfterWrite(expiration, TimeUnit.MILLISECONDS)
-    else {
-      if(!localCache) {
+    if (expiration > 0) {
+      CacheBuilder.newBuilder().expireAfterWrite(expiration, TimeUnit.MILLISECONDS)
+    } else {
+      if (!localCache) {
         CacheBuilder.newBuilder().expireAfterWrite(0, TimeUnit.MILLISECONDS).maximumSize(0)
       } else {
         CacheBuilder.newBuilder()
@@ -45,6 +46,8 @@ class RedisEnrichmentCache(jedisPool: RedisConnectionBuilder,
           try {
             conn.hgetAll(k)
           } finally {
+            // Note: for a JedisPool this only returns it to the pool instead of actionally
+            // closing the connection (so it's safe to call close() on the conn)
             conn.close()
           }
         }
@@ -55,12 +58,12 @@ class RedisEnrichmentCache(jedisPool: RedisConnectionBuilder,
   override def clear(): Unit = ???
 }
 
-
 class RedisEnrichmentCacheFactory extends EnrichmentCacheFactory {
   override def canProcess(conf: Config): Boolean = conf.hasPath("type") && conf.getString("type").equals("redis")
+
   override def build(conf: Config): EnrichmentCache = {
     val Array(host, port) = parseRedisURL(conf.getString("redis-url"))
-    val timeout = if(conf.hasPath("expiration")) conf.getLong("expiration") else -1
+    val timeout = if (conf.hasPath("expiration")) conf.getLong("expiration") else -1
     val connBuilder = new RedisConnectionBuilder {
       val pool = new JedisPool(host, port.toInt)
       override def getConn: Jedis = {
@@ -73,7 +76,7 @@ class RedisEnrichmentCacheFactory extends EnrichmentCacheFactory {
   }
 
   private def parseRedisURL(url: String) = {
-    if(url.indexOf(":") != -1) url.split(":")
+    if (url.indexOf(":") != -1) url.split(":")
     else Array(url, "6379")
   }
 }
