@@ -4,14 +4,26 @@
            xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
     <dependencySets>
         <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>false</useTransitiveFiltering> <!-- transitive filtering applies to excludes too so disable it -->
+            <excludes>
+                <exclude>org.locationtech.geomesa:geomesa-kafka-gs-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
+            </excludes>
+        </dependencySet>
+        <dependencySet>
             <outputDirectory>dist/gs-plugins</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0755</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
-            <useStrictFiltering>true</useStrictFiltering>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-kafka-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -24,18 +36,6 @@
             <includes>
                 <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
             </includes>
-        </dependencySet>
-        <dependencySet>
-            <outputDirectory>lib</outputDirectory>
-            <directoryMode>755</directoryMode>
-            <fileMode>0644</fileMode>
-            <useProjectArtifact>false</useProjectArtifact>
-            <useTransitiveDependencies>true</useTransitiveDependencies>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <useStrictFiltering>true</useStrictFiltering>
-            <excludes>
-                <exclude>org.locationtech.geomesa:geomesa-kafka-gs-plugin*</exclude>
-            </excludes>
         </dependencySet>
     </dependencySets>
     <fileSets>
