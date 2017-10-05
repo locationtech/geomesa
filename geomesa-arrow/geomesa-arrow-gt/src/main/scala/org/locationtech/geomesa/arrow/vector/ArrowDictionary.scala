@@ -64,9 +64,9 @@ class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding)
 
 object ArrowDictionary {
 
-  private val values = new java.util.Random().longs(0, Long.MaxValue).iterator()
+  private val r = new java.util.Random()
 
-  private val ids = new AtomicLong(values.next)
+  private val ids = new AtomicLong(math.abs(r.nextLong()))
 
   trait HasArrowDictionary {
     def dictionary: ArrowDictionary
@@ -78,7 +78,7 @@ object ArrowDictionary {
     *
     * @return random long
     */
-  def nextId: Long = ids.getAndSet(values.next)
+  def nextId: Long = ids.getAndSet(math.abs(r.nextLong()))
 
   /**
     * Create a dictionary based off a sequence of values. Encoding will be smallest that will fit all values.
