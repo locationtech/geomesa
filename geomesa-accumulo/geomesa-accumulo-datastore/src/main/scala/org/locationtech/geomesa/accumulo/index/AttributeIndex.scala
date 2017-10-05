@@ -298,11 +298,12 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
       if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess &&
-          ecql.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
+          ecql.forall(IteratorTrigger.supportsFilter(indexSft, _)) &&
+          transform.forall(IteratorTrigger.supportsTransform(indexSft, _))) {
         val iter = KryoLazyStatsIterator.configure(indexSft, this, ecql, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
         val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures()
-        val reduce = Some(KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_))
+        val reduce = Some(AccumuloAttributeIndex.reduceAttributeStats(sft, indexSft, transform, hints))
         ScanConfig(ranges, cf, iters, kvsToFeatures, reduce, duplicates = false)
       } else {
         // have to do a join against the record table
@@ -532,6 +533,41 @@ object AccumuloAttributeIndex {
     sft.getDescriptor(attribute).getIndexCoverage == IndexCoverage.JOIN &&
         !IteratorTrigger.canUseAttrIdxValues(sft, filter, transform) &&
         !IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter, transform)
+  }
+
+  /**
+    * Handles transforming stats run against the attribute index back into the expected
+    * simple feature type
+    *
+    * @param sft original simple feature type
+    * @param indexSft index simple feature type
+    * @param transform transform, if any
+    * @param hints query hints
+    * @return
+    */
+  def reduceAttributeStats(sft: SimpleFeatureType,
+                           indexSft: SimpleFeatureType,
+                           transform: Option[SimpleFeatureType],
+                           hints: Hints): (CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature] = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+    if (transform.isDefined || !hints.isStatsEncode) {
+      // returned stats will be in the transform schema or in json
+      KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_)
+    } else {
+      // we have to transform back into the original sft after operating on the index values
+      val decode = KryoLazyStatsUtils.decodeStat(indexSft)
+      val encode = KryoLazyStatsUtils.encodeStat(sft)
+      (iter) => {
+        KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(iter).map { feature =>
+          // we can create a new stat with the correct sft, then add the result
+          // this should set the correct metadata but preserve the underlying data
+          val stat = Stat(sft, hints.getStatsQuery)
+          stat += decode(feature.getAttribute(0).asInstanceOf[String])
+          feature.setAttribute(0, encode(stat))
+          feature
+        }
+      }
+    }
   }
 
   trait AttributeSplittable {

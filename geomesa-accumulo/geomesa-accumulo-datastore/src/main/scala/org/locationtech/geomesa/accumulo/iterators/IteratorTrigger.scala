@@ -206,9 +206,11 @@ object IteratorTrigger extends LazyLogging {
     lazy val indexSft = IndexValueEncoder.getIndexSft(sft)
     // verify that transform *does* exist and only contains fields in the index sft,
     // and that filter *does not* exist or can be fulfilled by the index sft
-    transform.exists(_.getAttributeDescriptors.map(_.getLocalName).forall(indexSft.indexOf(_) != -1)) &&
-      filter.forall(supportsFilter(indexSft, _))
+    transform.exists(supportsTransform(indexSft, _)) && filter.forall(supportsFilter(indexSft, _))
   }
+
+  def supportsTransform(sft: SimpleFeatureType, transform: SimpleFeatureType): Boolean =
+    transform.getAttributeDescriptors.map(_.getLocalName).forall(sft.indexOf(_) != -1)
 
   /**
    * Returns true if the filters can be evaluated successfully against the feature type.
