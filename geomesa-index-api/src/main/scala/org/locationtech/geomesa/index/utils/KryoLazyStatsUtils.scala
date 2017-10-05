@@ -15,6 +15,7 @@ import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -55,20 +56,24 @@ object KryoLazyStatsUtils {
   def reduceFeatures(sft: SimpleFeatureType,
                      hints: Hints)
                     (features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-    val decode = decodeStat(hints.getTransformSchema.getOrElse(sft))
-    val decodedStats = features.map(f => decode(f.getAttribute(0).toString))
-
-    val sum = if (decodedStats.isEmpty) {
-      // create empty stat based on the original input so that we always return something
-      Stat(sft, hints.getStatsQuery)
-    } else {
-      val sum = decodedStats.next()
-      decodedStats.foreach(sum += _)
-      sum
+    val statSft = hints.getTransformSchema.getOrElse(sft)
+    val sum = try {
+      if (features.isEmpty) {
+        // create empty stat based on the original input so that we always return something
+        Stat(statSft, hints.getStatsQuery)
+      } else {
+        val decode = decodeStat(statSft)
+        val sum = decode(features.next.getAttribute(0).asInstanceOf[String])
+        while (features.hasNext) {
+          sum += decode(features.next.getAttribute(0).asInstanceOf[String])
+        }
+        sum
+      }
+    } finally {
+      CloseWithLogging(features)
     }
-    decodedStats.close()
 
-    val stats = if (hints.isStatsEncode) { encodeStat(sft)(sum) } else { sum.toJson }
+    val stats = if (hints.isStatsEncode) { encodeStat(statSft)(sum) } else { sum.toJson }
     CloseableIterator(Iterator(new ScalaSimpleFeature(StatsSft, "stat", Array(stats, GeometryUtils.zeroPoint))))
   }
 }

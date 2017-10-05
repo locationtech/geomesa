@@ -186,7 +186,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
           val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, hasDupes)
           val iters = visibilityIter(indexSft) :+ iter
-          val reduce = Some(KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_))
+          val reduce = Some(AccumuloAttributeIndex.reduceAttributeStats(sft, indexSft, transform, hints))
           BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, reduce, attrThreads, hasDuplicates = false)
         } else {
           // have to do a join against the record table
