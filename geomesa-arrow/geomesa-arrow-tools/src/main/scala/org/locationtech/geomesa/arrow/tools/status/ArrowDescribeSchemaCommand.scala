@@ -24,7 +24,7 @@ class ArrowDescribeSchemaCommand extends DescribeSchemaCommand[ArrowDataStore] w
 
   override protected def describe(ds: ArrowDataStore, sft: SimpleFeatureType, output: (String) => Unit): Unit = {
     super.describe(ds, sft, output)
-    output()
+    output("")
     val dictionaries = ds.dictionaries
     if (dictionaries.isEmpty) {
       output("Dictionaries: none")
