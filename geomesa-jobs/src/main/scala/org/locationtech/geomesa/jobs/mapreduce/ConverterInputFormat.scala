@@ -22,6 +22,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -112,8 +113,8 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
       override def hasNext: Boolean = featureReader.hasNext
       override def next(): SimpleFeature = featureReader.next
       override def close(): Unit = {
-        featureReader.close()
-        converter.close()
+        CloseWithLogging(featureReader)
+        CloseWithLogging(converter)
       }
     }
   }
