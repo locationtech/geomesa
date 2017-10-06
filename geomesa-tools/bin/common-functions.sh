@@ -111,12 +111,6 @@ function setHadoopClasspath() {
     return
   fi
 
-  # Next attempt to cheat by stealing the classpath from the hadoop command
-  if [[ -n "$(command -v hadoop)" ]]; then
-    export GEOMESA_HADOOP_CLASSPATH=$(hadoop classpath)
-    return
-  fi
-
   # Lastly, do a bunch of complicated guessing
   # Get the hadoop jars, ignoring jars with names containing slf4j and test
   # Copied from accumulo classpath
@@ -167,7 +161,12 @@ function setHadoopClasspath() {
     fi
   done
 
-  export GEOMESA_HADOOP_CLASSPATH=$(excludeLogJarsFromClasspath "${HADOOP_CP}")
+  # Next attempt to cheat by stealing the classpath from the hadoop command
+  if [[ -z "${HADOOP_CP}" && -n "$(command -v hadoop)" ]]; then
+    HADOOP_CP=$(hadoop classpath)
+  fi
+
+  export GEOMESA_HADOOP_CLASSPATH="${HADOOP_CP}"
 }
 
 function geomesaConfigure() {
