@@ -25,7 +25,7 @@ function findJars() {
   # findJars [path] [bool: exclude test and slf4j jars] [bool: do not descend into sub directories]
   home="$1"
   CP=""
-  if [[ -n "$home" && -d "$home" ]]; then
+  if [[ -n "${home}" && -d "${home}" ]]; then
     if [[ ("$3" == "true") ]]; then
       for jar in $(find ${home} -maxdepth 1 -name "*.jar"); do
         if [[ ("$2" != "true") || (("$jar" != *"test"*) && ("$jar" != *"slf4j"*)) ]]; then
@@ -43,11 +43,11 @@ function findJars() {
         fi
       done
     fi
-    if [[ -d "$home/native" ]]; then
-      if [[ -z "$JAVA_LIBRARY_PATH" ]]; then
-        JAVA_LIBRARY_PATH="$home/native"
+    if [[ -d "${home}/native" ]]; then
+      if [[ -z "${JAVA_LIBRARY_PATH}" ]]; then
+        JAVA_LIBRARY_PATH="${home}/native"
       else
-        JAVA_LIBRARY_PATH="$home/native:$JAVA_LIBRARY_PATH"
+        JAVA_LIBRARY_PATH="${home}/native:${JAVA_LIBRARY_PATH}"
       fi
     fi
   fi
@@ -55,6 +55,104 @@ function findJars() {
     CP="${CP:1}"
   fi
   echo $CP
+}
+
+# Combine two arguments into a classpath (aka add a : between them)
+# Handles if either argument is empty
+# TODO in the future take a variable number of arguments and combine them all
+function combineClasspaths() {
+  local first=$1
+  local second=$2
+  if [[ -n "${first}" && -n "${second}" ]]; then
+    echo "${first}:${second}"
+  elif [[ -n "${first}" && ! -n "${second}" ]]; then
+    echo "${first}"
+  elif [[ ! -n "${first}" && -n "${second}" ]]; then
+    echo "${second}"
+  else
+    echo ""
+  fi
+}
+
+# Expand a classpath out by running findjars on directories
+function excludeLogJarsFromClasspath() {
+ local classpath="$1"
+ local retval=""
+ for e in ${classpath//:/ }; do
+   if [[ $e = *\* ]]; then
+     retval=$(combineClasspaths "$retval" $(findJars "$e" "true" "true"))
+   elif [[ $e != *"slf4j"*jar ]]; then
+     retval=$(combineClasspaths "$retval" "$e")
+   fi
+ done
+ echo "$retval"
+}
+
+function setHadoopClasspath() {
+
+  # First check to see if the GEOMESA_HADOOP_CLASSPATH is already set
+  # and if so ignore it
+  if [[ -n "${GEOMESA_HADOOP_CLASSPATH}" ]]; then
+    return
+  fi
+
+  # Next attempt to cheat by stealing the classpath from the hadoop command
+  if [[ -n "$(command -v hadoop)" ]]; then
+    export GEOMESA_HADOOP_CLASSPATH=$(excludeLogJarsFromClasspath "$(hadoop classpath)")
+    return
+  fi
+
+  # Lastly, do a bunch of complicated guessing
+  # Get the hadoop jars, ignoring jars with names containing slf4j and test
+  # Copied from accumulo classpath
+  if [[ "$hadoopCDH" == "1" ]]; then
+    # Hadoop CDH configuration
+    hadoopDirs=(
+      $HADOOP_HOME
+      $HADOOP_CONF_DIR
+      $HADOOP_COMMON_HOME
+      $HADOOP_HDFS_HOME
+      $YARN_HOME
+      $HADOOP_MAPRED_HOME
+      $HADOOP_CUSTOM_CP
+    )
+  else
+    hadoopDirs=(
+      # Hadoop 2 requirements
+      $HADOOP_HOME/share/hadoop/common
+      $HADOOP_HOME/share/hadoop/hdfs/
+      $HADOOP_HOME/share/hadoop/mapreduce/
+      $HADOOP_HOME/share/hadoop/tools/lib
+      $HADOOP_HOME/share/hadoop/yarn/
+      # HDP 2.0 requirements
+      /usr/lib/hadoop/
+      /usr/lib/hadoop-hdfs/
+      /usr/lib/hadoop-mapreduce/
+      /usr/lib/hadoop-yarn/
+      # HDP 2.2 requirements
+      /usr/hdp/current/hadoop-client/
+      /usr/hdp/current/hadoop-hdfs-client/
+      /usr/hdp/current/hadoop-mapreduce-client/
+      /usr/hdp/current/hadoop-yarn-client/
+      # IOP 4.1 requirements
+      /usr/iop/current/hadoop-client/
+      /usr/iop/current/hadoop-hdfs-client/
+      /usr/iop/current/hadoop-mapreduce-client/
+      /usr/iop/current/hadoop-yarn-client/
+    )
+  fi
+
+  for home in ${hadoopDirs[*]}; do
+    tmp="$(findJars $home true)"
+    if [[ -n "$tmp" ]]; then
+      HADOOP_CP="${tmp}"
+    fi
+    if [[ "${HADOOP_CP:0:1}" = ":" ]]; then
+      HADOOP_CP="${HADOOP_CP:1}"
+    fi
+  done
+
+  export GEOMESA_HADOOP_CLASSPATH=$(excludeLogJarsFromClasspath "${HADOOP_CP}")
 }
 
 function geomesaConfigure() {
