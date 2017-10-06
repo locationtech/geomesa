@@ -67,7 +67,10 @@ fi
 # else is running actual commands in the tools
 
 FILTERED_CLASSPATHS=$(combineClasspaths $(excludeLogJarsFromClasspath ${GEOMESA_HBASE_CLASSPATH}) $(excludeLogJarsFromClasspath ${GEOMESA_HADOOP_CLASSPATH}))
-CLASSPATH=$(combineClasspaths ${GEOMESA_CP} "${FILTERED_CLASSPATHS}")
+CLASSPATH="${GEOMESA_CP}"
+if [[ -n "${FILTERED_CLASSPATHS}" ]]; then
+  CLASSPATH="${CLASSPATH}:${FILTERED_CLASSPATHS}"
+fi
 
 if  [[ $1 = configure ]]; then
   geomesaConfigure
