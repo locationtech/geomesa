@@ -23,13 +23,38 @@ and untar it somewhere convenient:
     $ ls /opt/geomesa
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
-Configuring HBase and Hadoop Dependencies
------------------------------------------
+Configuration and Classpaths
+----------------------------
 
-GeoMesa HBase requires Hadoop and HBase jars to be available on the classpath. These can be installed in the
-lib directory or referenced via environmental variables:
+GeoMesa HBase requires Hadoop and HBase jars and configuration files to be available on the classpath. This includes
+files such as the hbase-site.xml and core-site.xml files in addition to standard jars and libraries. Configuring the
+classpath is important if you plan to use the GeoMesa HBase command line tools to ingest and manage GeoMesa.
+
+By default, GeoMesa HBase will attempt to read various HBase and Hadoop related environmental variables in order to
+build the classpath including ``$HBASE_HOME`` and ``$HADOOP_HOME``. In addition, ``geomesa-hbase`` will pull any
+additional entries from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable. Note that the
+``$GEOMESA_EXTRA_CLASSPATHS`` variable will follow standard
+`Java Classpath <http://docs.oracle.com/javase/8/docs/technotes/tools/windows/classpath.html>`_ conventions generally
+means that entries must be directories, jar, or zip files. Individual XML files will be ignored.
+
+Use the ``geomesa classpath`` command in order to see what JARs are being used.
+
+A few suggested configurations are below:
 
 .. tabs::
+
+    .. group-tab:: Amazon EC2/EMR
+
+        When using EMR to install HBase or Hadoop there are AWS specific jars that need to be used. If Hadoop and/or
+        HBase are installed you can retrieve their classpaths using the ``hadoop classpath`` or ``hbase classpath``
+        commands to build an appropriate classpath to include jars and configuration files for GeoMesa HBase:
+
+         ``export "GEOMESA_EXTRA_CLASSPATHS=${GEOMESA_EXTRA_CLASSPATHS}:$(hadoop classpath):$(hbase classpath)``
+
+        If you are on an EMR or EC2 cluster that does not have HBase or Hadoop installed you can still
+        configure the jars and configuration files manually. If you would like to add an ``hbase-site.xml`` or
+        ``core-site.xml`` file you must either include a directory on the classpath or add the file to a zip
+        or jar archive to be included on the classpath.
 
     .. group-tab:: Standard
 
@@ -67,6 +92,10 @@ lib directory or referenced via environmental variables:
             $ cd $GEOMESA_HOME
             $ bin/install-hadoop.sh lib
             $ bin/install-hbase.sh lib
+
+        You will also need to provide the hbase-site.xml file within a directory, zip, or jar archive:
+
+            $ export GEOMESA_EXTRA_CLASSPATHS=/path/to/confdir:/path/to/conf.zip:/path/to/conf.jar
 
 .. _hbase_deploy_distributed_runtime:
 
