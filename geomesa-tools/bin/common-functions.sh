@@ -75,18 +75,26 @@ function combineClasspaths() {
 }
 
 # Expand a classpath out by running findjars on directories
+# TODO check the dirs for log files and retain * dirs if they have no logging jars
+# so that we don't explode things out as much
 function excludeLogJarsFromClasspath() {
  local classpath="$1"
- local retval=""
+ local filtered=()
  for e in ${classpath//:/ }; do
    if [[ $e = *\* ]]; then
-     retval=$(combineClasspaths "$retval" $(findJars "$e" "true" "true"))
+     if [[ -d "$e" && -n "$(ls $e | grep slf4j)" ]]; then
+       filtered+=($(findJars "$e" "true" "true"))
+     else
+       filtered+=("$e")
+     fi
    elif [[ $e != *"slf4j"*jar ]]; then
-     retval=$(combineClasspaths "$retval" "$e")
+     filtered+=("$e")
    fi
  done
- echo "$retval"
+ ret=$(IFS=: ; echo "${filtered[*]}")
+ echo "$ret"
 }
+
 
 function setHadoopClasspath() {
 
@@ -98,7 +106,7 @@ function setHadoopClasspath() {
 
   # Next attempt to cheat by stealing the classpath from the hadoop command
   if [[ -n "$(command -v hadoop)" ]]; then
-    export GEOMESA_HADOOP_CLASSPATH=$(excludeLogJarsFromClasspath "$(hadoop classpath)")
+    export GEOMESA_HADOOP_CLASSPATH=$(hadoop classpath)
     return
   fi
 

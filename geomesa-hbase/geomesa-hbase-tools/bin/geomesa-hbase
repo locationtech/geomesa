@@ -34,7 +34,7 @@ setHadoopClasspath
 if [[ ! -n "${GEOMESA_HBASE_CLASSPATH}" ]]; then
   # First attempt to just steal the hbase classpath
   if [[ -n "$(command -v hbase)" ]]; then
-    GEOMESA_HBASE_CLASSPATH=$(excludeLogJarsFromClasspath ":$(hbase classpath)")
+    GEOMESA_HBASE_CLASSPATH=$(hbase classpath)
   else
     # HBase paths, user can hard set these in geomesa-env, or rely on this script to find set them via HBASE_HOME
     if [[ -n "${HBASE_HOME}" ]]; then
@@ -66,7 +66,8 @@ fi
 # classpath - prints the Java classpath
 # else is running actual commands in the tools
 
-CLASSPATH="$(combineClasspaths ${GEOMESA_CP} $(combineClasspaths ${GEOMESA_HBASE_CLASSPATH} ${GEOMESA_HADOOP_CLASSPATH}))"
+FILTERED_CLASSPATHS=$(combineClasspaths $(excludeLogJarsFromClasspath ${GEOMESA_HBASE_CLASSPATH}) $(excludeLogJarsFromClasspath ${GEOMESA_HADOOP_CLASSPATH}))
+CLASSPATH=$(combineClasspaths ${GEOMESA_CP} "${FILTERED_CLASSPATHS}")
 
 if  [[ $1 = configure ]]; then
   geomesaConfigure
