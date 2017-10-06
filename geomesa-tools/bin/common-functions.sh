@@ -21,25 +21,22 @@ function setGeoLog() {
   fi
 }
 
+# findJars [path] [bool: remove slf4j jars] [bool: do not descend into sub directories]
+# TODO only finds lowercase .jar extensions
 function findJars() {
-  # findJars [path] [bool: exclude test and slf4j jars] [bool: do not descend into sub directories]
   home="$1"
-  CP=""
-  if [[ -n "${home}" && -d "${home}" ]]; then
-    if [[ ("$3" == "true") ]]; then
-      for jar in $(find ${home} -maxdepth 1 -name "*.jar"); do
-        if [[ ("$2" != "true") || (("$jar" != *"test"*) && ("$jar" != *"slf4j"*)) ]]; then
-          if [[ "$jar" = "${jar%-sources.jar}" && "$jar" = "${jar%-test.jar}" ]]; then
-            CP="$CP:$jar"
-          fi
+  CP=()
+  if [[ -d "${home}" ]]; then
+    if [[ "$3" == "true" ]]; then
+      for jar in $(find ${home} -maxdepth 1 -name "*.jar" -type f); do
+        if [[ "$2" != "true" || "$jar" != *slf4j* ]]; then
+          CP+=(${jar})
         fi
       done
     else
-      for jar in $(find ${home} -name "*.jar"); do
-        if [[ ("$2" != "true") || (("$jar" != *"test"*) && ("$jar" != *"slf4j"*)) ]]; then
-          if [[ "$jar" = "${jar%-sources.jar}" && "$jar" = "${jar%-test.jar}" ]]; then
-            CP="$CP:$jar"
-          fi
+      for jar in $(find ${home} -type f -name "*.jar"); do
+        if [[ "$2" != "true" || "$jar" != *slf4j* ]]; then
+          CP+=(${jar})
         fi
       done
     fi
@@ -51,10 +48,8 @@ function findJars() {
       fi
     fi
   fi
-  if [[ "${CP:0:1}" = ":" ]]; then
-    CP="${CP:1}"
-  fi
-  echo $CP
+  ret=$(IFS=: ; echo "${CP[*]}")
+  echo "$ret"
 }
 
 # Combine two arguments into a classpath (aka add a : between them)
@@ -74,6 +69,18 @@ function combineClasspaths() {
   fi
 }
 
+function filterSLF4J() {
+  base="$1"
+  CP=()
+  for jar in $(find ${base} -maxdepth 1 -type f -name "*.jar"); do
+    if [[ "$jar" != *"slf4j"* ]]; then
+      CP+=(${jar})
+    fi
+  done
+  ret=$(IFS=: ; echo "${CP[*]}")
+  echo "$ret"
+}
+
 # Expand a classpath out by running findjars on directories
 # TODO check the dirs for log files and retain * dirs if they have no logging jars
 # so that we don't explode things out as much
@@ -83,7 +90,7 @@ function excludeLogJarsFromClasspath() {
  for e in ${classpath//:/ }; do
    if [[ $e = *\* ]]; then
      if [[ -d "$e" && -n "$(ls $e | grep slf4j)" ]]; then
-       filtered+=($(findJars "$e" "true" "true"))
+       filtered+=($(filterSLF4J "$e"))
      else
        filtered+=("$e")
      fi
