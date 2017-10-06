@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Verify that we are running in sudo mode
+if [[ "$EUID" -ne 0 ]]; then
+  echo "ERROR: Please run in sudo mode"
+  exit
+fi
+
 GMDIR="/opt/geomesa-hbase_2.11-%%project.version%%"
 
 if [[ ! -d "${GMDIR}" ]]; then
@@ -21,10 +27,7 @@ ln -s ${GMDIR} /opt/geomesa
 
 cat <<EOF > /etc/profile.d/geomesa.sh
 export GEOMESA_HOME=/opt/geomesa
-export HBASE_HOME=/usr/lib/hbase
-export HADOOP_HOME=/usr/lib/hadoop
 export PATH=\$PATH:\$GEOMESA_HOME/bin
-
 EOF
 
 ## Make sure 'hbase' is up first!
@@ -36,13 +39,6 @@ do
       echo Waiting for HBase to be configured.
       ROOTDIR=`cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//'`
 done
-
-# Copy AWS dependencies to geomesa lib dir
-# Make sure HBase is properly initialized before running this
-# script or else the configuration will not be set up
-# properly
-cp /usr/share/aws/emr/emrfs/lib/* /opt/geomesa/lib
-cp /usr/lib/hbase/conf/hbase-site.xml /opt/geomesa/conf/
 
 chown -R ec2-user:ec2-user ${GMDIR}
 
