@@ -9,6 +9,7 @@ data stores, found in the ``geomesa-process`` module:
 -  ``ArrowConversionProcess`` - encodes simple features in the `Apache Arrow <https://arrow.apache.org/>`_ format
 -  ``BinConversionProcess`` - encodes simple features in a minimized 16-byte format
 -  :ref:`density_process` - computes a density heatmap for a CQL query
+-  ``DateOffsetProcess`` - modifies the specified date field in a feature collection by an input time period.
 -  ``HashAttributeProcess``/``HashAttributeColorProcess`` - computes an
    additional 'hash' attribute which is useful for styling.
 -  ``JoinProcess`` - merges features from two different schemas using a common attribute field
