@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.tools.stats
 
 import org.geotools.data.DataStore
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.opengis.filter.Filter
@@ -23,7 +22,7 @@ trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreC
 
   protected def count(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
-    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
 
     if (params.exact) {
       Command.user.info("Running stat query...")

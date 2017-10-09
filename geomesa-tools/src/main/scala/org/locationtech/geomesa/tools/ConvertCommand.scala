@@ -13,22 +13,16 @@ import java.util.zip.Deflater
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.io.IOUtils
 import org.geotools.data.Query
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.data.store.DataFeatureCollection
 import org.geotools.factory.Hints
-import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.tools.ConvertParameters.ConvertParameters
 import org.locationtech.geomesa.tools.export._
 import org.locationtech.geomesa.tools.export.formats._
+import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.tools.utils.DataFormats._
-import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
@@ -49,7 +43,7 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
   }
 
   private def convertAndExport(): Option[Long] = {
-    import ConvertCommand.{getConverter, getExporter, loadFeatureCollection}
+    import ConvertCommand.{getConverter, getExporter}
 
     import scala.collection.JavaConversions._
 
@@ -58,17 +52,18 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
     Command.user.info(s"Using SFT definition: ${SimpleFeatureTypes.encodeType(sft)}")
 
     val converter = getConverter(params, sft)
-    val filter = Option(params.cqlFilter).map { f =>
-      Command.user.debug(s"Applying CQL filter $f")
-      ECQL.toFilter(f)
-    }
+    val filter = Option(params.cqlFilter)
+    filter.foreach(f => Command.user.debug(s"Applying CQL filter $f"))
     val ec = converter.createEvaluationContext(Map("inputFilePath" -> ""))
-    val fc = loadFeatureCollection(params.files, converter, ec, filter, Option(params.maxFeatures).map(_.intValue))
+    val maxFeatures = Option(params.maxFeatures).map(_.intValue())
 
-    val exporter = getExporter(params, sft, fc)
+    def features() = ConvertCommand.convertFeatures(params.files, converter, ec, filter, maxFeatures)
+
+    val exporter = getExporter(params, sft, features())
 
     try {
-      val count = exporter.export(fc)
+      exporter.start(sft)
+      val count = exporter.export(features())
       val records = ec.counter.getLineCount - (if (params.noHeader) { 0 } else { params.files.size })
       Command.user.info(s"Converted ${getPlural(records, "line")} "
           + s"with ${getPlural(ec.counter.getSuccess, "success", "successes")} "
@@ -92,12 +87,10 @@ object ConvertCommand extends LazyLogging {
     SimpleFeatureConverters.build(sft, converterConfig)
   }
 
-  def getExporter(params: ConvertParameters, sft: SimpleFeatureType, fc: SimpleFeatureCollection): FeatureExporter = {
+  def getExporter(params: ConvertParameters,
+                  sft: SimpleFeatureType,
+                  features: => Iterator[SimpleFeature]): FeatureExporter = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
-    val outFmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
-      throw new ParameterException("Unable to parse output file type.")
-    }
 
     lazy val outputStream: OutputStream = ExportCommand.createOutputStream(params.file, params.gzip)
     lazy val writer: Writer = ExportCommand.getWriter(params)
@@ -114,49 +107,36 @@ object ConvertCommand extends LazyLogging {
       val attributes = hints.getArrowDictionaryFields
       if (attributes.isEmpty) { Map.empty } else {
         val values = attributes.map(a => a -> scala.collection.mutable.HashSet.empty[AnyRef])
-        SelfClosingIterator(fc.features()).foreach(f => values.foreach { case (a, v) => v.add(f.getAttribute(a))})
+        features.foreach(f => values.foreach { case (a, v) => v.add(f.getAttribute(a))})
         values.map { case (attribute, value) => attribute -> value.toSeq }.toMap
       }
     }
 
-    outFmt match {
-      case Csv | Tsv      => new DelimitedExporter(writer, outFmt, None, !params.noHeader)
+    params.outputFormat match {
+      case Csv | Tsv      => new DelimitedExporter(writer, params.outputFormat, None, !params.noHeader)
       case Shp            => new ShapefileExporter(ExportCommand.checkShpFile(params))
       case GeoJson | Json => new GeoJsonExporter(writer)
       case Gml            => new GmlExporter(outputStream)
-      case Avro           => new AvroExporter(sft, outputStream, avroCompression)
+      case Avro           => new AvroExporter(outputStream, avroCompression)
       case Bin            => new BinExporter(hints, outputStream)
       case Arrow          => new ArrowExporter(hints, outputStream, arrowDictionaries)
-      case _              => throw new ParameterException(s"Format $outFmt is not supported.")
+      case _              => throw new ParameterException(s"Format ${params.outputFormat} is not supported.")
     }
   }
 
-  def loadFeatureCollection(files: Iterable[String],
-                            converter: SimpleFeatureConverter[Any],
-                            ec: EvaluationContext,
-                            filter: Option[Filter],
-                            maxFeatures: Option[Int]): SimpleFeatureCollection = {
-    def convert(): Iterator[SimpleFeature] = {
-      val features = files.iterator.flatMap(PathUtils.interpretPath).flatMap { file =>
-        ec.set(ec.indexOf("inputFilePath"), file.path)
-        val is = PathUtils.handleCompression(file.open, file.path)
-        converter.process(is, ec)
-      }
-      val filtered = filter.map(f => features.filter(f.evaluate)).getOrElse(features)
-      val limited = maxFeatures.map(filtered.take).getOrElse(filtered)
-      limited
+  def convertFeatures(files: Iterable[String],
+                      converter: SimpleFeatureConverter[Any],
+                      ec: EvaluationContext,
+                      filter: Option[Filter],
+                      maxFeatures: Option[Int]): Iterator[SimpleFeature] = {
+    val all = files.iterator.flatMap(PathUtils.interpretPath).flatMap { file =>
+      ec.set(ec.indexOf("inputFilePath"), file.path)
+      val is = PathUtils.handleCompression(file.open, file.path)
+      converter.process(is, ec)
     }
-
-    new DataFeatureCollection("features", converter.targetSFT) {
-      import scala.collection.JavaConversions._
-      override def getBounds: ReferencedEnvelope = {
-        val bounds = new ReferencedEnvelope()
-        convert().foreach(f => bounds.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal))
-        bounds
-      }
-      override def getCount: Int = convert().length
-      override protected def openIterator(): java.util.Iterator[SimpleFeature] = convert()
-    }
+    val filtered = filter.map(f => all.filter(f.evaluate)).getOrElse(all)
+    val limited = maxFeatures.map(filtered.take).getOrElse(filtered)
+    limited
   }
 }
 

@@ -10,8 +10,29 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io.Closeable
 
-import org.geotools.data.simple.SimpleFeatureCollection
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+/**
+  * Exports features in various formats. Usage pattern is:
+  *
+  *   start()
+  *   export() - 0 to n times
+  *   close()
+  */
 trait FeatureExporter extends Closeable {
-  def export(featureCollection: SimpleFeatureCollection): Option[Long]
+
+  /**
+    * Start the export
+    *
+    * @param sft simple feature type
+    */
+  def start(sft: SimpleFeatureType): Unit
+
+  /**
+    * Export a batch of features
+    *
+    * @param features features to export
+    * @return count of features exported, if available
+    */
+  def export(features: Iterator[SimpleFeature]): Option[Long]
 }

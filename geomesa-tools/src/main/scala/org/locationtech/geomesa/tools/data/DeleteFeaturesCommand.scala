@@ -21,7 +21,7 @@ trait DeleteFeaturesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override def execute(): Unit = {
     val sftName = params.featureName
-    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
     Command.user.info(s"Deleting features from $sftName with filter $filter. This may take a few moments...")
     withDataStore { ds =>
       ds.getFeatureSource(sftName) match {

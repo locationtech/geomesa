@@ -10,7 +10,6 @@ package org.locationtech.geomesa.tools.stats
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.DataStore
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
@@ -28,7 +27,7 @@ trait StatsBoundsCommand[DS <: DataStore with HasGeoMesaStats] extends DataStore
 
     val sft = ds.getSchema(params.featureName)
     val attributes = StatsCommand.getAttributesFromParams(sft, params)
-    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
 
     val allBounds = if (params.exact) {
       Command.user.info("Running stat query...")

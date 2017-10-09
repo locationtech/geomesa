@@ -23,6 +23,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
 import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter}
 import org.locationtech.geomesa.tools.utils.DataFormats
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
@@ -67,7 +68,8 @@ class FeatureExporterTest extends Specification {
 
       val writer = new StringWriter()
       val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
-      export.export(features)
+      export.start(features.getSchema)
+      export.export(SelfClosingIterator(features.features()))
       export.close()
 
       val result = writer.toString.split("\r\n")
@@ -83,7 +85,8 @@ class FeatureExporterTest extends Specification {
 
       val writer = new StringWriter()
       val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
-      export.export(features)
+      export.start(features.getSchema)
+      export.export(SelfClosingIterator(features.features()))
       export.close()
 
       val result = writer.toString.split("\r\n")
@@ -99,7 +102,8 @@ class FeatureExporterTest extends Specification {
 
       val writer = new StringWriter()
       val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
-      export.export(features)
+      export.start(features.getSchema)
+      export.export(SelfClosingIterator(features.features()))
       export.close()
 
       val result = writer.toString.split("\r\n")
@@ -115,7 +119,8 @@ class FeatureExporterTest extends Specification {
 
       val writer = new StringWriter()
       val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
-      export.export(features)
+      export.start(features.getSchema)
+      export.export(SelfClosingIterator(features.features()))
       export.close()
 
       val result = writer.toString.split("\r\n")
@@ -135,8 +140,9 @@ class FeatureExporterTest extends Specification {
       val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteArrayOutputStream()
-      val export = new AvroExporter(featureCollection.getSchema, os, Deflater.NO_COMPRESSION)
-      export.export(featureCollection)
+      val export = new AvroExporter(os, Deflater.NO_COMPRESSION)
+      export.start(featureCollection.getSchema)
+      export.export(SelfClosingIterator(featureCollection.features()))
       export.close()
 
       val result = new AvroDataFileReader(new ByteArrayInputStream(os.toByteArray))

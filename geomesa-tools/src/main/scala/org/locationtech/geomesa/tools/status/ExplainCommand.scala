@@ -10,7 +10,6 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.Parameters
 import org.geotools.data.Query
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.ExplainString
@@ -27,7 +26,7 @@ trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[
   override def execute(): Unit = withDataStore(explain)
 
   protected def explain(ds: DS): Unit = {
-    val query = new Query(params.featureName, Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE))
+    val query = new Query(params.featureName, Option(params.cqlFilter).getOrElse(Filter.INCLUDE))
     Option(params.attributes).filterNot(_.isEmpty).foreach(query.setPropertyNames)
     params.loadIndex(ds, IndexMode.Read).foreach { index =>
       query.getHints.put(QueryHints.QUERY_INDEX, index)

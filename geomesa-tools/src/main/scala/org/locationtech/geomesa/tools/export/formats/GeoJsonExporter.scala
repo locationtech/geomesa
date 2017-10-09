@@ -10,20 +10,34 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io.Writer
 
-import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.geojson.feature.FeatureJSON
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class GeoJsonExporter(writer: Writer) extends FeatureExporter {
 
-  val featureJson = new FeatureJSON()
+  private val json = new FeatureJSON()
 
-  override def export(features: SimpleFeatureCollection): Option[Long]  = {
-    featureJson.writeFeatureCollection(features, writer)
-    None
+  private var first = true
+
+  override def start(sft: SimpleFeatureType): Unit = writer.write("""{type:"FeatureCollection",features:[""")
+
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
+    var count = 0L
+    features.foreach { feature =>
+      if (first) {
+        first = false
+      } else {
+        writer.write(",")
+      }
+      json.writeFeature(feature, writer)
+      count += 1L
+    }
+    writer.flush()
+    Some(count)
   }
 
   override def close(): Unit  = {
-    writer.flush()
+    writer.write("]}\n")
     writer.close()
   }
 }

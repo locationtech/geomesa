@@ -10,8 +10,11 @@ package org.locationtech.geomesa.tools.utils
 
 import com.beust.jcommander.ParameterException
 import com.beust.jcommander.converters.BaseConverter
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Period
 import org.joda.time.format.PeriodFormat
+import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
+import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -50,6 +53,29 @@ object ParameterConverters {
         Duration(value)
       } catch {
         case NonFatal(e) => throw new ParameterException(getErrorString(value, s"duration: $e"))
+      }
+    }
+  }
+
+  class FilterConverter(name: String) extends BaseConverter[Filter](name) {
+    override def convert(value: String): Filter = {
+      try {
+        ECQL.toFilter(value)
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"filter: $e"))
+      }
+    }
+  }
+
+  class DataFormatConverter(name: String) extends BaseConverter[DataFormat](name) {
+    override def convert(value: String): DataFormat = {
+      try {
+        DataFormats.values.find(_.toString.equalsIgnoreCase(value)).getOrElse {
+          throw new ParameterException(s"Invalid format '$value'. Valid values are " +
+              DataFormats.values.map(_.toString.toLowerCase).mkString("'", "', '", "'"))
+        }
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
       }
     }
   }

@@ -10,29 +10,20 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io.OutputStream
 
-import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BinExporter(hints: Hints, os: OutputStream) extends FeatureExporter {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  override def export(fc: SimpleFeatureCollection): Option[Long] = {
-    val sft = fc.getSchema
-    val features = SelfClosingIterator(fc.features())
+  private var encoder: Option[BinaryOutputEncoder] = None
+
+  override def start(sft: SimpleFeatureType): Unit = {
     if (sft == BinaryOutputEncoder.BinEncodedSft) {
-      var numBytes = 0L
-      // just copy bytes directly out
-      features.foreach { f =>
-        val bytes = f.getAttribute(0).asInstanceOf[Array[Byte]]
-        os.write(bytes)
-        numBytes += bytes.length
-      }
-      Some(numBytes / (if (hints.getBinLabelField.isEmpty) { 16 } else { 24 }))
+      encoder = None
     } else {
       import org.locationtech.geomesa.index.conf.QueryHints.RichHints
       // do the encoding here
@@ -40,11 +31,25 @@ class BinExporter(hints: Hints, os: OutputStream) extends FeatureExporter {
       val dtg = hints.getBinDtgField.map(sft.indexOf)
       val track = Option(hints.getBinTrackIdField).filter(_ != "id").map(sft.indexOf)
       val options = EncodingOptions(geom, dtg, track, hints.getBinLabelField.map(sft.indexOf))
-      val features = CloseableIterator(fc.features)
-      val encoder = BinaryOutputEncoder(fc.getSchema, options)
-      val count = encoder.encode(features, os)
-      Some(count)
+      encoder = Some(BinaryOutputEncoder(sft, options))
     }
+  }
+
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
+    val count = encoder match {
+      case Some(e) => e.encode(features, os)
+      case None =>
+        var numBytes = 0L
+        // just copy bytes directly out
+        features.foreach { f =>
+          val bytes = f.getAttribute(0).asInstanceOf[Array[Byte]]
+          os.write(bytes)
+          numBytes += bytes.length
+        }
+        numBytes / (if (hints.getBinLabelField.isEmpty) { 16 } else { 24 })
+    }
+    os.flush()
+    Some(count)
   }
 
   override def close(): Unit = os.close()

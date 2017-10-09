@@ -12,7 +12,9 @@ import java.io.File
 
 import com.beust.jcommander.Parameter
 import org.locationtech.geomesa.tools.OptionalCqlFilterParam
-import org.locationtech.geomesa.tools.utils.ParameterConverters.HintConverter
+import org.locationtech.geomesa.tools.utils.DataFormats
+import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
+import org.locationtech.geomesa.tools.utils.ParameterConverters.{DataFormatConverter, HintConverter}
 
 trait FileExportParams extends OptionalCqlFilterParam {
   @Parameter(names = Array("-o", "--output"), description = "Output to a file instead of std out")
@@ -21,8 +23,8 @@ trait FileExportParams extends OptionalCqlFilterParam {
   @Parameter(names = Array("--gzip"), description = "Level of gzip compression to apply to output, from 1-9")
   var gzip: Integer = _
 
-  @Parameter(names = Array("-F", "--output-format"), description = "File format of output files (csv|tsv|gml|json|shp|avro)")
-  var outputFormat: String = "csv"
+  @Parameter(names = Array("-F", "--output-format"), description = "File format of output files (csv|tsv|gml|json|shp|avro)", converter = classOf[DataFormatConverter])
+  var outputFormat: DataFormat = DataFormats.Csv
 
   @Parameter(names = Array("--no-header"), description = "Export as a delimited text format (csv|tsv) without a type header", required = false)
   var noHeader: Boolean = false

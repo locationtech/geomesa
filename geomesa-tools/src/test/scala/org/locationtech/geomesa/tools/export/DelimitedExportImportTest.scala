@@ -21,6 +21,7 @@ import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -35,9 +36,10 @@ class DelimitedExportImportTest extends Specification {
   val pt1 = WKTUtils.read("POINT(1 0)")
   val pt2 = WKTUtils.read("POINT(0 2)")
 
-  def export(features: SimpleFeatureCollection, format: DataFormat): String = {
+  def export(sft: SimpleFeatureType, features: Iterator[SimpleFeature], format: DataFormat): String = {
     val writer = new StringWriter()
     val export = new DelimitedExporter(writer, format, None, true)
+    export.start(sft)
     export.export(features)
     export.close()
     writer.toString
@@ -52,11 +54,10 @@ class DelimitedExportImportTest extends Specification {
         new ScalaSimpleFeature(sft, "1", Array("name1", dt1, pt1)),
         new ScalaSimpleFeature(sft, "2", Array("name2", dt2, pt2))
       )
-      val fc = new ListFeatureCollection(sft, features)
 
       "in tsv" >> {
         val format = DataFormats.Tsv
-        val results = export(fc, format)
+        val results = export(sft, features.iterator, format)
 
         val reader = AutoIngestDelimited.getCsvFormat(format).parse(new StringReader(results))
 
@@ -71,7 +72,7 @@ class DelimitedExportImportTest extends Specification {
 
       "in csv" >> {
         val format = DataFormats.Csv
-        val results = export(fc, format)
+        val results = export(sft, features.iterator, format)
 
         val reader = AutoIngestDelimited.getCsvFormat(format).parse(new StringReader(results))
 
@@ -93,11 +94,10 @@ class DelimitedExportImportTest extends Specification {
         new ScalaSimpleFeature(sft, "1", Array("name1", List(1, 2).asJava, Map("one" -> 1, "1" -> 0).asJava, dt1, pt1)),
         new ScalaSimpleFeature(sft, "2", Array("name2", List(2, 1).asJava, Map("two" -> 2, "2" -> 0).asJava, dt1, pt1))
       )
-      val fc = new ListFeatureCollection(sft, features)
 
       "in tsv" >> {
         val format = DataFormats.Tsv
-        val results = export(fc, format)
+        val results = export(sft, features.iterator, format)
 
         val reader = AutoIngestDelimited.getCsvFormat(format).parse(new StringReader(results))
 
@@ -116,7 +116,7 @@ class DelimitedExportImportTest extends Specification {
 
       "in csv" >> {
         val format = DataFormats.Csv
-        val results = export(fc, format)
+        val results = export(sft, features.iterator, format)
 
         val reader = AutoIngestDelimited.getCsvFormat(format).parse(new StringReader(results))
 
