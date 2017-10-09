@@ -12,6 +12,7 @@ org.locationtech.geomesa.process.query.QueryProcess
 org.locationtech.geomesa.process.query.RouteSearchProcess
 org.locationtech.geomesa.process.transform.ArrowConversionProcess
 org.locationtech.geomesa.process.transform.BinConversionProcess
+org.locationtech.geomesa.process.transform.DateOffsetProcess
 org.locationtech.geomesa.process.transform.HashAttributeProcess
 org.locationtech.geomesa.process.transform.HashAttributeColorProcess
 org.locationtech.geomesa.process.tube.TubeSelectProcess
