@@ -13,6 +13,7 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
@@ -82,11 +83,14 @@ public abstract class AbstractPolygonVector implements GeometryVector<Polygon, L
 
   public static abstract class PolygonWriter extends AbstractGeometryWriter<Polygon> {
 
+    private final BitVector.Mutator nullSet;
     private final ListVector.Mutator mutator;
     private final ListVector.Mutator innerMutator;
     private final FixedSizeListVector.Mutator tupleMutator;
 
     protected PolygonWriter(ListVector vector) {
+      // the only way to access the bit vectors and set an index as null
+      this.nullSet = ((BitVector)vector.getFieldInnerVectors().get(0)).getMutator();
       ListVector innerList = (ListVector) vector.getChildrenFromFields().get(0);
       FixedSizeListVector tuples = (FixedSizeListVector) innerList.getChildrenFromFields().get(0);
       this.mutator = vector.getMutator();
@@ -97,7 +101,9 @@ public abstract class AbstractPolygonVector implements GeometryVector<Polygon, L
 
     @Override
     public void set(int index, Polygon geom) {
-      if (geom != null) {
+      if (geom == null) {
+        nullSet.setSafe(index, 0);
+      } else {
         int innerIndex = mutator.startNewValue(index);
         for (int i = 0; i < geom.getNumInteriorRing() + 1; i++) {
           LineString line = i == 0 ? geom.getExteriorRing() : geom.getInteriorRingN(i - 1);

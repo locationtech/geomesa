@@ -11,6 +11,7 @@ package org.locationtech.geomesa.arrow.vector.impl;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
@@ -79,10 +80,13 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
 
   public static abstract class LineStringWriter extends AbstractGeometryWriter<LineString> {
 
+    private final BitVector.Mutator nullSet;
     private final ListVector.Mutator mutator;
     private final FixedSizeListVector.Mutator tupleMutator;
 
     protected LineStringWriter(ListVector vector) {
+      // the only way to access the bit vectors and set an index as null
+      this.nullSet = ((BitVector)vector.getFieldInnerVectors().get(0)).getMutator();
       this.mutator = vector.getMutator();
       FixedSizeListVector tuples = (FixedSizeListVector) vector.getChildrenFromFields().get(0);
       this.tupleMutator = tuples.getMutator();
@@ -91,7 +95,9 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
 
     @Override
     public void set(int index, LineString geom) {
-      if (geom != null) {
+      if (geom == null) {
+        nullSet.setSafe(index, 0);
+      } else {
         int position = mutator.startNewValue(index);
         for (int i = 0; i < geom.getNumPoints(); i++) {
           Coordinate p = geom.getCoordinateN(i);
