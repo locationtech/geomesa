@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
@@ -83,12 +84,15 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
 
   public static abstract class MultiPolygonWriter extends AbstractGeometryWriter<MultiPolygon> {
 
+    private final BitVector.Mutator nullSet;
     private final ListVector.Mutator mutator;
     private final ListVector.Mutator innerMutator;
     private final ListVector.Mutator innerInnerMutator;
     private final FixedSizeListVector.Mutator tupleMutator;
 
     protected MultiPolygonWriter(ListVector vector) {
+      // the only way to access the bit vectors and set an index as null
+      this.nullSet = ((BitVector)vector.getFieldInnerVectors().get(0)).getMutator();
       ListVector innerList = (ListVector) vector.getChildrenFromFields().get(0);
       ListVector innerInnerList = (ListVector) innerList.getChildrenFromFields().get(0);
       FixedSizeListVector tuples = (FixedSizeListVector) innerInnerList.getChildrenFromFields().get(0);
@@ -101,7 +105,9 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
 
     @Override
     public void set(int index, MultiPolygon geom) {
-      if (geom != null) {
+      if (geom == null) {
+        nullSet.setSafe(index, 0);
+      } else {
         int innerIndex = mutator.startNewValue(index);
         for (int i = 0; i < geom.getNumGeometries(); i++) {
           Polygon poly = (Polygon) geom.getGeometryN(i);
