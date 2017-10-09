@@ -70,6 +70,21 @@ class SimpleFeatureVectorTest extends Specification {
         }
       }
     }
+    "set and get null values" >> {
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(true))) { vector =>
+        val nulls = features.map(ScalaSimpleFeature.copy)
+        (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
+        nulls.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual nulls(i))
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10)(i => wrapped.reader.get(i) mustEqual nulls(i))
+        }
+      }
+    }
     "exclude feature ids" >> {
       WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(false))) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
@@ -102,6 +117,22 @@ class SimpleFeatureVectorTest extends Specification {
         WithClose(SimpleFeatureVector.wrap(vector.underlying, dictionary)) { wrapped =>
           wrapped.reader.getValueCount mustEqual features.length
           forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
+        }
+      }
+    }
+    "set and get null dictionary values" >> {
+      val dictionary = Map("name" -> ArrowDictionary.create(Seq("name00", "name01")))
+      WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(true))) { vector =>
+        val nulls = features.map(ScalaSimpleFeature.copy)
+        (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
+        nulls.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual nulls(i))
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, dictionary)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10)(i => wrapped.reader.get(i) mustEqual nulls(i))
         }
       }
     }
@@ -139,6 +170,46 @@ class SimpleFeatureVectorTest extends Specification {
           wrapped.reader.getValueCount mustEqual features.length
           forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
         }
+      }
+    }
+    "set null geometries" >> {
+      val sft = SimpleFeatureTypes.createType("test",
+        "line:LineString:srid=4326,poly:Polygon:srid=4326,*geom:Point:srid=4326")
+      val features = (0 until 10).map { i =>
+        ScalaSimpleFeature.create(sft, s"$i", s"LINESTRING (30 10, 1$i 30, 40 40)",
+          s"POLYGON ((30 10, 4$i 40, 20 40, 10 20, 30 10))", s"POINT (4$i 5$i)")
+      }
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.max(true))) { vector =>
+        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+
+        vector.clear()
+
+        val nulls = features.map(ScalaSimpleFeature.copy)
+        (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
+        nulls.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual nulls(i))
+      }
+    }
+    "clear" >> {
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(true))) { vector =>
+        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+
+        vector.clear()
+
+        val nulls = features.map(ScalaSimpleFeature.copy)
+        (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
+        nulls.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual nulls(i))
       }
     }
   }

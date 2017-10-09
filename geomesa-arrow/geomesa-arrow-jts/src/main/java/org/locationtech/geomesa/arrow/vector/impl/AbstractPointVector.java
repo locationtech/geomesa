@@ -87,7 +87,9 @@ public abstract class AbstractPointVector implements GeometryVector<Point, Fixed
 
     @Override
     public void set(int index, Point geom) {
-      if (geom != null) {
+      if (geom == null) {
+        mutator.setNull(index);
+      } else {
         mutator.setNotNull(index);
         writeOrdinal(index * 2, geom.getY());
         writeOrdinal(index * 2 + 1, geom.getX());
