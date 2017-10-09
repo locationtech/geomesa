@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.audit
 import java.io.Serializable
 import java.util.{Map => jMap}
 
-import org.apache.accumulo.core.client.Connector
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.utils.audit.AuditProvider
 
@@ -27,10 +26,10 @@ class ParamsAuditProvider extends AuditProvider {
 
   override def configure(params: jMap[String, Serializable]): Unit = {
     import AccumuloDataStoreParams._
-    val user = if (params.containsKey(connParam.key)) {
-      connParam.lookUp(params).asInstanceOf[Connector].whoami()
-    } else if (params.containsKey(userParam)) {
-      userParam.lookUp(params).asInstanceOf[String]
+    val user = if (ConnectorParam.exists(params)) {
+      ConnectorParam.lookup(params).whoami()
+    } else if (UserParam.exists(params)) {
+      UserParam.lookup(params)
     } else {
       null
     }

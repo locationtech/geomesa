@@ -19,21 +19,21 @@ abstract class GeoMesaArgs(val args: Array[String]) extends ReverseParsable {
 }
 
 object GeoMesaArgs {
-  final val InputUser = "--geomesa.input.user"
-  final val InputPassword = "--geomesa.input.password"
-  final val InputKeytabPath = "--geomesa.input.keytabPath"
-  final val InputInstanceId = "--geomesa.input.instanceId"
-  final val InputZookeepers = "--geomesa.input.zookeepers"
-  final val InputTableName = "--geomesa.input.tableName"
+  final val InputUser        = "--geomesa.input.user"
+  final val InputPassword    = "--geomesa.input.password"
+  final val InputKeytabPath  = "--geomesa.input.keytabPath"
+  final val InputInstanceId  = "--geomesa.input.instanceId"
+  final val InputZookeepers  = "--geomesa.input.zookeepers"
+  final val InputTableName   = "--geomesa.input.tableName"
   final val InputFeatureName = "--geomesa.input.feature"
-  final val InputCQL = "--geomesa.input.cql"
-  final val OutputUser = "--geomesa.output.user"
-  final val OutputPassword = "--geomesa.output.password"
+  final val InputCQL         = "--geomesa.input.cql"
+  final val OutputUser       = "--geomesa.output.user"
+  final val OutputPassword   = "--geomesa.output.password"
   final val OutputInstanceId = "--geomesa.output.instanceId"
   final val OutputZookeepers = "--geomesa.output.zookeepers"
-  final val OutputTableName = "--geomesa.output.tableName"
-  final val OutputFeature = "--geomesa.output.feature"
-  final val OutputHdfs = "--geomesa.output.hdfs"
+  final val OutputTableName  = "--geomesa.output.tableName"
+  final val OutputFeature    = "--geomesa.output.feature"
+  final val OutputHdfs       = "--geomesa.output.hdfs"
 }
 
 trait ReverseParsable {
@@ -61,12 +61,12 @@ trait InputDataStoreArgs extends ReverseParsable {
   var inTableName: String = null
 
   def inDataStore: Map[String, String] = Map(
-    AccumuloDataStoreParams.userParam.getName       -> inUser,
-    AccumuloDataStoreParams.passwordParam.getName   -> inPassword,
-    AccumuloDataStoreParams.keytabPathParam.getName -> inKeytabPath,
-    AccumuloDataStoreParams.instanceIdParam.getName -> inInstanceId,
-    AccumuloDataStoreParams.zookeepersParam.getName -> inZookeepers,
-    AccumuloDataStoreParams.tableNameParam.getName  -> inTableName
+    AccumuloDataStoreParams.UserParam.getName       -> inUser,
+    AccumuloDataStoreParams.PasswordParam.getName   -> inPassword,
+    AccumuloDataStoreParams.KeytabPathParam.getName -> inKeytabPath,
+    AccumuloDataStoreParams.InstanceIdParam.getName -> inInstanceId,
+    AccumuloDataStoreParams.ZookeepersParam.getName -> inZookeepers,
+    AccumuloDataStoreParams.CatalogParam.getName    -> inTableName
   )
 
   override def unparse(): Array[String] = {
@@ -125,11 +125,11 @@ trait OutputDataStoreArgs extends ReverseParsable {
   var outTableName: String = null
 
   def outDataStore: Map[String, String] = Map(
-    AccumuloDataStoreParams.userParam.getName       -> outUser,
-    AccumuloDataStoreParams.passwordParam.getName   -> outPassword,
-    AccumuloDataStoreParams.instanceIdParam.getName -> outInstanceId,
-    AccumuloDataStoreParams.zookeepersParam.getName -> outZookeepers,
-    AccumuloDataStoreParams.tableNameParam.getName  -> outTableName
+    AccumuloDataStoreParams.UserParam.getName       -> outUser,
+    AccumuloDataStoreParams.PasswordParam.getName   -> outPassword,
+    AccumuloDataStoreParams.InstanceIdParam.getName -> outInstanceId,
+    AccumuloDataStoreParams.ZookeepersParam.getName -> outZookeepers,
+    AccumuloDataStoreParams.CatalogParam.getName    -> outTableName
   )
 
   override def unparse(): Array[String] = {

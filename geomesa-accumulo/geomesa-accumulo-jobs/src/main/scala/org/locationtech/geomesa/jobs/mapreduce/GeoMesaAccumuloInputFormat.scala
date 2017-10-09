@@ -69,10 +69,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     assert(ds != null, "Invalid data store parameters")
 
     // Set Mock or Zookeeper instance
-    val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
-    val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
-    val keytabPath = AccumuloDataStoreParams.keytabPathParam.lookUp(dsParams).asInstanceOf[String]
-    val mock = java.lang.Boolean.valueOf(AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String])
+    val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(dsParams)
+    val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(dsParams)
+    val keytabPath = AccumuloDataStoreParams.KeytabPathParam.lookup(dsParams)
+    val mock = AccumuloDataStoreParams.MockParam.lookup(dsParams)
 
     if (mock) {
       AbstractInputFormat.setMockInstance(job, instance)
@@ -81,8 +81,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     }
 
     // Set connector info
-    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
-    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
+    val user = AccumuloDataStoreParams.UserParam.lookup(dsParams)
+    val password = AccumuloDataStoreParams.PasswordParam.lookup(dsParams)
 
     val token = if (password != null) {
       new PasswordToken(password.getBytes)
@@ -94,7 +94,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 
     InputFormatBaseAdapter.setConnectorInfo(job, user, token)
 
-    val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
+    val auths = Option(AccumuloDataStoreParams.AuthsParam.lookup(dsParams))
     auths.foreach(a => InputFormatBaseAdapter.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
 
     val featureTypeName = query.getTypeName
@@ -172,7 +172,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     val params = new CaseInsensitiveMap(GeoMesaConfigurator.getDataStoreInParams(conf)).asInstanceOf[java.util.Map[String, String]]
 
     // Extract password from params to see if we are using Kerberos or not
-    val password = AccumuloDataStoreParams.passwordParam.lookUp(params).asInstanceOf[String]
+    val password = AccumuloDataStoreParams.PasswordParam.lookup(params)
 
     // Build a datastore depending on how we are authenticating
     val ds = if (password!=null) {
@@ -220,15 +220,15 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
           }
 
           // Build connector
-          val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(params).asInstanceOf[String]
-          val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(params).asInstanceOf[String]
-          val user = AccumuloDataStoreParams.userParam.lookUp(params).asInstanceOf[String]
+          val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(params)
+          val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(params)
+          val user = AccumuloDataStoreParams.UserParam.lookup(params)
           val connector = new ZooKeeperInstance(new ClientConfiguration()
             .withInstance(instance).withZkHosts(zookeepers).withSasl(true))
             .getConnector(user, token)
 
           // Add connector param and remove keytabPath param
-          val updatedParams = params + (AccumuloDataStoreParams.connParam.getName -> connector) - AccumuloDataStoreParams.keytabPathParam.getName
+          val updatedParams = params + (AccumuloDataStoreParams.ConnectorParam.getName -> connector) - AccumuloDataStoreParams.KeytabPathParam.getName
 
           // Get datastore using updated params
           DataStoreFinder.getDataStore(new CaseInsensitiveMap(updatedParams).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]

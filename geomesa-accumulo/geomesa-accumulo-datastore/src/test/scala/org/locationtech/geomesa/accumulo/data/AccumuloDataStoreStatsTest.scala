@@ -363,11 +363,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
       "not calculate stats when collection is disabled" >> {
         import scala.collection.JavaConversions._
-        val dsNoStats =  DataStoreFinder.getDataStore(Map(
-          "connector"     -> connector,
-          "caching"       -> false,
-          "tableName"     -> ds.config.catalog,
-          "generateStats" -> false)).asInstanceOf[AccumuloDataStore]
+        val params = dsParams ++ Map(AccumuloDataStoreParams.GenerateStatsParam.key -> false)
+        val dsNoStats =  DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
         val fs = dsNoStats.getFeatureSource(sftName)
 

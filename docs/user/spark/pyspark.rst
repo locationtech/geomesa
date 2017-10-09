@@ -52,11 +52,11 @@ At this point you are ready to create a dict of connection parameters to your Ac
 .. code-block:: python
 
     params = {
-        "instanceId": "myInstance",
-        "zookeepers": "zoo1,zoo2,zoo3",
-        "user": "user",
-        "password": "password",
-        "tableName": "myCatalog"
+        "accumulo.instance.id": "myInstance",
+        "accumulo.zookeepers": "zoo1,zoo2,zoo3",
+        "accumulo.user": "user",
+        "accumulo.password": "password",
+        "accumulo.catalog": "myCatalog"
     }
     feature = "mySchema"
     df = ( spark

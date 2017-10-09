@@ -123,20 +123,20 @@ Endpoints
 The following paths are defined:
 
 -  POST /ds/:alias - Register a GeoMesa data store
-    -  instanceId
-    -  zookeepers
-    -  user
-    -  password
-    -  tableName
-    -  auths (optional)
-    -  visibilities (optional)
-    -  queryTimeout (optional)
-    -  queryThreads (optional)
-    -  recordThreads (optional)
-    -  writeMemory (optional)
-    -  writeThreads (optional)
-    -  collectStats (optional)
-    -  caching (optional)
+    -  accumulo.instance.id
+    -  accumulo.zookeepers
+    -  accumulo.user
+    -  accumulo.password
+    -  accumulo.catalog
+    -  geomesa.security.auths (optional)
+    -  geomesa.security.visibilities (optional)
+    -  geomesa.query.timeout (optional)
+    -  geomesa.query.threads (optional)
+    -  accumulo.query.record-threads (optional)
+    -  accumulo.write.threads (optional)
+    -  geomesa.stats.generate (optional)
+    -  geomesa.query.audit (optional)
+    -  geomesa.query.caching (optional)
 
 This method must be called to register any data store you wish to query
 later. It should not be called while the Spark context is running.

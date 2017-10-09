@@ -16,13 +16,7 @@ in :ref:`install_cassandra_geoserver`, "Cassandra (GeoMesa)" should be included 
 under **Vector Data Sources**. If you do not see this, check that you unpacked the
 plugin JARs into in the right directory and restart GeoServer.
 
-On the "Add Store" page, select "Cassandra (GeoMesa)". The Cassandra data store requires three parameters:
-
-* **geomesa.cassandra.contact.point** - the connection point for Cassandra, in the form ``<host>:<port>`` -
-  for a default local installation this will be ``localhost:9042``.
-
-* **geomesa.cassandra.keyspace** - the Cassandra keyspace to use (must exist already)
-
-* **geomesa.cassandra.catalog.table** - the name of the Cassandra table that stores feature type data
+On the "Add Store" page, select "Cassandra (GeoMesa)", and fill out the
+parameters. The parameters are described in :ref:`cassandra_parameters`.
 
 Click "Save", and GeoServer will search Cassandra for any GeoMesa-managed feature types.

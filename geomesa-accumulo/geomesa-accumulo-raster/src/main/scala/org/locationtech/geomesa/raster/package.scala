@@ -11,9 +11,8 @@ package org.locationtech.geomesa
 import java.math.{MathContext, RoundingMode}
 
 import org.calrissian.mango.types.LexiTypeEncoders
-import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{GeoMesaParam, SimpleFeatureTypes}
 
 /**
  * In these lexiEncode and -Decode functions, a double is encoded or decoded into a lexical
@@ -33,7 +32,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 package object raster {
 
   object RasterParams {
-    val writeMemoryParam = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)
+    val writeMemoryParam = new GeoMesaParam[Integer]("writeMemory", "The memory allocation to use for writing records")
   }
 
   val rasterSftName: String = ""

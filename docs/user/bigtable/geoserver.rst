@@ -15,9 +15,8 @@ in :ref:`install_bigtable_geoserver`, "Bigtable (GeoMesa)" should be included in
 under **Vector Data Sources**. If you do not see this, check that you unpacked the
 plugin JARs into in the right directory and restart GeoServer.
 
-On the "Add Store" page, select "Google Bigtable (GeoMesa)". The Bigtable data store takes a single parameter:
-
-* **bigtable.table.name** - the name of the Bigtable table that stores feature type data
+On the "Add Store" page, select "Google Bigtable (GeoMesa)", and fill out the
+parameters. The parameters are described in :ref:`bigtable_parameters`.
 
 Other configuration information is taken from ``hbase-site.xml`` (see :ref:`install_bigtable_geoserver`).
 

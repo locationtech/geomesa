@@ -17,13 +17,12 @@ import java.util.Date
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.geotools.data.DataAccessFactory.Param
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.FilterHelper.extractGeometries
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
+import org.locationtech.geomesa.utils.geotools.{GeoMesaParam, GeometryUtils, WholeWorldPolygon}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -49,7 +48,7 @@ object PartitionOpts {
   def parseStepUnit(opts: Map[String, String]): ChronoUnit     = ChronoUnit.valueOf(opts(StepUnitOpt).toUpperCase)
   def parseStep(opts: Map[String, String]): Int                = opts.get(StepOpt).map(_.toInt).getOrElse(1)
   def parseZ2Resolution(opts: Map[String, String]): Int        = opts(Z2Resolution).toInt
-  def parseLeafStorage(opts: Map[String, String]): Boolean     = opts.get(LeafStorage).map(_.toBoolean).getOrElse(true)
+  def parseLeafStorage(opts: Map[String, String]): Boolean     = opts.get(LeafStorage).forall(_.toBoolean)
 }
 
 object CommonSchemeLoader {
@@ -104,7 +103,7 @@ object PartitionScheme {
   // Must begin with GeoMesa in order to be persisted
   val PartitionSchemeKey = "geomesa.fs.partition-scheme.config"
   val PartitionOptsPrefix = "fs.partition-scheme.opts."
-  val PartitionSchemeParam = new Param("fs.partition-scheme.name", classOf[String], "Partition scheme name", false)
+  val PartitionSchemeParam = new GeoMesaParam[String]("fs.partition-scheme.name", "Partition scheme name")
 
   def addToSft(sft: SimpleFeatureType, scheme: PartitionScheme): Unit =
     sft.getUserData.put(PartitionSchemeKey, scheme.toString)
@@ -117,7 +116,7 @@ object PartitionScheme {
   }
 
   def apply(sft: SimpleFeatureType, dsParams: util.Map[String, Serializable]): PartitionScheme = {
-    val pName = PartitionSchemeParam.lookUp(dsParams).toString
+    val pName = PartitionSchemeParam.lookup(dsParams)
     import scala.collection.JavaConversions._
     val pOpts = dsParams.keySet.filter(_.startsWith(PartitionOptsPrefix)).map { opt =>
       opt.replace(PartitionOptsPrefix, "") -> dsParams.get(opt).toString
@@ -221,7 +220,7 @@ class DateTimeScheme(fmtStr: String,
   // especially if we are going to use other separators
   override def maxDepth(): Int = fmtStr.count(_ == '/')
 
-  override def toString: String = PartitionScheme.stringify(name, getOptions)
+  override def toString: String = PartitionScheme.stringify(name(), getOptions)
 
   override def fromString(sft: SimpleFeatureType, s: String): PartitionScheme =
     PartitionScheme(sft, ConfigFactory.parseString(s))

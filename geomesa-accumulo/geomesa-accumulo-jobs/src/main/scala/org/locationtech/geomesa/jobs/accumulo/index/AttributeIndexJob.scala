@@ -79,7 +79,7 @@ class AttributeIndexJob extends Tool {
     parsedArgs.parse()
 
     val typeName   = parsedArgs.inFeature
-    val dsInParams  = parsedArgs.inDataStore
+    val dsInParams = parsedArgs.inDataStore
     val attributes = parsedArgs.attributes
 
     val coverage = Option(parsedArgs.coverage).map { c =>

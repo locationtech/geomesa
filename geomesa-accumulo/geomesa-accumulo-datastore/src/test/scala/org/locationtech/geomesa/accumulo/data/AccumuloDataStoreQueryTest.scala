@@ -479,11 +479,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "kill queries after a configurable timeout" in {
-      val params = Map(
-        "connector" -> ds.connector,
-        "tableName" -> ds.config.catalog,
-        AccumuloDataStoreParams.queryTimeoutParam.getName -> "1"
-      )
+      val params = dsParams ++ Map(AccumuloDataStoreParams.QueryTimeoutParam.getName -> "1")
 
       val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
@@ -522,11 +518,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val z3Query = new Query(defaultSft.getTypeName,
         ECQL.toFilter(s"$bbox AND dtg DURING 2010-05-07T12:25:00.000Z/2010-05-07T12:35:00.000Z"))
 
-      val params = Map(
-        "connector" -> ds.connector,
-        "tableName" -> ds.config.catalog,
-        AccumuloDataStoreParams.looseBBoxParam.getName -> "false"
-      )
+      val params = dsParams ++ Map(AccumuloDataStoreParams.LooseBBoxParam.getName -> "false")
 
       val strictDs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 

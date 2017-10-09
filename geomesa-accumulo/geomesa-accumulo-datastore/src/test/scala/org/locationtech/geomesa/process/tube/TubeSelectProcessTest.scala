@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.tube
 
-import java.util.Date
-
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, Query}
@@ -20,7 +18,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -43,14 +41,13 @@ class TubeSelectProcessTest extends Specification {
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
     DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> "mycloud",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "myuser",
-      "password"          -> "mypassword",
-      "auths"             -> "A,B,C",
-      "tableName"         -> "testwrite",
-      "useMock"           -> "true",
-      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+      AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
+      AccumuloDataStoreParams.ZookeepersParam.key -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      AccumuloDataStoreParams.UserParam.key       -> "myuser",
+      AccumuloDataStoreParams.PasswordParam.key   -> "mypassword",
+      AccumuloDataStoreParams.AuthsParam.key      -> "A,B,C",
+      AccumuloDataStoreParams.CatalogParam.key    -> "testtube",
+      AccumuloDataStoreParams.MockParam.key       -> "true")).asInstanceOf[AccumuloDataStore]
 
   "TubeSelect" should {
     "work with an empty input collection" in {

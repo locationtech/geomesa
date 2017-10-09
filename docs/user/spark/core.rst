@@ -14,12 +14,12 @@ against a GeoMesa data store:
 
     // DataStore params to a hypothetical GeoMesa Accumulo table
     val dsParams = Map(
-      "instanceId" -> "instance",
-      "zookeepers" -> "zoo1,zoo2,zoo3",
-      "user"       -> "user",
-      "password"   -> "*****",
-      "auths"      -> "USER,ADMIN",
-      "tableName"  -> "geomesa_catalog")
+      "accumulo.instance.id"   -> "instance",
+      "accumulo.zookeepers"    -> "zoo1,zoo2,zoo3",
+      "accumulo.user"          -> "user",
+      "accumulo.password"      -> "*****",
+      "accumulo.catalog"       -> "geomesa_catalog",
+      "geomesa.security.auths" -> "USER,ADMIN")
 
     // set SparkContext
     val conf = new SparkConf().setMaster("local[*]").setAppName("testSpark")
@@ -158,11 +158,11 @@ from the "geomesa" Accumulo table:
 .. code-block:: scala
 
     val params = Map(
-      "instanceId" -> "mycloud",
-      "user" -> "user",
-      "password" -> "password",
-      "zookeepers" -> "zoo1,zoo2,zoo3",
-      "tableName" -> "geomesa")
+      "accumulo.instance.id" -> "mycloud",
+      "accumulo.user"        -> "user",
+      "accumulo.password"    -> "password",
+      "accumulo.zookeepers"  -> "zoo1,zoo2,zoo3",
+      "accumulo.catalog"     -> "geomesa")
     val query = new Query("gdelt")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
@@ -205,10 +205,10 @@ converter, the following Scala code can be used to load this data into an ``RDD`
 
     val exampleConf = ConfigFactory.load("example.conf").root().render()
     val params = Map(
-      "geomesa.converter" -> exampleConf,
+      "geomesa.converter"        -> exampleConf,
       "geomesa.converter.inputs" -> "example.csv",
-      "geomesa.sft" -> "phrase:String,dtg:Date,geom:Point:srid=4326",
-      "geomesa.sft.name" -> "example")
+      "geomesa.sft"              -> "phrase:String,dtg:Date,geom:Point:srid=4326",
+      "geomesa.sft.name"         -> "example")
     val query = new Query("example")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
@@ -248,7 +248,7 @@ this data store with GeoMesa Spark, do the following:
 
     val params = Map(
       "geotools" -> "true",
-      "file" -> "locations.csv")
+      "file"     -> "locations.csv")
     val query = new Query("locations")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 

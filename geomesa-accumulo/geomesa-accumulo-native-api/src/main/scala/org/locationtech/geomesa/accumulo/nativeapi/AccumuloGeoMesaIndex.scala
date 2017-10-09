@@ -16,8 +16,8 @@ import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams, AccumuloFeatureWriter}
 import org.locationtech.geomesa.api._
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @InterfaceStability.Unstable
 class AccumuloGeoMesaIndex[T](override protected val ds: AccumuloDataStore,
@@ -62,12 +62,12 @@ object AccumuloGeoMesaIndex {
     import scala.collection.JavaConversions._
     val ds =
       DataStoreFinder.getDataStore(Map(
-        AccumuloDataStoreParams.tableNameParam.key -> name,
-        AccumuloDataStoreParams.zookeepersParam.key -> zk,
-        AccumuloDataStoreParams.instanceIdParam.key -> instanceId,
-        AccumuloDataStoreParams.userParam.key -> user,
-        AccumuloDataStoreParams.passwordParam.key -> pass,
-        AccumuloDataStoreParams.mockParam.key -> (if (mock) "TRUE" else "FALSE")
+        AccumuloDataStoreParams.CatalogParam.key    -> name,
+        AccumuloDataStoreParams.ZookeepersParam.key -> zk,
+        AccumuloDataStoreParams.InstanceIdParam.key -> instanceId,
+        AccumuloDataStoreParams.UserParam.key       -> user,
+        AccumuloDataStoreParams.PasswordParam.key   -> pass,
+        AccumuloDataStoreParams.MockParam.key       -> (if (mock) "TRUE" else "FALSE")
       )).asInstanceOf[AccumuloDataStore]
     new AccumuloGeoMesaIndex[T](ds, name, valueSerializer, view)
   }
@@ -79,8 +79,8 @@ object AccumuloGeoMesaIndex {
 
     val ds = DataStoreFinder.getDataStore(
       Map[String, java.io.Serializable](
-        AccumuloDataStoreParams.connParam.key -> connector.asInstanceOf[java.io.Serializable],
-        AccumuloDataStoreParams.tableNameParam.key -> name
+        AccumuloDataStoreParams.ConnectorParam.key -> connector.asInstanceOf[java.io.Serializable],
+        AccumuloDataStoreParams.CatalogParam.key   -> name
       ).asJava).asInstanceOf[AccumuloDataStore]
     new AccumuloGeoMesaIndex[T](ds, name, valueSerializer, view)
   }

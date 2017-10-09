@@ -133,7 +133,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
     def idQuery(conn: Connection, tableName: String, typeName: String): Seq[String] = {
       val params = Map(
         ConnectionParam.getName -> conn,
-        BigTableNameParam.getName -> tableName)
+        HBaseCatalog.getName -> tableName)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
       idQueryWithDS(ds, typeName)
     }
@@ -152,7 +152,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
       val tableName = "vistest1"
       val params = Map(
         ConnectionParam.getName -> adminConn,
-        BigTableNameParam.getName -> tableName)
+        HBaseCatalog.getName -> tableName)
       val writeDS = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       writeDS.getSchema(typeName) must beNull
@@ -205,9 +205,9 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
       val tableName = "vistest1"
       val params = Map(
         ConnectionParam.getName -> dynConn,
-        BigTableNameParam.getName -> tableName,
+        HBaseCatalog.getName -> tableName,
         org.locationtech.geomesa.security.AuthProviderParam.getName -> authsProvider,
-        "security.enabled" -> "true")
+        EnableSecurity.getName -> "true")
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       // User may have everything but that doesn't matter
@@ -257,7 +257,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
 
       val params = Map(
         ConnectionParam.getName -> user1Conn,
-        BigTableNameParam.getName -> catalogTableName)
+        HBaseCatalog.getName -> catalogTableName)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull
@@ -285,7 +285,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
       forall(Seq(true, false)) { loose =>
-        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
+        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBox.getName -> loose)).asInstanceOf[HBaseDataStore]
         forall(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd.take(5))
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))

@@ -11,10 +11,10 @@ package org.locationtech.geomesa.arrow.data
 import java.awt.RenderingHints.Key
 import java.io.Serializable
 import java.net.URL
-import java.util.Collections
 
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, FileDataStore, FileDataStoreFactorySpi, Parameter}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import scala.util.Try
 
@@ -38,18 +38,18 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
   // DataStoreFactory methods
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
-    val caching = Option(CachingParam.lookUp(params)).exists(_.asInstanceOf[Boolean]) // default false
-    val ds = Option(UrlParam.lookUp(params).asInstanceOf[URL]).map(new ArrowDataStore(_, caching)).getOrElse {
+    val caching = CachingParam.lookup(params) // default false
+    val ds = UrlParam.lookupOpt(params).map(new ArrowDataStore(_, caching)).getOrElse {
       throw new IllegalArgumentException(s"Could not create data store using $params")
     }
-    Option(NamespaceParam.lookUp(params).asInstanceOf[String]).foreach(ds.setNamespaceURI)
+    NamespaceParam.lookupOpt(params).foreach(ds.setNamespaceURI)
     ds
   }
 
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
-    Try(Option(UrlParam.lookUp(params).asInstanceOf[URL]).exists(canProcess)).getOrElse(false)
+    Try(UrlParam.lookupOpt(params).exists(canProcess)).getOrElse(false)
 
   override def getParametersInfo: Array[Param] = Array(UrlParam, CachingParam, NamespaceParam)
 
@@ -64,9 +64,9 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 
 object ArrowDataStoreFactory {
 
-  val UrlParam       = new Param("url", classOf[URL], "URL to an arrow file", true, null, Collections.singletonMap(Parameter.EXT, "arrow"))
-  val CachingParam   = new Param("caching", classOf[java.lang.Boolean], "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", false, false)
-  val NamespaceParam = new Param("namespace", classOf[String], "Namespace", false)
+  val UrlParam       = new GeoMesaParam[URL]("arrow.url", "URL to an arrow file", required = true, metadata = Map(Parameter.EXT -> "arrow"), deprecated = Seq("url"))
+  val CachingParam   = new GeoMesaParam[java.lang.Boolean]("arrow.caching", "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", default = false, deprecated = Seq("caching"))
+  val NamespaceParam = new GeoMesaParam[String]("namespace", "Namespace")
 
   private val DisplayName = "Apache Arrow (GeoMesa)"
 

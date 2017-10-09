@@ -35,15 +35,15 @@ class TableSharingTest extends Specification with LazyLogging {
   val tableName = "sharingTest"
 
   val ds = {
+    import AccumuloDataStoreParams._
     DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> "mycloud",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "myuser",
-      "password"          -> "mypassword",
-      "auths"             -> "A,B,C",
-      "tableName"         -> tableName,
-      "useMock"           -> "true",
-      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+      InstanceIdParam.key -> "mycloud",
+      ZookeepersParam.key -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      UserParam.key       -> "myuser",
+      PasswordParam.key   -> "mypassword",
+      AuthsParam.key      -> "A,B,C",
+      CatalogParam.key    -> tableName,
+      MockParam.key       -> "true")).asInstanceOf[AccumuloDataStore]
   }
 
   // Check existence of tables?

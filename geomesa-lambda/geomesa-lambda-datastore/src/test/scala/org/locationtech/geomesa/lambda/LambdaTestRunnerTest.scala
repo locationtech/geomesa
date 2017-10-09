@@ -66,16 +66,16 @@ object LambdaTestRunnerTest {
     var zookeepers: String = _
 
     lazy val dsParams = Map(
-      "accumulo.connector"  -> connector,
+      "lambda.accumulo.connector"  -> connector,
       // note the table needs to be different to prevent testing errors
-      "accumulo.tableName"  -> sftName,
-      "accumulo.zookeepers" -> zookeepers,
-      "kafka.brokers"       -> brokers,
-      "kafka.zookeepers"    -> zookeepers,
-      "kafka.partitions"    -> 2,
-      "expiry"              -> "100ms",
-      "clock"               -> clock,
-      "offsetManager"       -> offsetManager
+      "lambda.accumulo.catalog"    -> sftName,
+      "lambda.accumulo.zookeepers" -> zookeepers,
+      "lambda.kafka.brokers"       -> brokers,
+      "lambda.kafka.zookeepers"    -> zookeepers,
+      "lambda.kafka.partitions"    -> 2,
+      "lambda.expiry"              -> "100ms",
+      "lambda.clock"               -> clock,
+      "lambda.offset-manager"      -> offsetManager
     )
   }
 

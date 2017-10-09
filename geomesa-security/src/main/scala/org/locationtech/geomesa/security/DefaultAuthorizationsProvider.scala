@@ -20,11 +20,12 @@ class DefaultAuthorizationsProvider extends AuthorizationsProvider {
   override def getAuthorizations: util.List[String] = authorizations
 
   override def configure(params: java.util.Map[String, java.io.Serializable]) {
-    val authString = AuthsParam.lookUp(params).asInstanceOf[String]
-    if (authString == null || authString.isEmpty)
+    val authString = AuthsParam.lookup(params)
+    if (authString == null || authString.isEmpty) {
       authorizations = new util.ArrayList[String]()
-    else
+    } else {
       authorizations = util.Arrays.asList(authString.split(","): _*)
+    }
   }
 
 }

@@ -211,7 +211,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
   }
 
   private def createCallback(): StatusCallback = {
-    if (dsParams.get("useMock").exists(_.toBoolean)) {
+    if (Seq("accumulo.mock", "useMock").exists(dsParams.get(_).exists(_.toBoolean))) {
       new PrintProgress(System.err, TextTools.buildString('\u26AC', 60), ' ', '\u15e7', '\u2b58')
     } else {
       new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')

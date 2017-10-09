@@ -11,6 +11,8 @@ package org.locationtech.geomesa.lambda.tools
 import org.locationtech.geomesa.lambda.data.{LambdaDataStore, LambdaDataStoreFactory}
 import org.locationtech.geomesa.tools.DataStoreCommand
 
+import scala.util.Try
+
 /**
  * Abstract class for commands that have a pre-existing catalog
  */
@@ -40,10 +42,11 @@ trait LambdaDataStoreCommand extends DataStoreCommand[LambdaDataStore] {
     ).filter(_._2 != null)
 
     if (parsedParams.get(LambdaDataStoreFactory.Params.Accumulo.MockParam.getName).exists(_.toBoolean)) {
+      import scala.collection.JavaConversions._
       val ret = mockDefaults ++ parsedParams // anything passed in will override defaults
       // MockAccumulo sets the root password to blank so we must use it if user is root, providing not using keytab instead
-      if (ret(LambdaDataStoreFactory.Params.Accumulo.UserParam.getName) == "root" &&
-        !ret.contains(LambdaDataStoreFactory.Params.Accumulo.KeytabParam.getName)) {
+      if (Try(LambdaDataStoreFactory.Params.Accumulo.UserParam.lookup(ret)).toOption.contains("root") &&
+        !LambdaDataStoreFactory.Params.Accumulo.KeytabParam.exists(ret)) {
         ret.updated(LambdaDataStoreFactory.Params.Accumulo.PasswordParam.getName, "")
       } else {
         ret

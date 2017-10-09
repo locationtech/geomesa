@@ -8,50 +8,33 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data._
+import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.AttributeIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAlterSchemaTest extends Specification {
+class AccumuloDataStoreAlterSchemaTest extends TestWithDataStore {
 
   sequential
 
-  // we use class name to prevent spillage between unit tests in the mock connector
-  val sftName = getClass.getSimpleName
+  override val spec = "dtg:Date,*geom:Point:srid=4326"
 
-  val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
-
-  val ds = DataStoreFinder.getDataStore(
-    Map("connector" -> connector,
-        "caching"   -> false,
-        // note the table needs to be different to prevent testing errors
-        "tableName" -> sftName)
-    ).asInstanceOf[AccumuloDataStore]
-
-  val spec = "dtg:Date,*geom:Point:srid=4326"
-  ds.createSchema(SimpleFeatureTypes.createType(sftName, spec))
-  var sft = ds.getSchema(sftName)
-
-  ds.getFeatureSource(sftName).addFeatures {
-    val collection = new DefaultFeatureCollection()
-    collection.addAll {
+  step {
+    addFeatures {
       (0 until 10).filter(_ % 2 == 0).map { i =>
         val sf = new ScalaSimpleFeature(sft, s"f$i")
         sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
@@ -60,11 +43,7 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
         sf
       }
     }
-    collection
-  }
 
-  // TODO this gets run twice by maven
-  if (sft.getAttributeDescriptors.length == 2) {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val builder = new SimpleFeatureTypeBuilder()
@@ -77,22 +56,22 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
 
     ds.updateSchema(sftName, updatedSft)
 
-    sft = ds.getSchema(sftName)
-  }
-
-  ds.getFeatureSource(sftName).addFeatures {
-    val collection = new DefaultFeatureCollection()
-    collection.addAll {
-      (0 until 10).filter(_ % 2 == 1).map { i =>
-        val sf = new ScalaSimpleFeature(sft, s"f$i")
-        sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
-        sf.setAttribute(1, s"POINT(5$i 50)")
-        sf.setAttribute(2, s"$i")
-        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf
+    // use a new data store to avoid cached sft issues in the stat serializer
+    DataStoreFinder.getDataStore(dsParams).getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore].addFeatures {
+      val sft = ds.getSchema(sftName)
+      val collection = new DefaultFeatureCollection()
+      collection.addAll {
+        (0 until 10).filter(_ % 2 == 1).map { i =>
+          val sf = new ScalaSimpleFeature(sft, s"f$i")
+          sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
+          sf.setAttribute(1, s"POINT(5$i 50)")
+          sf.setAttribute(2, s"$i")
+          sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          sf
+        }
       }
+      collection
     }
-    collection
   }
 
   "AccumuloDataStore" should {

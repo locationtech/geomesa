@@ -16,7 +16,7 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{BigTableNameParam, ConnectionParam}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{HBaseCatalog, ConnectionParam}
 import org.locationtech.geomesa.hbase.filters.Z3HBaseFilter
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -39,7 +39,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
   step {
     logger.info("Starting HBase Arrow Test")
     import scala.collection.JavaConversions._
-    val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> catalogTableName)
+    val params = Map(ConnectionParam.getName -> connection, HBaseCatalog.getName -> catalogTableName)
     ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
     ds.createSchema(sft)
     val writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)

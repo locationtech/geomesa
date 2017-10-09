@@ -56,7 +56,7 @@ object GeoMesaScalatraServlet {
 
   val DefaultRootPath = "geomesa"
   val dsKeys =
-    new AccumuloDataStoreFactory().getParametersInfo.map(_.getName) :+ AccumuloDataStoreParams.mockParam.getName
+    new AccumuloDataStoreFactory().getParametersInfo.map(_.getName) :+ AccumuloDataStoreParams.MockParam.getName
 
   def wrap(request: HttpServletRequest): HttpServletRequest = {
     request match {

@@ -25,6 +25,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ArrowDataStoreTest extends Specification {
 
+  import ArrowDataStoreFactory.{CachingParam, UrlParam}
   import scala.collection.JavaConversions._
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
@@ -41,13 +42,13 @@ class ArrowDataStoreTest extends Specification {
     "write and read values" >> {
       val file = Files.createTempFile("gm-arrow-ds", ".arrow").toUri.toURL
       try {
-        val ds = DataStoreFinder.getDataStore(Map("url" -> file))
+        val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file))
         ds must not(beNull)
 
         ds.createSchema(sft)
         ds.getSchema(sft.getTypeName) mustEqual sft
 
-        var caching = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> true))
+        var caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true))
         caching.getSchema(sft.getTypeName) mustEqual sft
         caching.dispose() must not(throwAn[Exception])
 
@@ -58,7 +59,7 @@ class ArrowDataStoreTest extends Specification {
         }
         writer.close()
 
-        caching = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> true))
+        caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true))
 
         foreach(Seq(ds, caching, caching)) { store =>
           val results = CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
@@ -78,7 +79,7 @@ class ArrowDataStoreTest extends Specification {
         }
         writer.close()
 
-        caching = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> true))
+        caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true))
 
         foreach(Seq(ds, caching, caching)) { store =>
           val results = CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
@@ -111,7 +112,7 @@ class ArrowDataStoreTest extends Specification {
       "only schema" >> {
         val file = getClass.getClassLoader.getResource("data/empty.arrow").toString
         foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> caching))
+          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
           ds.getSchema("test") mustEqual sft
           WithClose(ds.getFeatureSource(sftName).getFeatures().features())(_.hasNext must beFalse)
           ds.dispose() must not(throwAn[Exception])
@@ -121,7 +122,7 @@ class ArrowDataStoreTest extends Specification {
       "simple 2 batches" >> {
         val file = getClass.getClassLoader.getResource("data/simple.arrow").toString
         foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> caching))
+          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
           ds.getSchema(sftName) mustEqual sft
           foreach(queries) { query =>
             WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
@@ -135,7 +136,7 @@ class ArrowDataStoreTest extends Specification {
       "multiple logical files" >> {
         val file = getClass.getClassLoader.getResource("data/multi-files.arrow").toString
         foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> caching))
+          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
           ds.getSchema(sftName) mustEqual sft
           foreach(queries) { query =>
             WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
@@ -149,7 +150,7 @@ class ArrowDataStoreTest extends Specification {
       "dictionary encoded files" >> {
         val file = getClass.getClassLoader.getResource("data/dictionary.arrow").toString
         foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> caching))
+          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
           ds.getSchema(sftName) mustEqual sft
           foreach(queries) { query =>
             WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
@@ -171,7 +172,7 @@ class ArrowDataStoreTest extends Specification {
             updated
         }
         foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map("url" -> file, "caching" -> caching))
+          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
           ds.getSchema(sftName) mustEqual sft
           foreach(queries) { query =>
             WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>

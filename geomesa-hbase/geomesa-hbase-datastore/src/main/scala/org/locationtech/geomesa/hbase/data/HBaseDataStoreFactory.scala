@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.awt.RenderingHints
 import java.io.Serializable
 
 import com.typesafe.scalalogging.LazyLogging
@@ -24,11 +25,12 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, _}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import scala.collection.JavaConversions._
 
@@ -55,41 +57,41 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
-    import GeoMesaDataStoreFactory.RichParam
 
     // TODO HBase Connections don't seem to be Serializable...deal with it
-    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
+    val connection = ConnectionParam.lookupOpt(params).getOrElse(globalConnection)
 
-    val catalog = BigTableNameParam.lookup[String](params)
+    val catalog = getCatalog(params)
 
-    val remoteFilters = RemoteFiltersParam.lookupOpt[Boolean](params)
+    val remoteFilters = RemoteFiltering.lookupOpt(params).map(_.booleanValue)
       .getOrElse(SystemProperty("geomesa.hbase.remote.filtering", "true").get.toBoolean)
     logger.debug(s"Using ${if (remoteFilters) "remote" else "local" } filtering")
 
-    val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
-    val audit = if (AuditQueriesParam.lookupWithDefault[Boolean](params)) {
+    val generateStats = GenerateStats.lookup(params)
+    val audit = if (AuditQueries.lookup(params)) {
       Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "hbase")
     } else {
       None
     }
-    val queryThreads = QueryThreadsParam.lookupWithDefault[Int](params)
-    val queryTimeout = GeoMesaDataStoreFactory.queryTimeout(params)
-    val maxRangesPerExtendedScan = MaxRangesPerExtendedScan.lookupWithDefault[java.lang.Integer](params)
-    val looseBBox = LooseBBoxParam.lookupWithDefault[Boolean](params)
-    val caching = CachingParam.lookupWithDefault[Boolean](params)
-    val security = EnableSecurityParam.lookup[Boolean](params)
-    val authsProvider =
-      if (security) {
-       Some(HBaseDataStoreFactory.buildAuthsProvider(connection, params))
-      } else None
-    val coprocessorUrl = CoprocessorUrl.lookupOpt[Path](params)
+    val queryThreads = QueryThreads.lookup(params)
+    val queryTimeout = QueryTimeout.lookupOpt(params).map(_ * 1000L)
+    val maxRangesPerExtendedScan = MaxRangesPerExtendedScan.lookup(params)
+    val looseBBox = LooseBBox.lookup(params)
+    val caching = Caching.lookup(params)
+    val authsProvider = if (!EnableSecurity.lookup(params)) { None } else {
+      Some(HBaseDataStoreFactory.buildAuthsProvider(connection, params))
+    }
+    val coprocessorUrl = CoprocessorUrl.lookupOpt(params)
 
-    val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
+    val ns = Namespace.lookupOpt(params)
 
     val config = HBaseDataStoreConfig(catalog, remoteFilters, generateStats, audit, queryThreads, queryTimeout,
       maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl, ns)
     buildDataStore(connection, config)
   }
+
+  // overridden by BigtableFactory
+  protected def getCatalog(params: java.util.Map[String, Serializable]): String = HBaseCatalog.lookup(params)
 
   // overridden by BigtableFactory
   protected def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): HBaseDataStore =
@@ -107,50 +109,33 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   override def getParametersInfo: Array[Param] =
     Array(
-      BigTableNameParam,
-      RemoteFiltersParam,
-      QueryThreadsParam,
-      QueryTimeoutParam,
+      HBaseCatalog,
+      RemoteFiltering,
+      QueryThreads,
+      QueryTimeout,
       CoprocessorUrl,
-      GenerateStatsParam,
-      AuditQueriesParam,
-      LooseBBoxParam,
-      CachingParam,
-      EnableSecurityParam,
-      AuthsParam,
-      ForceEmptyAuthsParam,
-      NamespaceParam)
+      GenerateStats,
+      AuditQueries,
+      LooseBBox,
+      Caching,
+      EnableSecurity,
+      Authorizations,
+      ForceEmptyAuths,
+      Namespace
+    )
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
 
   override def isAvailable = true
 
-  override def getImplementationHints = null
-}
-
-object HBaseDataStoreParams {
-  val BigTableNameParam    = new Param("bigtable.table.name", classOf[String], "Table name", true)
-  val ConnectionParam      = new Param("connection", classOf[Connection], "Connection", false)
-  val CoprocessorUrl       = new Param("coprocessor.url", classOf[Path], "Coprocessor Url", false, null)
-  val RemoteFiltersParam   = new Param("remote.filtering", classOf[java.lang.Boolean], "Remote filtering", false)
-  val LooseBBoxParam       = GeoMesaDataStoreFactory.LooseBBoxParam
-  val QueryThreadsParam    = GeoMesaDataStoreFactory.QueryThreadsParam
-  val MaxRangesPerExtendedScan    = new Param("max.ranges.per.extended.scan", classOf[java.lang.Integer], "Max Ranges per Extended Scan", false, 100)
-  val GenerateStatsParam   = GeoMesaDataStoreFactory.GenerateStatsParam
-  val AuditQueriesParam    = GeoMesaDataStoreFactory.AuditQueriesParam
-  val QueryTimeoutParam    = GeoMesaDataStoreFactory.QueryTimeoutParam
-  val CachingParam         = GeoMesaDataStoreFactory.CachingParam
-  val EnableSecurityParam  = new Param("security.enabled", classOf[java.lang.Boolean], "Enable HBase Security (Visibilities)", false, false)
-  val AuthsParam           = org.locationtech.geomesa.security.AuthsParam
-  val ForceEmptyAuthsParam = org.locationtech.geomesa.security.ForceEmptyAuthsParam
-  val NamespaceParam       = new Param("namespace", classOf[String], "Namespace", false)
-
+  override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
 }
 
 object HBaseDataStoreFactory extends LazyLogging {
 
   import HBaseDataStoreParams._
+
   val DisplayName = "HBase (GeoMesa)"
   val Description = "Apache HBase\u2122 distributed key/value store"
 
@@ -174,12 +159,12 @@ object HBaseDataStoreFactory extends LazyLogging {
 
   // check that the hbase-site.xml does not have bigtable keys
   def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean = {
-    params.containsKey(BigTableNameParam.key) &&
+    HBaseCatalog.exists(params) &&
       Option(HBaseConfiguration.create().get(BigTableParamCheck)).forall(_.trim.isEmpty)
   }
 
   def buildAuthsProvider(connection: Connection, params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
-    val forceEmptyOpt: Option[java.lang.Boolean] = security.ForceEmptyAuthsParam.lookupOpt[java.lang.Boolean](params)
+    val forceEmptyOpt: Option[java.lang.Boolean] = ForceEmptyAuths.lookupOpt(params)
     val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
 
     if (!VisibilityClient.isCellVisibilityEnabled(connection)) {
@@ -191,7 +176,7 @@ object HBaseDataStoreFactory extends LazyLogging {
     val masterAuths = VisibilityClient.getAuths(connection, userName).getAuthList.map(a => Bytes.toString(a.toByteArray))
 
     // get the auth params passed in as a comma-delimited string
-    val configuredAuths = AuthsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
+    val configuredAuths = Authorizations.lookupOpt(params).getOrElse("").split(",").filter(s => !s.isEmpty)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     val invalidAuths = configuredAuths.filterNot(masterAuths.contains)
@@ -234,4 +219,23 @@ object HBaseDataStoreFactory extends LazyLogging {
     }
   }
 
+}
+
+// noinspection TypeAnnotation
+object HBaseDataStoreParams {
+  val HBaseCatalog             = new GeoMesaParam[String]("hbase.catalog", "Catalog table name", required = true, deprecated = Seq("bigtable.table.name"))
+  val ConnectionParam          = new GeoMesaParam[Connection]("hbase.connection", "Connection", deprecated = Seq("connection"))
+  val CoprocessorUrl           = new GeoMesaParam[Path]("hbase.coprocessor.url", "Coprocessor Url", deprecated = Seq("coprocessor.url"))
+  val RemoteFiltering          = new GeoMesaParam[java.lang.Boolean]("hbase.remote.filtering", "Remote filtering", default = true, deprecated = Seq("remote.filtering"))
+  val LooseBBox                = GeoMesaDataStoreFactory.LooseBBoxParam
+  val QueryThreads             = GeoMesaDataStoreFactory.QueryThreadsParam
+  val MaxRangesPerExtendedScan = new GeoMesaParam[java.lang.Integer]("hbase.ranges.max-per-extended-scan", "Max Ranges per Extended Scan", default = 100, deprecated = Seq("max.ranges.per.extended.scan"))
+  val GenerateStats            = GeoMesaDataStoreFactory.GenerateStatsParam
+  val AuditQueries             = GeoMesaDataStoreFactory.AuditQueriesParam
+  val QueryTimeout             = GeoMesaDataStoreFactory.QueryTimeoutParam
+  val Caching                  = GeoMesaDataStoreFactory.CachingParam
+  val EnableSecurity           = new GeoMesaParam[java.lang.Boolean]("hbase.security.enabled", "Enable HBase Security (Visibilities)", default = false, deprecated = Seq("security.enabled"))
+  val Authorizations           = org.locationtech.geomesa.security.AuthsParam
+  val ForceEmptyAuths          = org.locationtech.geomesa.security.ForceEmptyAuthsParam
+  val Namespace                = GeoMesaDataStoreFactory.NamespaceParam
 }

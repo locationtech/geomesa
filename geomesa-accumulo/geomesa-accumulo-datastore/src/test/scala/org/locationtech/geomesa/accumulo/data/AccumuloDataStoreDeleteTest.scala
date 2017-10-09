@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -256,8 +254,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
     "delete all associated tables" >> {
       val catalog = "AccumuloDataStoreTotalDeleteTest"
-      val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
-      val ds = DataStoreFinder.getDataStore(Map("connector" -> connector, "tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
+      val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
       val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog, s"${catalog}_stats")

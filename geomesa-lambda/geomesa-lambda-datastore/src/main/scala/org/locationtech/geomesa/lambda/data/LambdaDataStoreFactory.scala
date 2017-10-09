@@ -11,18 +11,20 @@ package org.locationtech.geomesa.lambda.data
 import java.awt.RenderingHints.Key
 import java.io.{Serializable, StringReader}
 import java.time.Clock
-import java.util.{Collections, Properties}
+import java.util.Properties
 
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
-import org.locationtech.geomesa.lambda.stream.{OffsetManager, ZookeeperOffsetManager}
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore
+import org.locationtech.geomesa.lambda.stream.{OffsetManager, ZookeeperOffsetManager}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.DurationParam
 
 import scala.concurrent.duration.Duration
-import scala.util.control.NonFatal
+import scala.reflect.ClassTag
 
 class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
@@ -30,36 +32,30 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
   import LambdaDataStoreFactory.parsePropertiesParam
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
-    val brokers = Kafka.BrokersParam.lookUp(params).asInstanceOf[String]
-    val expiry = try { Duration(ExpiryParam.lookUp(params).asInstanceOf[String]) } catch {
-      case NonFatal(e) =>
-        throw new IllegalArgumentException(s"Couldn't parse expiry parameter: ${ExpiryParam.lookUp(params)}", e)
-    }
+    val brokers = Kafka.BrokersParam.lookup(params)
+    val expiry = ExpiryParam.lookup(params)
 
-    val partitions = Option(Kafka.PartitionsParam.lookUp(params).asInstanceOf[Integer]).map(_.intValue).getOrElse(1)
-    val consumers = Option(Kafka.ConsumersParam.lookUp(params).asInstanceOf[Integer]).map(_.intValue).getOrElse(1)
-    val persist = Option(PersistParam.lookUp(params).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
-    val defaultVisibility = Option(VisibilitiesParam.lookUp(params).asInstanceOf[String])
+    val partitions = Kafka.PartitionsParam.lookup(params).intValue
+    val consumers = Kafka.ConsumersParam.lookup(params).intValue
+    val persist = PersistParam.lookup(params).booleanValue
+    val defaultVisibility = VisibilitiesParam.lookupOpt(params)
 
-    val consumerConfig = parsePropertiesParam(Kafka.ConsumerOptsParam.lookUp(params).asInstanceOf[String]) ++
-        Map("bootstrap.servers" -> brokers)
+    val consumerConfig = parsePropertiesParam(Kafka.ConsumerOptsParam.lookup(params)) ++ Map("bootstrap.servers" -> brokers)
     val producer = {
-      val producerConfig = parsePropertiesParam(Kafka.ProducerOptsParam.lookUp(params).asInstanceOf[String]) ++
-          Map("bootstrap.servers" -> brokers)
+      val producerConfig = parsePropertiesParam(Kafka.ProducerOptsParam.lookup(params)) ++ Map("bootstrap.servers" -> brokers)
       KafkaStore.producer(producerConfig)
     }
 
     // TODO GEOMESA-1891 attribute level vis
-    val persistence = new AccumuloDataStoreFactory().createDataStore(filter("accumulo", params))
+    val persistence = new AccumuloDataStoreFactory().createDataStore(LambdaDataStoreFactory.filter(params))
 
     val zkNamespace = s"gm_lambda_${persistence.config.catalog}"
 
-    val zk = Kafka.ZookeepersParam.lookUp(params).asInstanceOf[String]
+    val zk = Kafka.ZookeepersParam.lookup(params)
 
-    val offsetManager = Option(OffsetManagerParam.lookUp(params).asInstanceOf[OffsetManager])
-        .getOrElse(new ZookeeperOffsetManager(zk, zkNamespace))
+    val offsetManager = OffsetManagerParam.lookupOpt(params).getOrElse(new ZookeeperOffsetManager(zk, zkNamespace))
 
-    val clock = Option(ClockParam.lookUp(params).asInstanceOf[Clock]).getOrElse(Clock.systemUTC())
+    val clock = ClockParam.lookupOpt(params).getOrElse(Clock.systemUTC())
 
     val config = LambdaConfig(zk, zkNamespace, partitions, consumers, expiry, defaultVisibility, persist)
 
@@ -69,8 +65,8 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
-    AccumuloDataStoreFactory.canProcess(filter("accumulo", params)) &&
-        Seq(ExpiryParam, Kafka.BrokersParam, Kafka.ZookeepersParam).forall(p => params.containsKey(p.getName))
+    AccumuloDataStoreFactory.canProcess(LambdaDataStoreFactory.filter(params)) &&
+        Seq(ExpiryParam, Kafka.BrokersParam, Kafka.ZookeepersParam).forall(_.exists(params))
 
   override def getParametersInfo: Array[Param] = Array(
     Accumulo.InstanceParam,
@@ -85,8 +81,8 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     PersistParam,
     AuthsParam,
     EmptyAuthsParam,
-    Accumulo.QueryTimeoutParam,
-    Accumulo.QueryThreadsParam,
+    QueryTimeoutParam,
+    QueryThreadsParam,
     Accumulo.RecordThreadsParam,
     Accumulo.WriteThreadsParam,
     Kafka.PartitionsParam,
@@ -111,60 +107,63 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
 object LambdaDataStoreFactory {
 
-  object Params {
-
-    object Accumulo {
-      val InstanceParam      = copy("accumulo", AccumuloDataStoreParams.instanceIdParam)
-      val ZookeepersParam    = copy("accumulo", AccumuloDataStoreParams.zookeepersParam)
-      val CatalogParam       = copy("accumulo", AccumuloDataStoreParams.tableNameParam)
-      val UserParam          = copy("accumulo", AccumuloDataStoreParams.userParam)
-      val PasswordParam      = copy("accumulo", AccumuloDataStoreParams.passwordParam)
-      val KeytabParam        = copy("accumulo", AccumuloDataStoreParams.keytabPathParam)
-      val QueryTimeoutParam  = copy("accumulo", AccumuloDataStoreParams.queryTimeoutParam)
-      val QueryThreadsParam  = copy("accumulo", AccumuloDataStoreParams.queryThreadsParam)
-      val RecordThreadsParam = copy("accumulo", AccumuloDataStoreParams.recordThreadsParam)
-      val WriteThreadsParam  = copy("accumulo", AccumuloDataStoreParams.writeThreadsParam)
-      val MockParam          = copy("accumulo", AccumuloDataStoreParams.mockParam)
-    }
-
-    object Kafka {
-      val BrokersParam      = new Param("kafka.brokers", classOf[String], "Kafka brokers", true)
-      val ZookeepersParam   = new Param("kafka.zookeepers", classOf[String], "Kafka zookeepers", true)
-      val PartitionsParam   = new Param("kafka.partitions", classOf[Integer], "Number of partitions to use in kafka topics", false, Int.box(1))
-      val ConsumersParam    = new Param("kafka.consumers", classOf[Integer], "Number of kafka consumers used per feature type", false, Int.box(1))
-      val ProducerOptsParam = new Param("kafka.producer.options", classOf[String], "Kafka producer configuration options, in Java properties format", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
-      val ConsumerOptsParam = new Param("kafka.consumer.options", classOf[String], "Kafka consumer configuration options, in Java properties format'", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
-    }
-
-    val ExpiryParam        = new Param("expiry", classOf[String], "Duration before features expire from transient store. Use 'Inf' to prevent this store from participating in feature expiration", true, "1h")
-    val PersistParam       = new Param("persist", classOf[java.lang.Boolean], "Whether to persist expired features to long-term storage", false, java.lang.Boolean.TRUE)
-    val VisibilitiesParam  = AccumuloDataStoreParams.visibilityParam
-    val AuthsParam         = AccumuloDataStoreParams.authsParam
-    val EmptyAuthsParam    = AccumuloDataStoreParams.forceEmptyAuthsParam
-    val LooseBBoxParam     = GeoMesaDataStoreFactory.LooseBBoxParam
-    val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
-    val AuditQueriesParam  = GeoMesaDataStoreFactory.AuditQueriesParam
-    val NamespaceParam     = new Param("namespace", classOf[String], "Namespace", false)
-
-    // test params
-    val ClockParam         = new Param("clock", classOf[Clock], "Clock instance to use for timing", false)
-    val OffsetManagerParam = new Param("offsetManager", classOf[OffsetManager], "Offset manager instance to use", false)
-
-    private [data] def copy(ns: String, p: Param): Param =
-      new Param(s"$ns.${p.key}", p.`type`, p.title, p.description, p.required, p.minOccurs, p.maxOccurs, p.sample, p.metadata)
-
-    private [data] def filter(ns: String, params: java.util.Map[String, Serializable]): java.util.Map[String, Serializable] = {
-      // note: includes a bit of redirection to allow us to pass non-serializable values in to tests
-      import scala.collection.JavaConverters._
-      Map[String, Any](params.asScala.toSeq: _ *)
-          .map { case (k, v) => (if (k.startsWith(s"$ns.")) { k.substring(ns.length + 1) } else { k }, v) }
-          .asJava.asInstanceOf[java.util.Map[String, Serializable]]
-    }
-  }
-
   private val DisplayName = "Kafka/Accumulo Lambda (GeoMesa)"
 
   private val Description = "Hybrid store using Kafka for recent events and Accumulo for long-term storage"
+
+  // noinspection TypeAnnotation
+  object Params {
+
+    object Accumulo {
+      val InstanceParam      = copy(AccumuloDataStoreParams.InstanceIdParam)
+      val ZookeepersParam    = copy(AccumuloDataStoreParams.ZookeepersParam)
+      val UserParam          = copy(AccumuloDataStoreParams.UserParam)
+      val PasswordParam      = copy(AccumuloDataStoreParams.PasswordParam)
+      val KeytabParam        = copy(AccumuloDataStoreParams.KeytabPathParam)
+      val RecordThreadsParam = copy(AccumuloDataStoreParams.RecordThreadsParam)
+      val WriteThreadsParam  = copy(AccumuloDataStoreParams.WriteThreadsParam)
+      val MockParam          = copy(AccumuloDataStoreParams.MockParam)
+      val CatalogParam       = copy(AccumuloDataStoreParams.CatalogParam)
+    }
+
+    object Kafka {
+      val BrokersParam      = new GeoMesaParam[String]("lambda.kafka.brokers", "Kafka brokers", required = true, deprecated = Seq("kafka.brokers"))
+      val ZookeepersParam   = new GeoMesaParam[String]("lambda.kafka.zookeepers", "Kafka zookeepers", required = true, deprecated = Seq("kafka.zookeepers"))
+      val PartitionsParam   = new GeoMesaParam[Integer]("lambda.kafka.partitions", "Number of partitions to use in kafka topics", default = Int.box(1), deprecated = Seq("kafka.partitions"))
+      val ConsumersParam    = new GeoMesaParam[Integer]("lambda.kafka.consumers", "Number of kafka consumers used per feature type", default = Int.box(1), deprecated = Seq("kafka.consumers"))
+      val ProducerOptsParam = new GeoMesaParam[String]("lambda.kafka.producer.options", "Kafka producer configuration options, in Java properties format", metadata = Map(Parameter.IS_LARGE_TEXT -> java.lang.Boolean.TRUE), deprecated = Seq("kafka.producer.options"))
+      val ConsumerOptsParam = new GeoMesaParam[String]("lambda.kafka.consumer.options", "Kafka consumer configuration options, in Java properties format'", metadata = Map(Parameter.IS_LARGE_TEXT -> java.lang.Boolean.TRUE), deprecated = Seq("kafka.consumer.options"))
+    }
+
+    val ExpiryParam        = new GeoMesaParam[Duration]("lambda.expiry", "Duration before features expire from transient store. Use 'Inf' to prevent this store from participating in feature expiration", required = true, default = Duration("1h"), deprecated = Seq("expiry")) with DurationParam
+    val PersistParam       = new GeoMesaParam[java.lang.Boolean]("lambda.persist", "Whether to persist expired features to long-term storage", default = java.lang.Boolean.TRUE, deprecated = Seq("persist"))
+    val VisibilitiesParam  = org.locationtech.geomesa.security.VisibilitiesParam
+    val AuthsParam         = org.locationtech.geomesa.security.AuthsParam
+    val EmptyAuthsParam    = org.locationtech.geomesa.security.ForceEmptyAuthsParam
+    val LooseBBoxParam     = GeoMesaDataStoreFactory.LooseBBoxParam
+    val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
+    val AuditQueriesParam  = GeoMesaDataStoreFactory.AuditQueriesParam
+    val QueryTimeoutParam  = GeoMesaDataStoreFactory.QueryTimeoutParam
+    val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
+    val NamespaceParam     = GeoMesaDataStoreFactory.NamespaceParam
+
+    // test params
+    val ClockParam         = new GeoMesaParam[Clock]("lambda.clock", "Clock instance to use for timing", deprecated = Seq("clock"))
+    val OffsetManagerParam = new GeoMesaParam[OffsetManager]("lamdab.offset-manager", "Offset manager instance to use", deprecated = Seq("offsetManager"))
+  }
+
+  private def copy[T <: AnyRef](p: GeoMesaParam[T])(implicit ct: ClassTag[T]): GeoMesaParam[T] = {
+    import scala.collection.JavaConversions._
+    new GeoMesaParam[T](s"lambda.${p.key}", p.description.toString, required = p.required, default = p.default, metadata = p.metadata.toMap, deprecated = p.deprecated)
+  }
+
+  private def filter(params: java.util.Map[String, Serializable]): java.util.Map[String, Serializable] = {
+    // note: includes a bit of redirection to allow us to pass non-serializable values in to tests
+    import scala.collection.JavaConverters._
+    Map[String, Any](params.asScala.toSeq: _ *)
+        .map { case (k, v) => (if (k.startsWith("lambda.")) { k.substring(7) } else { k }, v) }
+        .asJava.asInstanceOf[java.util.Map[String, Serializable]]
+  }
 
   def parsePropertiesParam(value: String): Map[String, String] = {
     import scala.collection.JavaConversions._

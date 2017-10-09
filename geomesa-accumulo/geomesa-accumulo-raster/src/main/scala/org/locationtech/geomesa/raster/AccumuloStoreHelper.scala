@@ -24,15 +24,9 @@ import scala.collection.JavaConversions._
 object AccumuloStoreHelper {
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
-  def getVisibility(params: JMap[String,Serializable]): String = {
-    val visStr = visibilityParam.lookUp(params).asInstanceOf[String]
-    if (visStr == null) "" else visStr
-  }
+  def getVisibility(params: JMap[String,Serializable]): String = VisibilitiesParam.lookupOpt(params).getOrElse("")
   
-  def getAuthorization(params: JMap[String,Serializable]): String = {
-    val auths = authsParam.lookUp(params).asInstanceOf[String]
-    if (auths == null) "" else auths
-  }
+  def getAuthorization(params: JMap[String,Serializable]): String = AuthsParam.lookupOpt(params).getOrElse("")
 
   def buildAccumuloConnector(user: String,
                              password: String,
@@ -45,10 +39,10 @@ object AccumuloStoreHelper {
   }
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
-    val zookeepers = zookeepersParam.lookUp(params).asInstanceOf[String]
-    val instance = instanceIdParam.lookUp(params).asInstanceOf[String]
-    val user = userParam.lookUp(params).asInstanceOf[String]
-    val password = passwordParam.lookUp(params).asInstanceOf[String]
+    val zookeepers = ZookeepersParam.lookup(params)
+    val instance = InstanceIdParam.lookup(params)
+    val user = UserParam.lookup(params)
+    val password = PasswordParam.lookup(params)
 
     val authToken = new PasswordToken(password.getBytes)
     if(useMock) new MockInstance(instance).getConnector(user, authToken)
@@ -56,15 +50,13 @@ object AccumuloStoreHelper {
   }
 
   def getAuthorizations(params: JMap[String,Serializable], connector: Connector): List[String] = {
-    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
-
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
     val masterAuths = securityOps.getUserAuthorizations(connector.whoami)
     val masterAuthsStrings = masterAuths.map(b => new String(b))
 
     // get the auth params passed in as a comma-delimited string
-    val configuredAuths = authsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
+    val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filter(s => !s.isEmpty)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     if (!connector.isInstanceOf[MockConnector])
@@ -116,7 +108,7 @@ object AccumuloStoreHelper {
 
     // update the authorizations in the parameters and then configure the auth provider
     // we copy the map so as not to modify the original
-    val modifiedParams = Map(authsParam.key -> auths.mkString(","))
+    val modifiedParams = Map(AuthsParam.key -> auths.mkString(","))
     authorizationsProvider.configure(modifiedParams)
     new AccumuloAuthsProvider(authorizationsProvider)
   }

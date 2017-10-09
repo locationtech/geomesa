@@ -14,12 +14,12 @@ import java.{io, util}
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataAccessFactory, DataStore, DataStoreFactorySpi, Query}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory}
 import org.locationtech.geomesa.fs.storage.common.PartitionScheme
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -56,8 +56,8 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
     import scala.collection.JavaConversions._
 
-    val path = new Path(PathParam.lookUp(params).asInstanceOf[String])
-    val encoding = EncodingParam.lookUp(params).asInstanceOf[String]
+    val path = new Path(PathParam.lookup(params))
+    val encoding = EncodingParam.lookup(params)
 
     val conf = new Configuration()
     val storage = storageFactory.iterator().filter(_.canProcess(params)).map(_.build(params)).headOption.getOrElse {
@@ -65,11 +65,10 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     }
     val fs = path.getFileSystem(conf)
 
-    val readThreads = Option(ReadThreadsParam.lookUp(params)).map(_.asInstanceOf[java.lang.Integer])
-      .getOrElse(ReadThreadsParam.getDefaultValue.asInstanceOf[java.lang.Integer])
+    val readThreads = ReadThreadsParam.lookup(params)
 
     val ds = new FileSystemDataStore(fs, path, storage, readThreads, conf)
-    Option(NamespaceParam.lookUp(params).asInstanceOf[String]).foreach(ds.setNamespaceURI)
+    NamespaceParam.lookupOpt(params).foreach(ds.setNamespaceURI)
     ds
   }
 
@@ -79,7 +78,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
   override def isAvailable: Boolean = true
 
   override def canProcess(params: util.Map[String, io.Serializable]): Boolean =
-    params.containsKey(PathParam.getName) && params.containsKey(EncodingParam.getName)
+    PathParam.exists(params) && EncodingParam.exists(params)
 
   override def getParametersInfo: Array[DataAccessFactory.Param] =
     Array(PathParam, EncodingParam, NamespaceParam)
@@ -93,15 +92,15 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object FileSystemDataStoreParams {
-  val PathParam            = new Param("fs.path", classOf[String], "Root of the filesystem hierarchy", true)
-  val EncodingParam        = new Param("fs.encoding", classOf[String], "Encoding of data", true)
+  val PathParam            = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", required = true)
+  val EncodingParam        = new GeoMesaParam[String]("fs.encoding", "Encoding of data", required = true)
 
-  val ConverterNameParam   = new Param("fs.options.converter.name", classOf[String], "Converter Name", false)
-  val ConverterConfigParam = new Param("fs.options.converter.conf", classOf[String], "Converter Typesafe Config", false)
-  val SftNameParam         = new Param("fs.options.sft.name", classOf[String], "SimpleFeatureType Name", false)
-  val SftConfigParam       = new Param("fs.options.sft.conf", classOf[String], "SimpleFeatureType Typesafe Config", false)
+  val ConverterNameParam   = new GeoMesaParam[String]("fs.options.converter.name", "Converter Name")
+  val ConverterConfigParam = new GeoMesaParam[String]("fs.options.converter.conf", "Converter Typesafe Config")
+  val SftNameParam         = new GeoMesaParam[String]("fs.options.sft.name", "SimpleFeatureType Name")
+  val SftConfigParam       = new GeoMesaParam[String]("fs.options.sft.conf", "SimpleFeatureType Typesafe Config")
 
-  val ReadThreadsParam     = new Param("fs.read-threads", classOf[java.lang.Integer], "Read Threads", false, 4)
+  val ReadThreadsParam     = new GeoMesaParam[Integer]("fs.read-threads", "Read Threads", default = 4)
 
-  val NamespaceParam       = new Param("namespace", classOf[String], "Namespace", false)
+  val NamespaceParam       = new GeoMesaParam[String]("namespace", "Namespace")
 }

@@ -221,7 +221,8 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
           override def configure(params: util.Map[String, io.Serializable]): Unit = {}
         }
 
-        val (producer, consumer, sft) = createStorePair(Map("kafka.cache.cqengine" -> cqEngine, "authProvider" -> provider))
+        val (producer, consumer, sft) = createStorePair(Map("kafka.cache.cqengine" -> cqEngine,
+          org.locationtech.geomesa.security.AuthProviderParam.key -> provider))
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling

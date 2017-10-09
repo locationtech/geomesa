@@ -75,6 +75,19 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds must not(beNull)
     }
 
+    "create a store with old parameters" in {
+      val params = Map("user" -> "myuser", "password" -> "", "instanceId" -> "mock",
+        "zookeepers" -> "zoo", "useMock" -> "true", "tableName" -> "parameters")
+      val ds = DataStoreFinder.getDataStore(params)
+      ds must not(beNull)
+      try {
+        ds must beAnInstanceOf[AccumuloDataStore]
+        ds.asInstanceOf[AccumuloDataStore].config.catalog mustEqual "parameters"
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "create a schema" in {
       ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
     }
@@ -382,7 +395,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "allow for a configurable number of threads in z3 queries" in {
-      val param = AccumuloDataStoreParams.queryThreadsParam.getName
+      val param = AccumuloDataStoreParams.QueryThreadsParam.getName
       val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom,-75,-75,-60,-60) AND " +
           "dtg DURING 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z"))
 
@@ -567,9 +580,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "allow caching to be configured" in {
-      DataStoreFinder.getDataStore(dsParams ++ Map("caching" -> false))
+      DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> false))
           .asInstanceOf[AccumuloDataStore].config.caching must beFalse
-      DataStoreFinder.getDataStore(dsParams ++ Map("caching" -> true))
+      DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true))
           .asInstanceOf[AccumuloDataStore].config.caching must beTrue
     }
 
@@ -578,7 +591,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "support caching for improved WFS performance due to count/getFeatures" in {
-      val ds = DataStoreFinder.getDataStore(dsParams ++ Map("caching" -> true)).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true)).asInstanceOf[AccumuloDataStore]
 
       "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
         val fc = ds.getFeatureSource(defaultTypeName).getFeatures(Filter.INCLUDE)
@@ -727,7 +740,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "delete all associated tables" >> {
       val catalog = "AccumuloDataStoreDeleteAllTablesTest"
       // note the table needs to be different to prevent testing errors
-      val ds = DataStoreFinder.getDataStore(dsParams ++ Map("tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
       val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog)
@@ -759,7 +772,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create tables with an accumulo namespace" >> {
       val table = "test.AccumuloDataStoreNamespaceTest"
-      val params = Map("connector" -> ds.connector, "tableName" -> table)
+      val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> table)
       val dsWithNs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326")
       if (AccumuloVersion.accumuloVersion == AccumuloVersion.V15) {
@@ -773,7 +786,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "only create catalog table when necessary" >> {
       val table = "AccumuloDataStoreTableTest"
-      val params = Map("connector" -> this.ds.connector, "tableName" -> table)
+      val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> table)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       ds must not(beNull)
       def exists = ds.connector.tableOperations().exists(table)

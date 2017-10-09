@@ -26,12 +26,12 @@ via SparkSQL:
 
     // DataStore params to a hypothetical GeoMesa Accumulo table
     val dsParams = Map(
-      "instanceId" -> "instance",
-      "zookeepers" -> "zoo1,zoo2,zoo3",
-      "user"       -> "user",
-      "password"   -> "*****",
-      "auths"      -> "USER,ADMIN",
-      "tableName"  -> "geomesa_catalog")
+      "accumulo.instance.id"   -> "instance",
+      "accumulo.zookeepers"    -> "zoo1,zoo2,zoo3",
+      "accumulo.user"          -> "user",
+      "accumulo.password"      -> "*****",
+      "accumulo.catalog"       -> "geomesa_catalog",
+      "geomesa.security.auths" -> "USER,ADMIN")
 
     // Create SparkSession
     val sparkSession = SparkSession.builder()
