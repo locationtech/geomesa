@@ -13,8 +13,10 @@ import java.util.Date
 
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeature
@@ -40,15 +42,17 @@ class DateOffsetProcess extends GeoMesaProcess {
     // TODO: Throw exception if dateField is not in SFT.
     val period = Period.parse(timeOffset)
 
-    val iter2: List[SimpleFeature] = iter.map { sf =>
+    val iter2 = iter.map { sf =>
 
       val dtg = sf.getAttribute(dateField).asInstanceOf[Date]
       val ld = dtg.toInstant.atZone(ZoneId.systemDefault()).toLocalDate
       val ld2 = ld.plus(period)
       val newDtg = Date.from(ld2.atStartOfDay(ZoneId.systemDefault()).toInstant)
 
-      sf.setAttribute(dateField, newDtg)
-      sf
+      val updatedSF = ScalaSimpleFeature.copy(sf)
+      updatedSF.setAttribute(dateField, newDtg)
+
+      updatedSF
     }.toList
 
     new ListFeatureCollection(obsFeatures.getSchema, iter2)
