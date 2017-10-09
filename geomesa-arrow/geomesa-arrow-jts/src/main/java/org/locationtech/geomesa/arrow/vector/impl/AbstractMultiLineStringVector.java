@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
@@ -81,11 +82,14 @@ public abstract class AbstractMultiLineStringVector implements GeometryVector<Mu
 
   public static abstract class MultiLineStringWriter extends AbstractGeometryWriter<MultiLineString> {
 
+    private final BitVector.Mutator nullSet;
     private final ListVector.Mutator mutator;
     private final ListVector.Mutator innerMutator;
     private final FixedSizeListVector.Mutator tupleMutator;
 
     protected MultiLineStringWriter(ListVector vector) {
+      // the only way to access the bit vectors and set an index as null
+      this.nullSet = ((BitVector)vector.getFieldInnerVectors().get(0)).getMutator();
       ListVector innerList = (ListVector) vector.getChildrenFromFields().get(0);
       FixedSizeListVector tuples = (FixedSizeListVector) innerList.getChildrenFromFields().get(0);
       this.mutator = vector.getMutator();
@@ -96,7 +100,9 @@ public abstract class AbstractMultiLineStringVector implements GeometryVector<Mu
 
     @Override
     public void set(int index, MultiLineString geom) {
-      if (geom != null) {
+      if (geom == null) {
+        nullSet.setSafe(index, 0);
+      } else {
         int innerIndex = mutator.startNewValue(index);
         for (int i = 0; i < geom.getNumGeometries(); i++) {
           LineString line = (LineString) geom.getGeometryN(i);

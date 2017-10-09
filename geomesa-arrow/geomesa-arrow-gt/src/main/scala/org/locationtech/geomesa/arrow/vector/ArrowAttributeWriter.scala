@@ -15,7 +15,6 @@ import com.vividsolutions.jts.geom._
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.writer.BaseWriter.{ListWriter, MapWriter}
-import org.apache.arrow.vector.complex.writer._
 import org.apache.arrow.vector.complex.{ListVector, NullableMapVector}
 import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
@@ -187,16 +186,16 @@ object ArrowAttributeWriter {
         val dictionaryType = TypeBindings(bindings, classBinding, encoding)
         if (dictionaryEncoding.getIndexType.getBitWidth == 8) {
           val fieldType = new FieldType(true, MinorType.TINYINT.getType, dictionaryEncoding, metadata)
-          vector.addOrGet(name, fieldType, classOf[NullableTinyIntVector])
-          new ArrowDictionaryByteWriter(vector.getWriter.tinyInt(name), dict, dictionaryType)
+          val child = vector.addOrGet(name, fieldType, classOf[NullableTinyIntVector])
+          new ArrowDictionaryByteWriter(child.getMutator, dict, dictionaryType)
         } else if (dictionaryEncoding.getIndexType.getBitWidth == 16) {
           val fieldType = new FieldType(true, MinorType.SMALLINT.getType, dictionaryEncoding, metadata)
-          vector.addOrGet(name, fieldType, classOf[NullableSmallIntVector])
-          new ArrowDictionaryShortWriter(vector.getWriter.smallInt(name), dict, dictionaryType)
+          val child = vector.addOrGet(name, fieldType, classOf[NullableSmallIntVector])
+          new ArrowDictionaryShortWriter(child.getMutator, dict, dictionaryType)
         } else {
           val fieldType = new FieldType(true, MinorType.INT.getType, dictionaryEncoding, metadata)
-          vector.addOrGet(name, fieldType, classOf[NullableIntVector])
-          new ArrowDictionaryIntWriter(vector.getWriter.integer(name), dict, dictionaryType)
+          val child = vector.addOrGet(name, fieldType, classOf[NullableIntVector])
+          new ArrowDictionaryIntWriter(child.getMutator, dict, dictionaryType)
         }
     }
   }
@@ -217,37 +216,43 @@ object ArrowAttributeWriter {
   /**
     * Converts a value into a dictionary byte and writes it
     */
-  class ArrowDictionaryByteWriter(writer: TinyIntWriter,
+  class ArrowDictionaryByteWriter(mutator: NullableTinyIntVector#Mutator,
                                   val dictionary: ArrowDictionary,
                                   val dictionaryType: TypeBindings) extends ArrowAttributeWriter with HasArrowDictionary {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      writer.setPosition(i)
-      writer.writeTinyInt(dictionary.index(value).toByte)
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, dictionary.index(value).toByte)
+      }
   }
 
   /**
     * Converts a value into a dictionary short and writes it
     */
-  class ArrowDictionaryShortWriter(writer: SmallIntWriter,
+  class ArrowDictionaryShortWriter(mutator: NullableSmallIntVector#Mutator,
                                    val dictionary: ArrowDictionary,
                                    val dictionaryType: TypeBindings) extends ArrowAttributeWriter with HasArrowDictionary {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      writer.setPosition(i)
-      writer.writeSmallInt(dictionary.index(value).toShort)
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, dictionary.index(value).toShort)
+      }
   }
 
   /**
     * Converts a value into a dictionary int and writes it
     */
-  class ArrowDictionaryIntWriter(writer: IntWriter,
+  class ArrowDictionaryIntWriter(mutator: NullableIntVector#Mutator,
                                  val dictionary: ArrowDictionary,
                                  val dictionaryType: TypeBindings) extends ArrowAttributeWriter with HasArrowDictionary {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      writer.setPosition(i)
-      writer.writeInt(dictionary.index(value))
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, dictionary.index(value))
+      }
   }
 
   /**
@@ -297,9 +302,8 @@ object ArrowAttributeWriter {
       untyped.asInstanceOf[GeometryWriter[Geometry]]
     }
 
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      delegate.set(i, value.asInstanceOf[Geometry])
-    }
+    // note: delegate handles nulls
+    override def apply(i: Int, value: AnyRef): Unit = delegate.set(i, value.asInstanceOf[Geometry])
 
     override def setValueCount(count: Int): Unit = delegate.setValueCount(count)
   }
@@ -312,86 +316,121 @@ object ArrowAttributeWriter {
   }
 
   class ArrowStringWriter(mutator: NullableVarCharVector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
-      mutator.setSafe(i, bytes, 0, bytes.length)
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
+        mutator.setSafe(i, bytes, 0, bytes.length)
+      }
   }
 
   class ArrowIntWriter(mutator: NullableIntVector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.setSafe(i, value.asInstanceOf[Int])
+    override def apply(i: Int, value: AnyRef): Unit = {
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, value.asInstanceOf[Int])
+      }
     }
+
   }
 
   class ArrowLongWriter(mutator: NullableBigIntVector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.setSafe(i, value.asInstanceOf[Long])
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, value.asInstanceOf[Long])
+      }
   }
 
   class ArrowFloatWriter(mutator: NullableFloat4Vector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.setSafe(i, value.asInstanceOf[Float])
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, value.asInstanceOf[Float])
+      }
   }
 
   class ArrowDoubleWriter(mutator: NullableFloat8Vector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.setSafe(i, value.asInstanceOf[Double])
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, value.asInstanceOf[Double])
+      }
   }
 
   class ArrowBooleanWriter(mutator: NullableBitVector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.setSafe(i, if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
+      }
   }
 
   class ArrowDateMillisWriter(mutator: NullableBigIntVector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.setSafe(i, value.asInstanceOf[Date].getTime)
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, value.asInstanceOf[Date].getTime)
+      }
   }
 
   class ArrowDateSecondsWriter(mutator: NullableIntVector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      mutator.setSafe(i, (value.asInstanceOf[Date].getTime / 1000L).toInt)
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        mutator.setSafe(i, (value.asInstanceOf[Date].getTime / 1000L).toInt)
+      }
   }
 
   class ArrowBytesWriter(mutator: NullableVarBinaryVector#Mutator) extends ArrowAttributeWriter {
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
-      val bytes = value.asInstanceOf[Array[Byte]]
-      mutator.setSafe(i, bytes, 0, bytes.length)
-    }
+    override def apply(i: Int, value: AnyRef): Unit =
+      if (value == null) {
+        mutator.setNull(i) // note: calls .setSafe internally
+      } else {
+        val bytes = value.asInstanceOf[Array[Byte]]
+        mutator.setSafe(i, bytes, 0, bytes.length)
+      }
   }
 
   class ArrowListWriter(writer: ListWriter, binding: ObjectType, allocator: BufferAllocator)
       extends ArrowAttributeWriter {
-    val subWriter = toListWriter(writer, binding, allocator)
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
+    private val subWriter = toListWriter(writer, binding, allocator)
+    override def apply(i: Int, value: AnyRef): Unit = {
       writer.setPosition(i)
       writer.startList()
-      value.asInstanceOf[java.util.List[AnyRef]].foreach(subWriter)
+      // note: null gets converted to empty list
+      if (value != null) {
+        value.asInstanceOf[java.util.List[AnyRef]].foreach(subWriter)
+      }
       writer.endList()
     }
   }
 
   class ArrowMapWriter(writer: MapWriter, keyBinding: ObjectType, valueBinding: ObjectType, allocator: BufferAllocator)
       extends ArrowAttributeWriter {
-    val keyList   = writer.list("k")
-    val valueList = writer.list("v")
-    val keyWriter   = toListWriter(keyList, keyBinding, allocator)
-    val valueWriter = toListWriter(valueList, valueBinding, allocator)
-    override def apply(i: Int, value: AnyRef): Unit = if (value != null) {
+    private val keyList   = writer.list("k")
+    private val valueList = writer.list("v")
+    private val keyWriter   = toListWriter(keyList, keyBinding, allocator)
+    private val valueWriter = toListWriter(valueList, valueBinding, allocator)
+    override def apply(i: Int, value: AnyRef): Unit = {
       writer.setPosition(i)
       writer.start()
       keyList.startList()
       valueList.startList()
-      value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].foreach { case (k, v) =>
-        keyWriter(k)
-        valueWriter(v)
+      // note: null gets converted to empty map
+      if (value != null) {
+        value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].foreach { case (k, v) =>
+          keyWriter(k)
+          valueWriter(v)
+        }
       }
       keyList.endList()
       valueList.endList()

@@ -28,12 +28,16 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,team:String:index-value=true,age:Int,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=true,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326"
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   val features = (0 until 10).map { i =>
-    ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"team$i", s"${i % 5}", s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
+    val name = s"name${i % 2}"
+    val team = s"team$i"
+    val age = i % 5
+    val weight = Option(i % 3).filter(_ != 0).map(Int.box).orNull
+    ScalaSimpleFeature.create(sft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
   }
 
   // hit all major indices
