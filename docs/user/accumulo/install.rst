@@ -357,7 +357,7 @@ Accumulo 1.8
 * htrace-core-3.1.0-incubating.jar
 * commons-vfs2-2.1.jar
 
-Hadoop 2.5-2.8 (adjust versions as needed)
+Hadoop 2.6-2.8 (adjust versions as needed)
 
 * commons-configuration-1.6.jar
 * hadoop-auth-2.7.4.jar
