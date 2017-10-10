@@ -38,19 +38,19 @@ build the classpath. You can configure environment variables and classpath setti
 uses to determine which external entries to include on the classpath is:
 
     1. If the environmental variables ``GEOMESA_HADOOP_CLASSPATH`` and ``GEOMESA_HBASE_CLASSPATH`` are set then GeoMesa
-        HBase will these variables to set the classpath and skip all other logic.
+    HBase will these variables to set the classpath and skip all other logic.
 
     2. Next, ``$HBASE_HOME`` and ``$HADOOP_HOME`` are set then GeoMesa HBase will attempt to build the classpath by
-        searching for jar files and configuration in standard locations...Note that this is very specific to the
-        installation or distribution of Hadoop you are using and may not be reliable
+    searching for jar files and configuration in standard locations...Note that this is very specific to the
+    installation or distribution of Hadoop you are using and may not be reliable.
 
     3. If no environmental variables are set but the ``hbase`` and ``hadoop`` command are available then GeoMesa will
-        interrogate them for their classpaths by running the `hadoop classpath`` and `hbase classpath`` commands.
+    interrogate them for their classpaths by running the ``hadoop classpath`` and ``hbase classpath`` commands.
 
-Note: In addition, ``geomesa-hbase`` will pull any additional entries from the ``$GEOMESA_EXTRA_CLASSPATHS``
+In addition, ``geomesa-hbase`` will pull any additional entries from the ``GEOMESA_EXTRA_CLASSPATHS``
 environment variable.
 
-Note that the ``$GEOMESA_EXTRA_CLASSPATHS``, ``GEOMESA_HADOOP_CLASSPATH``, and ``GEOMESA_HBASE_CLASSPATH`` variables
+Note that the ``GEOMESA_EXTRA_CLASSPATHS``, ``GEOMESA_HADOOP_CLASSPATH``, and ``GEOMESA_HBASE_CLASSPATH`` variables
 all follow standard
 `Java Classpath <http://docs.oracle.com/javase/8/docs/technotes/tools/windows/classpath.html>`_ conventions generally
 means that entries must be directories, jar, or zip files. Individual XML files will be ignored. For example, to add a
@@ -114,7 +114,10 @@ A few suggested configurations are below:
             bin/install-hadoop.sh lib
             bin/install-hbase.sh lib
 
-        You will also need to provide the hbase-site.xml file within a directory, zip, or jar archive:
+        You will also need to provide the hbase-site.xml file within a directory, zip, or jar archive (the xml file
+        will not work with the Java classpath):
+
+        .. code-block:: bash
 
             export GEOMESA_EXTRA_CLASSPATHS=/path/to/confdir:/path/to/conf.zip:/path/to/conf.jar
 
