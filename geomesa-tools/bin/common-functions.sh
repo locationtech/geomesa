@@ -22,7 +22,7 @@ function setGeoLog() {
 }
 
 # findJars [path] [bool: remove slf4j jars] [bool: do not descend into sub directories]
-# TODO only finds lowercase .jar extensions
+# TODO this function only finds lowercase .jar extensions
 function findJars() {
   home="$1"
   CP=()
