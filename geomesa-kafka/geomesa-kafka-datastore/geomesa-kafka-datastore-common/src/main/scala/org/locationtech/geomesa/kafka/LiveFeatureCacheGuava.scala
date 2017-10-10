@@ -38,8 +38,8 @@ class LiveFeatureCacheGuava(override val sft: SimpleFeatureType,
       cb.expireAfterWrite(ep, TimeUnit.MILLISECONDS)
         .removalListener(new RemovalListener[String, FeatureHolder] {
           override def onRemoval(key: String, value: FeatureHolder, cause: RemovalCause): Unit = {
-            if (cause == RemovalCause.EXPIRED || cause == RemovalCause.EXPLICIT) {
-              logger.debug(s"Removing feature $key due to expiration after ${ep}ms")
+            if (cause != RemovalCause.REPLACED) {
+              logger.debug(s"Removing feature $key due to ${cause.name()} after ${ep}ms")
               spatialIndex.remove(value.env, value.sf)
             }
           }
