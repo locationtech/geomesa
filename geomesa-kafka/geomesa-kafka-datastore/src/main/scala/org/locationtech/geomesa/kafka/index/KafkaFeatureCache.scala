@@ -41,8 +41,8 @@ object KafkaFeatureCache {
       if (expiry != Duration.Inf) {
         val listener = new RemovalListener[String, T] {
           override def onRemoval(key: String, value: T, cause: RemovalCause): Unit = {
-            if (cause == RemovalCause.EXPIRED) {
-              logger.debug(s"Removing feature $key due to expiration after $expiry")
+            if (cause != RemovalCause.REPLACED) {
+              logger.debug(s"Removing feature $key due to ${cause.name()} after $expiry")
               expired(value)
             }
           }
