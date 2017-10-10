@@ -114,6 +114,8 @@ class LiveFeatureCacheCQEngine(sft: SimpleFeatureType,
     val iter = ids.getIDs.flatMap(id => features.get(id.toString).map(_.sf)).iterator
     new DFR(sft, new DFI(iter))
   }
+
+  override def close(): Unit = {}
 }
 
 

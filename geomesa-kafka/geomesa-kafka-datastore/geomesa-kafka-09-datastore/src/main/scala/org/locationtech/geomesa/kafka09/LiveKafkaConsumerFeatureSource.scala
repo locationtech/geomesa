@@ -31,6 +31,7 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
                                      topic: String,
                                      kf: KafkaConsumerFactory,
                                      expirationPeriod: Option[Long] = None,
+                                     consistencyCheck: Option[Long] = None,
                                      cleanUpCache: Boolean,
                                      useCQCache: Boolean,
                                      q: Query,
@@ -39,10 +40,11 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
                                     (implicit ticker: Ticker = Ticker.systemTicker())
   extends KafkaConsumerFeatureSource(e, sft, q, monitor) with Runnable with Closeable with LazyLogging {
 
-  private[kafka09] val featureCache: LiveFeatureCache = if (useCQCache)
+  private[kafka09] val featureCache: LiveFeatureCache = if (useCQCache) {
     new LiveFeatureCacheCQEngine(sft, expirationPeriod)
-  else
-    new LiveFeatureCacheGuava(sft, expirationPeriod)
+  } else {
+    new LiveFeatureCacheGuava(sft, expirationPeriod, consistencyCheck)
+  }
 
   private lazy val contentState = entry.getState(getTransaction)
 

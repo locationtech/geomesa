@@ -8,10 +8,12 @@
 
 package org.locationtech.geomesa.kafka
 
+import java.io.Closeable
+
 import org.locationtech.geomesa.utils.geotools.FR
 import org.opengis.filter.Filter
 
-trait LiveFeatureCache {
+trait LiveFeatureCache extends Closeable {
   def cleanUp(): Unit
   def createOrUpdateFeature(update: CreateOrUpdate): Unit
   def removeFeature(toDelete: Delete): Unit

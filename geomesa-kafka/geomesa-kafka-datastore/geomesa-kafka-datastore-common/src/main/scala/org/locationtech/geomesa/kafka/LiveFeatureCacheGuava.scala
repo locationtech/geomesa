@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{Executors, TimeUnit}
 
 import com.github.benmanes.caffeine.cache._
 import com.typesafe.scalalogging.LazyLogging
@@ -25,7 +25,9 @@ import scala.collection.mutable
   * @param ticker used to determine elapsed time for expiring entries
   */
 class LiveFeatureCacheGuava(override val sft: SimpleFeatureType,
-                            expirationPeriod: Option[Long])(implicit ticker: Ticker)
+                            expirationPeriod: Option[Long],
+                            consistencyCheck: Option[Long] = None)
+                           (implicit ticker: Ticker)
   extends KafkaConsumerFeatureCache with LiveFeatureCache with LazyLogging {
 
   var spatialIndex: SpatialIndex[SimpleFeature] = newSpatialIndex()
@@ -36,7 +38,7 @@ class LiveFeatureCacheGuava(override val sft: SimpleFeatureType,
       cb.expireAfterWrite(ep, TimeUnit.MILLISECONDS)
         .removalListener(new RemovalListener[String, FeatureHolder] {
           override def onRemoval(key: String, value: FeatureHolder, cause: RemovalCause): Unit = {
-            if (cause == RemovalCause.EXPIRED) {
+            if (cause == RemovalCause.EXPIRED || cause == RemovalCause.EXPLICIT) {
               logger.debug(s"Removing feature $key due to expiration after ${ep}ms")
               spatialIndex.remove(value.env, value.sf)
             }
@@ -44,6 +46,41 @@ class LiveFeatureCacheGuava(override val sft: SimpleFeatureType,
         })
     }
     cb.build[String, FeatureHolder]()
+  }
+
+  private val consistencyChecker = consistencyCheck.map { interval =>
+    import org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
+
+    val check = new Runnable() {
+
+      private var lastRun = Set.empty[SimpleFeature]
+
+      private def filter(feature: SimpleFeature, id: String): Boolean = feature.getID == id
+
+      override def run(): Unit = {
+        val cacheInconsistencies = features.collect {
+          case (id, FeatureHolder(sf, env)) if spatialIndex.query(env, filter(_, id)).isEmpty => sf
+        }.toSet
+        val spatialInconsistencies = spatialIndex.query(wholeWorldEnvelope).filter { sf =>
+          val cached = cache.getIfPresent(sf.getID)
+          cached == null || cached.sf.geometry.getEnvelopeInternal != sf.geometry.getEnvelopeInternal
+        }.toSet
+        val union = cacheInconsistencies | spatialInconsistencies
+        // only remove features that have been found to be inconsistent on the last run just to make sure
+        lastRun = union.filter { sf =>
+          if (lastRun.contains(sf)) {
+            cache.invalidate(sf.getID)
+            spatialIndex.remove(sf.geometry.getEnvelopeInternal, sf)
+            false
+          } else {
+            true // we'll check it again next time
+          }
+        }
+      }
+    }
+    val es = Executors.newSingleThreadScheduledExecutor()
+    es.scheduleWithFixedDelay(check, interval, interval, TimeUnit.MILLISECONDS)
+    es
   }
 
   override val features: mutable.Map[String, FeatureHolder] = cache.asMap().asScala
@@ -87,6 +124,8 @@ class LiveFeatureCacheGuava(override val sft: SimpleFeatureType,
   }
 
   override def getFeatureById(id: String): FeatureHolder = cache.getIfPresent(id)
+
+  override def close(): Unit = consistencyChecker.foreach(_.shutdown())
 
   private def newSpatialIndex() = new BucketIndex[SimpleFeature]
 }
