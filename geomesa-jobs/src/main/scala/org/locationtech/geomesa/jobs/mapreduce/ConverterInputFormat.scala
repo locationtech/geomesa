@@ -15,9 +15,14 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{Path, Seekable}
 import org.apache.hadoop.mapreduce._
+import org.geotools.data.simple.DelegateSimpleFeatureReader
+import org.geotools.data.ReTypeFeatureReader
+import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -38,12 +43,16 @@ object ConverterInputFormat {
   }
 
   val ConverterKey  = "org.locationtech.geomesa.jobs.ingest.converter"
+  val RetypeKey = "org.locationtech.geomesa.jobs.ingest.retype"
 
   def setConverterConfig(job: Job, config: String): Unit = setConverterConfig(job.getConfiguration, config)
   def setConverterConfig(conf: Configuration, config: String): Unit = conf.set(ConverterKey, config)
 
   def setSft(job: Job, sft: SimpleFeatureType): Unit = FileStreamInputFormat.setSft(job, sft)
   def setSft(conf: Configuration, sft: SimpleFeatureType): Unit = FileStreamInputFormat.setSft(conf, sft)
+
+  def setRetypeSft(job: Job, sft: SimpleFeatureType): Unit = setRetypeSft(job.getConfiguration, sft)
+  def setRetypeSft(conf: Configuration, sft: SimpleFeatureType): Unit = conf.set(RetypeKey, SimpleFeatureTypes.encodeType(sft))
 
   def setFilter(job: Job, ecql: String): Unit = setFilter(job.getConfiguration, ecql)
   def setFilter(conf: Configuration, ecql: String): Unit = GeoMesaConfigurator.setFilter(conf, ecql)
@@ -61,6 +70,8 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     val sft       = FileStreamInputFormat.getSft(context.getConfiguration)
     val converter = SimpleFeatureConverters.build(sft, conf)
     val filter    = GeoMesaConfigurator.getFilter(context.getConfiguration).map(ECQL.toFilter)
+    val retypedSpec = context.getConfiguration.get(RetypeKey)
+
 
     class MapReduceCounter extends org.locationtech.geomesa.convert.Counter {
       import ConverterInputFormat.{Counters => C}
@@ -86,13 +97,25 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
       case None    => raw
     }
 
+    import scala.collection.JavaConversions._
+    val featureReader = if (retypedSpec != null) {
+      val retypedSft = SimpleFeatureTypes.createType(sft.getTypeName, retypedSpec)
+      val reader = new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter))
+      new ReTypeFeatureReader(reader, retypedSft)
+    } else {
+      new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter))
+    }
+
     logger.info(s"Initialized record reader on split ${filePath.toString} with " +
         s"type name ${sft.getTypeName} and convert conf $confStr")
 
     new Iterator[SimpleFeature] with Closeable {
-      override def hasNext: Boolean = iter.hasNext
-      override def next(): SimpleFeature = iter.next
-      override def close(): Unit = converter.close()
+      override def hasNext: Boolean = featureReader.hasNext
+      override def next(): SimpleFeature = featureReader.next
+      override def close(): Unit = {
+        CloseWithLogging(featureReader)
+        CloseWithLogging(converter)
+      }
     }
   }
 }

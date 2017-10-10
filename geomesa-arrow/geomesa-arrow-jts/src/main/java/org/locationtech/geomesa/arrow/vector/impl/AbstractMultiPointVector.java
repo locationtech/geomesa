@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
@@ -80,10 +81,13 @@ public abstract class AbstractMultiPointVector implements GeometryVector<MultiPo
 
   public static abstract class MultiPointWriter extends AbstractGeometryWriter<MultiPoint> {
 
+    private final BitVector.Mutator nullSet;
     private final ListVector.Mutator mutator;
     private final FixedSizeListVector.Mutator tupleMutator;
 
     protected MultiPointWriter(ListVector vector) {
+      // the only way to access the bit vectors and set an index as null
+      this.nullSet = ((BitVector)vector.getFieldInnerVectors().get(0)).getMutator();
       this.mutator = vector.getMutator();
       FixedSizeListVector tuples = (FixedSizeListVector) vector.getChildrenFromFields().get(0);
       this.tupleMutator = tuples.getMutator();
@@ -92,7 +96,9 @@ public abstract class AbstractMultiPointVector implements GeometryVector<MultiPo
 
     @Override
     public void set(int index, MultiPoint geom) {
-      if (geom != null) {
+      if (geom == null) {
+        nullSet.setSafe(index, 0);
+      } else {
         int position = mutator.startNewValue(index);
         for (int i = 0; i < geom.getNumPoints(); i++) {
           Point p = (Point) geom.getGeometryN(i);
