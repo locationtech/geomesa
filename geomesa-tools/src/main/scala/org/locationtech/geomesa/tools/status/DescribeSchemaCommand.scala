@@ -19,21 +19,26 @@ import scala.collection.mutable.ArrayBuffer
 trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name: String = "describe-schema"
-  override def params: TypeNameParam
 
   protected def hasSpatialIndex: Boolean = true
   protected def hasSpatioTemporalIndex: Boolean = true
   protected def hasAttributeIndex: Boolean = true
 
   override def execute(): Unit = withDataStore { ds =>
-    Command.user.info(s"Describing attributes of feature '${params.featureName}'")
-
-    val sft = ds.getSchema(params.featureName)
+    val sft = getSchema(ds)
     if (sft == null) {
-      throw new ParameterException(s"Feature '${params.featureName}' not found")
+      val msg = params match {
+        case p: TypeNameParam => s"Feature '${p.featureName}' not found"
+        case _ => s"Feature type not found"
+      }
+      throw new ParameterException(msg)
     }
-
+    Command.user.info(s"Describing attributes of feature '${sft.getTypeName}'")
     describe(ds, sft, Command.output.info)
+  }
+
+  protected def getSchema(ds: DS): SimpleFeatureType = params match {
+    case p: TypeNameParam => ds.getSchema(p.featureName)
   }
 
   protected def describe(ds: DS, sft: SimpleFeatureType, output: (String) => Unit): Unit = {
