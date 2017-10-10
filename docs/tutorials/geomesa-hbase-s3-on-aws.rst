@@ -10,7 +10,7 @@ Services account already provisioned as well as an IAM key pair.
 
 .. _Amazon ElasticMapReduce: https://aws.amazon.com/emr/
 
-An EMR cluster an be bootstrapped either via the AWS Web Console (recommended for new users) or from another EC2
+An EMR cluster can be bootstrapped either via the AWS Web Console (recommended for new users) or from another EC2
 instance via the AWS CLI.
 
 Creating an EMR Cluster (Web Console)

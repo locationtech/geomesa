@@ -38,13 +38,13 @@ build the classpath. You can configure environment variables and classpath setti
 uses to determine which external entries to include on the classpath is:
 
     1. If the environmental variables ``GEOMESA_HADOOP_CLASSPATH`` and ``GEOMESA_HBASE_CLASSPATH`` are set then GeoMesa
-    HBase will these variables to set the classpath and skip all other logic.
+    HBase will use these variables to set the classpath and skip all other logic.
 
-    2. Next, ``$HBASE_HOME`` and ``$HADOOP_HOME`` are set then GeoMesa HBase will attempt to build the classpath by
+    2. Next, if ``$HBASE_HOME`` and ``$HADOOP_HOME`` are set then GeoMesa HBase will attempt to build the classpath by
     searching for jar files and configuration in standard locations...Note that this is very specific to the
     installation or distribution of Hadoop you are using and may not be reliable.
 
-    3. If no environmental variables are set but the ``hbase`` and ``hadoop`` command are available then GeoMesa will
+    3. If no environmental variables are set but the ``hbase`` and ``hadoop`` commands are available then GeoMesa will
     interrogate them for their classpaths by running the ``hadoop classpath`` and ``hbase classpath`` commands.
 
 In addition, ``geomesa-hbase`` will pull any additional entries from the ``GEOMESA_EXTRA_CLASSPATHS``
