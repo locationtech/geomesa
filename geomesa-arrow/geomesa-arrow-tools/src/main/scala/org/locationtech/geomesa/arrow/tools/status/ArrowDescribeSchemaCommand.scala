@@ -11,7 +11,6 @@ package org.locationtech.geomesa.arrow.tools.status
 import com.beust.jcommander.{Parameter, Parameters}
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.{ArrowDataStoreCommand, UrlParam}
-import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.status.DescribeSchemaCommand
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -21,6 +20,8 @@ class ArrowDescribeSchemaCommand extends DescribeSchemaCommand[ArrowDataStore] w
   override protected def hasSpatialIndex: Boolean = false
   override protected def hasSpatioTemporalIndex: Boolean = false
   override protected def hasAttributeIndex: Boolean = false
+
+  override protected def getSchema(ds: ArrowDataStore): SimpleFeatureType = ds.getSchema
 
   override protected def describe(ds: ArrowDataStore, sft: SimpleFeatureType, output: (String) => Unit): Unit = {
     super.describe(ds, sft, output)
@@ -38,7 +39,7 @@ class ArrowDescribeSchemaCommand extends DescribeSchemaCommand[ArrowDataStore] w
 }
 
 @Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
-class ArrowDescribeSchemaParams extends UrlParam with RequiredTypeNameParam {
+class ArrowDescribeSchemaParams extends UrlParam {
   @Parameter(names = Array("--show-dictionaries"), description = "Show dictionary values")
   var dictionaries: Boolean = false
 }
