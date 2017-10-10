@@ -28,8 +28,8 @@ chmod a+rwx /opt
 ln -s ${GMDIR} /opt/geomesa
 
 cat <<EOF > /etc/profile.d/geomesa.sh
-export GEOMESA_HOME=/opt/geomesa
-export PATH=\$PATH:\$GEOMESA_HOME/bin
+export GEOMESA_HBASE_HOME=/opt/geomesa
+export PATH=\$PATH:\$GEOMESA_HBASE_HOME/bin
 
 EOF
 
@@ -67,5 +67,16 @@ fi
 # TODO check to see if this already exists
 sudo -u $GMUSER hadoop fs -mkdir /user/$GMUSER
 sudo -u $GMUSER hadoop fs -chown $GMUSER:$GMUSER /user/$GMUSER
+
+# Set up the classpath for Hadoop and HBase
+cat <<EOF >> ${GEOMESA_HBASE_HOME}/conf/geomesa-env.sh
+
+# Set the Hadoop Classpath
+export GEOMESA_HADOOP_CLASSPATH=$(hadoop classpath)
+
+# Set the HBase Classpath
+export GEOMESA_HBASE_CLASSPATH=$(hbase classpath)
+
+EOF
 
 echo "Bootstrap complete...log out and relogin to complete process"
