@@ -62,8 +62,8 @@ class StreamDataStoreTest extends Specification {
     """.stripMargin
 
   val sds = DataStoreFinder.getDataStore(Map(
-      StreamDataStoreParams.STREAM_DATASTORE_CONFIG.key -> sourceConf,
-      StreamDataStoreParams.CACHE_TIMEOUT.key -> Integer.valueOf(2)
+      StreamDataStoreParams.StreamDatastoreConfig.key -> sourceConf,
+      StreamDataStoreParams.CacheTimeout.key -> Integer.valueOf(2)
     )).asInstanceOf[StreamDataStore]
 
   "StreamDataStore" should {

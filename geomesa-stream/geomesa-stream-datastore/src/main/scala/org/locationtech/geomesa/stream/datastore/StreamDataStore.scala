@@ -145,8 +145,8 @@ class StreamFeatureStore(entry: ContentEntry,
 }
 
 object StreamDataStoreParams {
-  val STREAM_DATASTORE_CONFIG = new GeoMesaParam[String]("geomesa.stream.datastore.config", "", required = true)
-  val CACHE_TIMEOUT = new GeoMesaParam[Integer]("geomesa.stream.datastore.cache.timeout", "", required = true, default = 10)
+  val StreamDatastoreConfig = new GeoMesaParam[String]("geomesa.stream.datastore.config", "", required = true)
+  val CacheTimeout = new GeoMesaParam[Integer]("geomesa.stream.datastore.cache.timeout", "", required = true, default = 10)
 }
 
 class StreamDataStoreFactory extends DataStoreFactorySpi {
@@ -154,8 +154,8 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
   import StreamDataStoreParams._
 
   override def createDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = {
-    val confString = STREAM_DATASTORE_CONFIG.lookup(params)
-    val timeout = CACHE_TIMEOUT.lookupOpt(params).map(_.intValue).getOrElse(10)
+    val confString = StreamDatastoreConfig.lookup(params)
+    val timeout = CacheTimeout.lookupOpt(params).map(_.intValue).getOrElse(10)
     val conf = ConfigFactory.parseString(confString)
     val source = SimpleFeatureStreamSource.buildSource(conf)
     new StreamDataStore(source, timeout)
@@ -163,10 +163,10 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
 
   override def createNewDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = createDataStore(params)
   override def getDescription: String = "SimpleFeature Stream Source"
-  override def getParametersInfo: Array[Param] = Array(STREAM_DATASTORE_CONFIG, CACHE_TIMEOUT)
+  override def getParametersInfo: Array[Param] = Array(StreamDatastoreConfig, CacheTimeout)
   override def getDisplayName: String = "SimpleFeature Stream Source"
   override def canProcess(params: ju.Map[String, java.io.Serializable]): Boolean =
-    STREAM_DATASTORE_CONFIG.exists(params)
+    StreamDatastoreConfig.exists(params)
 
   override def isAvailable: Boolean = true
   override def getImplementationHints: ju.Map[RenderingHints.Key, _] = null
