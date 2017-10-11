@@ -47,7 +47,15 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
     BigtableDataStoreFactory.canProcess(params)
 
   override def getParametersInfo: Array[Param] =
-    Array(BigtableCatalogParam, QueryThreads, QueryTimeout, GenerateStats, AuditQueries, LooseBBox, Caching)
+    Array(
+      BigtableCatalogParam,
+      QueryThreadsParam,
+      QueryTimeoutParam,
+      GenerateStatsParam,
+      AuditQueriesParam,
+      LooseBBoxParam,
+      CachingParam
+    )
 }
 
 object BigtableDataStoreFactory {

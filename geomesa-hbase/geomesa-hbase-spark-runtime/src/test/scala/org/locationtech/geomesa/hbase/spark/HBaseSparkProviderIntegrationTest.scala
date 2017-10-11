@@ -36,7 +36,7 @@ class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
 
   def dtgField: Option[String] = Some("dtg")
 
-  lazy val dsParams = Map(HBaseCatalog.getName -> "test_sft")
+  lazy val dsParams = Map(HBaseCatalogParam.getName -> "test_sft")
   lazy val dsf = new HBaseDataStoreFactory()
   lazy val ds = dsf.createDataStore(dsParams)
 

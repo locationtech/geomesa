@@ -89,7 +89,7 @@ class BigTableIntegrationTest extends Specification {
 
     "work with points" >> {
       val typeName = "testpolys"
-      val params = Map(HBaseCatalog.getName -> "integration_test")
+      val params = Map(HBaseCatalogParam.getName -> "integration_test")
       lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       def createFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>

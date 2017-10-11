@@ -14,7 +14,6 @@ import java.io.IOException
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.DurationParam
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -116,8 +115,8 @@ class GeoMesaParamTest extends Specification with LazyLogging {
       new GeoMesaParam[Integer]("foo", default = 1, systemProperty = Some((SystemProperty("params.foo.bar", "1"), (p) => p.toInt))) must not(throwAn[AssertionError])
     }
     "lookup durations" in {
-      (new GeoMesaParam[Duration]("foo") with DurationParam).lookup(Map("foo" -> "10s")) mustEqual Duration("10s")
-      (new GeoMesaParam[Duration]("foo") with DurationParam).lookup(Map("foo" -> "bar")) must throwAn[IOException]
+      new GeoMesaParam[Duration]("foo").lookup(Map("foo" -> "10s")) mustEqual Duration("10s")
+      new GeoMesaParam[Duration]("foo").lookup(Map("foo" -> "bar")) must throwAn[IOException]
     }
   }
 }

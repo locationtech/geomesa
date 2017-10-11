@@ -85,15 +85,9 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
     */
   def deprecationWarning(deprecated: String): Unit =
     logger.warn(s"Parameter '$deprecated' is deprecated, please use '$key' instead")
-}
 
-object GeoMesaParam {
 
-  trait DurationParam {
-
-    this: GeoMesaParam[Duration] =>
-
-    @throws(classOf[Throwable])
-    override def parse(text: String): Duration = Duration(text)
-  }
+  @throws(classOf[Throwable])
+  override def parse(text: String): AnyRef =
+    if (ct.runtimeClass == classOf[Duration]) { Duration(text) } else { super.parse(text) }
 }

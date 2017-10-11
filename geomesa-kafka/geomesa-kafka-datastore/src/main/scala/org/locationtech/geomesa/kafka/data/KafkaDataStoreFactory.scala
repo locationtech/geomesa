@@ -16,13 +16,13 @@ import com.github.benmanes.caffeine.cache.Ticker
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams.{Brokers, ZkPath, Zookeepers}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.DurationParam
 
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -56,7 +56,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
       ConsumeEarliest,
       AuditQueries,
       LooseBBox,
-      Namespace
+      NamespaceParam
     )
 
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
@@ -136,7 +136,7 @@ object KafkaDataStoreFactory {
     }
     val authProvider = buildAuthProvider(params)
 
-    val ns = Option(Namespace.lookUp(params).asInstanceOf[String])
+    val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, partitions, replication,
       producerConfig, consumerConfig, consumeFromBeginning, cacheExpiry, cacheCleanup, ticker, cqEngine,
@@ -184,7 +184,7 @@ object KafkaDataStoreFactory {
   }
 
   // noinspection TypeAnnotation
-  object KafkaDataStoreFactoryParams {
+  object KafkaDataStoreFactoryParams extends NamespaceParams {
     val Brokers          = new GeoMesaParam[String]("kafka.brokers", "Kafka brokers", required = true, deprecated = Seq("brokers"))
     val Zookeepers       = new GeoMesaParam[String]("kafka.zookeepers", "Kafka zookeepers", required = true, deprecated = Seq("zookeepers"))
     val ZkPath           = new GeoMesaParam[String]("kafka.zk.path", "Zookeeper discoverable path (namespace)", default = DefaultZkPath, deprecated = Seq("zkPath"))
@@ -194,13 +194,12 @@ object KafkaDataStoreFactory {
     val TopicPartitions  = new GeoMesaParam[Integer]("kafka.topic.partitions", "Number of partitions to use in kafka topics", default = 1, deprecated = Seq("partitions"))
     val TopicReplication = new GeoMesaParam[Integer]("kafka.topic.replication", "Replication factor to use in kafka topics", default = 1, deprecated = Seq("replication"))
     val ConsumerCount    = new GeoMesaParam[Integer]("kafka.consumer.count", "Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)", default = 1)
-    val CacheExpiry      = new GeoMesaParam[Duration]("kafka.cache.expiry", "Features will be expired after this delay", default = Duration.Inf) with DurationParam
-    val CacheCleanup     = new GeoMesaParam[Duration]("kafka.cache.cleanup", "Run a thread to clean expired features from the cache (vs cleanup during reads and writes)", default = Duration("30s")) with DurationParam
+    val CacheExpiry      = new GeoMesaParam[Duration]("kafka.cache.expiry", "Features will be expired after this delay", default = Duration.Inf)
+    val CacheCleanup     = new GeoMesaParam[Duration]("kafka.cache.cleanup", "Run a thread to clean expired features from the cache (vs cleanup during reads and writes)", default = Duration("30s"))
     val CacheTicker      = new GeoMesaParam[Ticker]("kafka.cache.ticker", "Ticker to use for expiring/cleaning feature cache")
     val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = false, deprecated = Seq("useCQCache"))
     val LooseBBox        = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries     = GeoMesaDataStoreFactory.AuditQueriesParam
     val Authorizations   = org.locationtech.geomesa.security.AuthsParam
-    val Namespace        = GeoMesaDataStoreFactory.NamespaceParam
   }
 }

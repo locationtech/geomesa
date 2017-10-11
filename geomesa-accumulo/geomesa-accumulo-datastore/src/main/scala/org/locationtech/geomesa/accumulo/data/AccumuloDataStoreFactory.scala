@@ -23,8 +23,9 @@ import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.security
+import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -226,7 +227,7 @@ object AccumuloDataStoreFactory {
 
 // noinspection TypeAnnotation
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
-object AccumuloDataStoreParams {
+object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val ConnectorParam       = new GeoMesaParam[Connector]("accumulo.connector", "Accumulo connector", deprecated = Seq("connector"))
   val InstanceIdParam      = new GeoMesaParam[String]("accumulo.instance.id", "Accumulo Instance ID", required = true, deprecated = Seq("instanceId", "accumulo.instanceId"))
   val ZookeepersParam      = new GeoMesaParam[String]("accumulo.zookeepers", "Zookeepers", required = true, deprecated = Seq("zookeepers"))
@@ -234,17 +235,7 @@ object AccumuloDataStoreParams {
   val PasswordParam        = new GeoMesaParam[String]("accumulo.password", "Accumulo password", metadata = Map(Parameter.IS_PASSWORD -> java.lang.Boolean.TRUE), deprecated = Seq("password"))
   val KeytabPathParam      = new GeoMesaParam[String]("accumulo.keytab.path", "Path to keytab file", deprecated = Seq("keytabPath", "accumulo.keytabPath"))
   val MockParam            = new GeoMesaParam[java.lang.Boolean]("accumulo.mock", "Use a mock connection (for testing)", default = false, deprecated = Seq("useMock", "accumulo.useMock"))
-  val AuthsParam           = org.locationtech.geomesa.security.AuthsParam
-  val ForceEmptyAuthsParam = org.locationtech.geomesa.security.ForceEmptyAuthsParam
-  val VisibilitiesParam    = org.locationtech.geomesa.security.VisibilitiesParam
   val CatalogParam         = new GeoMesaParam[String]("accumulo.catalog", "Accumulo catalog table name", required = true, deprecated = Seq("tableName", "accumulo.tableName"))
-  val QueryTimeoutParam    = GeoMesaDataStoreFactory.QueryTimeoutParam
-  val QueryThreadsParam    = GeoMesaDataStoreFactory.QueryThreadsParam
   val RecordThreadsParam   = new GeoMesaParam[Integer]("accumulo.query.record-threads", "The number of threads to use for record retrieval", default = 10, deprecated = Seq("recordThreads", "accumulo.recordThreads"))
   val WriteThreadsParam    = new GeoMesaParam[Integer]("accumulo.write.threads", "The number of threads to use for writing records", default = 10, deprecated = Seq("writeThreads", "accumulo.writeThreads"))
-  val LooseBBoxParam       = GeoMesaDataStoreFactory.LooseBBoxParam
-  val GenerateStatsParam   = GeoMesaDataStoreFactory.GenerateStatsParam
-  val AuditQueriesParam    = GeoMesaDataStoreFactory.AuditQueriesParam
-  val CachingParam         = GeoMesaDataStoreFactory.CachingParam
-  val NamespaceParam       = GeoMesaDataStoreFactory.NamespaceParam
 }

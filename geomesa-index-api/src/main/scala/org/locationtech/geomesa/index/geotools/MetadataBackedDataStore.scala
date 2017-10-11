@@ -17,7 +17,7 @@ import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureWriter}
 import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
-import org.locationtech.geomesa.index.geotools.MetadataBackedDataStore.NamespaceConfig
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
@@ -394,11 +394,5 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     )
 
     metadata.insert(sft.getTypeName, metadataMap)
-  }
-}
-
-object MetadataBackedDataStore {
-  trait NamespaceConfig {
-    def namespace: Option[String]
   }
 }

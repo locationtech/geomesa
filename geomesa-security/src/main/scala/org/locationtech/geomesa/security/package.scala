@@ -25,6 +25,12 @@ package object security {
   val AuthProviderParam    = new GeoMesaParam[AuthorizationsProvider]("geomesa.security.auths.provider", "Authorizations provider", deprecated = Seq("authProvider"))
   val VisibilitiesParam    = new GeoMesaParam[String]("geomesa.security.visibilities", "Default visibilities to apply to all written data", deprecated = Seq("visibilities"))
 
+  trait SecurityParams {
+    val AuthsParam: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
+    val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
+    val VisibilitiesParam: GeoMesaParam[String] = org.locationtech.geomesa.security.VisibilitiesParam
+  }
+
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {
     /**
      * Sets the visibility to the given ``visibility`` expression.

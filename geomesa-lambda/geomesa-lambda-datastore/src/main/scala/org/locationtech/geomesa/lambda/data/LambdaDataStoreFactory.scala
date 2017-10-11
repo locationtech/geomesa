@@ -16,12 +16,12 @@ import java.util.Properties
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, ZookeeperOffsetManager}
+import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.DurationParam
 
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
@@ -80,7 +80,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     ExpiryParam,
     PersistParam,
     AuthsParam,
-    EmptyAuthsParam,
+    ForceEmptyAuthsParam,
     QueryTimeoutParam,
     QueryThreadsParam,
     Accumulo.RecordThreadsParam,
@@ -111,9 +111,9 @@ object LambdaDataStoreFactory {
 
   private val Description = "Hybrid store using Kafka for recent events and Accumulo for long-term storage"
 
-  // noinspection TypeAnnotation
-  object Params {
+  object Params extends GeoMesaDataStoreParams with SecurityParams {
 
+    // noinspection TypeAnnotation
     object Accumulo {
       val InstanceParam      = copy(AccumuloDataStoreParams.InstanceIdParam)
       val ZookeepersParam    = copy(AccumuloDataStoreParams.ZookeepersParam)
@@ -135,17 +135,8 @@ object LambdaDataStoreFactory {
       val ConsumerOptsParam = new GeoMesaParam[String]("lambda.kafka.consumer.options", "Kafka consumer configuration options, in Java properties format'", metadata = Map(Parameter.IS_LARGE_TEXT -> java.lang.Boolean.TRUE), deprecated = Seq("kafka.consumer.options"))
     }
 
-    val ExpiryParam        = new GeoMesaParam[Duration]("lambda.expiry", "Duration before features expire from transient store. Use 'Inf' to prevent this store from participating in feature expiration", required = true, default = Duration("1h"), deprecated = Seq("expiry")) with DurationParam
+    val ExpiryParam        = new GeoMesaParam[Duration]("lambda.expiry", "Duration before features expire from transient store. Use 'Inf' to prevent this store from participating in feature expiration", required = true, default = Duration("1h"), deprecated = Seq("expiry"))
     val PersistParam       = new GeoMesaParam[java.lang.Boolean]("lambda.persist", "Whether to persist expired features to long-term storage", default = java.lang.Boolean.TRUE, deprecated = Seq("persist"))
-    val VisibilitiesParam  = org.locationtech.geomesa.security.VisibilitiesParam
-    val AuthsParam         = org.locationtech.geomesa.security.AuthsParam
-    val EmptyAuthsParam    = org.locationtech.geomesa.security.ForceEmptyAuthsParam
-    val LooseBBoxParam     = GeoMesaDataStoreFactory.LooseBBoxParam
-    val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
-    val AuditQueriesParam  = GeoMesaDataStoreFactory.AuditQueriesParam
-    val QueryTimeoutParam  = GeoMesaDataStoreFactory.QueryTimeoutParam
-    val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
-    val NamespaceParam     = GeoMesaDataStoreFactory.NamespaceParam
 
     // test params
     val ClockParam         = new GeoMesaParam[Clock]("lambda.clock", "Clock instance to use for timing", deprecated = Seq("clock"))

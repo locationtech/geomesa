@@ -46,7 +46,7 @@ class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
 
   lazy val params = Map(
     ConnectionParam.getName -> connection,
-    HBaseCatalog.getName -> sftName)
+    HBaseCatalogParam.getName -> sftName)
 
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
