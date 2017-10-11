@@ -13,7 +13,8 @@ import java.io.Serializable
 import java.net.URL
 
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, FileDataStore, FileDataStoreFactorySpi, Parameter}
+import org.geotools.data.{DataStore, FileDataStore, FileDataStoreFactorySpi}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import scala.util.Try
@@ -62,11 +63,10 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
   override def getImplementationHints: java.util.Map[Key, _] = java.util.Collections.emptyMap()
 }
 
-object ArrowDataStoreFactory {
+object ArrowDataStoreFactory extends NamespaceParams {
 
-  val UrlParam       = new GeoMesaParam[URL]("arrow.url", "URL to an arrow file", required = true, metadata = Map(Parameter.EXT -> "arrow"), deprecated = Seq("url"))
-  val CachingParam   = new GeoMesaParam[java.lang.Boolean]("arrow.caching", "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", default = false, deprecated = Seq("caching"))
-  val NamespaceParam = new GeoMesaParam[String]("namespace", "Namespace")
+  val UrlParam     = new GeoMesaParam[URL]("arrow.url", "URL to an arrow file", required = true, extension = "arrow", deprecatedKeys = Seq("url"))
+  val CachingParam = new GeoMesaParam[java.lang.Boolean]("arrow.caching", "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", default = false, deprecatedKeys = Seq("caching"))
 
   private val DisplayName = "Apache Arrow (GeoMesa)"
 

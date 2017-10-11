@@ -252,7 +252,7 @@ Registers a data store to make it available for querying.
 |                 |                                                                                      |
 |                 | * ``geomesa.security.auths=[alphanumeric]``                                          |
 |                 | * ``geomesa.security.visibilities=[alphanumeric]``                                   |
-|                 | * ``geomesa.query.timeout=[integer]``                                                |
+|                 | * ``geomesa.query.timeout=[alphanumeric]``                                           |
 |                 | * ``geomesa.query.threads=[integer]``                                                |
 |                 | * ``accumulo.query.record-threads=[integer]``                                        |
 |                 | * ``accumulo.write.threads=[integer]``                                               |

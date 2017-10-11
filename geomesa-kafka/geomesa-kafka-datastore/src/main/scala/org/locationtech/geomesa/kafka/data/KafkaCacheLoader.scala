@@ -94,7 +94,7 @@ object KafkaCacheLoader {
     private val serializer = new GeoMessageSerializer(sft)
 
     private val topic = KafkaDataStore.topic(sft)
-    private val frequency = SystemProperty("geomesa.kafka.load.interval").toDuration.getOrElse(100L)
+    private val frequency = SystemProperty("geomesa.kafka.load.interval").toDuration.map(_.toMillis).getOrElse(100L)
 
     private val executor = Executors.newScheduledThreadPool(consumers.length)
 

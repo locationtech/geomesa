@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.utils.conf
 
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.text.Suffixes
 
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
@@ -27,10 +28,29 @@ object GeoMesaSystemProperties extends LazyLogging {
 
     def option: Option[String] = Option(get)
 
-    def toDuration: Option[Long] = option.flatMap { value =>
-      Try(Duration.apply(value).toMillis) match {
-        case Success(m) => Some(m)
-        case Failure(e) => logger.warn(s"Invalid duration for property $property: $value"); None
+    def toDuration: Option[Duration] = option.flatMap { value =>
+      Try(Duration.apply(value)) match {
+        case Success(v) => Some(v)
+        case Failure(e) =>
+          logger.warn(s"Invalid duration for property $property: $value")
+          Option(default).map(Duration.apply)
+      }
+    }
+
+    def toBytes: Option[Long] = option.flatMap { value =>
+      val bytes = Suffixes.Memory.bytes(value)
+      if (bytes.nonEmpty) { bytes } else {
+        logger.warn(s"Invalid duration for property $property: $value")
+        Option(default).flatMap(Suffixes.Memory.bytes)
+      }
+    }
+
+    def toBoolean: Option[java.lang.Boolean] = option.flatMap { value =>
+      Try(Boolean.box(value.toBoolean)) match {
+        case Success(v) => Some(v)
+        case Failure(e) =>
+          logger.warn(s"Invalid Boolean for property $property: $value")
+          Option(default).map(java.lang.Boolean.valueOf)
       }
     }
 

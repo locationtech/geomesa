@@ -16,7 +16,7 @@ import java.util
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
+import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
@@ -49,11 +49,17 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
         .withRetryPolicy(DefaultRetryPolicy.INSTANCE)
         .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))
 
-    val socketOptions = (ReadTimeoutMillis.option, ConnectionTimeoutMillis.option) match {
-      case (Some(r), Some(c)) => Some(new SocketOptions().setConnectTimeoutMillis(c.toInt).setReadTimeoutMillis(r.toInt))
-      case (Some(r), None) => Some(new SocketOptions().setReadTimeoutMillis(r.toInt))
-      case (None, Some(c)) => Some(new SocketOptions().setConnectTimeoutMillis(c.toInt))
-      case _ => None
+    val socketOptions = {
+      var options: SocketOptions = null
+      def ensureOptions(): SocketOptions = {
+        if (options == null) {
+          options = new SocketOptions()
+        }
+        options
+      }
+      ReadTimeoutMillis.toDuration.foreach(timeout => ensureOptions().setReadTimeoutMillis(timeout.toMillis.toInt))
+      ConnectionTimeoutMillis.toDuration.foreach(timeout => ensureOptions().setConnectTimeoutMillis(timeout.toMillis.toInt))
+      Option(options)
     }
     socketOptions.foreach(clusterBuilder.withSocketOptions)
 
@@ -69,7 +75,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 
     // not used but required for config inheritance
     val queryThreads = QueryThreadsParam.lookup(params)
-    val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_ * 1000L)
+    val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis)
     val looseBBox = LooseBBoxParam.lookup(params)
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
@@ -101,11 +107,11 @@ object CassandraDataStoreFactory {
   val Description = "Apache Cassandra\u2122 distributed key/value store"
 
   object Params extends GeoMesaDataStoreParams {
-    val ContactPointParam  = new GeoMesaParam[String]("cassandra.contact.point", "HOST:PORT to Cassandra", required = true, deprecated = Seq("geomesa.cassandra.contact.point"))
-    val KeySpaceParam      = new GeoMesaParam[String]("cassandra.keyspace", "Cassandra Keyspace", required = true, deprecated = Seq("geomesa.cassandra.keyspace"))
-    val CatalogParam       = new GeoMesaParam[String]("cassandra.catalog", "Name of GeoMesa catalog table", required = true, deprecated = Seq("geomesa.cassandra.catalog.table"))
-    val UserNameParam      = new GeoMesaParam[String]("cassandra.username", "Username to connect with", deprecated = Seq("geomesa.cassandra.username"))
-    val PasswordParam      = new GeoMesaParam[String]("cassandra.password", "Password to connect with", metadata = Map(Parameter.IS_PASSWORD -> java.lang.Boolean.TRUE), deprecated = Seq("geomesa.cassandra.password"))
+    val ContactPointParam = new GeoMesaParam[String]("cassandra.contact.point", "HOST:PORT to Cassandra", required = true, deprecatedKeys = Seq("geomesa.cassandra.contact.point"))
+    val KeySpaceParam     = new GeoMesaParam[String]("cassandra.keyspace", "Cassandra Keyspace", required = true, deprecatedKeys = Seq("geomesa.cassandra.keyspace"))
+    val CatalogParam      = new GeoMesaParam[String]("cassandra.catalog", "Name of GeoMesa catalog table", required = true, deprecatedKeys = Seq("geomesa.cassandra.catalog.table"))
+    val UserNameParam     = new GeoMesaParam[String]("cassandra.username", "Username to connect with", deprecatedKeys = Seq("geomesa.cassandra.username"))
+    val PasswordParam     = new GeoMesaParam[String]("cassandra.password", "Password to connect with", password = true, deprecatedKeys = Seq("geomesa.cassandra.password"))
   }
 
   case class CassandraDataStoreConfig(catalog: String,

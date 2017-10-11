@@ -24,8 +24,8 @@ More information on using GeoTools can be found in the `GeoTools user guide <htt
 
 .. _lambda_parameters:
 
-Parameters
-----------
+Lambda Data Store Parameters
+----------------------------
 
 The data store takes several parameters (required parameters are marked with ``*``):
 
@@ -56,7 +56,8 @@ Parameter                              Type    Description
 ``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation
 ``geomesa.security.visibilities``      String  Visibilities to apply to all written data
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be stored in a ``<catalog>_queries`` table
-``geomesa.query.timeout``              Integer The max time (in seconds) a query will be allowed to run before being killed
+``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
+                                               timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
 ``geomesa.query.threads``              Integer The number of threads to use per query
 ``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
 ``accumulo.query.record-threads``      Integer The number of threads to use for record retrieval

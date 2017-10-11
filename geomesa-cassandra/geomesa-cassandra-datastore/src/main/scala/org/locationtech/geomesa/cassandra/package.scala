@@ -33,7 +33,7 @@ package object cassandra {
   case class CassandraRow(table: String, values: Seq[RowValue])
 
   object CassandraSystemProperties {
-    val ReadTimeoutMillis       = SystemProperty("geomesa.cassandra.read.timeout.millis")
-    val ConnectionTimeoutMillis = SystemProperty("geomesa.cassandra.connection.timeout.millis")
+    val ReadTimeoutMillis       = SystemProperty("geomesa.cassandra.read.timeout", "30 seconds")
+    val ConnectionTimeoutMillis = SystemProperty("geomesa.cassandra.connection.timeout", "30 seconds")
   }
 }

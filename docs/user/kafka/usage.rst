@@ -22,8 +22,8 @@ parameters are described fully below.
 
 .. _kafka_parameters:
 
-Parameters
-----------
+Kafka Data Store Parameters
+---------------------------
 
 The Kafka Data Store takes several parameters (required parameters are marked with ``*``):
 
