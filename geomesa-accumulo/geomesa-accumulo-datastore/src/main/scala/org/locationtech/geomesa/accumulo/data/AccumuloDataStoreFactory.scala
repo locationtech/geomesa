@@ -18,7 +18,6 @@ import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
-import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
@@ -218,9 +217,9 @@ object AccumuloDataStoreFactory {
 
   def canProcess(params: JMap[String,Serializable]): Boolean = {
     val hasConnector = ConnectorParam.lookupOpt(params).isDefined
-    val hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
-    val hasPassword = PasswordParam.exists(params) && !KeytabPathParam.exists(params)
-    val hasKeytab = !PasswordParam.exists(params) && KeytabPathParam.exists(params) && isKerberosAvailable
+    def hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
+    def hasPassword = PasswordParam.exists(params) && !KeytabPathParam.exists(params)
+    def hasKeytab = !PasswordParam.exists(params) && KeytabPathParam.exists(params) && isKerberosAvailable
     hasConnector || (hasConnection && (hasPassword || hasKeytab))
   }
 }
