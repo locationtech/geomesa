@@ -101,7 +101,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
     "use namespaces" >> {
       import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams._
       val path = newPath
-      val ds = getStore(path, 0, Map(Namespace.key -> "ns0"))
+      val ds = getStore(path, 0, Map(NamespaceParam.key -> "ns0"))
       try {
         ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
         ds.getSchema("kafka").getName.getNamespaceURI mustEqual "ns0"
@@ -109,7 +109,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
       } finally {
         ds.dispose()
       }
-      val ds2 = getStore(path, 0, Map(Namespace.key -> "ns1"))
+      val ds2 = getStore(path, 0, Map(NamespaceParam.key -> "ns1"))
       try {
         ds2.getSchema("kafka").getName.getNamespaceURI mustEqual "ns1"
         ds2.getSchema("kafka").getName.getLocalPart mustEqual "kafka"
@@ -221,7 +221,8 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
           override def configure(params: util.Map[String, io.Serializable]): Unit = {}
         }
 
-        val (producer, consumer, sft) = createStorePair(Map("kafka.cache.cqengine" -> cqEngine, "authProvider" -> provider))
+        val (producer, consumer, sft) = createStorePair(Map("kafka.cache.cqengine" -> cqEngine,
+          org.locationtech.geomesa.security.AuthProviderParam.key -> provider))
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling

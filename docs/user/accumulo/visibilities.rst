@@ -16,7 +16,7 @@ When creating your data store, a default visibility can be configured for all fe
 .. code-block:: java
 
     Map<String, String> parameters = ...
-    parameters.put("visibilities", "admin&user");
+    parameters.put("geomesa.security.visibilities", "admin&user");
     DataStore ds = DataStoreFinder.getDataStore(parameters);
 
 If present, visibilities set at the feature or attribute level will take priority over the data store configuration.

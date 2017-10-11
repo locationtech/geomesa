@@ -24,17 +24,17 @@ import scala.collection.JavaConversions._
 trait RasterIngest extends LazyLogging {
   def getAccumuloRasterStoreConf(config: Map[String, Option[String]]): JMap[String, Serializable] =
     mapAsJavaMap(Map(
-      dsp.instanceIdParam.getName   -> config(IngestRasterParams.ACCUMULO_INSTANCE).get,
-      dsp.zookeepersParam.getName   -> config(IngestRasterParams.ZOOKEEPERS).get,
-      dsp.userParam.getName         -> config(IngestRasterParams.ACCUMULO_USER).get,
-      dsp.passwordParam.getName     -> config(IngestRasterParams.ACCUMULO_PASSWORD).get,
-      dsp.tableNameParam.getName    -> config(IngestRasterParams.TABLE).get,
-      dsp.authsParam.getName        -> config(IngestRasterParams.AUTHORIZATIONS),
-      dsp.visibilityParam.getName   -> config(IngestRasterParams.VISIBILITIES),
+      dsp.InstanceIdParam.getName   -> config(IngestRasterParams.ACCUMULO_INSTANCE).get,
+      dsp.ZookeepersParam.getName   -> config(IngestRasterParams.ZOOKEEPERS).get,
+      dsp.UserParam.getName         -> config(IngestRasterParams.ACCUMULO_USER).get,
+      dsp.PasswordParam.getName     -> config(IngestRasterParams.ACCUMULO_PASSWORD).get,
+      dsp.CatalogParam.getName      -> config(IngestRasterParams.TABLE).get,
+      dsp.AuthsParam.getName        -> config(IngestRasterParams.AUTHORIZATIONS),
+      dsp.VisibilitiesParam.getName -> config(IngestRasterParams.VISIBILITIES),
       rsp.writeMemoryParam.getName  -> config(IngestRasterParams.WRITE_MEMORY),
-      dsp.writeThreadsParam         -> config(IngestRasterParams.WRITE_THREADS),
-      dsp.queryThreadsParam.getName -> config(IngestRasterParams.QUERY_THREADS),
-      dsp.mockParam.getName         -> config(IngestRasterParams.ACCUMULO_MOCK)
+      dsp.WriteThreadsParam         -> config(IngestRasterParams.WRITE_THREADS),
+      dsp.QueryThreadsParam.getName -> config(IngestRasterParams.QUERY_THREADS),
+      dsp.MockParam.getName         -> config(IngestRasterParams.ACCUMULO_MOCK)
     ).collect {
       case (key, Some(value)) => (key, value);
       case (key, value: String) => (key, value)

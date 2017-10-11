@@ -76,7 +76,7 @@ From the Spark shell prompt.
 
 .. code-block:: shell
 
-   scala> val df = spark.read.format("geomesa").option("bigtable.table.name", "geomesa.gdelt").option("geomesa.feature", "gdelt").load()
+   scala> val df = spark.read.format("geomesa").option("bigtable.catalog", "geomesa.gdelt").option("geomesa.feature", "gdelt").load()
    scala> df.createOrReplaceTempView("gdelt")
    scala> spark.sql("SELECT actor1Name,actor2Name,geom,dtg FROM gdelt WHERE st_contains(st_geomFromWKT('POLYGON((-80 35,-70 35,-70 40,-80 40,-80 35))'),geom)").show()
 

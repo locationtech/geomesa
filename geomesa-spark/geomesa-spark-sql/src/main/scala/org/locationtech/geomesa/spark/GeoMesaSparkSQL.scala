@@ -15,12 +15,13 @@ import java.util.{Date, UUID}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.index.strtree.{AbstractNode, Boundable, STRtree}
+import com.vividsolutions.jts.index.sweepline.{SweepLineIndex, SweepLineInterval, SweepLineOverlapAction}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.{AttributeReference, Expression, GenericRowWithSchema, ScalaUDF}
-import org.apache.spark.sql.sources._
+import org.apache.spark.sql.sources.{Filter, _}
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
 import org.apache.spark.storage.StorageLevel
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -28,13 +29,11 @@ import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.apache.spark.sql.sources.Filter
-import com.vividsolutions.jts.index.sweepline.{SweepLineIndex, SweepLineInterval, SweepLineOverlapAction}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.collection.Iterator
 import scala.collection.JavaConversions._
@@ -212,8 +211,6 @@ case class GeoMesaRelation(sqlContext: SQLContext,
                            var partitionedRDD: RDD[(Int, Iterable[SimpleFeature])] = null,
                            var indexPartRDD: RDD[(Int, GeoCQEngineDataStore)] = null)
   extends BaseRelation with PrunedFilteredScan {
-
-  lazy val isMock = Try(params("useMock").toBoolean).getOrElse(false)
 
   val cache = Try(params("cache").toBoolean).getOrElse(false)
 

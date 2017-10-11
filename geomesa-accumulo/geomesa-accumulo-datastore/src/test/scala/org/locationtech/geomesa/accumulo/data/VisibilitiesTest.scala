@@ -8,224 +8,94 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.factory.Hints
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class VisibilitiesTest extends Specification {
+class VisibilitiesTest extends TestWithDataStore {
 
   sequential
 
-  "handle per feature visibilities" should {
-    val mockInstance = new MockInstance("perfeatureinstance")
-    val conn = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
-    conn.securityOperations().changeUserAuthorizations("myuser", new Authorizations("user", "admin"))
-    conn.securityOperations().createLocalUser("nonpriv", new PasswordToken("nonpriv".getBytes("UTF8")))
-    conn.securityOperations().changeUserAuthorizations("nonpriv", new Authorizations("user"))
+  override val spec = "name:String:index=full,dtg:Date,*geom:Point:srid=4326"
 
-    // create the data store
-    val ds = DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> "perfeatureinstance",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "myuser",
-      "password"          -> "mypassword",
-      "tableName"         -> "testwrite",
-      "useMock"           -> "true",
-      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
-
-    val sftName = "perfeatureauthtest"
-    val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
-    sft.setDtgField("dtg")
-    ds.createSchema(sft)
-
-    // write some data
-    val fs = ds.getFeatureSource(sftName)
-
-    val features = getFeatures(sft).toList
-    val privFeatures = features.take(3)
-    privFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user&admin") }
-
-    val nonPrivFeatures = features.drop(3)
-    nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
-
-    fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
-    fs.flush()
-
-    val ff = CommonFactoryFinder.getFilterFactory2
-    import ff.{literal => lit, property => prop, _}
-
-    val unprivDS = DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> "perfeatureinstance",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "nonpriv",
-      "password"          -> "nonpriv",
-      "tableName"         -> "testwrite",
-      "useMock"           -> "true",
-      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
-
-    "nonpriv should only be able to read a subset of features" in {
-
-      "using ALL queries" in {
-        val reader = unprivDS.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
-        val readFeatures = SelfClosingIterator(reader).toList
-
-        readFeatures must haveLength(3)
-      }
-
-      "using ST queries" in {
-        val filter = bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326")
-        val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader) must haveLength(3)
-      }
-
-      "using attribute queries" in {
-        val filter = or(
-          ff.equals(prop("name"), lit("1")),
-          ff.equals(prop("name"), lit("4")))
-
-        val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader) must haveLength(1)
-      }
-
-    }
-
-    "priv should be able to read all 6 features" in {
-
-      "using ALL queries" in {
-        val reader = ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
-        val readFeatures = SelfClosingIterator(reader)
-        readFeatures must haveLength(6)
-      }
-      "using ST queries" in {
-        val filter = bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326")
-        val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader) must haveLength(6)
-      }
-
-      "using attribute queries" in {
-        val filter = or(
-          ff.equals(prop("name"), lit("1")),
-          ff.equals(prop("name"), lit("4")))
-
-        val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader) must haveLength(2)
-      }
-    }
+  val privFeatures = (0 until 3).map { i =>
+    val sf = ScalaSimpleFeature.create(sft, s"$i", s"name$i", "2012-01-02T05:06:07.000Z", "POINT(45.0 45.0)")
+    sf.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user&admin")
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
+    sf
   }
-
-  "remove should continue to work as expected" in {
-
-    val instanceId = "removeviz"
-    val mockInstance = new MockInstance(instanceId)
-    val conn = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
-    conn.securityOperations().changeUserAuthorizations("myuser", new Authorizations("user", "admin"))
-    conn.securityOperations().createLocalUser("nonpriv", new PasswordToken("nonpriv".getBytes("UTF8")))
-    conn.securityOperations().changeUserAuthorizations("nonpriv", new Authorizations("user"))
-
-    // create the data store
-    val ds = DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> instanceId,
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "myuser",
-      "password"          -> "mypassword",
-      "tableName"         -> "testwrite",
-      "useMock"           -> "true",
-      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
-
-    val sftName = "perfeatureauthtest"
-    val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
-    sft.setDtgField("dtg")
-    ds.createSchema(sft)
-
-    // write some data
-    val fs = ds.getFeatureSource(sftName)
-
-    val features = getFeatures(sft).toList
-    val privFeatures = features.take(3)
-    privFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user&admin") }
-
-    val nonPrivFeatures = features.drop(3)
-    nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
-
-    fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
-    fs.flush()
-
-    val ff = CommonFactoryFinder.getFilterFactory2
-    import ff.{literal => lit, property => prop, _}
-
-    val unprivDS = DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> instanceId,
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "nonpriv",
-      "password"          -> "nonpriv",
-      "tableName"         -> "testwrite",
-      "useMock"           -> "true",
-      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
-
-    "priv should be able to delete a feature" in {
-      fs.removeFeatures(ff.id(new FeatureIdImpl("1")))
-      fs.flush()
-
-      "using ALL queries" in {
-        SelfClosingIterator(fs.getFeatures(new Query(sftName)).features) must haveLength(5)
-      }
-
-      "using record id queries" in {
-        fs.getFeatures(ff.id(ff.featureId("1"))).features().hasNext must beFalse
-      }
-
-      "using attribute queries" in {
-        val filter = or(
-          ff.equals(prop("name"), lit("1")),
-          ff.equals(prop("name"), lit("4")))
-
-        val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader) must haveLength(1)
-      }
-    }
-
-    "nonpriv should not be able to delete a priv feature" in {
-      val unprivFS = unprivDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
-      unprivFS.removeFeatures(ff.id(new FeatureIdImpl("2")))
-      unprivFS.flush()
-
-      "priv should still see the feature that was attempted to be deleted" in {
-        fs.getFeatures(ff.id(ff.featureId("2"))).features().hasNext must beTrue
-      }
-    }
-  }
-
-
-  val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
-  val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
-
-  def getFeatures(sft: SimpleFeatureType): Seq[SimpleFeature] = (0 until 6).map { i =>
-    val builder = new SimpleFeatureBuilder(sft, featureFactory)
-    builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
-    builder.set("dtg", "2012-01-02T05:06:07.000Z")
-    builder.set("name",i.toString)
-    val sf = builder.buildFeature(i.toString)
-    sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+  val unprivFeatures = (3 until 6).map { i =>
+    val sf = ScalaSimpleFeature.create(sft, s"$i", s"name$i", "2012-01-02T05:06:07.000Z", "POINT(45.0 45.0)")
+    sf.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user")
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
     sf
   }
 
+  val privDS = {
+    val connector = mockInstance.getConnector("priv", new PasswordToken(mockPassword))
+    connector.securityOperations().changeUserAuthorizations("priv", new Authorizations("user", "admin"))
+    DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
+  }
+  val unprivDS = {
+    val connector = mockInstance.getConnector("unpriv", new PasswordToken(mockPassword))
+    connector.securityOperations().changeUserAuthorizations("unpriv", new Authorizations("user"))
+    DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
+  }
+
+  step {
+    addFeatures(privFeatures ++ unprivFeatures)
+  }
+
+  val filters = Seq(
+    "INCLUDE",
+    "bbox(geom,44,44,46,46)",
+    "bbox(geom,44,44,46,46) and dtg DURING 2012-01-02T05:00:00.000Z/2012-01-02T05:10:00.000Z",
+    "name in ('name0', 'name1', 'name2', 'name3', 'name4', 'name5')",
+    "IN ('0', '1', '2', '3', '4', '5')"
+  ).map(ECQL.toFilter)
+
+  "AccumuloDataStore" should {
+
+    "keep unprivileged from reading secured features" in {
+      foreach(filters) { filter =>
+        val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+        SelfClosingIterator(reader).toList must containTheSameElementsAs(unprivFeatures)
+      }
+    }
+
+    "allow privileged to read secured features" in {
+      foreach(filters) { filter =>
+        val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+        SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures ++ unprivFeatures)
+      }
+    }
+
+    "keep unprivileged from deleting secured features" in {
+      unprivDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore].removeFeatures(ECQL.toFilter("IN('2')"))
+      foreach(filters) { filter =>
+        val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+        SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures ++ unprivFeatures)
+      }
+    }
+
+    "allow privileged to delete secured features" in {
+      privDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore].removeFeatures(ECQL.toFilter("IN('2')"))
+      foreach(filters) { filter =>
+        val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+        SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures.take(2) ++ unprivFeatures)
+      }
+    }
+  }
 }

@@ -10,17 +10,19 @@ package org.locationtech.geomesa.kafka.data
 
 import java.awt.RenderingHints
 import java.io.{Serializable, StringReader}
-import java.util.{Collections, Properties}
+import java.util.Properties
 
 import com.github.benmanes.caffeine.cache.Ticker
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams.{Brokers, ZkPath, Zookeepers}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -54,7 +56,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
       ConsumeEarliest,
       AuditQueries,
       LooseBBox,
-      Namespace
+      NamespaceParam
     )
 
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
@@ -73,40 +75,68 @@ object KafkaDataStoreFactory {
   val DefaultZkPath: String = "geomesa/ds/kafka"
 
   def canProcess(params: java.util.Map[String, Serializable]): Boolean =
-    params.containsKey(Brokers.key) && params.containsKey(Zookeepers.key)
+    Brokers.exists(params) && Zookeepers.exists(params)
 
   def buildConfig(params: java.util.Map[String, Serializable]): KafkaDataStoreConfig = {
     import KafkaDataStoreFactoryParams._
-    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
 
     val catalog = createZkNamespace(params)
-    val brokers = checkBrokerPorts(Brokers.lookup[String](params))
-    val zookeepers = Zookeepers.lookup[String](params)
+    val brokers = checkBrokerPorts(Brokers.lookup(params))
+    val zookeepers = Zookeepers.lookup(params)
 
-    val partitions = TopicPartitions.lookupWithDefault[Int](params)
-    val replication = TopicReplication.lookupWithDefault[Int](params)
+    val partitions = TopicPartitions.lookup(params)
+    val replication = TopicReplication.lookup(params)
 
-    val consumers = ConsumerCount.lookupWithDefault[Int](params)
+    val consumers = {
+      if (params.containsKey("isProducer")) {
+        ConsumerCount.deprecationWarning("isProducer")
+        // override default to 0
+        if (!ConsumerCount.exists(params)) { 0 } else {
+          ConsumerCount.lookup(params).intValue
+        }
+      } else {
+        ConsumerCount.lookup(params).intValue
+      }
+    }
 
-    val producerConfig = ProducerConfig.lookupOpt[String](params).map(toProperties).getOrElse(new Properties)
-    val consumerConfig = ConsumerConfig.lookupOpt[String](params).map(toProperties).getOrElse(new Properties)
+    val producerConfig = ProducerConfig.lookupOpt(params).map(toProperties).getOrElse(new Properties)
+    val consumerConfig = ConsumerConfig.lookupOpt(params).map(toProperties).getOrElse(new Properties)
 
-    val consumeFromBeginning = ConsumeEarliest.lookupWithDefault[Boolean](params)
+    val consumeFromBeginning = {
+      val deprecated = if (ConsumeEarliest.exists(params) || !params.containsKey("autoOffsetReset")) { None } else {
+        ConsumeEarliest.deprecationWarning("autoOffsetReset")
+        Some("earliest".equalsIgnoreCase(new GeoMesaParam[String]("autoOffsetReset").lookup(params)))
+      }
+      deprecated.getOrElse(ConsumeEarliest.lookup(params).booleanValue)
+    }
 
-    val cacheExpiry = CacheExpiry.lookupOpt[String](params).map(toDuration).getOrElse(Duration.Inf)
-    val cacheCleanup = CacheCleanup.lookupOpt[String](params).map(toDuration).getOrElse(Duration("30s"))
-    val ticker = CacheTicker.lookupOpt[Ticker](params).getOrElse(Ticker.systemTicker())
+    val cacheExpiry = {
+      val deprecated = if (CacheExpiry.exists(params) || !params.containsKey("expirationPeriod")) { None } else {
+        CacheExpiry.deprecationWarning("expirationPeriod")
+        new GeoMesaParam[java.lang.Long]("expirationPeriod").lookupOpt(params).map(Duration(_, "ms"))
+      }
+      deprecated.getOrElse(CacheExpiry.lookup(params))
+    }
+    val cacheCleanup = {
+      val deprecated = if (CacheCleanup.exists(params) || !params.containsKey("cleanUpCache")) { None } else {
+        val param = new GeoMesaParam[java.lang.Boolean]("cleanUpCache", default = false)
+        if (!param.lookup(params)) { Some(Duration.Inf) } else {
+          Some(Duration(new GeoMesaParam[String]("cleanUpCachePeriod", default = "10s").lookup(params)))
+        }
+      }
+      deprecated.getOrElse(CacheCleanup.lookup(params))
+    }
+    val ticker = CacheTicker.lookupOpt(params).getOrElse(Ticker.systemTicker())
 
-    val cqEngine = CqEngineCache.lookupWithDefault[Boolean](params)
+    val cqEngine = CqEngineCache.lookup(params)
+    val looseBBox = LooseBBox.lookup(params)
 
-    val looseBBox = LooseBBox.lookupWithDefault[Boolean](params)
-
-    val audit = if (!AuditQueries.lookupWithDefault[Boolean](params)) { None } else {
+    val audit = if (!AuditQueries.lookup(params)) { None } else {
       Some((AuditLogger, buildAuditProvider(params), "kafka"))
     }
     val authProvider = buildAuthProvider(params)
 
-    val ns = Option(Namespace.lookUp(params).asInstanceOf[String])
+    val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, partitions, replication,
       producerConfig, consumerConfig, consumeFromBeginning, cacheExpiry, cacheCleanup, ticker, cqEngine,
@@ -115,9 +145,8 @@ object KafkaDataStoreFactory {
 
   private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
     import KafkaDataStoreFactoryParams.Authorizations
-    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
     // get the auth params passed in as a comma-delimited string
-    val auths = Authorizations.lookupOpt[String](params).map(_.split(",").filterNot(_.isEmpty)).getOrElse(Array.empty)
+    val auths = Authorizations.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty)).getOrElse(Array.empty)
     security.getAuthorizationsProvider(params, auths)
   }
 
@@ -131,8 +160,7 @@ object KafkaDataStoreFactory {
     * @return
     */
   private [data] def createZkNamespace(params: java.util.Map[String, Serializable]): String = {
-    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
-    ZkPath.lookupOpt[String](params)
+    ZkPath.lookupOpt(params)
         .map(_.trim)
         .filterNot(_.isEmpty)
         .map(p => if (p.startsWith("/")) { p.substring(1).trim } else { p })  // leading '/'
@@ -144,7 +172,7 @@ object KafkaDataStoreFactory {
   private def checkBrokerPorts(brokers: String): String = {
     if (brokers.indexOf(':') != -1) { brokers } else {
       try { brokers.split(",").map(b => s"${b.trim}:9092").mkString(",") } catch {
-        case NonFatal(e) => brokers
+        case NonFatal(_) => brokers
       }
     }
   }
@@ -155,29 +183,23 @@ object KafkaDataStoreFactory {
     props
   }
 
-  private def toDuration(param: String): Duration = {
-    try { Duration(param) } catch {
-      case NonFatal(e) => throw new IllegalArgumentException(s"Couldn't parse duration parameter: $param", e)
-    }
-  }
-
-  object KafkaDataStoreFactoryParams {
-    val Brokers          = new Param("kafka.brokers", classOf[String], "Kafka brokers", true)
-    val Zookeepers       = new Param("kafka.zookeepers", classOf[String], "Kafka zookeepers", true)
-    val ZkPath           = new Param("kafka.zk.path", classOf[String], "Zookeeper discoverable path (namespace)", false, s"$DefaultZkPath")
-    val ProducerConfig   = new Param("kafka.producer.config", classOf[String], "Configuration options for kafka producer, in Java properties format. See http://kafka.apache.org/documentation.html#producerconfigs", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
-    val ConsumerConfig   = new Param("kafka.consumer.config", classOf[String], "Configuration options for kafka consumer, in Java properties format. See http://kafka.apache.org/documentation.html#newconsumerconfigs", false, null, Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE))
-    val ConsumeEarliest  = new Param("kafka.consumer.from-beginning", classOf[java.lang.Boolean], "Start reading from the beginning of the topic (vs ignore old messages)", false, false)
-    val TopicPartitions  = new Param("kafka.topic.partitions", classOf[Integer], "Number of partitions to use in kafka topics", false, 1)
-    val TopicReplication = new Param("kafka.topic.replication", classOf[Integer], "Replication factor to use in kafka topics", false, 1)
-    val ConsumerCount    = new Param("kafka.consumer.count", classOf[Integer], "Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)", false, Int.box(1))
-    val CacheExpiry      = new Param("kafka.cache.expiry", classOf[String], "Features will be expired after this delay", false)
-    val CacheCleanup     = new Param("kafka.cache.cleanup", classOf[String], "Run a thread to clean expired features from the cache (vs cleanup during reads and writes)", false)
-    val CacheTicker      = new Param("kafka.cache.ticker", classOf[Ticker], "Ticker to use for expiring/cleaning feature cache", false)
-    val CqEngineCache    = new Param("kafka.cache.cqengine", classOf[java.lang.Boolean], "Use CQEngine-based implementation of live feature cache", false, false)
+  // noinspection TypeAnnotation
+  object KafkaDataStoreFactoryParams extends NamespaceParams {
+    val Brokers          = new GeoMesaParam[String]("kafka.brokers", "Kafka brokers", required = true, deprecated = Seq("brokers"))
+    val Zookeepers       = new GeoMesaParam[String]("kafka.zookeepers", "Kafka zookeepers", required = true, deprecated = Seq("zookeepers"))
+    val ZkPath           = new GeoMesaParam[String]("kafka.zk.path", "Zookeeper discoverable path (namespace)", default = DefaultZkPath, deprecated = Seq("zkPath"))
+    val ProducerConfig   = new GeoMesaParam[String]("kafka.producer.config", "Configuration options for kafka producer, in Java properties format. See http://kafka.apache.org/documentation.html#producerconfigs", metadata = Map(Parameter.IS_LARGE_TEXT -> java.lang.Boolean.TRUE), deprecated = Seq("producerConfig"))
+    val ConsumerConfig   = new GeoMesaParam[String]("kafka.consumer.config", "Configuration options for kafka consumer, in Java properties format. See http://kafka.apache.org/documentation.html#newconsumerconfigs", metadata = Map(Parameter.IS_LARGE_TEXT -> java.lang.Boolean.TRUE), deprecated = Seq("consumerConfig"))
+    val ConsumeEarliest  = new GeoMesaParam[java.lang.Boolean]("kafka.consumer.from-beginning", "Start reading from the beginning of the topic (vs ignore old messages)", default = false)
+    val TopicPartitions  = new GeoMesaParam[Integer]("kafka.topic.partitions", "Number of partitions to use in kafka topics", default = 1, deprecated = Seq("partitions"))
+    val TopicReplication = new GeoMesaParam[Integer]("kafka.topic.replication", "Replication factor to use in kafka topics", default = 1, deprecated = Seq("replication"))
+    val ConsumerCount    = new GeoMesaParam[Integer]("kafka.consumer.count", "Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)", default = 1)
+    val CacheExpiry      = new GeoMesaParam[Duration]("kafka.cache.expiry", "Features will be expired after this delay", default = Duration.Inf)
+    val CacheCleanup     = new GeoMesaParam[Duration]("kafka.cache.cleanup", "Run a thread to clean expired features from the cache (vs cleanup during reads and writes)", default = Duration("30s"))
+    val CacheTicker      = new GeoMesaParam[Ticker]("kafka.cache.ticker", "Ticker to use for expiring/cleaning feature cache")
+    val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = false, deprecated = Seq("useCQCache"))
     val LooseBBox        = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries     = GeoMesaDataStoreFactory.AuditQueriesParam
     val Authorizations   = org.locationtech.geomesa.security.AuthsParam
-    val Namespace        = new Param("namespace", classOf[String], "Namespace", false)
   }
 }

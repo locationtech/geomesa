@@ -15,7 +15,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -44,10 +44,10 @@ trait TestWithMultipleSfts extends Specification {
   val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
   val dsParams = Map(
-    "connector" -> connector,
-    "caching"   -> false,
+    AccumuloDataStoreParams.ConnectorParam.key -> connector,
+    AccumuloDataStoreParams.CachingParam.key   -> false,
     // note the table needs to be different to prevent testing errors
-    "tableName" -> sftBaseName)
+    AccumuloDataStoreParams.CatalogParam.key   -> sftBaseName)
 
   val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
 
@@ -58,6 +58,7 @@ trait TestWithMultipleSfts extends Specification {
       Try(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))).getOrElse(Seq.empty)
     }
     tables.toSet.filter(to.exists).foreach(to.delete)
+    ds.dispose()
   }
 
   def createNewSchema(spec: String,

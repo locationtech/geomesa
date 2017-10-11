@@ -44,20 +44,19 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
                                     final String auths,
                                     final Boolean useMock) throws IOException {
         this(new HashMap<String, Serializable>() {{
-            put(AccumuloDataStoreParams.instanceIdParam().key, instanceId);
-            put(AccumuloDataStoreParams.tableNameParam().key, tableName);
-            put(AccumuloDataStoreParams.zookeepersParam().key, zookeepers);
-            put(AccumuloDataStoreParams.userParam().key, user);
-            put(AccumuloDataStoreParams.passwordParam().key, password);
-            put(AccumuloDataStoreParams.authsParam().key, auths);
-            put(AccumuloDataStoreParams.mockParam().key, useMock.toString());
+            put(AccumuloDataStoreParams.InstanceIdParam().key, instanceId);
+            put(AccumuloDataStoreParams.CatalogParam().key, tableName);
+            put(AccumuloDataStoreParams.ZookeepersParam().key, zookeepers);
+            put(AccumuloDataStoreParams.UserParam().key, user);
+            put(AccumuloDataStoreParams.PasswordParam().key, password);
+            put(AccumuloDataStoreParams.AuthsParam().key, auths);
+            put(AccumuloDataStoreParams.MockParam().key, useMock.toString());
         }});
     }
 
     private AccumuloDataStore genNewADS(Map<String, Serializable> dataStoreParams) throws IllegalArgumentException {
         AccumuloDataStoreFactory accumuloDataStoreFactory = new AccumuloDataStoreFactory();
-        AccumuloDataStore ds = (AccumuloDataStore) accumuloDataStoreFactory.createDataStore(dataStoreParams);
-        return ds;
+        return accumuloDataStoreFactory.createDataStore(dataStoreParams);
     }
 
     /**

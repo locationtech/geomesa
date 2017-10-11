@@ -118,7 +118,7 @@ class WriteIndexJob(libjars: Option[(Seq[String], Iterator[() => Seq[File]])] = 
     GeoMesaAccumuloInputFormat.configure(job, dsInParams, query)
 
     // disable writing stats as we're just copying data not creating any
-    val dsOutParams = dsInParams ++ Map(AccumuloDataStoreParams.generateStatsParam.getName -> "false")
+    val dsOutParams = dsInParams ++ Map(AccumuloDataStoreParams.GenerateStatsParam.getName -> "false")
     GeoMesaOutputFormat.configureDataStore(job, dsOutParams)
     GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, sft.getTypeName)
     GeoMesaConfigurator.setIndicesOut(job.getConfiguration, indices)

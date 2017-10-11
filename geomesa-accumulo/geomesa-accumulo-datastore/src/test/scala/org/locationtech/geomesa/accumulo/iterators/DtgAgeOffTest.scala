@@ -16,7 +16,7 @@ import org.geotools.factory.Hints
 import org.joda.time.{DateTime, DateTimeZone, Period}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -86,12 +86,9 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
           mockConnector.securityOperations().changeUserAuthorizations("user2", new Authorizations("A,B,C,D"))
           mockConnector
         }
-        import scala.collection.JavaConverters._
-        DataStoreFinder.getDataStore(Map(
-          "connector" -> connWithExtraAuth,
-          "caching"   -> false,
-          // note the table needs to be different to prevent testing errors
-          "tableName" -> sftName).asJava).asInstanceOf[AccumuloDataStore]
+        import scala.collection.JavaConversions._
+        val params = dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connWithExtraAuth)
+        DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       }
 
       def testWithExtraAuth(d: Int): Seq[SimpleFeature] = {

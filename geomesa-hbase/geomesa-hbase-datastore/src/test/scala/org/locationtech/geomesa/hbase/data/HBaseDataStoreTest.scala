@@ -36,7 +36,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     "work with points" in {
       val typeName = "testpoints"
 
-      val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> catalogTableName)
+      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull
@@ -70,7 +70,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
       foreach(Seq(true, false)) { remote =>
         foreach(Seq(true, false)) { loose =>
-          val settings = Map(LooseBBoxParam.getName -> loose, RemoteFiltersParam.getName -> remote)
+          val settings = Map(LooseBBoxParam.getName -> loose, RemoteFilteringParam.getName -> remote)
           val ds = DataStoreFinder.getDataStore(params ++ settings).asInstanceOf[HBaseDataStore]
           foreach(transformsList) { transforms =>
             testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
@@ -106,7 +106,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     "work with polys" in {
       val typeName = "testpolys"
 
-      val params = Map(ConnectionParam.getName -> connection, BigTableNameParam.getName -> "HBaseDataStoreTest")
+      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> "HBaseDataStoreTest")
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull
@@ -132,7 +132,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
       foreach(Seq(true, false)) { remote =>
-        val settings = Map(RemoteFiltersParam.getName -> remote)
+        val settings = Map(RemoteFilteringParam.getName -> remote)
         val ds = DataStoreFinder.getDataStore(params ++ settings).asInstanceOf[HBaseDataStore]
         testQuery(ds, typeName, "INCLUDE", null, toAdd)
         testQuery(ds, typeName, "IN('0', '2')", null, Seq(toAdd(0), toAdd(2)))

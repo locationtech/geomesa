@@ -17,7 +17,7 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -57,19 +57,21 @@ trait TestWithDataStore extends Specification {
   lazy val mockZookeepers = "myzoo"
   lazy val mockUser = "user"
   lazy val mockPassword = "password"
+
+  lazy val mockInstance = new MockInstance(mockInstanceId)
+
   // assign some default authorizations to this mock user
   lazy val connector: Connector = {
-    val mockInstance = new MockInstance(mockInstanceId)
     val mockConnector = mockInstance.getConnector(mockUser, new PasswordToken(mockPassword))
     mockConnector.securityOperations().changeUserAuthorizations(mockUser, MockUserAuthorizations)
     mockConnector
   }
 
   lazy val dsParams = Map(
-    "connector" -> connector,
-    "caching"   -> false,
+    AccumuloDataStoreParams.ConnectorParam.key -> connector,
+    AccumuloDataStoreParams.CachingParam.key   -> false,
     // note the table needs to be different to prevent testing errors
-    "tableName" -> sftName
+    AccumuloDataStoreParams.CatalogParam.key   -> sftName
   )
 
   lazy val (ds, sft) = {
@@ -86,6 +88,7 @@ trait TestWithDataStore extends Specification {
   // after all tests, drop the tables we created to free up memory
   override def map(fragments: => Fragments) = fragments ^ Step {
     ds.removeSchema(sftName)
+    ds.dispose()
   }
 
   /**

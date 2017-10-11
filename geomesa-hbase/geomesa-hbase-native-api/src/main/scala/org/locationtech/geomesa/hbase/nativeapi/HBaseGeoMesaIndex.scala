@@ -57,8 +57,8 @@ object HBaseGeoMesaIndex {
     import scala.collection.JavaConversions._
     val ds =
       DataStoreFinder.getDataStore(Map(
-        HBaseDataStoreParams.BigTableNameParam.key-> name,
-        HBaseDataStoreParams.RemoteFiltersParam.key-> remote
+        HBaseDataStoreParams.HBaseCatalogParam.key-> name,
+        HBaseDataStoreParams.RemoteFilteringParam.key-> remote
       )).asInstanceOf[HBaseDataStore]
     new HBaseGeoMesaIndex[T](ds, name, valueSerializer, view)
   }
@@ -72,8 +72,8 @@ object HBaseGeoMesaIndex {
     val ds = DataStoreFinder.getDataStore(
       Map[String, Any](
         HBaseDataStoreParams.ConnectionParam.key -> connection,
-        HBaseDataStoreParams.BigTableNameParam.key-> name,
-        HBaseDataStoreParams.RemoteFiltersParam.key-> remote
+        HBaseDataStoreParams.HBaseCatalogParam.key-> name,
+        HBaseDataStoreParams.RemoteFilteringParam.key-> remote
     ).asJava).asInstanceOf[HBaseDataStore]
     new HBaseGeoMesaIndex[T](ds, name, valueSerializer, view)
   }

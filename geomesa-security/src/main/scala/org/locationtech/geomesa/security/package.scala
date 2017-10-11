@@ -11,8 +11,8 @@ package org.locationtech.geomesa
 import java.util.ServiceLoader
 import java.{io => jio, util => ju}
 
-import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.opengis.feature.simple.SimpleFeature
 
 package object security {
@@ -20,27 +20,16 @@ package object security {
   val GEOMESA_AUDIT_PROVIDER_IMPL = SystemProperty("geomesa.audit.provider.impl")
   val GEOMESA_AUTH_PROVIDER_IMPL  = SystemProperty("geomesa.auth.provider.impl")
 
-  val AuthsParam =
-    new Param(
-      "auths",
-      classOf[String],
-      """
-        |Super-set of authorizations that will be used for queries. The actual authorizations might
-        |differ, depending on the authorizations provider, but will be outside this set. Comma-delimited."
-      """.stripMargin,
-      false)
+  val AuthsParam           = new GeoMesaParam[String]("geomesa.security.auths", "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will be outside this set. Comma-delimited.", deprecated = Seq("auths"))
+  val ForceEmptyAuthsParam = new GeoMesaParam[java.lang.Boolean]("geomesa.security.auths.force-empty", "Default to using no authorizations during queries, instead of using the connection user's authorizations", default = false, deprecated = Seq("forceEmptyAuths"))
+  val AuthProviderParam    = new GeoMesaParam[AuthorizationsProvider]("geomesa.security.auths.provider", "Authorizations provider", deprecated = Seq("authProvider"))
+  val VisibilitiesParam    = new GeoMesaParam[String]("geomesa.security.visibilities", "Default visibilities to apply to all written data", deprecated = Seq("visibilities"))
 
-  val ForceEmptyAuthsParam =
-    new Param("forceEmptyAuths",
-      classOf[java.lang.Boolean],
-      "Default to using no authorizations during queries, instead of using the connection user's authorizations",
-      false,
-      false)
-
-  val AuthProviderParam = new Param("authProvider",
-    classOf[AuthorizationsProvider],
-    "Authorizations provider",
-    false)
+  trait SecurityParams {
+    val AuthsParam: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
+    val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
+    val VisibilitiesParam: GeoMesaParam[String] = org.locationtech.geomesa.security.VisibilitiesParam
+  }
 
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {
     /**
@@ -68,7 +57,7 @@ package object security {
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val providers = ServiceLoader.load(classOf[AuthorizationsProvider]).toBuffer
-    val toWrap = Option(params.get(AuthProviderParam.key).asInstanceOf[AuthorizationsProvider]).getOrElse {
+    val toWrap = AuthProviderParam.lookupOpt(params).getOrElse {
       GEOMESA_AUTH_PROVIDER_IMPL.option match {
         case Some(prop) =>
           if (classOf[DefaultAuthorizationsProvider].getName == prop)

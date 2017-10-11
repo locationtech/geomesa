@@ -29,7 +29,7 @@ import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.FR
+import org.locationtech.geomesa.utils.geotools.{FR, GeoMesaParam}
 import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -145,8 +145,8 @@ class StreamFeatureStore(entry: ContentEntry,
 }
 
 object StreamDataStoreParams {
-  val STREAM_DATASTORE_CONFIG = new Param("geomesa.stream.datastore.config", classOf[String], "", true)
-  val CACHE_TIMEOUT = new Param("geomesa.stream.datastore.cache.timeout", classOf[java.lang.Integer], "", true, 10)
+  val StreamDatastoreConfig = new GeoMesaParam[String]("geomesa.stream.datastore.config", "", required = true)
+  val CacheTimeout = new GeoMesaParam[Integer]("geomesa.stream.datastore.cache.timeout", "", required = true, default = 10)
 }
 
 class StreamDataStoreFactory extends DataStoreFactorySpi {
@@ -154,8 +154,8 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
   import StreamDataStoreParams._
 
   override def createDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = {
-    val confString = STREAM_DATASTORE_CONFIG.lookUp(params).asInstanceOf[String]
-    val timeout = Option(CACHE_TIMEOUT.lookUp(params)).map(_.asInstanceOf[Int]).getOrElse(10)
+    val confString = StreamDatastoreConfig.lookup(params)
+    val timeout = CacheTimeout.lookupOpt(params).map(_.intValue).getOrElse(10)
     val conf = ConfigFactory.parseString(confString)
     val source = SimpleFeatureStreamSource.buildSource(conf)
     new StreamDataStore(source, timeout)
@@ -163,10 +163,10 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
 
   override def createNewDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = createDataStore(params)
   override def getDescription: String = "SimpleFeature Stream Source"
-  override def getParametersInfo: Array[Param] = Array(STREAM_DATASTORE_CONFIG, CACHE_TIMEOUT)
+  override def getParametersInfo: Array[Param] = Array(StreamDatastoreConfig, CacheTimeout)
   override def getDisplayName: String = "SimpleFeature Stream Source"
   override def canProcess(params: ju.Map[String, java.io.Serializable]): Boolean =
-    params.containsKey(STREAM_DATASTORE_CONFIG.key)
+    StreamDatastoreConfig.exists(params)
 
   override def isAvailable: Boolean = true
   override def getImplementationHints: ju.Map[RenderingHints.Key, _] = null

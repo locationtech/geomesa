@@ -34,9 +34,8 @@ class ConverterStorageFactory extends FileSystemStorageFactory {
     val path = params.get("fs.path").asInstanceOf[String]
     val root = new Path(path)
 
-    val sftArg = Option(FileSystemDataStoreParams.SftConfigParam.lookUp(params))
-      .orElse(Option(FileSystemDataStoreParams.SftNameParam.lookUp(params)))
-      .map(_.asInstanceOf[String])
+    val sftArg = FileSystemDataStoreParams.SftConfigParam.lookupOpt(params)
+      .orElse(FileSystemDataStoreParams.SftNameParam.lookupOpt(params))
       .getOrElse( throw new IllegalArgumentException(s"Must provide sft config or name"))
 
     val sft = SftArgResolver.getArg(SftArgs(sftArg, null)) match {
@@ -44,9 +43,8 @@ class ConverterStorageFactory extends FileSystemStorageFactory {
       case Right(sftype) => sftype
     }
 
-    val convertArg = Option(FileSystemDataStoreParams.ConverterConfigParam.lookUp(params)).
-      orElse(Option(FileSystemDataStoreParams.ConverterNameParam.lookUp(params)))
-      .map(_.asInstanceOf[String])
+    val convertArg = FileSystemDataStoreParams.ConverterConfigParam.lookupOpt(params).
+      orElse(FileSystemDataStoreParams.ConverterNameParam.lookupOpt(params))
       .getOrElse(throw new IllegalArgumentException(s"Must provide either converter config or name"))
 
     val converterConfig = ConverterConfigResolver.getArg(ConfArgs(convertArg)) match {

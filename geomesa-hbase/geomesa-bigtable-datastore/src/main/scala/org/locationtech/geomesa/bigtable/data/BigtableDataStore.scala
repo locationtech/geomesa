@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.bigtable.data
 
+import java.io.Serializable
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client._
@@ -15,7 +17,9 @@ import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.bigtable.index.BigtableFeatureIndex
 import org.locationtech.geomesa.hbase.HBaseIndexManagerType
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 class BigtableDataStore(connection: Connection, config: HBaseDataStoreConfig)
     extends HBaseDataStore(connection, config) {
@@ -24,8 +28,13 @@ class BigtableDataStore(connection: Connection, config: HBaseDataStoreConfig)
 
 class BigtableDataStoreFactory extends HBaseDataStoreFactory {
 
+  import BigtableDataStoreFactory.BigtableCatalogParam
+
   override def getDisplayName: String = BigtableDataStoreFactory.DisplayName
   override def getDescription: String = BigtableDataStoreFactory.Description
+
+  override protected def getCatalog(params: java.util.Map[String, Serializable]): String =
+    BigtableCatalogParam.lookup(params)
 
   override protected def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): BigtableDataStore = {
     // note: bigtable never has push-down predicates
@@ -38,16 +47,27 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
     BigtableDataStoreFactory.canProcess(params)
 
   override def getParametersInfo: Array[Param] =
-    super.getParametersInfo.filterNot(_.eq(HBaseDataStoreParams.RemoteFiltersParam))
+    Array(
+      BigtableCatalogParam,
+      QueryThreadsParam,
+      QueryTimeoutParam,
+      GenerateStatsParam,
+      AuditQueriesParam,
+      LooseBBoxParam,
+      CachingParam
+    )
 }
 
 object BigtableDataStoreFactory {
+
   val DisplayName = "Google Bigtable (GeoMesa)"
   val Description = "Google Bigtable\u2122 distributed key/value store"
 
+  val BigtableCatalogParam = new GeoMesaParam("bigtable.catalog", "Catalog table name", required = true, deprecated = Seq("bigtable.table.name"))
+
   // verify that the hbase-site.xml exists and contains the appropriate bigtable keys
   def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean = {
-    params.containsKey(HBaseDataStoreParams.BigTableNameParam.key) &&
+    BigtableCatalogParam.exists(params) &&
       Option(HBaseConfiguration.create().get(HBaseDataStoreFactory.BigTableParamCheck)).exists(_.trim.nonEmpty)
   }
 }

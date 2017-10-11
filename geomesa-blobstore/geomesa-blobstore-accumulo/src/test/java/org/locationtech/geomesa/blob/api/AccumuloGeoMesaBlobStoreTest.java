@@ -11,6 +11,7 @@ package org.locationtech.geomesa.blob.api;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams;
 import org.locationtech.geomesa.blob.accumulo.AccumuloGeoMesaBlobStore;
 import org.opengis.filter.Filter;
 
@@ -32,12 +33,12 @@ public class AccumuloGeoMesaBlobStoreTest {
     @Before
     public void before()  throws Exception {
         Map<String, Serializable> testParams = new HashMap<>();
-        testParams.put("instanceId", "mycloud");
-        testParams.put("zookeepers", "zoo1:2181,zoo2:2181,zoo3:2181");
-        testParams.put("user", "myuser");
-        testParams.put("password", "mypassword");
-        testParams.put("tableName", "geomesaJava");
-        testParams.put("useMock", "true");
+        testParams.put(AccumuloDataStoreParams.InstanceIdParam().key, "mycloud");
+        testParams.put(AccumuloDataStoreParams.ZookeepersParam().key, "zoo1:2181,zoo2:2181,zoo3:2181");
+        testParams.put(AccumuloDataStoreParams.UserParam().key, "myuser");
+        testParams.put(AccumuloDataStoreParams.PasswordParam().key, "mypassword");
+        testParams.put(AccumuloDataStoreParams.CatalogParam().key, "geomesaJava");
+        testParams.put(AccumuloDataStoreParams.MockParam().key, "true");
         agbs = new AccumuloGeoMesaBlobStore(testParams);
     }
 

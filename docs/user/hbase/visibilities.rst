@@ -35,7 +35,7 @@ When connecting to your datastore you'll need to enable visibilities with the fo
 .. code-block:: java
 
     Map<String, String> parameters = ...
-    parameters.put("security.enabled", "true");
+    parameters.put("hbase.security.enabled", "true");
     DataStore ds = DataStoreFinder.getDataStore(parameters);
 
 Data Store Level Visibilities
@@ -46,8 +46,8 @@ When creating your data store, a default visibility can be configured for all fe
 .. code-block:: java
 
     Map<String, String> parameters = ...
-    parameters.put("security.enabled", "true");
-    parameters.put("visibilities", "admin&user");
+    parameters.put("hbase.security.enabled", "true");
+    parameters.put("geomesa.security.visibilities", "admin&user");
     DataStore ds = DataStoreFinder.getDataStore(parameters);
 
 If present, visibilities set at the feature or attribute level will take priority over the data store configuration.

@@ -14,6 +14,7 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
@@ -21,6 +22,8 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloSparkProviderTest extends Specification with TestWithDataStore with LazyLogging {
+
+  import AccumuloDataStoreParams._
 
   override lazy val sftName: String = "chicago"
   override def spec: String = SparkSQLTestUtils.ChiSpec
@@ -34,7 +37,8 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
 
     var df: DataFrame = null
 
-    val params = dsParams.filterNot { case (k, _) => k == "connector" } ++ Map("useMock" -> true)
+    val params = dsParams.filterNot { case (k, _) => k == AccumuloDataStoreParams.ConnectorParam.key } ++
+        Map(AccumuloDataStoreParams.MockParam.key -> true)
 
     // before
     step {
@@ -45,10 +49,10 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
 
       df = spark.read
         .format("geomesa")
-        .option("instanceId", mockInstanceId)
-        .option("zookeepers", mockZookeepers)
-        .option("user", mockUser)
-        .option("password", mockPassword)
+        .option(InstanceIdParam.key, mockInstanceId)
+        .option(ZookeepersParam.key, mockZookeepers)
+        .option(UserParam.key, mockUser)
+        .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
         .option("geomesa.feature", "chicago")
         .load()
@@ -77,10 +81,10 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
     "write data and properly index" >> {
       val subset = sc.sql("select case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .option("instanceId", mockInstanceId)
-        .option("zookeepers", mockZookeepers)
-        .option("user", mockUser)
-        .option("password", mockPassword)
+        .option(InstanceIdParam.key, mockInstanceId)
+        .option(ZookeepersParam.key, mockZookeepers)
+        .option(UserParam.key, mockUser)
+        .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
         .option("geomesa.feature", "chicago2")
         .save()
@@ -93,10 +97,10 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
     "handle reuse __fid__ on write if available" >> {
       val subset = sc.sql("select __fid__,case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .option("instanceId", mockInstanceId)
-        .option("zookeepers", mockZookeepers)
-        .option("user", mockUser)
-        .option("password", mockPassword)
+        .option(InstanceIdParam.key, mockInstanceId)
+        .option(ZookeepersParam.key, mockZookeepers)
+        .option(UserParam.key, mockUser)
+        .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
         .option("geomesa.feature", "fidOnWrite")
         .save()

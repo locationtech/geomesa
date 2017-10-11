@@ -10,14 +10,14 @@ that the GeoMesa code is on the classpath:
 .. code-block:: java
 
     Map<String, String> parameters = new HashMap<>;
-    parameters.put("accumulo.instanceId", "myInstance");
-    parameters.put("accumulo.zookeepers", "zoo1,zoo2,zoo3");
-    parameters.put("accumulo.user", "myUser");
-    parameters.put("accumulo.password", "myPassword");
-    parameters.put("accumulo.tableName", "my_table");
-    parameters.put("kafka.brokers", "kafka1:9092,kafka2:9092");
-    parameters.put("kafka.zookeepers", "zoo1,zoo2,zoo3");
-    parameters.put("expiry", "10 minutes");
+    parameters.put("lambda.accumulo.instance.id", "myInstance");
+    parameters.put("lambda.accumulo.zookeepers", "zoo1,zoo2,zoo3");
+    parameters.put("lambda.accumulo.user", "myUser");
+    parameters.put("lambda.accumulo.password", "myPassword");
+    parameters.put("lambda.accumulo.tableName", "my_table");
+    parameters.put("lambda.kafka.brokers", "kafka1:9092,kafka2:9092");
+    parameters.put("lambda.kafka.zookeepers", "zoo1,zoo2,zoo3");
+    parameters.put("lambda.expiry", "10 minutes");
     org.geotools.data.DataStore dataStore = org.geotools.data.DataStoreFinder.getDataStore(parameters);
 
 More information on using GeoTools can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`_.
@@ -27,35 +27,42 @@ More information on using GeoTools can be found in the `GeoTools user guide <htt
 Parameters
 ----------
 
-The Lambda Data Store takes several parameters:
+The data store takes several parameters (required parameters are marked with ``*``):
 
-====================== =============================================================================================================================================================================================================
-Parameter              Description
-====================== =============================================================================================================================================================================================================
-accumulo.instanceId *  The instance ID of the Accumulo installation
-accumulo.zookeepers *  A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3" or "localhost:2181")
-accumulo.tableName *   The name of the GeoMesa catalog table
-accumulo.user *        Accumulo username
-accumulo.password      Accumulo password
-accumulo.keytabPath    Path to a Kerberos keytab file containing an entry for the specified user
-kafka.brokers *        A comma separated list of kafka brokers (e.g. ``broker1:9092,broker2:9092``)
-kafka.zookeepers *     A comma separated list of zookeeper servers (e.g. ``zoo1,zoo2,zoo3`` or ``localhost:2181``)
-expiry *               A duration for how long features are kept in memory before being persisted (e.g. ``10 minutes``). Using ``Inf`` will cause the data store to not participate in persisting expired entries
-persist                Whether expired features should be persisted to Accumulo or just discarded
-accumulo.queryTimeout  The max time (in sec) a query will be allowed to run before being killed
-accumulo.queryThreads  The number of threads to use per query
-accumulo.recordThreads The number of threads to use for record retrieval
-accumulo.writeThreads  The number of threads to use for writing records
-kafka.partitions       Number of partitions used to create new topics. You should generally set this to the number of writer instances you plan to run
-kafka.consumers        Number of consumers used to load data into the in-memory cache
-kafka.producer.options Java-properties-formatted string that is passed directly to the Kafka producer. See `Producer Configs <http://kafka.apache.org/090/documentation.html#producerconfigs>`_
-kafka.consumer.options Java-properties-formatted string that is passed directly to the Kafka consumer. See `New Consumer Configs <http://kafka.apache.org/090/documentation.html#newconsumerconfigs>`_
-visibilities           Visibility labels to apply to all written data
-auths                  Comma-delimited superset of authorizations that will be used for filtering data
-looseBoundingBox       Use non-exact matching for bounding box filters, which will speed up queries
-collectStats           Enable collection of data statistics
-auditQueries           Enable auditing of queries against the data store
-====================== =============================================================================================================================================================================================================
+====================================== ======= ==================================================================================================
+Parameter                              Type    Description
+====================================== ======= ==================================================================================================
+``lambda.accumulo.instance.id *``      String  The instance ID of the Accumulo installation
+``lambda.accumulo.zookeepers *``       String  A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3" or "localhost:2181")
+``lambda.accumulo.catalog *``          String  The name of the GeoMesa catalog table
+``lambda.accumulo.user *``             String  Accumulo username
+``lambda.accumulo.password``           String  Accumulo password
+``lambda.accumulo.keytab.path``        String  Path to a Kerberos keytab file containing an entry for the specified user
+``lambda.accumulo.mock``               Boolean Use a mock connection (for testing)
+``lambda.kafka.brokers *``             String  A comma separated list of kafka brokers (e.g. ``broker1:9092,broker2:9092``)
+``lambda.kafka.zookeepers *``          String  A comma separated list of zookeeper servers (e.g. ``zoo1,zoo2,zoo3`` or ``localhost:2181``)
+``lambda.kafka.partitions``            Integer Number of partitions used to create new topics. You should generally set this to the number of
+                                               writer instances you plan to run
+``lambda.kafka.consumers``             Integer Number of consumers used to load data into the in-memory cache
+``lambda.kafka.producer.options``      String  Java-properties-formatted string that is passed directly to the Kafka producer.
+                                               See `Producer Configs <http://kafka.apache.org/090/documentation.html#producerconfigs>`_
+``lambda.kafka.consumer.options``      String  Java-properties-formatted string that is passed directly to the Kafka consumer.
+                                               See `New Consumer Configs <http://kafka.apache.org/090/documentation.html#newconsumerconfigs>`_
+``lambda.expiry *``                    String  A duration for how long features are kept in memory before being persisted (e.g. ``10 minutes``).
+                                               Using ``Inf`` will cause the data store to not participate in persisting expired entries
+``lambda.persist``                     Boolean Whether expired features should be persisted to Accumulo or just discarded
+``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries via Accumulo
+``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
+``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation
+``geomesa.security.visibilities``      String  Visibilities to apply to all written data
+``geomesa.query.audit``                Boolean Audit queries being run. Queries will be stored in a ``<catalog>_queries`` table
+``geomesa.query.timeout``              Integer The max time (in seconds) a query will be allowed to run before being killed
+``geomesa.query.threads``              Integer The number of threads to use per query
+``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
+``accumulo.query.record-threads``      Integer The number of threads to use for record retrieval
+``accumulo.write.threads``             Integer The number of threads to use for writing records
+``geomesa.stats.generate``             Boolean Toggle collection of statistics
+``geomesa.query.caching``              Boolean Toggle caching of results
+====================================== ======= ==================================================================================================
 
-The required parameters are marked with an asterisk. One (but not both) of ``accumulo.password`` and
-``accumulo.keytabPath`` must be provided.
+Note: one (but not both) of ``lambda.accumulo.password`` and ``lambda.accumulo.keytab.path`` must be provided.

@@ -10,23 +10,25 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.awt.RenderingHints
 import java.io.Serializable
-import java.util.{Collections, Map => JMap}
+import java.util.{Map => JMap}
 
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
-import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.security
+import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import scala.collection.JavaConversions._
 
@@ -39,10 +41,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
   override def createNewDataStore(params: JMap[String, Serializable]): AccumuloDataStore = createDataStore(params)
 
   override def createDataStore(params: JMap[String, Serializable]): AccumuloDataStore = {
-    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
-
-    val connector = connParam.lookupOpt[Connector](params).getOrElse {
-      buildAccumuloConnector(params, java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String]))
+    val connector = ConnectorParam.lookupOpt(params).getOrElse {
+      buildAccumuloConnector(params, MockParam.lookup(params))
     }
     val config = buildConfig(connector, params)
     new AccumuloDataStore(connector, config)
@@ -54,23 +54,23 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   override def getParametersInfo =
     Array(
-      instanceIdParam,
-      zookeepersParam,
-      userParam,
-      passwordParam,
-      keytabPathParam,
-      tableNameParam,
-      authsParam,
-      visibilityParam,
-      queryTimeoutParam,
-      queryThreadsParam,
-      recordThreadsParam,
-      writeThreadsParam,
-      looseBBoxParam,
-      generateStatsParam,
-      auditQueriesParam,
-      cachingParam,
-      forceEmptyAuthsParam,
+      InstanceIdParam,
+      ZookeepersParam,
+      UserParam,
+      PasswordParam,
+      KeytabPathParam,
+      CatalogParam,
+      AuthsParam,
+      VisibilitiesParam,
+      QueryTimeoutParam,
+      QueryThreadsParam,
+      RecordThreadsParam,
+      WriteThreadsParam,
+      LooseBBoxParam,
+      GenerateStatsParam,
+      AuditQueriesParam,
+      CachingParam,
+      ForceEmptyAuthsParam,
       NamespaceParam
     )
 
@@ -78,22 +78,21 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   override def isAvailable = true
 
-  override def getImplementationHints = null
+  override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
 }
 
 object AccumuloDataStoreFactory {
 
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
-  import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
 
   val DISPLAY_NAME = "Accumulo (GeoMesa)"
   val DESCRIPTION = "Apache Accumulo\u2122 distributed key/value store"
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
-    val instance = instanceIdParam.lookup[String](params)
-    val user = userParam.lookup[String](params)
-    val password = passwordParam.lookup[String](params)
-    val keytabPath = keytabPathParam.lookup[String](params)
+    val instance = InstanceIdParam.lookup(params)
+    val user = UserParam.lookup(params)
+    val password = PasswordParam.lookup(params)
+    val keytabPath = KeytabPathParam.lookup(params)
 
     // Build authentication token according to how we are authenticating
     val authToken : AuthenticationToken = if (password != null && keytabPath == null) {
@@ -114,7 +113,7 @@ object AccumuloDataStoreFactory {
     if (useMock) {
       new MockInstance(instance).getConnector(user, authToken)
     } else {
-      val zookeepers = zookeepersParam.lookup[String](params)
+      val zookeepers = ZookeepersParam.lookup(params)
       // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
       val timeout = GeoMesaSystemProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey)
       val clientConfiguration = if (timeout !=  null) {
@@ -138,23 +137,22 @@ object AccumuloDataStoreFactory {
   }
 
   def buildConfig(connector: Connector, params: JMap[String, Serializable]): AccumuloDataStoreConfig = {
-    val catalog = tableNameParam.lookUp(params).asInstanceOf[String]
+    val catalog = CatalogParam.lookup(params)
 
     val authProvider = buildAuthsProvider(connector, params)
     val auditProvider = buildAuditProvider(params)
 
-    val auditQueries = !connector.isInstanceOf[MockConnector] &&
-        (auditQueriesParam.lookupWithDefault[Boolean](params) || collectQueryStatsParam.lookupWithDefault[Boolean](params))
+    val auditQueries = !connector.isInstanceOf[MockConnector] && AuditQueriesParam.lookup(params)
     val auditService = {
       val auditTable = GeoMesaFeatureIndex.formatSharedTableName(catalog, "queries")
       new AccumuloAuditService(connector, authProvider, auditTable, auditQueries)
     }
 
-    val generateStats = GeoMesaDataStoreFactory.generateStats(params)
-    val queryTimeout = GeoMesaDataStoreFactory.queryTimeout(params)
-    val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
+    val generateStats = GenerateStatsParam.lookup(params)
+    val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_ * 1000L)
+    val visibility = VisibilitiesParam.lookupOpt(params).getOrElse("")
 
-    val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
+    val ns = NamespaceParam.lookupOpt(params)
 
     AccumuloDataStoreConfig(
       catalog,
@@ -163,11 +161,11 @@ object AccumuloDataStoreFactory {
       authProvider,
       Some(auditService, auditProvider, AccumuloAuditService.StoreType),
       queryTimeout,
-      looseBBoxParam.lookupWithDefault(params),
-      cachingParam.lookupWithDefault(params),
-      writeThreadsParam.lookupWithDefault(params),
-      queryThreadsParam.lookupWithDefault(params),
-      recordThreadsParam.lookupWithDefault(params),
+      LooseBBoxParam.lookup(params),
+      CachingParam.lookup(params),
+      WriteThreadsParam.lookup(params),
+      QueryThreadsParam.lookup(params),
+      RecordThreadsParam.lookup(params),
       ns
     )
   }
@@ -181,7 +179,7 @@ object AccumuloDataStoreFactory {
   }
 
   def buildAuthsProvider(connector: Connector, params: JMap[String, Serializable]): AccumuloAuthsProvider = {
-    val forceEmptyOpt: Option[java.lang.Boolean] = forceEmptyAuthsParam.lookupOpt[java.lang.Boolean](params)
+    val forceEmptyOpt: Option[java.lang.Boolean] = ForceEmptyAuthsParam.lookupOpt(params)
     val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
 
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
@@ -190,7 +188,7 @@ object AccumuloDataStoreFactory {
     val masterAuthsStrings = masterAuths.map(b => new String(b))
 
     // get the auth params passed in as a comma-delimited string
-    val configuredAuths = authsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
+    val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filter(s => !s.isEmpty)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     if (!connector.isInstanceOf[MockConnector]) {
@@ -215,49 +213,29 @@ object AccumuloDataStoreFactory {
 
   // Kerberos is only available in Accumulo >= 1.7.
   // Note: doesn't confirm whether correctly configured for Kerberos e.g. core-site.xml on CLASSPATH
-  def isKerberosAvailable: Boolean = {
+  def isKerberosAvailable: Boolean =
     AccumuloVersion.accumuloVersion != AccumuloVersion.V15 && AccumuloVersion.accumuloVersion != AccumuloVersion.V16
-  }
 
   def canProcess(params: JMap[String,Serializable]): Boolean = {
-
-    // Determine which parameters are set. Those which are required according to the parameter definition will throw an
-    // exception on lookup, so need the extra containsKey check.
-    val hasConnection = connParam.lookup[String](params) != null
-    val hasInstanceId = params.containsKey(instanceIdParam.key) && instanceIdParam.lookup[String](params) != null
-    val hasZookeepers = params.containsKey(zookeepersParam.key) && zookeepersParam.lookup[String](params) != null
-    val hasUser = params.containsKey(userParam.key) && userParam.lookup[String](params) != null
-    val hasPassword = params.containsKey(passwordParam.key) && passwordParam.lookup[String](params) != null
-    val hasKeytabPath = params.containsKey(keytabPathParam.key) && keytabPathParam.lookup[String](params) != null
-
-    val passwordAuth = hasInstanceId && hasZookeepers && hasUser && hasPassword && !hasKeytabPath
-    val kerberosAuth = hasInstanceId && hasZookeepers && hasUser && !hasPassword && hasKeytabPath && isKerberosAvailable
-
-    hasConnection || passwordAuth || kerberosAuth
+    val hasConnector = ConnectorParam.lookupOpt(params).isDefined
+    def hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
+    def hasPassword = PasswordParam.exists(params) && !KeytabPathParam.exists(params)
+    def hasKeytab = !PasswordParam.exists(params) && KeytabPathParam.exists(params) && isKerberosAvailable
+    hasConnector || (hasConnection && (hasPassword || hasKeytab))
   }
 }
 
+// noinspection TypeAnnotation
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
-object AccumuloDataStoreParams {
-  val connParam              = new Param("connector", classOf[Connector], "Accumulo connector", false)
-  val instanceIdParam        = new Param("instanceId", classOf[String], "Accumulo Instance ID", true)
-  val zookeepersParam        = new Param("zookeepers", classOf[String], "Zookeepers", true)
-  val userParam              = new Param("user", classOf[String], "Accumulo user", true)
-  val passwordParam          = new Param("password", classOf[String], "Accumulo password", false, null, Collections.singletonMap(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE))
-  val keytabPathParam        = new Param("keytabPath", classOf[String], "Path to keytab file", false)
-  val authsParam             = org.locationtech.geomesa.security.AuthsParam
-  val visibilityParam        = new Param("visibilities", classOf[String], "Default Accumulo visibilities to apply to all written data", false)
-  val tableNameParam         = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
-  val queryTimeoutParam      = GeoMesaDataStoreFactory.QueryTimeoutParam
-  val queryThreadsParam      = GeoMesaDataStoreFactory.QueryThreadsParam
-  val recordThreadsParam     = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false, 10)
-  val writeThreadsParam      = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false, 10)
-  val looseBBoxParam         = GeoMesaDataStoreFactory.LooseBBoxParam
-  val generateStatsParam     = GeoMesaDataStoreFactory.GenerateStatsParam
-  val collectQueryStatsParam = new Param("collectQueryStats", classOf[java.lang.Boolean], "Collect statistics on queries being run", false, true)
-  val auditQueriesParam      = GeoMesaDataStoreFactory.AuditQueriesParam
-  val cachingParam           = GeoMesaDataStoreFactory.CachingParam
-  val mockParam              = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
-  val forceEmptyAuthsParam   = org.locationtech.geomesa.security.ForceEmptyAuthsParam
-  val NamespaceParam         = new Param("namespace", classOf[String], "Namespace", false)
+object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
+  val ConnectorParam       = new GeoMesaParam[Connector]("accumulo.connector", "Accumulo connector", deprecated = Seq("connector"))
+  val InstanceIdParam      = new GeoMesaParam[String]("accumulo.instance.id", "Accumulo Instance ID", required = true, deprecated = Seq("instanceId", "accumulo.instanceId"))
+  val ZookeepersParam      = new GeoMesaParam[String]("accumulo.zookeepers", "Zookeepers", required = true, deprecated = Seq("zookeepers"))
+  val UserParam            = new GeoMesaParam[String]("accumulo.user", "Accumulo user", required = true, deprecated = Seq("user"))
+  val PasswordParam        = new GeoMesaParam[String]("accumulo.password", "Accumulo password", metadata = Map(Parameter.IS_PASSWORD -> java.lang.Boolean.TRUE), deprecated = Seq("password"))
+  val KeytabPathParam      = new GeoMesaParam[String]("accumulo.keytab.path", "Path to keytab file", deprecated = Seq("keytabPath", "accumulo.keytabPath"))
+  val MockParam            = new GeoMesaParam[java.lang.Boolean]("accumulo.mock", "Use a mock connection (for testing)", default = false, deprecated = Seq("useMock", "accumulo.useMock"))
+  val CatalogParam         = new GeoMesaParam[String]("accumulo.catalog", "Accumulo catalog table name", required = true, deprecated = Seq("tableName", "accumulo.tableName"))
+  val RecordThreadsParam   = new GeoMesaParam[Integer]("accumulo.query.record-threads", "The number of threads to use for record retrieval", default = 10, deprecated = Seq("recordThreads", "accumulo.recordThreads"))
+  val WriteThreadsParam    = new GeoMesaParam[Integer]("accumulo.write.threads", "The number of threads to use for writing records", default = 10, deprecated = Seq("writeThreads", "accumulo.writeThreads"))
 }

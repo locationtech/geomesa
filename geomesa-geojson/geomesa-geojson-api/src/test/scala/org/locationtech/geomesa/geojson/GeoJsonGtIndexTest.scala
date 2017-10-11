@@ -24,9 +24,9 @@ class GeoJsonGtIndexTest extends Specification {
   val connector = new MockInstance().getConnector("root", new PasswordToken(""))
 
   val ds = DataStoreFinder.getDataStore(Map(
-    AccumuloDataStoreParams.connParam.getName      -> connector,
-    AccumuloDataStoreParams.tableNameParam.getName -> "GeoJsonAccumuloIndexTest",
-    AccumuloDataStoreParams.mockParam.getName      -> "true"
+    AccumuloDataStoreParams.ConnectorParam.getName -> connector,
+    AccumuloDataStoreParams.CatalogParam.getName   -> "GeoJsonAccumuloIndexTest",
+    AccumuloDataStoreParams.MockParam.getName      -> "true"
   ))
 
   val f0 = """{"type":"Feature","geometry":{"type":"Point","coordinates":[30,10]},"properties":{"id":"0","name":"n0"}}"""

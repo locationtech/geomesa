@@ -32,21 +32,19 @@ class GenerateKNNQueryTest extends Specification {
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> "mycloud",
-      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user" -> "myuser",
-      "password" -> "mypassword",
-      "auths" -> "A,B,C",
-      "tableName" -> "testwrite",
-      "useMock" -> "true",
-      "featureEncoding" -> "avro").asJava).asInstanceOf[AccumuloDataStore]
+      AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
+      AccumuloDataStoreParams.ZookeepersParam.key -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      AccumuloDataStoreParams.UserParam.key       -> "myuser",
+      AccumuloDataStoreParams.PasswordParam.key   -> "mypassword",
+      AccumuloDataStoreParams.AuthsParam.key      -> "A,B,C",
+      AccumuloDataStoreParams.CatalogParam.key    -> "testknnquery",
+      AccumuloDataStoreParams.MockParam.key       -> "true").asJava).asInstanceOf[AccumuloDataStore]
 
   val sftName = "test"
   val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
   sft.getUserData.put(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY, "dtg")
 
   val ds = createStore
-
   ds.createSchema(sft)
 
   val fs = ds.getFeatureSource(sftName)

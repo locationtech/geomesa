@@ -8,50 +8,26 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
 import org.geotools.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.{AttributeIndex, RecordIndex, Z2Index, Z3Index}
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithDataStore}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAttributeVisibilityTest extends Specification {
+class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
 
   import scala.collection.JavaConversions._
 
   sequential
 
-  val sftName = getClass.getSimpleName
-  val spec = "name:String:index=full,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.visibility.level='attribute'"
-
-  val connector = {
-    val mockInstance = new MockInstance("mycloud")
-    val mockConnector = mockInstance.getConnector("user", new PasswordToken("password"))
-    mockConnector.securityOperations().changeUserAuthorizations("user", new Authorizations("admin", "user"))
-    mockConnector
-  }
-
-  val (ds, sft) = {
-    val sft = SimpleFeatureTypes.createType(sftName, spec)
-    val ds = DataStoreFinder.getDataStore(Map(
-      "connector" -> connector,
-      // note the table needs to be different to prevent testing errors
-      "tableName" -> sftName)).asInstanceOf[AccumuloDataStore]
-    ds.createSchema(sft)
-    (ds, ds.getSchema(sftName)) // reload the sft from the ds to ensure all user data is set properly
-  }
+  override val spec = "name:String:index=full,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.visibility.level='attribute'"
 
   val user = {
     val sf = new ScalaSimpleFeature(sft, "user")
@@ -84,20 +60,13 @@ class AccumuloDataStoreAttributeVisibilityTest extends Specification {
     sf
   }
 
-  val featureCollection = new DefaultFeatureCollection(sftName, sft)
-  featureCollection.add(user)
-  featureCollection.add(admin)
-  featureCollection.add(mixed)
-
   // write the feature to the store
-  val fs = ds.getFeatureSource(sftName)
-  fs.addFeatures(featureCollection)
+  step {
+    addFeatures(Seq(user, admin, mixed))
+  }
 
   def queryByAuths(auths: String, filter: String, expectedStrategy: AccumuloFeatureIndexType): Seq[SimpleFeature] = {
-    val ds = DataStoreFinder.getDataStore(Map(
-      "connector"    -> connector,
-      "tableName"    -> sftName,
-      "auths"        -> auths)).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
     val query = new Query(sftName, ECQL.toFilter(filter))
     val plans = ds.getQueryPlan(query)
     forall(plans)(_.filter.index mustEqual expectedStrategy)

@@ -65,8 +65,8 @@ class ParquetCompactionJob(sft: SimpleFeatureType,
     job.setMapOutputKeyClass(classOf[Void])
     job.setMapOutputValueClass(classOf[SimpleFeature])
     ParquetInputFormat.setReadSupportClass(job, classOf[SimpleFeatureReadSupport])
-    PartitionInputFormat.setFsPath(job.getConfiguration, FileSystemDataStoreParams.PathParam.lookUp(dsParams).asInstanceOf[String])
-    PartitionInputFormat.setFsEncoding(job.getConfiguration, FileSystemDataStoreParams.EncodingParam.lookUp(dsParams).asInstanceOf[String])
+    PartitionInputFormat.setFsPath(job.getConfiguration, FileSystemDataStoreParams.PathParam.lookup(dsParams))
+    PartitionInputFormat.setFsEncoding(job.getConfiguration, FileSystemDataStoreParams.EncodingParam.lookup(dsParams))
     PartitionInputFormat.setPartitions(job.getConfiguration, partitions.toArray)
 
     // No reducers - Mapper will read/write its own things

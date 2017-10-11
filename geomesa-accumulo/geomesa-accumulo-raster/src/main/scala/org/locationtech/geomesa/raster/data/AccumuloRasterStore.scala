@@ -311,19 +311,18 @@ object AccumuloRasterStore {
   }
 
   def apply(config: JMap[String, Serializable]): AccumuloRasterStore = {
-    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
-    val username: String     = userParam.lookUp(config).asInstanceOf[String]
-    val password: String     = passwordParam.lookUp(config).asInstanceOf[String]
-    val instance: String     = instanceIdParam.lookUp(config).asInstanceOf[String]
-    val zookeepers: String   = zookeepersParam.lookUp(config).asInstanceOf[String]
-    val auths: String        = authsParam.lookupOpt[String](config).getOrElse("")
-    val vis: String          = visibilityParam.lookupOpt[String](config).getOrElse("")
-    val tablename: String    = tableNameParam.lookUp(config).asInstanceOf[String]
-    val useMock: Boolean     = mockParam.lookUp(config).asInstanceOf[String].toBoolean
-    val wMem: Option[String] = RasterParams.writeMemoryParam.lookupOpt[String](config)
-    val wThread: Option[Int] = writeThreadsParam.lookupOpt[Int](config)
-    val qThread: Option[Int] = queryThreadsParam.lookupOpt[Int](config)
-    val cStats: Boolean      = java.lang.Boolean.valueOf(collectQueryStatsParam.lookupOpt[Boolean](config).getOrElse(false))
+    val username: String     = UserParam.lookup(config)
+    val password: String     = PasswordParam.lookup(config)
+    val instance: String     = InstanceIdParam.lookup(config)
+    val zookeepers: String   = ZookeepersParam.lookup(config)
+    val auths: String        = AuthsParam.lookupOpt(config).getOrElse("")
+    val vis: String          = VisibilitiesParam.lookupOpt(config).getOrElse("")
+    val tablename: String    = CatalogParam.lookup(config)
+    val useMock: Boolean     = MockParam.lookup(config).booleanValue
+    val wMem: Option[String] = RasterParams.writeMemoryParam.lookupOpt(config).map(_.toString)
+    val wThread: Option[Int] = WriteThreadsParam.lookupOpt(config).map(_.intValue)
+    val qThread: Option[Int] = QueryThreadsParam.lookupOpt(config).map(_.intValue)
+    val cStats: Boolean      = AuditQueriesParam.lookupOpt(config).exists(_.booleanValue)
 
     AccumuloRasterStore(username, password, instance, zookeepers, tablename,
       auths, vis, useMock, wMem, wThread, qThread, cStats)

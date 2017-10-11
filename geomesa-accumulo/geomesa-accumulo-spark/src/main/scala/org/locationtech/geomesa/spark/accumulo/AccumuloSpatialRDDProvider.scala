@@ -82,7 +82,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
         // Configure Auths from DS
-        val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(params).asInstanceOf[String])
+        val auths = AccumuloDataStoreParams.AuthsParam.lookupOpt(params)
         auths.foreach { a =>
           val authorizations = new Authorizations(a.split(","): _*)
           InputConfigurator.setScanAuthorizations(classOf[AccumuloInputFormat], conf, authorizations)
@@ -101,11 +101,11 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         SparkHadoopUtil.get.addCredentials(jconf)
 
         // Get username from params
-        val username = AccumuloDataStoreParams.userParam.lookUp(params).toString
+        val username = AccumuloDataStoreParams.UserParam.lookup(params)
 
         // Get password or keytabPath from params. Precisely one of these should be set due to prior validation
-        val password = AccumuloDataStoreParams.passwordParam.lookUp(params)
-        val keytabPath = AccumuloDataStoreParams.keytabPathParam.lookUp(params)
+        val password = AccumuloDataStoreParams.PasswordParam.lookup(params)
+        val keytabPath = AccumuloDataStoreParams.KeytabPathParam.lookup(params)
 
         // Create authentication token according to password or Kerberos
         val authToken = if (password != null) {
@@ -116,9 +116,9 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         }
 
         // Get params and set instance
-        val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(params).asInstanceOf[String]
-        val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(params).asInstanceOf[String]
-        if (Try(params("useMock").toBoolean).getOrElse(false)){
+        val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(params)
+        val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(params)
+        if (AccumuloDataStoreParams.MockParam.lookup(params)) {
           AbstractInputFormat.setMockInstance(jconf, instance)
         } else {
           AbstractInputFormat.setZooKeeperInstance(jconf, new ClientConfiguration()
@@ -126,7 +126,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         }
 
         // Set connectorInfo. If needed, this will add a DelegationToken to jconf.getCredentials
-        val user = AccumuloDataStoreParams.userParam.lookUp(params).asInstanceOf[String]
+        val user = AccumuloDataStoreParams.UserParam.lookup(params)
         AbstractInputFormat.setConnectorInfo(jconf, user, authToken)
 
         // Iterate over tokens in credentials and add the Accumulo one to the configuration directly

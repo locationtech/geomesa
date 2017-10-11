@@ -103,9 +103,9 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 
     // get the data store
     val ds = DataStoreFinder.getDataStore(Map(
-      "connector" -> connector,
-      "caching"   -> false,
-      "tableName" -> sftName
+      AccumuloDataStoreParams.ConnectorParam.key -> connector,
+      AccumuloDataStoreParams.CachingParam.key   -> false,
+      AccumuloDataStoreParams.CatalogParam.key   -> sftName
     )).asInstanceOf[AccumuloDataStore]
     val fs = ds.getFeatureSource(sftName)
 
@@ -187,9 +187,9 @@ class BackCompatibilityTest extends Specification with LazyLogging {
       logger.info(s"Running back compatible deletion test on $name")
       val sftName = restoreTables(readVersion(getFile(s"data/versioned-data-$name.kryo")))
       val ds = DataStoreFinder.getDataStore(Map(
-        "connector" -> connector,
-        "caching"   -> false,
-        "tableName" -> sftName
+        AccumuloDataStoreParams.ConnectorParam.key -> connector,
+        AccumuloDataStoreParams.CachingParam.key   -> false,
+        AccumuloDataStoreParams.CatalogParam.key   -> sftName
       )).asInstanceOf[AccumuloDataStore]
 
       val sft = ds.getSchema(sftName)

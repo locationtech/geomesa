@@ -15,7 +15,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.VincentyModel
@@ -78,13 +78,13 @@ class KNearestNeighborSearchProcessTest extends Specification {
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> "mycloud",
-      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user" -> "myuser",
-      "password" -> "mypassword",
-      "auths" -> "A,B,C",
-      "tableName" -> "testwrite",
-      "useMock" -> "true")).asInstanceOf[AccumuloDataStore]
+      AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
+      AccumuloDataStoreParams.ZookeepersParam.key -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      AccumuloDataStoreParams.UserParam.key       -> "myuser",
+      AccumuloDataStoreParams.PasswordParam.key   -> "mypassword",
+      AccumuloDataStoreParams.AuthsParam.key      -> "A,B,C",
+      AccumuloDataStoreParams.CatalogParam.key    -> "testknn",
+      AccumuloDataStoreParams.MockParam.key       -> "true")).asInstanceOf[AccumuloDataStore]
 
   // utility method to generate random points about a central point
   // note that these points will be uniform in cartesian space only

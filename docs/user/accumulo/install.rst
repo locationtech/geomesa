@@ -388,12 +388,11 @@ A note about Accumulo 1.8
 
 .. note::
 
-   GeoMesa supports Accumulo 1.8 when built with the accumulo-1.8 profile.  Accumulo 1.8
-   introduced a dependency on libthrift version 0.9.3 which is not compatible with Accumulo
-   1.7/libthrift 0.9.1.  The default supported version for GeoMesa is Accumulo 1.7.x and
-   the published jars and distribution artifacts reflect this version.  To upgrade, build
-   locally using the accumulo-1.8 profile.
-
+    GeoMesa targets Accumulo 1.8 as a runtime dependency. Most artifacts will work with older versions
+    of Accumulo without changes, however some artifacts which bundle Accumulo will need to be built manually.
+    Accumulo 1.8 introduced a dependency on libthrift version 0.9.3 which is not compatible with Accumulo
+    1.7/libthrift 0.9.1. To target an earlier Accumulo version, modify ``<accumulo.version>`` and
+    ``<thrift.version>`` in the main pom.xml and re-build.
 
 .. _install_geomesa_process:
 
