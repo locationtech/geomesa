@@ -21,6 +21,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 case object Z2IndexV3 extends AccumuloFeatureIndex with AccumuloIndexAdapter
     with Z2LegacyIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   val Z2IterPriority = 23
 
   override val version: Int = 3
@@ -34,8 +36,8 @@ case object Z2IndexV3 extends AccumuloFeatureIndex with AccumuloIndexAdapter
                                           indexValues: Option[Z2IndexValues]): ScanConfig = {
     indexValues match {
       case None => config
-      case Some(Z2IndexValues(sfc, _, xy)) =>
-        val zIter = Z2Iterator.configure(sft, sfc, xy, Z2IterPriority)
+      case Some(values) =>
+        val zIter = Z2Iterator.configure(values, sft.isTableSharing, Z2IterPriority)
         config.copy(iterators = config.iterators :+ zIter)
     }
   }

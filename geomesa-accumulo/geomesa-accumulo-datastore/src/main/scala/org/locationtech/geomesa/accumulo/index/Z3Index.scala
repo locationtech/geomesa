@@ -34,12 +34,8 @@ case object Z3Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
                                           indexValues: Option[Z3IndexValues]): ScanConfig = {
     indexValues match {
       case None => config
-      case Some(Z3IndexValues(sfc, _, xy, _, times)) =>
-        // we know we're only going to scan appropriate periods, so leave out whole ones
-        val wholePeriod = Seq((sfc.time.min.toLong, sfc.time.max.toLong))
-        val filteredTimes = times.filter(_._2 != wholePeriod)
-        val sharing = sft.isTableSharing
-        val zIter = Z3Iterator.configure(sfc, xy, filteredTimes, isPoints = true, hasSplits = true, sharing, Z3IterPriority)
+      case Some(values) =>
+        val zIter = Z3Iterator.configure(values, hasSplits = true, sft.isTableSharing, Z3IterPriority)
         config.copy(iterators = config.iterators :+ zIter)
     }
   }

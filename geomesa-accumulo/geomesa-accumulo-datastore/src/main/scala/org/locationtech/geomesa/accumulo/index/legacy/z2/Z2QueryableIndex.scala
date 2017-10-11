@@ -21,6 +21,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{Z2DensityIterator, _}
 import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 import org.locationtech.geomesa.index.iterators.ArrowBatchScan
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils, SplitArrays}
@@ -155,9 +156,12 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
         }
       }
 
-      val zIter = Z2Iterator.configure(sft, LegacyZ2SFC, xy, Z2Index.Z2IterPriority)
+      val zIter = if (sft.nonPoints) { None } else {
+        val values = Z2IndexValues(LegacyZ2SFC, geometries, xy)
+        Some(Z2Iterator.configure(values, sft.isTableSharing, Z2Index.Z2IterPriority))
+      }
 
-      (ranges, Some(zIter))
+      (ranges, zIter)
     }
 
     val perAttributeIter = sft.getVisibilityLevel match {
