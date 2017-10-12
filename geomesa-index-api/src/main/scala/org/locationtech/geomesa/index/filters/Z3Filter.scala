@@ -57,14 +57,7 @@ class Z3Filter(val xy: Array[Array[Int]],
     }
   }
 
-  override def equals(other: Any): Boolean = other match {
-    case that: Z3Filter => java.util.Arrays.deepEquals(equalityArray, that.equalityArray)
-    case _ => false
-  }
-
-  override def hashCode(): Int = java.util.Arrays.deepHashCode(equalityArray)
-
-  private def equalityArray: Array[AnyRef] = Array[AnyRef](xy, t, Short.box(minEpoch), Short.box(maxEpoch))
+  override def toString: String = Z3Filter.serializeToStrings(this).toSeq.sortBy(_._1).mkString(",")
 }
 
 object Z3Filter {

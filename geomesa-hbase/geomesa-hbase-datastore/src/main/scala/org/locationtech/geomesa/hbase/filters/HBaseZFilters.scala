@@ -30,6 +30,8 @@ class Z3HBaseFilter(val filter: Z3Filter, offset: Int) extends FilterBase with L
     logger.trace("Serializing Z3HBaseFilter")
     Bytes.concat(Z3Filter.serializeToBytes(filter), Ints.toByteArray(offset))
   }
+
+  override def toString: String = s"Z3HBaseFilter[$filter]"
 }
 
 object Z3HBaseFilter extends LazyLogging {
@@ -37,7 +39,7 @@ object Z3HBaseFilter extends LazyLogging {
 
   @throws[DeserializationException]
   def parseFrom(pbBytes: Array[Byte]): Filter = {
-    logger.debug("Deserializing Z3HBaseFilter")
+    logger.trace("Deserializing Z3HBaseFilter")
     val offset = Ints.fromBytes(pbBytes(pbBytes.length - 4), pbBytes(pbBytes.length - 3),
       pbBytes(pbBytes.length - 2), pbBytes(pbBytes.length - 1))
     new Z3HBaseFilter(Z3Filter.deserializeFromBytes(pbBytes), offset)
@@ -59,6 +61,8 @@ class Z2HBaseFilter(val filter: Z2Filter, offset: Int) extends FilterBase with L
     logger.trace("Serializing Z2HBaseFilter")
     Bytes.concat(Z2Filter.serializeToBytes(filter), Ints.toByteArray(offset))
   }
+
+  override def toString: String = s"Z2HBaseFilter[$filter]"
 }
 
 object Z2HBaseFilter extends LazyLogging {
@@ -66,7 +70,7 @@ object Z2HBaseFilter extends LazyLogging {
 
   @throws[DeserializationException]
   def parseFrom(pbBytes: Array[Byte]): Filter = {
-    logger.debug("Deserializing Z2HBaseFilter")
+    logger.trace("Deserializing Z2HBaseFilter")
     val offset = Ints.fromBytes(pbBytes(pbBytes.length - 4), pbBytes(pbBytes.length - 3),
       pbBytes(pbBytes.length - 2), pbBytes(pbBytes.length - 1))
     new Z2HBaseFilter(Z2Filter.deserializeFromBytes(pbBytes), offset)

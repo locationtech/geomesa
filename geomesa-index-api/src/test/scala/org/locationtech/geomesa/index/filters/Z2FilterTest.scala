@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.index.z2.Z2IndexKeySpace
 import org.locationtech.geomesa.index.utils.ExplainNull
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -27,19 +28,25 @@ class Z2FilterTest extends Specification {
 
   val values = filters.map(Z2IndexKeySpace.getIndexValues(sft, _, ExplainNull))
 
+  def compare(actual: Z2Filter, expected: Z2Filter): MatchResult[Boolean] = {
+    val left = actual.xy.asInstanceOf[Array[AnyRef]]
+    val right = expected.xy.asInstanceOf[Array[AnyRef]]
+    java.util.Arrays.deepEquals(left, right) must beTrue
+  }
+
   "Z2Filter" should {
     "serialize to and from bytes" in {
       forall(values) { value =>
         val filter = Z2Filter(value)
         val result = Z2Filter.deserializeFromBytes(Z2Filter.serializeToBytes(filter))
-        result mustEqual filter
+        compare(result, filter)
       }
     }
     "serialize to and from strings" in {
       forall(values) { value =>
         val filter = Z2Filter(value)
         val result = Z2Filter.deserializeFromStrings(Z2Filter.serializeToStrings(filter))
-        result mustEqual filter
+        compare(result, filter)
       }
     }
   }

@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.index.z3.Z3IndexKeySpace
 import org.locationtech.geomesa.index.utils.ExplainNull
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -29,19 +30,25 @@ class Z3FilterTest extends Specification {
 
   val values = filters.map(Z3IndexKeySpace.getIndexValues(sft, _, ExplainNull))
 
+  def compare(actual: Z3Filter, expected: Z3Filter): MatchResult[Boolean] = {
+    val left = Array[AnyRef](actual.xy, actual.t, Short.box(actual.minEpoch), Short.box(actual.maxEpoch))
+    val right = Array[AnyRef](expected.xy, expected.t, Short.box(expected.minEpoch), Short.box(expected.maxEpoch))
+    java.util.Arrays.deepEquals(left, right) must beTrue
+  }
+
   "Z3Filter" should {
     "serialize to and from bytes" in {
       forall(values) { value =>
         val filter = Z3Filter(value)
         val result = Z3Filter.deserializeFromBytes(Z3Filter.serializeToBytes(filter))
-        result mustEqual filter
+        compare(result, filter)
       }
     }
     "serialize to and from strings" in {
       forall(values) { value =>
         val filter = Z3Filter(value)
         val result = Z3Filter.deserializeFromStrings(Z3Filter.serializeToStrings(filter))
-        result mustEqual filter
+        compare(result, filter)
       }
     }
   }

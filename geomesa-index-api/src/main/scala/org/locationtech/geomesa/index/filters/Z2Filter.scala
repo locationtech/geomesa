@@ -36,14 +36,7 @@ class Z2Filter(val xy: Array[Array[Int]]) extends java.io.Serializable {
     false
   }
 
-  override def equals(other: Any): Boolean = other match {
-    case that: Z2Filter => java.util.Arrays.deepEquals(equalityArray, that.equalityArray)
-    case _ => false
-  }
-
-  override def hashCode(): Int = java.util.Arrays.deepHashCode(equalityArray)
-
-  private def equalityArray: Array[AnyRef] = xy.asInstanceOf[Array[AnyRef]]
+  override def toString: String = Z2Filter.serializeToStrings(this).toSeq.sortBy(_._1).mkString(",")
 }
 
 object Z2Filter {
