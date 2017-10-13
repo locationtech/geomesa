@@ -41,21 +41,24 @@ uses to determine which external entries to include on the classpath is:
     HBase will use these variables to set the classpath and skip all other logic.
 
     2. Next, if ``$HBASE_HOME`` and ``$HADOOP_HOME`` are set then GeoMesa HBase will attempt to build the classpath by
-    searching for jar files and configuration in standard locations...Note that this is very specific to the
+    searching for jar files and configuration in standard locations. Note that this is very specific to the
     installation or distribution of Hadoop you are using and may not be reliable.
 
     3. If no environmental variables are set but the ``hbase`` and ``hadoop`` commands are available then GeoMesa will
-    interrogate them for their classpaths by running the ``hadoop classpath`` and ``hbase classpath`` commands.
+    interrogate them for their classpaths by running the ``hadoop classpath`` and ``hbase classpath`` commands. This
+    method of classpath determination is slow due to the fact that the ``hbase classpath`` command forks a new JVM. It
+    is therefore recommended that you set manually set these variables in your environment or the
+    ``conf/geomesa-env.sh`` file.
 
 In addition, ``geomesa-hbase`` will pull any additional entries from the ``GEOMESA_EXTRA_CLASSPATHS``
 environment variable.
 
 Note that the ``GEOMESA_EXTRA_CLASSPATHS``, ``GEOMESA_HADOOP_CLASSPATH``, and ``GEOMESA_HBASE_CLASSPATH`` variables
 all follow standard
-`Java Classpath <http://docs.oracle.com/javase/8/docs/technotes/tools/windows/classpath.html>`_ conventions generally
-means that entries must be directories, jar, or zip files. Individual XML files will be ignored. For example, to add a
-``hbase-site.xml`` or ``core-site.xml`` file to the classpath you must either include a directory on the classpath or
-add the file to a zip or jar archive to be included on the classpath.
+`Java Classpath <http://docs.oracle.com/javase/8/docs/technotes/tools/windows/classpath.html>`_ conventions, which
+generally means that entries must be directories, JAR, or zip files. Individual XML files will be ignored. For example,
+to add a ``hbase-site.xml`` or ``core-site.xml`` file to the classpath you must either include a directory on the
+classpath or add the file to a zip or JAR archive to be included on the classpath.
 
 Use the ``geomesa classpath`` command in order to see what JARs are being used.
 
@@ -66,7 +69,7 @@ A few suggested configurations are below:
     .. group-tab:: Amazon EMR
 
         When using EMR to install HBase or Hadoop there are AWS specific jars that need to be used (e.g. EMR FS).
-        It is recommended to use EMR to install Hadoop and/or HBase or order to properly configure and install these
+        It is recommended to use EMR to install Hadoop and/or HBase in order to properly configure and install these
         dependencies (especially when using HBase on S3).
 
         If you used EMR to install Hadoop and HBase, you can view their classpaths using the ``hadoop classpath`` and
@@ -104,7 +107,7 @@ A few suggested configurations are below:
 
     .. group-tab:: Manual Install
 
-        If no HBase or Hadoop distribution is installed, try manually installing the jars from maven:
+        If no HBase or Hadoop distribution is installed, try manually installing the JARs from maven:
 
         .. code-block:: bash
 
@@ -114,11 +117,16 @@ A few suggested configurations are below:
             bin/install-hadoop.sh lib
             bin/install-hbase.sh lib
 
-        You will also need to provide the hbase-site.xml file within a directory, zip, or jar archive (the xml file
-        will not work with the Java classpath):
+        You will also need to provide the hbase-site.xml file within a the GeoMesa ``conf`` directory, an external
+        directory, zip, or JAR archive (an entry referencing the XML file directly will not work with the Java
+        classpath)
 
         .. code-block:: bash
 
+            # try this
+            cp /path/to/hbase-site.xml ${GEOMESA_HBASE_HOME}/conf/
+
+            # or this
             export GEOMESA_EXTRA_CLASSPATHS=/path/to/confdir:/path/to/conf.zip:/path/to/conf.jar
 
 
@@ -405,3 +413,30 @@ doesn't exist). Utilizing a symbolic link will be use full here so any changes a
             ln -s /usr/hdp/current/hbase-client/hbase-site.xml /path/to/geoserver/WEB-INF/classes/hbase-site.xml
 
 Restart GeoServer after the JARs are installed.
+
+Connecting to External HBase Clusters Backed By S3
+---------------------------------------------------
+
+To use a EMR cluster to connect to an existing, external HBase Cluster first follow the above instructions to setup the
+new cluster and install GeoMesa.
+
+The next step is to obtain the ``hbase-site.xml`` for the external HBase Cluster, copy to the new EMR cluster and
+copy it into ``${GEOMESA_HBASE_HOME}/conf``. At this point you may run the geomesa-hbase command line tools.
+
+If you wish to execute SQL queries using Spark, you must first zip the ``hbase-site.xml`` file for the external cluster:
+
+.. code-block:: shell
+
+    zip hbase-site.zip hbase-site.xml
+
+Then copy the zip file to  ``${GEOMESA_HBASE_HOME}/conf`` then add the zipped configuration file to the Spark classpath:
+
+.. code-block:: shell
+
+    export SPARK_JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///opt/geomesa/conf/hbase-site.zip
+
+Then start up the Spark shell:
+
+.. code-block:: shell
+
+    spark-shell --jars $SPARK_JARS

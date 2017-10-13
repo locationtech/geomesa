@@ -81,9 +81,8 @@ each tablet server.
 Namespace Install
 ^^^^^^^^^^^^^^^^^
 
-Copying the runtime JAR to each tablet server as above will work, but in
-Accumulo 1.7+, we can leverage namespaces to isolate the GeoMesa classpath
-from the rest of Accumulo.
+GeoMesa leverages namespaces and classpath contexts to isolate the GeoMesa
+classpath from the rest of Accumulo.
 
 To install the distributed runtime JAR, use the ``setup-namespace.sh``
 script in the ``geomesa-accumulo-dist_2.11-$VERSION/bin`` directory.
@@ -333,19 +332,30 @@ connection).
 If you do no have an internet connection you can download the JARs manually via http://search.maven.org/.
 These may include the JARs below; the specific JARs needed for some common configurations are listed below:
 
-Accumulo 1.7
+Accumulo 1.6
 
-* accumulo-core-1.7.4.jar
-* accumulo-fate-1.7.4.jar
-* accumulo-server-base-1.7.4.jar
-* accumulo-trace-1.7.4.jar
-* accumulo-start-1.7.4.jar
+* accumulo-core-1.6.6.jar
+* accumulo-fate-1.6.6.jar
+* accumulo-server-base-1.6.6.jar
+* accumulo-trace-1.6.6.jar
+* accumulo-start-1.6.6.jar
+* libthrift-0.9.1.jar
+* zookeeper-3.4.10.jar
+* commons-vfs2-2.1.jar
+
+Accumulo 1.7 (note the addition of htrace)
+
+* accumulo-core-1.7.3.jar
+* accumulo-fate-1.7.3.jar
+* accumulo-server-base-1.7.3.jar
+* accumulo-trace-1.7.3.jar
+* accumulo-start-1.7.3.jar
 * libthrift-0.9.1.jar
 * zookeeper-3.4.10.jar
 * htrace-core-3.1.0-incubating.jar
 * commons-vfs2-2.1.jar
 
-Accumulo 1.8
+Accumulo 1.8 (note the addition of htrace)
 
 * accumulo-core-1.8.1.jar
 * accumulo-fate-1.8.1.jar
