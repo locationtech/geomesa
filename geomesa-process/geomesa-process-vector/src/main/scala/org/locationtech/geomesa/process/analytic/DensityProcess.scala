@@ -19,11 +19,12 @@ import org.geotools.factory.GeoTools
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.process.vector.{BBOXExpandingVisitor, HeatmapSurface}
+import org.geotools.process.vector.{BBOXExpandingFilterVisitor, HeatmapSurface}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.opengis.coverage.grid.GridGeometry
+import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
 
 /**
@@ -148,8 +149,13 @@ class DensityProcess extends GeoMesaProcess {
     val envelope = new ReferencedEnvelope(argOutputEnv)
     envelope.expandBy(bufferWidth, bufferHeight)
 
+    val filter = {
+      val buf = math.max(bufferWidth, bufferHeight)
+      targetQuery.getFilter.accept(new BBOXExpandingFilterVisitor(buf, buf, buf, buf), null).asInstanceOf[Filter]
+    }
+
     val invertedQuery = new Query(targetQuery)
-    invertedQuery.setFilter(BBOXExpandingVisitor.expand(targetQuery.getFilter, math.max(bufferWidth, bufferHeight)))
+    invertedQuery.setFilter(filter)
     invertedQuery.setProperties(null)
     invertedQuery.getHints.put(QueryHints.DENSITY_BBOX, envelope)
     invertedQuery.getHints.put(QueryHints.DENSITY_WIDTH, outputWidth)
