@@ -377,7 +377,16 @@ GeoServer's ``WEB-INF/lib`` directory:
         * hadoop-mapreduce-client-core-2.7.4.jar
         * hadoop-yarn-api-2.7.4.jar
         * hadoop-yarn-common-2.7.4.jar
+        * htrace-core-3.1.0-incubating.jar
+        * commons-cli-1.2.jar
+        * commons-io-2.5.jar (you may need to remove an older version (2.1) from geoserver)
+        * hbase-common-1.2.6.jar
         * hbase-server-1.2.6.jar
+        * hbase-client-1.2.6.jar
+        * hbase-server-1.2.6.jar
+        * metrics-core-2.2.0.jar
+        * netty-3.6.2.Final.jar
+        * netty-all-4.0.41.Final.jar
         * zookeeper-3.4.10.jar
         * commons-configuration-1.6.jar
 
@@ -415,7 +424,7 @@ doesn't exist). Utilizing a symbolic link will be use full here so any changes a
 Restart GeoServer after the JARs are installed.
 
 Connecting to External HBase Clusters Backed By S3
----------------------------------------------------
+--------------------------------------------------
 
 To use a EMR cluster to connect to an existing, external HBase Cluster first follow the above instructions to setup the
 new cluster and install GeoMesa.
