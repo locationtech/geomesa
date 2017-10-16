@@ -6,11 +6,22 @@ This section describes code and configuration changes required when upgrading Ge
 Version 1.4
 +++++++++++
 
+GeoTools 18 and GeoServer 2.12
+------------------------------
+
+GeoMesa 1.4 is compiled against GeoTools 18.0 and GeoServer 2.12. When upgrading GeoServer instances,
+it's usually best to start over with a new GeoServer data directory. If you upgrade GeoMesa in an existing
+GeoServer instance that has run GeoMesa 1.3.x or earlier, you will need to delete any existing GeoMesa store
+configurations and re-create them through the GeoServer UI. Alternatively, you may edit the GeoServer
+``datastore.xml`` files (located in the GeoServer data directory) to match the new GeoMesa data store
+parameters (described below). In particular, you will need to add a ``namespace`` parameter that matches
+the workspace of the GeoServer store.
+
 Data Store Parameters
 ---------------------
 
-In version 1.4, GeoMesa has standardized the parameters used in calls to ``DataStoreFinder`` and the Spark
-``SpatialRDDProvider``. New parameters are outlined in the individual data store pages:
+The data store parameters used in calls to ``DataStoreFinder`` and the Spark ``SpatialRDDProvider`` have
+been standardized . New parameters are outlined in the individual data store pages:
 
   * :ref:`accumulo_parameters`
   * :ref:`hbase_parameters`
@@ -18,6 +29,14 @@ In version 1.4, GeoMesa has standardized the parameters used in calls to ``DataS
   * :ref:`cassandra_parameters`
   * :ref:`kafka_parameters`
   * :ref:`lambda_parameters`
+
+The older parameter names will continue to work, but are deprecated and may be removed in future versions.
+
+Kafka Data Store
+----------------
+
+The Kafka Data Store has been rewritten into a single implementation for Kafka 0.9 and 0.10. Support for
+Kafka 0.8 has been removed. See :ref:`kafka_index` for more information.
 
 System Properties
 -----------------
@@ -38,9 +57,3 @@ geomesa.stats.compact.interval       geomesa.stats.compact.millis
 geomesa.cassandra.read.timeout       geomesa.cassandra.read.timeout.millis
 geomesa.cassandra.connection.timeout geomesa.cassandra.connection.timeout.millis
 ==================================== ===========================================
-
-Kafka Data Store
-----------------
-
-The Kafka Data Store has been rewritten into a single implementation for Kafka 0.9 and 0.10. Support for
-Kafka 0.8 has been removed. See :ref:`kafka_index` for more information.
