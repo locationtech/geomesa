@@ -8,10 +8,13 @@ gson
 gt
 hbase
 hbase-client
-hbase-server
 hbase-protocol
+hbase-server
 htrace
 joda
+json4s-ast
+json4s-core
+json4s-native
 json-path
 json-simple
 json-smart
@@ -22,8 +25,11 @@ mango
 metrics
 minlog
 netty
+paranamer
 parboiled
+Saxon-HE
 scala
-spatial4j
+scalap
 sfcurve
+spatial4j
 stream
