@@ -63,7 +63,7 @@ object HBaseQueryPlan {
     import scala.collection.JavaConversions._
     filter match {
       case f: FilterList    => f.getFilters.map(filterToString).mkString(", ")
-      case f: Z3HBaseFilter => s"Z3HBaseFilter[xy: (${f.filter.xyvals.map(_.mkString(",")).mkString(")(")}), times ${f.filter.minEpoch} to ${f.filter.maxEpoch}: (${f.filter.tvals.map(_.map(_.mkString(",")).mkString(" ")).mkString(")(")})]"
+      case f: Z3HBaseFilter => s"Z3HBaseFilter[xy: (${f.filter.xyvals.map(_.mkString(",")).mkString(")(")}), times ${f.filter.minEpoch} to ${f.filter.maxEpoch}: (${f.filter.tvals.map(tval => Option(tval).getOrElse(Array.empty).map(_.mkString(",")).mkString(" ")).mkString(")(")})]"
       case f: Z2HBaseFilter => s"Z2HBaseFilter[xy: (${f.filter.xyvals.map(_.mkString(",")).mkString(")(")})]"
       case f                => f.toString
     }

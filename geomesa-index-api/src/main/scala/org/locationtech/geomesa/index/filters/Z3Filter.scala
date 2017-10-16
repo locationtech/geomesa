@@ -104,13 +104,17 @@ object Z3Filter {
     val tlength = f.tvals.length
     val tSer =
       f.tvals.map { bounds =>
-        val length = bounds.length
-        val innerSer = bounds.map { b =>
-          val innerLength = b.length
-          val ser = Bytes.concat(b.map { v => Ints.toByteArray(v) }: _*)
-          Bytes.concat(Ints.toByteArray(innerLength), ser)
+        if (bounds == null) {
+          Ints.toByteArray(-1)
+        } else {
+          val length = bounds.length
+          val innerSer = bounds.map { b =>
+            val innerLength = b.length
+            val ser = Bytes.concat(b.map { v => Ints.toByteArray(v) }: _*)
+            Bytes.concat(Ints.toByteArray(innerLength), ser)
+          }
+          Bytes.concat(Ints.toByteArray(length), Bytes.concat(innerSer: _*))
         }
-        Bytes.concat(Ints.toByteArray(length), Bytes.concat(innerSer: _*))
       }
 
     val t = Bytes.concat(Ints.toByteArray(tlength), Bytes.concat(tSer: _*))
@@ -132,12 +136,14 @@ object Z3Filter {
     val tLength = buf.getInt
     val tvals = (0 until tLength).map { _ =>
       val length = buf.getInt()
-      (0 until length).map { _ =>
-        val innerLength = buf.getInt()
-        (0 until innerLength).map { _ =>
-          buf.getInt
+      if (length == -1) { null } else {
+        (0 until length).map { _ =>
+          val innerLength = buf.getInt()
+          (0 until innerLength).map { _ =>
+            buf.getInt
+          }.toArray
         }.toArray
-      }.toArray
+      }
     }.toArray
 
     val minEpoch = buf.getShort
