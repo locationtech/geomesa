@@ -14,30 +14,25 @@ import com.google.common.primitives.{Bytes, Longs}
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
-import org.locationtech.geomesa.curve.{LegacyZ3SFC, TimePeriod}
-import org.locationtech.sfcurve.zorder.Z3
+import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
+import org.locationtech.geomesa.index.index.z3.Z3IndexKeySpace
+import org.locationtech.geomesa.index.utils.ExplainNull
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class Z3IteratorTest extends Specification {
-
-  import Z3Iterator._
 
   sequential
 
   "Z3Iterator" should {
 
-    val (lx, ly, lt) = (-78.0, 38, 300)
-    val (ux, uy, ut) = (-75.0, 40, 800)
-
     val srcIter = new SortedKeyValueIterator[Key, Value] {
-      var key: Key = null
-      var staged: Key = null
+      var key: Key = _
+      var staged: Key = _
       override def deepCopy(iteratorEnvironment: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = this
       override def next(): Unit = {
         staged = key
@@ -55,19 +50,16 @@ class Z3IteratorTest extends Specification {
       override def hasTop: Boolean = staged != null
     }
 
-    val sfc = LegacyZ3SFC(TimePeriod.Week)
+    val sft = SimpleFeatureTypes.createType("z3IteratorTest", "dtg:Date,*geom:Point:srid=4326")
+    val filter = ECQL.toFilter("bbox(geom, -78, 38, -75, 40) AND dtg DURING 1970-01-01T00:05:00.000Z/1970-01-01T00:15:00.000Z")
+    val indexValues = Z3IndexKeySpace.getIndexValues(sft, filter, ExplainNull)
+
+    val iter = new Z3Iterator
+    iter.init(srcIter, Z3Iterator.configure(indexValues, hasSplits = false, isSharing = false, 25).getOptions, null)
 
     "iterate on points" >> {
-      val (xmin, ymin, tmin) = sfc.index(lx, ly, lt).decode
-      val (xmax, ymax, tmax) = sfc.index(ux, uy, ut).decode
-
-      val iter = new Z3Iterator
-
-      iter.init(srcIter, Map(ZOffsetKey -> "0", ZLengthKey -> "8",
-        ZKeyXY -> s"$xmin:$ymin:$xmax:$ymax", ZKeyT -> s"0;$tmin:$tmax"), null)
-
       "keep in bounds values" >> {
-        val test1 = sfc.index(-76.0, 38.5, 500)
+        val test1 = Z3SFC(TimePeriod.Week).index(-76.0, 38.5, 500)
         val prefix = Array[Byte](0, 0)
         val row = Bytes.concat(prefix, Longs.toByteArray(test1.z))
         srcIter.key = new Key(new Text(row))
@@ -76,36 +68,9 @@ class Z3IteratorTest extends Specification {
       }
 
       "drop out of bounds values" >> {
-        val test2 = sfc.index(-70.0, 38.5, 500)
+        val test2 = Z3SFC(TimePeriod.Week).index(-70.0, 38.5, 500)
         val prefix = Array[Byte](0, 0)
         val row = Bytes.concat(prefix, Longs.toByteArray(test2.z))
-        srcIter.key = new Key(new Text(row))
-        iter.next()
-        iter.hasTop must beFalse
-      }
-    }
-
-    "iterate on non-points" >> {
-      val (xmin, ymin, tmin) = Z3(sfc.index(lx, ly, lt).z & Z3IndexV2.GEOM_Z_MASK).decode
-      val (xmax, ymax, tmax) = Z3(sfc.index(ux, uy, ut).z & Z3IndexV2.GEOM_Z_MASK).decode
-
-      val iter = new Z3Iterator
-      iter.init(srcIter, Map(ZOffsetKey -> "0", ZLengthKey -> Z3IndexV2.GEOM_Z_NUM_BYTES.toString,
-        ZKeyXY -> s"$xmin:$ymin:$xmax:$ymax", ZKeyT -> s"0;$tmin:$tmax"), null)
-
-      "keep in bounds values" >> {
-        val test1 = sfc.index(-76.0, 38.5, 500)
-        val prefix = Array[Byte](0, 0)
-        val row = Bytes.concat(prefix, Longs.toByteArray(test1.z).take(Z3IndexV2.GEOM_Z_NUM_BYTES))
-        srcIter.key = new Key(new Text(row))
-        iter.next()
-        iter.hasTop must beTrue
-      }
-
-      "drop out of bounds values" >> {
-        val test2 = sfc.index(-70.0, 38.5, 500)
-        val prefix = Array[Byte](0, 0)
-        val row = Bytes.concat(prefix, Longs.toByteArray(test2.z).take(Z3IndexV2.GEOM_Z_NUM_BYTES))
         srcIter.key = new Key(new Text(row))
         iter.next()
         iter.hasTop must beFalse

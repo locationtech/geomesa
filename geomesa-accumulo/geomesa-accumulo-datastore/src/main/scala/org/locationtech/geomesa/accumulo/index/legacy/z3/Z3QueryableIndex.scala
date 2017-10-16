@@ -20,6 +20,7 @@ import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilt
 import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 import org.locationtech.geomesa.index.iterators.ArrowBatchScan
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils, SplitArrays}
@@ -190,10 +191,12 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
         }
       }
 
-      // we know we're only going to scan appropriate periods, so leave out whole periods
-      val filteredTimes = timesByBin.filter(_._2 != wholePeriod).toMap
-      val zIter = Z3Iterator.configure(sfc, xy, filteredTimes, sft.isPoints, hasSplits, isSharing = false, Z3Index.Z3IterPriority)
-      (ranges.toSeq, Some(zIter))
+      val iter = if (sft.nonPoints) { None } else {
+        val values = Z3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap)
+        Some(Z3Iterator.configure(values, hasSplits, isSharing = false, Z3Index.Z3IterPriority))
+      }
+
+      (ranges.toSeq, iter)
     }
 
     val perAttributeIter = sft.getVisibilityLevel match {

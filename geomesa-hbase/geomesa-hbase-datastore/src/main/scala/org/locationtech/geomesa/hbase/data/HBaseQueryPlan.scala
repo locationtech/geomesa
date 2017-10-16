@@ -17,7 +17,6 @@ import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.filterToString
-import org.locationtech.geomesa.hbase.filters.{Z2HBaseFilter, Z3HBaseFilter}
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.index.IndexAdapter
@@ -62,10 +61,8 @@ object HBaseQueryPlan {
   private [data] def filterToString(filter: HFilter): String = {
     import scala.collection.JavaConversions._
     filter match {
-      case f: FilterList    => f.getFilters.map(filterToString).mkString(", ")
-      case f: Z3HBaseFilter => s"Z3HBaseFilter[xy: (${f.filter.xyvals.map(_.mkString(",")).mkString(")(")}), times ${f.filter.minEpoch} to ${f.filter.maxEpoch}: (${f.filter.tvals.map(_.map(_.mkString(",")).mkString(" ")).mkString(")(")})]"
-      case f: Z2HBaseFilter => s"Z2HBaseFilter[xy: (${f.filter.xyvals.map(_.mkString(",")).mkString(")(")})]"
-      case f                => f.toString
+      case f: FilterList => f.getFilters.map(filterToString).mkString(", ")
+      case f             => f.toString
     }
   }
 }

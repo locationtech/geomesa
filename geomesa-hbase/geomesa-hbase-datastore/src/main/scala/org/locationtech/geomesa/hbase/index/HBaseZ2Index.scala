@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.{Filter => HFilter}
-import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.Z2HBaseFilter
 import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
@@ -31,18 +29,10 @@ trait HBaseZ2PushDown extends Z2Index[HBaseDataStore, HBaseFeature, Mutation, Qu
                                           config: ScanConfig,
                                           indexValues: Option[Z2IndexValues]): ScanConfig = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val z2Filter = indexValues.map { case Z2IndexValues(sfc, _, bounds) =>
+    val z2Filter = indexValues.map { values =>
       val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard - note: currently sharing is always false
-      configureZ2PushDown(sfc, bounds, offset)
+      (Z2HBaseFilter.Priority, new Z2HBaseFilter(Z2Filter(values), offset))
     }
     config.copy(filters = config.filters ++ z2Filter)
-  }
-
-  private def configureZ2PushDown(sfc: Z2SFC, xy: Seq[(Double, Double, Double, Double)], offset: Int): (Int, HFilter) = {
-    val normalizedXY = xy.map { case (xmin, ymin, xmax, ymax) =>
-      Array(sfc.lon.normalize(xmin), sfc.lat.normalize(ymin), sfc.lon.normalize(xmax), sfc.lat.normalize(ymax))
-    }.toArray
-
-    (Z2HBaseFilter.Priority, new Z2HBaseFilter(new Z2Filter(normalizedXY, 8), offset))
   }
 }
