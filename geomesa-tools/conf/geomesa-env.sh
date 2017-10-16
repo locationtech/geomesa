@@ -73,6 +73,10 @@ function setvar() {
 # Hadoop Environment Variables
 # ==================================================================
 
+# Set this variable to provide GeoMesa with Hadoop jars. A good starting point is to run
+# the "hadoop classpath" command and set the value to its output
+# export GEOMESA_HADOOP_CLASSPATH=
+
 # Hadoop directory.
 #
 # setvar HADOOP_HOME /path/to/hadoop

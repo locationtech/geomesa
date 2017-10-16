@@ -158,6 +158,7 @@ else
       "${base_url}org/apache/hbase/hbase-protocol/${hbase_version}/hbase-protocol-${hbase_version}.jar"
       "${base_url}org/apache/hbase/hbase-client/${hbase_version}/hbase-client-${hbase_version}.jar"
       "${base_url}org/apache/hbase/hbase-server/${hbase_version}/hbase-server-${hbase_version}.jar"
+      "${base_url}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
     )
 
     # Download dependencies

@@ -4,16 +4,39 @@ Bootstrapping GeoMesa HBase on AWS S3
 GeoMesa can be run on top of HBase using S3 as the underlying storage engine.  This mode of running GeoMesa is
 cost-effective as one sizes the database cluster for the compute and memory requirements, not the storage requirements.
 The following guide describes how to bootstrap GeoMesa in this manner.  This guide assumes you have an Amazon Web
-Services account already provisioned as well as an IAM key pair.  To set up the AWS command line tools, follow the
-instructions found in the AWS `online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
-The instructions below were executed on an AWS EC2 machine running Amazon Linux.
+Services account already provisioned as well as an IAM key pair.
 
 .. _Amazon Web Services: https://aws.amazon.com/
 
 .. _Amazon ElasticMapReduce: https://aws.amazon.com/emr/
 
-Bootstrap an EMR cluster with HBase
------------------------------------
+An EMR cluster can be bootstrapped either via the AWS Web Console (recommended for new users) or from another EC2
+instance via the AWS CLI.
+
+Creating an EMR Cluster (Web Console)
+-------------------------------------
+
+To begin, sign into the AWS Web Console. Ensure that you have created a keypair before beginning. Select "EMR" from the
+list of services and then select "Create Cluster" to begin. Once you have entered the wizard switch to the "Advanced
+View" and select HBase, Spark, and Hadoop for your software packages. Deselect all others. After selecting HBase you
+will see an "HBase storage settings" configuration area where you can enter a bucket to use as the HBase Root
+directory. You'll want to ensure this bucket is in the same region as your HBase cluster for performance and cost
+reasons. On the next pages you can select and customize your hardware and give your cluster a good name.
+
+After your cluster has bootstrapped you can view the hardware associated with your cluster. Find the public IP of
+the MASTER server and connect to it via SSH:
+
+.. code-block:: shell
+
+   $ ssh -i /path/to/key ec2-user@<your-master-ip>
+
+Creating an EMR Cluster (AWS CLI)
+---------------------------------
+
+This section is meant for advanced users. If you have bootstrapped a cluster via the Web Console you can skip this
+section and continue on to Installing GeoMesa. The instructions below were executed on an AWS EC2 machine running Amazon
+Linux. To set up the AWS command line tools, follow the instructions found in the AWS
+`online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
 
 First, you will need to configure an S3 bucket for use by HBase. Make sure to replace ``<bucket-name>`` with your bucket
 name. You can also use a different root directory for HBase if you desire. If you're using the AWS CLI you can create a
@@ -110,8 +133,19 @@ To configure GeoMesa, remote into the master node of your new AWS EMR cluster us
 
    $ ssh -i /path/to/key ec2-user@$MASTER
 
-Now, download the GeoMesa HBase distribution, replacing ``${VERSION}`` with the appropriate value or setting the
-$VERSION environment variable.
+Installing GeoMesa
+------------------
+
+Now that you have SSH'd into your master server you can test out your HBase and Hadoop installations by running these
+commands:
+
+.. code-block:: shell
+
+    hbase version
+    hadoop version
+
+If everything looks good, download the GeoMesa HBase distribution, replacing ``${VERSION}`` with the appropriate GeoMesa
+Version (e.g. 1.3.4) or setting the ``VERSION`` environment variable.
 
 .. code-block:: shell
 
