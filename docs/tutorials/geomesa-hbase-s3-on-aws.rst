@@ -173,23 +173,32 @@ Local ingest:
 
 .. code-block:: shell
 
-    $ mkdir gdelt
-    $ cd gdelt
-    $ seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d" | xargs -n 1 -I{} aws s3 cp  s3://gdelt-open-data/events/{}.export.csv .
-    $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt \*.csv
+    mkdir gdelt
+    cd gdelt
+    seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d" | xargs -n 1 -I{} aws s3 cp  s3://gdelt-open-data/events/{}.export.csv .
+    
+    # you'll need to ensure the hbase-site.xml is provided on the classpath...by default it is picked up by the tools from standard locations
+    geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt \*.csv
 
 Distributed ingest:
 
 .. code-block:: shell
 
-    $ files=$(for x in `seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d"`; do echo "s3a://gdelt-open-data/events/$x.export.csv"; done)
-    $ geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt $files
+    # we need to package up the hbase-site.xml for use in the distributed classpath
+    # zip and jar files found in GEOMESA_EXTRA_CLASSPATHS are picked up for the distributed classpath
+    cd /etc/hadoop/conf
+    zip /tmp/hbase-site.zip hbase-site.xml
+    export GEOMESA_EXTRA_CLASSPATHS=/tmp/hbase-site.zip
+
+    # now lets ingest
+    files=$(for x in `seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d"`; do echo "s3a://gdelt-open-data/events/$x.export.csv"; done)
+    geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt $files
 
 You can then query the data using the GeoMesa command line export tool.
 
 .. code-block:: shell
 
-    $ geomesa-hbase export -c geomesa.gdelt -f gdelt -m 50
+    geomesa-hbase export -c geomesa.gdelt -f gdelt -m 50
 
 Setup GeoMesa and SparkSQL
 --------------------------
