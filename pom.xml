@@ -314,7 +314,7 @@
         <profile>
             <id>locationtech</id>
             <build>
-                <plugins>
+               <!-- <plugins>
                     <plugin>
                         <groupId>net.alchim31.maven</groupId>
                         <artifactId>scala-maven-plugin</artifactId>
@@ -339,7 +339,7 @@
                             </execution>
                         </executions>
                     </plugin>
-                </plugins>
+                </plugins>-->
             </build>
             <distributionManagement>
                 <repository>
@@ -2659,9 +2659,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
                     <version>2.8.2</version>
-                    <configuration>
+                    <!--<configuration>
                         <deployAtEnd>true</deployAtEnd>
-                    </configuration>
+                    </configuration>-->
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
