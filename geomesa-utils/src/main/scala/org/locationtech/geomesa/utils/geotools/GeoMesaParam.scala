@@ -27,7 +27,8 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
                                 val deprecated: Seq[String] = Seq.empty,
                                 val systemProperty: Option[(SystemProperty, (String) => T)] = None)
                                (implicit ct: ClassTag[T])
-    extends Param(_key, ct.runtimeClass, description, required, default, metadata.asJava) with LazyLogging {
+    extends Param(_key, ct.runtimeClass, description, required, default, Option(metadata).map(_.asJava).orNull)
+      with LazyLogging {
 
   // ensure that sys property default is the same as param default, otherwise param default will not be used
   assert(systemProperty.forall { case (prop, convert) => prop.default == null || convert(prop.default) == default })
