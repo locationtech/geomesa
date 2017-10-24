@@ -12,11 +12,8 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1
-import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.index.filters.Z2Filter
-import org.locationtech.sfcurve.zorder.Z2
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 
 class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
@@ -24,12 +21,8 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
   var source: SortedKeyValueIterator[Key, Value] = _
 
-  var keyXY: String = _
-  var zOffset: Int = -1
-  var zLength: Int = -1
-
-  var xyvals: Array[Array[Int]] = _
   var filter: Z2Filter = _
+  var zOffset: Int = -1
 
   var topKey: Key = _
   var topValue: Value = _
@@ -38,14 +31,12 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
+    import scala.collection.JavaConverters._
+
     this.source = source
 
-    zOffset = options.get(ZOffsetKey).toInt
-    zLength = options.get(ZLengthKey).toInt
-
-    keyXY = options.get(ZKeyXY)
-    xyvals = keyXY.split(TermSeparator).map(_.split(RangeSeparator).map(_.toInt))
-    filter = new Z2Filter(xyvals, zLength)
+    zOffset = options.get(Config.ZOffsetKey).toInt
+    filter = Z2Filter.deserializeFromStrings(options.asScala)
   }
 
   override def next(): Unit = {
@@ -83,12 +74,8 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
     import scala.collection.JavaConversions._
-    val opts = Map(
-      ZKeyXY     -> keyXY,
-      ZOffsetKey -> zOffset.toString,
-      ZLengthKey -> zLength.toString
-    )
     val iter = new Z2Iterator
+    val opts = Z2Filter.serializeToStrings(filter) + (Config.ZOffsetKey -> zOffset.toString)
     iter.init(source.deepCopy(env), opts, env)
     iter
   }
@@ -96,43 +83,16 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
 object Z2Iterator {
 
-  val ZKeyXY = "zxy"
-  val ZOffsetKey = "zo"
-  val ZLengthKey = "zl"
-
-  private val RangeSeparator = ":"
-  private val TermSeparator  = ";"
-
-  def configure(sft: SimpleFeatureType,
-                sfc: Z2SFC,
-                bounds: Seq[(Double, Double, Double, Double)],
-                priority: Int): IteratorSetting = {
-
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    val is = new IteratorSetting(priority, "z2", classOf[Z2Iterator])
-
-    // index space values for comparing in the iterator
-    val xyOpts = if (sft.isPoints) {
-      bounds.map { case (xmin, ymin, xmax, ymax) =>
-        s"${sfc.lon.normalize(xmin)}$RangeSeparator${sfc.lat.normalize(ymin)}$RangeSeparator" +
-            s"${sfc.lon.normalize(xmax)}$RangeSeparator${sfc.lat.normalize(ymax)}"
-      }
-    } else {
-      bounds.map { case (xmin, ymin, xmax, ymax) =>
-        val (lx, ly) = decodeNonPoints(sfc, xmin, ymin)
-        val (ux, uy) = decodeNonPoints(sfc, xmax, ymax)
-        s"$lx$RangeSeparator$ly$RangeSeparator$ux$RangeSeparator$uy"
-      }
-    }
-
-    is.addOption(ZKeyXY, xyOpts.mkString(TermSeparator))
-    // account for shard and table sharing bytes
-    is.addOption(ZOffsetKey, if (sft.isTableSharing) { "2" } else { "1" })
-    is.addOption(ZLengthKey, if (sft.isPoints) { "8" } else { Z2IndexV1.GEOM_Z_NUM_BYTES.toString })
-    is
+  object Config {
+    val ZOffsetKey = "zo"
   }
 
-  private def decodeNonPoints(sfc: Z2SFC, x: Double, y: Double): (Int, Int) =
-    Z2(sfc.index(x, y).z & Z2IndexV1.GEOM_Z_MASK).decode
+  def configure(values: Z2IndexValues, isSharing: Boolean, priority: Int): IteratorSetting = {
+    val is = new IteratorSetting(priority, "z2", classOf[Z2Iterator])
+    // index space values for comparing in the iterator
+    Z2Filter.serializeToStrings(Z2Filter(values)).foreach { case (k, v) => is.addOption(k, v) }
+    // account for shard and table sharing bytes
+    is.addOption(Config.ZOffsetKey, if (isSharing) { "2" } else { "1" })
+    is
+  }
 }

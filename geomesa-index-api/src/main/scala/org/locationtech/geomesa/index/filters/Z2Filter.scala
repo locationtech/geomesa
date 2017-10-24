@@ -10,15 +10,15 @@ package org.locationtech.geomesa.index.filters
 
 import java.nio.ByteBuffer
 
-import com.google.common.primitives.{Bytes, Ints, Longs}
+import com.google.common.primitives.Longs
+import org.locationtech.geomesa.index.filters.Z3Filter._
+import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 import org.locationtech.sfcurve.zorder.Z2
 
-class Z2Filter(val xyvals: Array[Array[Int]], val zLength: Int) extends java.io.Serializable {
-
-  val rowToZ: (Array[Byte], Int) => Long = Z2Filter.getRowToZ(zLength)
+class Z2Filter(val xy: Array[Array[Int]]) extends java.io.Serializable {
 
   def inBounds(buf: Array[Byte], offset: Int): Boolean = {
-    val keyZ = rowToZ(buf, offset)
+    val keyZ = Z2Filter.rowToZ(buf, offset)
     pointInBounds(keyZ)
   }
 
@@ -26,60 +26,60 @@ class Z2Filter(val xyvals: Array[Array[Int]], val zLength: Int) extends java.io.
     val x = Z2(z).d0
     val y = Z2(z).d1
     var i = 0
-    while (i < xyvals.length) {
-      val xy = xyvals(i)
-      if (x >= xy(0) && x <= xy(2) && y >= xy(1) && y <= xy(3)) {
+    while (i < xy.length) {
+      val xyi = xy(i)
+      if (x >= xyi(0) && x <= xyi(2) && y >= xyi(1) && y <= xyi(3)) {
         return true
       }
       i += 1
     }
     false
   }
+
+  override def toString: String = Z2Filter.serializeToStrings(this).toSeq.sortBy(_._1).mkString(",")
 }
 
 object Z2Filter {
-  def getRowToZ(length: Int): (Array[Byte], Int) => Long = {
-    if (length == 8) {
-      zToRow8
-    } else if (length == 4) {
-      zToRow4
-    } else if (length == 3) {
-      zToRow3
-    } else {
-      throw new IllegalArgumentException(s"Unhandled number of bytes for z value: $length")
-    }
-  }
 
-  private def zToRow8(b: Array[Byte], i: Int): Long =
-    Longs.fromBytes(b(i), b(i + 1), b(i + 2), b(i + 3), b(i + 4), b(i + 5), b(i + 6), b(i + 7))
+  private val RangeSeparator = ":"
+  private val TermSeparator  = ";"
 
-  private def zToRow4(b: Array[Byte], i: Int): Long =
-    Longs.fromBytes(b(i), b(i + 1), b(i + 2), b(i + 3), 0, 0, 0, 0)
-
-  private def zToRow3(b: Array[Byte], i: Int): Long =
-    Longs.fromBytes(b(i), b(i + 1), b(i + 2), 0, 0, 0, 0, 0)
-
-  def toByteArray(f: Z2Filter): Array[Byte] = {
-    val boundsLength = f.xyvals.length
-    val boundsSer =
-      f.xyvals.map { bounds =>
-        val length = bounds.length
-        val ser = Bytes.concat(bounds.map { v => Ints.toByteArray(v) }: _*)
-        Bytes.concat(Ints.toByteArray(length), ser)
-      }
-    Bytes.concat(Ints.toByteArray(boundsLength), Bytes.concat(boundsSer: _*), Ints.toByteArray(f.zLength))
-  }
-
-  def fromByteArray(a: Array[Byte]): Z2Filter = {
-    val buf = ByteBuffer.wrap(a)
-    val boundsLength = buf.getInt()
-    val bounds = (0 until boundsLength).map { i =>
-      val length = buf.getInt()
-      (0 until length).map { j =>
-        buf.getInt()
-      }.toArray
+  def apply(values: Z2IndexValues): Z2Filter = {
+    val sfc = values.sfc
+    val xy: Array[Array[Int]] = values.bounds.map { case (xmin, ymin, xmax, ymax) =>
+      Array(sfc.lon.normalize(xmin), sfc.lat.normalize(ymin), sfc.lon.normalize(xmax), sfc.lat.normalize(ymax))
     }.toArray
-    val zLength = buf.getInt
-    new Z2Filter(bounds, zLength)
+
+    new Z2Filter(xy)
   }
+
+  def serializeToBytes(filter: Z2Filter): Array[Byte] = {
+    // 4 bytes for length plus 16 bytes for each xy val (4 ints)
+    val xyLength = 4 + filter.xy.length * 16
+    val buffer = ByteBuffer.allocate(xyLength)
+
+    buffer.putInt(filter.xy.length)
+    filter.xy.foreach(bounds => bounds.foreach(buffer.putInt))
+
+    buffer.array()
+  }
+
+  def deserializeFromBytes(serialized: Array[Byte]): Z2Filter = {
+    val buffer = ByteBuffer.wrap(serialized)
+    val xy = Array.fill(buffer.getInt())(Array.fill(4)(buffer.getInt))
+    new Z2Filter(xy)
+  }
+
+  def serializeToStrings(filter: Z2Filter): Map[String, String] = {
+    val xy = filter.xy.map(bounds => bounds.mkString(RangeSeparator)).mkString(TermSeparator)
+    Map(XYKey -> xy)
+  }
+
+  def deserializeFromStrings(serialized: scala.collection.Map[String, String]): Z2Filter = {
+    val xy = serialized(XYKey).split(TermSeparator).map(_.split(RangeSeparator).map(_.toInt))
+    new Z2Filter(xy)
+  }
+
+  private def rowToZ(b: Array[Byte], i: Int): Long =
+    Longs.fromBytes(b(i), b(i + 1), b(i + 2), b(i + 3), b(i + 4), b(i + 5), b(i + 6), b(i + 7))
 }

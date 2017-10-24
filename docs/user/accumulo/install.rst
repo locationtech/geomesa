@@ -81,9 +81,8 @@ each tablet server.
 Namespace Install
 ^^^^^^^^^^^^^^^^^
 
-Copying the runtime JAR to each tablet server as above will work, but in
-Accumulo 1.6+, we can leverage namespaces to isolate the GeoMesa classpath
-from the rest of Accumulo.
+GeoMesa leverages namespaces and classpath contexts to isolate the GeoMesa
+classpath from the rest of Accumulo.
 
 To install the distributed runtime JAR, use the ``setup-namespace.sh``
 script in the ``geomesa-accumulo-dist_2.11-$VERSION/bin`` directory.
@@ -321,65 +320,60 @@ connection).
     $ $GEOMESA_ACCUMULO_HOME/bin/install-hadoop-accumulo.sh /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
     Install accumulo and hadoop dependencies to /path/to/tomcat/webapps/geoserver/WEB-INF/lib/?
     Confirm? [Y/n]y
-    fetching https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.5/accumulo-core-1.6.5.jar
-    --2015-09-29 15:06:48--  https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.5/accumulo-core-1.6.5.jar
+    fetching https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.8.1/accumulo-core-1.8.1.jar
+    --2015-09-29 15:06:48--  https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.8.1/accumulo-core-1.8.1.jar
     Resolving search.maven.org (search.maven.org)... 207.223.241.72
     Connecting to search.maven.org (search.maven.org)|207.223.241.72|:443... connected.
     HTTP request sent, awaiting response... 200 OK
-    Length: 4646545 (4.4M) [application/java-archive]
-    Saving to: ‘/path/to/tomcat/webapps/geoserver/WEB-INF/lib/accumulo-core-1.6.5.jar’
+    Length: 5152909 (4.9M) [application/java-archive]
+    Saving to: ‘/path/to/tomcat/webapps/geoserver/WEB-INF/lib/accumulo-core-1.8.1.jar’
     ...
 
 If you do no have an internet connection you can download the JARs manually via http://search.maven.org/.
 These may include the JARs below; the specific JARs needed for some common configurations are listed below:
 
-Accumulo 1.5
-
-* accumulo-core-1.5.4.jar
-* accumulo-fate-1.5.4.jar
-* accumulo-start-1.5.4.jar
-* accumulo-trace-1.5.4.jar
-* libthrift-0.9.0.jar
-* zookeeper-3.3.6.jar
-
 Accumulo 1.6
 
-* accumulo-core-1.6.5.jar
-* accumulo-fate-1.6.5.jar
-* accumulo-server-base-1.6.5.jar
-* accumulo-trace-1.6.5.jar
-* accumulo-start-1.6.5.jar
+* accumulo-core-1.6.6.jar
+* accumulo-fate-1.6.6.jar
+* accumulo-server-base-1.6.6.jar
+* accumulo-trace-1.6.6.jar
+* accumulo-start-1.6.6.jar
 * libthrift-0.9.1.jar
-* zookeeper-3.4.6.jar
-* commons-vfs2-2.0.jar
+* zookeeper-3.4.10.jar
+* commons-vfs2-2.1.jar
 
-Accumulo 1.7+ (note the addition of htrace)
+Accumulo 1.7 (note the addition of htrace)
 
-* accumulo-core-1.7.1.jar
-* accumulo-fate-1.7.1.jar
-* accumulo-server-base-1.7.1.jar
-* accumulo-trace-1.7.1.jar
-* accumulo-start-1.7.1.jar
+* accumulo-core-1.7.3.jar
+* accumulo-fate-1.7.3.jar
+* accumulo-server-base-1.7.3.jar
+* accumulo-trace-1.7.3.jar
+* accumulo-start-1.7.3.jar
 * libthrift-0.9.1.jar
-* zookeeper-3.4.6.jar
+* zookeeper-3.4.10.jar
 * htrace-core-3.1.0-incubating.jar
 * commons-vfs2-2.1.jar
 
-Hadoop 2.2
+Accumulo 1.8 (note the addition of htrace)
+
+* accumulo-core-1.8.1.jar
+* accumulo-fate-1.8.1.jar
+* accumulo-server-base-1.8.1.jar
+* accumulo-trace-1.8.1.jar
+* accumulo-start-1.8.1.jar
+* libthrift-0.9.3.jar
+* zookeeper-3.4.10.jar
+* htrace-core-3.1.0-incubating.jar
+* commons-vfs2-2.1.jar
+
+Hadoop 2.6-2.8 (adjust versions as needed)
 
 * commons-configuration-1.6.jar
-* hadoop-auth-2.2.0.jar
-* hadoop-client-2.2.0.jar
-* hadoop-common-2.2.0.jar
-* hadoop-hdfs-2.2.0.jar
-
-Hadoop 2.4-2.7 (adjust versions as needed)
-
-* commons-configuration-1.6.jar
-* hadoop-auth-2.6.4.jar
-* hadoop-client-2.6.4.jar
-* hadoop-common-2.6.4.jar
-* hadoop-hdfs-2.6.4.jar
+* hadoop-auth-2.7.4.jar
+* hadoop-client-2.7.4.jar
+* hadoop-common-2.7.4.jar
+* hadoop-hdfs-2.7.4.jar
 
 Restart GeoServer after the JARs are installed.
 

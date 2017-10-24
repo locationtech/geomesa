@@ -66,7 +66,7 @@
         <scala.parsers.version>1.0.6</scala.parsers.version>
 
         <geoserver.version>2.12.0</geoserver.version>
-        <gt.version>18-RC1</gt.version>
+        <gt.version>18.0</gt.version>
         <jaiext.version>1.0.15</jaiext.version>
         <imageio-ext.version>1.1.17</imageio-ext.version>
         <jts.version>1.14.0</jts.version>
@@ -1856,7 +1856,7 @@
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
-                <version>2.3.3</version>
+                <version>2.5.6</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>

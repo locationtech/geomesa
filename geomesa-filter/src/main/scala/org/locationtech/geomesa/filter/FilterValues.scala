@@ -20,7 +20,7 @@ import scala.collection.GenTraversableOnce
   * @param disjoint mutually exclusive values were extracted, e.g. 'a < 1 && a > 2'
   * @tparam T type parameter
   */
-case class FilterValues[T](values: Seq[T], precise: Boolean = true, disjoint: Boolean = false) {
+case class FilterValues[+T](values: Seq[T], precise: Boolean = true, disjoint: Boolean = false) {
   def map[U](f: T => U): FilterValues[U] = FilterValues(values.map(f), precise, disjoint)
   def flatMap[U](f: T => GenTraversableOnce[U]): FilterValues[U] = FilterValues(values.flatMap(f), precise, disjoint)
   def foreach[U](f: T => U): Unit = values.foreach(f)

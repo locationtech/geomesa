@@ -169,16 +169,17 @@ Geospatial User-defined Types and Functions
 The GeoMesa SparkSQL module takes several `classes representing geometry objects`_
 (as described by the OGC `OpenGIS Simple feature access common architecture`_ specification and
 implemented by the Java Topology Suite) and registers them as user-defined types (UDTs) in
-SparkSQL. These types are:
+SparkSQL. For example the ``Geometry`` class is registered as ``GeometryUDT``. In GeoMesa SparkSQL
+the following types are registered:
 
- * ``Geometry``
- * ``Point``
- * ``LineString``
- * ``Polygon``
- * ``MultiPoint``
- * ``MultiLineString``
- * ``MultiPolygon``
- * ``GeometryCollection``
+ * ``GeometryUDT``
+ * ``PointUDT``
+ * ``LineStringUDT``
+ * ``PolygonUDT``
+ * ``MultiPointUDT``
+ * ``MultiLineStringUDT``
+ * ``MultiPolygonUDT``
+ * ``GeometryCollectionUDT``
 
 GeoMesa SparkSQL also implements a subset of the functions described in the
 OGC `OpenGIS Simple feature access SQL option`_ specification as SparkSQL

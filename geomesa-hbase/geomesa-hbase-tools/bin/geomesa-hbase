@@ -9,108 +9,73 @@
 
 # Set environment variables in conf/geomesa-env.sh
 
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
   export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
 
 # Load common functions and setup
 . "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
-# HBase paths, user can hard set these in geomesa-env, or rely on this script to find set them via HBASE_HOME
-if [[ -n "HBASE_HOME" ]]; then
-  if [[ -z "$HBASE_LIB" && -d "${HBASE_HOME}/lib" ]]; then
-    HBASE_LIB=${HBASE_HOME}/lib
-  fi
-  if [[ -z "$HBASE_CONF_DIR" && -d "${HBASE_HOME}/conf" ]]; then
-    HBASE_CONF_DIR=${HBASE_HOME}/conf
-  fi
-fi
-
-# HADOOP paths, user can hard set these in geomesa-env, or rely on this script to find set them via HADOOP_HOME
-if [[ -n "$HADOOP_HOME" ]]; then
-  if [[ -z "$HADOOP_CONF_DIR" && -d "${HADOOP_HOME}/etc/hadoop" ]]; then
-    HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
-  fi
-fi
-
 # Start constructing GEOMESA_CP (classpath)
+# Note that we always include all of the lib and conf directories
 # include geomesa first so that the correct log4j.properties is picked up
-GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):${HBASE_CONF_DIR}/hbase-site.xml:${HADOOP_CONF_DIR}"
+GEOMESA_CP=$(combineClasspaths ${GEOMESA_CONF_DIR} "${GEOMESA_LIB}/*")
 
 # Prepend user defined directories to the classpath using java classpath syntax
 # We preprend so that they take precedence when explicitly defined by the user
 if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
-  GEOMESA_CP="${GEOMESA_EXTRA_CLASSPATHS}:${GEOMESA_CP}"
+  GEOMESA_CP="$(combineClasspaths ${GEOMESA_EXTRA_CLASSPATHS} ${GEOMESA_CP})"
 fi
 
-HBASE_CP="$(findJars $HBASE_LIB true true)"
+setHadoopClasspath
 
-# Get the hadoop jars, ignoring jars with names containing slf4j and test
-# Copied from accumulo classpath
-if [[ "$hadoopCDH" == "1" ]]; then
-  # Hadoop CDH configuration
-  hadoopDirs=(
-    $HADOOP_HOME
-    $HADOOP_CONF_DIR
-    $HADOOP_COMMON_HOME
-    $HADOOP_HDFS_HOME
-    $YARN_HOME
-    $HADOOP_MAPRED_HOME
-    $HADOOP_CUSTOM_CP
-  )
-else
-  hadoopDirs=(
-    # Hadoop 2 requirements
-    $HADOOP_HOME/share/hadoop/common
-    $HADOOP_HOME/share/hadoop/hdfs/
-    $HADOOP_HOME/share/hadoop/mapreduce/
-    $HADOOP_HOME/share/hadoop/tools/lib
-    $HADOOP_HOME/share/hadoop/yarn/
-    # HDP 2.0 requirements
-    /usr/lib/hadoop/
-    /usr/lib/hadoop-hdfs/
-    /usr/lib/hadoop-mapreduce/
-    /usr/lib/hadoop-yarn/
-    # HDP 2.2 requirements
-    /usr/hdp/current/hadoop-client/
-    /usr/hdp/current/hadoop-hdfs-client/
-    /usr/hdp/current/hadoop-mapreduce-client/
-    /usr/hdp/current/hadoop-yarn-client/
-    # IOP 4.1 requirements
-    /usr/iop/current/hadoop-client/
-    /usr/iop/current/hadoop-hdfs-client/
-    /usr/iop/current/hadoop-mapreduce-client/
-    /usr/iop/current/hadoop-yarn-client/
-  )
+# Set the HBase classpaths for geomesa tools
+# first check to see if it is defined already from the geomesa-env script
+if [[ -z "${GEOMESA_HBASE_CLASSPATH}" ]]; then
+  # HBase paths, user can hard set these in geomesa-env, or rely on this script to find set them via HBASE_HOME
+  if [[ -n "${HBASE_HOME}" ]]; then
+    if [[ -z "${HBASE_LIB}" && -d "${HBASE_HOME}/lib" ]]; then
+      HBASE_LIB=${HBASE_HOME}/lib
+    fi
+    if [[ -z "${HBASE_CONF_DIR}" && -d "${HBASE_HOME}/conf" ]]; then
+      HBASE_CONF_DIR="${HBASE_HOME}/conf"
+    fi
+  fi
+
+  HBASE_CP=""
+  if [[ -n "${HBASE_CONF_DIR}" ]]; then
+    HBASE_CP="$(combineClasspaths ${HBASE_CP} ${HBASE_CONF_DIR})"
+  fi
+
+  if [[ -n "${HBASE_LIB}" ]]; then
+    HBASE_CP="$(combineClasspaths ${HBASE_CP} $(findJars $HBASE_LIB true true))"
+  fi
+
+  # If the no hbase classpath is set from env vars perhaps try the path (works on AWS EMR)
+  if [[ -z "${HBASE_CP}" && -n "$(command -v hbase)" ]]; then
+    HBASE_CP=$(hbase classpath)
+  fi
+
+  GEOMESA_HBASE_CLASSPATH="${HBASE_CP}"
 fi
-
-for home in ${hadoopDirs[*]}; do
-  tmp="$(findJars $home true)"
-  if [[ -n "$tmp" ]]; then
-    HADOOP_CP="$HADOOP_CP:$tmp"
-  fi
-  if [[ "${HADOOP_CP:0:1}" = ":" ]]; then
-    HADOOP_CP="${HADOOP_CP:1}"
-  fi
-done
-
-HADOOP_CP="${HADOOP_CP}:${HADOOP_HOME}/conf/hbase-site.xml"
 
 # Geomesa tools setup completed, below we parse user arguments
 #
-# configure runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
-# classpath prints the class path, ie list of jars we are using
+# configure - runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
+# classpath - prints the Java classpath
 # else is running actual commands in the tools
+
+FILTERED_CLASSPATHS=$(combineClasspaths $(excludeLogJarsFromClasspath ${GEOMESA_HBASE_CLASSPATH}) $(excludeLogJarsFromClasspath ${GEOMESA_HADOOP_CLASSPATH}))
+CLASSPATH="${GEOMESA_CP}"
+if [[ -n "${FILTERED_CLASSPATHS}" ]]; then
+  CLASSPATH="${CLASSPATH}:${FILTERED_CLASSPATHS}"
+fi
 
 if  [[ $1 = configure ]]; then
   geomesaConfigure
 elif [[ $1 = classpath ]]; then
-  CLASSPATH="$GEOMESA_CP:$HBASE_CP:$HADOOP_CP"
-  for element in ${CLASSPATH//:/ } ; do
-    echo ${element}
-  done
+  echo "${CLASSPATH}"
 else
-  CLASSPATH="$GEOMESA_CP:$HBASE_CP:$HADOOP_CP"
   if [[ $1 = debug ]]; then
     GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
     shift 1
