@@ -45,9 +45,9 @@ class DateOffsetProcess extends GeoMesaProcess {
     val iter2 = iter.map { sf =>
 
       val dtg = sf.getAttribute(dateField).asInstanceOf[Date]
-      val ld = dtg.toInstant.atZone(ZoneId.systemDefault()).toLocalDate
+      val ld = dtg.toInstant.atZone(ZoneId.systemDefault()).toLocalDateTime
       val ld2 = ld.plus(period)
-      val newDtg = Date.from(ld2.atStartOfDay(ZoneId.systemDefault()).toInstant)
+      val newDtg = Date.from(ld2.atZone(ZoneId.systemDefault()).toInstant)
 
       val updatedSF = ScalaSimpleFeature.copy(sf)
       updatedSF.setAttribute(dateField, newDtg)

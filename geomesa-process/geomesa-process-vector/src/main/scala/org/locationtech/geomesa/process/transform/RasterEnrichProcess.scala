@@ -46,7 +46,7 @@ class RasterEnrichProcess(catalog: Catalog) extends GeoMesaProcess {
               coverageName: String): SimpleFeatureCollection = {
 
     val split = coverageName.split(":")
-
+    
     val reader: GridCoverageReader = catalog.getCoverageStoreByName(split(0), split(1)).getGridCoverageReader(null, null)
     val evaluator = new CoverageEvaluator(reader)
 
