@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-    <name>GeoMesa</name>
     <modelVersion>4.0.0</modelVersion>
+ 
+    <name>GeoMesa</name>
+    <description>A distributed spatio-temporal database built on a number of cloud data storage systems</description>
+    <url>http://www.geomesa.org/</url>
     <inceptionYear>2013</inceptionYear>
 
     <groupId>org.locationtech.geomesa</groupId>
@@ -2680,9 +2682,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
                     <version>2.8.2</version>
-                    <configuration>
-                        <deployAtEnd>true</deployAtEnd>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
