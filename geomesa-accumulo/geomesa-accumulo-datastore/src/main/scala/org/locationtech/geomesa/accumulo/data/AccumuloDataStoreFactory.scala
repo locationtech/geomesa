@@ -228,7 +228,6 @@ object AccumuloDataStoreFactory {
   }
 }
 
-// noinspection TypeAnnotation
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
 object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val ConnectorParam       = new GeoMesaParam[Connector]("accumulo.connector", "Accumulo connector", deprecatedKeys = Seq("connector"))
