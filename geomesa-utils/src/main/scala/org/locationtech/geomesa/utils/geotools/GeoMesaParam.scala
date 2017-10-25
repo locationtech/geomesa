@@ -8,17 +8,18 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.io.{IOException, Serializable, StringReader}
+import java.io.{IOException, Serializable, StringReader, StringWriter}
 import java.util.{Collections, Properties}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.Parameter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{DeprecatedParam, SystemPropertyParam, metadata}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam._
 
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
   * Data store parameter, used for configuring data stores in DataStoreFinder
@@ -45,18 +46,28 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
                                 val deprecatedParams: Seq[DeprecatedParam[T]] = Seq.empty,
                                 val systemProperty: Option[SystemPropertyParam[T]] = None)
                                (implicit ct: ClassTag[T])
-    extends Param(_key, ct.runtimeClass, description, required, default, metadata(password, largeText, extension))
+    extends Param(_key, binding(ct), description, required, sample(default), metadata(password, largeText, extension))
       with LazyLogging {
 
   private val deprecated = deprecatedKeys ++ deprecatedParams.map(_.key)
 
-  private val doParse: (String) => AnyRef = {
+  private val toTypedValue: (AnyRef) => T = {
     if (ct.runtimeClass == classOf[Duration]) {
-      GeoMesaParam.parseDuration
+      (v) => GeoMesaParam.parseDuration(v.asInstanceOf[String]).asInstanceOf[T]
     } else if (ct.runtimeClass == classOf[Properties]) {
-      GeoMesaParam.parseProperties
+      (v) => GeoMesaParam.parseProperties(v.asInstanceOf[String]).asInstanceOf[T]
     } else {
-      super.parse
+      (v) => v.asInstanceOf[T]
+    }
+  }
+
+  private val fromTypedValue: (T) => AnyRef = {
+    if (ct.runtimeClass == classOf[Duration]) {
+      (v) => GeoMesaParam.printDuration(v.asInstanceOf[Duration])
+    } else if (ct.runtimeClass == classOf[Properties]) {
+      (v) => GeoMesaParam.printProperties(v.asInstanceOf[Properties])
+    } else {
+      (v) => v
     }
   }
 
@@ -88,20 +99,28 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
     * @return
     */
   def lookup(params: java.util.Map[String, _ <: Serializable]): T = {
-    if (params.containsKey(key)) {
-      lookUp(params).asInstanceOf[T]
+    val value = if (params.containsKey(key)) {
+      lookUp(params)
     } else if (deprecated.exists(params.containsKey)) {
       val oldKey = deprecated.find(params.containsKey).get
       deprecationWarning(oldKey)
       if (deprecatedKeys.contains(oldKey)) {
-        lookUp(Collections.singletonMap(key, params.get(oldKey))).asInstanceOf[T]
+        lookUp(Collections.singletonMap(key, params.get(oldKey)))
       } else {
         deprecatedParams.dropWhile(_.key != oldKey).head.lookup(params, required)
       }
     } else if (required) {
       throw new IOException(s"Parameter $key is required: $description")
     } else {
-      systemProperty.flatMap(_.option).getOrElse(default)
+      systemProperty.flatMap(_.option) match {
+        case Some(v) => v
+        case None    => null
+      }
+    }
+    if (value == null) { default } else {
+      try { toTypedValue(value) } catch {
+        case NonFatal(e) => throw new IOException(s"Invalid property for parameter '$key': $value", e)
+      }
     }
   }
 
@@ -121,8 +140,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
   def deprecationWarning(deprecated: String): Unit =
     logger.warn(s"Parameter '$deprecated' is deprecated, please use '$key' instead")
 
-  @throws(classOf[Throwable])
-  override def parse(text: String): AnyRef = doParse(text)
+  override def text(value: AnyRef): String = super.text(fromTypedValue(value.asInstanceOf[T]))
 }
 
 object GeoMesaParam {
@@ -161,8 +179,20 @@ object GeoMesaParam {
     override def option: Option[Duration] = prop.toDuration
   }
 
+  def binding[T <: AnyRef](ct: ClassTag[T]): Class[_] = ct.runtimeClass match {
+    case c if c == classOf[Duration] | c == classOf[Properties] => classOf[String]
+    case c => c
+  }
+
+  def sample[T <: AnyRef](value: T): AnyRef = value match {
+    case null => null
+    case v: Duration => printDuration(v)
+    case v: Properties => printProperties(v)
+    case v => v
+  }
+
   def metadata(password: Boolean, largeText: Boolean, extension: String): java.util.Map[String, AnyRef] = {
-    // presumably we wouldn't have a large password...
+    // presumably we wouldn't have any combinations of these...
     if (password) {
       java.util.Collections.singletonMap(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE)
     } else if (largeText) {
@@ -176,9 +206,18 @@ object GeoMesaParam {
 
   private def parseDuration(text: String): Duration = Duration(text)
 
+  private def printDuration(duration: Duration): String =
+    if (duration == Duration.Inf) { "Inf" } else { duration.toString }
+
   private def parseProperties(text: String): Properties = {
     val props = new Properties
     props.load(new StringReader(text))
     props
+  }
+
+  private def printProperties(properties: Properties): String = {
+    val out = new StringWriter()
+    properties.store(out, null)
+    out.toString
   }
 }
