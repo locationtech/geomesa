@@ -14,16 +14,18 @@ import java.awt.RenderingHints
 import java.io.Serializable
 import java.util.{Map => JMap}
 
+import com.google.common.collect.ImmutableMap
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
-import org.geotools.data.DataStoreFactorySpi
+import org.geotools.data.DataAccessFactory.Param
+import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.audit.AuditProvider
@@ -52,14 +54,14 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = AccumuloDataStoreFactory.DESCRIPTION
 
-  override def getParametersInfo =
+  override def getParametersInfo: Array[Param] =
     Array(
       InstanceIdParam,
       ZookeepersParam,
+      CatalogParam,
       UserParam,
       PasswordParam,
       KeytabPathParam,
-      CatalogParam,
       AuthsParam,
       VisibilitiesParam,
       QueryTimeoutParam,
@@ -71,7 +73,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       AuditQueriesParam,
       CachingParam,
       ForceEmptyAuthsParam,
-      NamespaceParam
+      NamespaceParam,
+      DeprecatedGeoServerPasswordParam
     )
 
   def canProcess(params: JMap[String,Serializable]): Boolean = AccumuloDataStoreFactory.canProcess(params)
@@ -238,4 +241,7 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
   val CatalogParam         = new GeoMesaParam[String]("accumulo.catalog", "Accumulo catalog table name", required = true, deprecatedKeys = Seq("tableName", "accumulo.tableName"))
   val RecordThreadsParam   = new GeoMesaParam[Integer]("accumulo.query.record-threads", "The number of threads to use for record retrieval", default = 10, deprecatedKeys = Seq("recordThreads", "accumulo.recordThreads"))
   val WriteThreadsParam    = new GeoMesaParam[Integer]("accumulo.write.threads", "The number of threads to use for writing records", default = 10, deprecatedKeys = Seq("writeThreads", "accumulo.writeThreads"))
+
+  // used to handle geoserver password encryption in persisted ds params
+  val DeprecatedGeoServerPasswordParam = new Param("password", classOf[String], "", false, null, ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
 }

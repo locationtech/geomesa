@@ -15,8 +15,9 @@ import java.util
 
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
+import com.google.common.collect.ImmutableMap
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
@@ -89,9 +90,22 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = CassandraDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] = Array(ContactPointParam, KeySpaceParam, CatalogParam,
-    UserNameParam, PasswordParam, GenerateStatsParam, AuditQueriesParam, LooseBBoxParam, CachingParam,
-    QueryThreadsParam, QueryTimeoutParam, NamespaceParam)
+  override def getParametersInfo: Array[Param] =
+    Array(
+      ContactPointParam,
+      KeySpaceParam,
+      CatalogParam,
+      UserNameParam,
+      PasswordParam,
+      GenerateStatsParam,
+      AuditQueriesParam,
+      LooseBBoxParam,
+      CachingParam,
+      QueryThreadsParam,
+      QueryTimeoutParam,
+      NamespaceParam,
+      DeprecatedGeoServerPasswordParam
+    )
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean = KeySpaceParam.exists(params)
 
@@ -112,6 +126,9 @@ object CassandraDataStoreFactory {
     val CatalogParam      = new GeoMesaParam[String]("cassandra.catalog", "Name of GeoMesa catalog table", required = true, deprecatedKeys = Seq("geomesa.cassandra.catalog.table"))
     val UserNameParam     = new GeoMesaParam[String]("cassandra.username", "Username to connect with", deprecatedKeys = Seq("geomesa.cassandra.username"))
     val PasswordParam     = new GeoMesaParam[String]("cassandra.password", "Password to connect with", password = true, deprecatedKeys = Seq("geomesa.cassandra.password"))
+
+    // used to handle geoserver password encryption in persisted ds params
+    val DeprecatedGeoServerPasswordParam = new Param("password", classOf[String], "", false, null, ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
   }
 
   case class CassandraDataStoreConfig(catalog: String,

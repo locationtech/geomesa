@@ -30,7 +30,7 @@ object GeoMesaDataStoreFactory {
   val LooseBBoxParam     = new GeoMesaParam[java.lang.Boolean]("geomesa.query.loose-bounding-box", "Use loose bounding boxes - queries will be faster but may return extraneous results", false, true, deprecatedKeys = Seq("looseBoundingBox"))
   val AuditQueriesParam  = new GeoMesaParam[java.lang.Boolean]("geomesa.query.audit", "Audit queries being run", false, true, deprecatedKeys = Seq("auditQueries", "collectQueryStats"))
   val CachingParam       = new GeoMesaParam[java.lang.Boolean]("geomesa.query.caching", "Cache the results of queries for faster repeated searches. Warning: large result sets can swamp memory", false, false, deprecatedKeys = Seq("caching"))
-  val GenerateStatsParam = new GeoMesaParam[java.lang.Boolean]("geomesa.stats.generate", "Generate data statistics for improved query planning", false, true, deprecatedKeys = Seq("generateStats"), systemProperty = Some(GenerateStatsSysParam))
+  val GenerateStatsParam = new GeoMesaParam[java.lang.Boolean]("geomesa.stats.enable", "Generate and persist data statistics for improved query planning", false, true, deprecatedKeys = Seq("generateStats"), systemProperty = Some(GenerateStatsSysParam))
   val NamespaceParam     = new GeoMesaParam[String]("namespace", "Namespace")
 
   trait NamespaceConfig {
