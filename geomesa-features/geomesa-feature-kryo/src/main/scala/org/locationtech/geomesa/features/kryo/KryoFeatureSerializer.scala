@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.util.{List => jList, Map => jMap}
-
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.impl.ActiveDeserialization.{ImmutableActiveDeserialization, MutableActiveDeserialization}
 import org.locationtech.geomesa.features.kryo.impl.LazyDeserialization.{ImmutableLazyDeserialization, MutableLazyDeserialization}
@@ -23,8 +21,8 @@ object KryoFeatureSerializer {
   val VERSION = 2
   assert(VERSION < Byte.MaxValue, "Serialization expects version to be in one byte")
 
-  val NULL_BYTE     = 0.asInstanceOf[Byte]
-  val NON_NULL_BYTE = 1.asInstanceOf[Byte]
+  val NULL_BYTE: Byte     = 0.asInstanceOf[Byte]
+  val NON_NULL_BYTE: Byte = 1.asInstanceOf[Byte]
 
   def apply(sft: SimpleFeatureType, options: Set[SerializationOption] = Set.empty): KryoFeatureSerializer = {
     (options.immutable, options.isLazy) match {

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features
 
-import java.util.Collections
-
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
@@ -33,17 +31,13 @@ object AbstractSimpleFeature {
     *
     * @param sft simple feature type
     * @param getID feature id
-    * @param userData user data
     */
-  abstract class AbstractImmutableSimpleFeature(sft: SimpleFeatureType,
-                                                override val getID: String,
-                                                userData: => java.util.Map[AnyRef, AnyRef])
+  abstract class AbstractImmutableSimpleFeature(sft: SimpleFeatureType, override val getID: String)
       extends AbstractSimpleFeature(sft) {
 
     // TODO collection attributes (lists, maps, byte arrays) are still mutable...
 
     override lazy val getIdentifier = new ImmutableFeatureId(getID)
-    override lazy val getUserData: java.util.Map[AnyRef, AnyRef] = Collections.unmodifiableMap(userData)
 
     override def setAttribute(name: Name, value: Object): Unit = throw new UnsupportedOperationException()
     override def setAttribute(name: String, value: Object): Unit = throw new UnsupportedOperationException()
