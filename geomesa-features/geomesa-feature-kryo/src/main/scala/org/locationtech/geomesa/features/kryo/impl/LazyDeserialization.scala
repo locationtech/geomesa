@@ -54,8 +54,7 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
   override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
 
   override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
-    val input = new Input()
-    input.setBuffer(bytes, offset, offset + length)
+    val input = new Input(bytes, offset, offset + length)
     if (input.readInt(true) != KryoFeatureSerializer.VERSION) {
       throw new IllegalArgumentException("Can't process features serialized with wrong version")
     }

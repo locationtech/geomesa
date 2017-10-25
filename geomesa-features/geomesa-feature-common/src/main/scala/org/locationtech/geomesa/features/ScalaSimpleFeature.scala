@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.features
 
 import java.util.Collections
+import java.util.concurrent.atomic.AtomicBoolean
 
 import org.locationtech.geomesa.features.AbstractSimpleFeature.{AbstractImmutableSimpleFeature, AbstractMutableSimpleFeature}
+import org.locationtech.geomesa.utils.collection.AtomicBitSet
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -80,7 +82,10 @@ object ScalaSimpleFeature {
                                id: String,
                                values: Array[AnyRef],
                                userData: java.util.Map[AnyRef, AnyRef] = Collections.emptyMap())
-      extends AbstractImmutableSimpleFeature(sft, id, userData) {
+      extends AbstractImmutableSimpleFeature(sft, id) {
+
+    override lazy val getUserData: java.util.Map[AnyRef, AnyRef] = Collections.unmodifiableMap(userData)
+
     override def getAttribute(index: Int): AnyRef = values(index)
   }
 
@@ -96,19 +101,21 @@ object ScalaSimpleFeature {
                                    id: String,
                                    readAttribute: (Int) => AnyRef,
                                    readUserData: => java.util.Map[AnyRef, AnyRef])
-      extends AbstractImmutableSimpleFeature(sft, id, readUserData) {
+      extends AbstractImmutableSimpleFeature(sft, id) {
 
-    private val bits = scala.collection.mutable.BitSet.fromBitMask(Array.fill(sft.getAttributeCount / 8 + 1)(0L))
+    private val bits = AtomicBitSet(sft.getAttributeCount)
     private val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
+
+    override lazy val getUserData: java.util.Map[AnyRef, AnyRef] =
+      Collections.unmodifiableMap(synchronized { readUserData })
 
     override def getAttribute(index: Int): AnyRef = {
       if (bits.add(index)) {
-        attributes(index) = readAttribute(index)
+        attributes(index) = synchronized { readAttribute(index) }
       }
       attributes(index)
     }
   }
-
 
   /**
     * Lazily evaluated, mutable simple feature implementation
@@ -124,9 +131,9 @@ object ScalaSimpleFeature {
                                  readUserData: => java.util.Map[AnyRef, AnyRef])
       extends AbstractMutableSimpleFeature(sft, initialId, null) {
 
-    private val bits = scala.collection.mutable.BitSet.fromBitMask(Array.fill(sft.getAttributeCount / 8 + 1)(0L))
+    private val bits = AtomicBitSet(sft.getAttributeCount)
     private val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
-    private var userDataRead = false
+    private val userDataRead = new AtomicBoolean(false)
 
     override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = {
       bits.add(index)
@@ -135,18 +142,17 @@ object ScalaSimpleFeature {
 
     override def getAttribute(index: Int): AnyRef = {
       if (bits.add(index)) {
-        attributes(index) = readAttribute(index)
+        attributes(index) = synchronized { readAttribute(index) }
       }
       attributes(index)
     }
 
     override def getUserData: java.util.Map[AnyRef, AnyRef] = {
-      if (userDataRead) { super.getUserData } else {
-        val res = super.getUserData
-        res.putAll(readUserData)
-        userDataRead = true
-        res
+      val res = super.getUserData
+      if (userDataRead.compareAndSet(false, true)) {
+        res.putAll(synchronized { readUserData })
       }
+      res
     }
   }
 }

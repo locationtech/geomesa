@@ -18,49 +18,16 @@ import org.opengis.filter._
 
 import scala.concurrent.duration.Duration
 
-class FeatureCacheCqEngine(sft: SimpleFeatureType, expiry: Duration, cleanup: Duration)(implicit ticker: Ticker)
-    extends AbstractKafkaFeatureCache[SimpleFeature](expiry, cleanup) with LazyLogging {
+class FeatureCacheCqEngine(sft: SimpleFeatureType,
+                           expiry: Duration,
+                           cleanup: Duration = Duration.Inf,
+                           consistency: Duration = Duration.Inf)
+                          (implicit ticker: Ticker)
+    extends AbstractKafkaFeatureCache[SimpleFeature](expiry, cleanup, consistency) with LazyLogging {
 
   // TODO docs on cq indices
 
   private val cqEngine = new GeoCQEngine(sft)
-
-  /**
-    * WARNING: this method is not thread-safe. CQEngine's ConcurrentIndexedCollection
-    * does provide some protections on simultaneous mutations, but not if two threads
-    * write the same feature.
-    *
-    * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
-    */
-  override def put(feature: SimpleFeature): Unit = {
-    val id = feature.getID
-    val old = cache.getIfPresent(id)
-    if (old != null) {
-      cqEngine.remove(old)
-    }
-    cqEngine.add(feature)
-    cache.put(id, feature)
-  }
-
-  /**
-    * WARNING: this method is not thread-safe. CQEngine's ConcurrentIndexedCollection
-    * does provide some protections on simultaneous mutations, but not if two threads
-    * write the same feature.
-    *
-    * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
-    */
-  override def remove(id: String): Unit = {
-    val old = cache.getIfPresent(id)
-    if (old != null) {
-      cqEngine.remove(old)
-      cache.invalidate(id)
-    }
-  }
-
-  override def clear(): Unit = {
-    cache.invalidateAll()
-    cqEngine.clear()  // TODO consider re-instantiating the cache instead
-  }
 
   override def query(id: String): Option[SimpleFeature] = Option(cache.getIfPresent(id))
 
@@ -72,5 +39,16 @@ class FeatureCacheCqEngine(sft: SimpleFeatureType, expiry: Duration, cleanup: Du
     }
   }
 
-  override protected def expired(value: SimpleFeature): Unit = cqEngine.remove(value)
+  override protected def wrap(value: SimpleFeature): SimpleFeature = value
+
+  override protected def addToIndex(value: SimpleFeature): Unit = cqEngine.add(value)
+
+  override protected def removeFromIndex(value: SimpleFeature): Unit = cqEngine.remove(value)
+
+  override protected def clearIndex(): Unit = cqEngine.clear() // TODO consider re-instantiating the cache instead
+
+  override protected def inconsistencies(): Set[SimpleFeature] = {
+    logger.warn("Inconsistency check not implemented for CQEngine cache")
+    Set.empty
+  }
 }

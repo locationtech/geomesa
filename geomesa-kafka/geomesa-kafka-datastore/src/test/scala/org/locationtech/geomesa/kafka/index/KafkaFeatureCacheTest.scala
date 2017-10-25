@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.index
 
 import com.github.benmanes.caffeine.cache.Ticker
+import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -42,9 +43,11 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
   def track(id: String, track: String): SimpleFeature = ScalaSimpleFeature.create(sft, id, id, track)
 
   def caches(expiry: Duration = Duration.Inf,
-             cleanUp: Duration = Duration.Inf)
+             cleanUp: Duration = Duration.Inf,
+             consistency: Duration = Duration.Inf)
             (implicit ticker: Ticker = Ticker.systemTicker()) =
-    Seq(new FeatureCacheCqEngine(sft, expiry, Duration.Inf), new FeatureCacheGuava(sft, expiry, Duration.Inf))
+    Iterator(new FeatureCacheCqEngine(sft, expiry, cleanUp, consistency),
+      new FeatureCacheGuava(sft, expiry, cleanUp, consistency))
 
   "KafkaFeatureCache" should {
 
@@ -160,6 +163,29 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
         } finally {
           cache.close()
         }
+      }
+    }
+
+    "check consistency" >> {
+      val ticker = new MockTicker
+
+      val cache = new FeatureCacheGuava(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
+      try {
+        cache.put(track0v0)
+
+        cache.size() mustEqual 1
+        cache.query(track0v0.getID) must beSome(track0v0)
+        cache.query(wholeWorldFilter).toSeq mustEqual Seq(track0v0)
+
+        // remove from the spatial cache, but no the guava cache
+        cache.spatialIndex.remove(track0v0.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, track0v0)
+
+        // consistency checker should detect and remove from the guava cache
+        cache.query(track0v0.getID) must eventually(40, 100.millis)(beNone)
+        cache.query(wholeWorldFilter).toSeq must eventually(40, 100.millis)(beEmpty)
+        cache.size() mustEqual 0
+      } finally {
+        cache.close()
       }
     }
   }
