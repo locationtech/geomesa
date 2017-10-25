@@ -8,6 +8,9 @@ fi
 
 GMUSER=hadoop
 
+# todo bootstrap from the current running location and ask the user if they want to 
+# install to /opt/geomesa ? Maybe propmpt with a default of /opt/geomesa similar to
+# how the maven release plugin works?
 GMDIR="/opt/geomesa-hbase_2.11-%%project.version%%"
 
 if [[ ! -d "${GMDIR}" ]]; then
@@ -26,6 +29,7 @@ fi
 chmod a+rwx /opt
 
 ln -s ${GMDIR} /opt/geomesa
+export GEOMESA_HBASE_HOME=/opt/geomesa
 
 cat <<EOF > /etc/profile.d/geomesa.sh
 export GEOMESA_HBASE_HOME=/opt/geomesa
@@ -57,15 +61,15 @@ if [[ "$ROOTDIR" = s3* ]]; then
   aws s3 cp /opt/geomesa/dist/hbase/$DISTRIBUTED_JAR_NAME $ROOTDIR/lib/ && \
   echo "Installed GeoMesa distributed runtime to $ROOTDIR/lib/"
 elif [[ "$ROOTDIR" = hdfs* ]]; then
-  sudo -u $GMUSER hadoop fs -mkdir $ROOTDIR/lib/ && \
-  sudo -u $GMUSER hadoop fs -put /opt/geomesa/dist/hbase/$DISTRIBUTED_JAR_NAME $ROOTDIR/lib/$DISTRIBUTED_JAR_NAME && \
+  local libdir="${ROOTDIR}/lib"
+  (sudo -u $GMUSER hadoop fs -test -d $libdir || sudo -u $GMUSER hadoop fs -mkdir $libdir) && \
+  sudo -u $GMUSER hadoop fs -put -f ${GEOMESA_HBASE_HOME}/dist/hbase/$DISTRIBUTED_JAR_NAME $libdir/$DISTRIBUTED_JAR_NAME && \
   sudo -u $GMUSER hadoop fs -chown -R hbase:hbase $ROOTDIR/lib && \
   echo "Installed GeoMesa distributed runtime to $ROOTDIR/lib/"
 fi
 
 # Create an HDFS directory for Spark jobs
-# TODO check to see if this already exists
-sudo -u $GMUSER hadoop fs -mkdir /user/$GMUSER
+sudo -u $GMUSER hadoop fs -test -d /user/$GMUSER || sudo -u $GMUSER hadoop fs -mkdir /user/$GMUSER
 sudo -u $GMUSER hadoop fs -chown $GMUSER:$GMUSER /user/$GMUSER
 
 # Set up the classpath for Hadoop and HBase

@@ -381,9 +381,9 @@ GeoServer's ``WEB-INF/lib`` directory:
         * commons-cli-1.2.jar
         * commons-io-2.5.jar (you may need to remove an older version (2.1) from geoserver)
         * hbase-common-1.2.6.jar
-        * hbase-server-1.2.6.jar
         * hbase-client-1.2.6.jar
         * hbase-server-1.2.6.jar
+        * hbase-protocol-1.2.6.jar
         * metrics-core-2.2.0.jar
         * netty-3.6.2.Final.jar
         * netty-all-4.0.41.Final.jar
