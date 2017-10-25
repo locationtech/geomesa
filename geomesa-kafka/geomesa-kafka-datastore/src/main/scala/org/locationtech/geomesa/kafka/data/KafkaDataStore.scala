@@ -71,9 +71,9 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
       } else {
         val sft = getSchema(key)
         val cache = if (config.cqEngine) {
-          new FeatureCacheCqEngine(sft, config.cacheExpiry, config.cacheCleanup)(config.ticker)
+          new FeatureCacheCqEngine(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
         } else {
-          new FeatureCacheGuava(sft, config.cacheExpiry, config.cacheCleanup)(config.ticker)
+          new FeatureCacheGuava(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
         }
         val consumers = KafkaDataStore.consumers(config, KafkaDataStore.topic(sft))
         new KafkaCacheLoader.KafkaCacheLoaderImpl(sft, cache, consumers)
@@ -275,6 +275,7 @@ object KafkaDataStore extends LazyLogging {
                                   consumeFromBeginning: Boolean,
                                   cacheExpiry: Duration,
                                   cacheCleanup: Duration,
+                                  cacheConsistency: Duration,
                                   ticker: Ticker,
                                   cqEngine: Boolean,
                                   looseBBox: Boolean,
