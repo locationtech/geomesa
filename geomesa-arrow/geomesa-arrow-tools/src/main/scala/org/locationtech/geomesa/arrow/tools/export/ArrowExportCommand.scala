@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.arrow.tools.export
 
 import com.beust.jcommander.Parameters
-import org.geotools.data.simple.SimpleFeatureSource
+import org.geotools.data.Query
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.{ArrowDataStoreCommand, UrlParam}
 import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
@@ -20,8 +21,8 @@ class ArrowExportCommand extends ExportCommand[ArrowDataStore] with ArrowDataSto
   override val params = new ArrowExportParams
 
   override protected def getSchema(ds: ArrowDataStore): SimpleFeatureType = ds.getSchema
-  override protected def getFeatureSource(ds: ArrowDataStore, typeName: String): SimpleFeatureSource =
-    ds.getFeatureSource()
+  override protected def getFeatures(ds: ArrowDataStore, query: Query): SimpleFeatureCollection =
+    ds.getFeatureSource().getFeatures(query)
 }
 
 @Parameters(commandDescription = "Export features from a GeoMesa data store")

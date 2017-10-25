@@ -10,26 +10,49 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io.File
 
-import org.geotools.data.DataUtilities
+import org.geotools.data.Transaction
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.util.URLs
+import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class ShapefileExporter(file: File) extends FeatureExporter {
 
-  override def export(features: SimpleFeatureCollection): Option[Long] = {
-    val url = DataUtilities.fileToURL(file)
-    val factory = new ShapefileDataStoreFactory()
-    val newShapeFile = factory.createDataStore(url).asInstanceOf[ShapefileDataStore]
+  private var ds: ShapefileDataStore = _
 
-    newShapeFile.createSchema(features.getSchema)
-    val store = newShapeFile.getFeatureSource.asInstanceOf[SimpleFeatureStore]
-    store.addFeatures(features)
-    None
+  override def start(sft: SimpleFeatureType): Unit = {
+    val url = URLs.fileToUrl(file)
+    val factory = new ShapefileDataStoreFactory()
+    ds = factory.createDataStore(url).asInstanceOf[ShapefileDataStore]
+    ds.createSchema(sft)
   }
 
-  override def close(): Unit = {}
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
+    var count = 0L
 
+    WithClose(ds.getFeatureWriterAppend(Transaction.AUTO_COMMIT)) { writer =>
+      var names: Seq[String] = null
+      features.foreach { feature =>
+        val toWrite = writer.next()
+        if (names == null) {
+          import scala.collection.JavaConversions._
+          names = toWrite.getType.getAttributeDescriptors.map(_.getLocalName)
+        }
+        // copy by name
+        names.foreach(name => toWrite.setAttribute(name, feature.getAttribute(name)))
+        // copy over the user data
+        toWrite.getUserData.putAll(feature.getUserData)
+        // note: shapefile doesn't support provided fid
+
+        writer.write()
+        count += 1L
+      }
+    }
+
+    Some(count)
+  }
+
+  override def close(): Unit = Option(ds).foreach(_.dispose)
 }
 
 object ShapefileExporter {

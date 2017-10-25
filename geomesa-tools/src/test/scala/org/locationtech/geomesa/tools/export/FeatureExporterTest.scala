@@ -13,9 +13,7 @@ import java.util.Date
 import java.util.zip.Deflater
 
 import org.geotools.data.Query
-import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
@@ -24,7 +22,7 @@ import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExp
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -34,18 +32,17 @@ class FeatureExporterTest extends Specification {
 
   sequential
 
-  def getSftAndFeatures(sftName: String, numFeatures: Int = 1): (SimpleFeatureType, SimpleFeatureCollection) = {
+  def getSftAndFeatures(sftName: String, numFeatures: Int = 1): (SimpleFeatureType, Seq[SimpleFeature]) = {
     val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Point:srid=4326,dtg:Date")
 
-    val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
-
     val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
-    (1 to numFeatures).foreach { i =>
+
+    val features = (1 to numFeatures).map { i =>
       val feature = ScalaSimpleFeatureFactory.buildFeature(sft, attributes, s"fid-$i")
       feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      featureCollection.add(feature)
+      feature
     }
-    (sft, featureCollection)
+    (sft, features)
   }
 
   "DelimitedExport" >> {
@@ -56,7 +53,8 @@ class FeatureExporterTest extends Specification {
       val query = new Query(sftName, Filter.INCLUDE)
       val writer = new StringWriter()
       val export = new DelimitedExporter(writer, DataFormats.Csv, None, true)
-      export.export(features)
+      export.start(sft)
+      export.export(features.iterator)
       export.close()
 
       val result = writer.toString.split("\r\n")
@@ -72,7 +70,8 @@ class FeatureExporterTest extends Specification {
       val writer = new StringWriter()
       val attributes = Some(ExportAttributes(Seq("name", "dtg"), fid = false))
       val export = new DelimitedExporter(writer, DataFormats.Csv, attributes, false)
-      export.export(features)
+      export.start(sft)
+      export.export(features.iterator)
       export.close()
 
       val result = writer.toString.split("\r\n")
@@ -120,8 +119,9 @@ class FeatureExporterTest extends Specification {
 
     "should properly export to avro" >> {
       val os = new ByteArrayOutputStream()
-      val export = new AvroExporter(sft, os, Deflater.NO_COMPRESSION)
-      export.export(features)
+      val export = new AvroExporter(os, Deflater.NO_COMPRESSION)
+      export.start(sft)
+      export.export(features.iterator)
       export.close()
 
       val result = new AvroDataFileReader(new ByteArrayInputStream(os.toByteArray))
@@ -141,8 +141,9 @@ class FeatureExporterTest extends Specification {
 
       val uncompressed :: compressed :: Nil = List(Deflater.NO_COMPRESSION, Deflater.DEFAULT_COMPRESSION).map { c =>
         val os = new ByteArrayOutputStream()
-        val export = new AvroExporter(sft, os, c)
-        export.export(features)
+        val export = new AvroExporter(os, c)
+        export.start(sft)
+        export.export(features.iterator)
         export.close()
         os.toByteArray
       }

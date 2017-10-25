@@ -11,7 +11,6 @@ package org.locationtech.geomesa.tools.stats
 import com.beust.jcommander.Parameter
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.DataStore
-import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.tools.utils.Prompt
@@ -33,7 +32,7 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
   protected def histogram(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
     val attributes = StatsCommand.getAttributesFromParams(sft, params)
-    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
     val bins = Option(params.bins).map(_.intValue)
 
     val histograms = if (params.exact) {

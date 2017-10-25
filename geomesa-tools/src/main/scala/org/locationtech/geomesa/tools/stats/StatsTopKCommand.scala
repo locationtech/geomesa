@@ -10,7 +10,6 @@ package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.Parameter
 import org.geotools.data.DataStore
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
@@ -26,7 +25,7 @@ trait StatsTopKCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCo
   protected def topK(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
     val attributes = StatsCommand.getAttributesFromParams(sft, params)
-    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
     val k = Option(params.k).map(_.intValue)
 
     val results = if (params.exact) {

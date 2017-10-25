@@ -15,14 +15,12 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
-import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportAttributes
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[ExportAttributes], withHeader: Boolean)
     extends FeatureExporter with LazyLogging {
@@ -34,44 +32,48 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
     case DataFormats.Tsv => CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL).print(writer)
   }
 
-  override def export(features: SimpleFeatureCollection): Option[Long] = {
-    val sft = features.getSchema
+  private val withId = attributes.forall(_.fid)
+  private var names: Seq[String] = _
 
-    val withId = attributes.forall(_.fid)
-    val names = attributes.map(_.names).getOrElse(sft.getAttributeDescriptors.map(_.getLocalName))
+  override def start(sft: SimpleFeatureType): Unit = {
+    names = attributes.map(_.names).getOrElse(sft.getAttributeDescriptors.map(_.getLocalName))
 
     // write out a header line
     if (withHeader) {
-      val headers = names.map(sft.getDescriptor).map(SimpleFeatureTypes.encodeDescriptor(sft, _))
       if (withId) {
-        printer.printRecord("id" +: headers: _*)
-      } else {
-        printer.printRecord(headers: _*)
+        printer.print("id")
       }
+      names.foreach(name => printer.print(SimpleFeatureTypes.encodeDescriptor(sft, sft.getDescriptor(name))))
+      printer.println()
+      printer.flush()
     }
+  }
 
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    WithClose(CloseableIterator(features.features)) { features =>
-      features.foreach { sf =>
-        if (withId) {
-          printer.print(sf.getID)
-        }
-        // retrieve values by name, index doesn't always correspond correctly due to geometry being added back in
-        names.foreach(name => printer.print(stringify(sf.getAttribute(name))))
-        printer.println()
+    features.foreach { sf =>
+      if (withId) {
+        printer.print(sf.getID)
+      }
+      // retrieve values by name, index doesn't always correspond correctly due to geometry being added back in
+      names.foreach(name => printer.print(stringify(sf.getAttribute(name))))
+      printer.println()
 
-        count += 1
-        if (count % 10000 == 0) {
-          logger.debug(s"wrote $count features")
-        }
+      count += 1
+      if (count % 10000 == 0) {
+        logger.debug(s"wrote $count features")
       }
     }
 
-    logger.info(s"Exported $count features")
+    printer.flush()
+
+    logger.debug(s"Exported $count features")
     Some(count)
   }
 
-  def stringify(o: Any): String = {
+  override def close(): Unit = printer.close()
+
+  private def stringify(o: Any): String = {
     import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
     o match {
       case null                   => ""
@@ -81,11 +83,6 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
       case m: java.util.Map[_, _] => m.map { case (k, v) => s"${stringify(k)}->${stringify(v)}"}.mkString(",")
       case _                      => o.toString
     }
-  }
-
-  override def close(): Unit = {
-    printer.flush()
-    printer.close()
   }
 }
 

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools
 
 import java.io.File
+import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
@@ -23,13 +24,22 @@ import org.specs2.runner.JUnitRunner
 class ConvertCommandTest extends Specification with LazyLogging {
 
   val csvInput = getClass.getResource("/convert/csv-data.csv").getFile
-  val csvConf  = FileUtils.readFileToString(new File(getClass.getResource("/convert/csv-convert.conf").getFile))
+  val csvConf  = {
+    val file = new File(getClass.getResource("/convert/csv-convert.conf").getFile)
+    FileUtils.readFileToString(file, StandardCharsets.UTF_8)
+  }
 
   val tsvInput = getClass.getResource("/convert/tsv-data.csv").getFile
-  val tsvConf  = FileUtils.readFileToString(new File(getClass.getResource("/convert/tsv-convert.conf").getFile))
+  val tsvConf  = {
+    val file = new File(getClass.getResource("/convert/tsv-convert.conf").getFile)
+    FileUtils.readFileToString(file, StandardCharsets.UTF_8)
+  }
 
   val jsonInput = getClass.getResource("/convert/json-data.json").getFile
-  val jsonConf  = FileUtils.readFileToString(new File(getClass.getResource("/convert/json-convert.conf").getFile))
+  val jsonConf  = {
+    val file = new File(getClass.getResource("/convert/json-convert.conf").getFile)
+    FileUtils.readFileToString(file, StandardCharsets.UTF_8)
+  }
 
   val inFormats = Seq(DataFormats.Csv, DataFormats.Tsv, DataFormats.Json)
   val outFormats = DataFormats.values.filter(_ != DataFormats.Null).toSeq
@@ -57,7 +67,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
         command.params.files.add(inputFile)
         command.params.config = conf
         command.params.spec = conf
-        command.params.outputFormat = outFmt.toString
+        command.params.outputFormat = outFmt
         command.params.file = File.createTempFile("convertTest", s".${outFmt.toString.toLowerCase}")
         try {
           test(command)
@@ -82,8 +92,8 @@ class ConvertCommandTest extends Specification with LazyLogging {
         withCommand { command =>
           val converter = ConvertCommand.getConverter(command.params, sft)
           val ec = converter.createEvaluationContext(Map("inputFilePath" -> inputFile))
-          val fc = ConvertCommand.loadFeatureCollection(Seq(inputFile), converter, ec, None, None)
-          fc.size() must beEqualTo(3)
+          val features = ConvertCommand.convertFeatures(Seq(inputFile), converter, ec, None, None)
+          features must haveLength(3)
         }
       }
       "export data" in {

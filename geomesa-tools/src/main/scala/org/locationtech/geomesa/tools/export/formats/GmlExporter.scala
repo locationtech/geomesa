@@ -13,36 +13,38 @@ import java.io.OutputStream
 import org.geotools.GML
 import org.geotools.GML.Version
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class GmlExporter(os: OutputStream) extends FeatureExporter {
 
-  override def export(features: SimpleFeatureCollection): Option[Long] = {
+  private val encode = new GML(Version.WFS1_0)
+  encode.setNamespace("geomesa", "http://geomesa.org")
 
-    val encode = new GML(Version.WFS1_0)
-    encode.setNamespace("geomesa", "http://geomesa.org")
+  private var sft: SimpleFeatureType = _
+  private var retyped: Option[SimpleFeatureType] = _
 
-    val fcToWrite = if (features.getSchema.getName.getNamespaceURI == null) {
-      val namespacedSFT = {
-        val builder = new SimpleFeatureTypeBuilder()
-        builder.init(features.getSchema)
-        builder.setNamespaceURI("http://geomesa.org")
-        builder.buildFeatureType()
-      }
-
-      new ReTypingFeatureCollection(features, namespacedSFT)
-    } else {
-      features
+  override def start(sft: SimpleFeatureType): Unit = {
+    this.sft = sft
+    this.retyped = if (sft.getName.getNamespaceURI != null) { None } else {
+      val builder = new SimpleFeatureTypeBuilder()
+      builder.init(sft)
+      builder.setNamespaceURI("http://geomesa.org")
+      Some(builder.buildFeatureType())
     }
-
-    encode.encode(os, fcToWrite)
-    None
   }
 
-  override def close(): Unit  = {
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
+    val array = features.toArray
+    val collection = {
+      val list = new ListFeatureCollection(sft, array)
+      retyped.map(r => new ReTypingFeatureCollection(list, r)).getOrElse(list)
+    }
+    encode.encode(os, collection)
     os.flush()
-    os.close()
+    Some(array.length.toLong)
   }
+
+  override def close(): Unit = os.close()
 }

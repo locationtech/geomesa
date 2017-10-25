@@ -8,14 +8,15 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object NullExporter extends FeatureExporter {
 
-  override def export(features: SimpleFeatureCollection): Option[Long] = {
+  override def start(sft: SimpleFeatureType): Unit = {}
+
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    SelfClosingIterator(features.features).foreach(_ => count += 1)
+    features.foreach(_ => count += 1)
     Some(count)
   }
 

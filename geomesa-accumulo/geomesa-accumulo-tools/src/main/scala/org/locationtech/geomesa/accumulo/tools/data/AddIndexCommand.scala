@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{Parameter, Parameters}
 import org.apache.hadoop.util.ToolRunner
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.tools.data.AddIndexCommand.AddIndexParameters
@@ -132,7 +133,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends R
       args.inPassword   = params.password
       args.inTableName  = params.catalog
       args.inFeature    = params.featureName
-      args.inCql        = params.cqlFilter
+      args.inCql        = Option(params.cqlFilter).map(ECQL.toCQL).orNull
       args.indexNames.addAll(indices.map(_.identifier))
 
       val libjars = Some(AccumuloJobUtils.defaultLibJars, AccumuloJobUtils.defaultSearchPath)

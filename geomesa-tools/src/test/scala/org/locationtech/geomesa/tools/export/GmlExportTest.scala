@@ -11,7 +11,6 @@ package org.locationtech.geomesa.tools.export
 import java.io.ByteArrayOutputStream
 
 import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
@@ -41,20 +40,17 @@ class GmlExportTest extends Specification {
     // make sure we ask the system to re-use the provided feature-ID
     liveFeature.getUserData.asScala(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-    val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
-
-    featureCollection.add(liveFeature)
-
     "should properly export to GML" >> {
       val out = new ByteArrayOutputStream()
       val gml = new GmlExporter(out)
-      gml.export(featureCollection)
+      gml.start(sft)
+      gml.export(Iterator.single(liveFeature))
       gml.close()
 
       val xml = XML.loadString(new String(out.toByteArray))
       xml.toString must not(contain("null:GmlExportTest"))
       val feat = xml \ "featureMember" \ "GmlExportTest"
-      feat must not beNull
+      feat must not(beNull)
       val xmlFid = feat \ "@fid"
       xmlFid.text mustEqual "fid-1"
     } 

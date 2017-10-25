@@ -19,7 +19,9 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.DistributedRunParam.ModeConverter
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.utils.DataFormats
+import org.locationtech.geomesa.tools.utils.ParameterConverters.FilterConverter
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.opengis.filter.Filter
 
 /**
   * Shared parameters as individual traits
@@ -82,17 +84,17 @@ trait OptionalFeatureSpecParam extends FeatureSpecParam {
 }
 
 trait CqlFilterParam {
-  def cqlFilter: String
+  def cqlFilter: Filter
 }
 
 trait RequiredCqlFilterParam extends CqlFilterParam {
-  @Parameter(names = Array("-q", "--cql"), description = "CQL predicate", required = true)
-  var cqlFilter: String = null
+  @Parameter(names = Array("-q", "--cql"), description = "CQL predicate", required = true, converter = classOf[FilterConverter])
+  var cqlFilter: Filter = _
 }
 
 trait OptionalCqlFilterParam extends CqlFilterParam {
-  @Parameter(names = Array("-q", "--cql"), description = "CQL predicate")
-  var cqlFilter: String = null
+  @Parameter(names = Array("-q", "--cql"), description = "CQL predicate", converter = classOf[FilterConverter])
+  var cqlFilter: Filter = _
 }
 
 trait OptionalDtgParam {

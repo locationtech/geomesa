@@ -13,8 +13,7 @@ import java.util.zip.{Deflater, GZIPOutputStream}
 
 import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
-import org.geotools.data.simple.SimpleFeatureSource
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
@@ -25,7 +24,9 @@ import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter,
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, OptionalIndexParam, TypeNameParam}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -38,8 +39,8 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
   override def params: ExportParams
 
   override def execute(): Unit = {
-    implicit val timing = new Timing
-    val count = profile(withDataStore(export))
+    val timing = new Timing
+    val count = profile(withDataStore(export))(timing)
     Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
         s"in ${timing.time}ms${count.map(" for " + _ + " features").getOrElse("")}")
   }
@@ -48,57 +49,56 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
     import ExportCommand._
     import org.locationtech.geomesa.tools.utils.DataFormats._
 
-    lazy val sft = getSchema(ds)
-    val fmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
-      throw new ParameterException(s"Invalid format '${params.outputFormat}'. Valid values are " +
-          DataFormats.values.map(_.toString.toLowerCase).mkString("'", "', '", "'"))
-    }
+    val (query, attributes) = createQuery(ds, getSchema(ds), params.outputFormat, params)
 
-    val (query, attributes) = createQuery(ds, sft, fmt, params)
-    val features = try {
-      getFeatureSource(ds, query.getTypeName).getFeatures(query)
-    } catch {
+    val features = try { getFeatures(ds, query) } catch {
       case NonFatal(e) =>
         throw new RuntimeException("Could not execute export query. Please ensure " +
-            "that all arguments are correct.", e)
+            "that all arguments are correct", e)
     }
 
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
-    val exporter = fmt match {
-      case Csv | Tsv      => new DelimitedExporter(getWriter(params), fmt, attributes, !params.noHeader)
+    val exporter = params.outputFormat match {
+      case Csv | Tsv      => new DelimitedExporter(getWriter(params), params.outputFormat, attributes, !params.noHeader)
       case Shp            => new ShapefileExporter(checkShpFile(params))
       case GeoJson | Json => new GeoJsonExporter(getWriter(params))
       case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
-      case Avro           => new AvroExporter(features.getSchema, createOutputStream(params.file, null), avroCompression)
+      case Avro           => new AvroExporter(createOutputStream(params.file, null), avroCompression)
       case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params.file, null), ArrowExporter.queryDictionaries(ds, query))
       case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, null))
       case Null           => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here
-      case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
+      case _              => throw new UnsupportedOperationException(s"Format ${params.outputFormat} can't be exported")
     }
 
     try {
-      exporter.export(features)
+      exporter.start(features.getSchema)
+      export(exporter, features)
     } finally {
-      IOUtils.closeQuietly(exporter)
+      CloseWithLogging(exporter)
     }
   }
+
+  protected def export(exporter: FeatureExporter, collection: SimpleFeatureCollection): Option[Long] =
+    WithClose(CloseableIterator(collection.features()))(exporter.export)
 
   protected def getSchema(ds: DS): SimpleFeatureType = params match {
     case p: TypeNameParam => ds.getSchema(p.featureName)
   }
 
-  protected def getFeatureSource(ds: DS, typeName: String): SimpleFeatureSource = ds.getFeatureSource(typeName)
+  protected def getFeatures(ds: DS, query: Query): SimpleFeatureCollection =
+    ds.getFeatureSource(query.getTypeName).getFeatures(query)
 }
 
 object ExportCommand extends LazyLogging {
 
   def createQuery(ds: DataStore,
-                  sft: => SimpleFeatureType,
+                  toSft: => SimpleFeatureType,
                   fmt: DataFormat,
                   params: ExportParams): (Query, Option[ExportAttributes]) = {
     val typeName = Option(params).collect { case p: TypeNameParam => p.featureName }.orNull
-    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
+    lazy val sft = toSft // only evaluate it once
 
     val query = new Query(typeName, filter)
     Option(params.maxFeatures).map(Int.unbox).foreach(query.setMaxFeatures)

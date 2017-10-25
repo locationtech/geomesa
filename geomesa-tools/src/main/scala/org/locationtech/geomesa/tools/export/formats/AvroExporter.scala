@@ -10,21 +10,28 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io.OutputStream
 
-import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.avro.AvroDataFileWriter
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class AvroExporter(sft: SimpleFeatureType, os: OutputStream, compression: Int) extends FeatureExporter {
+class AvroExporter(os: OutputStream, compression: Int) extends FeatureExporter {
 
-  val writer = new AvroDataFileWriter(os, sft, compression)
+  private var writer: AvroDataFileWriter = _
 
-  override def export(fc: SimpleFeatureCollection): Option[Long] = {
-    writer.append(fc)
-    None
+  override def start(sft: SimpleFeatureType): Unit = writer = new AvroDataFileWriter(os, sft, compression)
+
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
+    var count = 0L
+    features.foreach { feature =>
+      writer.append(feature)
+      count += 1L
+    }
+    writer.flush()
+    Some(count)
   }
 
   override def close(): Unit = {
-    writer.close()
+    Option(writer).foreach(CloseWithLogging.apply)
     os.close()
   }
 }
