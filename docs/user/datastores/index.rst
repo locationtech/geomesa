@@ -1,13 +1,14 @@
 GeoMesa Data Stores
 ===================
 
-GeoMesa provides several GeoTools-compatible data stores for several distributed
+GeoMesa provides GeoTools-compatible data stores for several distributed
 column-oriented databases, as well as the Kafka messaging system. General information
 about GeoMesa data stores is described here:
 
 .. toctree::
     :maxdepth: 1
 
+    attributes
     index_overview
     index_basics
     index_config
@@ -19,8 +20,6 @@ about GeoMesa data stores is described here:
     reserved_words
     security
     authorizations
-
-
 
 Specific back-end implementations are described in the following chapters:
 
