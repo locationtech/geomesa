@@ -11,11 +11,11 @@ GeoTools 18 and GeoServer 2.12
 
 GeoMesa 1.4 is compiled against GeoTools 18.0 and GeoServer 2.12. When upgrading GeoServer instances,
 it's usually best to start over with a new GeoServer data directory. If you upgrade GeoMesa in an existing
-GeoServer instance that has run GeoMesa 1.3.x or earlier, you will need to delete any existing GeoMesa store
-configurations and re-create them through the GeoServer UI. Alternatively, you may edit the GeoServer
-``datastore.xml`` files (located in the GeoServer data directory) to match the new GeoMesa data store
-parameters (described below). In particular, you will need to add a ``namespace`` parameter that matches
-the workspace of the GeoServer store.
+GeoServer instance that has run GeoMesa 1.3.x or earlier, layers will still work but you will not be
+able to edit any existing GeoMesa stores. In order to edit stores, you will need to delete them and
+re-create them through the GeoServer UI. Alternatively, you may edit the GeoServer ``datastore.xml`` files
+(located in the GeoServer data directory) to match the new GeoMesa data store parameters (described below).
+In particular, you will need to add a ``namespace`` parameter that matches the workspace of the GeoServer store.
 
 Data Store Parameters
 ---------------------
@@ -43,7 +43,8 @@ System Properties
 
 Time-related system properties have been standardized to all use readable durations. Durations can be specified
 as a number followed by a time unit, e.g. ``10 minutes`` or ``30 seconds``. The following properties
-have been changed to accept durations, and some have been renamed. More details can be found under
+have been changed to accept durations, and some have been renamed. Note that this will affect system properties
+set in the JVM as well as any custom ``geomesa-site.xml`` files. More details can be found under
 :ref:`geomesa_site_xml` or the appropriate data store configuration section.
 
 ==================================== ===========================================
