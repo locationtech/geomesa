@@ -59,6 +59,7 @@ trait GeometrySerialization[T <: NumericWriter, V <: NumericReader] extends Lazy
         case MultiLineString    => factory.createMultiLineString(readGeometryCollection[LineString](in))
         case MultiPolygon       => factory.createMultiPolygon(readGeometryCollection[Polygon](in))
         case GeometryCollection => factory.createGeometryCollection(readGeometryCollection[Geometry](in))
+        case i => throw new IllegalArgumentException(s"Expected geometry type byte, got $i")
       }
     }
   }
