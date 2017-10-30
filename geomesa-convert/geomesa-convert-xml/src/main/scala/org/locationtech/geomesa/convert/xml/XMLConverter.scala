@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert.xml
 import java.io.{InputStream, StringReader}
 import java.nio.charset.StandardCharsets
 import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
+import javax.xml.namespace.NamespaceContext
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
@@ -145,7 +146,19 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
             "Xpath queries may be slower - check your classpath")
         XPathFactory.newInstance(XPathFactory.DEFAULT_OBJECT_MODEL_URI)
     }
-    factory.newXPath()
+
+    val xpath = factory.newXPath()
+
+    if (conf.hasPath("xml-namespaces")) {
+      val ns = conf.getConfig("xml-namespaces").root().unwrapped().asInstanceOf[java.util.Map[String, String]]
+      xpath.setNamespaceContext(new NamespaceContext() {
+        override def getPrefix(namespaceURI: String): String = null
+        override def getPrefixes(namespaceURI: String): java.util.Iterator[_] = null
+        override def getNamespaceURI(prefix: String): String = ns.get(prefix)
+      })
+    }
+
+    xpath
   }
 }
 
