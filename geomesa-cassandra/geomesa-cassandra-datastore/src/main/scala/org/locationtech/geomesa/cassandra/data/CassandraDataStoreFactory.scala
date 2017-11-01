@@ -22,6 +22,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaD
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
+import scala.util.control.NonFatal
+
 class CassandraDataStoreFactory extends DataStoreFactorySpi {
   import CassandraDataStoreFactory.Params._
 
@@ -31,7 +33,15 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: util.Map[String, Serializable]): DataStore = {
     import org.locationtech.geomesa.cassandra.CassandraSystemProperties.{ConnectionTimeoutMillis, ReadTimeoutMillis}
 
-    val Array(cp, port) = ContactPointParam.lookup(params).split(":")
+    val (cp, portString) = ContactPointParam.lookup(params).split(":") match {
+      case Array(one, two) => (one, two)
+      case parts => throw new IllegalArgumentException(s"Invalid parameter '${ContactPointParam.key}', " +
+          s"expected '<host>:<port>' but got '${parts.mkString(":")}'")
+    }
+    val port = try { portString.toInt } catch {
+      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid parameter '${ContactPointParam.key}', " +
+          s"expected '<host>:<port>' but port is not a number: '$cp:$portString'")
+    }
     val ks = KeySpaceParam.lookup(params)
     val generateStats = GenerateStatsParam.lookup(params)
     val audit = if (AuditQueriesParam.lookup(params)) {
@@ -44,7 +54,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     val clusterBuilder =
       Cluster.builder()
         .addContactPoint(cp)
-        .withPort(port.toInt)
+        .withPort(port)
         .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
         .withRetryPolicy(DefaultRetryPolicy.INSTANCE)
         .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))

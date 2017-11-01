@@ -49,6 +49,19 @@ class CassandraDataStoreTest extends Specification {
 
   "CassandraDataStore" should {
 
+    "throw meaningful exceptions for invalid parameters" in {
+      DataStoreFinder.getDataStore(Map(
+        Params.ContactPointParam.getName -> "localhost",
+        Params.KeySpaceParam.getName -> "geomesa_cassandra",
+        Params.CatalogParam.getName -> "test_sft"
+      )) must throwAn[IllegalArgumentException](s"Invalid parameter '${Params.ContactPointParam.key}'")
+      DataStoreFinder.getDataStore(Map(
+        Params.ContactPointParam.getName -> "localhost:foo",
+        Params.KeySpaceParam.getName -> "geomesa_cassandra",
+        Params.CatalogParam.getName -> "test_sft"
+      )) must throwAn[IllegalArgumentException](s"Invalid parameter '${Params.ContactPointParam.key}'")
+    }
+
     "work with points" in {
       val typeName = "testpoints"
 
