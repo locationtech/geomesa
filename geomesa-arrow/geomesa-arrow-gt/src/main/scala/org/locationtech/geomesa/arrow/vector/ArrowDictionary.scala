@@ -8,35 +8,54 @@
 
 package org.locationtech.geomesa.arrow.vector
 
-import java.util.concurrent.atomic.AtomicLong
+import java.io.Closeable
 
-import com.google.common.collect.ImmutableBiMap
+import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.FieldVector
+import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
-import org.locationtech.geomesa.arrow.TypeBindings
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.features.serialization.ObjectType
+import org.opengis.feature.`type`.AttributeDescriptor
+
+import scala.reflect.ClassTag
 
 /**
   * Holder for dictionary values
-  *
-  * @param values dictionary values. When encoded, values are replaced with their index in the seq
-  * @param encoding dictionary id and int width, id must be unique per arrow file
   */
-class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding) {
+trait ArrowDictionary extends Closeable {
 
-  def id: Long = encoding.getId
-
-  lazy private val (map, inverse) = {
-    val builder = ImmutableBiMap.builder[AnyRef, Integer]
+  lazy private val map = {
+    val builder = scala.collection.mutable.Map.newBuilder[AnyRef, Int]
+    builder.sizeHint(length)
     var i = 0
-    values.foreach { value =>
-      builder.put(value, i)
+    foreach { value =>
+      builder += ((value, i))
       i += 1
     }
-    // catch-all for encoding/decoding values that aren't in the dictionary
-    // for non-string types, this will evaluate to null
-    builder.put("[other]", i)
-    val m = builder.build()
-    (m, m.inverse())
+    builder.result()
   }
+
+  def encoding: DictionaryEncoding
+  def id: Long = encoding.getId
+  def length: Int
+
+  /**
+    * Decode a dictionary int to a value. Note: may not be thread safe
+    *
+    * @param i dictionary encoded int
+    * @return value
+    */
+  def lookup(i: Int): AnyRef
+
+  /**
+    * Create an arrow vector of this dictionary
+    *
+    * @param precision simple feature encoding
+    * @param allocator buffer allocator
+    * @return
+    */
+  def toDictionary(precision: SimpleFeatureEncoding)(implicit allocator: BufferAllocator): Dictionary
 
   /**
     * Dictionary encode a value to an int
@@ -44,56 +63,133 @@ class ArrowDictionary(val values: Seq[AnyRef], val encoding: DictionaryEncoding)
     * @param value value to encode
     * @return dictionary encoded int
     */
-  def index(value: AnyRef): Int = {
-    val result = map.get(value)
-    if (result == null) {
-      map.size - 1 // 'other'
-    } else {
-      result.intValue()
-    }
-  }
+  def index(value: AnyRef): Int = map.getOrElse(value, length)
 
   /**
-    * Decode a dictionary int to a value
+    * Apply a function to each value in the dictionary
     *
-    * @param i dictionary encoded int
-    * @return value
+    * @param f function
+    * @tparam U function return type
     */
-  def lookup(i: Int): AnyRef = inverse.get(i)
+  def foreach[U](f: AnyRef => U): Unit = iterator.foreach(f)
+
+  /**
+    * Create an iterator over the values in this dictionary
+    *
+    * @return
+    */
+  def iterator: Iterator[AnyRef] = new Iterator[AnyRef] {
+    private var i = 0
+    override def hasNext: Boolean = i < ArrowDictionary.this.length
+    override def next(): AnyRef = try { lookup(i) } finally { i += 1 }
+  }
 }
 
 object ArrowDictionary {
 
-  private val r = new java.util.Random()
-
-  private val ids = new AtomicLong(math.abs(r.nextLong()))
-
-  trait HasArrowDictionary {
-    def dictionary: ArrowDictionary
-    def dictionaryType: TypeBindings
-  }
-
-  /**
-    * Generates a random long usable as a dictionary ID
-    *
-    * @return random long
-    */
-  def nextId: Long = ids.getAndSet(math.abs(r.nextLong()))
-
   /**
     * Create a dictionary based off a sequence of values. Encoding will be smallest that will fit all values.
     *
+    * @param id dictionary id
     * @param values dictionary values
     * @return dictionary
     */
-  def create(values: Seq[AnyRef]): ArrowDictionary = new ArrowDictionary(values, createEncoding(nextId, values))
+  def create[T <: AnyRef](id: Long, values: Array[T])(implicit ct: ClassTag[T]): ArrowDictionary =
+    new ArrowDictionaryArray[T](createEncoding(id, values.length), values, values.length)
+
+  /**
+    * Create a dictionary based on a subset of a value array
+    *
+    * @param id dictionary id
+    * @param values array of dictionary values
+    * @param length number of valid entries in the values array, starting at position 0
+    * @return
+    */
+  def create[T <: AnyRef](id: Long, values: Array[T], length: Int)(implicit ct: ClassTag[T]): ArrowDictionary =
+    new ArrowDictionaryArray[T](createEncoding(id, length), values, length)
+
+  /**
+    * Create a dictionary based on wrapping an arrow vector
+    *
+    * @param encoding dictionary id and metadata
+    * @param values dictionary vector
+    * @param descriptor attribute descriptor for the dictionary, used to read values from the underlying vector
+    * @param precision simple feature encoding used on the dictionary values
+    * @return
+    */
+  def create(encoding: DictionaryEncoding,
+             values: FieldVector,
+             descriptor: AttributeDescriptor,
+             precision: SimpleFeatureEncoding): ArrowDictionary = {
+    new ArrowDictionaryVector(encoding, values, descriptor, precision)
+  }
+
+  /**
+    * Holder for dictionary values
+    *
+    * @param values dictionary values. When encoded, values are replaced with their index in the seq
+    * @param encoding dictionary id and int width, id must be unique per arrow file
+    */
+  class ArrowDictionaryArray[T <: AnyRef](override val encoding: DictionaryEncoding,
+                                          values: Array[T],
+                                          override val length: Int)
+                                          (implicit ct: ClassTag[T]) extends ArrowDictionary {
+
+    override def lookup(i: Int): AnyRef = if (i < length) { values(i) } else { "[other]" }
+
+    override def toDictionary(precision: SimpleFeatureEncoding)(implicit allocator: BufferAllocator): Dictionary = {
+      val name = s"dictionary-$id"
+      val (objectType, bindings) = ObjectType.selectType(ct.runtimeClass)
+      val writer = ArrowAttributeWriter(name, bindings.+:(objectType), ct.runtimeClass, None, None, Map.empty, precision)
+
+      var i = 0
+      while (i < length) {
+        writer.apply(i, values(i))
+        i += 1
+      }
+      writer.setValueCount(length)
+
+      new Dictionary(writer.vector, encoding)
+    }
+
+    override def close(): Unit = {}
+  }
+
+  /**
+    * Dictionary that wraps an arrow vector
+    *
+    * @param encoding dictionary id and metadata
+    * @param vector arrow vector
+    * @param descriptor attribute descriptor, used for reading values from the arrow vector
+    * @param precision simple feature encoding used for the arrow vector
+    */
+  class ArrowDictionaryVector(override val encoding: DictionaryEncoding,
+                              vector: FieldVector,
+                              descriptor: AttributeDescriptor,
+                              precision: SimpleFeatureEncoding) extends ArrowDictionary {
+
+    // we use an attribute reader to get the right type conversion
+    private val reader = ArrowAttributeReader(descriptor, vector, None, precision)
+    private val accessor = vector.getAccessor
+
+    override val length: Int = accessor.getValueCount
+
+    override def lookup(i: Int): AnyRef = if (i < length) { reader.apply(i) } else { "[other]" }
+
+    override def toDictionary(precision: SimpleFeatureEncoding)(implicit allocator: BufferAllocator): Dictionary = {
+      require(precision == this.precision, "Wrapped vector dictionaries can't be re-encoded with a different precision")
+      new Dictionary(vector, encoding)
+    }
+
+    override def close(): Unit = vector.close()
+  }
 
   // use the smallest int type possible to minimize bytes used
-  private def createEncoding(id: Long, values: Seq[Any]): DictionaryEncoding = {
+  private def createEncoding(id: Long, count: Int): DictionaryEncoding = {
     // we check `MaxValue - 1` to allow for the fallback 'other'
-    if (values.length < Byte.MaxValue - 1) {
+    if (count < Byte.MaxValue - 1) {
       new DictionaryEncoding(id, false, new ArrowType.Int(8, true))
-    } else if (values.length < Short.MaxValue - 1) {
+    } else if (count < Short.MaxValue - 1) {
       new DictionaryEncoding(id, false, new ArrowType.Int(16, true))
     } else {
       new DictionaryEncoding(id, false, new ArrowType.Int(32, true))

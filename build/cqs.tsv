@@ -251,6 +251,7 @@ org.springframework:spring-web	4.2.5.RELEASE	provided
 
 junit:junit	4.12	test
 org.apache.accumulo:accumulo-test	1.8.1	test
+org.apache.arrow:arrow-vector	tests:0.6.0	test
 org.apache.camel:camel-netty4	2.15.1	test
 org.apache.cassandra:cassandra-all	3.0.0	test
 org.apache.curator:curator-test	2.7.1	test

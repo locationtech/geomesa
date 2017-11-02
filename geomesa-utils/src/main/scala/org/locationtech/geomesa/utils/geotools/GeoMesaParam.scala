@@ -40,7 +40,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
     * @return
     */
   def exists(params: java.util.Map[String, _ <: Serializable]): Boolean =
-    params.containsKey(key) || deprecated.exists(params.containsKey)
+    params.get(key) != null || deprecated.exists(params.get(_) != null)
 
   /**
     * Returns the typed value from the map. Priority is:
