@@ -110,12 +110,12 @@ object ConvertCommand extends LazyLogging {
       }
       q.getHints
     }
-    lazy val arrowDictionaries: Map[String, Seq[AnyRef]] = {
+    lazy val arrowDictionaries: Map[String, Array[AnyRef]] = {
       val attributes = hints.getArrowDictionaryFields
       if (attributes.isEmpty) { Map.empty } else {
         val values = attributes.map(a => a -> scala.collection.mutable.HashSet.empty[AnyRef])
         SelfClosingIterator(fc.features()).foreach(f => values.foreach { case (a, v) => v.add(f.getAttribute(a))})
-        values.map { case (attribute, value) => attribute -> value.toSeq }.toMap
+        values.map { case (attribute, value) => attribute -> value.toArray }.toMap
       }
     }
 

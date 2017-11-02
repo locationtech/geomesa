@@ -110,7 +110,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
             containTheSameElementsAs(features.filter(filter.evaluate))
         // verify all cached values were used for the dictionary
-        reader.dictionaries.mapValues(_.values) mustEqual Map("name" -> Seq("name0", "name1"))
+        reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0", "name1"))
       }
     }
     "return arrow dictionary encoded data without caching" in {
@@ -128,7 +128,26 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
             containTheSameElementsAs(features.filter(filter.evaluate))
         // verify only exact values were used for the dictionary
-        reader.dictionaries.mapValues(_.values) mustEqual Map("name" -> Seq("name0"))
+        reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0"))
+      }
+    }
+    "return arrow dictionary encoded data without caching and with z-values" in {
+      val filter = ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
+      val query = new Query(sft.getTypeName, filter)
+      query.getHints.put(QueryHints.ARROW_ENCODE, true)
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
+      foreach(ds.getQueryPlan(query)) { plan =>
+        plan.iterators.map(_.getIteratorClass) must
+            containTheSameElementsAs(Seq(classOf[Z3Iterator].getName, classOf[ArrowIterator].getName))
+      }
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      val out = new ByteArrayOutputStream
+      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      def in() = new ByteArrayInputStream(out.toByteArray)
+      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+            containTheSameElementsAs(features.filter(filter.evaluate))
       }
     }
     "return arrow dictionary encoded data with provided dictionaries" in {
@@ -221,6 +240,32 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
           reader.dictionaries.keySet mustEqual Set("team")
           SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
               containTheSameElementsAs(features.map(f => transform.toSeq.map(f.getAttribute)))
+        }
+      }
+    }
+    "return sorted, dictionary encoded projections for different attribute queries" in {
+      import scala.collection.JavaConverters._
+      val filter = ECQL.toFilter("name IN('name0', 'name1')")
+      val transforms = Seq(
+        Array("dtg", "geom"),
+        Array("name", "dtg", "geom"),
+        Array("team", "dtg", "geom"),
+        Array("name", "team", "dtg", "geom"))
+      foreach(transforms) { transform =>
+        val query = new Query(sft.getTypeName, filter, transform)
+        query.getHints.put(QueryHints.ARROW_ENCODE, true)
+        val dictionaries = Option(transform.toSeq.filter(t => t != "dtg" && t != "geom")).filter(_.nonEmpty)
+        dictionaries.foreach(d => query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, d.mkString(",")))
+        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        val out = new ByteArrayOutputStream
+        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+        def in() = new ByteArrayInputStream(out.toByteArray)
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+          SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
+              containTheSameElementsAs(features.map(f => transform.toSeq.map(f.getAttribute)))
+          reader.dictionaries.keySet mustEqual dictionaries.map(_.toSet).getOrElse(Set.empty)
         }
       }
     }

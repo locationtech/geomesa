@@ -12,21 +12,17 @@ import java.io.{Closeable, InputStream}
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.dictionary.DictionaryProvider
-import org.apache.arrow.vector.types.FloatingPointPrecision
-import org.apache.arrow.vector.types.pojo.{ArrowType, Field}
+import org.apache.arrow.vector.types.pojo.Field
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.filter.ArrowFilterOptimizer
 import org.locationtech.geomesa.arrow.io.reader.{CachingSimpleFeatureArrowFileReader, StreamingSimpleFeatureArrowFileReader}
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{EncodingPrecision, SimpleFeatureEncoding}
-import org.locationtech.geomesa.arrow.vector.{ArrowAttributeReader, ArrowDictionary, GeometryFields, SimpleFeatureVector}
-import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{DescriptorKey, SimpleFeatureEncoding}
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureSpecParser
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-
-import scala.collection.mutable.ArrayBuffer
 
 /**
   * For reading simple features from an arrow file written by SimpleFeatureArrowFileWriter.
@@ -53,6 +49,8 @@ trait SimpleFeatureArrowFileReader extends Closeable {
     * @return current dictionaries, keyed by attribute
     */
   def dictionaries: Map[String, ArrowDictionary]
+
+  def vectors: Seq[SimpleFeatureVector]
 
   /**
     * Reads features from the underlying arrow file
@@ -95,33 +93,16 @@ object SimpleFeatureArrowFileReader {
     * @param provider dictionary provider
     * @return
     */
-  private [io] def loadDictionaries(fields: Seq[Field], provider: DictionaryProvider): Map[String, ArrowDictionary] = {
-    import scala.collection.JavaConversions._
-
-    val tuples = fields.flatMap { field =>
-      Option(field.getDictionary).toSeq.map { dictionaryEncoding =>
-        val vector = provider.lookup(dictionaryEncoding.getId).getVector
-        val spec = SimpleFeatureSpecParser.parseAttribute(field.getMetadata.get(SimpleFeatureVector.DescriptorKey))
-        val (objectType, bindings) = ObjectType.selectType(spec.clazz, spec.options)
-        val isDouble = GeometryFields.precisionFromField(field) == FloatingPointPrecision.DOUBLE
-        val geomPrecision = if (isDouble) { EncodingPrecision.Max } else { EncodingPrecision.Min }
-        val datePrecision = field.getFieldType.getType match {
-          case a: ArrowType.Int if a.getBitWidth == 64 => EncodingPrecision.Max
-          case _ => EncodingPrecision.Min
-        }
-        val encoding = SimpleFeatureEncoding(fids = false, geomPrecision, datePrecision)
-        val attributeReader = ArrowAttributeReader(bindings.+:(objectType), spec.clazz, vector, None, encoding)
-
-        val values = ArrayBuffer.empty[AnyRef]
-        var i = 0
-        while (i < vector.getAccessor.getValueCount) {
-          values.append(attributeReader.apply(i))
-          i += 1
-        }
-        field.getName -> new ArrowDictionary(values, dictionaryEncoding)
+  private [io] def loadDictionaries(fields: Seq[Field],
+                                    provider: DictionaryProvider,
+                                    precision: SimpleFeatureEncoding): Map[String, ArrowDictionary] = {
+    fields.flatMap { field =>
+      Option(field.getDictionary).toSeq.map { encoding =>
+        val descriptor = SimpleFeatureTypes.createDescriptor(field.getMetadata.get(DescriptorKey))
+        val vector = provider.lookup(encoding.getId).getVector
+        field.getName -> ArrowDictionary.create(encoding, vector, descriptor, precision)
       }
-    }
-    tuples.toMap
+    }.toMap
   }
 
   /**

@@ -13,6 +13,10 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeature
 
+object QueryPlan {
+  type Reducer = (CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]
+}
+
 /**
   * Plan for querying a GeoMesaDataStore
   *
@@ -41,7 +45,7 @@ trait QueryPlan[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W] {
     *
     * @return
     */
-  def reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]] = None
+  def reduce: Option[QueryPlan.Reducer] = None
 
   /**
     * Runs the query plain against the underlying database, returning the raw entries

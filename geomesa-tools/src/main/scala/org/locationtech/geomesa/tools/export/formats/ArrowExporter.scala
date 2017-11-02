@@ -25,8 +25,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.reflect.ClassTag
 
-class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[String, Seq[AnyRef]])
+class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[String, Array[AnyRef]])
     extends FeatureExporter {
 
   import org.locationtech.geomesa.arrow.allocator
@@ -44,55 +45,82 @@ class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[St
       val sort = hints.getArrowSort
       val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
       val dictionaryFields = hints.getArrowDictionaryFields
+      val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
 
-      if (hints.isArrowComputeDictionaries || dictionaryFields.isEmpty) {
-        val dictionaries = (queryDictionaries ++ hints.getArrowDictionaryEncodedValues(sft)).map {
-          case (k, v) => k -> ArrowDictionary.create(v)
+      if (dictionaryFields.forall(providedDictionaries.contains)) {
+        var id = -1
+        val dictionaries = (queryDictionaries ++ providedDictionaries).map { case (k, v) =>
+          id += 1
+          k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
         }
-        WithClose(new SimpleFeatureArrowFileWriter(sft, os, dictionaries, encoding, sort)) { writer =>
-          writer.start()
-          if (sort.isDefined) {
-            Some(ArrowExporter.writeSortedBatches(sft, encoding, sort.get, dictionaries, batchSize, features, os))
-          } else {
-            var count = 0L
-            features.foreach { f =>
-              writer.add(f)
-              count += 1
-              if (count % batchSize == 0) {
-                writer.flush()
-              }
-            }
-            Some(count)
-          }
-        }
+        exportBatches(sft, encoding, sort, batchSize, dictionaries, features)
       } else {
         if (sort.isDefined) {
           throw new ParameterException("Sorting and calculating dictionaries at the same time is not supported")
         }
-        var count = 0L
-        WithClose(DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)) { writer =>
-          features.foreach { f =>
-            writer.add(f)
-            count += 1
-            if (count % batchSize == 0) {
-              writer.encode(os)
-              writer.clear()
-            }
-          }
-        }
-        Some(count)
+        exportFiles(sft, dictionaryFields, encoding, batchSize, features)
       }
     }
   }
 
   override def close(): Unit = os.close()
+
+  private def exportBatches(sft: SimpleFeatureType,
+                            encoding: SimpleFeatureEncoding,
+                            sort: Option[(String, Boolean)],
+                            batchSize: Int,
+                            dictionaries: Map[String, ArrowDictionary],
+                            features: Iterator[SimpleFeature]): Option[Long] = {
+    if (sort.isDefined) {
+      Some(ArrowExporter.writeSortedBatches(sft, encoding, sort.get, dictionaries, batchSize, features, os))
+    } else {
+      var count = 0L
+      WithClose(SimpleFeatureArrowFileWriter(sft, os, dictionaries, encoding, sort)) { writer =>
+        writer.start()
+        features.foreach { f =>
+          writer.add(f)
+          count += 1
+          if (count % batchSize == 0) {
+            writer.flush()
+          }
+        }
+        if (count % batchSize != 0) {
+          writer.flush()
+        }
+      }
+      Some(count)
+    }
+  }
+
+  private def exportFiles(sft: SimpleFeatureType,
+                          dictionaryFields: Seq[String],
+                          encoding: SimpleFeatureEncoding,
+                          batchSize: Int,
+                          features: Iterator[SimpleFeature]): Option[Long] = {
+    var count = 0L
+    WithClose(DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)) { writer =>
+      features.foreach { f =>
+        writer.add(f)
+        count += 1
+        if (count % batchSize == 0) {
+          writer.encode(os)
+          writer.clear()
+        }
+      }
+      if (count % batchSize != 0) {
+        writer.encode(os)
+        writer.clear()
+      }
+    }
+    Some(count)
+  }
 }
 
 object ArrowExporter {
 
   import org.locationtech.geomesa.arrow.allocator
 
-  def queryDictionaries(ds: DataStore, query: Query): Map[String, Seq[AnyRef]] = {
+  def queryDictionaries(ds: DataStore, query: Query): Map[String, Array[AnyRef]] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     import scala.collection.JavaConversions._
@@ -103,7 +131,7 @@ object ArrowExporter {
       hints.getArrowDictionaryFields.filterNot(provided.contains)
     }
 
-    if (dictionaryFields.isEmpty || !hints.isArrowComputeDictionaries) { Map.empty } else {
+    if (dictionaryFields.isEmpty) { Map.empty } else {
       // TODO could do a stats query?
       val dictionaryQuery = new Query(query.getTypeName, query.getFilter)
       dictionaryQuery.setPropertyNames(dictionaryFields)
@@ -111,7 +139,7 @@ object ArrowExporter {
       SelfClosingIterator(ds.getFeatureReader(dictionaryQuery, Transaction.AUTO_COMMIT)).foreach { sf =>
         map.foreach { case (k, values) => Option(sf.getAttribute(k)).foreach(values.add) }
       }
-      map.map { case (k, values) => (k, values.toSeq) }
+      map.map { case (k, values) => (k, values.toArray) }
     }
   }
 
@@ -149,6 +177,7 @@ object ArrowExporter {
       count += index
       index = 0
     }
+
     features.foreach { feature =>
       batch(index) = feature
       index += 1
@@ -156,6 +185,7 @@ object ArrowExporter {
         sortAndUnloadBatch()
       }
     }
+
     if (index > 0) {
       sortAndUnloadBatch()
     }

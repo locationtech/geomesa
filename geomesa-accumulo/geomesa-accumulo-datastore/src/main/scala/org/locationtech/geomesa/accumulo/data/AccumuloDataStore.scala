@@ -302,7 +302,6 @@ object AccumuloDataStore {
   }
 }
 
-//
 /**
   * Configuration options for AccumuloDataStore
   *
