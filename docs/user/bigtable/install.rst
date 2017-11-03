@@ -56,3 +56,12 @@ doesn't exist). For more information, see `Connecting to Cloud Bigtable
 <https://cloud.google.com/bigtable/docs/connecting-hbase>`__.
 
 Restart GeoServer after the JARs are installed.
+
+Jackson Version
+^^^^^^^^^^^^^^^
+
+.. warning::
+
+    Some GeoMesa functions (in particular Arrow conversion) requires ``jackson-core-2.6.x``. Some versions
+    of GeoServer ship with an older version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa
+    GeoServer plugin, be sure to delete the older JAR from GeoServer's ``WEB-INF/lib`` folder.
