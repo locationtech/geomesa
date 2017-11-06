@@ -115,11 +115,7 @@ trait ClientSideFiltering[R] {
       val sf = deserializer.deserialize(value, valueOffset, valueLength)
       val id = getId(row, rowOffset, rowLength)
       sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-      if (ecql.evaluate(sf)) {
-        Some(sf)
-      } else {
-        None
-      }
+      Some(sf).filter(ecql.evaluate)
     }
   }
 

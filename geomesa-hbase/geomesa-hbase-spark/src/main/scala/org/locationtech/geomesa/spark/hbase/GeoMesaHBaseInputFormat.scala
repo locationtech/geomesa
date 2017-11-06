@@ -26,6 +26,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 /**
   * Input format that allows processing of simple features from GeoMesa based on a CQL query
@@ -37,7 +38,7 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
   var sft: SimpleFeatureType = _
   var table: HBaseFeatureIndex = _
 
-  private def init(conf: Configuration) = if (sft == null) {
+  private def init(conf: Configuration): Unit = if (sft == null) {
     sft = GeoMesaConfigurator.getSchema(conf)
     table = HBaseFeatureIndex.index(GeoMesaConfigurator.getIndexIn(conf))
     delegate.setConf(conf)
@@ -74,7 +75,7 @@ class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
                                reader: RecordReader[ImmutableBytesWritable, Result],
                                filterOpt: Option[Filter],
                                transformSchema: Option[SimpleFeatureType])
-    extends RecordReader[Text, SimpleFeature] {
+    extends RecordReader[Text, SimpleFeature] with LazyLogging {
 
   private var staged: SimpleFeature = _
 
@@ -132,9 +133,13 @@ class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
   private def nextFeatureFromOptional(toFeature: Result => Option[SimpleFeature]) = () => {
     staged = null
     while (staged == null && reader.nextKeyValue()) {
-      toFeature(reader.getCurrentValue) match {
-        case Some(feature) => staged = feature
-        case None => staged = null
+      try {
+        toFeature(reader.getCurrentValue) match {
+          case Some(feature) => staged = feature
+          case None => staged = null
+        }
+      } catch {
+        case NonFatal(e) => logger.error(s"Error reading row: ${reader.getCurrentValue}", e)
       }
     }
   }
@@ -142,7 +147,11 @@ class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
   private def nextFeatureFromDirect(toFeature: Result => SimpleFeature) = () => {
     staged = null
     while (staged == null && reader.nextKeyValue()) {
-      staged = toFeature(reader.getCurrentValue)
+      try {
+        staged = toFeature(reader.getCurrentValue)
+      } catch {
+        case NonFatal(e) => logger.error(s"Error reading row: ${reader.getCurrentValue}", e)
+      }
     }
   }
 }
