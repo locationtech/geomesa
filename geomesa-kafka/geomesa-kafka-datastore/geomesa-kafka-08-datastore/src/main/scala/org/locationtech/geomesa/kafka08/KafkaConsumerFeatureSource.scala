@@ -17,7 +17,9 @@ import org.geotools.data.Query
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.kafka08.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.kafka08.KafkaDataStoreFactoryParams.CONSUMER_CFG_PARAM
 import org.locationtech.geomesa.kafka08.consumer.KafkaConsumerFactory
@@ -56,10 +58,15 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
 
   override val canFilter: Boolean = true
 
-  override def getReaderInternal(query: Query): FR = if (monitor) {
-    new MonitoringFeatureReader("Kafka", query, addSupport(query, getReaderForFilter(query.getFilter)))
-  } else {
-    addSupport(query, getReaderForFilter(query.getFilter))
+  override def getReaderInternal(query: Query): FR = {
+    val filter = query.getFilter.accept(new BindingFilterVisitor(sft), null).asInstanceOf[Filter]
+        .accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
+    val reader = addSupport(query, getReaderForFilter(filter))
+    if (monitor) {
+      new MonitoringFeatureReader("Kafka", query, reader)
+    } else {
+      reader
+    }
   }
 
   def getReaderForFilter(f: Filter): FR
