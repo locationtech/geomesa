@@ -35,6 +35,7 @@ class ExplainPrintln(out: PrintStream = System.out) extends Explainer {
 
 object ExplainNull extends Explainer {
   override def apply(s: => String): Explainer = this
+  override def apply(s: => String, c: Seq[() => String]): Explainer = this
   override def pushLevel(): Explainer = this
   override def pushLevel(s: => String): Explainer = this
   override def popLevel(): Explainer = this
