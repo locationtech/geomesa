@@ -22,8 +22,8 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
   val TEST_PROP_1 = "test.system.properties.1"
   val TEST_PROP_2 = "test.system.properties.2"
   val TEST_PROP_3 = "test.system.properties.3"
-  val REAL_PROP = "geomesa.stats.compact.millis"
-  val REAL_PROP_VAL = "3600000"
+  val REAL_PROP = "geomesa.stats.compact.interval"
+  val REAL_PROP_VAL = "1 hour"
 
   def testProp1 = SystemProperty(TEST_PROP_1)
   def testProp2 = SystemProperty(TEST_PROP_2, "default")
@@ -32,10 +32,10 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
 
   "props" should {
     "contain system properties" in {
-      GeoMesaProperties.ProjectVersion must not beNull;
-      GeoMesaProperties.BuildDate must not beNull;
-      GeoMesaProperties.GitCommit must not beNull;
-      GeoMesaProperties.GitBranch must not beNull;
+      GeoMesaProperties.ProjectVersion must not(beNull)
+      GeoMesaProperties.BuildDate must not(beNull)
+      GeoMesaProperties.GitCommit must not(beNull)
+      GeoMesaProperties.GitBranch must not(beNull)
     }
   }
 
@@ -43,7 +43,7 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
     "return proper values" in {
       testProp1.default must beNull
       testProp1.get must beNull
-      testProp1.option must beEqualTo(None)
+      testProp1.option must beNone
 
       System.setProperty(testProp2.property, "test")
       testProp2.get must beEqualTo("test")

@@ -18,8 +18,8 @@ assuming that the GeoMesa code is on the classpath.
 
 .. _cassandra_parameters:
 
-Parameters
-----------
+Cassandra Data Store Parameters
+-------------------------------
 
 The data store takes several parameters (required parameters are marked with ``*``):
 
@@ -33,7 +33,8 @@ Parameter                            Type    Description
 ``cassandra.username``               String  Cassandra user
 ``cassandra.password``               String  Cassandra password
 ``geomesa.query.audit``              Boolean Audit queries being run. Queries will be written to a log file
-``geomesa.query.timeout``            Integer The max time (in seconds) a query will be allowed to run before being killed
+``geomesa.query.timeout``            String  The max time a query will be allowed to run before being killed. The
+                                             timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
 ``geomesa.query.threads``            Integer The number of threads to use per query
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
 ``geomesa.stats.generate``           Boolean Toggle collection of statistics (currently not implemented)

@@ -1,3 +1,5 @@
+.. _kafka_index:
+
 Kafka Data Store
 ================
 

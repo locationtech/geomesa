@@ -127,25 +127,26 @@ object LambdaDataStoreFactory {
     }
 
     object Kafka {
-      val BrokersParam      = new GeoMesaParam[String]("lambda.kafka.brokers", "Kafka brokers", required = true, deprecated = Seq("kafka.brokers"))
-      val ZookeepersParam   = new GeoMesaParam[String]("lambda.kafka.zookeepers", "Kafka zookeepers", required = true, deprecated = Seq("kafka.zookeepers"))
-      val PartitionsParam   = new GeoMesaParam[Integer]("lambda.kafka.partitions", "Number of partitions to use in kafka topics", default = Int.box(1), deprecated = Seq("kafka.partitions"))
-      val ConsumersParam    = new GeoMesaParam[Integer]("lambda.kafka.consumers", "Number of kafka consumers used per feature type", default = Int.box(1), deprecated = Seq("kafka.consumers"))
-      val ProducerOptsParam = new GeoMesaParam[String]("lambda.kafka.producer.options", "Kafka producer configuration options, in Java properties format", metadata = Map(Parameter.IS_LARGE_TEXT -> java.lang.Boolean.TRUE), deprecated = Seq("kafka.producer.options"))
-      val ConsumerOptsParam = new GeoMesaParam[String]("lambda.kafka.consumer.options", "Kafka consumer configuration options, in Java properties format'", metadata = Map(Parameter.IS_LARGE_TEXT -> java.lang.Boolean.TRUE), deprecated = Seq("kafka.consumer.options"))
+      val BrokersParam      = new GeoMesaParam[String]("lambda.kafka.brokers", "Kafka brokers", required = true, deprecatedKeys = Seq("kafka.brokers"))
+      val ZookeepersParam   = new GeoMesaParam[String]("lambda.kafka.zookeepers", "Kafka zookeepers", required = true, deprecatedKeys = Seq("kafka.zookeepers"))
+      val PartitionsParam   = new GeoMesaParam[Integer]("lambda.kafka.partitions", "Number of partitions to use in kafka topics", default = Int.box(1), deprecatedKeys = Seq("kafka.partitions"))
+      val ConsumersParam    = new GeoMesaParam[Integer]("lambda.kafka.consumers", "Number of kafka consumers used per feature type", default = Int.box(1), deprecatedKeys = Seq("kafka.consumers"))
+      val ProducerOptsParam = new GeoMesaParam[String]("lambda.kafka.producer.options", "Kafka producer configuration options, in Java properties format", largeText = true, deprecatedKeys = Seq("kafka.producer.options"))
+      val ConsumerOptsParam = new GeoMesaParam[String]("lambda.kafka.consumer.options", "Kafka consumer configuration options, in Java properties format'", largeText = true, deprecatedKeys = Seq("kafka.consumer.options"))
     }
 
-    val ExpiryParam        = new GeoMesaParam[Duration]("lambda.expiry", "Duration before features expire from transient store. Use 'Inf' to prevent this store from participating in feature expiration", required = true, default = Duration("1h"), deprecated = Seq("expiry"))
-    val PersistParam       = new GeoMesaParam[java.lang.Boolean]("lambda.persist", "Whether to persist expired features to long-term storage", default = java.lang.Boolean.TRUE, deprecated = Seq("persist"))
+    val ExpiryParam        = new GeoMesaParam[Duration]("lambda.expiry", "Duration before features expire from transient store. Use 'Inf' to prevent this store from participating in feature expiration", required = true, default = Duration("1h"), deprecatedKeys = Seq("expiry"))
+    val PersistParam       = new GeoMesaParam[java.lang.Boolean]("lambda.persist", "Whether to persist expired features to long-term storage", default = java.lang.Boolean.TRUE, deprecatedKeys = Seq("persist"))
 
     // test params
-    val ClockParam         = new GeoMesaParam[Clock]("lambda.clock", "Clock instance to use for timing", deprecated = Seq("clock"))
-    val OffsetManagerParam = new GeoMesaParam[OffsetManager]("lamdab.offset-manager", "Offset manager instance to use", deprecated = Seq("offsetManager"))
+    val ClockParam         = new GeoMesaParam[Clock]("lambda.clock", "Clock instance to use for timing", deprecatedKeys = Seq("clock"))
+    val OffsetManagerParam = new GeoMesaParam[OffsetManager]("lamdab.offset-manager", "Offset manager instance to use", deprecatedKeys = Seq("offsetManager"))
   }
 
   private def copy[T <: AnyRef](p: GeoMesaParam[T])(implicit ct: ClassTag[T]): GeoMesaParam[T] = {
-    import scala.collection.JavaConversions._
-    new GeoMesaParam[T](s"lambda.${p.key}", p.description.toString, required = p.required, default = p.default, metadata = p.metadata.toMap, deprecated = p.deprecated)
+    new GeoMesaParam[T](s"lambda.${p.key}", p.description.toString, required = p.required, default = p.default,
+      password = p.password, largeText = p.largeText, extension = p.extension, deprecatedKeys = p.deprecatedKeys,
+      deprecatedParams = p.deprecatedParams, systemProperty = p.systemProperty)
   }
 
   private def filter(params: java.util.Map[String, Serializable]): java.util.Map[String, Serializable] = {

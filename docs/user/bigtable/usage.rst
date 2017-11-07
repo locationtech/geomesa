@@ -19,8 +19,8 @@ are obtained from this file. For more information, see `Connecting to Cloud Bigt
 
 .. _bigtable_parameters:
 
-Parameters
-----------
+Bigtable Data Store Parameters
+------------------------------
 
 The data store takes several parameters (required parameters are marked with ``*``):
 
@@ -29,7 +29,8 @@ Parameter                            Type    Description
 ==================================== ======= ====================================================================================
 ``bigtable.catalog *``               String  The name of the GeoMesa catalog table (previously ``bigtable.table.name``)
 ``geomesa.query.audit``              Boolean Audit queries being run. Queries will be written to a log file
-``geomesa.query.timeout``            Integer The max time (in seconds) a query will be allowed to run before being killed
+``geomesa.query.timeout``            String  The max time a query will be allowed to run before being killed. The
+                                             timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
 ``geomesa.query.threads``            Integer The number of threads to use per query
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
 ``geomesa.stats.generate``           Boolean Toggle collection of statistics (currently not implemented)

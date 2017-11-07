@@ -11,11 +11,11 @@ package org.locationtech.geomesa.index.conf
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 object QueryProperties {
-  val QUERY_EXACT_COUNT    = SystemProperty("geomesa.force.count", "false")
-  val QUERY_COST_TYPE      = SystemProperty("geomesa.query.cost.type")
-  val QUERY_TIMEOUT_MILLIS = SystemProperty("geomesa.query.timeout.millis") // default is no timeout
+  val QUERY_EXACT_COUNT  = SystemProperty("geomesa.force.count", "false")
+  val QUERY_COST_TYPE    = SystemProperty("geomesa.query.cost.type")
+  val QUERY_TIMEOUT      = SystemProperty("geomesa.query.timeout") // default is no timeout
   // rough upper limit on the number of ranges we will generate per query
-  val SCAN_RANGES_TARGET   = SystemProperty("geomesa.scan.ranges.target", "2000")
+  val SCAN_RANGES_TARGET = SystemProperty("geomesa.scan.ranges.target", "2000")
 }
 
 object StatsProperties {
