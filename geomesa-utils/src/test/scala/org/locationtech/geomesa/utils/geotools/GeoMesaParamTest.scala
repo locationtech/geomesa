@@ -57,14 +57,14 @@ class GeoMesaParamTest extends Specification with LazyLogging {
       new GeoMesaParam[java.lang.Boolean]("foo", default = true).lookup(Map.empty[String, String]) mustEqual true
     }
     "look up required values" in {
-      new GeoMesaParam[String]("foo", required = true).lookup(Map("foo" -> "bar")) mustEqual "bar"
-      new GeoMesaParam[Integer]("foo", required = true).lookup(Map("foo" -> Int.box(1))) mustEqual 1
-      new GeoMesaParam[java.lang.Boolean]("foo", required = true).lookup(Map("foo" -> Boolean.box(true))) mustEqual true
+      new GeoMesaParam[String]("foo", optional = false).lookup(Map("foo" -> "bar")) mustEqual "bar"
+      new GeoMesaParam[Integer]("foo", optional = false).lookup(Map("foo" -> Int.box(1))) mustEqual 1
+      new GeoMesaParam[java.lang.Boolean]("foo", optional = false).lookup(Map("foo" -> Boolean.box(true))) mustEqual true
     }
     "throw exception for missing required values" in {
-      new GeoMesaParam[String]("foo", required = true).lookup(Map.empty[String, String]) must throwAn[IOException]
-      new GeoMesaParam[Integer]("foo", required = true).lookup(Map.empty[String, String]) must throwAn[IOException]
-      new GeoMesaParam[java.lang.Boolean]("foo", required = true).lookup(Map.empty[String, String]) must throwAn[IOException]
+      new GeoMesaParam[String]("foo", optional = false).lookup(Map.empty[String, String]) must throwAn[IOException]
+      new GeoMesaParam[Integer]("foo", optional = false).lookup(Map.empty[String, String]) must throwAn[IOException]
+      new GeoMesaParam[java.lang.Boolean]("foo", optional = false).lookup(Map.empty[String, String]) must throwAn[IOException]
     }
     "throw exception for invalid type conversions" in {
       new GeoMesaParam[Integer]("foo").lookup(Map("foo" -> "bar")) must throwAn[IOException]
@@ -72,8 +72,8 @@ class GeoMesaParamTest extends Specification with LazyLogging {
     "lookup deprecated values" in {
       new GeoMesaParam[String]("foo", deprecatedKeys = Seq("notfoo")).lookup(Map("foo" -> "bar")) mustEqual "bar"
       new GeoMesaParam[String]("foo", deprecatedKeys = Seq("notfoo")).lookup(Map("notfoo" -> "bar")) mustEqual "bar"
-      new GeoMesaParam[String]("foo", required = true, deprecatedKeys = Seq("notfoo")).lookup(Map("foo" -> "bar")) mustEqual "bar"
-      new GeoMesaParam[String]("foo", required = true, deprecatedKeys = Seq("notfoo")).lookup(Map("notfoo" -> "bar")) mustEqual "bar"
+      new GeoMesaParam[String]("foo", optional = false, deprecatedKeys = Seq("notfoo")).lookup(Map("foo" -> "bar")) mustEqual "bar"
+      new GeoMesaParam[String]("foo", optional = false, deprecatedKeys = Seq("notfoo")).lookup(Map("notfoo" -> "bar")) mustEqual "bar"
     }
     "look up system properties" in {
       val prop = SystemProperty("params.foo.bar")
@@ -90,14 +90,14 @@ class GeoMesaParamTest extends Specification with LazyLogging {
     "not accept system properties for required parameters" in {
       val prop = SystemProperty("params.foo.bar")
       prop.threadLocalValue.set("baz")
-      new GeoMesaParam[String]("foo", required = true, systemProperty = Some(SystemPropertyStringParam(prop))).lookup(Map("foo" -> "bar")) mustEqual "bar"
-      new GeoMesaParam[String]("foo", required = true, systemProperty = Some(SystemPropertyStringParam(prop))).lookup(Map.empty[String, String]) must throwAn[IOException]
+      new GeoMesaParam[String]("foo", optional = false, systemProperty = Some(SystemPropertyStringParam(prop))).lookup(Map("foo" -> "bar")) mustEqual "bar"
+      new GeoMesaParam[String]("foo", optional = false, systemProperty = Some(SystemPropertyStringParam(prop))).lookup(Map.empty[String, String]) must throwAn[IOException]
       prop.threadLocalValue.set("2")
-      new GeoMesaParam[Integer]("foo", required = true, systemProperty = Some(SystemPropertyIntegerParam(prop))).lookup(Map("foo" -> Int.box(1))) mustEqual 1
-      new GeoMesaParam[Integer]("foo", required = true, systemProperty = Some(SystemPropertyIntegerParam(prop))).lookup(Map.empty[String, String]) must throwAn[IOException]
+      new GeoMesaParam[Integer]("foo", optional = false, systemProperty = Some(SystemPropertyIntegerParam(prop))).lookup(Map("foo" -> Int.box(1))) mustEqual 1
+      new GeoMesaParam[Integer]("foo", optional = false, systemProperty = Some(SystemPropertyIntegerParam(prop))).lookup(Map.empty[String, String]) must throwAn[IOException]
       prop.threadLocalValue.set("true")
-      new GeoMesaParam[java.lang.Boolean]("foo", required = true, systemProperty = Some(SystemPropertyBooleanParam(prop))).lookup(Map("foo" -> Boolean.box(false))) mustEqual false
-      new GeoMesaParam[java.lang.Boolean]("foo", required = true, systemProperty = Some(SystemPropertyBooleanParam(prop))).lookup(Map.empty[String, String]) must throwAn[IOException]
+      new GeoMesaParam[java.lang.Boolean]("foo", optional = false, systemProperty = Some(SystemPropertyBooleanParam(prop))).lookup(Map("foo" -> Boolean.box(false))) mustEqual false
+      new GeoMesaParam[java.lang.Boolean]("foo", optional = false, systemProperty = Some(SystemPropertyBooleanParam(prop))).lookup(Map.empty[String, String]) must throwAn[IOException]
     }
     "prioritize system properties over default values" in {
       val prop = SystemProperty("params.foo.bar")

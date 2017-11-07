@@ -168,8 +168,8 @@ object KafkaDataStoreFactory {
       }
     }
 
-    val Brokers          = new GeoMesaParam[String]("kafka.brokers", "Kafka brokers", required = true, deprecatedKeys = Seq("brokers"))
-    val Zookeepers       = new GeoMesaParam[String]("kafka.zookeepers", "Kafka zookeepers", required = true, deprecatedKeys = Seq("zookeepers"))
+    val Brokers          = new GeoMesaParam[String]("kafka.brokers", "Kafka brokers", optional = false, deprecatedKeys = Seq("brokers"))
+    val Zookeepers       = new GeoMesaParam[String]("kafka.zookeepers", "Kafka zookeepers", optional = false, deprecatedKeys = Seq("zookeepers"))
     val ZkPath           = new GeoMesaParam[String]("kafka.zk.path", "Zookeeper discoverable path (namespace)", default = DefaultZkPath, deprecatedKeys = Seq("zkPath"))
     val ProducerConfig   = new GeoMesaParam[Properties]("kafka.producer.config", "Configuration options for kafka producer, in Java properties format. See http://kafka.apache.org/documentation.html#producerconfigs", largeText = true, deprecatedKeys = Seq("producerConfig"))
     val ConsumerConfig   = new GeoMesaParam[Properties]("kafka.consumer.config", "Configuration options for kafka consumer, in Java properties format. See http://kafka.apache.org/documentation.html#newconsumerconfigs", largeText = true, deprecatedKeys = Seq("consumerConfig"))

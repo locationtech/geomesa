@@ -221,7 +221,7 @@ object HBaseDataStoreFactory extends LazyLogging {
 }
 
 object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
-  val HBaseCatalogParam             = new GeoMesaParam[String]("hbase.catalog", "Catalog table name", required = true, deprecatedKeys = Seq("bigtable.table.name"))
+  val HBaseCatalogParam             = new GeoMesaParam[String]("hbase.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
   val ConnectionParam               = new GeoMesaParam[Connection]("hbase.connection", "Connection", deprecatedKeys = Seq("connection"))
   val CoprocessorUrlParam           = new GeoMesaParam[Path]("hbase.coprocessor.url", "Coprocessor Url", deprecatedKeys = Seq("coprocessor.url"))
   val RemoteFilteringParam          = new GeoMesaParam[java.lang.Boolean]("hbase.remote.filtering", "Remote filtering", default = true, deprecatedKeys = Seq("remote.filtering"))

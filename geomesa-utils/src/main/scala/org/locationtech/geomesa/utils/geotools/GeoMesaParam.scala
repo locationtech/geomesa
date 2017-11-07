@@ -25,8 +25,8 @@ import scala.util.control.NonFatal
   * Data store parameter, used for configuring data stores in DataStoreFinder
   *
   * @param _key key used to look up values
-  * @param description readable description of the parameter
-  * @param required required, or optional
+  * @param desc readable description of the parameter
+  * @param optional optional, or required
   * @param default default value, if any
   * @param password is the parameter a password
   * @param largeText should the parameter use a text area instead of a text box in a GUI
@@ -36,8 +36,8 @@ import scala.util.control.NonFatal
   * @param systemProperty system property used as a fallback lookup
   */
 class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' field from Param
-                                description: String = "",
-                                required: Boolean = false,
+                                desc: String = "", // can't override final 'description' field from Param
+                                optional: Boolean = true, // can't override final 'required' field from Param
                                 val default: T = null,
                                 val password: Boolean = false,
                                 val largeText: Boolean = false,
@@ -46,7 +46,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
                                 val deprecatedParams: Seq[DeprecatedParam[T]] = Seq.empty,
                                 val systemProperty: Option[SystemPropertyParam[T]] = None)
                                (implicit ct: ClassTag[T])
-    extends Param(_key, binding(ct), description, required, sample(default), metadata(password, largeText, extension))
+    extends Param(_key, binding(ct), desc, !optional, sample(default), metadata(password, largeText, extension))
       with LazyLogging {
 
   private val deprecated = deprecatedKeys ++ deprecatedParams.map(_.key)

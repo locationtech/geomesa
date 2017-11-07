@@ -65,7 +65,7 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 
 object ArrowDataStoreFactory extends NamespaceParams {
 
-  val UrlParam     = new GeoMesaParam[URL]("arrow.url", "URL to an arrow file", required = true, extension = "arrow", deprecatedKeys = Seq("url"))
+  val UrlParam     = new GeoMesaParam[URL]("arrow.url", "URL to an arrow file", optional = false, extension = "arrow", deprecatedKeys = Seq("url"))
   val CachingParam = new GeoMesaParam[java.lang.Boolean]("arrow.caching", "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", default = false, deprecatedKeys = Seq("caching"))
 
   private val DisplayName = "Apache Arrow (GeoMesa)"

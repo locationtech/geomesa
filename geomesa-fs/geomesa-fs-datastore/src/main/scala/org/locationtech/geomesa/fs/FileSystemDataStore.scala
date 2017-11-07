@@ -93,8 +93,8 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object FileSystemDataStoreParams extends NamespaceParams {
-  val PathParam            = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", required = true)
-  val EncodingParam        = new GeoMesaParam[String]("fs.encoding", "Encoding of data", required = true)
+  val PathParam            = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", optional = false)
+  val EncodingParam        = new GeoMesaParam[String]("fs.encoding", "Encoding of data", optional = false)
 
   val ConverterNameParam   = new GeoMesaParam[String]("fs.options.converter.name", "Converter Name")
   val ConverterConfigParam = new GeoMesaParam[String]("fs.options.converter.conf", "Converter Typesafe Config", largeText = true)
