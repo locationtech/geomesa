@@ -216,7 +216,8 @@
 
         <profile>
             <id>locationtech</id>
-            <build>
+            <!-- TODO locationtech hudson build fails on uploading javadocs for some modules - figure out why -->
+            <!--<build>
                 <plugins>
                     <plugin>
                         <groupId>net.alchim31.maven</groupId>
@@ -243,7 +244,7 @@
                         </executions>
                     </plugin>
                 </plugins>
-            </build>
+            </build>-->
             <distributionManagement>
                 <repository>
                     <id>repo.locationtech.org</id>
