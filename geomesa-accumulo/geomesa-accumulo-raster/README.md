@@ -7,8 +7,7 @@ noted here.
 
 The Raster support was intended to contain image pyramids that are EPSG:4326 with tiles on the order
 of Kb in size. Any rasters attempted to be ingested will need to be tiled prior to ingest, and the 
-tiles must have disjoint extents. Currently only single band images are supported.
-Sharding is not currently used to spread the table across the cluster. 
+tiles must have disjoint extents. Sharding is not currently used to spread the table across the cluster. 
 
 ### Ingest
 

@@ -24,7 +24,7 @@ Before you begin, you should have these:
    (GDAL) <http://www.gdal.org/>`__ installed
 
 Before you begin, you should have also set up GeoMesa, using the
-instructions in :ref:`installation`.
+instructions in :ref:`accumulo_raster`.
 
 .. note::
 
@@ -77,14 +77,7 @@ GeoServer Deployment
 
 The GeoMesa GeoServer community module is required to enable registering GeoMesa Raster layers
 in GeoServer. If you have not already, please follow the instructions
-in :ref:`installation`.
-
-If you have not deployed the community module yet, it can be downloaded from 
-`OpenGeo <http://ares.opengeo.org/geoserver/>`, or can be built from 
-`source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`.
-
-Once obtained, the community module can be installed by copying ``geomesa-gs-<version>.jar`` into
-the GeoServer ``lib`` directory.
+in :ref:`accumulo_raster`.
 
 Registering in GeoServer
 ------------------------

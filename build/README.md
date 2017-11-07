@@ -34,13 +34,14 @@ geospatial analytics.
 **Current release: ${geomesa.release.version}**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [**Accumulo**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/${geomesa.release.version}/geomesa-accumulo-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
-  [**Kafka 0.8**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-08-dist_2.11/${geomesa.release.version}/geomesa-kafka-08-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
-  [**Kafka 0.9**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-09-dist_2.11/${geomesa.release.version}/geomesa-kafka-09-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
-  [**Kafka 0.10**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-10-dist_2.11/${geomesa.release.version}/geomesa-kafka-10-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
-  [**HBase**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/${geomesa.release.version}/geomesa-hbase-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
-  [**Cassandra**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/${geomesa.release.version}/geomesa-cassandra-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
-  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-${geomesa.release.version}.tar.gz)
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-accumulo-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
+  [**Kafka 0.8**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-kafka-08-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
+  [**Kafka 0.9**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-kafka-09-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
+  [**Kafka 0.10**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-kafka-10-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-hbase-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-cassandra-dist_2.11-${geomesa.release.version}-bin.tar.gz) |
+  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-${geomesa.release.version}.tar.gz) |
+  [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-${geomesa.release.version})
 
 **Development version: ${geomesa.devel.version}** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
@@ -55,18 +56,11 @@ directory of GeoServer.
 
 ## Maven Integration
 
-GeoMesa artifacts are published to the [LocationTech Maven repository](https://repo.locationtech.org/content/groups/releases/org/locationtech/geomesa/). To include GeoMesa in your project, add the following repositories to your pom:
-
+GeoMesa is now hosted on Maven Central. However, it still depends on several third-party libraries only available
+in other repositories. To include GeoMesa in your project, add the following repositories to your pom:
 
 ```xml
 <repositories>
-  <repository>
-    <id>locationtech-releases</id>
-    <url>https://repo.locationtech.org/content/groups/releases</url>
-    <snapshots>
-      <enabled>false</enabled>
-    </snapshots>
-  </repository>
   <repository>
     <id>boundlessgeo</id>
     <url>https://repo.boundlessgeo.com/main</url>
@@ -82,30 +76,42 @@ GeoMesa artifacts are published to the [LocationTech Maven repository](https://r
 </repositories>
 ```
 
-For snapshot integrations use:
-
-```xml
-  <repository>
-    <id>geomesa-snapshots</id>
-    <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots</url>
-    <releases>
-      <enabled>false</enabled>
-    </releases>
-    <snapshots>
-      <enabled>true</enabled>
-    </snapshots>
-  </repository>
-```
-
 and then include the desired `geomesa-*` dependencies:
 
 ```xml
-  <dependency>
-    <groupId>org.locationtech.geomesa</groupId>
-    <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
-    <version>1.3.3</version>
-  </dependency>
+<dependency>
+  <groupId>org.locationtech.geomesa</groupId>
+  <artifactId>geomesa-utils_2.11</artifactId>
+  <version>1.3.4</version>
+</dependency>
   ...
+```
+
+To download from the LocationTech Maven repository (required for older versions), add:
+
+```xml
+<repository>
+  <id>locationtech-releases</id>
+  <url>https://repo.locationtech.org/content/groups/releases</url>
+  <snapshots>
+    <enabled>false</enabled>
+  </snapshots>
+</repository>
+```
+
+For snapshot integration, add:
+
+```xml
+<repository>
+  <id>geomesa-snapshots</id>
+  <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots</url>
+  <releases>
+    <enabled>false</enabled>
+  </releases>
+  <snapshots>
+    <enabled>true</enabled>
+  </snapshots>
+</repository>
 ```
 
 ## `sbt` Integration
@@ -123,7 +129,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
-  "org.locationtech.geomesa" %% "geomesa-utils" % "1.3.3",
+  "org.locationtech.geomesa" %% "geomesa-utils" % "1.3.4",
   ...
 )
 ```
@@ -132,11 +138,11 @@ libraryDependencies ++= Seq(
 
 Requirements:
 
-* [git](http://git-scm.com/)
+* [Git](http://git-scm.com/)
 * [Java JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Apache Maven](http://maven.apache.org/) 3.2.2 or later
 
-Use git to download the source code. Navigate to the destination directory, then run:
+Use Git to download the source code. Navigate to the destination directory, then run:
 
     git clone git@github.com:locationtech/geomesa.git
     cd geomesa
@@ -145,10 +151,11 @@ The project is managed by Maven. To build, run:
 
     mvn clean install
 
-Alternatively, the `build/mvn` script is a wrapper around Maven that builds the project using the
-[Zinc](https://github.com/typesafehub/zinc) incremental compiler, which can significantly decrease build times:
+The full build takes quite a while. To speed it up, you may skip tests and use multiple threads. GeoMesa also
+provides the script `build/mvn`, which is a wrapper around Maven that downloads and runs
+[Zinc](https://github.com/typesafehub/zinc), a fast incremental compiler:
 
-    build/mvn clean install
+    build/mvn clean install -T8 -DskipTests
 
 ## Scala 2.10 Support
 
