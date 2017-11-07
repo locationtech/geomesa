@@ -23,12 +23,21 @@ configPriority="0"
 existingEnvVars=()
 function setvar() {
   if [[ "$configPriority" == "0" ]]; then
-    test -z "$(eval "echo \$$1")"  && export $1=$2 || existingEnvVars=("${existingEnvVars[@]}" $1)
+    test -z "$(eval "echo \$$1")" && export $1=$2 || existingEnvVars=("${existingEnvVars[@]}" $1)
   else
     export $1=$2
   fi
 }
 # ------------------------------------------------------------------
+
+# ==================================================================
+# General Environment Variables
+# ==================================================================
+
+# Maven repository
+# Used for downloading dependencies in the various 'install-xxx.sh' scripts
+#
+# setvar GEOMESA_MAVEN_URL "https://search.maven.org/remotecontent?filepath="
 
 # ==================================================================
 # GeoMesa Environment Variables

@@ -164,7 +164,7 @@ that match the version of Hadoop you are running.
 
 There are scripts in the ``geomesa-lambda_2.11-$VERSION/bin`` directory
 (``install-hadoop-accumulo.sh``, ``install-kafka.sh``) which will install these dependencies to a target directory
-using ``wget`` (requires an internet connection).
+using ``curl`` (requires an internet connection).
 
 .. note::
 

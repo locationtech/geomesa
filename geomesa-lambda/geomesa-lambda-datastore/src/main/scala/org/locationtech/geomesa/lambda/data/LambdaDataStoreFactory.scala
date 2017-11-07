@@ -14,7 +14,7 @@ import java.time.Clock
 import java.util.Properties
 
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
+import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
