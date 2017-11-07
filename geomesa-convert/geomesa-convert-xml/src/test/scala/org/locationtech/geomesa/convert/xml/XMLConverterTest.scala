@@ -10,6 +10,7 @@ package org.locationtech.geomesa.convert.xml
 
 import java.io.{ByteArrayInputStream, File, FileInputStream}
 import java.nio.charset.StandardCharsets
+import javax.xml.xpath.XPathFactory
 
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Point
@@ -562,6 +563,52 @@ class XMLConverterTest extends Specification {
       features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
       features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
       features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+    }
+
+    "support namespaces with saxon" >> {
+
+      skipped("requires saxon on the classpath")
+
+      val xml =
+        """<ns:doc xmlns:ns="http://geomesa.example.com/foo" xmlns:ns2="http://geomesa.example.com/foo2">
+          |  <ns:DataSource>
+          |    <ns:name>myxml</ns:name>
+          |  </ns:DataSource>
+          |  <ns:Feature>
+          |    <ns:number>123</ns:number>
+          |    <ns:color>red</ns:color>
+          |    <ns2:physical weight="127.5" height="5'11"/>
+          |  </ns:Feature>
+          |</ns:doc>
+        """.stripMargin
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "xml"
+          |   id-field     = "uuid()"
+          |   feature-path = "ns:Feature" // can be any xpath - relative to the root, or absolute
+          |   fields = [
+          |     // paths can be any xpath - relative to the feature-path, or absolute
+          |     { name = "number", path = "ns:number",                  transform = "$0::integer" }
+          |     { name = "color",  path = "ns:color",                   transform = "trim($0)" }
+          |     { name = "weight", path = "floor(ns2:physical/@weight)", transform = "$0::double" }
+          |     { name = "source", path = "/ns:doc/ns:DataSource/ns:name/text()" }
+          |   ]
+          |   xml-namespaces = {
+          |     ns  = "http://geomesa.example.com/foo"
+          |     ns2 = "http://geomesa.example.com/foo2"
+          |   }
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      val features = converter.processInput(Iterator(xml)).toList
+      features must haveLength(1)
+      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
+      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
     }
   }
 }
