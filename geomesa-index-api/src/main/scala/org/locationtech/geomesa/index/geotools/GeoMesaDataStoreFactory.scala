@@ -25,12 +25,12 @@ object GeoMesaDataStoreFactory {
   private val DeprecatedTimeout = ConvertedParam[Duration, java.lang.Long]("queryTimeout", (v) => Duration(v, TimeUnit.SECONDS))
   private val DeprecatedAccumuloTimeout = ConvertedParam[Duration, java.lang.Long]("accumulo.queryTimeout", (v) => Duration(v, TimeUnit.SECONDS))
 
-  val QueryThreadsParam  = new GeoMesaParam[Integer]("geomesa.query.threads", "The number of threads to use per query", false, 8, deprecatedKeys = Seq("queryThreads", "accumulo.queryThreads"))
+  val QueryThreadsParam  = new GeoMesaParam[Integer]("geomesa.query.threads", "The number of threads to use per query", default = Int.box(8), deprecatedKeys = Seq("queryThreads", "accumulo.queryThreads"))
   val QueryTimeoutParam  = new GeoMesaParam[Duration]("geomesa.query.timeout", "The max time a query will be allowed to run before being killed, e.g. '60 seconds'", deprecatedParams = Seq(DeprecatedTimeout, DeprecatedAccumuloTimeout), systemProperty = Some(TimeoutSysParam))
-  val LooseBBoxParam     = new GeoMesaParam[java.lang.Boolean]("geomesa.query.loose-bounding-box", "Use loose bounding boxes - queries will be faster but may return extraneous results", false, true, deprecatedKeys = Seq("looseBoundingBox"))
-  val AuditQueriesParam  = new GeoMesaParam[java.lang.Boolean]("geomesa.query.audit", "Audit queries being run", false, true, deprecatedKeys = Seq("auditQueries", "collectQueryStats"))
-  val CachingParam       = new GeoMesaParam[java.lang.Boolean]("geomesa.query.caching", "Cache the results of queries for faster repeated searches. Warning: large result sets can swamp memory", false, false, deprecatedKeys = Seq("caching"))
-  val GenerateStatsParam = new GeoMesaParam[java.lang.Boolean]("geomesa.stats.enable", "Generate and persist data statistics for improved query planning", false, true, deprecatedKeys = Seq("generateStats"), systemProperty = Some(GenerateStatsSysParam))
+  val LooseBBoxParam     = new GeoMesaParam[java.lang.Boolean]("geomesa.query.loose-bounding-box", "Use loose bounding boxes - queries will be faster but may return extraneous results", default = true, deprecatedKeys = Seq("looseBoundingBox"))
+  val AuditQueriesParam  = new GeoMesaParam[java.lang.Boolean]("geomesa.query.audit", "Audit queries being run", default = true, deprecatedKeys = Seq("auditQueries", "collectQueryStats"))
+  val CachingParam       = new GeoMesaParam[java.lang.Boolean]("geomesa.query.caching", "Cache the results of queries for faster repeated searches. Warning: large result sets can swamp memory", default = false, deprecatedKeys = Seq("caching"))
+  val GenerateStatsParam = new GeoMesaParam[java.lang.Boolean]("geomesa.stats.enable", "Generate and persist data statistics for improved query planning", default = true, deprecatedKeys = Seq("generateStats"), systemProperty = Some(GenerateStatsSysParam))
   val NamespaceParam     = new GeoMesaParam[String]("namespace", "Namespace")
 
   trait NamespaceConfig {

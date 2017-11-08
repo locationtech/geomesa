@@ -145,8 +145,8 @@ class StreamFeatureStore(entry: ContentEntry,
 }
 
 object StreamDataStoreParams {
-  val StreamDatastoreConfig = new GeoMesaParam[String]("geomesa.stream.datastore.config", "", required = true)
-  val CacheTimeout = new GeoMesaParam[Integer]("geomesa.stream.datastore.cache.timeout", "", required = true, default = 10)
+  val StreamDatastoreConfig = new GeoMesaParam[String]("geomesa.stream.datastore.config", "", optional = false)
+  val CacheTimeout = new GeoMesaParam[Integer]("geomesa.stream.datastore.cache.timeout", "", optional = false, default = 10)
 }
 
 class StreamDataStoreFactory extends DataStoreFactorySpi {

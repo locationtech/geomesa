@@ -131,9 +131,9 @@ object CassandraDataStoreFactory {
   val Description = "Apache Cassandra\u2122 distributed key/value store"
 
   object Params extends GeoMesaDataStoreParams {
-    val ContactPointParam = new GeoMesaParam[String]("cassandra.contact.point", "HOST:PORT to Cassandra", required = true, deprecatedKeys = Seq("geomesa.cassandra.contact.point"))
-    val KeySpaceParam     = new GeoMesaParam[String]("cassandra.keyspace", "Cassandra Keyspace", required = true, deprecatedKeys = Seq("geomesa.cassandra.keyspace"))
-    val CatalogParam      = new GeoMesaParam[String]("cassandra.catalog", "Name of GeoMesa catalog table", required = true, deprecatedKeys = Seq("geomesa.cassandra.catalog.table"))
+    val ContactPointParam = new GeoMesaParam[String]("cassandra.contact.point", "HOST:PORT to Cassandra", optional = false, deprecatedKeys = Seq("geomesa.cassandra.contact.point"))
+    val KeySpaceParam     = new GeoMesaParam[String]("cassandra.keyspace", "Cassandra Keyspace", optional = false, deprecatedKeys = Seq("geomesa.cassandra.keyspace"))
+    val CatalogParam      = new GeoMesaParam[String]("cassandra.catalog", "Name of GeoMesa catalog table", optional = false, deprecatedKeys = Seq("geomesa.cassandra.catalog.table"))
     val UserNameParam     = new GeoMesaParam[String]("cassandra.username", "Username to connect with", deprecatedKeys = Seq("geomesa.cassandra.username"))
     val PasswordParam     = new GeoMesaParam[String]("cassandra.password", "Password to connect with", password = true, deprecatedKeys = Seq("geomesa.cassandra.password"))
 
