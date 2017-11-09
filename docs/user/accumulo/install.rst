@@ -204,9 +204,9 @@ Test the command that invokes the GeoMesa Tools:
 
 .. code::
 
-    $ geomesa
+    $ geomesa-accumulo
     Using GEOMESA_ACCUMULO_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
-    Usage: geomesa [command] [command options]
+    Usage: geomesa-accumulo [command] [command options]
       Commands:
       ...
 
