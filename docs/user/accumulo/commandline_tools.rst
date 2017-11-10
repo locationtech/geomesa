@@ -168,12 +168,12 @@ If there is whitespace within a keyword, enclose it in quotes for proper functio
       -i instance -z zoo1,zoo2,zoo3 \
       -c catalog -f featureTypeName
 
-get-names
-~~~~~~~~~
+get-type-names
+~~~~~~~~~~~~~~
 
 List all known feature types in a GeoMesa catalog::
 
-    $ geomesa get-names -u username -p password -c test_catalog
+    $ geomesa get-type-names -u username -p password -c test_catalog
 
 remove-schema
 ~~~~~~~~~~~~~

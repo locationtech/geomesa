@@ -11,11 +11,14 @@ package org.locationtech.geomesa.utils.io.fs
 import java.io.{File, FileInputStream, InputStream}
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.atomic.AtomicBoolean
 
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.LocalFileHandle
+import org.locationtech.geomesa.utils.stats.CountingInputStream
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 
 class LocalDelegate extends FileSystemDelegate {
 
@@ -57,9 +60,27 @@ class LocalDelegate extends FileSystemDelegate {
 }
 
 object LocalDelegate {
+
   class LocalFileHandle(file: File) extends FileHandle {
     override def path: String = file.getAbsolutePath
     override def length: Long = file.length()
     override def open: InputStream = new FileInputStream(file)
+  }
+
+  class StdInHandle extends FileHandle {
+    private val is: CountingInputStream = new CountingInputStream(System.in)
+    private val opened = new AtomicBoolean(false)
+    override def path: String = "<stdin>"
+    override def length: Long = is.getCount + Try(is.available()).getOrElse(0) // .available will throw if stream is closed
+    override def open: InputStream = if (opened.compareAndSet(false, true)) { is } else {
+      throw new IllegalStateException("Standard-in stream can only be opened once")
+    }
+  }
+
+  object StdInHandle {
+    // avoid hanging if there isn't any input
+    def available(): Option[FileHandle] = if (isAvailable) { Some(new StdInHandle) } else { None }
+
+    def isAvailable: Boolean = System.in.available() > 0
   }
 }
