@@ -62,9 +62,9 @@ class SimpleFeatureSimpleFeatureConverterTest extends Specification {
       val sf = builder.buildFeature("1")
 
       val ec = conv.createEvaluationContext()
-      val res = conv.processSingleInput(sf, ec)
+      val res = conv.processSingleInput(sf, ec).toSeq
 
-      "must not be null" >> { res must not beNull }
+      "must not be null" >> { res must not(beNull) }
       "numberx2 should be 2" >> { res.head.get[Int]("numberx2") must be equalTo 2 }
     }
 
@@ -105,9 +105,9 @@ class SimpleFeatureSimpleFeatureConverterTest extends Specification {
       val sf = builder.buildFeature("1")
 
       val ec = conv.createEvaluationContext()
-      val res = conv.processSingleInput(sf, ec)
+      val res = conv.processSingleInput(sf, ec).toSeq
 
-      "must not be null" >> { res must not beNull }
+      "must not be null" >> { res must not(beNull) }
       "numberx2 should be 2" >> { res.head.get[Int]("numberx2") must be equalTo 2 }
       "color must be blue" >> { res.head.get[String]("color") must be equalTo "blue" }
     }

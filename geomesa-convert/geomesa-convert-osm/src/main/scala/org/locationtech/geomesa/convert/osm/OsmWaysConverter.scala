@@ -44,7 +44,7 @@ class OsmWaysConverter(val targetSFT: SimpleFeatureType,
 
   private val insertStatement = connection.prepareStatement("INSERT INTO nodes(id, lon, lat) VALUES (?, ?, ?);")
 
-  override def fromInputType(i: OsmWay): Seq[Array[Any]] = {
+  override def fromInputType(i: OsmWay, ec: EvaluationContext): Iterator[Array[Any]] = {
     // TODO some ways are marked as 'area' and maybe should be polygons?
     // note: nodes may occur more than once in the way
     val nodeIds = Seq.range(0, i.getNumberOfNodes).map(i.getNodeId)
@@ -56,10 +56,10 @@ class OsmWaysConverter(val targetSFT: SimpleFeatureType,
     }
     if (nodes.size < 2) {
       logger.warn(s"Dropping way '${i.getId}' because it does not have enough valid nodes to form a linestring")
-      Seq.empty
+      Iterator.empty
     } else {
       val coords = nodes.map(n => new Coordinate(n.getLongitude, n.getLatitude))
-      Seq(toArray(i, gf.createLineString(coords.toArray)))
+      Iterator.single(toArray(i, gf.createLineString(coords.toArray)))
     }
   }
 
