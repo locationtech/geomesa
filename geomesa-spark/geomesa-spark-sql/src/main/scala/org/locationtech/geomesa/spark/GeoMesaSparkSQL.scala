@@ -173,9 +173,12 @@ class GeoMesaDataSource extends DataSourceRegister
 
     val ds = DataStoreFinder.getDataStore(parameters)
     val schemaInDs = ds.getTypeNames.contains(newFeatureName)
-    val schemaMatchesDs = schemaInDs && ds.getSchema(newFeatureName) == sft.getTypes
 
-    if (!schemaMatchesDs) {
+    if (schemaInDs) {
+      if (ds.getSchema(newFeatureName) != sft.getTypes) {
+        throw new IllegalStateException(s"The schema of the RDD conflicts with schema:$newFeatureName in the data store")
+      }
+    } else {
       sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
       ds.createSchema(sft)
     }
@@ -270,7 +273,9 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   }
 
   if (cache) {
-    // TODO: check if cqengine datastore is on the classpath
+    if (!DataStoreFinder.getAvailableDataStores.exists(spi => spi.canProcess(Map("cqengine"->"true")))) {
+      throw new IllegalArgumentException("Cache argument set to true but GeoCQEngineDataStore is not on the classpath")
+    }
     if (spatiallyPartition && indexPartRDD == null) {
       indexPartRDD = RelationUtils.indexPartitioned(encodedSFT, sft.getTypeName, partitionedRDD, indexId, indexGeom)
       partitionedRDD.unpersist() // make this call blocking?
