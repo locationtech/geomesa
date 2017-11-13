@@ -140,6 +140,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit =
     manager.indices(sft, IndexMode.Any).foreach(_.configure(sft, this))
 
+  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {}
+
   // delete the index tables
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
     val shared = sft.isTableSharing && getTypeNames.filter(_ != sft.getTypeName).map(getSchema).exists(_.isTableSharing)

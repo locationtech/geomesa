@@ -381,7 +381,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
       "throw an exception if join index is found" >> {
-        createNewSchema("name:String,dtg:Date:index=true,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
+        createNewSchema("name:String,dtg:Date:index=join,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
         createNewSchema("name:String,dtg:Date:index=join,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
       }
       "allow for full indices" >> {
@@ -434,7 +434,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "allow secondary attribute indexes" >> {
-      val sft = createNewSchema("name:String:index=true,numattr:Integer,dtg:Date,*geom:Point:srid=4326")
+      val sft = createNewSchema("name:String:index=join,numattr:Integer,dtg:Date,*geom:Point:srid=4326")
       val sftName = sft.getTypeName
 
       "create all appropriate tables" >> {
@@ -471,7 +471,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should end up hex encoded
       val sftName = "nihao你好"
-      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=join,dtg:Date,*geom:Point:srid=4326")
       sft.setTableSharing(false)
       ds.createSchema(sft)
 
@@ -741,7 +741,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val catalog = "AccumuloDataStoreDeleteAllTablesTest"
       // note the table needs to be different to prevent testing errors
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)).asInstanceOf[AccumuloDataStore]
-      val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
       val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog)
       tables must haveSize(5)

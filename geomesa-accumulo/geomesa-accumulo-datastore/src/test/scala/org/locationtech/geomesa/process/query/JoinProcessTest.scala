@@ -22,7 +22,7 @@ class JoinProcessTest extends Specification with TestWithMultipleSfts {
   sequential
 
   val sft1 = createNewSchema("track:String,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
-  val sft2 = createNewSchema("track:String:index=true,dtg:Date,*geom:Point:srid=4326")
+  val sft2 = createNewSchema("track:String:index=join,dtg:Date,*geom:Point:srid=4326")
 
   val features1 = (0 until 10).map { i =>
     val sf = new ScalaSimpleFeature(sft1, i.toString)

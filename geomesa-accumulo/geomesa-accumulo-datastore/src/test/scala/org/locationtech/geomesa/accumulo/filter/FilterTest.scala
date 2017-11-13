@@ -108,7 +108,7 @@ class FilterTest extends Specification with TestWithDataStore with LazyLogging {
 @RunWith(classOf[JUnitRunner])
 class IdQueryTest extends Specification with TestWithDataStore {
 
-  override val spec = "age:Int:index=true,name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "age:Int:index=join,name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
