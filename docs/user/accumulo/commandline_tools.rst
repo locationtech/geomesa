@@ -376,6 +376,13 @@ Using the SFT and Converter config files we can then ingest our csv file with th
 
 For more documentation on converter configuration, see :doc:`/user/convert/index`.
 
+In addition to specifying input files on the command line, you may also pipe data using `stdin`. Note that this will
+only work in local mode, and will only use a single thread for ingestion. Progress indicators may not be entirely
+accurate as the total size isn't known up front. For example::
+
+    $ cat example.csv | geomesa ingest -u username -p password \
+      -c geomesa_catalog -i instance -s /tmp/renegades.sft
+
 Shape files may also be ingested::
 
     $ geomesa ingest -u username -p password \

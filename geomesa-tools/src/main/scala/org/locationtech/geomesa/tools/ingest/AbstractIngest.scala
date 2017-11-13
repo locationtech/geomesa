@@ -183,12 +183,10 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     Command.user.info(s"Ingesting ${if (stdin) { "from stdin" } else { TextTools.getPlural(files.length, "file") }} " +
         s"with ${TextTools.getPlural(threads, "thread")}")
 
-    def fileLength() = files.map(_.length).sum.toFloat
-
     val totalLength: () => Float = if (stdin) {
-      fileLength // re-evaluate each time as bytes are read from stdin
+      () => (bytesRead.get + files.map(_.length).sum).toFloat // re-evaluate each time as bytes are read from stdin
     } else {
-      val length = fileLength() // only evaluate once
+      val length = files.map(_.length).sum.toFloat // only evaluate once
       () => length
     }
 

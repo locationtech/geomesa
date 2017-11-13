@@ -68,13 +68,9 @@ object LocalDelegate {
   }
 
   class StdInHandle extends FileHandle {
-    private val is: CountingInputStream = new CountingInputStream(System.in)
-    private val opened = new AtomicBoolean(false)
     override def path: String = "<stdin>"
-    override def length: Long = is.getCount + Try(is.available()).getOrElse(0) // .available will throw if stream is closed
-    override def open: InputStream = if (opened.compareAndSet(false, true)) { is } else {
-      throw new IllegalStateException("Standard-in stream can only be opened once")
-    }
+    override def length: Long = Try(System.in.available().toLong).getOrElse(0L) // .available will throw if stream is closed
+    override def open: InputStream = System.in
   }
 
   object StdInHandle {
