@@ -59,7 +59,7 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
 
     def features() = ConvertCommand.convertFeatures(params.files, converter, ec, filter, maxFeatures)
 
-    val exporter = getExporter(params, sft, features())
+    val exporter = getExporter(params, features())
 
     try {
       exporter.start(sft)
@@ -87,9 +87,7 @@ object ConvertCommand extends LazyLogging {
     SimpleFeatureConverters.build(sft, converterConfig)
   }
 
-  def getExporter(params: ConvertParameters,
-                  sft: SimpleFeatureType,
-                  features: => Iterator[SimpleFeature]): FeatureExporter = {
+  def getExporter(params: ConvertParameters, features: => Iterator[SimpleFeature]): FeatureExporter = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     lazy val outputStream: OutputStream = ExportCommand.createOutputStream(params.file, params.gzip)
@@ -99,7 +97,7 @@ object ConvertCommand extends LazyLogging {
       val q = new Query("")
       Option(params.hints).foreach { hints =>
         q.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
-        ViewParams.setHints(sft, q)
+        ViewParams.setHints(q)
       }
       q.getHints
     }

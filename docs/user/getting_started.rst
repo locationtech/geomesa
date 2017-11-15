@@ -1,8 +1,7 @@
 Getting Started
 ===============
 
-This chapter highlights several features of GeoMesa, along with tutorials that describe for getting started with
-these capabilities.
+This chapter highlights several features of GeoMesa, along with tutorials for getting started.
 
 GeoMesa Accumulo
 ----------------
@@ -19,7 +18,7 @@ GeoDocker: Bootstrapping GeoMesa Accumulo and Spark on AWS
 
 Getting started with spatio-temporal analysis with GeoMesa, Accumulo, and Spark on Amazon Web Services (AWS) is incredibly simple, thanks to the `Geodocker <https://github.com/geodocker/geodocker-geomesa>`_ project.  The guide below describes how to bootstrap a GeoMesa Accumulo cluster using Amazon ElasticMapReduce (EMR) and Docker in order to ingest and query sample GDELT data.
 
-See :doc:`/tutorials/geodocker-geomesa-spark-on-aws`.
+See :doc:`/tutorials/geodocker-geomesa/geodocker-geomesa-spark-on-aws`.
 
 GeoMesa Kafka
 -------------

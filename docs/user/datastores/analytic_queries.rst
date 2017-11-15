@@ -1,11 +1,11 @@
+.. _analytic_queries:
+
 Analytic Querying
 =================
 
 GeoMesa provides advanced query capabilities through GeoTools query hints. You can use these hints to control
 various aspects of query processing, or to trigger distributed analytic processing. See :ref:`query_hints`
 for details on setting query hints.
-
-.. _analytic_queries:
 
 Feature Sampling
 ----------------

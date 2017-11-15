@@ -1,3 +1,5 @@
+.. _upgrade_guide:
+
 Upgrade Guide
 =============
 
@@ -37,6 +39,29 @@ Kafka Data Store
 
 The Kafka Data Store has been rewritten into a single implementation for Kafka 0.9 and 0.10. Support for
 Kafka 0.8 has been removed. See :ref:`kafka_index` for more information.
+
+Accumulo Standardization
+------------------------
+
+In order to standardize behavior between data store implementations, some behaviors of the ``AccumuloDataStore``
+have been modified.
+
+Attribute Index Coverage
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Accumulo attribute indices specified with ``index=true`` will now create full attribute indices, instead of
+join indices. To create a join index, explicitly specify ``index=join``. Existing schemas are not affected.
+
+Record Index Identifier
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The Accumulo ``record`` index has been renamed to the ``id`` index. In general practice, this will have no effect,
+however when specifying ``geomesa.indices.enabled``, the value ``id`` must be used in place of ``records``.
+
+Tools Command Name
+^^^^^^^^^^^^^^^^^^
+
+The Accumulo command line tools script has been renamed from ``geomesa`` to ``geomesa-accumulo``.
 
 System Properties
 -----------------

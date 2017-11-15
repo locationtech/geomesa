@@ -352,6 +352,8 @@ There are two ways to get the coprocessor code on the classpath.
 For more information on managing coprocessors see
 `Coprocessor Introduction <https://blogs.apache.org/hbase/entry/coprocessor_introduction>`_ on Apache's Blog.
 
+.. _install_hbase_geoserver:
+
 Installing GeoMesa HBase in GeoServer
 -------------------------------------
 

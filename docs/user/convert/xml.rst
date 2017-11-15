@@ -1,3 +1,5 @@
+.. _xml_converter:
+
 Parsing XML
 -----------
 

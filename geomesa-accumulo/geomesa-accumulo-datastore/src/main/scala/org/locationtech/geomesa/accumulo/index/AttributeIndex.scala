@@ -22,6 +22,7 @@ import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.{Attribute
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
+import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV2
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
@@ -362,8 +363,11 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       providedDictionaries, hints.isArrowCachedDictionaries)
 
     // apply any secondary filters or transforms against the record table
-    val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
-      throw new RuntimeException("Record index does not exist for join query")
+    val recordIndex = {
+      val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+      indices.find(AccumuloFeatureIndex.RecordIndices.contains).getOrElse {
+        throw new RuntimeException("Record index does not exist for join query")
+      }
     }
     val recordIter = if (hints.isArrowQuery) {
       if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||

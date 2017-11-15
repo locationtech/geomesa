@@ -1,6 +1,3 @@
-Security
-========
-
 .. _audit_provider:
 
 Query Auditing
@@ -19,12 +16,3 @@ for details on implementing a service provider.
 
 The GeoMesa Accumulo GeoServer plugin comes bundled with an ``AuditProvider`` that pulls user credentials from
 GeoServer's Spring security framework - ``org.locationtech.geomesa.plugin.security.SpringAuditProvider``.
-
-Apache Commons Collections
---------------------------
-
-Version 3.2.1 and earlier of the Apache Commons Collections library have a CVSS 10.0 vulnerability.  Read
-more `here <https://commons.apache.org/proper/commons-collections/security-reports.html>`__.
-
-Accumulo 1.6.5+ and GeoServer 2.8.3+/2.9.0+ include the patched JAR. Users on older versions should install
-the newer jar manually.

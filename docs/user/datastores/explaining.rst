@@ -26,11 +26,10 @@ Given a GeoMesa data store and a query, use the following method:
 ``ExplainPrintln`` will write to ``System.out``. Alternatively, you can use ``ExplainString`` or
 ``ExplainLogging`` to redirect the output elsewhere.
 
+Using the binary distribution, you can print out an explain plan using the ``explain`` command. See
+:ref:`cli_explain` for more details.
+
 GeoServer
 ^^^^^^^^^
 
-For enabling explain loggingn in GeoServer, see :ref:`geoserver_explain_query`. It may also be helpful to
-refer to GeoServer's `Advanced log configuration`__ documentation for the specifics of how and where to
-manage the GeoServer logs.
-
-__ http://docs.geoserver.org/stable/en/user/configuration/logging.html
+For enabling explain loggingn in GeoServer, see :ref:`geoserver_explain_query`.

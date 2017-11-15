@@ -47,8 +47,8 @@ tools classpath:
 
 ::
 
-    geomesa env | grep osm-nodes
-    geomesa env | grep osm-ways
+    $ geomesa-accumulo env | grep osm-nodes
+    $ geomesa-accumulo env | grep osm-ways
 
 Ingest Configuration
 --------------------
@@ -62,10 +62,10 @@ Ingest Commands
 ---------------
 
 Run the ingest. You may optionally point to a different accumulo
-instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``
+instance using ``-i`` and ``-z`` options. See ``geomesa-accumulo help ingest``
 for more detail.
 
 ::
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s osm-nodes -C osm-nodes test.osm
+    $ geomesa-accumulo ingest -u USERNAME -c CATALOGNAME -s osm-nodes -C osm-nodes test.osm
 

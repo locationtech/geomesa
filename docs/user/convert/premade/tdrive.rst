@@ -46,18 +46,18 @@ tools classpath. This is the default case.
 
 ::
 
-    geomesa env | grep tdrive
+    $ geomesa-accumulo env | grep tdrive
 
 If it is not, merge the contents of ``reference.conf`` with
 ``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
 ``reference.conf`` is in ``$GEOMESA_ACCUMULO_HOME/conf/sfts/tdrive``.
 
 Run the ingest. You may optionally point to a different accumulo
-instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``
+instance using ``-i`` and ``-z`` options. See ``geomesa-accumulo help ingest``
 for more detail.
 
 ::
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s tdrive -C tdrive tdrive_data.txt
+    $ geomesa-accumulo ingest -u USERNAME -c CATALOGNAME -s tdrive -C tdrive tdrive_data.txt
 
 Any errors during the ingest will be logged to ``$GEOMESA_ACCUMULO_HOME/logs``.

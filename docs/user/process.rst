@@ -91,7 +91,7 @@ Parameters  Description
 features    The feature set on which to query. Can be a raw text input, reference to a remote URL, a subquery or a vector layer.
 statString  Stat string indicating which stats to instantiate. More info here :ref:`statString`.
 encode      Return the values encoded as json. Must be ``true`` or ``false``; empty values will not work.
-properties  The properties / transforms to apply before gathering stats. More info here :ref:`transformationsAndProjections`.
+properties  The properties / transforms to apply before gathering stats.
 ==========  ===========
 
 .. _statString:

@@ -36,7 +36,7 @@ tools classpath. This is the default case.
 
 ::
 
-    geomesa env | grep twitter
+    $ geomesa-accumulo env | grep twitter
 
 If it is not, merge the contents of ``reference.conf`` with
 ``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
@@ -49,6 +49,6 @@ ingest, and their geometries will remain as set in the first pass.
 
 ::
 
-    geomesa ingest -u USERNAME -c CATALOG -s twitter -C twitter-place-centroid hdfs://namenode:port/path/to/twitter/*
-    geomesa ingest -u USERNAME -c CATALOG -s twitter -C twitter hdfs://namenode:port/path/to/twitter/*
+    $ geomesa-accumulo ingest -u USERNAME -c CATALOG -s twitter -C twitter-place-centroid hdfs://namenode:port/path/to/twitter/*
+    $ geomesa-accumulo ingest -u USERNAME -c CATALOG -s twitter -C twitter hdfs://namenode:port/path/to/twitter/*
 

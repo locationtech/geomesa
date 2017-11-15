@@ -1,5 +1,5 @@
 GeoMesa Spark SQL on Google Cloud Dataproc
-==========================================================
+==========================================
 
 GeoMesa can run Spark SQL with Bigtable as the underlying datastore.  In order to set up Spark SQL,
 you will need to launch a Google Cloud Dataproc cluster.  First, you will need to install the Google

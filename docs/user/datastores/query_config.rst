@@ -39,8 +39,8 @@ Hint values will be converted into the appropriate types. See below for availabl
 Command-Line Tools
 ^^^^^^^^^^^^^^^^^^
 
-When exporting features through the GeoMesa command line tools, query hints can be set using the `--hints` parameter.
-Hints should be specified in the form `key1=value1;key2=value2`. Hints are converted to the appropriate type
+When exporting features through the GeoMesa command line tools, query hints can be set using the ``--hints`` parameter.
+Hints should be specified in the form ``key1=value1;key2=value2``. Hints are converted to the appropriate type
 according to the conventions for GeoServer hints.
 
 Loose Bounding Box

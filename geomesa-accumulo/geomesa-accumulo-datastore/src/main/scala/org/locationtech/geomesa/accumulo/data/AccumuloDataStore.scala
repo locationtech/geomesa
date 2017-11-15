@@ -134,15 +134,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   @throws(classOf[IllegalArgumentException])
   override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
     // check for old enabled indices and re-map them
-    SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.find(sft.getUserData.containsKey).foreach { key =>
-      val indices = sft.getUserData.remove(key).toString.split(",").map(_.trim.toLowerCase)
-      // check for old attribute index name
-      val enabled = if (indices.contains("attr_idx")) {
-        indices.updated(indices.indexOf("attr_idx"), AttributeIndex.name)
-      } else {
-        indices
-      }
-      sft.getUserData.put(SimpleFeatureTypes.Configs.ENABLED_INDICES, enabled.mkString(","))
+    SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.drop(1).find(sft.getUserData.containsKey).foreach { key =>
+      sft.getUserData.put(SimpleFeatureTypes.Configs.ENABLED_INDICES, sft.getUserData.remove(key))
     }
 
     super.validateNewSchema(sft)

@@ -35,53 +35,21 @@ Some queries are slow to answer using the default indices. For example, with twi
 might want to return all tweets for a given user. To speed up this type of query, any
 attribute in your simple feature type may be indexed individually.
 
-To index an attribute, add an ``index`` hint to the attribute descriptor with a value of ``true``. To set
-the cardinality of an attribute, use the hint ``cardinality`` with a value of ``high`` or ``low`` (see below
+To index an attribute, add an ``index`` key to the attribute descriptor user data with a value of ``true``. To set
+the cardinality of an attribute, use the key ``cardinality`` with a value of ``high`` or ``low`` (see below
 for a description of cardinality hints).
 
-.. warning::
+.. note::
 
-    Accumulo data stores have an additional option to create reduced 'join' attribute indices, and will
-    use the reduced format by default. See :ref:`accumulo_attribute_indices` for details.
-
-Setting the hint can be done in multiple ways. If you are using a string to indicate your simple feature type
-(e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
-the hint to the attribute to be indexed, like so:
+    Accumulo data stores have an additional option to create reduced 'join' attribute indices, which can
+    save space. See :ref:`accumulo_attribute_indices` for details.
 
 .. code-block:: java
 
-    // append the hint after the attribute type, separated by a colon
-    String spec = "name:String:index=true:cardinality=high,age:Int:index=true,dtg:Date,*geom:Point:srid=4326"
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-
-If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
-you may set the hint directly in the feature type:
-
-.. code-block:: java
-
-    // set the hint directly
     SimpleFeatureType sft = ...
     sft.getDescriptor("name").getUserData().put("index", "true");
     sft.getDescriptor("name").getUserData().put("cardinality", "high");
     sft.getDescriptor("age").getUserData().put("index", "true");
-
-If you are using TypeSafe configuration files to define your simple feature type, you may include the hint in
-the attribute field:
-
-.. code-block:: javascript
-
-    geomesa {
-      sfts {
-        "mySft" = {
-          attributes = [
-            { name = name, type = String, index = true, cardinality = high }
-            { name = age,  type = Int,    index = true                     }
-            { name = dtg,  type = Date                                     }
-            { name = geom, type = Point,  srid = 4326                      }
-          ]
-        }
-      }
-    }
 
 If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
 
@@ -97,6 +65,8 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .date("dtg")
         .geometry("geom", default = true)
         .build("mySft")
+
+Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
 
 Cardinality Hints
 ^^^^^^^^^^^^^^^^^

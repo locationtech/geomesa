@@ -143,6 +143,11 @@ is printed out when you start GeoServer::
     - GEOSERVER_DATA_DIR: /path/to/geoserver-data-dir
     ----------------------------------
 
+It may also be helpful to refer to GeoServer's `Advanced log configuration`__ documentation for the
+specifics of how and where to manage the GeoServer logs.
+
+__ http://docs.geoserver.org/stable/en/user/configuration/logging.html
+
 Monitoring GeoMesa DataStores
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
