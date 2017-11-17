@@ -142,8 +142,18 @@ object AccumuloDataStoreFactory {
     val authProvider = buildAuthsProvider(connector, params)
     val auditProvider = buildAuditProvider(params)
 
-    val auditQueries = !connector.isInstanceOf[MockConnector] &&
-        (auditQueriesParam.lookupWithDefault[Boolean](params) || collectQueryStatsParam.lookupWithDefault[Boolean](params))
+    // if explicit, use param, else if mocked, false, else use default
+    val auditQueries = {
+      val withDefault =
+        auditQueriesParam.lookupWithDefault[Boolean](params) ||
+            collectQueryStatsParam.lookupWithDefault[Boolean](params)
+      if (params.containsKey(auditQueriesParam.key) || params.containsKey(collectQueryStatsParam.key)) {
+        withDefault
+      } else {
+        !connector.isInstanceOf[MockConnector] && withDefault
+      }
+    }
+
     val auditService = {
       val auditTable = GeoMesaFeatureIndex.formatSharedTableName(catalog, "queries")
       new AccumuloAuditService(connector, authProvider, auditTable, auditQueries)

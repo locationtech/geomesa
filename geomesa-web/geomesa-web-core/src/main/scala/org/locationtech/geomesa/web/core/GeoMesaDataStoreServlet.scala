@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.web.core
 
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.scalatra.{BadRequest, NotFound, Ok}
 
 import scala.collection.JavaConversions._
@@ -20,10 +20,11 @@ import scala.util.Try
 
 trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
 
+  import AccumuloDataStoreParams.passwordParam
+
   type PasswordHandler = AnyRef { def encode(value: String): String; def decode(value: String): String }
 
-  private var passwordHandler: PasswordHandler = null
-  private val passwordKey = AccumuloDataStoreParams.passwordParam.getName
+  private var passwordHandler: Option[PasswordHandler] = None
 
   private val dataStoreCache = new ConcurrentHashMap[String, AccumuloDataStore]
 
@@ -51,8 +52,9 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
 
   override def getPersistedDataStore(alias: String): Map[String, String] = {
     val map = super.getPersistedDataStore(alias)
-    val withPassword = for { handler <- Option(passwordHandler); pw <- map.get(passwordKey) } yield {
-      map.updated(passwordKey, handler.decode(pw))
+    val withPassword = for { handler <- passwordHandler; pw <- map.get(passwordParam.getName) } yield {
+      // noinspection LanguageFeature
+      map.updated(passwordParam.getName, handler.decode(pw))
     }
     withPassword.getOrElse(map)
   }
@@ -70,7 +72,8 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
       val alias = params("alias")
       val prefix = keyFor(alias)
       val toPersist = dsParams.map { case (k, v) =>
-        val value = if (k == passwordKey && passwordHandler != null) { passwordHandler.encode(v) } else { v }
+        // noinspection LanguageFeature
+        val value = if (k == passwordParam.getName) { passwordHandler.map(_.encode(v)).getOrElse(v) } else { v }
         keyFor(alias, k) -> value
       }
       try {
@@ -123,12 +126,12 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
   }
 
   private def filterPasswords(map: Map[String, String]): Map[String, String] = map.map {
-    case (k, v) if "password".equalsIgnoreCase(k) => (k, "***")
+    case (k, _) if k.toLowerCase(Locale.US).contains("password") => (k, "***")
     case (k, v) => (k, v)
   }
 
   // spring bean accessors for password handler
-  def setPasswordHandler(handler: PasswordHandler): Unit = this.passwordHandler = handler
-  def getPasswordHandler: PasswordHandler = passwordHandler
+  def setPasswordHandler(handler: PasswordHandler): Unit = this.passwordHandler = Option(handler)
+  def getPasswordHandler: PasswordHandler = passwordHandler.orNull
 }
 

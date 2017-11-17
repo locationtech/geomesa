@@ -16,6 +16,7 @@ import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryRunner
@@ -52,7 +53,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
           System.currentTimeMillis(),
           provider.getCurrentUserId,
           filterToString(query.getFilter),
-          QueryEvent.hintsToString(query.getHints),
+          ViewParams.getReadableHints(query),
           0,
           0,
           0
