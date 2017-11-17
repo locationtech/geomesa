@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.geoserver
 
 import java.util.{Locale, Map => jMap}
 
+import com.google.common.collect.ImmutableBiMap
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.factory.Hints
@@ -17,6 +18,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -28,11 +30,23 @@ object ViewParams extends LazyLogging {
   import scala.collection.JavaConversions._
 
   // note: keys in the view params map are always uppercase
-  private val hints = {
+  private val hints: ImmutableBiMap[String, Hints.Key] = {
     val methods = QueryHints.getClass.getDeclaredMethods.filter { m =>
       m.getParameterCount == 0 && classOf[Hints.Key].isAssignableFrom(m.getReturnType)
     }
-    methods.map(m => m.getName.toUpperCase -> m.invoke(QueryHints).asInstanceOf[Hints.Key]).toMap
+    val map = ImmutableBiMap.builder[String, Hints.Key]()
+    methods.foreach(m => map.put(m.getName.toUpperCase, m.invoke(QueryHints).asInstanceOf[Hints.Key]))
+    map.build()
+  }
+
+  private val internalHints: Map[Hints.Key, String]  = {
+    val methods = QueryHints.Internal.getClass.getDeclaredMethods.filter { m =>
+      m.getParameterCount == 0 && classOf[Hints.Key].isAssignableFrom(m.getReturnType)
+    }
+    val map = Map.newBuilder[Hints.Key, String]
+    map.sizeHint(methods.length)
+    methods.foreach(m => map += ((m.invoke(QueryHints.Internal).asInstanceOf[Hints.Key], m.getName.toUpperCase)))
+    map.result()
   }
 
   private val envelope = """\[\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)\s*]""".r
@@ -53,8 +67,8 @@ object ViewParams extends LazyLogging {
     params.foreach { case (original, value) =>
       val key = if (original == "STRATEGY") { "QUERY_INDEX" } else { original }
       hints.get(key) match {
-        case None => logger.debug(s"Ignoring view param $key=$value")
-        case Some(hint) =>
+        case null => logger.debug(s"Ignoring view param $key=$value")
+        case hint =>
           try {
             val setHint = setQueryHint(query, key, hint) _
             hint.getValueClass match {
@@ -71,6 +85,38 @@ object ViewParams extends LazyLogging {
           }
       }
     }
+  }
+
+  /**
+    * Maps query hints to readable strings
+    *
+    * @param query query
+    * @return
+    */
+  def getReadableHints(query: Query): String = {
+    val readable = Seq.newBuilder[String]
+    readable.sizeHint(query.getHints.size())
+    query.getHints.foreach { case (k: Hints.Key, v) =>
+      val key = hintToString(k)
+      val value = v match {
+        case null => "null"
+        case sft: SimpleFeatureType => SimpleFeatureTypes.encodeType(sft)
+        case s => s.toString
+      }
+      readable += s"$key=$value"
+    }
+    readable.result.sorted.mkString(", ")
+  }
+
+  def hintToString(hint: Hints.Key): String = {
+    // for reference, old values in case we need them:
+    // case BIN_TRACK      => "BIN_TRACK_KEY"
+    // case STATS_STRING   => "STATS_STRING_KEY"
+    // case ENCODE_STATS   => "RETURN_ENCODED"
+    // case DENSITY_BBOX   => "DENSITY_BBOX_KEY"
+    // case DENSITY_WIDTH  => "WIDTH_KEY"
+    // case DENSITY_HEIGHT => "HEIGHT_KEY"
+    Option(hints.inverse().get(hint)).orElse(internalHints.get(hint)).getOrElse("unknown_hint")
   }
 
   private def setQueryHint(query: Query, name: String, hint: Hints.Key)(value: Any): Unit = {

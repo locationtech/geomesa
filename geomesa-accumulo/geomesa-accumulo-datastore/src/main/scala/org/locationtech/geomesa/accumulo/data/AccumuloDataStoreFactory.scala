@@ -145,7 +145,10 @@ object AccumuloDataStoreFactory {
     val authProvider = buildAuthsProvider(connector, params)
     val auditProvider = buildAuditProvider(params)
 
-    val auditQueries = !connector.isInstanceOf[MockConnector] && AuditQueriesParam.lookup(params)
+    // if explicit, use param, else if mocked, false, else use default
+    val auditQueries = if (AuditQueriesParam.exists(params)) { AuditQueriesParam.lookup(params).booleanValue() } else {
+      !connector.isInstanceOf[MockConnector] && AuditQueriesParam.default
+    }
     val auditService = {
       val auditTable = GeoMesaFeatureIndex.formatSharedTableName(catalog, "queries")
       new AccumuloAuditService(connector, authProvider, auditTable, auditQueries)
