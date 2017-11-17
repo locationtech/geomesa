@@ -35,6 +35,7 @@
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
         <module>geomesa-jobs</module>
+        <module>geomesa-jts-spark</module>
         <module>geomesa-jupyter</module>
         <module>geomesa-kafka</module>
         <module>geomesa-lambda</module>
