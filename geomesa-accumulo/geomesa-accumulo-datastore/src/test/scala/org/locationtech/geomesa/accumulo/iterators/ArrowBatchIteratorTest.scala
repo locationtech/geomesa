@@ -28,7 +28,7 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326"
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 

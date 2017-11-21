@@ -1,3 +1,5 @@
+.. _upgrade_guide:
+
 Upgrade Guide
 =============
 
@@ -37,6 +39,13 @@ Kafka Data Store
 
 The Kafka Data Store has been rewritten into a single implementation for Kafka 0.9 and 0.10. Support for
 Kafka 0.8 has been removed. See :ref:`kafka_index` for more information.
+
+Accumulo Attribute Indices
+--------------------------
+
+In order to standardize behavior between data store implementations, attributes specified with ``index=true`` will
+now create full attribute indices in the ``AccumuloDataStore``, instead of join indices. To create a join index,
+explicitly specify ``index=join``. Existing schemas are not affected.
 
 System Properties
 -----------------
