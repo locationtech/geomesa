@@ -122,9 +122,9 @@ following query hints:
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_INCLUDE_FID        | Boolean (optional) |                      |
 +-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DICTIONARY_FIELDS  | String  (optional) |                      |
+| QueryHints.ARROW_DICTIONARY_FIELDS  | String (optional)  |                      |
 +-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DICTIONARY_VALUES  | String  (optional) |                      |
+| QueryHints.ARROW_DICTIONARY_VALUES  | String (optional)  |                      |
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_DICTIONARY_COMPUTE | Boolean (optional) |                      |
 +-------------------------------------+--------------------+                      +
@@ -205,10 +205,8 @@ Example Query
 
     .. code-tab:: scala
 
+        import java.io.ByteArrayOutputStream
         import org.geotools.data.Transaction
-        import org.geotools.geometry.jts.ReferencedEnvelope.ReferencedEnvelope
-        import org.geotools.referencing.CRS
-        import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
         import org.locationtech.geomesa.index.conf.QueryHints
 
         query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
@@ -222,3 +220,104 @@ Example Query
         reader.close()
 
         // use ArrowStreamReader or other Arrow libraries to process bytes
+
+
+Binary Encoding
+---------------
+
+GeoMesa supports returning features in a custom binary format (referred to as BIN) that uses 16 or 24 bytes
+per feature. This provides an extremely compact representation of a few key attributes.
+
+The 16 byte BIN format is as follows::
+
+    <4 byte int><4 byte int><4 byte floating point><4 byte floating point>
+
+The first integer is referred to as a track ID, and is generally used to group related points. For example,
+a line string may be turned into several BIN records with a common track ID. The second integer is a date
+represented as the number of seconds since the Java epoch (Jan. 1, 1970). The two floating point numbers
+represent the latitude and longitude of the record, respectively.
+
+The 24 byte BIN format is the same as the 16 byte version, but with an additional 8 bytes at the end for
+arbitrary data.
+
+The result of a BIN query will be an iterator of SimpleFeatures, where the first attribute of each will be a
+byte array containing one or more BIN-encoded features.
+
+In GeoServer you can use the ``BinConversionProcess``. Otherwise, the encoding is controlled through the
+following query hints:
+
++---------------------------+--------------------+----------------------+
+| Key                       | Type               | GeoServer Conversion |
++===========================+====================+======================+
+| QueryHints.BIN_TRACK      | String             | Use WPS              |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_GEOM       | String (optional)  |                      |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_DTG        | String (optional)  |                      |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_LABEL      | String (optional)  |                      |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_SORT       | Boolean (optional) |                      |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_BATCH_SIZE | Integer (optional) |                      |
++---------------------------+--------------------+----------------------+
+
+Explanation of Hints
+++++++++++++++++++++
+
+BIN_TRACK
+^^^^^^^^^
+
+This hint is used to trigger a BIN query. It should be the name of an attribute that will be used to
+generate the track ID for each record.
+
+BIN_GEOM
+^^^^^^^^
+
+This hint controls the geometry attribute used for each record. If omitted, the default geometry of the
+feature type is used.
+
+BIN_DTG
+^^^^^^^
+
+This hint controls the date attribute used for each record. If omitted, the default date of the feature type
+is used.
+
+BIN_LABEL
+^^^^^^^^^
+
+This hint will trigger the creation of 24-byte records, instead of the standard 16. It should be the
+name of an attribute that will be used to general the label for each record.
+
+BIN_SORT
+^^^^^^^^
+
+This hint will cause the records to be sorted. It should be the name of an attribute in the feature type.
+
+BIN_BATCH_SIZE
+^^^^^^^^^^^^^^
+
+This hint controls the batch size used when generating BIN records.
+
+Example Query
++++++++++++++
+
+.. tabs::
+
+    .. code-tab:: scala
+
+        import java.io.ByteArrayOutputStream
+        import org.geotools.data.Transaction
+        import org.locationtech.geomesa.index.conf.QueryHints
+
+        query.getHints.put(QueryHints.BIN_TRACK, "name")
+
+        val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
+        val os = new ByteArrayOutputStream()
+
+        while (reader.hasNext) {
+          os.write(reader.next().getAttribute(0).asInstanceOf[Array[Byte]])
+        }
+        reader.close()
+
+        // process bytes appropriately

@@ -5,14 +5,18 @@ Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa FileSystem artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
-and untar it somewhere convenient:
+The easiest way to get started is to download the most recent binary version
+(|release|) from `GitHub`__.
+
+__ https://github.com/locationtech/geomesa/releases
+
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
-    # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-fs-dist_2.11/$VERSION/geomesa-fs-dist_2.11-$VERSION-bin.tar.gz
-    $ tar xvf geomesa-fs_2.11-$VERSION-bin.tar.gz
+    # download and unpackage the most recent distribution:
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-fs-dist_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-fs-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-fs-dist_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/

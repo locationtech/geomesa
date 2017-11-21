@@ -117,19 +117,19 @@ rst_epilog = """
 
 .. |release_tutorial| replace:: %(release_tutorial)s
 
-.. |maven_version| replace:: 3.2.2 or better
+.. |maven_version| replace:: 3.2.2 or later
 
-.. |geoserver_version| replace:: 2.9.x
+.. |geoserver_version| replace:: 2.12.x
 
-.. |geotools_version| replace:: 15.x
+.. |geotools_version| replace:: 18.x
 
 .. |accumulo_version| replace:: 1.7 or 1.8
 
-.. |hadoop_version| replace:: 2.2 or better
+.. |hadoop_version| replace:: 2.2 or later
 
-.. |zookeeper_version| replace:: 3.4.5 or better
+.. |zookeeper_version| replace:: 3.4.5 or later
 
-.. |kafka_version| replace:: 0.9.x or 0.10.x
+.. |kafka_version| replace:: 0.9.x or later
 
 .. |cassandra_version| replace:: 3.x
 
