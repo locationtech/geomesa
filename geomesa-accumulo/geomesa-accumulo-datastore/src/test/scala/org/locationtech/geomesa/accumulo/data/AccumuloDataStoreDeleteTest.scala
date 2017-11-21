@@ -35,7 +35,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
   lazy val tableOps = ds.connector.tableOperations()
 
   def createFeature(tableSharing: Boolean,
-                    schema: String = "name:String:index=true,*geom:Point:srid=4326,dtg:Date") = {
+                    schema: String = "name:String:index=join,*geom:Point:srid=4326,dtg:Date") = {
     val sft = createNewSchema(schema, Some("dtg"), tableSharing)
 
     // create a feature
@@ -202,7 +202,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
     }
 
     "delete non-point geometries" >> {
-      val spec = "name:String:index=true,*geom:Geometry:srid=4326,dtg:Date;geomesa.mixed.geometries='true'"
+      val spec = "name:String:index=join,*geom:Geometry:srid=4326,dtg:Date;geomesa.mixed.geometries='true'"
       val sft1 = createFeature(tableSharing = true, spec)
       val sft2 = createFeature(tableSharing = false, spec)
 
@@ -256,7 +256,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val catalog = "AccumuloDataStoreTotalDeleteTest"
       val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-      val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
       val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog, s"${catalog}_stats")
       tables must haveSize(6)

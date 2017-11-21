@@ -32,7 +32,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,weight:Double:index=true,ml:List[String],dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=join,weight:Double:index=join,ml:List[String],dtg:Date,*geom:Point:srid=4326"
 
   import java.{util => jl}
   def toJavaList(s: Seq[String]): java.util.List[String] = s.asJava

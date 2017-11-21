@@ -467,7 +467,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "support IN queries without dtg on indexed string attributes" in {
-      val sft = createNewSchema("name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+      val sft = createNewSchema("name:String:index=join,dtg:Date,*geom:Point:srid=4326")
 
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
       addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", "2010-05-07T01:00:00.000Z", "POINT(45 46)"))

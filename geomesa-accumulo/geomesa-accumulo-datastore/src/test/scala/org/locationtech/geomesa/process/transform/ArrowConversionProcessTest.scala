@@ -29,7 +29,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,team:String,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=join,team:String,dtg:Date,*geom:Point:srid=4326"
 
   implicit val allocator = new RootAllocator(Long.MaxValue)
 

@@ -98,6 +98,11 @@ provides the script ``build/mvn``, which is a wrapper around Maven that download
 
     build/mvn clean install -T8 -DskipTests
 
+Upgrading
+---------
+
+For details on changes between versions, see :ref:`upgrade_guide`.
+
 Legal Review
 ------------
 

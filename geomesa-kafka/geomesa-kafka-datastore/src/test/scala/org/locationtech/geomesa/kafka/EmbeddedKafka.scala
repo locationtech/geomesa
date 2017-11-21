@@ -33,6 +33,11 @@ class EmbeddedKafka extends Closeable {
 
   val brokers = s"127.0.0.1:${server.socketServer.boundPort()}"
 
+  // for kafka 1.0.0:
+  // import org.apache.kafka.common.network.ListenerName
+  // import org.apache.kafka.common.security.auth.SecurityProtocol
+  // val brokers = s"127.0.0.1:${server.socketServer.boundPort(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT))}"
+
   override def close(): Unit = {
     try { server.shutdown() } catch { case _: Throwable => }
     try { zookeeper.shutdown() } catch { case _: Throwable => }
