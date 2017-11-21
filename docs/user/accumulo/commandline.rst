@@ -91,6 +91,55 @@ Argument                 Description
 
 For a description of index coverage, see :ref:`accumulo_attribute_indices`.
 
+``configure-age-off``
+^^^^^^^^^^^^^^^^^^^^^
+
+List, add or remove age-off on a given feature type. See :ref:`ageoff_accumulo` for more information.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``-c, --catalog *``      The catalog table containing schema metadata
+``-f, --feature-name *`` The name of the schema
+``-l, --list``           List any age-off configured for the schema
+``-r, --remove``         Remove age-off for the schema
+``-s, --set``            Set age-off for the schema (requires ``--expiry``)
+``-e, --expiry``         Duration before entries are aged-off('1 day', '2 weeks and 1 hour', etc)
+``--dtg``                Use attribute-based age-off on the specified date field
+======================== =============================================================
+
+The ``--list`` argument will display any configured age-off.
+
+The ``--remove`` argument will remove any configured age-off.
+
+The ``--set`` argument will configure age-off. When using ``--set``, ``--expiry`` must also be provided.
+``--expiry`` can be any time duration string, specified in natural language. If ``--dtg`` is provided,
+age-off will be based on the specified date-type attribute. Otherwise, age-off will be based on ingest
+time.
+
+``configure-stats``
+^^^^^^^^^^^^^^^^^^^
+
+List, add or remove stat iterator configuration on a given catalog table. GeoMesa automatically configures an
+iterator on the summary statistics table (``_stats``). Generally this does not need to be modified, however
+if the Accumulo classpath is mis-configured, or data gets corrupted, it may be impossible to delete the
+table without first removing the iterator configuration.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``-c, --catalog *``      The catalog table containing schema metadata
+``-l, --list``           List any stats iterator configured for the catalog table
+``-r, --remove``         Remove the stats iterator configuration for the catalog table
+``-a, --add``            Add the stats iterator configuration for the catalog table
+======================== =============================================================
+
+The ``--list`` argument will display any configured stats iterator.
+
+The ``--remove`` argument will remove any configured stats iterator.
+
+The ``--add`` argument will add the stats iterator.
+
 ``configure-table``
 ^^^^^^^^^^^^^^^^^^^
 
@@ -122,32 +171,6 @@ The ``--key`` argument can be used during both list and update. For list, it wil
 only show the one requested. For update, it is required as the property to update.
 
 The ``--value`` argument is only used during update.
-
-``configure-age-off``
-^^^^^^^^^^^^^^^^^^^^^
-
-List, add or remove age-off on a given feature type. See :ref:`ageoff_accumulo` for more information.
-
-======================== =============================================================
-Argument                 Description
-======================== =============================================================
-``-c, --catalog *``      The catalog table containing schema metadata
-``-f, --feature-name *`` The name of the schema
-``-l, --list``           List any age-off configured for the schema
-``-r, --remove``         Remove age-off for the schema
-``-s, --set``            Set age-off for the schema (requires ``--expiry``)
-``-e, --expiry``         Duration before entries are aged-off('1 day', '2 weeks and 1 hour', etc)
-``--dtg``                Use attribute-based age-off on the specified date field
-======================== =============================================================
-
-The ``--list`` argument will display any configured age-off.
-
-The ``--remove`` argument will remove any configured age-off.
-
-The ``--set`` argument will configure age-off. When using ``--set``, ``--expiry`` must also be provided.
-``--expiry`` can be any time duration string, specified in natural language. If ``--dtg`` is provided,
-age-off will be based on the specified date-type attribute. Otherwise, age-off will be based on ingest
-time.
 
 .. _accumulo_tools_stats_analyze:
 
