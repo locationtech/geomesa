@@ -35,6 +35,7 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
     new AccumuloCreateSchemaCommand,
     new AccumuloDeleteCatalogCommand,
     new AccumuloDeleteFeaturesCommand,
+    new AccumuloStatsConfigureCommand,
     new AddAttributeIndexCommand,
     new DeleteRasterCommand,
     new AccumuloDescribeSchemaCommand,
