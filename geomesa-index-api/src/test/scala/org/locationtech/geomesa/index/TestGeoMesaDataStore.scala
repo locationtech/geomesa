@@ -137,6 +137,8 @@ object TestGeoMesaDataStore {
 
     override val version = 1
 
+    override def removeAll(sft: SimpleFeatureType, ds: TestGeoMesaDataStore): Unit = features.clear()
+
     override def delete(sft: SimpleFeatureType, ds: TestGeoMesaDataStore, shared: Boolean): Unit = features.clear()
 
     override protected def createInsert(row: Array[Byte], feature: TestWrappedFeature): TestWrite =
