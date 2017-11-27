@@ -216,7 +216,7 @@ class CachingFeatureCollection(delegate: SimpleFeatureCollection) extends Simple
     buf
   }
 
-  override def features = new SimpleFeatureIterator() {
+  override def features: SimpleFeatureIterator = new SimpleFeatureIterator() {
     private val iter = featureList.iterator
     override def hasNext: Boolean = iter.hasNext
     override def next: SimpleFeature = iter.next()
