@@ -8,13 +8,19 @@
 
 package org.locationtech.geomesa.index.planning
 
+import java.io.ByteArrayInputStream
+import java.util.Date
+
 import org.geotools.data.Query
 import org.geotools.filter.SortByImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.stats.NoopStats
-import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
@@ -74,6 +80,22 @@ class InMemoryQueryRunnerTest extends Specification {
       val q = new Query("memory", Filter.INCLUDE, Array("derived=strConcat('aa', name)", "geom"))
       q.setSortBy(Array(new SortByImpl(ff.property("derived"), SortOrder.DESCENDING)))
       runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).map(_.getID).toSeq mustEqual features.reverse.map(_.getID)
+    }
+
+    "query for arrow" in {
+      import org.locationtech.geomesa.arrow.allocator
+
+      val q = new Query("memory", Filter.INCLUDE, Array("name", "dtg", "geom"))
+      val expected = runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq.sortBy(_.getAttribute("dtg").asInstanceOf[Date])
+      q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+      q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+      q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      // note: need to copy the features as the same object is re-used in the iterator
+      val iter = runner.runQuery(sft, q)
+      val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual expected
+      }
     }
   }
 }
