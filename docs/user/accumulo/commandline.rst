@@ -204,8 +204,8 @@ on the local file system.
     In order to ingest rasters, ensure that you install JAI and JLine as described under
     :ref:`setting_up_accumulo_commandline`.
 
-Input raster files are assumed to have CRS of EPSG:4326. Non-EPSG:4326 files will need to be converted into
-EPSG:4326 raster files before ingestion. An example of doing conversion with GDAL is::
+Input raster files are assumed to have CRS of ``EPSG:4326``. Non-``EPSG:4326`` files will need to be
+converted into ``EPSG:4326`` raster files before ingestion. An example of doing conversion with GDAL is::
 
     gdalwarp -t_srs EPSG:4326 input_file out_file
 
