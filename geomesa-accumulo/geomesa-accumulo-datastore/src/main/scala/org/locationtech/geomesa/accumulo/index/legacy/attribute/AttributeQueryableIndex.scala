@@ -23,7 +23,6 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
-import org.locationtech.geomesa.index.iterators.ArrowBatchScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -135,39 +134,27 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
         }
       }
     } else if (hints.isArrowQuery) {
-      val dictionaryFields = hints.getArrowDictionaryFields
-      val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-      def arrowPlan(indexSft: SimpleFeatureType, ecql: Option[Filter]): BatchScanPlan = {
-        if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
-            dictionaryFields.forall(providedDictionaries.contains)) {
-          val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
-            providedDictionaries, hints.isArrowCachedDictionaries)
-          val iter = ArrowBatchIterator.configure(indexSft, this, ecql, dictionaries, hints, hasDupes)
-          val iters = visibilityIter(indexSft) :+ iter
-          val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(indexSft), hints, dictionaries))
-          val kvsToFeatures = ArrowBatchIterator.kvsToFeatures()
-          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, reduce, attrThreads, hasDupes)
-        } else {
-          val iter = ArrowFileIterator.configure(indexSft, this, ecql, dictionaryFields, hints, hasDupes)
-          val iters = visibilityIter(indexSft) :+ iter
-          val kvsToFeatures = ArrowFileIterator.kvsToFeatures()
-          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, None, attrThreads, hasDupes)
-        }
-      }
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
-        arrowPlan(sft, filter.secondary)
+        val (iter, reduce) = ArrowIterator.configure(sft, this, ds.stats, filter.filter, filter.secondary, hints, hasDupes)
+        val iters = visibilityIter(sft) :+ iter
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, ArrowIterator.kvsToFeatures(), Some(reduce), attrThreads, hasDuplicates = false)
       } else if (IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform)) {
-        // we can execute against the index values
-        arrowPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary)
+        // ^ check to see if we can execute against the index values
+        val indexSft = IndexValueEncoder.getIndexSft(sft)
+        val (iter, reduce) = ArrowIterator.configure(indexSft, this, ds.stats, filter.filter, filter.secondary, hints, hasDupes)
+        val iters = visibilityIter(indexSft) :+ iter
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, ArrowIterator.kvsToFeatures(), Some(reduce), attrThreads, hasDuplicates = false)
       } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
         val transformSft = transform.getOrElse {
           throw new IllegalStateException("Must have a transform for attribute key plus value scan")
         }
         hints.clearTransforms() // clear the transforms as we've already accounted for them
         val indexSft = IndexValueEncoder.getIndexSft(sft)
+        // note: ECQL is handled below, so we don't pass it to the arrow iter here
+        val (iter, reduce) = ArrowIterator.configure(transformSft, this, ds.stats, filter.filter, None, hints, hasDupes)
         val indexValueIter = AttributeIndexValueIterator.configure(this, indexSft, transformSft, attribute, filter.secondary)
-        val plan = arrowPlan(transformSft, None)
-        plan.copy(iterators = plan.iterators :+ indexValueIter)
+        val iters = visibilityIter(indexSft) :+ indexValueIter :+ iter
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, ArrowIterator.kvsToFeatures(), Some(reduce), attrThreads, hasDuplicates = false)
       } else {
         // have to do a join against the record table
         joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
@@ -236,49 +223,34 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     // the scan against the attribute table
     val attributeScan = attributePlan(IndexValueEncoder.getIndexSft(sft), stFilter, None)
 
-    lazy val dictionaryFields = hints.getArrowDictionaryFields
-    lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-    val arrowBatch = hints.isArrowQuery &&
-        (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains))
-    lazy val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
-      providedDictionaries, hints.isArrowCachedDictionaries)
-
     // apply any secondary filters or transforms against the record table
     val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
       throw new RuntimeException("Record index does not exist for join query")
     }
-    val recordIter = if (hints.isArrowQuery) {
-      if (arrowBatch) {
-        Seq(ArrowBatchIterator.configure(sft, recordIndex, ecqlFilter, dictionaries, hints, deduplicate = false))
-      } else {
-        Seq(ArrowFileIterator.configure(sft, recordIndex, ecqlFilter, dictionaryFields, hints, deduplicate = false))
-      }
+    val (recordIter, kvsToFeatures, reduce) = if (hints.isArrowQuery) {
+      val (iter, reduce) = ArrowIterator.configure(sft, recordIndex, ds.stats, filter.filter, ecqlFilter, hints, deduplicate = false)
+      val kvs = ArrowIterator.kvsToFeatures()
+      (Seq(iter), kvs, Some(reduce))
     } else if (hints.isStatsQuery) {
-      Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
+      val iter = Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
+      val kvs = KryoLazyStatsIterator.kvsToFeatures()
+      val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
+      (iter, kvs, reduce)
+    } else if (hints.isBinQuery) {
+      // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
+      val iter = KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
+      val kvs = BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO)
+      (iter, kvs, None)
     } else {
-      KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
+      val iter = KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
+      val kvs = recordIndex.entriesToFeatures(sft, hints.getReturnSft)
+      (iter, kvs, None)
     }
     val visibilityIter = sft.getVisibilityLevel match {
       case VisibilityLevel.Feature   => Seq.empty
       case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft))
     }
     val recordIterators = visibilityIter ++ recordIter
-
-    val (kvsToFeatures, reduce) = if (hints.isBinQuery) {
-      // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-      (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
-    } else if (hints.isArrowQuery) {
-      if (arrowBatch) {
-        val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries))
-        (ArrowBatchIterator.kvsToFeatures(), reduce)
-      } else {
-        (ArrowFileIterator.kvsToFeatures(), None)
-      }
-    } else if (hints.isStatsQuery) {
-      (KryoLazyStatsIterator.kvsToFeatures(), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
-    } else {
-      (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
-    }
 
     // function to join the attribute index scan results to the record table
     // have to pull the feature id from the row

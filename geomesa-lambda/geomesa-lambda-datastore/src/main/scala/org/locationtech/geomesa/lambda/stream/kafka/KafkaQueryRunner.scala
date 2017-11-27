@@ -15,14 +15,13 @@ import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.arrow.io.DictionaryBuildingWriter
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
+import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter}
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, DensityScan}
+import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
@@ -32,7 +31,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleFeatureOrdering}
-import org.locationtech.geomesa.utils.stats.Stat
+import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, Id}
 
@@ -129,127 +128,122 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
     }
   }
 
-  private def arrowTransform(features: Iterator[SimpleFeature],
+  private def arrowTransform(original: Iterator[SimpleFeature],
                              sft: SimpleFeatureType,
                              hints: Hints,
-                             filter: Filter): Iterator[SimpleFeature] = {
+                             filt: Filter): Iterator[SimpleFeature] = {
 
-    val (transforms, arrowSft) = hints.getTransform match {
-      case None => (features, sft)
-      case Some((definitions, transform)) => (projectionTransform(features, transform, definitions), transform)
-    }
-    val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
-    val dictionaryFields = hints.getArrowDictionaryFields
-    val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
+    import org.locationtech.geomesa.arrow.allocator
+
+    val filter = Option(filt).filter(_ != Filter.INCLUDE)
+
+    val sort = hints.getArrowSort
+    val batchSize = ArrowScan.getBatchSize(hints)
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid)
 
-    if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
-        dictionaryFields.forall(providedDictionaries.contains)) {
-      val dictionaries = ArrowBatchScan.createDictionaries(stats, sft, Option(filter), dictionaryFields,
-        providedDictionaries, hints.isArrowCachedDictionaries)
-      val arrows = hints.getArrowSort match {
-        case None => arrowBatchTransform(transforms, arrowSft, encoding, dictionaries, batchSize)
-        case Some((sortField, reverse)) => arrowSortTransform(transforms, arrowSft, encoding, dictionaries, sortField, reverse, batchSize)
+    val (features, arrowSft) = hints.getTransform match {
+      case None =>
+        val sorting = sort.map { case (field, reverse) =>
+          if (reverse) { SimpleFeatureOrdering(sft, field).reverse } else { SimpleFeatureOrdering(sft, field) }
+        }
+        sorting match {
+          case None => (original, sft)
+          case Some(o) => (original.toSeq.sorted(o).iterator, sft)
+        }
+      case Some((definitions, tsft)) =>
+        val sorting = sort.map { case (field, reverse) =>
+          if (reverse) { SimpleFeatureOrdering(tsft, field).reverse } else { SimpleFeatureOrdering(tsft, field) }
+        }
+        sorting match {
+          case None => (projectionTransform(original, tsft, definitions), tsft)
+          case Some(o) => (projectionTransform(original.toSeq.sorted(o).iterator, tsft, definitions), tsft)
+        }
+    }
+
+    val dictionaryFields = hints.getArrowDictionaryFields
+    val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
+    val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
+      def name(i: Int): String = sft.getDescriptor(i).getLocalName
+      val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
+      stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => name(k.attribute) -> k).toMap
+    }
+
+    if (hints.isArrowDoublePass ||
+        dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
+      // we have all the dictionary values, or we will run a query to determine them up front
+      val dictionaries = ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields,
+        providedDictionaries, cachedDictionaries)
+
+      val vector = SimpleFeatureVector.create(arrowSft, dictionaries, encoding)
+      val batchWriter = new RecordBatchUnloader(vector)
+
+      val sf = ArrowScan.resultFeature()
+
+      val arrows = new Iterator[SimpleFeature] {
+        override def hasNext: Boolean = features.hasNext
+        override def next(): SimpleFeature = {
+          var index = 0
+          vector.clear()
+          while (index < batchSize && features.hasNext) {
+            vector.writer.set(index, features.next)
+            index += 1
+          }
+          sf.setAttribute(0, batchWriter.unload(index))
+          sf
+        }
       }
-      if (hints.isSkipReduce) { arrows } else { ArrowBatchScan.reduceFeatures(arrowSft, hints, dictionaries)(arrows) }
+
+      if (hints.isSkipReduce) { arrows } else {
+        ArrowScan.mergeBatches(arrowSft, dictionaries, encoding, batchSize, sort)(arrows)
+      }
+    } else if (hints.isArrowMultiFile) {
+      val writer = DictionaryBuildingWriter.create(arrowSft, dictionaryFields, encoding)
+      val os = new ByteArrayOutputStream()
+
+      val sf = ArrowScan.resultFeature()
+
+      val arrows = new Iterator[SimpleFeature] {
+        override def hasNext: Boolean = features.hasNext
+        override def next(): SimpleFeature = {
+          writer.clear()
+          os.reset()
+          var index = 0
+          while (index < batchSize && features.hasNext) {
+            writer.add(features.next)
+            index += 1
+          }
+          writer.encode(os)
+          sf.setAttribute(0, os.toByteArray)
+          sf
+        }
+      }
+      if (hints.isSkipReduce) { arrows } else {
+        ArrowScan.mergeFiles(arrowSft, dictionaryFields, encoding, sort)(arrows)
+      }
     } else {
-      arrowFileTransform(transforms, arrowSft, encoding, dictionaryFields, batchSize)
-    }
-  }
+      val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, None, batchSize)
+      val array = Array.ofDim[SimpleFeature](batchSize)
 
-  private def arrowBatchTransform(features: Iterator[SimpleFeature],
-                                  sft: SimpleFeatureType,
-                                  encoding: SimpleFeatureEncoding,
-                                  dictionaries: Map[String, ArrowDictionary],
-                                  batchSize: Int): Iterator[SimpleFeature] = {
-    import org.locationtech.geomesa.arrow.allocator
+      val sf = ArrowScan.resultFeature()
 
-    val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-    val batchWriter = new RecordBatchUnloader(vector)
-
-    val sf = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
-
-    new Iterator[SimpleFeature] {
-      override def hasNext: Boolean = features.hasNext
-      override def next(): SimpleFeature = {
-        var index = 0
-        vector.clear()
-        features.take(batchSize).foreach { f =>
-          vector.writer.set(index, f)
-          index += 1
+      val arrows = new Iterator[SimpleFeature] {
+        override def hasNext: Boolean = features.hasNext
+        override def next(): SimpleFeature = {
+          var index = 0
+          while (index < batchSize && features.hasNext) {
+            array(index) = features.next
+            index += 1
+          }
+          sf.setAttribute(0, writer.encode(array, index))
+          sf
         }
-
-        sf.setAttribute(0, batchWriter.unload(index))
-        sf
+      }
+      if (hints.isSkipReduce) { arrows } else {
+        ArrowScan.mergeDeltas(arrowSft, dictionaryFields, encoding, batchSize, sort)(arrows)
       }
     }
   }
 
-  private def arrowSortTransform(features: Iterator[SimpleFeature],
-                                 sft: SimpleFeatureType,
-                                 encoding: SimpleFeatureEncoding,
-                                 dictionaries: Map[String, ArrowDictionary],
-                                 sortField: String,
-                                 sortReverse: Boolean,
-                                 batchSize: Int): Iterator[SimpleFeature] = {
-    import org.locationtech.geomesa.arrow.allocator
-
-    val array = Array.ofDim[SimpleFeature](batchSize)
-
-    val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-    val batchWriter = new RecordBatchUnloader(vector)
-
-    val ordering = SimpleFeatureOrdering(sft.indexOf(sortField))
-
-    val sf = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
-
-    new Iterator[SimpleFeature] {
-      override def hasNext: Boolean = features.hasNext
-      override def next(): SimpleFeature = {
-        var index = 0
-        vector.clear()
-        features.take(batchSize).foreach { f =>
-          array(index) = ScalaSimpleFeature.copy(f) // we have to copy since the same feature object is re-used
-          index += 1
-        }
-        java.util.Arrays.sort(array, 0, index, if (sortReverse) { ordering.reverse } else { ordering })
-
-        var i = 0
-        while (i < index) {
-          vector.writer.set(i, array(i))
-          i += 1
-        }
-
-        sf.setAttribute(0, batchWriter.unload(index))
-        sf
-      }
-    }
-  }
-
-  private def arrowFileTransform(features: Iterator[SimpleFeature],
-                                 sft: SimpleFeatureType,
-                                 encoding: SimpleFeatureEncoding,
-                                 dictionaryFields: Seq[String],
-                                 batchSize: Int): Iterator[SimpleFeature] = {
-    import org.locationtech.geomesa.arrow.allocator
-
-    val writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)
-    val os = new ByteArrayOutputStream()
-
-    val sf = new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
-
-    new Iterator[SimpleFeature] {
-      override def hasNext: Boolean = features.hasNext
-      override def next(): SimpleFeature = {
-        writer.clear()
-        os.reset()
-        features.take(batchSize).foreach(writer.add)
-        writer.encode(os)
-        sf.setAttribute(0, os.toByteArray)
-        sf
-      }
-    }
-  }
 
   private def densityTransform(features: Iterator[SimpleFeature],
                                sft: SimpleFeatureType,

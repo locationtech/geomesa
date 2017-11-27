@@ -383,8 +383,8 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 
 Restart GeoServer after the JARs are installed.
 
-A note about Accumulo 1.8
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Accumulo Versions
+^^^^^^^^^^^^^^^^^
 
 .. note::
 
@@ -397,8 +397,8 @@ A note about Accumulo 1.8
 
 .. _install_geomesa_process:
 
-A note about GeoMesa Process
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+GeoMesa Process
+^^^^^^^^^^^^^^^
 
 .. note::
 
@@ -407,6 +407,15 @@ A note about GeoMesa Process
     This JAR is included in the ``geomesa-accumulo_2.11-$VERSION/dist/gs-plugins`` directory of the binary
     distribution, or is built in the ``geomesa-process`` module of the source
     distribution.
+
+Jackson Version
+^^^^^^^^^^^^^^^
+
+.. warning::
+
+    Some GeoMesa functions (in particular Arrow conversion) requires ``jackson-core-2.6.x``. Some versions
+    of GeoServer ship with an older version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa
+    GeoServer plugin, be sure to delete the older JAR from GeoServer's ``WEB-INF/lib`` folder.
 
 Upgrading
 ---------
