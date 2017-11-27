@@ -52,8 +52,8 @@ at 10%, you will get back anywhere from 1 to 5 features, depending on how your d
 
         ...&viewparams=SAMPLING:0.1
 
-Density Query
--------------
+Density Queries
+---------------
 
 To populate heatmaps or other pre-rendered maps, GeoMesa can use server-side aggregation to map features to
 pixels. This results in much less network traffic, and subsequently much faster queries.
@@ -101,6 +101,118 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
             }
         }
         reader.close()
+
+.. _statistical_queries:
+
+Statistical Queries
+-------------------
+
+GeoMesa supports generating various statistics against a data set. These stats are generated in a distributed
+scan, so provide built-in parallelism and require less network traffic. The following stats are supported:
+
+* count
+* min/max values (bounds)
+* enumeration of values
+* top-k values
+* frequency of values
+* histogram of values
+* `descriptive statistics <https://en.wikipedia.org/wiki/Descriptive_statistics>`__
+
+In GeoServer you can use the ``StatsProcess``. Otherwise, the query is controlled through the
+following query hints:
+
++-------------------------------------+--------------------+----------------------+
+| Key                                 | Type               | GeoServer Conversion |
++=====================================+====================+======================+
+| QueryHints.STATS_STRING             | String             | Use WPS              |
++-------------------------------------+--------------------+                      +
+| QueryHints.ENCODE_STATS             | Boolean (optional) |                      |
++-------------------------------------+--------------------+----------------------+
+
+.. tabs::
+
+    .. code-tab:: scala
+
+        import org.geotools.data.Transaction
+        import org.locationtech.geomesa.index.conf.QueryHints
+        import org.locationtech.geomesa.index.iterators.StatsScan
+        import org.locationtech.geomesa.utils.stats.Stat
+
+        query.getHints.put(QueryHints.STATS_STRING, "Count()")
+        query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
+
+        val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
+
+        val result: Stat = try {
+          // stats should always return exactly one result, even if there are no features in the table
+          StatsScan.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
+        } finally {
+          reader.close()
+        }
+
+See :doc:`Analytic Commands` for information on running statistical queries through the GeoMesa command-line
+tools.
+
+Explanation of Hints
+++++++++++++++++++++
+
+STATS_STRING
+^^^^^^^^^^^^
+
+This hint is a string describing the stats to be collected. Each type of stat has a corresponding string
+representation. Multiple stats can be collected at once by delimiting them with a semi-colon. Instead
+of constructing stat strings by hand, there are convenience methods in ``org.locationtech.geomesa.utils.stats.Stat``
+that will generate valid stat strings. Stat strings can be checked by running them through the parser using
+``org.locationtech.geomesa.utils.stats.Stat.apply``.
+
+Stat strings are as follows:
+
+========================== =====================================
+Type                       Representation
+========================== =====================================
+count                      ``Count()``
+min/max                    ``MinMax("foo")``
+enumeration                ``Enumeration("foo")``
+top-k                      ``TopK("foo")``
+frequency                  ``Frequency("foo",10)``
+frequency (by time period) ``Frequency("foo","dtg",week,10)``
+Z3 frequency               ``Z3Frequency("geom","dtg",week,10)``
+histogram                  ``Histogram("foo",10,0,10)``
+Z3 histogram               ``Z3Histogram("geom","dtg",week,10)``
+descriptive statistics     ``DescriptiveStats("foo","bar")``
+========================== =====================================
+
+In addition to the above, stats can be calculated on grouped values, using ``GroupBy``. For example,
+``GroupBy("foo",MinMax("bar"))``.
+
+Time periods can be one of ``day``, ``week``, ``month``, or ``year``, and indicate how data should be grouped.
+
+The precision for frequencies is defined as:
+
+* for geometry types, it is the number of bits of z-index to keep (max of 64). Note that the first 2 bits do not hold any information
+* for date types, it is the number of milliseconds to group for binning
+* for number types, it is the number of digits that will be grouped together
+* for floating point types, it is the number of decimal places that will be considered
+* for string types, it is the number of characters that will be considered
+
+The Z3 frequency and histogram are special stats that will operate on the Z3 value created from the geometry and date.
+The precision for those stats is defined as the number of bits of the Z value that will be used.
+
+ENCODE_STATS
+^^^^^^^^^^^^
+
+This hint controls whether the stat will be returned as a serialized (encoded) object, or as a JSON string.
+Serialized stats can be deserialized using an instance of ``org.locationtech.geomesa.utils.stats.StatSerializer``,
+obtained through its factory ``apply`` method.
+
+Accessing Stats through the GeoMesa API
++++++++++++++++++++++++++++++++++++++++
+
+In addition to queries through the GeoTools API, stats can be accessed directly through the GeoMesa API. Most
+GeoMesa datastores implement ``org.locationtech.geomesa.index.stats.HasGeoMesaStats``, which defines a single method,
+``def stats: org.locationtech.geomesa.index.stats.GeoMesaStats``. In addition to running queries, the
+``GeoMesaStats`` interface can be used to retrieve cached stats. See :ref:`stat_attribute_config` for details
+on configuring cached stats.
 
 Arrow Encoding
 --------------

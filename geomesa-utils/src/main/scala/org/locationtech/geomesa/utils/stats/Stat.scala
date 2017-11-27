@@ -128,24 +128,24 @@ trait Stat {
  */
 object Stat {
 
-  val ScalaMapSerializer = new JsonSerializer[Map[Any,Any]] {
+  private val ScalaMapSerializer = new JsonSerializer[Map[Any,Any]] {
     def serialize(s: Map[Any,Any], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
   }
-  val ScalaSeqSerializer = new JsonSerializer[Seq[Any]] {
+  private val ScalaSeqSerializer = new JsonSerializer[Seq[Any]] {
     def serialize(s: Seq[Any], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
   }
-  val StatSerializer = new JsonSerializer[Stat] {
+  private val StatSerializer = new JsonSerializer[Stat] {
     def serialize(s: Stat, t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.toJsonObject)
   }
-  val GeometrySerializer = new JsonSerializer[Geometry] {
+  private val GeometrySerializer = new JsonSerializer[Geometry] {
     def serialize(g: Geometry, t: Type, jsc: JsonSerializationContext): JsonElement =
       new JsonPrimitive(WKTUtils.write(g))
   }
-  val DateSerializer = new JsonSerializer[Date] {
+  private val DateSerializer = new JsonSerializer[Date] {
     def serialize(d: Date, t: Type, jsc: JsonSerializationContext): JsonElement =
       new JsonPrimitive(GeoToolsDateFormat.format(d.toInstant))
   }
-  val DoubleSerializer = new JsonSerializer[jDouble]() {
+  private val DoubleSerializer = new JsonSerializer[jDouble]() {
     def serialize(d: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = d match {
       /* NaN check, use null to mirror existing behavior for missing/invalid values */
       case d if jDouble.isNaN(d) => JsonNull.INSTANCE
@@ -154,7 +154,7 @@ object Stat {
       case _ => new JsonPrimitive(d)
     }
   }
-  val FloatSerializer = new JsonSerializer[jFloat]() {
+  private val FloatSerializer = new JsonSerializer[jFloat]() {
     def serialize(f: jFloat, t: Type, jsc: JsonSerializationContext): JsonElement = f match {
       /* NaN check, use null to mirror existing behavior for missing/invalid values */
       case f if jFloat.isNaN(f) => JsonNull.INSTANCE
@@ -164,7 +164,7 @@ object Stat {
     }
   }
 
-  val JSON: Gson = new GsonBuilder()
+  private val JSON: Gson = new GsonBuilder()
     .serializeNulls()
     .registerTypeAdapter(classOf[Double], DoubleSerializer)
     .registerTypeAdapter(classOf[jDouble], DoubleSerializer)
@@ -177,7 +177,7 @@ object Stat {
     .registerTypeHierarchyAdapter(classOf[Seq[_]], ScalaSeqSerializer)
     .create()
 
-  def apply(sft: SimpleFeatureType, s: String) = StatParser.parse(sft, s)
+  def apply(sft: SimpleFeatureType, s: String): Stat = StatParser.parse(sft, s)
 
   /**
     * String that will be parsed to a count stat

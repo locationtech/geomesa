@@ -13,15 +13,15 @@ import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, DensityScan}
+import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.lambda.stream.TransientStore
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -68,7 +68,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
     if (query.getHints.isStatsQuery) {
       // do the reduce here, as we can't merge json stats
       query.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-      KryoLazyStatsUtils.reduceFeatures(sft, query.getHints)(standardQuery(sft, query, explain))
+      StatsScan.reduceFeatures(sft, query.getHints)(standardQuery(sft, query, explain))
     } else if (query.getHints.isArrowQuery) {
       // calculate merged dictionaries up front if required
       val dictionaryFields = query.getHints.getArrowDictionaryFields
@@ -111,7 +111,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
     } else if (hints.isDensityQuery) {
       DensityScan.DensitySft
     } else if (hints.isStatsQuery) {
-      KryoLazyStatsUtils.StatsSft
+      StatsScan.StatsSft
     } else {
       super.getReturnSft(sft, hints)
     }

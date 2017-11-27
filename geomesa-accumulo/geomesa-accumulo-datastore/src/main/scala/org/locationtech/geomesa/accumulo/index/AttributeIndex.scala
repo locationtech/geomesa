@@ -22,15 +22,13 @@ import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.{Attribute
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
-import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV2
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.AttributeIndex
-import org.locationtech.geomesa.index.iterators.ArrowBatchScan
+import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, StatsScan}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -400,7 +398,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         (ArrowFileIterator.kvsToFeatures(), None)
       }
     } else if (hints.isStatsQuery) {
-      (KryoLazyStatsIterator.kvsToFeatures(), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
+      (KryoLazyStatsIterator.kvsToFeatures(), Some(StatsScan.reduceFeatures(sft, hints)(_)))
     } else if (hints.isDensityQuery) {
       (KryoLazyDensityIterator.kvsToFeatures(), None)
     } else {
@@ -556,13 +554,13 @@ object AccumuloAttributeIndex {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (transform.isDefined || !hints.isStatsEncode) {
       // returned stats will be in the transform schema or in json
-      KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_)
+      StatsScan.reduceFeatures(indexSft, hints)(_)
     } else {
       // we have to transform back into the original sft after operating on the index values
-      val decode = KryoLazyStatsUtils.decodeStat(indexSft)
-      val encode = KryoLazyStatsUtils.encodeStat(sft)
+      val decode = StatsScan.decodeStat(indexSft)
+      val encode = StatsScan.encodeStat(sft)
       (iter) => {
-        KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(iter).map { feature =>
+        StatsScan.reduceFeatures(indexSft, hints)(iter).map { feature =>
           // we can create a new stat with the correct sft, then add the result
           // this should set the correct metadata but preserve the underlying data
           val stat = Stat(sft, hints.getStatsQuery)

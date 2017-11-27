@@ -17,7 +17,7 @@ import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
-import org.locationtech.geomesa.index.iterators.DensityScan
+import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.{DistributedRunnableStats, GeoMesaStats, UnoptimizedRunnableStats}
@@ -110,7 +110,7 @@ class HBaseQueryPlanner(ds: HBaseDataStore) extends HBaseQueryPlannerType(ds) {
     } else if (hints.isDensityQuery) {
       DensityScan.DensitySft
     } else if (hints.isStatsQuery) {
-      KryoLazyStatsUtils.StatsSft
+      StatsScan.StatsSft
     } else {
       super.getReturnSft(sft, hints)
     }

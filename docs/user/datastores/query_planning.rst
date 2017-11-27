@@ -1,3 +1,18 @@
+Query Planning
+--------------
+
+.. _stats_collected:
+
+The default stats collected are:
+
+* Total count
+* Min/max (bounds) for default geometry, default date and any indexed attributes
+* Histogram for default geometry, default date and any indexed attributes
+* Frequency for any indexed attributes, split up by week
+* Top-k for any indexed attributes
+* Z3 histogram based on the default geometry and default date (if both present)
+
+
 .. _explain_query:
 
 Explaining Query Plans

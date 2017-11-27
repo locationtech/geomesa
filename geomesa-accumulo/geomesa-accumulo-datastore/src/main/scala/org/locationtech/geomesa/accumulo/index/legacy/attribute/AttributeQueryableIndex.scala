@@ -18,15 +18,14 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
-import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV2
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
-import org.locationtech.geomesa.index.iterators.ArrowBatchScan
+import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, StatsScan}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -178,7 +177,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, hasDupes)
         val iters = visibilityIter(sft) :+ iter
-        val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
+        val reduce = Some(StatsScan.reduceFeatures(sft, hints)(_))
         BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, reduce, attrThreads, hasDuplicates = false)
       } else {
         // check to see if we can execute against the index values
@@ -279,7 +278,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
         (ArrowFileIterator.kvsToFeatures(), None)
       }
     } else if (hints.isStatsQuery) {
-      (KryoLazyStatsIterator.kvsToFeatures(), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
+      (KryoLazyStatsIterator.kvsToFeatures(), Some(StatsScan.reduceFeatures(sft, hints)(_)))
     } else {
       (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
     }

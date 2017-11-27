@@ -14,14 +14,12 @@ import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.FullColumnFamily
-import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.iterators.ArrowBatchScan
+import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, StatsScan}
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
-import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
@@ -90,7 +88,7 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
         }
       } else if (hints.isStatsQuery) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, dupes)
-        val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
+        val reduce = Some(StatsScan.reduceFeatures(sft, hints)(_))
         (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(), reduce)
       } else if (hints.isMapAggregatingQuery) {
         val iter = KryoLazyMapAggregatingIterator.configure(sft, this, filter.secondary, hints, dupes)

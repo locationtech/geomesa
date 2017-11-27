@@ -227,6 +227,39 @@ user data using the key ``geomesa.attr.splits``. See :ref:`set_sft_options` for 
 
     sft.getUserData().put("geomesa.attr.splits", "4");
 
+.. _stat_attribute_config:
+
+Configuring Cached Statistics
+-----------------------------
+
+GeoMesa allows for collecting summary statistics for attributes during ingest, which are then stored and
+available for instant querying. Hints are set on individual attributes using the key ``keep-stats``, as
+described in :ref:`attribute_options`.
+
+Stats are always collected for the default geometry, default date and any indexed attributes. See
+:ref:`stats_collected` for more details. In addition, any other attribute can be flagged for stats. This
+will cause the following stats to be collected for those attributes:
+
+* Min/max (bounds)
+* Top-k
+
+Only attributes of the following types can be flagged for stats: ``String``, ``Integer``, ``Long``,
+``Float``, ``Double``, ``Date`` and ``Geometry``.
+
+For example:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getDescriptor("name").getUserData().put("keep-stats", "true");
+
+.. note::
+
+    Cached statistics are currently only implemented for the Accumulo data store
+
+See :ref:`statistical_queries` and :doc:`Analytic Commands` for more details.
+
 Mixed Geometry Types
 --------------------
 

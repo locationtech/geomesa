@@ -13,7 +13,7 @@ about GeoMesa data stores.
     index_basics
     index_config
     runtime_config
-    explaining
+    query_planning
     query_config
     analytic_queries
     authorizations
