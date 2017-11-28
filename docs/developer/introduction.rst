@@ -96,11 +96,11 @@ GeoMesa Project Structure
 * **geomesa-features**: Custom implementations and serialization of ``SimpleFeature``\ s
 * **geomesa-filter**: Library for manipulating and working with GeoTools ``Filter``\ s
 * **geomesa-fs**: ``DataStore`` implementation for flat files
-* **geomesa-geojson**:
+* **geomesa-geojson**: API and REST-ful web service for working directly with GeoJSON
 * **geomesa-hbase**: ``DataStore`` implementation for Apache HBase
 * **geomesa-index-api**: Core indexing and ``DataStore`` code
 * **geomesa-jobs**: Map/reduce integration
-* **geomesa-jupyter**:
+* **geomesa-jupyter**: Jupyter notebook integration
 * **geomesa-kafka**: ``DataStore`` implementation for Apache Kafka, for near-real-time streaming data
 * **geomesa-lambda**: ``DataStore`` implementation that seamlessly uses Kafka for frequent updates and Accumulo for long-term persistence
 * **geomesa-memory**: In-memory indexing code
