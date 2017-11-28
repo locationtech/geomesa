@@ -3,11 +3,11 @@
 Query Planning
 --------------
 
-Query planning is the process of translating a GeoTools ``Query`` into something that can be run against a
-particular back-end. Query planning in GeoMesa consists of several different steps:
+Query planning is the process of translating a GeoTools ``Query`` into scans and filters for a
+particular back-end. Query planning in GeoMesa consists of several steps:
 
 #. The CQL filter (if any) is re-written and optimized for fast evaluation
-#. The CQL filter is split apart and compared against the available indices
+#. The CQL filter is split apart, based on the available indices
 #. One of the available indices is selected to execute the query
 #. A logical query plan is created by the core GeoMesa indexing code
 #. A physical query plan is created for the particular back-end database
@@ -39,8 +39,8 @@ See :ref:`query_index_hint` and :ref:`query_planning_hint` for more information.
 
 .. _stats_collected:
 
-Cost Selection
-++++++++++++++
+Cost-Based Strategy
++++++++++++++++++++
 
 .. note::
 
@@ -58,8 +58,8 @@ GeoMesa will collect stats during ingestion, and store them for use in query pla
 These stats are used to estimate the number of features matching a given primary filter. The primary filter that
 matches the fewest features will be selected.
 
-Heuristic Selection
-+++++++++++++++++++
+Heuristic Strategy
+++++++++++++++++++
 
 Heuristics can be used for query planning based solely on the query filter. The priorities are:
 
@@ -72,11 +72,17 @@ Heuristics can be used for query planning based solely on the query filter. The 
 #. Temporal predicates using the Z3/XZ3 index
 #. Low-cardinality attribute predicates using the attribute index
 
-If multiple attribute predicates have the same priority, the order of the attributes as defined in the schema
-will be used as a tie-breaker (attributes declared first have priority).
-
 In addition, Accumulo data stores using 'join' attribute indices will de-prioritize any predicates that require
 a join, based on the query properties/transform.
+
+If multiple attribute predicates are tied for highest priority, then there is no guarantee about which one
+will be selected from that group.
+
+Custom Strategies
++++++++++++++++++
+
+It is possible to use custom strategy implementations by specifying the class name with the system property
+``geomesa.strategy.decider``. The class must implement ``org.locationtech.geomesa.index.planning.StrategyDecider``.
 
 .. _attribute_cardinality:
 
@@ -109,8 +115,8 @@ In order to show explain logging, configure your logging system to set
 
     log4j.category.org.locationtech.geomesa.index.utils.Explainer=TRACE
 
-Instead of passively logging, you can also generate explain logging explicitly without executing a query.
-Given a GeoMesa data store and a query, use the following method:
+Instead of passively logging, you can also generate explain logging without executing a query. Given a
+GeoMesa data store and a query, use the following method:
 
 .. code-block:: scala
 

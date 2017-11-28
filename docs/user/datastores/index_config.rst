@@ -289,7 +289,7 @@ For example:
     SimpleFeatureType sft = ...
     sft.getDescriptor("name").getUserData().put("keep-stats", "true");
 
-See :ref:`stats_api` and :ref:`cli_analytic` for more details.
+See :ref:`cli_analytic` and :ref:`stats_api` for information on reading cached stats.
 
 Mixed Geometry Types
 --------------------

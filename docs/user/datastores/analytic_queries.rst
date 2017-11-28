@@ -162,7 +162,7 @@ STATS_STRING
 This hint is a string describing the stats to be collected. Each type of stat has a corresponding string
 representation. Multiple stats can be collected at once by delimiting them with a semi-colon. Instead
 of constructing stat strings by hand, there are convenience methods in ``org.locationtech.geomesa.utils.stats.Stat``
-that will generate valid stat strings. Stat strings can be checked by running them through the parser using
+that will generate valid stat strings. Stat strings can be validated by trying to parse them with
 ``org.locationtech.geomesa.utils.stats.Stat.apply``.
 
 Stat strings are as follows:
@@ -174,29 +174,33 @@ count                      ``Count()``
 min/max                    ``MinMax("foo")``
 enumeration                ``Enumeration("foo")``
 top-k                      ``TopK("foo")``
-frequency                  ``Frequency("foo",10)``
-frequency (by time period) ``Frequency("foo","dtg",week,10)``
-Z3 frequency               ``Z3Frequency("geom","dtg",week,10)``
-histogram                  ``Histogram("foo",10,0,10)``
-Z3 histogram               ``Z3Histogram("geom","dtg",week,10)``
+frequency                  ``Frequency("foo",<precision>)``
+frequency (by time period) ``Frequency("foo","dtg",<time period>,<precision>)``
+Z3 frequency               ``Z3Frequency("geom","dtg",<time period>,<precision>)``
+histogram                  ``Histogram("foo",<bins>,<min>,<max>)``
+Z3 histogram               ``Z3Histogram("geom","dtg",<time period>,<bins>)``
 descriptive statistics     ``DescriptiveStats("foo","bar")``
 ========================== =====================================
 
 In addition to the above, stats can be calculated on grouped values, using ``GroupBy``. For example,
 ``GroupBy("foo",MinMax("bar"))``.
 
-Time periods can be one of ``day``, ``week``, ``month``, or ``year``, and indicate how data should be grouped.
+The Z3 frequency and histogram are special stats that will operate on the Z3 value created from the geometry and date.
 
-The precision for frequencies is defined as:
+``<time period>`` can be one of ``day``, ``week``, ``month``, or ``year``, and indicates how data should be grouped.
 
-* for geometry types, it is the number of bits of z-index to keep (max of 64). Note that the first 2 bits do not hold any information
+The ``<precision>`` for frequencies is defined as:
+
+* for geometry and Z3 types, it is the number of bits of z-index to keep (max of 64). Note that the first 2
+  bits do not hold any information
 * for date types, it is the number of milliseconds to group for binning
 * for number types, it is the number of digits that will be grouped together
 * for floating point types, it is the number of decimal places that will be considered
 * for string types, it is the number of characters that will be considered
 
-The Z3 frequency and histogram are special stats that will operate on the Z3 value created from the geometry and date.
-The precision for those stats is defined as the number of bits of the Z value that will be used.
+The ``<bins>`` for a histogram indicate how many groupings should be made. The ``<min>`` and ``<max>`` values
+set the initial sizes of the groupings, but are not hard limits. The histogram will expand if needed as
+new values are added, but some precision may be lost.
 
 ENCODE_STATS
 ^^^^^^^^^^^^

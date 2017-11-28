@@ -73,7 +73,8 @@ query planning using data statistics to determine the best index for a given que
 this property may be set to ``index`` to use heuristic-based query planning. This may also be overridden on a
 per-query basis using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY``
 set to either ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Stats``
-or ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Index``.
+or ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Index``. See :ref:`query_planning`
+for more details on query planning strategies.
 
 geomesa.strategy.decider
 ++++++++++++++++++++++++
@@ -82,7 +83,8 @@ This property allows for overriding strategy selection during query planning. It
 full class name for a class implementing ``org.locationtech.geomesa.index.planning.StrategyDecider``.
 The class must have a no-arg constructor.
 
-By default GeoMesa will use cost-based query planning, which should work well for most situations.
+By default GeoMesa will use cost-based query planning, which should work well for most situations. See
+:ref:`query_planning` for more details on query planning strategies.
 
 geomesa.feature.id-generator
 ++++++++++++++++++++++++++++
@@ -110,7 +112,7 @@ For more information, see :ref:`audit_provider`.
 geomesa.convert.scripts.path
 ++++++++++++++++++++++++++++
 
-This property allows for adding files onto the classpath. It should be set to a colon-separated list of file
+This property allows for adding files to the classpath. It should be set to a colon-separated list of file
 paths. This is useful for getting scripts onto the classpath for use by map-reduce ingest jobs.
 
 geomesa.convert.config.urls
@@ -123,4 +125,4 @@ geomesa.sft.config.urls
 +++++++++++++++++++++++
 
 This property allows for adding GeoMesa simple feature type configurations to the environment. It can be set to
-a comma-separated list of arbitrary URLs.
+a comma-separated list of arbitrary URLs. For more information on defining types, see :ref:`cli_sft_conf`.
