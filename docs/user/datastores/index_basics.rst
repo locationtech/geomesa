@@ -36,8 +36,8 @@ might want to return all tweets for a given user. To speed up this type of query
 attribute in your simple feature type may be indexed individually.
 
 To index an attribute, add an ``index`` key to the attribute descriptor user data with a value of ``true``. To set
-the cardinality of an attribute, use the key ``cardinality`` with a value of ``high`` or ``low`` (see below
-for a description of cardinality hints).
+the cardinality of an attribute, use the key ``cardinality`` with a value of ``high`` or ``low`` (see
+:ref:`attribute_cardinality` for more information).
 
 .. note::
 
@@ -67,25 +67,3 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .build("mySft")
 
 Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
-
-Cardinality Hints
-^^^^^^^^^^^^^^^^^
-
-GeoMesa has a query planner that tries to find the best strategy for answering a given query. In
-general, this means using the index that will filter the result set the most, before considering
-the entire query filter on the reduced data set. For simple queries, there is often only one
-suitable index. However, for mixed queries, there can be multiple options.
-
-For example, given the query ``bbox(geom, -120, -60, 120, 60) AND IN('id-01')``, we could try to
-execute against the spatial index using the bounding box, or we could try to execute against the
-ID index using the feature ID. In this case, we know that the ID filter will match at most one
-record, while the bbox filter could match many records, so we will choose the ID index.
-
-Attributes that are know to have many distinct values, i.e. a high cardinality, are likely to filter
-out many false positives through the index structure, and thus a query against the attribute index will
-touch relatively few records. Conversely, in the worst case, a Boolean attribute (for example), with only
-two distinct values, would likely require scanning half of the entire data set.
-
-Cardinality hints may be used to influence the query planner when considering attribute indices.
-If an attribute is marked as having a high cardinality, the attribute index will be prioritized.
-Conversely, if an attribute is marked with low cardinality, the attribute index will be de-prioritized.

@@ -106,6 +106,8 @@ QueryHints.EXACT_COUNT ``Boolean`` ``true`` or ``false``
 
         ...&viewparams=EXACT_COUNT:true
 
+.. _query_index_hint:
+
 Query Index
 -----------
 
@@ -142,8 +144,10 @@ QueryHints.QUERY_INDEX ``GeoMesaFeatureIndex`` index name, or name:version
 
 For more details, see :doc:`Query Planning`.
 
-Query Planning
---------------
+.. _query_planning_hint:
+
+Query Planning Type
+-------------------
 
 As explained above, GeoMesa uses cost-based query planning to determine the best index for a given query.
 If cost-based query planning is not working as desired, the legacy heuristic-based query
