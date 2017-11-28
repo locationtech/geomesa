@@ -227,6 +227,37 @@ user data using the key ``geomesa.attr.splits``. See :ref:`set_sft_options` for 
 
     sft.getUserData().put("geomesa.attr.splits", "4");
 
+.. _cardinality_config:
+
+Configuring Attribute Cardinality
+---------------------------------
+
+GeoMesa allows attributes to be marked as either high or low cardinality. If set, this hint will be used in
+query planning. For more information, see :ref:`attribute_cardinality`.
+
+To set the cardinality of an attribute, use the key ``cardinality`` on the attribute, with a value of
+``high`` or ``low``.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ...
+    sft.getDescriptor("name").getUserData().put("index", "true");
+    sft.getDescriptor("name").getUserData().put("cardinality", "high");
+
+If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
+
+.. code-block:: scala
+
+    // scala example
+    import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
+    import org.locationtech.geomesa.utils.stats.Cardinality
+
+    val sft = new SftBuilder()
+        .stringType("name", Opts(index = true, cardinality = Cardinality.HIGH))
+        .date("dtg")
+        .geometry("geom", default = true)
+        .build("mySft")
+
 .. _stat_attribute_config:
 
 Configuring Cached Statistics

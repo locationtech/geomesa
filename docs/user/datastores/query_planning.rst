@@ -58,28 +58,24 @@ matches the fewest features will be selected.
 Heuristic Selection
 +++++++++++++++++++
 
-Static cost - equals 100, range 250
-    *
-    * high cardinality: / 10
-    * low cardinality: * 10
-    *
-    * Compare with id at 1, z3 at 200, z2 at 400, date z3 401
+Heuristics can be used for query planning based solely on the query filter. The priorities are:
 
+1. Feature ID predicates using the ID index
+2. High-cardinality attribute predicates using the attribute index
+2. Attribute equality predicates using the attribute index
+3. Spatio-temporal predicates using the Z3/XZ3 index
+4. Attribute range predicates using the attribute index
+5. Spatial predicates using the Z2/XZ2 index
+6. Temporal predicates using the Z3/XZ3 index
+7. Low-cardinality attribute predicates using the attribute index
+
+In addition, Accumulo data stores using 'join' attribute indices will de-prioritize any predicates that require
+a join, based on the query properties/transform.
 
 .. _attribute_cardinality:
 
 Cardinality Hints
-^^^^^^^^^^^^^^^^^
-
-GeoMesa has a query planner that tries to find the best strategy for answering a given query. In
-general, this means using the index that will filter the result set the most, before considering
-the entire query filter on the reduced data set. For simple queries, there is often only one
-suitable index. However, for mixed queries, there can be multiple options.
-
-For example, given the query ``bbox(geom, -120, -60, 120, 60) AND IN('id-01')``, we could try to
-execute against the spatial index using the bounding box, or we could try to execute against the
-ID index using the feature ID. In this case, we know that the ID filter will match at most one
-record, while the bbox filter could match many records, so we will choose the ID index.
++++++++++++++++++
 
 Attributes that are know to have many distinct values, i.e. a high cardinality, are likely to filter
 out many false positives through the index structure, and thus a query against the attribute index will
@@ -88,8 +84,8 @@ two distinct values, would likely require scanning half of the entire data set.
 
 Cardinality hints may be used to influence the query planner when considering attribute indices.
 If an attribute is marked as having a high cardinality, the attribute index will be prioritized.
-Conversely, if an attribute is marked with low cardinality, the attribute index will be de-prioritized.
-
+Conversely, if an attribute is marked with low cardinality, the attribute index will be de-prioritized. For
+details on setting cardinality, see :ref:`cardinality_config`.
 
 .. _explain_query:
 

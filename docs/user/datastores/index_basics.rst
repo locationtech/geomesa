@@ -35,9 +35,7 @@ Some queries are slow to answer using the default indices. For example, with twi
 might want to return all tweets for a given user. To speed up this type of query, any
 attribute in your simple feature type may be indexed individually.
 
-To index an attribute, add an ``index`` key to the attribute descriptor user data with a value of ``true``. To set
-the cardinality of an attribute, use the key ``cardinality`` with a value of ``high`` or ``low`` (see
-:ref:`attribute_cardinality` for more information).
+To index an attribute, add an ``index`` key to the attribute descriptor user data with a value of ``true``.
 
 .. note::
 
@@ -48,8 +46,6 @@ the cardinality of an attribute, use the key ``cardinality`` with a value of ``h
 
     SimpleFeatureType sft = ...
     sft.getDescriptor("name").getUserData().put("index", "true");
-    sft.getDescriptor("name").getUserData().put("cardinality", "high");
-    sft.getDescriptor("age").getUserData().put("index", "true");
 
 If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
 
@@ -67,3 +63,5 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .build("mySft")
 
 Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
+
+To prioritize certain attributes over others, see :ref:`attribute_cardinality`.
