@@ -30,7 +30,7 @@ User Manual
    spark/index
    stream
    web_data
-
+   upgrade
 
 Appendix
 --------
@@ -38,5 +38,4 @@ Appendix
 .. toctree::
    :maxdepth: 2
 
-   appendix/commandline_old_commands
    appendix/utils

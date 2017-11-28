@@ -53,8 +53,8 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
 
   private val compactor = new Runnable() {
     override def run(): Unit = {
-      import org.locationtech.geomesa.accumulo.AccumuloProperties.StatsProperties.STAT_COMPACTION_MILLIS
-      val compactInterval = STAT_COMPACTION_MILLIS.get.toLong
+      import org.locationtech.geomesa.accumulo.AccumuloProperties.StatsProperties.STAT_COMPACTION_INTERVAL
+      val compactInterval = STAT_COMPACTION_INTERVAL.toDuration.get.toMillis
       if (lastCompaction.get < DateTimeUtils.currentTimeMillis() - compactInterval &&
           compactionScheduled.compareAndSet(true, false) ) {
         compact()

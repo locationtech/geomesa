@@ -38,12 +38,12 @@ front, so estimates will cause problems. To force GeoMesa to calculate the exact
 set, you may set this property to "true". You may also override this behavior on a per-query basis
 by using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT``.
 
-geomesa.query.timeout.millis
-++++++++++++++++++++++++++++
+geomesa.query.timeout
++++++++++++++++++++++
 
 This property can be used to prevent long-running queries from overloading the system. When set,
 queries will be closed after the timeout, even if not all results have been returned yet. The
-timeout is specified in milliseconds.
+timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``.
 
 geomesa.scan.ranges.target
 ++++++++++++++++++++++++++
@@ -88,6 +88,13 @@ geomesa.feature.id-generator
 This property controls the default implementation used for generating IDs for simple features,
 if the ``USE_PROVIDED_FIDS`` or ``PROVIDED_FID`` hint is not set in the feature. It should be set to
 the fully-qualified class name for a class implementing ``org.locationtech.geomesa.utils.uuid.FeatureIdGenerator``.
+
+geomesa.metadata.expiry
++++++++++++++++++++++++
+
+This property controls how often simple feature type metadata is read from the underlying data store.
+Calls to ``updateSchema`` on a data store will not show up in other instances until the metadata
+cache has expired. The expiry is specified as a duration, e.g. ``10 minutes`` or ``1 hour``.
 
 geomesa.audit.provider.impl
 +++++++++++++++++++++++++++

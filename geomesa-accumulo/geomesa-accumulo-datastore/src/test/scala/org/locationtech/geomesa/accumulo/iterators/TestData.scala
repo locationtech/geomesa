@@ -42,7 +42,7 @@ object TestData extends LazyLogging {
   val featureName = "feature"
 
   def getTypeSpec(suffix: String = "2") = {
-    s"A_POINT:String,A_LINESTRING:String,A_POLYGON:String,attr$suffix:String:index=true," +
+    s"A_POINT:String,A_LINESTRING:String,A_POLYGON:String,attr$suffix:String:index=join," +
         s"geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date;geomesa.mixed.geometries=true"
   }
 

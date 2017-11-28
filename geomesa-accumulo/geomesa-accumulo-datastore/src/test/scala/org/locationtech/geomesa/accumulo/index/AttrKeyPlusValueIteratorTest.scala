@@ -28,7 +28,7 @@ import org.specs2.runner.JUnitRunner
 class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSfts {
 
   val spec =
-    "name:String:index=true:cardinality=high," +
+    "name:String:index=join:cardinality=high," +
     "age:Integer:index=false," +
     "count:Long:index=false," +
     "dtg:Date:default=true," +

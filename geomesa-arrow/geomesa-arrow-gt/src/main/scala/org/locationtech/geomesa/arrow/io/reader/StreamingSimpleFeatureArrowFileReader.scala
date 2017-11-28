@@ -14,9 +14,10 @@ import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.stream.ArrowStreamReader
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
-import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader.{SkipIndicator, VectorToIterator}
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader.{SkipIndicator, VectorToIterator, loadDictionaries}
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowIO}
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -34,17 +35,37 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
 
   private var initialized = false
 
-  private lazy val metadata = {
-    initialized = true
-    new StreamingSingleFileReader(is())
+  lazy val (sft, sort) = {
+    var sft: SimpleFeatureType = null
+    var sort: Option[(String, Boolean)] = None
+    WithClose(new ArrowStreamReader(is(), allocator)) { reader =>
+      val root = reader.getVectorSchemaRoot
+      require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
+      val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
+      sft = SimpleFeatureVector.getFeatureType(underlying)._1
+      sort = SimpleFeatureArrowIO.getSortFromMetadata(reader.getVectorSchemaRoot.getSchema.getCustomMetadata)
+    }
+    (sft, sort)
   }
 
-  // TODO read sort without loading a batch...
-  private lazy val sort = SimpleFeatureArrowIO.getSortFromMetadata(metadata.metadata)
+  override lazy val dictionaries: Map[String, ArrowDictionary] = {
+    import scala.collection.JavaConversions._
 
-  override def sft: SimpleFeatureType = metadata.sft
+    initialized = true
+    WithClose(is()) { is =>
+      val reader = new ArrowStreamReader(is, allocator)
+      WithClose(reader.getVectorSchemaRoot) { root =>
+        require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
+        val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
+        reader.loadNextBatch() // load the first batch so we get any dictionaries
+        val encoding = SimpleFeatureVector.getFeatureType(underlying)._2
+        // load any dictionaries into memory
+        loadDictionaries(underlying.getField.getChildren, reader, encoding)
+      }
+    }
+  }
 
-  override def dictionaries: Map[String, ArrowDictionary] = metadata.dictionaries
+  override def vectors: Seq[SimpleFeatureVector] = throw new NotImplementedError()
 
   override def features(filter: Filter): Iterator[ArrowSimpleFeature] with Closeable = {
     val stream = is()
@@ -85,7 +106,7 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
 
   override def close(): Unit = {
     if (initialized) {
-      metadata.close()
+      dictionaries.foreach(_._2.close())
     }
   }
 }
@@ -105,11 +126,12 @@ private class StreamingSingleFileReader(is: InputStream)(implicit allocator: Buf
   private val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
   private var done = !reader.loadNextBatch() // load the first batch so we get any dictionaries
 
-  // load any dictionaries into memory
-  val dictionaries: Map[String, ArrowDictionary] = loadDictionaries(underlying.getField.getChildren, reader)
-  private val vector = SimpleFeatureVector.wrap(underlying, dictionaries)
+  val (sft, encoding) = SimpleFeatureVector.getFeatureType(underlying)
 
-  def sft: SimpleFeatureType = vector.sft
+  // load any dictionaries into memory
+  val dictionaries: Map[String, ArrowDictionary] = loadDictionaries(underlying.getField.getChildren, reader, encoding)
+  private val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding)
+
   def metadata: java.util.Map[String, String] = reader.getVectorSchemaRoot.getSchema.getCustomMetadata
 
   // iterator of simple features read from the input stream

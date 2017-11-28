@@ -54,7 +54,7 @@ object AccumuloQueryPlan extends LazyLogging {
     explainer(s"Column Families${if (plan.columnFamilies.isEmpty) ": all"
     else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    explainer(s"Iterators (${plan.iterators.size}):", plan.iterators.map(_.toString))
+    explainer(s"Iterators (${plan.iterators.size}):", plan.iterators.map(i => () => i.toString))
     plan.join.foreach { j => explain(j._2, explainer, "Join ") }
     explainer.popLevel()
   }

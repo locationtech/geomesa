@@ -3,14 +3,34 @@
 Explaining Query Plans
 ----------------------
 
-Given a data store and a query, you can ask GeoMesa to explain its plan for how to execute the query:
+GeoMesa will automatically log explain plans during query execution. This can be useful when debugging
+query issues, and can inform decisions to speed up execution time, such as when to add additional indices
+or when query hints may be helpful.
 
-.. code-block:: java
+In order to show explain logging, configure your logging system to set
+``org.locationtech.geomesa.index.utils.Explainer`` to ``trace`` level. For example, in log4j use:
 
-    dataStore.getQueryPlan(query, explainer = new ExplainPrintln);
+.. code-block:: bash
 
-Instead of ``ExplainPrintln``, you can also use ``ExplainString`` or ``ExplainLogging`` to redirect the explainer output elsewhere.
+    log4j.category.org.locationtech.geomesa.index.utils.Explainer=TRACE
 
-For enabling ``ExplainLogging`` in GeoServer, see :ref:`geoserver_explain_query`. It may also be helpful to refer to GeoServer's `Advanced log configuration <http://docs.geoserver.org/stable/en/user/configuration/logging.html>`_ documentation for the specifics of how and where to manage the GeoServer logs.
+Instead of passively logging, you can also generate explain logging explicitly without actually executing a query.
+Given a GeoMesa data store and a query, use the following method:
 
-Knowing the plan -- including information such as the indexing strategy -- can be useful when you need to debug slow queries.  It can suggest when indexes should be added as well as when query-hints may expedite execution times.
+.. code-block:: scala
+
+    import org.locationtech.geomesa.index.utils.ExplainString
+
+    dataStore.getQueryPlan(query, explainer = new ExplainPrintln)
+
+``ExplainPrintln`` will write to ``System.out``. Alternatively, you can use ``ExplainString`` or
+``ExplainLogging`` to redirect the output elsewhere.
+
+GeoServer
+^^^^^^^^^
+
+For enabling explain loggingn in GeoServer, see :ref:`geoserver_explain_query`. It may also be helpful to
+refer to GeoServer's `Advanced log configuration`__ documentation for the specifics of how and where to
+manage the GeoServer logs.
+
+__ http://docs.geoserver.org/stable/en/user/configuration/logging.html

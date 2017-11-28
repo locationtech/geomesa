@@ -162,8 +162,20 @@ object SQLRules extends LazyLogging {
           }
           if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
             if (leftRel.partitionEnvelopes != rightRel.partitionEnvelopes) {
-              logger.warn("Joining across two relations that are not partitioned by the same scheme. Unable to optimize")
-              join
+              if (leftRel.coverPartition) {
+                rightRel.partitionEnvelopes = leftRel.partitionEnvelopes
+                rightRel.partitionedRDD = RelationUtils.spatiallyPartition(leftRel.partitionEnvelopes,
+                                                                           rightRel.rawRDD,
+                                                                           leftRel.numPartitions,
+                                                                           rightRel.geometryOrdinal)
+                val joinRelation = alterRelation(leftRel, rightRel, condition.get)
+                val newLogicalRelLeft = leftLr.copy(output = leftLr.output ++ rightLr.output, relation = joinRelation)
+                val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
+                Join(newProjectLeft, rightProject, joinType, condition)
+              } else {
+                logger.warn("Joining across two relations that are not partitioned by the same scheme. Unable to optimize")
+                join
+              }
             } else {
               val joinRelation = alterRelation(leftRel, rightRel, condition.get)
               val newLogicalRelLeft = leftLr.copy(output = leftLr.output ++ rightLr.output, relation = joinRelation)

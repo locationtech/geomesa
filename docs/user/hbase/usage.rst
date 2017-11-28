@@ -18,8 +18,8 @@ including ``hbase.zookeeper.quorum`` and ``hbase.zookeeper.property.clientPort``
 
 .. _hbase_parameters:
 
-Parameters
-----------
+HBase Data Store Parameters
+---------------------------
 
 The data store takes several parameters (required parameters are marked with ``*``):
 
@@ -34,7 +34,8 @@ Parameter                              Type    Description
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be written to a log file
-``geomesa.query.timeout``              Integer The max time (in seconds) a query will be allowed to run before being killed
+``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
+                                               timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
 ``geomesa.query.threads``              Integer The number of threads to use per query
 ``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
 ``hbase.ranges.max-per-extended-scan`` Integer The max number of ranges used for each extended scan

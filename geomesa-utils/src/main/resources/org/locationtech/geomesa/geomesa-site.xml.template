@@ -58,8 +58,8 @@
     -->
 
     <property>
-        <name>geomesa.batchwriter.latency.millis</name>
-        <value>60000</value>
+        <name>geomesa.batchwriter.latency</name>
+        <value>60 seconds</value>
         <description>
             https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)
         </description>
@@ -77,7 +77,7 @@
 
     <property>
         <name>geomesa.batchwriter.memory</name>
-        <value>52428800</value>
+        <value>52428800b</value>
         <description>
             https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)
         </description>
@@ -85,7 +85,7 @@
     </property>
 
     <property>
-        <name>geomesa.batchwriter.timeout.millis</name>
+        <name>geomesa.batchwriter.timeout</name>
         <value></value>
         <description>
             https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
@@ -184,12 +184,13 @@
     </property>
 
     <property>
-        <name>geomesa.query.timeout.millis</name>
+        <name>geomesa.query.timeout</name>
         <value></value>
         <description>This property can be used to prevent long-running
             queries from overloading the system. When set, queries will be
             closed after the timeout, even if not all results have been
-            returned yet. The timeout is specified in milliseconds.
+            returned yet. The timeout is specified as a duration, e.g. '60 seconds'
+            or '1 minute'.
         </description>
         <final>false</final>
     </property>
@@ -222,6 +223,18 @@
     </property>
 
     <property>
+        <name>geomesa.metadata.expiry</name>
+        <value>10 minutes</value>
+        <description>This property controls how often simple feature type metadata
+            is read from the underlying data store. Calls to ``updateSchema`` on a
+            data store will not show up in other instances until the metadata cache
+            has expired. The expiry is specified as a duration, e.g. '10 minutes'
+            or '1 hour'.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
         <name>geomesa.sft.config.urls</name>
         <value></value>
         <description></description>
@@ -240,8 +253,8 @@
     </property>
 
     <property>
-        <name>geomesa.stats.compact.millis</name>
-        <value>3600000</value>
+        <name>geomesa.stats.compact.interval</name>
+        <value>1 hour</value>
         <description>This property controls how often the GeoMesa statistics
             table will be compacted, in milliseconds. GeoMesa tracks data
             statistics during ingestion, using an Accumulo combiner iterator
@@ -254,15 +267,15 @@
     </property>
 
     <property>
-        <name>geomesa.cassandra.connection.timeout.millis</name>
-        <value>30000</value>
+        <name>geomesa.cassandra.connection.timeout</name>
+        <value>30 seconds</value>
         <description>This property controls the connection timeout for a Cassandra session</description>
         <final>false</final>
     </property>
 
     <property>
-        <name>geomesa.cassandra.read.timeout.millis</name>
-        <value>30000</value>
+        <name>geomesa.cassandra.read.timeout</name>
+        <value>30 seconds</value>
         <description>This property controls the read timeout for a Cassandra session</description>
         <final>false</final>
     </property>

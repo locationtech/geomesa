@@ -19,6 +19,7 @@ import org.geotools.data.{DataAccessFactory, DataStore, DataStoreFactorySpi, Que
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory}
 import org.locationtech.geomesa.fs.storage.common.PartitionScheme
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
@@ -91,16 +92,14 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     new util.HashMap[RenderingHints.Key, Serializable]()
 }
 
-object FileSystemDataStoreParams {
-  val PathParam            = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", required = true)
-  val EncodingParam        = new GeoMesaParam[String]("fs.encoding", "Encoding of data", required = true)
+object FileSystemDataStoreParams extends NamespaceParams {
+  val PathParam            = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", optional = false)
+  val EncodingParam        = new GeoMesaParam[String]("fs.encoding", "Encoding of data", optional = false)
 
   val ConverterNameParam   = new GeoMesaParam[String]("fs.options.converter.name", "Converter Name")
-  val ConverterConfigParam = new GeoMesaParam[String]("fs.options.converter.conf", "Converter Typesafe Config")
+  val ConverterConfigParam = new GeoMesaParam[String]("fs.options.converter.conf", "Converter Typesafe Config", largeText = true)
   val SftNameParam         = new GeoMesaParam[String]("fs.options.sft.name", "SimpleFeatureType Name")
-  val SftConfigParam       = new GeoMesaParam[String]("fs.options.sft.conf", "SimpleFeatureType Typesafe Config")
+  val SftConfigParam       = new GeoMesaParam[String]("fs.options.sft.conf", "SimpleFeatureType Typesafe Config", largeText = true)
 
   val ReadThreadsParam     = new GeoMesaParam[Integer]("fs.read-threads", "Read Threads", default = 4)
-
-  val NamespaceParam       = new GeoMesaParam[String]("namespace", "Namespace")
 }

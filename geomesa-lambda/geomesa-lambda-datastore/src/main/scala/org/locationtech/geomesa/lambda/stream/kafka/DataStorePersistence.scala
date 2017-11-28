@@ -19,7 +19,7 @@ import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ExpiringFe
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Random
@@ -52,8 +52,8 @@ class DataStorePersistence(ds: DataStore,
                           (implicit clock: Clock = Clock.systemUTC())
     extends Runnable with Closeable with MethodProfiling with LazyLogging {
 
-  private val frequency = SystemProperty("geomesa.lambda.persist.interval").toDuration.getOrElse(60000L)
-  private val lockTimeout = SystemProperty("geomesa.lambda.persist.lock.timeout").toDuration.getOrElse(1000L)
+  private val frequency = SystemProperty("geomesa.lambda.persist.interval").toDuration.map(_.toMillis).getOrElse(60000L)
+  private val lockTimeout = SystemProperty("geomesa.lambda.persist.lock.timeout").toDuration.map(_.toMillis).getOrElse(1000L)
 
   private val executor = Executors.newSingleThreadScheduledExecutor()
   private val schedule = executor.scheduleWithFixedDelay(this, frequency, frequency, TimeUnit.MILLISECONDS)
@@ -101,7 +101,7 @@ class DataStorePersistence(ds: DataStore,
       if (!persistExpired) {
         logger.trace(s"Persist disabled for $topic")
       } else {
-        implicit val timings = new TimingsImpl
+        implicit val timings: Timings = new TimingsImpl
         val modified = profile("modify") {
           // do an update query first
           val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)

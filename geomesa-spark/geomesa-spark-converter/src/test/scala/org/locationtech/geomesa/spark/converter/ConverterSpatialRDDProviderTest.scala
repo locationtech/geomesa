@@ -83,5 +83,17 @@ class ConverterSpatialRDDProviderTest extends Specification {
       val returnedProps = rdd.first.getProperties.map{_.getName.toString}.toArray
       returnedProps mustEqual requestedProps
     }
+
+    "handle * projections" in {
+      val params = Map (
+        InputFilesKey -> getClass.getResource("/example.csv").getPath,
+        IngestTypeKey -> "example-csv"
+      )
+      val requestedProps : Array[String] = Array( "fid", "name", "age", "lastseen", "friends","talents", "geom")
+      val q = new Query("example-csv", Filter.INCLUDE, requestedProps)
+      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, q)
+      val returnedProps = rdd.first.getProperties.map{_.getName.toString}.toArray
+      returnedProps mustEqual requestedProps
+    }
   }
 }

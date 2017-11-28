@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  < !-- curl -X POST -H 'Content-Type: text/xml' -d @arrow.xml 'http://localhost:8080/geoserver/wps' -o out.arrow -->
+  <ows:Identifier>geomesa:ArrowConversion</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>features</ows:Identifier>
+      <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
+        <wps:Body>
+          <wps:Execute version="1.0.0" service="WPS">
+            <ows:Identifier>geomesa:Query</ows:Identifier>
+            <wps:DataInputs>
+              <wps:Input>
+                <ows:Identifier>features</ows:Identifier>
+                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                  <wps:Body>
+                    <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:geomesa="geomesa">
+                      <wfs:Query typeName="geomesa:example-csv"/>
+                    </wfs:GetFeature>
+                  </wps:Body>
+                </wps:Reference>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>filter</ows:Identifier>
+                <wps:Data>
+                  <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[lastseen DURING 2017-10-07T12:00:00.000Z/2017-10-07T12:10:00.000Z]]></wps:ComplexData>
+                </wps:Data>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>properties</ows:Identifier>
+                <wps:Data>
+                  <wps:LiteralData>name</wps:LiteralData>
+                </wps:Data>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>properties</ows:Identifier>
+                <wps:Data>
+                  <wps:LiteralData>age</wps:LiteralData>
+                </wps:Data>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>properties</ows:Identifier>
+                <wps:Data>
+                  <wps:LiteralData>lastseen</wps:LiteralData>
+                </wps:Data>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>properties</ows:Identifier>
+                <wps:Data>
+                  <wps:LiteralData>geom</wps:LiteralData>
+                </wps:Data>
+              </wps:Input>
+            </wps:DataInputs>
+            <wps:ResponseForm>
+              <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                <ows:Identifier>result</ows:Identifier>
+              </wps:RawDataOutput>
+            </wps:ResponseForm>
+          </wps:Execute>
+        </wps:Body>
+      </wps:Reference>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>includeFids</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>false</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>dictionaryFields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>name</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>dictionaryFields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>age</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>useCachedDictionaries</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>false</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>sortField</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>lastseen</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>batchSize</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>1000</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput mimeType="application/vnd.arrow">
+      <ows:Identifier>result</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>
+

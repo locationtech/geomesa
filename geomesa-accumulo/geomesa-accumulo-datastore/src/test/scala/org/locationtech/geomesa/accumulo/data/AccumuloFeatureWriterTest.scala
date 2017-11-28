@@ -42,7 +42,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
   sequential
 
-  val spec = "name:String:index=true,age:Integer,dtg:Date,geom:Point:srid=4326"
+  val spec = "name:String:index=join,age:Integer,dtg:Date,geom:Point:srid=4326"
 
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))

@@ -17,8 +17,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, IsSynchronized, MaybeSynchronized, NotSynchronized}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
-import scala.concurrent.duration.Duration
-
 /**
   * Backs metadata with a cache to save repeated database reads. Underlying table will be lazily created
   * when required.
@@ -40,7 +38,7 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   // cache for our metadata - invalidate every 10 minutes so we keep things current
   private val metaDataCache = {
-    val expiry = Duration(CachedLazyMetadata.Expiry.get).toMillis
+    val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
     Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
       new CacheLoader[(String, String), Option[T]] {
         override def load(k: (String, String)): Option[T] = {
@@ -130,7 +128,7 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
 object CachedLazyMetadata {
 
-  val Expiry = SystemProperty("geomesa.metadata.expiry", "10min")
+  val Expiry = SystemProperty("geomesa.metadata.expiry", "10 minutes")
 
   def encodeRow(typeName: String, key: String, separator: Char): Array[Byte] = {
     // escaped to %U+XXXX unicode since decodeRow splits by separator

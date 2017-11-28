@@ -29,8 +29,8 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
-  override val spec = "nameHighCardinality:String:index=true:cardinality=high,ageJoinIndex:Long:index=true," +
-      "heightFullIndex:Float:index=full,dtgJoinIndex:Date:index=true,weightNoIndex:String," +
+  override val spec = "nameHighCardinality:String:index=join:cardinality=high,ageJoinIndex:Long:index=join," +
+      "heightFullIndex:Float:index=full,dtgJoinIndex:Date:index=join,weightNoIndex:String," +
       "dtgNoIndex:Date,dtg:Date,*geom:Point:srid=4326"
 
   val ff = CommonFactoryFinder.getFilterFactory2
