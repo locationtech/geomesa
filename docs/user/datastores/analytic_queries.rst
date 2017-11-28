@@ -234,14 +234,28 @@ following query hints:
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_INCLUDE_FID        | Boolean (optional) |                      |
 +-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_SORT_FIELD         | String (optional)  |                      |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_SORT_REVERSE       | Boolean (optional) |                      |
++-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_DICTIONARY_FIELDS  | String (optional)  |                      |
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_DICTIONARY_VALUES  | String (optional)  |                      |
 +-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DICTIONARY_COMPUTE | Boolean (optional) |                      |
+| QueryHints.ARROW_DICTIONARY_CACHED  | Boolean (optional) |                      |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_MULTI_FILE         | Boolean (optional) |                      |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_DOUBLE_PASS        | Boolean (optional) |                      |
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_BATCH_SIZE         | Integer (optional) |                      |
 +-------------------------------------+--------------------+----------------------+
+
+.. warning::
+
+    Arrow conversion requires ``jackson-core-2.6.x``. Some versions of GeoServer ship with an older
+    version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa GeoServer plugin, be sure to delete
+    the older JAR from GeoServer's ``WEB-INF/lib`` folder.
 
 Explanation of Hints
 ++++++++++++++++++++
@@ -255,6 +269,17 @@ ARROW_INCLUDE_FID
 ^^^^^^^^^^^^^^^^^
 
 This hint controls whether to include the feature ID as an Arrow vector or not. The default is to include it.
+
+ARROW_SORT_FIELD
+^^^^^^^^^^^^^^^^
+
+This hint allows for sorting the results by a particular attribute. Only attribute names are supported, not
+arbitrary CQL.
+
+ARROW_SORT_REVERSE
+^^^^^^^^^^^^^^^^^^
+
+This hint is used to flip sort order from normal (ascending) to reverse (descending).
 
 ARROW_DICTIONARY_FIELDS
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -288,20 +313,30 @@ the attribute name, and the subsequent items are dictionary values. Standard CSV
             """.stripMargin.trim
 
         // equivalent to dictionaries1
-        val dictionaries2 = encodSeqMap(Map("name" -> Seq("Harry", "Hermione", "Severus"), "age" -> Seq(20, 25, 30)))
+        val dictionaries2 = encodSeqMap(Map("name" -> Array("Harry", "Hermione", "Severus"), "age" -> Array(20, 25, 30)))
 
         query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, dictionaries1)
 
-ARROW_DICTIONARY_COMPUTE
-^^^^^^^^^^^^^^^^^^^^^^^^
+ARROW_DICTIONARY_CACHED
+^^^^^^^^^^^^^^^^^^^^^^^
 
-This hint indicates that dictionaries should be computed before running the query. Any provided dictionaries
-will not be computed. Dictionary values will use cached statistics (top-k) if available, otherwise will run
-a statistical query. Note that this may be slow.
+This hint indicates that cached statistics (top-k) will be used for dictionaries, if available. Otherwise,
+dictionaries will be computed based on the data returned, which may be slower.
 
-If this hint is false, any dictionary fields will be determined on the fly. However, this means that instead
-of a single Arrow file, the result of the query will be multiple separate arrow files, concatenated together.
-This is a restriction of the Arrow format, which requires that dictionaries be specified before anything else.
+ARROW_MULTI_FILE
+^^^^^^^^^^^^^^^^
+
+This hint will cause multiple logical Arrow files to be returned, instead of a single file. This will generally
+be faster, as no client-side merging needs to be done. However, any sorting will only be applied per file, not
+globally. Also, the end result tends to be larger (in bytes), as metadata and dictionary values may be repeated
+in different logical files.
+
+ARROW_DOUBLE_PASS
+^^^^^^^^^^^^^^^^^
+
+This hint will cause any dictionaries to be computed first, through a separate scan. A second scan will
+construct the Arrow files. This is the behavior of the initial GeoMesa Arrow implementation, and is only
+included for back compatibility.
 
 ARROW_BATCH_SIZE
 ^^^^^^^^^^^^^^^^

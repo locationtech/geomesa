@@ -47,7 +47,7 @@ object StringSerialization extends LazyLogging {
     * @param encoded encoded map
     * @return decoded map
     */
-  def decodeSeqMap(sft: SimpleFeatureType, encoded: String): Map[String, Seq[AnyRef]] = {
+  def decodeSeqMap(sft: SimpleFeatureType, encoded: String): Map[String, Array[AnyRef]] = {
     import scala.collection.JavaConversions._
     val bindings = sft.getAttributeDescriptors.map(d => d.getLocalName -> d.getType.getBinding)
     decodeSeqMap(encoded, bindings.toMap[String, Class[_]])
@@ -59,7 +59,7 @@ object StringSerialization extends LazyLogging {
     * @param encoded encoded map
     * @return decoded map
     */
-  def decodeSeqMap(encoded: String, bindings: Map[String, Class[_]]): Map[String, Seq[AnyRef]] = {
+  def decodeSeqMap(encoded: String, bindings: Map[String, Class[_]]): Map[String, Array[AnyRef]] = {
     import scala.collection.JavaConversions._
     // encoded as CSV, first element of each row is key, rest is value
     val parser = CSVParser.parse(encoded, CSVFormat.DEFAULT)
@@ -67,14 +67,14 @@ object StringSerialization extends LazyLogging {
       val iter = record.iterator
       val key = iter.next
       val values = bindings.get(key) match {
-        case Some(c) if c == classOf[String]              => iter.toSeq
-        case Some(c) if c == classOf[Integer]             => iter.map(Integer.valueOf).toSeq
-        case Some(c) if c == classOf[java.lang.Long]      => iter.map(java.lang.Long.valueOf).toSeq
-        case Some(c) if c == classOf[java.lang.Float]     => iter.map(java.lang.Float.valueOf).toSeq
-        case Some(c) if c == classOf[java.lang.Double]    => iter.map(java.lang.Double.valueOf).toSeq
-        case Some(c) if classOf[Date].isAssignableFrom(c) => iter.map(v => new Date(dateFormat.parseMillis(v))).toSeq
-        case Some(c) if c == classOf[java.lang.Boolean]   => iter.map(java.lang.Boolean.valueOf).toSeq
-        case c => logger.warn(s"No conversion defined for encoded attribute '$key' of type ${c.orNull}"); iter.toSeq
+        case Some(c) if c == classOf[String]              => iter.toArray[AnyRef]
+        case Some(c) if c == classOf[Integer]             => iter.map(Integer.valueOf).toArray[AnyRef]
+        case Some(c) if c == classOf[java.lang.Long]      => iter.map(java.lang.Long.valueOf).toArray[AnyRef]
+        case Some(c) if c == classOf[java.lang.Float]     => iter.map(java.lang.Float.valueOf).toArray[AnyRef]
+        case Some(c) if c == classOf[java.lang.Double]    => iter.map(java.lang.Double.valueOf).toArray[AnyRef]
+        case Some(c) if classOf[Date].isAssignableFrom(c) => iter.map(v => new Date(dateFormat.parseMillis(v))).toArray[AnyRef]
+        case Some(c) if c == classOf[java.lang.Boolean]   => iter.map(java.lang.Boolean.valueOf).toArray[AnyRef]
+        case c => logger.warn(s"No conversion defined for encoded attribute '$key' of type ${c.orNull}"); iter.toArray[AnyRef]
       }
       key -> values
     }.toMap

@@ -20,7 +20,7 @@ import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.hbase.{HBaseFeatureIndexType, HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
-import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, StatsScan}
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -91,22 +91,12 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
         val options = HBaseDensityAggregator.configure(sft, this, ecql, hints)
         Some(CoprocessorConfig(options, HBaseDensityAggregator.bytesToFeatures))
       } else if (hints.isArrowQuery) {
-        val dictionaryFields = hints.getArrowDictionaryFields
-        val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-        if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
-            dictionaryFields.forall(providedDictionaries.contains)) {
-          val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
-            providedDictionaries, hints.isArrowCachedDictionaries)
-          val options = ArrowBatchAggregator.configure(sft, this, ecql, dictionaries, hints)
-          val reduce = ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries)
-          Some(CoprocessorConfig(options, ArrowBatchAggregator.bytesToFeatures, reduce))
-        } else {
-          val options = ArrowFileAggregator.configure(sft, this, ecql, dictionaryFields, hints)
-          Some(CoprocessorConfig(options, ArrowFileAggregator.bytesToFeatures))
-        }
+        val (options, reduce) = HBaseArrowAggregator.configure(sft, this, ds.stats, filter.filter, ecql, hints)
+        Some(CoprocessorConfig(options, HBaseArrowAggregator.bytesToFeatures, reduce))
       } else if (hints.isStatsQuery) {
-        val statsOptions = HBaseStatsAggregator.configure(sft, filter.index, ecql, hints)
-        Some(CoprocessorConfig(statsOptions, HBaseStatsAggregator.bytesToFeatures, StatsScan.reduceFeatures(returnSchema, hints)))
+        val options = HBaseStatsAggregator.configure(sft, filter.index, ecql, hints)
+        val reduce = StatsScan.reduceFeatures(returnSchema, hints)(_)
+        Some(CoprocessorConfig(options, HBaseStatsAggregator.bytesToFeatures, reduce))
       } else if (hints.isBinQuery) {
         val options = HBaseBinAggregator.configure(sft, filter.index, ecql, hints)
         Some(CoprocessorConfig(options, HBaseBinAggregator.bytesToFeatures))

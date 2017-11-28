@@ -427,6 +427,15 @@ doesn't exist). Utilizing a symbolic link will be use full here so any changes a
 
 Restart GeoServer after the JARs are installed.
 
+Jackson Version
+^^^^^^^^^^^^^^^
+
+.. warning::
+
+    Some GeoMesa functions (in particular Arrow conversion) requires ``jackson-core-2.6.x``. Some versions
+    of GeoServer ship with an older version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa
+    GeoServer plugin, be sure to delete the older JAR from GeoServer's ``WEB-INF/lib`` folder.
+
 Connecting to External HBase Clusters Backed By S3
 --------------------------------------------------
 

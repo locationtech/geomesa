@@ -19,7 +19,7 @@ import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.IndexAdapter
-import org.locationtech.geomesa.index.iterators.{ArrowBatchScan, StatsScan}
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -98,19 +98,8 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
       val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, dedupe)
       ScanConfig(ranges, FullColumnFamily, Seq(iter), BinAggregatingIterator.kvsToFeatures(), None, duplicates = false)
     } else if (hints.isArrowQuery) {
-      val dictionaryFields = hints.getArrowDictionaryFields
-      val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-      if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
-          dictionaryFields.forall(providedDictionaries.contains)) {
-        val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
-          providedDictionaries, hints.isArrowCachedDictionaries)
-        val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, dedupe)
-        val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries))
-        ScanConfig(ranges, FullColumnFamily, Seq(iter), ArrowBatchIterator.kvsToFeatures(), reduce, duplicates = false)
-      } else {
-        val iter = ArrowFileIterator.configure(sft, this, ecql, dictionaryFields, hints, dedupe)
-        ScanConfig(ranges, FullColumnFamily, Seq(iter), ArrowFileIterator.kvsToFeatures(), None, duplicates = false)
-      }
+      val (iter, reduce) = ArrowIterator.configure(sft, this, ds.stats, filter.filter, ecql, hints, dedupe)
+      ScanConfig(ranges, FullColumnFamily, Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce), duplicates = false)
     } else if (hints.isDensityQuery) {
       val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints, dedupe)
       ScanConfig(ranges, FullColumnFamily, Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, duplicates = false)

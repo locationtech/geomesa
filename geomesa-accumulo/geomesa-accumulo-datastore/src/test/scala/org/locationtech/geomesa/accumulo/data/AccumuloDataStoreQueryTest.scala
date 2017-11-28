@@ -621,5 +621,10 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         explanation.trim must not(beEmpty)
       }
     }
+
+    "handle Query.ALL" in {
+      ds.getFeatureSource(defaultSft.getTypeName).getFeatures(Query.ALL).features() must throwAn[IllegalArgumentException]
+      ds.getFeatureReader(Query.ALL, Transaction.AUTO_COMMIT) must throwAn[IllegalArgumentException]
+    }
   }
 }

@@ -204,6 +204,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
    * @return feature reader
    */
   override def getFeatureReader(query: Query, transaction: Transaction): GeoMesaFeatureReader = {
+    require(query.getTypeName != null, "Type name is required in the query")
     val sft = getSchema(query.getTypeName)
     if (sft == null) {
       throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")

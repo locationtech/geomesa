@@ -81,7 +81,6 @@ class AttributeIndexValuesTest extends TestWithDataStore {
           val query = new Query(sftName, filter, transform)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
           query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dicts.mkString(","))
-          query.getHints.put(QueryHints.ARROW_DICTIONARY_COMPUTE, true)
           query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
           query.getHints.put(QueryHints.ARROW_INCLUDE_FID, true)
           foreach(ds.getQueryPlan(query)) { plan => plan must beAnInstanceOf[BatchScanPlan] }
