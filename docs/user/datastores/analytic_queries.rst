@@ -150,7 +150,7 @@ following query hints:
           reader.close()
         }
 
-See :doc:`Analytic Commands` for information on running statistical queries through the GeoMesa command-line
+See :ref:`cli_analytic` for information on running statistical queries through the GeoMesa command-line
 tools.
 
 Explanation of Hints
@@ -205,14 +205,18 @@ This hint controls whether the stat will be returned as a serialized (encoded) o
 Serialized stats can be deserialized using an instance of ``org.locationtech.geomesa.utils.stats.StatSerializer``,
 obtained through its factory ``apply`` method.
 
+.. _stats_api:
+
 Accessing Stats through the GeoMesa API
 +++++++++++++++++++++++++++++++++++++++
 
 In addition to queries through the GeoTools API, stats can be accessed directly through the GeoMesa API. Most
-GeoMesa datastores implement ``org.locationtech.geomesa.index.stats.HasGeoMesaStats``, which defines a single method,
-``def stats: org.locationtech.geomesa.index.stats.GeoMesaStats``. In addition to running queries, the
-``GeoMesaStats`` interface can be used to retrieve cached stats. See :ref:`stat_attribute_config` for details
-on configuring cached stats.
+GeoMesa datastores implement ``org.locationtech.geomesa.index.stats.HasGeoMesaStats``, which defines a single method::
+
+    def stats: org.locationtech.geomesa.index.stats.GeoMesaStats
+
+In addition to running queries, the ``GeoMesaStats`` interface can be used to retrieve cached stats.
+See :ref:`stat_attribute_config` for details on configuring cached stats.
 
 Arrow Encoding
 --------------

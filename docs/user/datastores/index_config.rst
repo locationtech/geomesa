@@ -267,6 +267,10 @@ GeoMesa allows for collecting summary statistics for attributes during ingest, w
 available for instant querying. Hints are set on individual attributes using the key ``keep-stats``, as
 described in :ref:`attribute_options`.
 
+.. note::
+
+    Cached statistics are currently only implemented for the Accumulo data store
+
 Stats are always collected for the default geometry, default date and any indexed attributes. See
 :ref:`stats_collected` for more details. In addition, any other attribute can be flagged for stats. This
 will cause the following stats to be collected for those attributes:
@@ -285,11 +289,7 @@ For example:
     SimpleFeatureType sft = ...
     sft.getDescriptor("name").getUserData().put("keep-stats", "true");
 
-.. note::
-
-    Cached statistics are currently only implemented for the Accumulo data store
-
-See :ref:`statistical_queries` and :doc:`Analytic Commands` for more details.
+See :ref:`stats_api` and :ref:`cli_analytic` for more details.
 
 Mixed Geometry Types
 --------------------

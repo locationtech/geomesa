@@ -129,7 +129,7 @@ For massive queries, the standard 60 second timeout may be too short.
 Logging Explain Query Planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The GeoMesa Accumulo data store can explain its plan for executing queries,
+GeoMesa data stores can explain their plan for executing queries,
 as described in :ref:`explain_query`. To enable the logging of explain query
 planning in GeoServer, add the following to the
 ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
@@ -166,14 +166,14 @@ file (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``) and add entr
 
 Second as a DataStore is registered in GeoServer, the `collectQueryStats` box should be ticked for the store.
 
-GeoMesa GeoServer Community Module
-----------------------------------
+GeoMesa GeoServer Extensions
+----------------------------
 
-The GeoMesa community module adds support for raster imagery to GeoServer. The community module
-requires the Accumulo GeoServer plugin to be installed first.
+Due to licensing, GeoServer-specific code related to GeoMesa is maintained in a separate
+`repository <https://github.com/geomesa/geomesa-geoserver/>`__. It can be downloaded from Maven
+central, or built from source.
 
-The community module can be downloaded from `OpenGeo <http://ares.opengeo.org/geoserver/>`__, or can
-be built from `source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`__.
+It is required for Arrow output and raster stores in GeoServer, among other things.
 
-Once obtained, the community module can be installed by copying ``geomesa-gs-<version>.jar`` into
+Once obtained, the GeoServer modules can be installed by copying ``geomesa-gs-*.jar`` into
 the GeoServer ``lib`` directory.

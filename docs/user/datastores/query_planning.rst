@@ -1,13 +1,16 @@
+.. _query_planning:
+
 Query Planning
 --------------
 
-Query planning in GeoMesa consists of several different steps:
+Query planning is the process of translating a GeoTools ``Query`` into something that can be run against a
+particular back-end. Query planning in GeoMesa consists of several different steps:
 
-1. The CQL filter (if any) is re-written and optimized for fast evaluation
-2. The CQL filter is split apart to match against the available indices
-3. One of the available indices is selected to execute the query
-4. A logical query plan is created by the core GeoMesa indexing code
-5. A physical query plan is created for the particular back-end database
+#. The CQL filter (if any) is re-written and optimized for fast evaluation
+#. The CQL filter is split apart and compared against the available indices
+#. One of the available indices is selected to execute the query
+#. A logical query plan is created by the core GeoMesa indexing code
+#. A physical query plan is created for the particular back-end database
 
 Filter Decomposition
 ^^^^^^^^^^^^^^^^^^^^
@@ -16,8 +19,8 @@ A logical query plan in GeoMesa generally consists of a 'primary' CQL filter, wh
 ranges, and a 'secondary' CQL filter which is applied to matching rows. For example, the Z2 index will handle
 any spatial predicates as scan ranges, and any additional filters will be applied afterwards.
 
-During step two, the full filter is decomposed and examined with an eye towards the available indices. For
-each index, a primary and a secondary filter will be determined (if any).
+During step two of query planning, the full filter is decomposed and examined with an eye towards the available
+indices. For each index, a primary and a secondary filter will be determined (if any).
 
 For example, consider the filter
 ``BBOX(geom,0,0,10,10) AND dtg DURING 2017-01-01T00:00:00.000Z/2017-01-02T00:00:00.000Z AND name = 'alice'``.
@@ -30,25 +33,25 @@ Index Selection
 
 Since skipping rows entirely is much faster than reading and filtering them, the best query plan will generally
 be the one that scans the fewest rows. In other words, the best plan is the one that has the most selective
-primary filter. GeoMesa has two methods for determining the best index - stat-based, or heuristic-based. Stats
-are used when available; however the method used can be configured per-query. See :ref:`query_index_hint` and
-:ref:`query_planning_hint` for more information.
+primary filter. GeoMesa has two methods for determining the best index - cost-based, or heuristic-based. Cached
+statistics are used to estimate the cost when available; however the method used can be configured per-query.
+See :ref:`query_index_hint` and :ref:`query_planning_hint` for more information.
 
-Statistical Selection
-+++++++++++++++++++++
+.. _stats_collected:
+
+Cost Selection
+++++++++++++++
 
 .. note::
 
-    Cached statistics, and thus stat-based query planning, are currently only implemented for the Accumulo data store
-
-.. _stats_collected:
+    Cached statistics, and thus cost-based query planning, are currently only implemented for the Accumulo data store
 
 GeoMesa will collect stats during ingestion, and store them for use in query planning. The stats collected are:
 
 * Total count
-* Min/max (bounds) for default geometry, default date and any indexed attributes
-* Histogram for default geometry, default date and any indexed attributes
-* Frequency for any indexed attributes, split up by week
+* Min/max (bounds) for the default geometry, default date and any indexed attributes
+* Histograms for the default geometry, default date and any indexed attributes
+* Frequencies for any indexed attributes, split up by week
 * Top-k for any indexed attributes
 * Z3 histogram based on the default geometry and default date (if both present)
 
@@ -60,14 +63,17 @@ Heuristic Selection
 
 Heuristics can be used for query planning based solely on the query filter. The priorities are:
 
-1. Feature ID predicates using the ID index
-2. High-cardinality attribute predicates using the attribute index
-2. Attribute equality predicates using the attribute index
-3. Spatio-temporal predicates using the Z3/XZ3 index
-4. Attribute range predicates using the attribute index
-5. Spatial predicates using the Z2/XZ2 index
-6. Temporal predicates using the Z3/XZ3 index
-7. Low-cardinality attribute predicates using the attribute index
+#. Feature ID predicates using the ID index
+#. High-cardinality attribute predicates using the attribute index
+#. Attribute equality predicates using the attribute index
+#. Spatio-temporal predicates using the Z3/XZ3 index
+#. Attribute range predicates using the attribute index
+#. Spatial predicates using the Z2/XZ2 index
+#. Temporal predicates using the Z3/XZ3 index
+#. Low-cardinality attribute predicates using the attribute index
+
+If multiple attribute predicates have the same priority, the order of the attributes as defined in the schema
+will be used as a tie-breaker (attributes declared first have priority).
 
 In addition, Accumulo data stores using 'join' attribute indices will de-prioritize any predicates that require
 a join, based on the query properties/transform.
@@ -103,7 +109,7 @@ In order to show explain logging, configure your logging system to set
 
     log4j.category.org.locationtech.geomesa.index.utils.Explainer=TRACE
 
-Instead of passively logging, you can also generate explain logging explicitly without actually executing a query.
+Instead of passively logging, you can also generate explain logging explicitly without executing a query.
 Given a GeoMesa data store and a query, use the following method:
 
 .. code-block:: scala

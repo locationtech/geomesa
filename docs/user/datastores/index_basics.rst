@@ -53,11 +53,9 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
 
     // scala example
     import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
-    import org.locationtech.geomesa.utils.stats.Cardinality
 
     val sft = new SftBuilder()
-        .stringType("name", Opts(index = true, cardinality = Cardinality.HIGH))
-        .intType("age", Opts(index = true))
+        .stringType("name", Opts(index = true)
         .date("dtg")
         .geometry("geom", default = true)
         .build("mySft")

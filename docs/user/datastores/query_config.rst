@@ -142,7 +142,7 @@ QueryHints.QUERY_INDEX ``GeoMesaFeatureIndex`` index name, or name:version
 
         ...&viewparams=QUERY_INDEX:z2
 
-For more details, see :doc:`Query Planning`.
+For more details, see :ref:`query_planning`.
 
 .. _query_planning_hint:
 
@@ -180,4 +180,4 @@ QueryHints.COST_EVALUATION ``CostEvaluation`` ``stats`` or ``index``
 
         ...&viewparams=COST_EVALUATION:index
 
-For more details, see :doc:`Query Planning`.
+For more details, see :ref:`query_planning`.
