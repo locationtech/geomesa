@@ -91,9 +91,10 @@
         <hbase.guava.version>12.0.1</hbase.guava.version>
         <cassandra.version>3.0.0</cassandra.version>
         <cassandra.guava.version>18.0</cassandra.guava.version>
-        <kafka.08.version>0.8.2.1</kafka.08.version>
-        <kafka.09.version>0.9.0.1</kafka.09.version>
-        <kafka.10.version>0.10.0.1</kafka.10.version>
+        <kafka.version>0.9.0.1</kafka.version> <!-- also supports: 0.10.2.1, 1.0.0 -->
+        <zkclient.version>0.7</zkclient.version> <!-- corresponding versions: 0.10, 0.10 -->
+        <kafka.jopt.version>3.2</kafka.jopt.version> <!-- corresponding versions: 4.9, 5.0.4 -->
+
         <arrow.version>0.6.0</arrow.version>
         <netty.version>4.0.41.Final</netty.version>
 
@@ -2105,6 +2106,27 @@
                      </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-vector</artifactId>
+                <version>${arrow.version}</version>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-codec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-transport</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <!-- version used by spark - also compatible with arrow (which defaults to 2.7.1) -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -2408,6 +2430,12 @@
                 <version>3.6.2.Final</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.3.2</version>
+            </dependency>
+
             <!-- geoserver 2.9 spring version -->
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -2471,11 +2499,6 @@
                 <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
                 <version>2.3.0</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>3.3.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

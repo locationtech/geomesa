@@ -24,7 +24,7 @@ package object arrow {
     SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")
 
   object ArrowProperties {
-    val BatchSize = SystemProperty("geomesa.arrow.batch.size", "100000")
+    val BatchSize = SystemProperty("geomesa.arrow.batch.size", "10000")
   }
 
   case class TypeBindings(bindings: Seq[ObjectType], classBinding: Class[_], encoding: SimpleFeatureEncoding)

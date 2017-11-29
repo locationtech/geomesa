@@ -11,6 +11,7 @@ package org.locationtech.geomesa.arrow.vector
 import java.util.Date
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
+import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -23,12 +24,12 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureVectorTest extends Specification {
 
+  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
+
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
   val features = (0 until 10).map { i =>
     ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", s"${i % 5}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
   }
-
-  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   "SimpleFeatureVector" should {
     "set and get values" >> {
@@ -107,7 +108,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get dictionary encoded values" >> {
-      val dictionary = Map("name" -> ArrowDictionary.create(Seq("name00", "name01")))
+      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01")))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.max(true))) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
@@ -121,7 +122,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get null dictionary values" >> {
-      val dictionary = Map("name" -> ArrowDictionary.create(Seq("name00", "name01")))
+      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01")))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(true))) { vector =>
         val nulls = features.map(ScalaSimpleFeature.copy)
         (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
@@ -137,7 +138,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get dictionary encoded ints" >> {
-      val dictionary = Map("age" -> ArrowDictionary.create(Seq(0, 1, 2, 3, 4, 5).map(Int.box)))
+      val dictionary = Map("age" -> ArrowDictionary.create(0, Array(0, 1, 2, 3, 4, 5).map(Int.box)))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.max(true))) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)

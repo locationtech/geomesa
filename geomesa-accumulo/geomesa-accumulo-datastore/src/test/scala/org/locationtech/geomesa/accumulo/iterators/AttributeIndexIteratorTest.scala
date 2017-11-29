@@ -30,7 +30,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
   sequential
 
-  val spec = "name:String:index=true,age:Integer:index=true,scars:List[String]:index=true,dtg:Date:index=true," +
+  val spec = "name:String:index=join,age:Integer:index=join,scars:List[String]:index=join,dtg:Date:index=join," +
       "*geom:Point:srid=4326;override.index.dtg.join=true"
 
   val dateToIndex = {

@@ -25,7 +25,7 @@ import java.util.Map;
 
 public abstract class AbstractPointVector implements GeometryVector<Point, FixedSizeListVector> {
 
-  private static FieldType createFieldType(Map<String, String> metadata) {
+  public static FieldType createFieldType(Map<String, String> metadata) {
     return new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata);
   }
 
