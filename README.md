@@ -31,18 +31,18 @@ geospatial analytics.
 
 ## Downloads
 
-**Current release: 1.3.4**
+**Current release: 1.3.5**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [**Accumulo**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/1.3.4/geomesa-accumulo-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Kafka 0.8**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-08-dist_2.11/1.3.4/geomesa-kafka-08-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Kafka 0.9**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-09-dist_2.11/1.3.4/geomesa-kafka-09-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Kafka 0.10**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-10-dist_2.11/1.3.4/geomesa-kafka-10-dist_2.11-1.3.4-bin.tar.gz) |
-  [**HBase**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/1.3.4/geomesa-hbase-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Cassandra**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/1.3.4/geomesa-cassandra-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-1.3.4.tar.gz)
+  [**Accumulo**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/1.3.5/geomesa-accumulo-dist_2.11-1.3.5-bin.tar.gz) |
+  [**Kafka 0.8**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-08-dist_2.11/1.3.5/geomesa-kafka-08-dist_2.11-1.3.5-bin.tar.gz) |
+  [**Kafka 0.9**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-09-dist_2.11/1.3.5/geomesa-kafka-09-dist_2.11-1.3.5-bin.tar.gz) |
+  [**Kafka 0.10**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-10-dist_2.11/1.3.5/geomesa-kafka-10-dist_2.11-1.3.5-bin.tar.gz) |
+  [**HBase**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/1.3.5/geomesa-hbase-dist_2.11-1.3.5-bin.tar.gz) |
+  [**Cassandra**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/1.3.5/geomesa-cassandra-dist_2.11-1.3.5-bin.tar.gz) |
+  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-1.3.5.tar.gz)
 
-**Development version: 1.3.5-SNAPSHOT** &nbsp;
+**Development version: 1.3.6-SNAPSHOT** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 
 ### Upgrading
