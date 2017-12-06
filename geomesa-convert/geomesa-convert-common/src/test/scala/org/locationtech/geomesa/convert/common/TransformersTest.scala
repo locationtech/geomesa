@@ -29,7 +29,7 @@ class TransformersTest extends Specification {
 
   "Transformers" should {
 
-    implicit val ctx = EvaluationContext.empty
+    implicit val ctx: EvaluationContext = EvaluationContext.empty
 
     "handle transformations" >> {
 
@@ -138,6 +138,13 @@ class TransformersTest extends Specification {
         "mkstring" >> {
           val exp = Transformers.parseTransform("mkstring(',', $1, $2, $3, $4, $5, $6)")
           exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "1,2,3,4,5,6"
+        }
+        "emptyToNull" >> {
+          val exp = Transformers.parseTransform("emptyToNull($1)")
+          exp.eval(Array("", "foo")) mustEqual "foo"
+          exp.eval(Array("", "")) must beNull
+          exp.eval(Array("", "  ")) must beNull
+          exp.eval(Array("", null)) must beNull
         }
       }
 
