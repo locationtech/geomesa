@@ -37,7 +37,7 @@ The older parameter names will continue to work, but are deprecated and may be r
 Kafka Data Store
 ----------------
 
-The Kafka Data Store has been rewritten into a single implementation for Kafka 0.9 and 0.10. Support for
+The Kafka Data Store has been rewritten into a single implementation for Kafka |kafka_version|. Support for
 Kafka 0.8 has been removed. See :ref:`kafka_index` for more information.
 
 Accumulo Standardization
