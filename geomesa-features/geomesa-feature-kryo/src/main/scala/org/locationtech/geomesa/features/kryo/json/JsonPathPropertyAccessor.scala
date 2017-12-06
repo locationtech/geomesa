@@ -43,7 +43,7 @@ object JsonPathPropertyAccessor extends PropertyAccessor {
       // we know object is a simple feature due to factory method `createPropertyAccessor`
       val sft = obj.asInstanceOf[SimpleFeature].getFeatureType
       path.head match {
-        case PathAttribute(name: String) =>
+        case PathAttribute(name: String, _) =>
           val descriptor = sft.getDescriptor(name)
           descriptor != null && descriptor.getType.getBinding == classOf[String]
         case PathAttributeWildCard | PathDeepScan =>
@@ -61,7 +61,7 @@ object JsonPathPropertyAccessor extends PropertyAccessor {
     val path = pathFor(xpath)
 
     val attribute = path.head match {
-      case PathAttribute(name: String) => sft.indexOf(name)
+      case PathAttribute(name: String, _) => sft.indexOf(name)
       case _ =>
         // we know it will be a wildcard due to canHandle
         // prioritize fields marked json over generic strings
