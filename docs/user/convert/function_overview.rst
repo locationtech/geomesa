@@ -20,6 +20,7 @@ String Functions
 -  ``concatenate``
 -  ``substring``
 -  ``toString``
+-  ``emptyToNull``
 
 Date Functions
 ~~~~~~~~~~~~~~
