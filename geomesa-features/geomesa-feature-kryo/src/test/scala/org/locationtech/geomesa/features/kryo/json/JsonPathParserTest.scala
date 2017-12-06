@@ -20,6 +20,7 @@ class JsonPathParserTest extends Specification {
   "JsonPathParser" should {
     "not parse invalid paths" in {
       JsonPathParser.parse("$.$") must throwA[ParsingException]
+      JsonPathParser.parse("$.foo foo") must throwA[ParsingException]
     }
     "correctly parse attribute paths" in {
       val path = JsonPathParser.parse("$.foo")
