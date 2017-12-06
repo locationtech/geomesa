@@ -15,11 +15,14 @@ import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
-import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
+import org.geotools.referencing.CRS
 import org.geotools.util.Converters
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeFormat}
+import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
+import org.opengis.referencing.operation.MathTransform
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -461,9 +464,11 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     polygonParserFn,
     multiPolygonParserFn,
     geometryParserFn,
-    geometryCollectionParserFn)
+    geometryCollectionParserFn,
+    reprojectParserFn)
 
   private val gf = JTSFactoryFinder.getGeometryFactory
+
   val pointParserFn = TransformerFn("point") { args =>
     args.length match {
       case 1 =>
@@ -538,6 +543,25 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
       case s: String   => WKTUtils.read(s)
       case _ =>
         throw new IllegalArgumentException(s"Invalid geometrycollection conversion argument: ${args.toList}")
+    }
+  }
+
+  val reprojectParserFn = new TransformerFn {
+
+    private val cache = new SoftThreadLocalCache[String, MathTransform]
+
+    override val names: Seq[String] = Seq("reproject")
+
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+      import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+
+      val geom = args(0).asInstanceOf[Geometry]
+      val epsg = args(1).asInstanceOf[String]
+      val lenient = if (args.length > 2) { java.lang.Boolean.parseBoolean(args(2).toString) } else { true }
+      // assuming here that transforms are not thread safe - can't find anything to say if they are or not
+      val transform = cache.getOrElseUpdate(s"$epsg:$lenient",
+        CRS.findMathTransform(CRS.decode(epsg), CRS_EPSG_4326, lenient))
+      JTS.transform(geom, transform)
     }
   }
 }

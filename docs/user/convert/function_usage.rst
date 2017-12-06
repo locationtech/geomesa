@@ -232,7 +232,7 @@ Example: Parsing lon/lat from text without creating lon/lat fields:
 ::
 
     # config
-    { name = "geom", transform="point($2::double, $3::double)"
+    { name = "geom", transform="point($2::double, $3::double)" }
 
     # data
     id,lat,lon,date
@@ -299,6 +299,24 @@ Example: Parsing GeoJson geometry
         color: "red",
         "geometry": {"type": "Point", "coordinates": [55, 56]}
     }
+
+reproject
+^^^^^^^^^
+
+Description: Project a geometry from its native CRS to EPSG:4326
+
+Usage: ``reproject($0,'EPSG:3857')``
+
+Example: Reprojecting a parsed point from EPSG:3857 to EPSG:4326:
+
+::
+
+    # config
+    { name = "geom", transform="reproject(point($2::double, $3::double),'EPSG:3857')" }
+
+    # data
+    id,x,y,date
+    identity1,1689200.14,1113194.91,2015-02-03
 
 ID Functions
 ~~~~~~~~~~~~

@@ -41,6 +41,7 @@ Geometry Functions
 -  ``linestring``
 -  ``polygon``
 -  ``geometry``
+-  ``reproject``
 
 ID Functions
 ~~~~~~~~~~~~
