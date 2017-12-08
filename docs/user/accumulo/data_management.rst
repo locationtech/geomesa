@@ -13,11 +13,6 @@ Accumulo Attribute Indices
 See :ref:`attribute_indices` for an overview of attribute indices. The Accumulo data store extends the
 normal attribute indices with an additional 'join' format that stores less data.
 
-.. warning::
-
-    Accumulo data stores use the reduced 'join' format by default. In order to use 'full' indices,
-    the keyword ``full`` must be used in the ``SimpleFeatureType`` as described below.
-
 Join Indices
 ^^^^^^^^^^^^
 
@@ -31,16 +26,16 @@ a query with only the data in the join index. In general, this means that the qu
 returning the properties for the default date, default geometry and the attribute being queried.
 In addition, any CQL filters must only operate on those three attributes as well.
 
-The keyword ``join`` may be used in place of ``true`` when specifying an attribute index in the
-``SimpleFeatureType``. Note that join indices are the default in the Accumulo data store.
+To enable a join index, the keyword ``join`` may be used in place of ``true`` when specifying an
+attribute index in the ``SimpleFeatureType``.
 
 Full Indices
 ^^^^^^^^^^^^
 
 Full indices store the full simple feature. This takes up the most space on disk, but allows for any query to
 be answered without joining against the record table. This is the only option for non-Accumulo data stores.
-To use a full index, the keyword ``full`` must be used in place of ``true`` when specifying an attribute
-index in the ``SimpleFeatureType``.  Note that join indices are the default in the Accumulo data store.
+To use a full index, the keyword ``full`` or ``true`` may be used when specifying an attribute
+index in the ``SimpleFeatureType``.
 
 .. _logical_timestamps:
 
@@ -65,6 +60,24 @@ time, add the following user data hint to the simple feature type before calling
     tables are created correctly, you may wish to disable table sharing by adding the user data string
     ``geomesa.table.sharing='false'``
 
+Table Sharing
+-------------
+
+By default, multiple ``SimpleFeatureType``\ s in a single catalog table will share the same physical Accumulo
+index tables. This will reduce the total number of Accumulo tables created. However, it may complicate
+administrator tasks, such as by making it impossible to set different tablet split sizes for different feature types.
+In addition, deleting a schema will generally be slower, as it requires deleting each data row, instead of
+just dropping the entire table.
+
+Table sharing can be disabled by setting the user data ``geomesa.table.sharing`` to false:
+
+.. code-block:: java
+
+    // disable table sharing for this feature type
+    sft.getUserData().put("geomesa.table.sharing", "false");
+
+See :ref:`set_sft_options` for more details on how to set user data values.
+
 Splitting the Record Index
 --------------------------
 
@@ -75,69 +88,35 @@ up ingestion and queries.
 
 GeoMesa supplies three different table splitter options:
 
-- ``org.locationtech.geomesa.index.conf.HexSplitter`` (used by default)
-
-  Assumes an even distribution of IDs starting with 0-9, a-f, A-F
-
-- ``org.locationtech.geomesa.index.conf.AlphaNumericSplitter``
-
-  Assumes an even distribution of IDs starting with 0-9, a-z, A-Z
-
-- ``org.locationtech.geomesa.index.conf.DigitSplitter``
-
-  Assumes an even distribution of IDs starting with numeric values, which are specified as options
+============================================================= ========================================================================================
+Class                                                         ID Type
+============================================================= ========================================================================================
+``org.locationtech.geomesa.index.conf.HexSplitter`` (default) An even distribution of IDs starting with 0-9, a-f, A-F
+``org.locationtech.geomesa.index.conf.AlphaNumericSplitter``  An even distribution of IDs starting with 0-9, a-z, A-Z
+``org.locationtech.geomesa.index.conf.DigitSplitter``         An even distribution of IDs starting with numeric values, which are specified as options
+============================================================= ========================================================================================
 
 Custom splitters may also be used - any class that extends ``org.locationtech.geomesa.index.conf.TableSplitter``.
 
 Specifying a Table Splitter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Table splitter may be specified by setting a hint when creating a simple feature type,
-similar to enabling indices (above).
+A table splitter may be specified by through user data when creating a simple feature type.
 
-Setting the hint can be done in three ways. If you are using a string to indicate your simple feature type
-(e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
-the hint to the end of the string, like so:
+To indicate the table splitter class, use the key ``table.splitter.class``:
 
 .. code-block:: java
 
-    // append the hints to the end of the string, separated by a semi-colon
-    String spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
-        "table.splitter.class=org.locationtech.geomesa.index.conf.AlphaNumericSplitter";
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+    sft.getUserData().put("table.splitter.class", "org.locationtech.geomesa.index.conf.DigitSplitter");
 
-If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
-you may set the hint directly in the feature type:
+To indicate any options for the given table splitter, use the key ``table.splitter.options``:
 
 .. code-block:: java
 
-    // set the hint directly
-    SimpleFeatureType sft = ...
-    sft.getUserData().put("table.splitter.class",
-        "org.locationtech.geomesa.index.conf.DigitSplitter");
+    sft.getUserData().put("table.splitter.class", "org.locationtech.geomesa.index.conf.DigitSplitter");
     sft.getUserData().put("table.splitter.options", "fmt:%02d,min:0,max:99");
 
-If you are using TypeSafe configuration files to define your simple feature type, you may include
-a 'user-data' key:
-
-.. code-block:: javascript
-
-    geomesa {
-      sfts {
-        "mySft" = {
-          attributes = [
-            { name = name, type = String             }
-            { name = dtg,  type = Date               }
-            { name = geom, type = Point, srid = 4326 }
-          ]
-          user-data = {
-            table.splitter.class = "org.locationtech.geomesa.index.conf.DigitSplitter"
-            table.splitter.options = "fmt:%01d,min:0,max:9"
-          }
-        }
-      }
-    }
-
+See :ref:`set_sft_options` for more details on how to set user data values.
 
 Moving and Migrating Data
 -------------------------
@@ -176,105 +155,8 @@ GeoMesa often makes updates to indexing formats to improve query and write perfo
 the index format for a given schema is fixed when it is first created. Updating GeoMesa versions
 will provide bug fixes and new features, but will not update existing data to new index formats.
 
-The following tables show the different indices available for different versions of GeoMesa. If not
-known, the schema version for a feature type can be checked by examining the user data value
-``geomesa.version``, or by scanning the Accumulo catalog table for ``version``. For GeoMesa schemas
-created with 1.2.7 or later, the version of each index is tracked separately and the overall schema
-version is no longer maintained.
-
-Schema version 4 - 1.0.0-rc.7
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------+---------+----------------------------------------------------------------------------+
-| Index     | Version | Notes                                                                      |
-+===========+=========+============================================================================+
-| GeoHash   | 1       | Used for most queries                                                      |
-+-----------+---------+----------------------------------------------------------------------------+
-| Record    | 1       | Used for queries on feature ID                                             |
-+-----------+---------+----------------------------------------------------------------------------+
-| Attribute | 1       | Used for attribute queries (when configured)                               |
-+-----------+---------+----------------------------------------------------------------------------+
-
-Schema version 5 - 1.1.0-rc.1 through 1.1.0-rc.2
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------+---------+----------------------------------------------------------------------------+
-| Index     | Version | Notes                                                                      |
-+===========+=========+============================================================================+
-| Z3        | 1       | Replaces GeoHash index for spatio-temporal queries on point geometries     |
-+-----------+---------+----------------------------------------------------------------------------+
-| GeoHash   | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| Record    | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| Attribute | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-
-Schema version 6 - 1.1.0-rc.3 through 1.2.0
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------+---------+----------------------------------------------------------------------------+
-| Index     | Version | Notes                                                                      |
-+===========+=========+============================================================================+
-| Z3        | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| GeoHash   | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| Record    | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| Attribute | 2       | Added a composite date index and improved row-key collisions               |
-+-----------+---------+----------------------------------------------------------------------------+
-
-
-Schema version 7 - 1.2.1
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------+---------+----------------------------------------------------------------------------+
-| Index     | Version | Notes                                                                      |
-+===========+=========+============================================================================+
-| Z3        | 2       | Added support for non-point geometries and sharding for improved ingestion |
-+-----------+---------+----------------------------------------------------------------------------+
-| GeoHash   | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| Record    | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| Attribute | 2       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-
-
-Schema version 8 - 1.2.2 through 1.2.4
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------+---------+----------------------------------------------------------------------------+
-| Index     | Version | Notes                                                                      |
-+===========+=========+============================================================================+
-| Z3        | 2       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| Z2        | 1       | Spatial only index to replace GeoHash index                                |
-+-----------+---------+----------------------------------------------------------------------------+
-| Record    | 1       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-| Attribute | 2       |                                                                            |
-+-----------+---------+----------------------------------------------------------------------------+
-
-Schema version 10 - 1.2.5+
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------+---------+----------------------------------------------------------------------------+
-| Index     | Version | Notes                                                                      |
-+===========+=========+============================================================================+
-| Z3        | 3       | Support for attribute-level visibilities and improved feature ID encoding  |
-+-----------+---------+----------------------------------------------------------------------------+
-| Z2        | 2       | Support for attribute-level visibilities and improved feature ID encoding  |
-+-----------+---------+----------------------------------------------------------------------------+
-| XZ3       | 1       | Spatio-temporal index with improved support for non-point geometries       |
-+-----------+---------+----------------------------------------------------------------------------+
-| XZ2       | 1       | Spatial index with improved support for non-point geometries               |
-+-----------+---------+----------------------------------------------------------------------------+
-| Record    | 2       | Support for attribute-level visibilities and improved feature ID encoding  |
-+-----------+---------+----------------------------------------------------------------------------+
-| Attribute | 3       | Support for attribute-level visibilities and improved feature ID encoding  |
-+-----------+---------+----------------------------------------------------------------------------+
+The exact version of an index used for each schema can be read from the ``SimpleFeatureType`` user data,
+or by simple examining the name of the index tables created by GeoMesa.
 
 Using the GeoMesa command line tools, you can add or update an index to a newer version using ``add-index``.
 For example, you could add the XZ3 index to replace the Z3 index for a feature type with non-point geometries.

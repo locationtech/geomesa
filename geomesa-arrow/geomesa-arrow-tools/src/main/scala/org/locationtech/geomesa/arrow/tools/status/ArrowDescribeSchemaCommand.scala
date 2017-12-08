@@ -31,7 +31,7 @@ class ArrowDescribeSchemaCommand extends DescribeSchemaCommand[ArrowDataStore] w
       output("Dictionaries: none")
     } else if (params.dictionaries) {
       output("Dictionaries:")
-      dictionaries.foreach { case (field, dictionary) => output(s"  $field: ${dictionary.values.mkString(", ")}") }
+      dictionaries.foreach { case (field, dictionary) => output(s"  $field: ${dictionary.iterator.mkString(", ")}") }
     } else {
       output(s"Dictionaries: ${ds.dictionaries.keys.mkString(", ")}")
     }

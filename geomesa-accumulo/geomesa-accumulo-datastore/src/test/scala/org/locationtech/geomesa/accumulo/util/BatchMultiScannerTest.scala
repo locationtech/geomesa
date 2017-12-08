@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class BatchMultiScannerTest extends TestWithDataStore {
 
-  override val spec = s"name:String:index=true,age:String:index=true,idStr:String:index=true,dtg:Date,*geom:Point:srid=4326"
+  override val spec = s"name:String:index=join,age:String:index=join,idStr:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
   val features = for (
     name  <- List("a", "b", "c", "d");

@@ -34,8 +34,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.locationtech.geomesa.utils.stats.Stat
-import org.opengis.feature.`type`.Name
+import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -155,10 +154,33 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
           "of new tables")
       sft.setTableSharing(false)
     }
+
+    // default to full indices if ambiguous - replace 'index=true' with explicit 'index=full'
+    sft.getAttributeDescriptors.foreach { descriptor =>
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.OPT_INDEX
+      descriptor.getUserData.get(OPT_INDEX) match {
+        case s: String if java.lang.Boolean.parseBoolean(s) => descriptor.getUserData.put(OPT_INDEX, IndexCoverage.FULL.toString)
+        case _ => // no-op
+      }
+    }
   }
 
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
     super.onSchemaCreated(sft)
+    // configure the stats combining iterator on the table for this sft
+    stats.configureStatCombiner(connector, sft)
+  }
+
+  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+    // check for newly indexed attributes and re-configure the splits
+    val previousAttrIndices = previous.getAttributeDescriptors.collect { case d if d.isIndexed => d.getLocalName }
+    if (sft.getAttributeDescriptors.exists(d => d.isIndexed && !previousAttrIndices.contains(d.getLocalName))) {
+      manager.indices(sft, IndexMode.Any).foreach {
+        case s: AttributeSplittable => s.configureSplits(sft, this)
+        case _ => // no-op
+      }
+    }
     // configure the stats combining iterator on the table for this sft
     stats.configureStatCombiner(connector, sft)
   }
@@ -251,28 +273,6 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     sft
   }
 
-  override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-    val previousSft = getSchema(typeName)
-    super.updateSchema(typeName, sft)
-
-    val lock = acquireCatalogLock()
-    try {
-      // check for newly indexed attributes and re-configure the splits
-      val previousAttrIndices = previousSft.getAttributeDescriptors.collect { case d if d.isIndexed => d.getLocalName }
-      if (sft.getAttributeDescriptors.exists(d => d.isIndexed && !previousAttrIndices.contains(d.getLocalName))) {
-        manager.indices(sft, IndexMode.Any).foreach {
-          case s: AttributeSplittable => s.configureSplits(sft, this)
-          case _ => // no-op
-        }
-      }
-      // configure the stats combining iterator on the table for this sft
-      stats.configureStatCombiner(connector, sft)
-    } finally {
-      lock.release()
-    }
-  }
-
   override def dispose(): Unit = {
     super.dispose()
     kerberosTgtRenewer.foreach( _.shutdown() )
@@ -303,7 +303,6 @@ object AccumuloDataStore {
   }
 }
 
-//
 /**
   * Configuration options for AccumuloDataStore
   *

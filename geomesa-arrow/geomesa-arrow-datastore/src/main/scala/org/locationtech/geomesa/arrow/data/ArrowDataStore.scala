@@ -70,7 +70,7 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
       throw new IllegalArgumentException("Can't write to the provided URL, or caching is enabled")
     }
     WithClose(createOutputStream(false)) { os =>
-      WithClose(new SimpleFeatureArrowFileWriter(sft, os, Map.empty)) { writer =>
+      WithClose(SimpleFeatureArrowFileWriter(sft, os)) { writer =>
         // just write the schema/metadata
         writer.start()
       }

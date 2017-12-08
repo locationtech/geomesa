@@ -16,7 +16,7 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{HBaseCatalogParam, ConnectionParam}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
 import org.locationtech.geomesa.hbase.filters.Z3HBaseFilter
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -55,7 +55,7 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val query = new Query(sft.getTypeName, Filter.INCLUDE)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_COMPUTE, false)
+      query.getHints.put(QueryHints.ARROW_MULTI_FILE, true)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))

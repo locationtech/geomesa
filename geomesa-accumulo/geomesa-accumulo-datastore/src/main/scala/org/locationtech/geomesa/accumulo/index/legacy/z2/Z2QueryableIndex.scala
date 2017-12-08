@@ -22,7 +22,6 @@ import org.locationtech.geomesa.accumulo.iterators.{Z2DensityIterator, _}
 import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
-import org.locationtech.geomesa.index.iterators.ArrowBatchScan
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils, SplitArrays}
 import org.locationtech.geomesa.utils.geotools._
@@ -92,19 +91,8 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
       val iter = Z2DensityIterator.configure(sft, this, ecql, hints)
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, FullColumnFamily, false)
     } else if (hints.isArrowQuery) {
-      val dictionaryFields = hints.getArrowDictionaryFields
-      val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-      if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
-          dictionaryFields.forall(providedDictionaries.contains)) {
-        val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
-          providedDictionaries, hints.isArrowCachedDictionaries)
-        val iter = ArrowBatchIterator.configure(sft, this, ecql, dictionaries, hints, sft.nonPoints)
-        val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries))
-        (Seq(iter), ArrowBatchIterator.kvsToFeatures(), reduce, FullColumnFamily, sft.nonPoints)
-      } else {
-        val iter = ArrowFileIterator.configure(sft, this, ecql, dictionaryFields, hints, sft.nonPoints)
-        (Seq(iter), ArrowFileIterator.kvsToFeatures(), None, FullColumnFamily, sft.nonPoints)
-      }
+      val (iter, reduce) = ArrowIterator.configure(sft, this, ds.stats, filter.filter, ecql, hints, sft.nonPoints)
+      (Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce), FullColumnFamily, false)
     } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))

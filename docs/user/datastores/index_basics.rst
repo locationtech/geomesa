@@ -39,10 +39,10 @@ To index an attribute, add an ``index`` hint to the attribute descriptor with a 
 the cardinality of an attribute, use the hint ``cardinality`` with a value of ``high`` or ``low`` (see below
 for a description of cardinality hints).
 
-.. warning::
+.. note::
 
-    Accumulo data stores have an additional option to create reduced 'join' attribute indices, and will
-    use the reduced format by default. See :ref:`accumulo_attribute_indices` for details.
+    Accumulo data stores have an additional option to create reduced 'join' attribute indices, which can
+    save space. See :ref:`accumulo_attribute_indices` for details.
 
 Setting the hint can be done in multiple ways. If you are using a string to indicate your simple feature type
 (e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
