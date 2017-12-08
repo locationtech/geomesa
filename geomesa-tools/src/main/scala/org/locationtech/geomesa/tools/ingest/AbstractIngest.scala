@@ -24,6 +24,7 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.stats.CountingInputStream
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -92,7 +93,9 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
       runDistributed()
     }
 
-    if (PathUtils.isRemote(inputs.head)) {
+    if (inputs.isEmpty && !StdInHandle.isAvailable) {
+      throw new ParameterException("Missing option: <files>... is required")
+    } else if (inputs.headOption.exists(PathUtils.isRemote)) {
       if (mode.contains(RunModes.Local)) {
         local()
       } else {
@@ -160,25 +163,34 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
           case NonFatal(e) =>
             // Don't kill the entire program bc this thread was bad! use outer try/catch
-            val msg = s"Fatal error running local ingest worker on file ${file.path}"
+            val msg = s"Fatal error running local ingest worker on ${file.path}"
             Command.user.error(msg)
             logger.error(msg, e)
         }
       }
     }
 
-    val files = inputs.flatMap(PathUtils.interpretPath)
-    val numFiles = files.length
-    val totalLength = files.map(_.length).sum.toFloat
+    // if inputs is empty, we've already validated that stdin has data to read
+    val stdin = inputs.isEmpty
 
-    def progress(): Float = bytesRead.get() / totalLength
+    val files = if (stdin) { StdInHandle.available().toSeq } else { inputs.flatMap(PathUtils.interpretPath) }
 
-    val threads = if (numLocalThreads <= numFiles) { numLocalThreads } else {
+    val threads = if (numLocalThreads <= files.length) { numLocalThreads } else {
       Command.user.warn("Can't use more threads than there are input files - reducing thread count")
-      numFiles
+      files.length
     }
 
-    Command.user.info(s"Ingesting ${TextTools.getPlural(numFiles, "file")} with ${TextTools.getPlural(threads, "thread")}")
+    Command.user.info(s"Ingesting ${if (stdin) { "from stdin" } else { TextTools.getPlural(files.length, "file") }} " +
+        s"with ${TextTools.getPlural(threads, "thread")}")
+
+    val totalLength: () => Float = if (stdin) {
+      () => (bytesRead.get + files.map(_.length).sum).toFloat // re-evaluate each time as bytes are read from stdin
+    } else {
+      val length = files.map(_.length).sum.toFloat // only evaluate once
+      () => length
+    }
+
+    def progress(): Float = bytesRead.get() / totalLength()
 
     val start = System.currentTimeMillis()
     val statusCallback = createCallback()
