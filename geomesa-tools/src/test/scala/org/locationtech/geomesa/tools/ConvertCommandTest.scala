@@ -16,7 +16,7 @@ import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -92,7 +92,8 @@ class ConvertCommandTest extends Specification with LazyLogging {
         withCommand { command =>
           val converter = ConvertCommand.getConverter(command.params, sft)
           val ec = converter.createEvaluationContext(Map("inputFilePath" -> inputFile))
-          val features = ConvertCommand.convertFeatures(Seq(inputFile), converter, ec, None, None)
+          val files = Iterator.single(inputFile).flatMap(PathUtils.interpretPath)
+          val features = ConvertCommand.convertFeatures(files, converter, ec, None, None)
           features must haveLength(3)
         }
       }

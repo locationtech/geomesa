@@ -141,16 +141,16 @@ trait OptionalZookeepersParam {
 }
 
 trait InputFilesParam {
-  @Parameter(description = "<file>...", required = true)
+  @Parameter(description = "<file>...")
   var files: java.util.List[String] = new util.ArrayList[String]()
 }
 
 trait InputFormatParam extends InputFilesParam {
-  import scala.collection.JavaConversions._
 
   def format: String
 
   def fmt: DataFormats.DataFormat = {
+    import scala.collection.JavaConversions._
     val fmtParam = Option(format).flatMap(f => DataFormats.values.find(_.toString.equalsIgnoreCase(f)))
     lazy val fmtFile = files.flatMap(DataFormats.fromFileName(_).right.toOption).headOption
     fmtParam.orElse(fmtFile).orNull

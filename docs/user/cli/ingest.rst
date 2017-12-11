@@ -83,11 +83,12 @@ than there are input files. The ``--threads`` argument is ignored for distribute
 
 The ``<files>...`` argument specifies the files to be ingested. ``*`` may be used as a wild card in file paths.
 GeoMesa can handle **gzip**, **bzip** and **xz** file compression as long as the file extensions match the
-compression type. GeoMesa supports ingesting files from local disks or HDFS. In addition, files in Amazon's S3
-and Microsoft's Azure file systems can be ingested with a few configuration changes. See
+compression type. GeoMesa supports ingesting files from local disks or HDFS. In addition, Amazon's S3
+and Microsoft's Azure file systems are supported with a few configuration changes. See
 :doc:`/user/cli/filesystems` for details.
 
-Instead of specifying files, input data may be piped directly to the ingest command using shell redirection.
-For example::
+Instead of specifying files, input data may be piped directly to the ingest command using `stdin` shell redirection.
+Note that this will only work in local mode, and will only use a single thread for ingestion. Progress indicators
+may not be entirely accurate, as the total size isn't known up front. For example::
 
-    gunzip foo.gz | geomesa-accumulo ingest ...
+    cat foo.csv | geomesa-accumulo ingest ...

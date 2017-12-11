@@ -25,6 +25,8 @@ import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -47,6 +49,12 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
 
     import scala.collection.JavaConversions._
 
+    val files = if (params.files.nonEmpty) { params.files.iterator.flatMap(PathUtils.interpretPath) } else {
+      StdInHandle.available().map(Iterator.single).getOrElse {
+        throw new ParameterException("Missing option: <files>... is required")
+      }
+    }
+
     val sft = CLArgResolver.getSft(params.spec)
 
     Command.user.info(s"Using SFT definition: ${SimpleFeatureTypes.encodeType(sft)}")
@@ -57,7 +65,7 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
     val ec = converter.createEvaluationContext(Map("inputFilePath" -> ""))
     val maxFeatures = Option(params.maxFeatures).map(_.intValue())
 
-    def features() = ConvertCommand.convertFeatures(params.files, converter, ec, filter, maxFeatures)
+    def features() = ConvertCommand.convertFeatures(files, converter, ec, filter, maxFeatures)
 
     val exporter = getExporter(params, features())
 
@@ -122,12 +130,12 @@ object ConvertCommand extends LazyLogging {
     }
   }
 
-  def convertFeatures(files: Iterable[String],
+  def convertFeatures(files: Iterator[FileHandle],
                       converter: SimpleFeatureConverter[Any],
                       ec: EvaluationContext,
                       filter: Option[Filter],
                       maxFeatures: Option[Int]): Iterator[SimpleFeature] = {
-    val all = files.iterator.flatMap(PathUtils.interpretPath).flatMap { file =>
+    val all = files.flatMap { file =>
       ec.set(ec.indexOf("inputFilePath"), file.path)
       val is = PathUtils.handleCompression(file.open, file.path)
       converter.process(is, ec)
