@@ -84,7 +84,7 @@
         <zookeeper.version>3.4.5</zookeeper.version>
         <thrift.version>0.9.1</thrift.version>
         <hadoop.version>2.6.0</hadoop.version>
-        <spark.version>2.2.0</spark.version>
+        <spark.version>2.0.0</spark.version>
         <hbase.version>1.2.0</hbase.version>
         <hbase.guava.version>12.0.1</hbase.guava.version>
         <cassandra.version>3.0.0</cassandra.version>
