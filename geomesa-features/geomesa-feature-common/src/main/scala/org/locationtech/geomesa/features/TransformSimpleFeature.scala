@@ -32,7 +32,10 @@ class TransformSimpleFeature(transformSchema: SimpleFeatureType,
 
   private lazy val geomIndex = transformSchema.indexOf(transformSchema.getGeometryDescriptor.getLocalName)
 
-  def setFeature(sf: SimpleFeature): Unit = underlying = sf
+  def setFeature(sf: SimpleFeature): TransformSimpleFeature = {
+    underlying = sf
+    this
+  }
 
   override def getAttribute(index: Int): AnyRef = attributes(index).apply(underlying)
 
@@ -78,18 +81,18 @@ class TransformSimpleFeature(transformSchema: SimpleFeatureType,
   override def getValue = throw new NotImplementedError
   override def getDescriptor = throw new NotImplementedError
 
-  override def setAttribute(name: Name, value: Object) = throw new NotImplementedError
-  override def setAttribute(name: String, value: Object) = throw new NotImplementedError
-  override def setAttribute(index: Int, value: Object) = throw new NotImplementedError
-  override def setAttributes(vals: jList[Object]) = throw new NotImplementedError
-  override def setAttributes(vals: Array[Object]) = throw new NotImplementedError
-  override def setDefaultGeometry(geo: Object) = throw new NotImplementedError
-  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute) = throw new NotImplementedError
-  override def setValue(newValue: Object) = throw new NotImplementedError
-  override def setValue(values: jCollection[Property]) = throw new NotImplementedError
+  override def setAttribute(name: Name, value: Object): Unit = throw new NotImplementedError
+  override def setAttribute(name: String, value: Object): Unit = throw new NotImplementedError
+  override def setAttribute(index: Int, value: Object): Unit = throw new NotImplementedError
+  override def setAttributes(vals: jList[Object]): Unit = throw new NotImplementedError
+  override def setAttributes(vals: Array[Object]): Unit = throw new NotImplementedError
+  override def setDefaultGeometry(geo: Object): Unit = throw new NotImplementedError
+  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute): Unit = throw new NotImplementedError
+  override def setValue(newValue: Object): Unit = throw new NotImplementedError
+  override def setValue(values: jCollection[Property]): Unit = throw new NotImplementedError
 
-  override def isNillable = true
-  override def validate() = throw new NotImplementedError
+  override def isNillable: Boolean = true
+  override def validate(): Unit = throw new NotImplementedError
 
   override def toString = s"TransformSimpleFeature:$getID"
 }

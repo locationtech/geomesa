@@ -19,7 +19,6 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
 import org.locationtech.geomesa.blob.api.handlers.{BlobStoreFileHandler, ByteArrayHandler}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -57,7 +56,7 @@ abstract class GeoMesaGenericBlobStore(ds: DataStore, bs: BlobStore) extends Geo
   }
 
   override def delete(id: String): Unit = {
-    val removalFilter = Filters.ff.id(new FeatureIdImpl(id))
+    val removalFilter = org.locationtech.geomesa.filter.ff.id(new FeatureIdImpl(id))
     fs.removeFeatures(removalFilter)
     bs.deleteBlob(id)
   }

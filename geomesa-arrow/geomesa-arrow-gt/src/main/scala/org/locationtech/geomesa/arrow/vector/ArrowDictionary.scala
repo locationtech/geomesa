@@ -139,8 +139,8 @@ object ArrowDictionary {
 
     override def toDictionary(precision: SimpleFeatureEncoding)(implicit allocator: BufferAllocator): Dictionary = {
       val name = s"dictionary-$id"
-      val (objectType, bindings) = ObjectType.selectType(ct.runtimeClass)
-      val writer = ArrowAttributeWriter(name, bindings.+:(objectType), ct.runtimeClass, None, None, Map.empty, precision)
+      val bindings = ObjectType.selectType(ct.runtimeClass)
+      val writer = ArrowAttributeWriter(name, bindings, None, None, Map.empty, precision)
 
       var i = 0
       while (i < length) {

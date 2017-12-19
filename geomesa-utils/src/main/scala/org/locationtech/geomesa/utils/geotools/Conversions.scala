@@ -14,7 +14,6 @@ import java.util.Date
 import com.vividsolutions.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
@@ -205,8 +204,7 @@ object RichSimpleFeatureType {
 
     def getBinTrackId: Option[String] = sft.getAttributeDescriptors.find(_.isBinTrackId()).map(_.getLocalName)
 
-    def getSchemaVersion: Int =
-      userData[String](SCHEMA_VERSION_KEY).map(_.toInt).getOrElse(CURRENT_SCHEMA_VERSION)
+    def getSchemaVersion: Int = userData[String](SCHEMA_VERSION_KEY).map(_.toInt).getOrElse(10)
     def setSchemaVersion(version: Int): Unit = sft.getUserData.put(SCHEMA_VERSION_KEY, version.toString)
 
     def isPoints: Boolean = {

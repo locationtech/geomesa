@@ -91,8 +91,8 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
 
     val dictionaries = attributeWriters.collect { case w: ArrowAttributeDictionaryBuildingWriter[_] =>
       val name = s"dict-${w.encoding.getId}"
-      val TypeBindings(bindings, classBinding, precision) = w.dictionaryType
-      val writer = ArrowAttributeWriter(name, bindings, classBinding, None, None, Map.empty, precision)
+      val TypeBindings(bindings, precision) = w.dictionaryType
+      val writer = ArrowAttributeWriter(name, bindings, None, None, Map.empty, precision)
 
       var i = 0
       w.dictionary.foreach { value =>
@@ -157,10 +157,10 @@ object DictionaryBuildingWriter {
       val name = descriptor.getLocalName
       val metadata = Map(SimpleFeatureVector.DescriptorKey -> SimpleFeatureTypes.encodeDescriptor(sft, descriptor))
       val classBinding = descriptor.getType.getBinding
-      val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
+      val bindings = ObjectType.selectType(classBinding, descriptor.getUserData)
       if (dictionaries.contains(name)) {
         dictionaryId += 1
-        val dictionaryType = TypeBindings(bindings.+:(objectType), classBinding, encoding)
+        val dictionaryType = TypeBindings(bindings, encoding)
         if (maxSize <= Byte.MaxValue) {
           val dictionaryEncoding = new DictionaryEncoding(dictionaryId, false, new ArrowType.Int(8, true))
           val fieldType = new FieldType(true, MinorType.TINYINT.getType, dictionaryEncoding, metadata)
@@ -180,7 +180,7 @@ object DictionaryBuildingWriter {
           throw new IllegalArgumentException(s"MaxSize must be less than or equal to Int.MaxValue (${Int.MaxValue})")
         }
       } else {
-        ArrowAttributeWriter(name, bindings.+:(objectType), classBinding, Some(vector), None, metadata, encoding)
+        ArrowAttributeWriter(name, bindings, Some(vector), None, metadata, encoding)
       }
     }
   }

@@ -74,7 +74,7 @@ object ArrowAttributeWriter {
         (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
     if (encoding.fids) {
       val name = SimpleFeatureVector.FeatureIdField
-      ArrowAttributeWriter(name, Seq(ObjectType.STRING), classOf[String], vector, None, Map.empty, null)
+      ArrowAttributeWriter(name, Seq(ObjectType.STRING), vector, None, Map.empty, null)
     } else {
       ArrowAttributeWriter.ArrowNoopWriter
     }
@@ -121,9 +121,8 @@ object ArrowAttributeWriter {
            (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
     val name = descriptor.getLocalName
     val metadata = Map(SimpleFeatureVector.DescriptorKey -> SimpleFeatureTypes.encodeDescriptor(sft, descriptor))
-    val classBinding = descriptor.getType.getBinding
-    val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-    apply(name, bindings.+:(objectType), classBinding, vector, dictionary, metadata, encoding)
+    val bindings = ObjectType.selectType(descriptor)
+    apply(name, bindings, vector, dictionary, metadata, encoding)
   }
 
   /**
@@ -131,7 +130,6 @@ object ArrowAttributeWriter {
     *
     * @param name attribute name
     * @param bindings object bindings, the attribute type plus any subtypes (e.g. for lists or maps)
-    * @param classBinding the explicit class binding of the attribute
     * @param vector optional container arrow vector - child vector will be created in the container, if provided
     * @param dictionary the dictionary for the attribute, if any
     * @param metadata vector metadata encoded in the field - generally the encoded attribute descriptor
@@ -141,21 +139,19 @@ object ArrowAttributeWriter {
     */
   def apply(name: String,
             bindings: Seq[ObjectType],
-            classBinding: Class[_],
             vector: Option[NullableMapVector],
             dictionary: Option[ArrowDictionary],
             metadata: Map[String, String],
             encoding: SimpleFeatureEncoding)
            (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
     val toVector = vector.map(new ToChildVector(name, _)).getOrElse(new ToNewVector(name))
-    apply(bindings, classBinding, toVector, dictionary, metadata, encoding)
+    apply(bindings, toVector, dictionary, metadata, encoding)
   }
 
   /**
     * Creates a writer for a single attribute
     *
     * @param bindings object bindings, the attribute type plus any subtypes (e.g. for lists or maps)
-    * @param classBinding the explicit class binding of the attribute
     * @param toVector the simple feature vector to write to
     * @param dictionary the dictionary for the attribute, if any
     * @param metadata vector metadata encoded in the field - generally the encoded attribute descriptor
@@ -164,7 +160,6 @@ object ArrowAttributeWriter {
     * @return
     */
   private def apply(bindings: Seq[ObjectType],
-                    classBinding: Class[_],
                     toVector: ToVector,
                     dictionary: Option[ArrowDictionary],
                     metadata: Map[String, String],
@@ -174,7 +169,7 @@ object ArrowAttributeWriter {
       case None =>
         bindings.head match {
           case ObjectType.GEOMETRY =>
-            new ArrowGeometryWriter(toVector, classBinding, metadata, encoding.geometry)
+            new ArrowGeometryWriter(toVector, bindings(1), metadata, encoding.geometry)
 
           case ObjectType.DATE =>
             if (encoding.date == EncodingPrecision.Min) {
@@ -225,7 +220,7 @@ object ArrowAttributeWriter {
 
       case Some(dict) =>
         val dictionaryEncoding = dict.encoding
-        val dictionaryType = TypeBindings(bindings, classBinding, encoding)
+        val dictionaryType = TypeBindings(bindings, encoding)
         if (dictionaryEncoding.getIndexType.getBitWidth == 8) {
           val vector = toVector[NullableTinyIntVector](MinorType.TINYINT.getType, dictionaryEncoding, metadata)
           new ArrowDictionaryByteWriter(vector, dict, dictionaryType)
@@ -294,53 +289,53 @@ object ArrowAttributeWriter {
     * Writes geometries - delegates to our JTS geometry vectors
     */
   class ArrowGeometryWriter(toVector: ToVector,
-                            binding: Class[_],
+                            binding: ObjectType,
                             metadata: Map[String, String],
                             precision: EncodingPrecision) extends ArrowAttributeWriter {
     private val (_vector: FieldVector, delegate: GeometryWriter[Geometry]) = {
-      if (binding == classOf[Point]) {
+      if (binding == ObjectType.POINT) {
         val vector = toVector.apply[FixedSizeListVector](AbstractPointVector.createFieldType(metadata))
         val delegate = precision match {
           case EncodingPrecision.Min => new PointFloatVector(vector).getWriter
           case EncodingPrecision.Max => new PointVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
-      } else if (binding == classOf[LineString]) {
+      } else if (binding == ObjectType.LINESTRING) {
         val vector = toVector.apply[ListVector](AbstractLineStringVector.createFieldType(metadata))
         val delegate = precision match {
           case EncodingPrecision.Min => new LineStringFloatVector(vector).getWriter
           case EncodingPrecision.Max => new LineStringVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
-      } else if (binding == classOf[Polygon]) {
+      } else if (binding == ObjectType.POLYGON) {
         val vector = toVector.apply[ListVector](AbstractPolygonVector.createFieldType(metadata))
         val delegate = precision match {
           case EncodingPrecision.Min => new PolygonFloatVector(vector).getWriter
           case EncodingPrecision.Max => new PolygonVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
-      } else if (binding == classOf[MultiLineString]) {
+      } else if (binding == ObjectType.MULTILINESTRING) {
         val vector = toVector.apply[ListVector](AbstractMultiLineStringVector.createFieldType(metadata))
         val delegate = precision match {
           case EncodingPrecision.Min => new MultiLineStringFloatVector(vector).getWriter
           case EncodingPrecision.Max => new MultiLineStringVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
-      } else if (binding == classOf[MultiPolygon]) {
+      } else if (binding == ObjectType.MULTIPOLYGON) {
         val vector = toVector.apply[ListVector](AbstractMultiPolygonVector.createFieldType(metadata))
         val delegate = precision match {
           case EncodingPrecision.Min => new MultiPolygonFloatVector(vector).getWriter
           case EncodingPrecision.Max => new MultiPolygonVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
-      } else if (binding == classOf[MultiPoint]) {
+      } else if (binding == ObjectType.MULTIPOINT) {
         val vector = toVector.apply[ListVector](AbstractMultiPointVector.createFieldType(metadata))
         val delegate = precision match {
           case EncodingPrecision.Min => new MultiPointFloatVector(vector).getWriter
           case EncodingPrecision.Max => new MultiPointVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
-      } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      } else if (binding == ObjectType.GEOMETRY_COLLECTION) {
         throw new NotImplementedError(s"Geometry type $binding is not supported")
       } else {
         throw new IllegalArgumentException(s"Expected geometry type, got $binding")
