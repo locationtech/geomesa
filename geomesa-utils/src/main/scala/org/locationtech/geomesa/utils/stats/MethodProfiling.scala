@@ -14,18 +14,18 @@ import com.typesafe.scalalogging.LazyLogging
 
 trait MethodProfiling {
 
-  import java.lang.System.{currentTimeMillis => ctm}
-
-  def profile[R](code: => R)(implicit timing: Timing): R = {
-    val (startTime, r) = (ctm, code)
-    timing.occurrence(ctm - startTime)
-    r
+  def profile[R](code: => R)(implicit onComplete: (R, Long) => Unit): R = {
+    val start = System.currentTimeMillis
+    val result: R = code
+    onComplete(result, System.currentTimeMillis - start)
+    result
   }
 
-  def profile[R](identifier: String)(code: => R)(implicit timings: Timings) = {
-    val (startTime, r) = (ctm, code)
-    timings.occurrence(identifier, ctm - startTime)
-    r
+  def profile[R](identifier: String)(code: => R)(implicit timings: Timings): R = {
+    val start = System.currentTimeMillis
+    val result: R = code
+    timings.occurrence(identifier, System.currentTimeMillis - start)
+    result
   }
 }
 
@@ -40,7 +40,7 @@ class Timing extends Serializable {
   /**
    * Updates this instance with a new timing
    *
-   * @param time
+   * @param time time in millis
    * @return
    */
   def occurrence(time: Long): Unit = {
@@ -76,15 +76,15 @@ trait Timings extends Serializable {
   /**
    * Updates the given identifier with a new timing
    *
-   * @param identifier
-   * @param time
+   * @param identifier identifier
+   * @param time time in millis
    */
   def occurrence(identifier: String, time: Long): Unit
 
   /**
    * Gets the total time for the given identifier
    *
-   * @param identifier
+   * @param identifier identifier
    * @return
    */
   def time(identifier: String): Long
@@ -92,7 +92,7 @@ trait Timings extends Serializable {
   /**
    * Gets the total occurrences for the given identifier
    *
-   * @param identifier
+   * @param identifier identifier
    * @return
    */
   def occurrences(identifier: String): Long
@@ -186,7 +186,7 @@ class ThreadSafeTimingsImpl extends Timings {
     val total = entries.map(_._2.time).sum
     val percentTimes = entries.map { case (id, timing) =>
       timing.synchronized(s"$id: ${(timing.time * 100 / total.toDouble).formatted("%.1f%%")}" +
-          s" ${timing.occurrences} times at ${timing.average.formatted("%.4f")} ms avg")
+          s" ${timing.occurrences} times at ${timing.average().formatted("%.4f")} ms avg")
     }
     percentTimes.mkString(s"Total time: $total ms. Percent of time - ", ", ", "")
   }
@@ -201,7 +201,7 @@ class AutoLoggingTimings(moduloToLog: Int = 1000) extends ThreadSafeTimingsImpl 
 
   val count = new AtomicLong()
 
-  override def occurrence(identifier: String, time: Long) = {
+  override def occurrence(identifier: String, time: Long): Unit = {
     super.occurrence(identifier, time)
     if (count.incrementAndGet() % moduloToLog == 0) {
       logger.debug(averageTimes())
@@ -211,7 +211,7 @@ class AutoLoggingTimings(moduloToLog: Int = 1000) extends ThreadSafeTimingsImpl 
 
 object NoOpTimings extends Timings {
 
-  override def occurrence(identifier: String, time: Long) = {}
+  override def occurrence(identifier: String, time: Long): Unit = {}
 
   override def occurrences(identifier: String) = 0L
 

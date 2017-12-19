@@ -27,7 +27,7 @@ import org.locationtech.geomesa.tools.{Command, DataStoreCommand, OptionalIndexP
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -39,10 +39,10 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
   override def params: ExportParams
 
   override def execute(): Unit = {
-    val timing = new Timing
-    val count = profile(withDataStore(export))(timing)
-    Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
-        s"in ${timing.time}ms${count.map(" for " + _ + " features").getOrElse("")}")
+    profile(withDataStore(export)) { (count, time) =>
+      Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
+          s"in ${time}ms${count.map(" for " + _ + " features").getOrElse("")}")
+    }
   }
 
   protected def export(ds: DS): Option[Long] = {
