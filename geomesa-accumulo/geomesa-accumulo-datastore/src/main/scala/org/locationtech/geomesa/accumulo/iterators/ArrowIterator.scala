@@ -7,6 +7,7 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
+
 import java.util.Map.Entry
 
 import org.apache.accumulo.core.client.IteratorSetting
@@ -15,31 +16,46 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.iterators.{ArrowFileAggregate, ArrowFileScan}
+import org.locationtech.geomesa.index.api.QueryPlan
+import org.locationtech.geomesa.index.iterators.ArrowScan
+import org.locationtech.geomesa.index.iterators.ArrowScan.{ArrowAggregate, ArrowScanConfig}
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-/**
-  * Aggregates and returns arrow 'files'. Each value will be a full arrow file with metadata and batches.
-  * This allows us to build up the dictionary values as we encounter the features, instead of
-  * having to look them up ahead of time.
-  */
-class ArrowFileIterator extends BaseAggregatingIterator[ArrowFileAggregate] with ArrowFileScan
+class ArrowIterator extends BaseAggregatingIterator[ArrowAggregate] with ArrowScan
 
-object ArrowFileIterator {
+object ArrowIterator {
 
+  val DefaultPriority = 25
+
+  /**
+    * Configure the iterator
+    *
+    * @param sft simple feature type
+    * @param index feature index being run against
+    * @param stats handle to stats, may be used to dictionary creation
+    * @param filter full filter, may be used for dictionary creation
+    * @param ecql secondary filter, applied to the rows processed by the scan
+    * @param hints query hints
+    * @param deduplicate deduplicate
+    * @param priority iterator priority
+    * @return
+    */
   def configure(sft: SimpleFeatureType,
                 index: AccumuloFeatureIndexType,
+                stats: GeoMesaStats,
                 filter: Option[Filter],
-                dictionaries: Seq[String],
+                ecql: Option[Filter],
                 hints: Hints,
                 deduplicate: Boolean,
-                priority: Int = ArrowBatchIterator.DefaultPriority): IteratorSetting = {
-    val is = new IteratorSetting(priority, "arrow-file-iter", classOf[ArrowFileIterator])
+                priority: Int = DefaultPriority): (IteratorSetting, QueryPlan.Reducer) = {
+    val is = new IteratorSetting(priority, "arrow-iter", classOf[ArrowIterator])
     BaseAggregatingIterator.configure(is, deduplicate, None)
-    ArrowFileScan.configure(sft, index, filter, dictionaries, hints).foreach { case (k, v) => is.addOption(k, v) }
-    is
+    val ArrowScanConfig(config, reduce) = ArrowScan.configure(sft, index, stats, filter, ecql, hints)
+    config.foreach { case (k, v) => is.addOption(k, v) }
+    (is, reduce)
   }
 
   /**
@@ -55,3 +71,4 @@ object ArrowFileIterator {
     }
   }
 }
+

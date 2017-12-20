@@ -36,7 +36,7 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
   step {
     addFeatures((0 until 2).map { i =>

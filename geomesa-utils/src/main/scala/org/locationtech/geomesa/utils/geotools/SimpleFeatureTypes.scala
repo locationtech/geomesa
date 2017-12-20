@@ -14,7 +14,8 @@ import com.typesafe.config.Config
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.AttributeSpec.GeomAttributeSpec
-import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
+import org.locationtech.geomesa.utils.geotools.NameableFeatureTypeFactory.NameableSimpleFeatureType
+import org.opengis.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.parboiled.errors.ParsingException
 
@@ -99,7 +100,7 @@ object SimpleFeatureTypes {
     val parsed = try { SimpleFeatureSpecParser.parse(spec) } catch {
       case e: ParsingException => throw new IllegalArgumentException(e.getMessage, e)
     }
-    createType(namespace, name, parsed)
+    createFeatureType(namespace, name, parsed)
   }
 
 
@@ -118,7 +119,32 @@ object SimpleFeatureTypes {
     val (namespace, name) = parseTypeName(nameFromConf.orElse(typeName).getOrElse {
       throw new IllegalArgumentException("Unable to parse type name from provided argument or config")
     })
-    createType(namespace, name, spec)
+    createFeatureType(namespace, name, spec)
+  }
+
+  /**
+    * Creates a type that can be renamed
+    *
+    * @param spec spec
+    * @return
+    */
+  def createNameableType(spec: String): NameableSimpleFeatureType = {
+    val parsed = try { SimpleFeatureSpecParser.parse(spec) } catch {
+      case e: ParsingException => throw new IllegalArgumentException(e.getMessage, e)
+    }
+    createFeatureType(null, "", parsed, Some(new NameableFeatureTypeFactory())).asInstanceOf[NameableSimpleFeatureType]
+  }
+
+  /**
+    * Create a single attribute descriptor
+    *
+    * @param spec attribute spec, e.g. 'foo:String'
+    * @return
+    */
+  def createDescriptor(spec: String): AttributeDescriptor = {
+    try { SimpleFeatureSpecParser.parseAttribute(spec).toDescriptor } catch {
+      case e: ParsingException => throw new IllegalArgumentException(e.getMessage, e)
+    }
   }
 
   /**
@@ -173,7 +199,10 @@ object SimpleFeatureTypes {
     renamed
   }
 
-  private def createType(namespace: String, name: String, spec: SimpleFeatureSpec): SimpleFeatureType = {
+  private def createFeatureType(namespace: String,
+                                name: String,
+                                spec: SimpleFeatureSpec,
+                                factory: Option[FeatureTypeFactory] = None): SimpleFeatureType = {
     import AttributeOptions.OPT_DEFAULT
     import Configs.{DEFAULT_DATE_KEY, IGNORE_INDEX_DTG}
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -192,7 +221,7 @@ object SimpleFeatureTypes {
           .map(_.name)
     }
 
-    val b = new SimpleFeatureTypeBuilder()
+    val b = factory.map(new SimpleFeatureTypeBuilder(_)).getOrElse(new SimpleFeatureTypeBuilder())
     b.setNamespaceURI(namespace)
     b.setName(name)
     b.addAll(spec.attributes.map(_.toDescriptor))

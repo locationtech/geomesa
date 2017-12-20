@@ -48,4 +48,4 @@ trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
 // @Parameters(commandDescription = "Create a GeoMesa feature type")
 trait CreateSchemaParams
-    extends RequiredFeatureSpecParam with RequiredTypeNameParam with OptionalDtgParam with OptionalSharedTablesParam
+    extends RequiredFeatureSpecParam with OptionalTypeNameParam with OptionalDtgParam with OptionalSharedTablesParam

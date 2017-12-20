@@ -18,6 +18,8 @@ import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.Try
+
 trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   import scala.collection.JavaConversions._
@@ -50,12 +52,19 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       if (params.config == null) {
         throw new ParameterException("Converter Config argument is required")
       }
-      if (params.spec == null) {
-        throw new ParameterException("SimpleFeatureType specification argument is required")
+      val converterConfig = CLArgResolver.getConfig(params.config)
+
+      val sft = if (params.spec != null) {
+        CLArgResolver.getSft(params.spec, params.featureName)
+      } else if (params.featureName != null) {
+        Try(withDataStore(_.getSchema(params.featureName))).filter(_ != null).getOrElse {
+          throw new ParameterException(s"SimpleFeatureType '${params.featureName}' does not currently exist, " +
+              "please provide specification argument")
+        }
+      } else {
+        throw new ParameterException("SimpleFeatureType name and/or specification argument is required")
       }
 
-      val sft = CLArgResolver.getSft(params.spec, params.featureName)
-      val converterConfig = CLArgResolver.getConfig(params.config)
       createConverterIngest(sft, converterConfig)
     }
 
