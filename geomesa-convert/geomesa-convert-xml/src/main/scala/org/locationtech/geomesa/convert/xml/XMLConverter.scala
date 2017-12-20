@@ -55,7 +55,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
     schema.newValidator()
   }
 
-  override def fromInputType(i: String): Seq[Array[Any]] = {
+  override def fromInputType(i: String, ec: EvaluationContext): Iterator[Array[Any]] = {
     // if a schema is defined, validate it - this will throw an exception on failure
     xmlValidator.foreach(_.validate(new StreamSource(new StringReader(i))))
     // parse the document once, then extract each feature node and operate on it
@@ -63,8 +63,8 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
 
     featurePath.map { path =>
       val nodeList = path.evaluate(root, XPathConstants.NODESET).asInstanceOf[NodeList]
-      (0 until nodeList.getLength).map(i => Array[Any](nodeList.item(i)))
-    }.getOrElse(Seq(Array[Any](root)))
+      Iterator.tabulate(nodeList.getLength)(i => Array[Any](nodeList.item(i)))
+    }.getOrElse(Iterator.single(Array[Any](root)))
   }
 
   // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
