@@ -67,3 +67,9 @@ geomesa.stats.compact.interval       geomesa.stats.compact.millis
 geomesa.cassandra.read.timeout       geomesa.cassandra.read.timeout.millis
 geomesa.cassandra.connection.timeout geomesa.cassandra.connection.timeout.millis
 ==================================== ===========================================
+
+Accumulo Tools
+--------------
+
+To conform with the scripts from other distributions, the Accumulo command line tools script has been
+renamed from ``geomesa`` to ``geomesa-accumulo``.

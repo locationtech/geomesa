@@ -127,14 +127,14 @@ tools, use the export command with the ``format`` and ``gzip`` options:
 
 .. code-block:: bash
 
-    $ geomesa export -c myTable -f mySft --format avro --gzip 6 -o myFeatures.avro
+    $ geomesa-accumulo export -c myTable -f mySft --format avro --gzip 6 -o myFeatures.avro
 
-To re-import the data into another environment, you may use the import command. Because the Avro file
+To re-import the data into another environment, you may use the ingest command. Because the Avro file
 is self-describing, you do not need to specify any converter config or simple feature type definition:
 
 .. code-block:: bash
 
-    $ geomesa import -c myTable -f mySft myFeatures.avro
+    $ geomesa-accumulo ingest -c myTable -f mySft myFeatures.avro
 
 If your data is too large for a single file, you may run multiple exports and use CQL
 filters to separate your data.
@@ -143,8 +143,8 @@ If you prefer to not use Avro files, you may do the same process with delimited 
 
 .. code-block:: bash
 
-    $ geomesa export -c myTable -f mySft --format tsv --gzip 6 -o myFeatures.tsv.gz
-    $ geomesa import -c myTable -f mySft myFeatures.tsv.gz
+    $ geomesa-accumulo export -c myTable -f mySft --format tsv --gzip 6 -o myFeatures.tsv.gz
+    $ geomesa-accumulo ingest -c myTable -f mySft myFeatures.tsv.gz
 
 .. _index_upgrades:
 
