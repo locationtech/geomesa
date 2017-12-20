@@ -24,7 +24,7 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
 
   type PasswordHandler = AnyRef { def encode(value: String): String; def decode(value: String): String }
 
-  private var passwordHandler: PasswordHandler = null
+  private var passwordHandler: Option[PasswordHandler] = None
 
   private val dataStoreCache = new ConcurrentHashMap[String, AccumuloDataStore]
 
@@ -52,7 +52,8 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
 
   override def getPersistedDataStore(alias: String): Map[String, String] = {
     val map = super.getPersistedDataStore(alias)
-    val withPassword = for { handler <- Option(passwordHandler); pw <- Try(PasswordParam.lookupOpt(map)).getOrElse(None) } yield {
+    val withPassword = for { handler <- passwordHandler; pw <- Try(PasswordParam.lookupOpt(map)).getOrElse(None) } yield {
+      // noinspection LanguageFeature
       map.updated(PasswordParam.getName, handler.decode(pw))
     }
     withPassword.getOrElse(map)
@@ -71,7 +72,8 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
       val alias = params("alias")
       val prefix = keyFor(alias)
       val toPersist = dsParams.map { case (k, v) =>
-        val value = if (k == PasswordParam.getName && passwordHandler != null) { passwordHandler.encode(v) } else { v }
+        // noinspection LanguageFeature
+        val value = if (k == PasswordParam.getName) { passwordHandler.map(_.encode(v)).getOrElse(v) } else { v }
         keyFor(alias, k) -> value
       }
       try {
@@ -124,12 +126,12 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
   }
 
   private def filterPasswords(map: Map[String, String]): Map[String, String] = map.map {
-    case (k, v) if k.toLowerCase(Locale.US).contains("password") => (k, "***")
+    case (k, _) if k.toLowerCase(Locale.US).contains("password") => (k, "***")
     case (k, v) => (k, v)
   }
 
   // spring bean accessors for password handler
-  def setPasswordHandler(handler: PasswordHandler): Unit = this.passwordHandler = handler
-  def getPasswordHandler: PasswordHandler = passwordHandler
+  def setPasswordHandler(handler: PasswordHandler): Unit = this.passwordHandler = Option(handler)
+  def getPasswordHandler: PasswordHandler = passwordHandler.orNull
 }
 
