@@ -69,8 +69,8 @@
 
         <geoserver.version>2.12.0</geoserver.version>
         <gt.version>18.0</gt.version>
-        <jaiext.version>1.0.15</jaiext.version>
-        <imageio-ext.version>1.1.17</imageio-ext.version>
+        <jaiext.version>1.0.16</jaiext.version>
+        <imageio-ext.version>1.1.18</imageio-ext.version>
         <jts.version>1.14.0</jts.version>
         <avro.version>1.7.5</avro.version>
         <parquet.version>1.9.0</parquet.version>
@@ -541,6 +541,11 @@
                         <groupId>com.vividsolutions</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -683,8 +688,9 @@
                         <artifactId>jai_core</artifactId>
                     </exclusion>
                     <exclusion>
-                        <artifactId>imageio-ext-tiff</artifactId>
+                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -741,6 +747,11 @@
                         <groupId>com.vividsolutions</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -767,6 +778,11 @@
                         <groupId>com.vividsolutions</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -780,8 +796,9 @@
                         <artifactId>jai_core</artifactId>
                     </exclusion>
                     <exclusion>
-                        <artifactId>imageio-ext-tiff</artifactId>
+                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
@@ -1012,6 +1029,19 @@
             </dependency>
             <dependency>
                 <groupId>it.geosolutions.imageio-ext</groupId>
+                <artifactId>imageio-ext-library</artifactId>
+                <version>${imageio-ext.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_codec</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>it.geosolutions.imageio-ext</groupId>
                 <artifactId>imageio-ext-streams</artifactId>
                 <version>${imageio-ext.version}</version>
                 <exclusions>
@@ -1025,6 +1055,19 @@
             <dependency>
                 <groupId>it.geosolutions.imageio-ext</groupId>
                 <artifactId>imageio-ext-tiff</artifactId>
+                <version>${imageio-ext.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_codec</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>it.geosolutions.imageio-ext</groupId>
+                <artifactId>imageio-ext-utilities</artifactId>
                 <version>${imageio-ext.version}</version>
                 <scope>provided</scope>
                 <exclusions>
