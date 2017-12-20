@@ -19,18 +19,22 @@ import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.utils.audit.AuditedEvent
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 /**
  * Manages writing of usage stats in a background thread.
  */
 class AccumuloEventWriter(connector: Connector, table: String) extends Runnable with Closeable with LazyLogging {
 
-  // initial schedule
-  AccumuloEventWriter.executor.schedule(this, AccumuloEventWriter.writeDelayMillis, TimeUnit.MILLISECONDS)
+  private val delay = AccumuloEventWriter.WriteInterval.toDuration.get
+
+  logger.trace(s"Scheduling audit writer for ${delay}ms")
+
+  private val schedule = AccumuloEventWriter.executor.scheduleWithFixedDelay(this, delay, delay, TimeUnit.MILLISECONDS)
 
   private val batchWriterConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(5)
 
-  private var maybeWriter: BatchWriter = null
+  private var maybeWriter: BatchWriter = _
 
   private val running = new AtomicBoolean(true)
 
@@ -42,7 +46,7 @@ class AccumuloEventWriter(connector: Connector, table: String) extends Runnable 
   def queueStat[T <: AuditedEvent](event: T)(implicit transform: AccumuloEventTransform[T]): Unit =
     queue.offer(() => transform.toMutation(event))
 
-  override def run() = {
+  override def run(): Unit = {
     var toMutation = queue.poll()
     if (toMutation != null) {
       val writer = getWriter
@@ -52,14 +56,11 @@ class AccumuloEventWriter(connector: Connector, table: String) extends Runnable 
       } while (toMutation != null && running.get)
       writer.flush()
     }
-
-    if (running.get) {
-      AccumuloEventWriter.executor.schedule(this, AccumuloEventWriter.writeDelayMillis, TimeUnit.MILLISECONDS)
-    }
   }
 
   override def close(): Unit = {
     running.set(false)
+    schedule.cancel(false)
     synchronized {
       if (maybeWriter != null) {
         maybeWriter.close()
@@ -77,7 +78,9 @@ class AccumuloEventWriter(connector: Connector, table: String) extends Runnable 
 }
 
 object AccumuloEventWriter {
-  private val writeDelayMillis = 5000
+
+  val WriteInterval = SystemProperty("geomesa.accumulo.audit.interval", "5 seconds")
+
   private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(5))
   sys.addShutdownHook(executor.shutdownNow())
 }
