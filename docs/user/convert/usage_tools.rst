@@ -79,16 +79,16 @@ can be referenced in the converter and SFT loaders.
     }
 
 
-Use ``geomesa env`` to confirm that ``geomesa ingest`` can properly read
+Use ``geomesa-accumulo env`` to confirm that ``geomesa-accumulo ingest`` can properly read
 the updated file.
 
 .. code-block:: shell
 
-    $ geomesa env
+    $ geomesa-accumulo env
 
 Once the converter and SFT are registered, it can be used to ingest the
 ``example.csv`` file:
 
 .. code-block:: shell
 
-    $ geomesa ingest -u <user> -p <pass> -i <instance> -z <zookeepers> -s renegades -C renegades-csv  example.csv
+    $ geomesa-accumulo ingest -u <user> -p <pass> -i <instance> -z <zookeepers> -s renegades -C renegades-csv  example.csv

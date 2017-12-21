@@ -14,6 +14,8 @@
             <useStrictFiltering>true</useStrictFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-bigtable-gs-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-bigtable-spark-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
             </excludes>
         </dependencySet>

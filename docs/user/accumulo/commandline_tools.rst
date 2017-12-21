@@ -14,15 +14,15 @@ Starting with version 1.2.3, GeoMesa Tools ships with embedded SimpleFeatureType
 for common data types including Twitter, GeoNames, T-drive, and many more.
 See :ref:`installing_sft_and_converter_definitions`.
 
-To see which SFT and converter configurations are installed, try the ``geomesa env`` command described below.
+To see which SFT and converter configurations are installed, try the ``env`` command described below.
 
 Running the command line tools
 ------------------------------
 
-Run ``geomesa`` without any arguments to produce the following usage text::
+Run ``geomesa-accumulo`` without any arguments to produce the following usage text::
 
-    $ geomesa
-    Usage: geomesa [command] [command options]
+    $ geomesa-accumulo
+    Usage: geomesa-accumulo [command] [command options]
       Commands:
         add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
@@ -58,9 +58,9 @@ Run ``geomesa`` without any arguments to produce the following usage text::
 
 
 This usage text lists the available commands. To see help for an individual command,
-run ``geomesa help <command-name>``, which for example will give you something like this::
+run ``geomesa-accumulo help <command-name>``, which for example will give you something like this::
 
-    $ geomesa help get-type-names
+    $ geomesa-accumulo help get-type-names
     Usage: get-type-names [options]
       Options:
         --auths
@@ -111,14 +111,14 @@ configure
 Used to configure the current environment for using the commandline tools. This is frequently run after the tools are
 first installed to ensure the environment is configured correctly::
 
-    $ geomesa configure
+    $ geomesa-accumulo configure
 
 classpath
 ~~~~~~~~~
 
 Prints out the current classpath configuration::
 
-    $ geomesa classpath
+    $ geomesa-accumulo classpath
 
 Creating and deleting feature types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,7 +128,7 @@ create-schema
 
 Used to create a feature type (``SimpleFeatureType``)  in a GeoMesa catalog::
 
-    $ geomesa create -u username -p password \
+    $ geomesa-accumulo create-schema -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 \
       -c test_create \
       -f testing \
@@ -141,18 +141,18 @@ get-schema
 
 Display details about the attributes of a specified feature type::
 
-    $ geomesa get-schema -u username -p password -c test_delete -f testing
+    $ geomesa-accumulo get-schema -u username -p password -c test_delete -f testing
 
 get-sft-config
 ~~~~~~~~~~~~~~
 
 Get the specified feature type as a typesafe config::
 
-    $ geomesa get-sft-config -u username -p password -c test_catalog -f test_feature --format typesafe
+    $ geomesa-accumulo get-sft-config -u username -p password -c test_catalog -f test_feature --format typesafe
 
 Get the specified feature type as an encoded feature schema string::
 
-    $ geomesa get-sft-config -u username -p password -c test_catalog -f test_feature --format spec
+    $ geomesa-accumulo get-sft-config -u username -p password -c test_catalog -f test_feature --format spec
 
 keywords
 ~~~~~~~~
@@ -163,27 +163,27 @@ The ``--removeAll`` option removes all keywords
 The ``-l`` option lists the schema's keywords following all operations
 If there is whitespace within a keyword, enclose it in quotes for proper functionality::
 
-    $ geomesa keywords -u username -p password \
+    $ geomesa-accumulo keywords -u username -p password \
       -a keywordB -a keywordC -r keywordA -l \
       -i instance -z zoo1,zoo2,zoo3 \
       -c catalog -f featureTypeName
 
-get-names
-~~~~~~~~~
+get-type-names
+~~~~~~~~~~~~~~
 
 List all known feature types in a GeoMesa catalog::
 
-    $ geomesa get-names -u username -p password -c test_catalog
+    $ geomesa-accumulo get-type-names -u username -p password -c test_catalog
 
 remove-schema
 ~~~~~~~~~~~~~
 
 Used to remove a feature type (``SimpleFeatureType``) in a GeoMesa catalog. This will also delete any feature of that type in the data store::
 
-    $ geomesa remove-schema -u username -p password \
+    $ geomesa-accumulo remove-schema -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 \
       -c test_catalog -f testfeature1
-    $ geomesa remove-schema -u username -p password \
+    $ geomesa-accumulo remove-schema -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 \
       -c test_catalog --pattern 'testfeatures\d+'
 
@@ -194,10 +194,10 @@ convert
 
 Convert files using the internal SFT (``SimpleFeatureType``) converter framework::
 
-    $ geomesa convert -spec example --converter example-csv \
+    $ geomesa-accumulo convert -spec example --converter example-csv \
       -F json ./exampledata.csv
 
-    $ geomesa convert -s example -C example-csv -F avro --gzip 4 \
+    $ geomesa-accumulo convert -s example -C example-csv -F avro --gzip 4 \
       --max-features 10 -o exampleout.avro ./exampledata.csv
 
 .. note::
@@ -221,15 +221,15 @@ in the format::
 
 Example export commands::
 
-    $ geomesa export -u username -p password \
+    $ geomesa-accumulo export -u username -p password \
       -c test_catalog -f test_feature \
       -a "geom,text,user_name" --format csv \
       -q "include" -m 100
-    $ geomesa export -u username -p password \
+    $ geomesa-accumulo export -u username -p password \
       -c test_catalog -f test_feature \
       -a "geom,text,user_name" --format gml \
       -q "user_name='JohnSmith'"
-    $ geomesa export -u username -p password \
+    $ geomesa-accumulo export -u username -p password \
       -c test_catalog -f test_feature \
       -a "user_name,buf=buffer(geom\, 2)" \
       --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
@@ -315,11 +315,11 @@ the ``application.conf`` file::
 
 The SFT and Converter can be referenced by name and the following commands can ingest the file::
 
-    $ geomesa ingest -u username -p password \
+    $ geomesa-accumulo ingest -u username -p password \
       -c geomesa_catalog -i instance --threads 1 \
       -s renegades -C renegades-csv example.csv
     # use the Hadoop file system instead
-    $ geomesa ingest -u username -p password \
+    $ geomesa-accumulo ingest -u username -p password \
       -c geomesa_catalog -i instance \
       -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/example.csv
 
@@ -368,7 +368,7 @@ Similarly, converter configurations must be nested when passing them directly to
 Using the SFT and Converter config files we can then ingest our csv file with this command::
 
     # ingest command
-    $ geomesa ingest -u username -p password \
+    $ geomesa-accumulo ingest -u username -p password \
       -c geomesa_catalog -i instance \
       -s /tmp/renegades.sft \
       -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
@@ -376,9 +376,16 @@ Using the SFT and Converter config files we can then ingest our csv file with th
 
 For more documentation on converter configuration, see :doc:`/user/convert/index`.
 
+In addition to specifying input files on the command line, you may also pipe data using `stdin`. Note that this will
+only work in local mode, and will only use a single thread for ingestion. Progress indicators may not be entirely
+accurate as the total size isn't known up front. For example::
+
+    $ cat example.csv | geomesa ingest -u username -p password \
+      -c geomesa_catalog -i instance -s /tmp/renegades.sft
+
 Shape files may also be ingested::
 
-    $ geomesa ingest -u username -p password \
+    $ geomesa-accumulo ingest -u username -p password \
       -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
 
@@ -425,7 +432,7 @@ use the Kleene star (*) with S3.:
 
 .. code-block:: bash
 
-    $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3a://bucket/path/file*
+    $ geomesa-accumulo ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3a://bucket/path/file*
 
 For ``s3n``:
 
@@ -454,7 +461,7 @@ For ``s3n``:
 
 S3n paths are prefixed in hadoop with ``s3n://`` as shown below::
 
-    $ geomesa ingest -u username -p password \
+    $ geomesa-accumulo ingest -u username -p password \
       -c geomesa_catalog -i instance -s yourspec \
       -C convert s3n://bucket/path/file s3n://bucket/path/*
 
@@ -491,7 +498,7 @@ use the Kleene star (*) with Azure.:
 
 .. code-block:: bash
 
-    $ geomesa ingest -u username -p password \
+    $ geomesa-accumulo ingest -u username -p password \
       -c geomesa_catalog -i instance -s yourspec \
       -C convert wasb://CONTAINER@ACCOUNTNAME.blob.core.windows.net/files/*
 
@@ -506,7 +513,7 @@ delete-raster
 
 Delete a given GeoMesa raster table::
 
-    $ geomesa delete-raster -u username -p password -t somerastertable -f
+    $ geomesa-accumulo delete-raster -u username -p password -t somerastertable -f
 
 ingest-raster
 ~~~~~~~~~~~~~
@@ -524,7 +531,7 @@ DTED, should be located on the local file system.
 
 Example usage::
 
-    $ geomesa ingest-raster -u username -p password \
+    $ geomesa-accumulo ingest-raster -u username -p password \
       -t geomesa_raster -f /some/local/path/to/raster.tif
 
 query-rasterstats
@@ -532,7 +539,7 @@ query-rasterstats
 
 Export queries and statistics about the `n` most recent raster queries to a CSV file::
 
-    $ geomesa query-rasterstats -u username -p password -t somerastertable -n 10
+    $ geomesa-accumulo query-rasterstats -u username -p password -t somerastertable -n 10
 
 
 Performing system administration tasks
@@ -548,7 +555,7 @@ index format into the latest. See :ref:`index_upgrades` for more information.
 
 Example usage::
 
-    $ geomesa add-index -u username -p password -i instance \
+    $ geomesa-accumulo add-index -u username -p password -i instance \
       -z zoo1,zoo2,zoo3 -c test_catalog -f test_feature --index xz3
 
 delete-catalog
@@ -558,7 +565,7 @@ Delete a GeoMesa catalog table completely, along with all features in it.
 
 Example usage::
 
-    $ geomesa delete-catalog -u username -p password \
+    $ geomesa-accumulo delete-catalog -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 -c test_catalog
 
 delete-features
@@ -568,7 +575,7 @@ Delete features from a table in GeoMesa. Does not delete any tables or schema in
 
 Example usage::
 
-    $ geomesa delete-features -u username -p password \
+    $ geomesa-accumulo delete-features -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
       -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
 
@@ -577,7 +584,7 @@ add-attribute-index
 
 Add attribute indices for a specified list of attributes.::
 
-    $ geomesa add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
+    $ geomesa-accumulo add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
       -f test_feature -a attribute1,attribute2 --coverage full
 
 This will launch a map-reduce job creating attribute indices for each attribute listed in ``-a``. This is essentially a convenience wrapper for invoking the job described in :ref:`attribute_indexing_job`.
@@ -598,14 +605,14 @@ There are a few commands pertaining to the format of describing simple feature t
 
 Example usage::
 
-    $ geomesa env --list-sfts
+    $ geomesa-accumulo env --list-sfts
 
 explain
 ~~~~~~~
 
 Explain how a given GeoMesa query will be executed::
 
-    $ geomesa explain -u username -p password \
+    $ geomesa-accumulo explain -u username -p password \
       -c test_catalog -f test_feature \
       -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
 
@@ -618,7 +625,7 @@ Analyze statistics for your data set. This may improve query planning.
 
 Example usage::
 
-    $ geomesa stats-analyze -u username -p password -c geomesa.data -f twitter
+    $ geomesa-accumulo stats-analyze -u username -p password -c geomesa.data -f twitter
       Running stat analysis for feature type twitter...
       Stats analyzed:
         Total features: 8852601
@@ -635,7 +642,7 @@ estimation, or get the definitive result by querying the data set using the '--n
 
 Example usage::
 
-    $ geomesa stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+    $ geomesa-accumulo stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 \
         -c geomesa.data -f twitter
       user_id [ 100000215 to 99999502 ] cardinality: 861283
       user_name [ unavailable ]
@@ -643,7 +650,7 @@ Example usage::
       dtg [ 2016-02-01T00:09:12.000Z to 2016-03-01T00:21:02.000Z ] cardinality: 2161132
       geom [ -171.75, -45.5903996, 157.7302, 89.99997102 ] cardinality: 2119237
 
-    $ geomesa stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+    $ geomesa-accumulo stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 \
         -c geomesa.data -f twitter --no-cache \
         -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
       Running stat query...
@@ -662,16 +669,16 @@ data set using the '--no-cache' flag.
 
 Example usage::
 
-    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+    $ geomesa-accumulo stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
         -c geomesa.data -f twitter
       Estimated count: 8852601
 
-    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+    $ geomesa-accumulo stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
         -c geomesa.data -f twitter \
         -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
       Estimated count: 2681
 
-    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+    $ geomesa-accumulo stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
         -c geomesa.data -f twitter --no-cache \
         -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
       Running stat query...
@@ -686,7 +693,7 @@ or only values for features that match a CQL filter.
 
 Example usage::
 
-    $ geomesa stats-top-k -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+    $ geomesa-accumulo stats-top-k -u username -p password -i instance -z zoo1,zoo2,zoo3 \
         -c geomesa.data -f twitter -a user_id -k 10
       Top values for 'user_id':
         3144822634 (26681)
@@ -712,7 +719,7 @@ If you query a histogram for a geometry attribute, the result will be displayed 
 
 Example usage::
 
-    $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+    $ geomesa-accumulo stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 \
         -c geomesa.data -f twitter -a dtg --bins 10
       Binned histogram for 'dtg':
         [ 2016-02-01T00:09:12.000Z to 2016-02-03T21:46:23.000Z ] 798968
@@ -726,7 +733,7 @@ Example usage::
         [ 2016-02-24T05:06:40.000Z to 2016-02-27T02:43:51.000Z ] 869208
         [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 956743
 
-    $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+    $ geomesa-accumulo stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 \
         -c geomesa.data -f twitter -a dtg --bins 10 --no-cache
       Running stat query...
       Binned histogram for 'dtg':
@@ -752,12 +759,12 @@ Perform various table configuration tasks. There are three sub-arguments:
 
 Example commands::
 
-    $ geomesa config-table list -u username -p password \
+    $ geomesa-accumulo config-table list -u username -p password \
       -c test_catalog -f test_feature -t st_idx
-    $ geomesa config-table describe -u username -p password \
+    $ geomesa-accumulo config-table describe -u username -p password \
       -c test_catalog -f test_feature -t attr_idx \
       --param table.bloom.enabled
-    $ geomesa config-table update -u username -p password \
+    $ geomesa-accumulo config-table update -u username -p password \
       -c test_catalog -f test_feature -t records \
       --param table.bloom.enabled -n true
 
@@ -771,20 +778,20 @@ See :ref:`ageoff_accumulo` for more information.
 
 Example commands::
 
-    $ geomesa configure-age-off -c test_catalog -f test_feature --list
+    $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --list
 
-    $ geomesa configure-age-off -c test_catalog -f test_feature --set --expiry '1 day'
+    $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --set --expiry '1 day'
 
-    $ geomesa configure-age-off -c test_catalog -f test_feature --set --expiry '1 day' --dtg dtg
+    $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --set --expiry '1 day' --dtg dtg
 
-    $ geomesa configure-age-off -c test_catalog -f test_feature --remove
+    $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --remove
 
 version
 ~~~~~~~
 
 Prints out the version, git branch, and commit ID that the tools were built with::
 
-    $ geomesa version
+    $ geomesa-accumulo version
 
 
 

@@ -8,10 +8,11 @@
 
 package org.locationtech.geomesa.web.core
 
-import org.locationtech.geomesa.utils.cache.FilePersistence
+import org.locationtech.geomesa.utils.cache.PropertiesPersistence
 
 trait PersistentDataStoreServlet extends GeoMesaScalatraServlet {
-  def persistence: FilePersistence
+
+  def persistence: PropertiesPersistence
 
   override def datastoreParams: Map[String, String] = {
     val ds = super.datastoreParams

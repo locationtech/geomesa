@@ -11,6 +11,8 @@ package org.locationtech.geomesa.convert
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.avro.{AvroSimpleFeatureConverter, AvroSimpleFeatureConverterFactory}
 import org.locationtech.geomesa.convert.fixedwidth.{FixedWidthConverter, FixedWidthConverterFactory}
+import org.locationtech.geomesa.convert.jdbc.JdbcConverterFactory
+import org.locationtech.geomesa.convert.jdbc.JdbcConverterFactory.JdbcConverter
 import org.locationtech.geomesa.convert.json.{JsonSimpleFeatureConverter, JsonSimpleFeatureConverterFactory}
 import org.locationtech.geomesa.convert.text.{DelimitedTextConverter, DelimitedTextConverterFactory}
 import org.locationtech.geomesa.convert.xml.{XMLConverter, XMLConverterFactory}
@@ -40,10 +42,12 @@ class FindConvertersTest extends Specification {
       classOf[CompositeConverter[_]] must not(throwAn[ClassNotFoundException])
       classOf[CompositeConverterFactory[_]] must not(throwAn[ClassNotFoundException])
       classOf[SimpleFeatureConverterFactory[_]] must not(throwAn[ClassNotFoundException])
+
+      classOf[JdbcConverter] must not(throwA[ClassNotFoundException])
+      classOf[JdbcConverterFactory] must not(throwA[ClassNotFoundException])
     }
 
     "register all the converters" >> {
-      import scala.collection.JavaConversions._
       SimpleFeatureConverters.providers.map(_.getClass) must containTheSameElementsAs(
         Seq(
           classOf[AvroSimpleFeatureConverterFactory],
@@ -51,7 +55,8 @@ class FindConvertersTest extends Specification {
           classOf[DelimitedTextConverterFactory],
           classOf[XMLConverterFactory],
           classOf[JsonSimpleFeatureConverterFactory],
-          classOf[CompositeConverterFactory[_]]
+          classOf[CompositeConverterFactory[_]],
+          classOf[JdbcConverterFactory]
         )
       )
     }

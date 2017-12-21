@@ -92,7 +92,7 @@ class DelimitedTextConverter(format: CSVFormat,
     super.processInput(is.drop(options.skipLines), ec)
   }
 
-  override def fromInputType(string: String): Seq[Array[Any]] = {
+  override def fromInputType(string: String, ec: EvaluationContext): Iterator[Array[Any]] = {
     if (string == null || string.isEmpty) {
       throw new IllegalArgumentException("Invalid input (empty)")
     }
@@ -105,6 +105,6 @@ class DelimitedTextConverter(format: CSVFormat,
       ret(i+1) = rec.get(i)
       i += 1
     }
-    Seq(ret)
+    Iterator.single(ret)
   }
 }

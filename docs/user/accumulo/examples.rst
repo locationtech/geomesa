@@ -30,7 +30,7 @@ Run the command:
 
 .. code:: bash
 
-    $ geomesa create -u <username> -p <password> \
+    $ geomesa-accumulo create-schema -u <username> -p <password> \
     -c cmd_tutorial \
     -f feature \
     -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 \
@@ -66,7 +66,7 @@ Run the following command:
 
 .. code:: bash
 
-    $ geomesa list -u <username> -p <password> -c cmd_tutorial
+    $ geomesa-accumulo get-type-names -u <username> -p <password> -c cmd_tutorial
 
 The output text should be something like:
 
@@ -91,7 +91,7 @@ the command
 
 .. code:: bash
 
-    $ geomesa describe -u <username> -p <password> -c cmd_tutorial -f feature
+    $ geomesa-accumulo describe-schema -u <username> -p <password> -c cmd_tutorial -f feature
 
 The output should look like:
 
@@ -248,16 +248,16 @@ there is an exception, whereas the ``::double`` function will fail (and drop
 the record) if the casting fails.
 
 To confirm that GeoMesa can properly parse your edited
-``$GEOMESA_ACCUMULO_HOME/conf/application.conf`` file, use ``geomesa env``:
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf`` file, use ``geomesa-accumulo env``:
 
 .. code::
 
-    $ geomesa env -s gdelt --format spec
+    $ geomesa-accumulo env -s gdelt --format spec
     Using GEOMESA_ACCUMULO_HOME = /opt/geomesa/tools
     Simple Feature Types:
     gdelt = globalEventId:String,eventCode:String,actor1:String,actor2:String,dtg:Date:index=join,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='false'
 
-    $ geomesa env -c gdelt_tsv
+    $ geomesa-accumulo env -c gdelt_tsv
     Using GEOMESA_ACCUMULO_HOME = /opt/geomesa/tools
 
     Simple Feature Type Converters:
@@ -327,7 +327,7 @@ Depending on the desired data, you may be prompted further information to specif
 The resulting data will then be downloaded to ``$GEOMESA_ACCUMULO_HOME/data``.
 
 Configuration files for these data sets are found under ``$GEOMESA_ACCUMULO_HOME/conf/sfts``.
-Modifications to them can seen by running ``geomesa env`` and will be reflected in the next run ingest.
+Modifications to them can seen by running ``geomesa-accumulo env`` and will be reflected in the next run ingest.
 
 Running an Ingest
 ^^^^^^^^^^^^^^^^^
@@ -338,7 +338,7 @@ command:
 
 .. code-block:: bash
 
-    $ geomesa ingest \
+    $ geomesa-accumulo ingest \
        -u <username> -p <password> -i <instance> -z <zookeepers> \
        -c gdelt -s gdelt -C gdelt_tsv --threads 1 \
        /path/to/<gdelt-data-file>.csv
@@ -379,9 +379,9 @@ quick to export. First, we'll export to CSV with the following command:
 
 .. code-block:: bash
 
-    $ geomesa export -u <username> -p <password> -c gdelt_Ukraine -fn gdelt -fmt csv -max 50
+    $ geomesa-accumulo export -u <username> -p <password> -c gdelt_Ukraine -fn gdelt -fmt csv -max 50
     # or specifying Accumulo configuration explicitly:
-    $ geomesa export \
+    $ geomesa-accumulo export \
         -u <username> -p <password> -i <instance> -z <zookeepers> \
         -c gdelt -f gdelt -f csv -m 50
 

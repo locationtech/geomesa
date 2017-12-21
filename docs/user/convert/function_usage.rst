@@ -109,6 +109,16 @@ Usage: ``toString($0)``
 
 Example: ``concatenate(toString(5), toString(6)) = '56'``
 
+emptyToNull
+^^^^^^^^^^^
+
+Description: Replace an empty string with ``null``. Useful for setting optional attributes from delimited
+text files, where inputs will never be ``null``.
+
+Usage: ``emptyToNull($0)``
+
+Example: ``emptyToNull('') = null``
+
 Date Functions
 ~~~~~~~~~~~~~~
 

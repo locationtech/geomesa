@@ -21,7 +21,7 @@ class AccumuloAuditService(connector: Connector,
                            val table: String,
                            write: Boolean) extends AuditWriter with AuditReader with AuditLogger {
 
-  private val writer = if (write) new AccumuloEventWriter(connector, table) else null
+  private val writer = if (write) { new AccumuloEventWriter(connector, table) } else { null }
   private val reader = new AccumuloEventReader(connector, table)
 
   override def writeEvent[T <: AuditedEvent](event: T)(implicit ct: ClassTag[T]): Unit = {
