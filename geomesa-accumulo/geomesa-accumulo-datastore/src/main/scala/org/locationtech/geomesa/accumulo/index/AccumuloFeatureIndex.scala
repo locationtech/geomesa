@@ -104,6 +104,7 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     lazy val docs =
       "http://www.geomesa.org/documentation/user/jobs.html#updating-existing-data-to-the-latest-index-format"
+    // noinspection ScalaDeprecation
     val version = sft.getSchemaVersion
     val indices = if (version > 8) {
       // note: version 9 was never in a release
