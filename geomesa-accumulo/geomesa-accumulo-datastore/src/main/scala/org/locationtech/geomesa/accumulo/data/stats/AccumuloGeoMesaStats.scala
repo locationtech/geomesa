@@ -20,9 +20,9 @@ import org.joda.time._
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.KeyAndStat
 import org.locationtech.geomesa.index.stats._
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.stats._
@@ -94,7 +94,7 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       val result = try {
         // stats should always return exactly one result, even if there are no features in the table
-        KryoLazyStatsUtils.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
+        StatsScan.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
       } finally {
         reader.close()
       }

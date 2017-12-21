@@ -15,8 +15,9 @@ directory structures.
     :maxdepth: 1
 
     architecture
-    commandline
     partition_schemes
+    install
     geoserver
-    sql
+    commandline
     example
+    sql

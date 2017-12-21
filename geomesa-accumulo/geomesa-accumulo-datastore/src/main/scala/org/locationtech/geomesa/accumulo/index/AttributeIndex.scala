@@ -27,8 +27,8 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -334,15 +334,18 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     val attributeScan = attributePlan(indexSft, stFilter, None)
 
     // apply any secondary filters or transforms against the record table
-    val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
-      throw new RuntimeException("Record index does not exist for join query")
+    val recordIndex = {
+      val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+      indices.find(AccumuloFeatureIndex.RecordIndices.contains).getOrElse {
+        throw new RuntimeException("Record index does not exist for join query")
+      }
     }
     val (recordIter, reduce, kvsToFeatures) = if (hints.isArrowQuery) {
       val (iter, reduce) = ArrowIterator.configure(sft, recordIndex, ds.stats, filter.filter, ecqlFilter, hints, deduplicate = false)
       (Seq(iter), Some(reduce), ArrowIterator.kvsToFeatures())
     } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false)
-      val reduce = KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)
+      val reduce = StatsScan.reduceFeatures(sft, hints)(_)
       (Seq(iter), Some(reduce), KryoLazyStatsIterator.kvsToFeatures())
     } else if (hints.isDensityQuery) {
       val iter = KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false)
@@ -511,13 +514,13 @@ object AccumuloAttributeIndex {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (transform.isDefined || !hints.isStatsEncode) {
       // returned stats will be in the transform schema or in json
-      KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_)
+      StatsScan.reduceFeatures(indexSft, hints)(_)
     } else {
       // we have to transform back into the original sft after operating on the index values
-      val decode = KryoLazyStatsUtils.decodeStat(indexSft)
-      val encode = KryoLazyStatsUtils.encodeStat(sft)
+      val decode = StatsScan.decodeStat(indexSft)
+      val encode = StatsScan.encodeStat(sft)
       (iter) => {
-        KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(iter).map { feature =>
+        StatsScan.reduceFeatures(indexSft, hints)(iter).map { feature =>
           // we can create a new stat with the correct sft, then add the result
           // this should set the correct metadata but preserve the underlying data
           val stat = Stat(sft, hints.getStatsQuery)

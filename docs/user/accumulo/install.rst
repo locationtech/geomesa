@@ -5,13 +5,17 @@ Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa Accumulo artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
-and untar it somewhere convenient. For example, to download and prepare the geomesa-accumulo binary:
+The easiest way to get started is to download the most recent binary version
+(|release|) from `GitHub`__.
+
+__ https://github.com/locationtech/geomesa/releases
+
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
-    # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
+    # download and unpackage the most recent distribution:
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz"
     $ tar xvf geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-accumulo-dist_2.11-$VERSION
     $ ls
@@ -148,7 +152,7 @@ In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa configure
 .. code-block:: bash
 
     ### in geomesa-accumulo_2.11-$VERSION/:
-    $ bin/geomesa configure
+    $ bin/geomesa-accumulo configure
     Warning: GEOMESA_ACCUMULO_HOME is not set, using /path/to/geomesa-accumulo_2.11-$VERSION
     Using GEOMESA_ACCUMULO_HOME as set: /path/to/geomesa-accumulo_2.11-$VERSION
     Is this intentional? Y\n y
@@ -170,7 +174,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
 
 .. note::
 
-    ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
+    ``geomesa-accumulo`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
     appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
     installing the tools on the Accumulo master server, as you may also need various configuration
     files from Hadoop/Accumulo in order to run certain commands.
@@ -179,7 +183,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
     ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
     classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
     files using a colon (``:``) as a delimiter. These entries will also be added the the mapreduce libjars variable.
-    Use the ``geomesa classpath`` command to print the final classpath that will be used when executing geomesa
+    Use the ``geomesa-accumulo classpath`` command to print the final classpath that will be used when executing geomesa
     commands.
 
     If you are running the tools on a system without
@@ -307,7 +311,7 @@ that match the version of Hadoop you are running.
 
 There is a script in the ``geomesa-accumulo_2.11-$VERSION/bin`` directory
 (``$GEOMESA_ACCUMULO_HOME/bin/install-hadoop-accumulo.sh``) which will install these
-dependencies to a target directory using ``wget`` (requires an internet
+dependencies to a target directory using ``curl`` (requires an internet
 connection).
 
 .. note::
@@ -318,62 +322,62 @@ connection).
 .. code-block:: bash
 
     $ $GEOMESA_ACCUMULO_HOME/bin/install-hadoop-accumulo.sh /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
-    Install accumulo and hadoop dependencies to /path/to/tomcat/webapps/geoserver/WEB-INF/lib/?
-    Confirm? [Y/n]y
-    fetching https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.8.1/accumulo-core-1.8.1.jar
-    --2015-09-29 15:06:48--  https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.8.1/accumulo-core-1.8.1.jar
-    Resolving search.maven.org (search.maven.org)... 207.223.241.72
-    Connecting to search.maven.org (search.maven.org)|207.223.241.72|:443... connected.
-    HTTP request sent, awaiting response... 200 OK
-    Length: 5152909 (4.9M) [application/java-archive]
-    Saving to: ‘/path/to/tomcat/webapps/geoserver/WEB-INF/lib/accumulo-core-1.8.1.jar’
-    ...
 
-If you do no have an internet connection you can download the JARs manually via http://search.maven.org/.
-These may include the JARs below; the specific JARs needed for some common configurations are listed below:
+By default, JARs will be downloaded from Maven central. You may override this by setting the environment variable
+``GEOMESA_MAVEN_URL``. If you do no have an internet connection you can download the JARs manually
+via http://search.maven.org/.
 
-Accumulo 1.6
+The specific JARs needed for some common configurations are listed below:
 
-* accumulo-core-1.6.6.jar
-* accumulo-fate-1.6.6.jar
-* accumulo-server-base-1.6.6.jar
-* accumulo-trace-1.6.6.jar
-* accumulo-start-1.6.6.jar
-* libthrift-0.9.1.jar
-* zookeeper-3.4.10.jar
-* commons-vfs2-2.1.jar
+.. tabs::
 
-Accumulo 1.7 (note the addition of htrace)
+    .. tab:: Accumulo 1.8
 
-* accumulo-core-1.7.3.jar
-* accumulo-fate-1.7.3.jar
-* accumulo-server-base-1.7.3.jar
-* accumulo-trace-1.7.3.jar
-* accumulo-start-1.7.3.jar
-* libthrift-0.9.1.jar
-* zookeeper-3.4.10.jar
-* htrace-core-3.1.0-incubating.jar
-* commons-vfs2-2.1.jar
+        * accumulo-core-1.8.1.jar
+        * accumulo-fate-1.8.1.jar
+        * accumulo-server-base-1.8.1.jar
+        * accumulo-trace-1.8.1.jar
+        * accumulo-start-1.8.1.jar
+        * libthrift-0.9.3.jar
+        * zookeeper-3.4.10.jar
+        * htrace-core-3.1.0-incubating.jar
+        * commons-vfs2-2.1.jar
 
-Accumulo 1.8 (note the addition of htrace)
+    .. tab:: Accumulo 1.7
 
-* accumulo-core-1.8.1.jar
-* accumulo-fate-1.8.1.jar
-* accumulo-server-base-1.8.1.jar
-* accumulo-trace-1.8.1.jar
-* accumulo-start-1.8.1.jar
-* libthrift-0.9.3.jar
-* zookeeper-3.4.10.jar
-* htrace-core-3.1.0-incubating.jar
-* commons-vfs2-2.1.jar
+        * accumulo-core-1.7.3.jar
+        * accumulo-fate-1.7.3.jar
+        * accumulo-server-base-1.7.3.jar
+        * accumulo-trace-1.7.3.jar
+        * accumulo-start-1.7.3.jar
+        * libthrift-0.9.1.jar
+        * zookeeper-3.4.10.jar
+        * htrace-core-3.1.0-incubating.jar
+        * commons-vfs2-2.1.jar
 
-Hadoop 2.6-2.8 (adjust versions as needed)
+    .. tab:: Accumulo 1.6
 
-* commons-configuration-1.6.jar
-* hadoop-auth-2.7.4.jar
-* hadoop-client-2.7.4.jar
-* hadoop-common-2.7.4.jar
-* hadoop-hdfs-2.7.4.jar
+        * accumulo-core-1.6.6.jar
+        * accumulo-fate-1.6.6.jar
+        * accumulo-server-base-1.6.6.jar
+        * accumulo-trace-1.6.6.jar
+        * accumulo-start-1.6.6.jar
+        * libthrift-0.9.1.jar
+        * zookeeper-3.4.10.jar
+        * commons-vfs2-2.1.jar
+
+.. tabs::
+
+    .. tab:: Hadoop 2.6-2.8
+
+        (adjust versions as needed)
+
+        * commons-configuration-1.6.jar
+        * hadoop-auth-2.7.4.jar
+        * hadoop-client-2.7.4.jar
+        * hadoop-common-2.7.4.jar
+        * hadoop-hdfs-2.7.4.jar
+
 
 Restart GeoServer after the JARs are installed.
 

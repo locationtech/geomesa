@@ -31,13 +31,12 @@ There are many reasons that GeoMesa can provide the best solution to your spatio
 Community and Support
 ---------------------
 
-The GeoMesa website may be found at http://www.geomesa.org/. For additional information, see:
+The main GeoMesa website is http://www.geomesa.org/. For additional information, see:
 
-* The tutorials on the main GeoMesa website: http://www.geomesa.org/tutorials/
-* The GeoMesa FAQ: http://www.geomesa.org/faq/
-* The GeoMesa Users (https://locationtech.org/mhonarc/lists/geomesa-users/) and 
-  Dev (https://locationtech.org/mhonarc/lists/geomesa-dev/) mailing list archives
-* The chat at https://gitter.im/locationtech/geomesa/.
+* Getting started `tutorials <http://www.geomesa.org/tutorials/>`_
+* The GeoMesa `users <https://locationtech.org/mhonarc/lists/geomesa-users/>`_ and
+  `developers <https://locationtech.org/mhonarc/lists/geomesa-dev/>`_ mailing list archives
+* The community chat on `Gitter <https://gitter.im/locationtech/geomesa/>`_.
 
 |locationtech-icon|
 

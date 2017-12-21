@@ -17,7 +17,7 @@ import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuild
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -226,7 +226,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
       val enumeration = try {
         // stats should always return exactly one result, even if there are no features in the table
         val encoded = reader.next.getAttribute(0).asInstanceOf[String]
-        KryoLazyStatsUtils.decodeStat(sft)(encoded).asInstanceOf[EnumerationStat[Any]]
+        StatsScan.decodeStat(sft)(encoded).asInstanceOf[EnumerationStat[Any]]
       } finally {
         reader.close()
       }

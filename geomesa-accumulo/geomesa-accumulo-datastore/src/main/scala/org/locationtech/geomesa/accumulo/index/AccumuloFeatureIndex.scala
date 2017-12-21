@@ -19,7 +19,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.{AttributeIndexV2, AttributeIndexV3, AttributeIndexV4, AttributeIndexV5}
-import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV1
+import org.locationtech.geomesa.accumulo.index.legacy.id.{RecordIndexV1, RecordIndexV2}
 import org.locationtech.geomesa.accumulo.index.legacy.z2.{Z2IndexV1, Z2IndexV2, Z2IndexV3}
 import org.locationtech.geomesa.accumulo.index.legacy.z3.{Z3IndexV1, Z3IndexV2, Z3IndexV3, Z3IndexV4}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
@@ -42,10 +42,10 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
 
   val EmptyColumnQualifier  = new Text()
 
-  private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV3, Z2IndexV2, Z2IndexV1)
-  private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV4, Z3IndexV3, Z3IndexV2, Z3IndexV1)
-  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV5, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
-  private val RecordIndices         = Seq(RecordIndex, RecordIndexV1)
+  val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV3, Z2IndexV2, Z2IndexV1)
+  val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV4, Z3IndexV3, Z3IndexV2, Z3IndexV1)
+  val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV5, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
+  val RecordIndices         = Seq(RecordIndex, RecordIndexV2, RecordIndexV1)
 
   // note: keep in priority order for running full table scans
   // before changing the order, consider the effect of feature validation in
@@ -107,7 +107,7 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
     val version = sft.getSchemaVersion
     val indices = if (version > 8) {
       // note: version 9 was never in a release
-      Seq(Z3IndexV3, XZ3Index, Z2IndexV2, XZ2Index, RecordIndex, AttributeIndexV3)
+      Seq(Z3IndexV3, XZ3Index, Z2IndexV2, XZ2Index, RecordIndexV2, AttributeIndexV3)
     } else if (version == 8) {
       Seq(Z3IndexV2, Z2IndexV1, RecordIndexV1, AttributeIndexV2)
     } else if (version > 5) {
@@ -199,7 +199,7 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
   // back compatibility check for old metadata keys
   abstract override def getTableName(typeName: String, ds: AccumuloDataStore): String = {
     lazy val oldKey = this match {
-      case i if i.name == RecordIndex.name    => "tables.record.name"
+      case i if i.name == RecordIndexV1.name  => "tables.record.name"
       case i if i.name == AttributeIndex.name => "tables.idx.attr.name"
       case i => s"tables.${i.name}.name"
     }

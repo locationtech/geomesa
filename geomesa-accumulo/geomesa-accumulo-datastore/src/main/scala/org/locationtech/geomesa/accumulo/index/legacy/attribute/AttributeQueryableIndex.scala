@@ -23,8 +23,9 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -164,7 +165,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, hasDupes)
         val iters = visibilityIter(sft) :+ iter
-        val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
+        val reduce = Some(StatsScan.reduceFeatures(sft, hints)(_))
         BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, reduce, attrThreads, hasDuplicates = false)
       } else {
         // check to see if we can execute against the index values
@@ -224,8 +225,11 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     val attributeScan = attributePlan(IndexValueEncoder.getIndexSft(sft), stFilter, None)
 
     // apply any secondary filters or transforms against the record table
-    val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
-      throw new RuntimeException("Record index does not exist for join query")
+    val recordIndex = {
+      val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+      indices.find(AccumuloFeatureIndex.RecordIndices.contains).getOrElse {
+        throw new RuntimeException("Record index does not exist for join query")
+      }
     }
     val (recordIter, kvsToFeatures, reduce) = if (hints.isArrowQuery) {
       val (iter, reduce) = ArrowIterator.configure(sft, recordIndex, ds.stats, filter.filter, ecqlFilter, hints, deduplicate = false)
@@ -234,7 +238,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     } else if (hints.isStatsQuery) {
       val iter = Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
       val kvs = KryoLazyStatsIterator.kvsToFeatures()
-      val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
+      val reduce = Some(StatsScan.reduceFeatures(sft, hints)(_))
       (iter, kvs, reduce)
     } else if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded

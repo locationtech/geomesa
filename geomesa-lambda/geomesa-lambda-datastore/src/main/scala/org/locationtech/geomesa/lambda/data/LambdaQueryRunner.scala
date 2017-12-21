@@ -18,10 +18,10 @@ import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan}
+import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -72,7 +72,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
     if (hints.isStatsQuery) {
       // do the reduce here, as we can't merge json stats
       hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-      KryoLazyStatsUtils.reduceFeatures(sft, hints)(standardQuery(sft, query, explain))
+      StatsScan.reduceFeatures(sft, hints)(standardQuery(sft, query, explain))
     } else if (hints.isArrowQuery) {
       val arrowSft = hints.getTransformSchema.getOrElse(sft)
 
@@ -131,7 +131,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
     } else if (hints.isDensityQuery) {
       DensityScan.DensitySft
     } else if (hints.isStatsQuery) {
-      KryoLazyStatsUtils.StatsSft
+      StatsScan.StatsSft
     } else {
       super.getReturnSft(sft, hints)
     }

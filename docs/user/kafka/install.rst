@@ -11,16 +11,16 @@ Installing from the Binary Distribution
 
 GeoMesa Kafka artifacts are available for download or can be built from source.
 The easiest way to get started is to download the most recent binary version
-(``$VERSION`` = |release|):
+(|release|) from `GitHub`__.
 
-* Kafka release: |release_tarball_kafka|
+__ https://github.com/locationtech/geomesa/releases
 
 Extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-dist_2.11/$VERSION/geomesa-kafka-dist_2.11-$VERSION-bin.tar.gz
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-kafka-dist_2.11-$VERSION-bin.tar.gz"
     $ tar xzvf geomesa-kafka-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-kafka-dist_2.11-$VERSION
     $ ls
@@ -77,11 +77,19 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_KAFKA_HOM
     Please note that the ``$GEOMESA_KAFKA_HOME`` variable points to the location of the ``geomesa-kafka_2.11-$VERSION``
     directory, not the main geomesa binary distribution directory.
 
+
 .. note::
 
-    ``geomesa-kafka`` will read the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable to include any
-    additional jars or directories in the classpath. Use the ``geomesa-kafka classpath`` command in order to see what
-    JARs are being used.
+    ``geomesa-kafka`` will read the ``$KAKFA_HOME`` and ``$ZOOKEEPER_HOME`` environment variables to load the
+    appropriate Kafka JAR files. Alternatively, the ``install-kafka.sh`` script in the ``bin`` directory
+    may be used to download the required JARs into the ``lib`` directory. You should edit this script to
+    match the versions used by your installation.
+
+    GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
+    ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
+    classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
+    files using a colon (``:``) as a delimiter. Use the ``geomesa-kafka classpath`` command to print the final
+    classpath that will be used when executing geomesa commands.
 
 Test the command that invokes the GeoMesa Tools:
 
@@ -99,7 +107,7 @@ Installing GeoMesa Kafka in GeoServer
 
 .. warning::
 
-    The GeoMesa Kafka GeoServer plugin requires the use of GeoServer
+    The GeoMesa Kafka GeoServer plugin is tested against GeoServer
     |geoserver_version| and GeoTools |geotools_version|.
 
 As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
@@ -183,26 +191,29 @@ be specific to your installation.
 Copy these additional dependencies (or the equivalents for your Kafka installation) to
 your GeoServer ``WEB-INF/lib`` directory:
 
-**Kafka 0.9**
+.. tabs::
 
-    * kafka-clients-0.9.0.1.jar
-    * kafka_2.11-0.9.0.1.jar
-    * metrics-core-2.2.0.jar
-    * zkclient-0.7.jar
-    * zookeeper-3.4.6.jar
+    .. tab:: Kafka 0.9
 
-**Kafka 0.10**
+        * kafka-clients-0.9.0.1.jar
+        * kafka_2.11-0.9.0.1.jar
+        * zkclient-0.7.jar
+        * zookeeper-3.4.6.jar
+        * metrics-core-2.2.0.jar
 
-    * kafka-clients-0.10.2.1.jar
-    * kafka-2.11-0.10.2.1.jar
-    * metrics-core-2.2.0.jar
-    * zkclient-0.10.jar
-    * zookeeper-3.4.6.jar
+    .. tab:: Kafka 0.10
+
+        * kafka-clients-0.10.2.1.jar
+        * kafka-2.11-0.10.2.1.jar
+        * zkclient-0.10.jar
+        * zookeeper-3.4.6.jar
+        * metrics-core-2.2.0.jar
 
 There is a script in the ``geomesa-kafka_2.11-$VERSION/bin`` directory
 (``$GEOMESA_KAFKA_HOME/bin/install-kafka.sh``) which will install these
-dependencies to a target directory using ``wget`` (requires an internet
-connection).
+dependencies to a target directory using ``curl`` (requires an internet
+connection). Edit the script before running to ensure the correct JAR versions
+are specified.
 
 Restart GeoServer after the JARs are installed.
 

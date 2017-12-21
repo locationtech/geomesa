@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing, Timings, TimingsImpl}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -52,7 +52,7 @@ class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
        transform: Option[SimpleFeatureType],
        explain: Explainer): FilterPlan[DS, F, W] = {
     val costs = options.map { option =>
-      implicit val timing = new Timing()
+      implicit val timing: Timing = new Timing()
       val optionCosts = profile(option.strategies.map(f => f.index.getCost(sft, stats, f, transform)))
       (option, optionCosts.sum, timing.time)
     }.sortBy(_._2)
@@ -95,7 +95,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
        evaluation: CostEvaluation,
        requested: Option[GeoMesaFeatureIndex[DS, F, W]],
        explain: Explainer = ExplainNull): Seq[FilterStrategy[DS, F, W]] = {
-    implicit val timings = new TimingsImpl()
+    implicit val timings: Timings = new TimingsImpl()
 
     val availableIndices = ds.manager.indices(sft, IndexMode.Read)
 
