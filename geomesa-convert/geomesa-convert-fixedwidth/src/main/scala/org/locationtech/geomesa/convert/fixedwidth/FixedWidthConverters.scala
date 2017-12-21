@@ -59,5 +59,5 @@ class FixedWidthConverter(val targetSFT: SimpleFeatureType,
                           val parseOpts: ConvertParseOpts)
   extends LinesToSimpleFeatureConverter {
 
-  override def fromInputType(i: String): Seq[Array[Any]] = Seq(Array(i))
+  override def fromInputType(i: String, ec: EvaluationContext): Iterator[Array[Any]] = Iterator.single(Array(i))
 }

@@ -22,8 +22,8 @@ class TestSimpleFeatureConverter(val targetSFT: SimpleFeatureType,
                                  val userDataBuilder: Map[String, Expr],
                                  val caches: Map[String, EnrichmentCache],
                                  val parseOpts: ConvertParseOpts) extends LinesToSimpleFeatureConverter {
-  override def fromInputType(i: String): Seq[Array[Any]] =
-    Seq(i.split(",").asInstanceOf[Array[Any]])
+  override def fromInputType(i: String, ec: EvaluationContext): Iterator[Array[Any]] =
+    Iterator(i.split(",").asInstanceOf[Array[Any]])
 }
 
 class TestSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {

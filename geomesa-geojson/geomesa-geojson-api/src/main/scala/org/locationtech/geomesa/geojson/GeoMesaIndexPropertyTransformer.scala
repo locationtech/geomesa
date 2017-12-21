@@ -20,7 +20,7 @@ class GeoMesaIndexPropertyTransformer(idPath: Option[Seq[PathElement]], dtgPath:
 
   override def transform(prop: String): String = {
     JsonPathParser.parse(prop) match {
-      case Seq(PathAttribute("geometry")) => "geom"
+      case Seq(PathAttribute("geometry", _)) => "geom"
       case `dtgPath` => "dtg"
       case x => JsonPathParser.print(PathAttribute("json") +: x)
     }

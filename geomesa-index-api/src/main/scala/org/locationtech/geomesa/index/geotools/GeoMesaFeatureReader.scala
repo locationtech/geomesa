@@ -16,10 +16,11 @@ import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.ThreadManagement
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long], val maxFeatures: Long)
@@ -91,7 +92,7 @@ class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
                                     maxFeatures: Long = 0L)
     extends GeoMesaFeatureReader(query, timeout, maxFeatures) with MethodProfiling {
 
-  implicit val timings = new TimingsImpl
+  implicit val timings: Timings = new TimingsImpl
   private val iter = profile("planning")(qp.runQuery(sft, query))
 
   override def next(): SimpleFeature = profile("next")(iter.next())
@@ -105,7 +106,7 @@ class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
       System.currentTimeMillis(),
       auditProvider.getCurrentUserId,
       filterToString(query.getFilter),
-      QueryEvent.hintsToString(query.getHints),
+      ViewParams.getReadableHints(query),
       timings.time("planning"),
       timings.time("next") + timings.time("hasNext"),
       count

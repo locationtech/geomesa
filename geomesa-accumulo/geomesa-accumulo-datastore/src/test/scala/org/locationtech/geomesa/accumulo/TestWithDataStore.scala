@@ -40,6 +40,8 @@ trait TestWithDataStore extends Specification {
   // TODO GEOMESA-1146 refactor to allow running of tests with table sharing on and off...
   def tableSharing: Boolean = true
 
+  def additionalDsParams(): Map[String, Any] = Map.empty
+
   // we use class name to prevent spillage between unit tests in the mock connector
   lazy val sftName: String = getClass.getSimpleName
 
@@ -52,11 +54,11 @@ trait TestWithDataStore extends Specification {
   )
   val MockUserAuthSeq = Seq("A", "B", "C")
 
-
   lazy val mockInstanceId = "mycloud"
   lazy val mockZookeepers = "myzoo"
   lazy val mockUser = "user"
   lazy val mockPassword = "password"
+  lazy val catalog = sftName
 
   lazy val mockInstance = new MockInstance(mockInstanceId)
 
@@ -71,8 +73,8 @@ trait TestWithDataStore extends Specification {
     AccumuloDataStoreParams.ConnectorParam.key -> connector,
     AccumuloDataStoreParams.CachingParam.key   -> false,
     // note the table needs to be different to prevent testing errors
-    AccumuloDataStoreParams.CatalogParam.key   -> sftName
-  )
+    AccumuloDataStoreParams.CatalogParam.key   -> catalog
+  ) ++ additionalDsParams()
 
   lazy val (ds, sft) = {
     val sft = SimpleFeatureTypes.createType(sftName, spec)

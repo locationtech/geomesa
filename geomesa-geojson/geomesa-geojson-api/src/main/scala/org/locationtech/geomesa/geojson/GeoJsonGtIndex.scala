@@ -405,7 +405,7 @@ object GeoJsonGtIndex {
     var selected: Seq[JValue] = Seq(json)
 
     path.foreach {
-      case PathAttribute(name) =>
+      case PathAttribute(name, _) =>
         selected = selected.flatMap {
           case j: JObject => j.obj.collect { case (n, v) if n == name => v }
           case _ => Seq.empty

@@ -604,7 +604,7 @@ class DelimitedTextConverterTest extends Specification {
 
       val converter = SimpleFeatureConverters.build[String](sft, conf)
 
-      val converted = converter.processSingleInput("myfid,foo,45.0,55.0")
+      val converted = converter.processSingleInput("myfid,foo,45.0,55.0").toSeq
       converted must haveLength(1)
       converted.head.getID mustEqual "myfid"
       converted.head.getAttributes.toSeq mustEqual Seq("hello myfid", WKTUtils.read("POINT(45 55)"))
