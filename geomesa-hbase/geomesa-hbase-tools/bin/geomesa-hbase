@@ -74,7 +74,9 @@ fi
 if  [[ $1 = configure ]]; then
   geomesaConfigure
 elif [[ $1 = classpath ]]; then
-  echo "${CLASSPATH}"
+  for element in ${CLASSPATH//:/ } ; do
+    echo ${element}
+  done
 else
   if [[ $1 = debug ]]; then
     GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"

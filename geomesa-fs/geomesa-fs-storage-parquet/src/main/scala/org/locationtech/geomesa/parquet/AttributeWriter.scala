@@ -36,12 +36,12 @@ object AttributeWriter {
   def apply(descriptor: AttributeDescriptor, index: Int): AttributeWriter = {
     val name = descriptor.getLocalName
     val classBinding = descriptor.getType.getBinding
-    val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-    apply(name, index, objectType, bindings)
+    val bindings = ObjectType.selectType(classBinding, descriptor.getUserData)
+    apply(name, index, bindings)
   }
 
-  def apply(name: String, index: Int, objectType: ObjectType, bindings: Seq[ObjectType]): AttributeWriter =
-    objectType match {
+  def apply(name: String, index: Int, bindings: Seq[ObjectType]): AttributeWriter =
+    bindings.head match {
       // TODO linestrings and polygons https://geomesa.atlassian.net/browse/GEOMESA-1936
       case ObjectType.GEOMETRY => new PointAttributeWriter(name, index)
       case ObjectType.DATE     => new DateWriter(name, index)
@@ -50,8 +50,8 @@ object AttributeWriter {
       case ObjectType.INT      => new IntegerWriter(name, index)
       case ObjectType.LONG     => new LongWriter(name, index)
       case ObjectType.STRING   => new StringWriter(name, index)
-      case ObjectType.LIST     => new ListWriter(name, index, bindings.head)
-      case ObjectType.MAP      => new MapWriter(name, index, bindings.head, bindings.last)
+      case ObjectType.LIST     => new ListWriter(name, index, bindings(1))
+      case ObjectType.MAP      => new MapWriter(name, index, bindings(1), bindings(2))
       case ObjectType.UUID     => new UUIDWriter(name, index)
 
     }
@@ -122,7 +122,7 @@ object AttributeWriter {
 
   class ListWriter(fieldName: String, fieldIndex: Int, valueType: ObjectType)
     extends AbstractAttributeWriter(fieldName, fieldIndex) {
-    val elementWriter = AttributeWriter("element", 0, valueType, Seq.empty)
+    val elementWriter = AttributeWriter("element", 0, Seq(valueType))
 
     override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
       recordConsumer.startGroup()
@@ -147,8 +147,8 @@ object AttributeWriter {
 
   class MapWriter(fieldName: String, fieldIndex: Int, keyType: ObjectType, valueType: ObjectType)
     extends AbstractAttributeWriter(fieldName, fieldIndex) {
-    val keyWriter = AttributeWriter("key", 0, keyType, Seq.empty)
-    val valueWriter = AttributeWriter("value", 1, valueType, Seq.empty)
+    val keyWriter = AttributeWriter("key", 0, Seq(keyType))
+    val valueWriter = AttributeWriter("value", 1, Seq(valueType))
 
     override def write(recordConsumer: RecordConsumer, value: AnyRef): Unit = {
       recordConsumer.startGroup()

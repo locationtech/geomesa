@@ -284,5 +284,5 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 }
 
 object KryoBufferSimpleFeature {
-  val longReader = KryoFeatureDeserialization.matchReader(ObjectType.LONG)
+  val longReader: Input => AnyRef = KryoFeatureDeserialization.matchReader(Seq(ObjectType.LONG))
 }
