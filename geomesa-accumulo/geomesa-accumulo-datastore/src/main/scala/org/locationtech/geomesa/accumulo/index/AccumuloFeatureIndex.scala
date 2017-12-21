@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import java.util.Collections
 import java.util.Map.Entry
 
 import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
@@ -28,6 +29,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.Try
@@ -170,23 +172,28 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 
-  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, shared: Boolean): Unit = {
-    import scala.collection.JavaConversions._
-
+  override def removeAll(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
     val table = getTableName(sft.getTypeName, ds)
     if (ds.tableOps.exists(table)) {
-      if (shared) {
-        val auths = ds.config.authProvider.getAuthorizations
-        val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
-        val prefix = new Text(sft.getTableSharingPrefix)
-        val deleter = ds.connector.createBatchDeleter(table, auths, ds.config.queryThreads, config)
-        try {
-          deleter.setRanges(Seq(new Range(prefix, true, Range.followingPrefix(prefix), false)))
-          deleter.delete()
-        } finally {
-          deleter.close()
+      val auths = ds.config.authProvider.getAuthorizations
+      val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
+      WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queryThreads, config)) { deleter =>
+        val range = if (sft.isTableSharing) {
+          val prefix = new Text(sft.getTableSharingBytes)
+          new Range(prefix, true, Range.followingPrefix(prefix), false)
+        } else {
+          new Range()
         }
-      } else {
+        deleter.setRanges(Collections.singletonList(range))
+        deleter.delete()
+      }
+    }
+  }
+
+  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, shared: Boolean): Unit = {
+    if (shared) { removeAll(sft, ds) } else {
+      val table = getTableName(sft.getTypeName, ds)
+      if (ds.tableOps.exists(table)) {
         // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
         if (ds.connector.isInstanceOf[MockConnector]) {
           ds.connector.synchronized(ds.tableOps.delete(table))
