@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
 import java.util.{Date, DoubleSummaryStatistics, ServiceLoader, UUID}
 
 import com.google.common.hash.Hashing
@@ -550,7 +551,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 
   val reprojectParserFn = new TransformerFn {
 
-    private val cache = new SoftThreadLocalCache[String, MathTransform]
+    private val cache = new ConcurrentHashMap[String, MathTransform]
 
     override val names: Seq[String] = Seq("reproject")
 
@@ -560,7 +561,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
       val geom = args(0).asInstanceOf[Geometry]
       val epsg = args(1).asInstanceOf[String]
       val lenient = if (args.length > 2) { java.lang.Boolean.parseBoolean(args(2).toString) } else { true }
-      // assuming here that transforms are not thread safe - can't find anything to say if they are or not
+      // transforms should be thread safe according to https://sourceforge.net/p/geotools/mailman/message/32123017/
       val transform = cache.getOrElseUpdate(s"$epsg:$lenient",
         CRS.findMathTransform(CRS.decode(epsg), CRS_EPSG_4326, lenient))
       JTS.transform(geom, transform)
