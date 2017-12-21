@@ -12,6 +12,7 @@
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
 hbase_version="%%hbase.version%%"
+hadoop_version="%%hadoop.version.recommended%%"
 
 # Resource download location
 base_url="https://search.maven.org/remotecontent?filepath="
@@ -19,20 +20,33 @@ install_dir="$1"
 
 # Command Line Help
 NL=$'\n'
-usage="usage: ./install-hbase.sh [target dir]"
+usage="usage: ./install-hadoop-hbase.sh [target dir]"
 
 if [[ (-z "${install_dir}") ]]; then
   echo "Error: Provide one arg which is the target directory (e.g. /opt/geoserver-2.9.1/webapps/geoserver/WEB-INF/lib)"
   echo "${usage}"
   exit
 else
-  read -r -p "Install hbase dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
+  read -r -p "Install hbase and hadoop dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
   confirm=${confirm,,} #lowercasing
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     # get stuff
     declare -a urls=(
+      "${base_url}org/apache/hbase/hbase-annotations/${hbase_version}/hbase-annotations-${hbase_version}.jar"
       "${base_url}org/apache/hbase/hbase-client/${hbase_version}/hbase-client-${hbase_version}.jar"
       "${base_url}org/apache/hbase/hbase-common/${hbase_version}/hbase-common-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-hadoop2-compat/${hbase_version}/hbase-hadoop2-compat-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-hadoop-compat/${hbase_version}/hbase-hadoop-compat-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-prefix-tree/${hbase_version}/hbase-prefix-tree-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-procedure/${hbase_version}/hbase-procedure-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-protocol/${hbase_version}/hbase-protocol-${hbase_version}.jar"
+      "${base_url}org/apache/hbase/hbase-server/${hbase_version}/hbase-server-${hbase_version}.jar"
+      "${base_url}commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar"
+      "${base_url}org/apache/hadoop/hadoop-annotations/${hadoop_version}/hadoop-annotations-${hadoop_version}.jar"
+      "${base_url}org/apache/hadoop/hadoop-auth/${hadoop_version}/hadoop-auth-${hadoop_version}.jar"
+      "${base_url}org/apache/hadoop/hadoop-client/${hadoop_version}/hadoop-client-${hadoop_version}.jar"
+      "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
+      "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
     )
 
     for x in "${urls[@]}"; do

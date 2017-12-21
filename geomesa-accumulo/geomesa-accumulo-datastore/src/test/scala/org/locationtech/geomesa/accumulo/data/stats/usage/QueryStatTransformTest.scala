@@ -20,6 +20,7 @@ import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloQu
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -64,11 +65,11 @@ class QueryStatTransformTest extends Specification {
       query.getHints.put(QueryHints.DENSITY_WIDTH, 500)
       query.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
 
-      val hints = QueryEvent.hintsToString(query.getHints)
+      val hints = ViewParams.getReadableHints(query)
 
-      hints must contain(s"DENSITY_BBOX_KEY=$env")
-      hints must contain("WIDTH_KEY=500")
-      hints must contain("HEIGHT_KEY=500")
+      hints must contain(s"DENSITY_BBOX=$env")
+      hints must contain("DENSITY_WIDTH=500")
+      hints must contain("DENSITY_HEIGHT=500")
     }
   }
 }

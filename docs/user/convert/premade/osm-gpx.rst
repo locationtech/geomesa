@@ -38,17 +38,17 @@ tools classpath. This is the default case.
 
 ::
 
-    geomesa env | grep osm-gpx
+    $ geomesa-accumulo env | grep osm-gpx
 
 If it is not, merge the contents of ``reference.conf`` with
 ``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
 ``reference.conf`` is in ``$GEOMESA_ACCUMULO_HOME/conf/sfts/osm-gpx``.
 
 Run the ingest. You may optionally point to a different accumulo
-instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``
+instance using ``-i`` and ``-z`` options. See ``geomesa-accumulo help ingest``
 for more detail.
 
 ::
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s osm-gpx -C osm-gpx osm-data.csv
+    $ geomesa-accumulo ingest -u USERNAME -c CATALOGNAME -s osm-gpx -C osm-gpx osm-data.csv
 

@@ -70,13 +70,13 @@ GeoMesa ships with predefined data models for many open spatio-temporal data set
 .. code-block:: shell
 
     $ FILES=$(seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d" | xargs -n 1 -I{} echo s3a://gdelt-open-data/events/{}.export.csv | tr '\n' ' ')
-    $ sudo docker exec accumulo-master geomesa ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt -u root -p secret $FILES
+    $ sudo docker exec accumulo-master geomesa-accumulo ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt -u root -p secret $FILES
 
 You can then query the data using the GeoMesa command line export tool.
 
 .. code-block:: shell
 
-    $ sudo docker exec accumulo-master geomesa export -c gdelt -f gdelt -u root -p secret -m 100
+    $ sudo docker exec accumulo-master geomesa-accumulo export -c gdelt -f gdelt -u root -p secret -m 100
 
 You can register GDELT as a layer in the provided GeoServer as well.  GeoServer is running on port 9090
 of the master node.  You can access it at *http://<ip_address>:9090/geoserver*, where *<ip_address>* is the
@@ -92,11 +92,11 @@ Then, in the *Stores -> Add New Store -> Accumulo (GeoMesa)* dialog in Geoserver
 .. code::
 
    DataSourceName: gdelt
-   instanceId: gis
-   zookeepers: $zookeeper
-   user: root
-   password: secret
-   tableName: geomesa.gdelt
+   accumulo.instance.id: gis
+   accumulo.zookeepers: $zookeeper
+   accumulo.user: root
+   accumulo.password: secret
+   accumulo.catalog: geomesa.gdelt
 
 Save the store and publish the ``gdelt`` layer.  Set the "Native Bounding Box" and the "Lat Lon Bounding Box" to
 ``-180,-90,180,90``.  Save the layer.  Then, navigate to the preview page at

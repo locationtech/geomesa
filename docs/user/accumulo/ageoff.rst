@@ -42,7 +42,7 @@ Viewing Current Age-Off
 
 Any configured age-off iterators can be shown via the command line tools ``configure-age-off`` command::
 
-    $ geomesa configure-age-off -c test_catalog -f test_feature --list
+    $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --list
     INFO  Attribute age-off: None
     INFO  Timestamp age-off: name:age-off, priority:10, class:org.locationtech.geomesa.accumulo.iterators.AgeOffIterator, properties:{retention=PT1M}
 
@@ -61,7 +61,7 @@ Ingest time age-off will use the timestamp associated with the Accumulo data val
 Ingest time age-off can be configured via the command line tools ``configure-age-off`` command, without specifying
 a date attribute::
 
-    $ geomesa configure-age-off -c test_catalog -f test_feature --set --expiry '1 day'
+    $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --set --expiry '1 day'
 
 This will remove any existing age-off configuration and replace it with the new specification.
 
@@ -73,7 +73,7 @@ Attribute age-off will use a date-type attribute to validate retention.
 Attribute age-off can be configured via the command line tools ``configure-age-off`` command by specifying
 a date attribute::
 
-    $ geomesa configure-age-off -c test_catalog -f test_feature --set --expiry '1 day' --dtg my_date_attribute
+    $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --set --expiry '1 day' --dtg my_date_attribute
 
 This will remove any existing age-off configuration and replace it with the new specification.
 
@@ -82,7 +82,7 @@ Removing Age-Off
 
 Any configured age-off iterators can be cleared via the command line tools ``configure-age-off`` command::
 
-    $ geomesa configure-age-off -c test_catalog -f test_feature --remove
+    $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --remove
 
 This will remove both attribute and ingest time age-off.
 
