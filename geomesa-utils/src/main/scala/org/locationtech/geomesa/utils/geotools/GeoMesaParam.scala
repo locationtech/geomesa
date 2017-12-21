@@ -107,7 +107,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
       if (deprecatedKeys.contains(oldKey)) {
         lookUp(Collections.singletonMap(key, params.get(oldKey)))
       } else {
-        deprecatedParams.dropWhile(_.key != oldKey).head.lookup(params, required)
+        fromTypedValue(deprecatedParams.dropWhile(_.key != oldKey).head.lookup(params, required))
       }
     } else if (required) {
       throw new IOException(s"Parameter $key is required: $description")

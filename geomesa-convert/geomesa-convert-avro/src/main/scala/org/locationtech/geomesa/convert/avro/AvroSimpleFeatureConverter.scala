@@ -52,19 +52,19 @@ class AvroSimpleFeatureConverter(avroSchema: Schema,
                                  val parseOpts: ConvertParseOpts)
   extends ToSimpleFeatureConverter[Array[Byte]] {
 
-  var decoder: BinaryDecoder = null
-  var recordReuse: GenericRecord = null
+  var decoder: BinaryDecoder = _
+  var recordReuse: GenericRecord = _
 
-  override def fromInputType(bytes: Array[Byte]): Seq[Array[Any]] = {
+  override def fromInputType(bytes: Array[Byte], ec: EvaluationContext): Iterator[Array[Any]] = {
     decoder = DecoderFactory.get.binaryDecoder(bytes, decoder)
-    Seq(Array(bytes, reader.read(recordReuse, decoder)))
+    Iterator.single(Array(bytes, reader.read(recordReuse, decoder)))
   }
 
   override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] = {
     decoder = DecoderFactory.get.binaryDecoder(is, null)
 
     class FeatureItr extends Iterator[SimpleFeature] {
-      private var cur: SimpleFeature = null
+      private var cur: SimpleFeature = _
 
       override def hasNext: Boolean = {
         if (cur == null) {
@@ -84,7 +84,7 @@ class AvroSimpleFeatureConverter(avroSchema: Schema,
         } else throw new NoSuchElementException
       }
 
-      def fetchNext() = {
+      def fetchNext(): Unit = {
         if (!decoder.isEnd) {
           ec.counter.incLineCount()
           val rec = reader.read(null, decoder)

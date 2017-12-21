@@ -128,6 +128,14 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     }
   }
 
+  // invalidate any cached consumers in order to reload the new schema
+  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    Option(caches.getIfPresent(sft.getTypeName)).foreach { cache =>
+      cache.close()
+      caches.invalidate(sft.getTypeName)
+    }
+  }
+
   // stop consumers and delete kafka topic
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
     Option(caches.getIfPresent(sft.getTypeName)).foreach { cache =>

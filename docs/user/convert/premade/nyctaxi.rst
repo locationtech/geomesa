@@ -44,7 +44,7 @@ are available on the GeoMesa tools classpath. This is the default case.
 
 ::
 
-    geomesa env | grep 'nyctaxi\|nyctaxi-single'
+    $ geomesa-accumulo env | grep 'nyctaxi\|nyctaxi-single'
 
 If they are not, merge the contents of ``reference.conf`` with
 ``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
@@ -57,18 +57,18 @@ To ingest with GeoMesa command line interface, first the pickups:
 
 ::
 
-    $ geomesa ingest -u username -c catalogName -s nyctaxi -C nyctaxi hdfs://namenode:9000/path/to/nyctaxi*
+    $ geomesa-accumulo ingest -u username -c catalogName -s nyctaxi -C nyctaxi hdfs://namenode:9000/path/to/nyctaxi*
 
 Then the dropoffs ingests the same file with the same simple feature
 type, but a different converter.
 
 ::
 
-    $ geomesa ingest -u username -c catalogName -s nyctaxi -C nyctaxi-drop hdfs://namenode:9000/path/to/nyctaxi*
+    $ geomesa-accumulo ingest -u username -c catalogName -s nyctaxi -C nyctaxi-drop hdfs://namenode:9000/path/to/nyctaxi*
 
 Single record method
 ~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    $ geomesa ingest -u username -c catalogName -s nyctaxi-single -C nyctaxi-single.conf hdfs://namenode:9000/path/to/nyctaxi*
+    $ geomesa-accumulo ingest -u username -c catalogName -s nyctaxi-single -C nyctaxi-single.conf hdfs://namenode:9000/path/to/nyctaxi*

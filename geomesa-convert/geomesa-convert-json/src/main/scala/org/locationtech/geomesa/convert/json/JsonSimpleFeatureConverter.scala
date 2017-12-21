@@ -40,17 +40,17 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
 
   import scala.collection.JavaConversions._
 
-  override def fromInputType(i: String): Seq[Array[Any]] = {
+  override def fromInputType(i: String, ec: EvaluationContext): Iterator[Array[Any]] = {
     val json = jsonConfig.jsonProvider.parse(i)
-    root.map(extractFromRoot(json, _)).getOrElse(Seq(Array[Any](json)))
+    root.map(extractFromRoot(json, _)).getOrElse(Iterator.single(Array[Any](json)))
   }
 
   // NB:  Currently the JSON support for Converters parses the entire JSON document into memory.
   //  In the event that we wish to build SimpleFeatures from a 'feature' path and the 'root' path, we have a small issue.
   //  This solution involves handing a pointer to the feature path and the entire document.
   //  In the converter config, use 'root-path' to defined paths which reference the entire document.
-  private def extractFromRoot(json: AnyRef, r: JsonPath): Seq[Array[Any]] =
-    r.read[JsonArray](json, jsonConfig).map(o => Array[Any](o, json)).toSeq
+  private def extractFromRoot(json: AnyRef, r: JsonPath): Iterator[Array[Any]] =
+    r.read[JsonArray](json, jsonConfig).map(o => Array[Any](o, json)).iterator
 
   // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
   override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] =
@@ -94,10 +94,10 @@ class JsonSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
     }
     if (field.hasPath("path")) {
       // path can be absolute, or relative to the feature node
-      JsonField(name, JsonPath.compile(field.getString("path")), jsonConfig, transform, field.getString("json-type"), false)
+      JsonField(name, JsonPath.compile(field.getString("path")), jsonConfig, transform, field.getString("json-type"), pathIsRoot = false)
     } else if (field.hasPath("root-path")) {
       // when 'root-path' is used, the path is absolute
-      JsonField(name, JsonPath.compile(field.getString("root-path")), jsonConfig, transform, field.getString("json-type"), true)
+      JsonField(name, JsonPath.compile(field.getString("root-path")), jsonConfig, transform, field.getString("json-type"), pathIsRoot = true)
     } else {
       SimpleField(name, transform)
     }
@@ -105,7 +105,12 @@ class JsonSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
 }
 
 object JsonField {
-  def apply(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr, jsonType: String, pathIsRoot: Boolean) = jsonType match {
+  def apply(name: String,
+            expression: JsonPath,
+            jsonConfig: Configuration,
+            transform: Expr,
+            jsonType: String,
+            pathIsRoot: Boolean): BaseJsonField[_] = jsonType match {
     case "string"           => StringJsonField(name, expression, jsonConfig, transform, pathIsRoot)
     case "float"            => FloatJsonField(name, expression, jsonConfig, transform, pathIsRoot)
     case "double"           => DoubleJsonField(name, expression, jsonConfig, transform, pathIsRoot)

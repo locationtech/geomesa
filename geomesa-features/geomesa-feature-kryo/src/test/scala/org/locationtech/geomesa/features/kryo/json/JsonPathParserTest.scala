@@ -20,11 +20,19 @@ class JsonPathParserTest extends Specification {
   "JsonPathParser" should {
     "not parse invalid paths" in {
       JsonPathParser.parse("$.$") must throwA[ParsingException]
+      JsonPathParser.parse("$.foo foo") must throwA[ParsingException]
     }
     "correctly parse attribute paths" in {
       val path = JsonPathParser.parse("$.foo")
       path must haveLength(1)
       path.head mustEqual PathAttribute("foo")
+    }
+    "correctly parse attribute bracket paths" in {
+      JsonPathParser.parse("$[foo]") mustEqual Seq(PathAttribute("foo", bracketed = true))
+      JsonPathParser.parse("$[foo_bar]") mustEqual Seq(PathAttribute("foo_bar", bracketed = true))
+      JsonPathParser.parse("$['foo']") mustEqual Seq(PathAttribute("foo", bracketed = true))
+      JsonPathParser.parse("$['foo_bar']") mustEqual Seq(PathAttribute("foo_bar", bracketed = true))
+      JsonPathParser.parse("$['foo-bar 0']") mustEqual Seq(PathAttribute("foo-bar 0", bracketed = true))
     }
     "correctly parse array index paths" in {
       val path = JsonPathParser.parse("$.foo[2]")

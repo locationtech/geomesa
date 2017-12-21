@@ -31,7 +31,7 @@ import java.util.Map;
 
 public abstract class AbstractMultiPolygonVector implements GeometryVector<MultiPolygon, ListVector> {
 
-  private static FieldType createFieldType(Map<String, String> metadata) {
+  public static FieldType createFieldType(Map<String, String> metadata) {
     return new FieldType(true, ArrowType.List.INSTANCE, null, metadata);
   }
 

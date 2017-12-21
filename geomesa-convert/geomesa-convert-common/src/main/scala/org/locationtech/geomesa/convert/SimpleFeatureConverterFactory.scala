@@ -204,7 +204,7 @@ trait SimpleFeatureConverter[I] extends Closeable {
    */
   def processInput(is: Iterator[I], ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature]
 
-  def processSingleInput(i: I, ec: EvaluationContext = createEvaluationContext()): Seq[SimpleFeature]
+  def processSingleInput(i: I, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature]
 
   def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature]
 
@@ -273,7 +273,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   def idBuilder: Expr
   def userDataBuilder: Map[String, Expr]
   def caches: Map[String, EnrichmentCache]
-  def fromInputType(i: I): Seq[Array[Any]]
+  def fromInputType(i: I, ec: EvaluationContext): Iterator[Array[Any]]
   def parseOpts: ConvertParseOpts
 
   protected val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
@@ -358,23 +358,23 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   /**
    * Process a single input (e.g. line)
    */
-  def processSingleInput(i: I, ec: EvaluationContext): Seq[SimpleFeature] = {
+  override def processSingleInput(i: I, ec: EvaluationContext): Iterator[SimpleFeature] = {
     ec.clear()
     ec.counter.incLineCount()
 
-    val attributes = try { fromInputType(i) } catch {
+    val attributes = try { fromInputType(i, ec) } catch {
       case e: Exception =>
         logger.warn(s"Failed to parse input '$i'", e)
         ec.counter.incFailure()
-        Seq.empty
+        Iterator.empty
     }
 
-    val (failures, successes) = attributes.map(convert(_, ec)).partition(_ == null)
-    ec.counter.incSuccess(successes.length)
-    if (failures.nonEmpty) {
-      ec.counter.incFailure(failures.length)
+    attributes.flatMap { a =>
+      convert(a, ec) match {
+        case null => ec.counter.incFailure(); Iterator.empty
+        case sf   => ec.counter.incSuccess(); Iterator.single(sf)
+      }
     }
-    successes
   }
 
   override def createEvaluationContext(globalParams: Map[String, Any], counter: Counter): EvaluationContext = {

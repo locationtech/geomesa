@@ -8,16 +8,14 @@ A configurable and extensible library for converting data into
 
 Converters for various different data formats can be configured and
 instantiated using the ``SimpleFeatureConverters`` factory and a target
-``SimpleFeatureType``. Converters are currently available for files in
-these formats:
+``SimpleFeatureType``. Converters are currently available for these formats:
 
 -  delimited text (CSV, TSV)
 -  fixed width text
--  `Avro`_
--  JSON
--  XML
-
-.. _Avro: http://avro.apache.org/
+-  :ref:`Avro <avro_converter>`
+-  :ref:`JSON <json_converter>`
+-  :ref:`XML <xml_converter>`
+-  :ref:`JDBC <jdbc_converter>`
 
 The converter allows the specification of fields extracted from the data
 and transformations on those fields. Syntax of transformations is very
@@ -45,6 +43,7 @@ by the `Typesafe Config`_ library.
     json
     xml
     avro
+    jdbc
     extending
     parsing_and_validation
     cache

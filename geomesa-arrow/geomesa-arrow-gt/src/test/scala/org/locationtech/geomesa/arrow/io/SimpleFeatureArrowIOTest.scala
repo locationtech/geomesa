@@ -10,7 +10,8 @@ package org.locationtech.geomesa.arrow.io
 
 import java.util.Date
 
-import org.apache.arrow.memory.RootAllocator
+import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.DirtyRootAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
@@ -25,7 +26,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureArrowIOTest extends Specification {
 
-  implicit val allocator = new RootAllocator(Long.MaxValue)
+  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
 
@@ -56,16 +57,15 @@ class SimpleFeatureArrowIOTest extends Specification {
         (vector.underlying.getField, batches)
       }
 
-      val sorted =
-        SimpleFeatureArrowIO.sortBatches(sft, dictionaries, encoding, "dtg", reverse = false, 10, batches.iterator)
-
-      val loader = new RecordBatchLoader(field)
-      val features = WithClose(SimpleFeatureVector.wrap(loader.vector.asInstanceOf[NullableMapVector], dictionaries)) { vector =>
-        sorted.flatMap { batch =>
-          vector.clear()
-          loader.load(batch)
-          (0 until vector.reader.getValueCount).map(i => ScalaSimpleFeature.copy(vector.reader.get(i)))
-        }.toList
+      val features = WithClose(SimpleFeatureArrowIO.sortBatches(sft, dictionaries, encoding, "dtg", reverse = false, 10, batches.iterator)) { sorted =>
+        val loader = RecordBatchLoader(field)
+        WithClose(SimpleFeatureVector.wrap(loader.vector.asInstanceOf[NullableMapVector], dictionaries)) { vector =>
+          sorted.flatMap { batch =>
+            vector.clear()
+            loader.load(batch)
+            (0 until vector.reader.getValueCount).map(i => ScalaSimpleFeature.copy(vector.reader.get(i)))
+          }.toList
+        }
       }
 
       features must haveLength(30)

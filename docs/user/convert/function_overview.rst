@@ -20,6 +20,7 @@ String Functions
 -  ``concatenate``
 -  ``substring``
 -  ``toString``
+-  ``emptyToNull``
 
 Date Functions
 ~~~~~~~~~~~~~~
@@ -136,14 +137,14 @@ A example of ingest with a scripts on the classpath is below:
 
 .. code-block:: bash
 
-    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa ingest -u <user-name>
+    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa-accumulo ingest -u <user-name>
     -p <password> -s <sft-name> -C <converter-name> -c geomesa.catalog hdfs://localhost:9000/data/example.csv
 
 You can also verify the classpath is properly configured with the tools:
 
 .. code-block:: bash
 
-    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa classpath
+    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa-accumulo classpath
 
 
 CQL Functions
