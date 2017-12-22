@@ -19,7 +19,7 @@ import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ExpiringFe
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Random
@@ -101,8 +101,10 @@ class DataStorePersistence(ds: DataStore,
       if (!persistExpired) {
         logger.trace(s"Persist disabled for $topic")
       } else {
-        implicit val timings: Timings = new TimingsImpl
-        val modified = profile("modify") {
+        implicit def complete(modified: Long, time: Long): Unit =
+          logger.debug(s"Wrote $modified updated feature(s) to persistent storage in ${time}ms")
+
+        profile {
           // do an update query first
           val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)
           WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
@@ -122,10 +124,13 @@ class DataStorePersistence(ds: DataStore,
             count
           }
         }
-        logger.debug(s"Wrote $modified updated feature(s) to persistent storage in ${timings.time("modify")}ms")
+
         // if any weren't updates, add them as inserts
         if (toPersist.nonEmpty) {
-          val appended = profile("append") {
+          implicit def complete(appended: Long, time: Long): Unit =
+            logger.debug(s"Wrote $appended new feature(s) to persistent storage in ${time}ms")
+
+          profile {
             WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
               var count = 0L
               toPersist.values.foreach { case (offset, updated) =>
@@ -139,7 +144,6 @@ class DataStorePersistence(ds: DataStore,
               count
             }
           }
-          logger.debug(s"Wrote $appended new feature(s) to persistent storage in ${timings.time("append")}ms")
         }
       }
     }

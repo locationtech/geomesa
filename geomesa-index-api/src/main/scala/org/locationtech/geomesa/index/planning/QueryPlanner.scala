@@ -29,7 +29,7 @@ import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortingSimpleFeatureIterator}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.PropertyName
@@ -113,8 +113,10 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
                               output: Explainer): Seq[QueryPlan[DS, F, W]] = {
     import org.locationtech.geomesa.filter.filterToString
 
-    implicit val timings = new TimingsImpl
-    val plans = profile("all") {
+    implicit def complete(plans: Seq[QueryPlan[DS, F, W]], time: Long): Unit =
+      output(s"Query planning took ${time}ms")
+
+    profile {
       // set hints that we'll need later on, fix the query filter so it meets our expectations going forward
       val query = configureQuery(sft, original)
       optimizeFilter(sft, query)
@@ -138,19 +140,17 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
 
       var strategyCount = 1
       strategies.map { strategy =>
+        implicit def complete(plan: QueryPlan[DS, F, W], time: Long): Unit = {
+          plan.explain(output)
+          output(s"Plan creation took ${time}ms").popLevel()
+        }
+
         output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
         strategyCount += 1
         output(s"Strategy filter: $strategy")
-        val plan = profile(s"s$strategyCount")(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
-        plan.explain(output)
-        output(s"Plan creation took ${timings.time(s"s$strategyCount")}ms").popLevel()
-        plan
+        profile(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
       }
     }
-
-    output(s"Query planning took ${timings.time("all")}ms")
-
-    plans
   }
 
   private def toIndex(sft: SimpleFeatureType, name: String): Option[GeoMesaFeatureIndex[DS, F, W]] = {

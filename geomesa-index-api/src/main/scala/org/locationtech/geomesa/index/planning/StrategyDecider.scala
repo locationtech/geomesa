@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing, Timings, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -52,9 +52,10 @@ class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
        transform: Option[SimpleFeatureType],
        explain: Explainer): FilterPlan[DS, F, W] = {
     val costs = options.map { option =>
-      implicit val timing: Timing = new Timing()
-      val optionCosts = profile(option.strategies.map(f => f.index.getCost(sft, stats, f, transform)))
-      (option, optionCosts.sum, timing.time)
+      var time = 0L
+      def complete(result: Seq[Long], timing: Long): Unit = time = timing
+      val optionCosts = profile(option.strategies.map(f => f.index.getCost(sft, stats, f, transform)))(complete)
+      (option, optionCosts.sum, time)
     }.sortBy(_._2)
     explain(s"Costs: ${costs.map(c => s"${c._1} (Cost ${c._2} in ${c._3}ms)").mkString("; ")}")
     costs.head._1
@@ -95,16 +96,15 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
        evaluation: CostEvaluation,
        requested: Option[GeoMesaFeatureIndex[DS, F, W]],
        explain: Explainer = ExplainNull): Seq[FilterStrategy[DS, F, W]] = {
-    implicit val timings: Timings = new TimingsImpl()
 
     val availableIndices = ds.manager.indices(sft, IndexMode.Read)
 
     // get the various options that we could potentially use
-    val options = profile("split")(new FilterSplitter(sft, availableIndices).getQueryOptions(filter, transform))
+    val options = profile(new FilterSplitter(sft, availableIndices).getQueryOptions(filter, transform)) {
+      (options, time) => explain(s"Query processing took ${time}ms and produced ${options.length} options")
+    }
 
-    explain(s"Query processing took ${timings.time("split")}ms and produced ${options.length} options")
-
-    val selected = profile("cost") {
+    val selected = profile {
       if (requested.isDefined) {
         val forced = {
           val index = requested.get
@@ -136,9 +136,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
         explain(s"Filter plans not selected: ${options.filterNot(_.eq(plan)).mkString(", ")}")
         plan
       }
-    }
-
-    explain(s"Strategy selection took ${timings.time("cost")}ms for ${options.length} options")
+    } ((_, time) => explain(s"Strategy selection took ${time}ms for ${options.length} options"))
 
     selected.strategies
   }

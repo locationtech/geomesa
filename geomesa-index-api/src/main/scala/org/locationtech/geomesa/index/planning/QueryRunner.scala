@@ -113,3 +113,12 @@ trait QueryRunner {
     hints.getTransformSchema.getOrElse(sft)
   }
 }
+
+object QueryRunner {
+  // used for configuring input queries
+  val default: QueryRunner = new QueryRunner {
+    override def runQuery(sft: SimpleFeatureType,
+                          query: Query,
+                          explain: Explainer): CloseableIterator[SimpleFeature] = throw new NotImplementedError
+  }
+}
