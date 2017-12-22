@@ -252,6 +252,11 @@ object RichSimpleFeatureType {
       Array.empty[Byte]
     }
 
+    def setCompression(c: String): Unit = {
+      sft.getUserData.put(COMPRESSION_ENABLED, "true")
+      sft.getUserData.put(COMPRESSION_TYPE, c)
+    }
+
     // gets (name, version, mode) of enabled indices
     def getIndices: Seq[(String, Int, IndexMode)] = {
       def toTuple(string: String): (String, Int, IndexMode) = {

@@ -26,8 +26,11 @@ trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     val sft = CLArgResolver.getSft(params.spec, params.featureName)
     Option(params.dtgField).foreach(sft.setDtgField)
     Option(params.useSharedTables).foreach(sft.setTableSharing)
+    setBackendSpecificOptions(sft)
     withDataStore(createSchema(_, sft))
   }
+
+  protected def setBackendSpecificOptions(featureType: SimpleFeatureType): Unit = {}
 
   protected def createSchema(ds: DS, sft: SimpleFeatureType): Unit = {
     lazy val sftString = SimpleFeatureTypes.encodeType(sft)
