@@ -46,3 +46,22 @@ Parameter                              Type    Description
 More information on using GeoTools can be found in the `GeoTools user guide
 <http://docs.geotools.org/stable/userguide/>`__.
 
+HBase Compression per SimpleFeatureType
+---------------------------------------
+
+You can enable compression on an HBase `SimpleFeatureType` by passing the appropriate
+userData hints in the SFT or by toggling the flag in the command line tool.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ....;
+    sft.getUserData().put("geomesa.compression.enabled", "true");
+    sft.getUserData().put("geomesa.compression.type", "snappy");
+.. _hbase_compression_java
+
+.. code-block:: shell
+
+    geomesa-hbase create-schema --compression snappy ...
+
+.. _hbase_compression_shell
+
