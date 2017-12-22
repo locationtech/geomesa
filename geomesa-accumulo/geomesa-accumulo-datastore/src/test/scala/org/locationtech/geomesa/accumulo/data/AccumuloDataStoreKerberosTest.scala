@@ -1,5 +1,6 @@
 /***********************************************************************
- * Crown Copyright (c) 2016 Dstl
+ * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,8 +14,6 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
-
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreKerberosTest extends Specification {
 
@@ -23,84 +22,95 @@ class AccumuloDataStoreKerberosTest extends Specification {
 
   import AccumuloDataStoreParams._
 
+  def maps(tuples: (String, String)*): (java.util.Map[String, java.io.Serializable], java.util.Map[String, java.io.Serializable]) = {
+    import scala.collection.JavaConverters._
+    val map = tuples.toMap[String, java.io.Serializable]
+    (map.asJava, (map + (MockParam.key -> "true")).asJava)
+  }
+
   "AccumuloDataStore" should {
 
     "create a password authenticated store" in {
-      DataStoreFinder.getDataStore(Map(
-        MockParam.key       -> "true",
+      val (real, mock) = maps(
         InstanceIdParam.key -> "my-instance",
         ZookeepersParam.key -> "zoo:2181",
         UserParam.key       -> "me",
         PasswordParam.key   -> "secret",
-        CatalogParam.key    -> "tableName").asJava).asInstanceOf[AccumuloDataStore] must not(beNull)
+        CatalogParam.key    -> "tableName")
+      AccumuloDataStoreFactory.canProcess(real) must beTrue
+      DataStoreFinder.getDataStore(mock) must not(beNull)
     }
 
     "create a keytab authenticated store" in {
-      val ds = DataStoreFinder.getDataStore(Map(
-        MockParam.key       -> "true",
+      val (real, mock) = maps(
         InstanceIdParam.key -> "my-instance",
         ZookeepersParam.key -> "zoo:2181",
         UserParam.key       -> "user@EXAMPLE.COM",
         KeytabPathParam.key -> "/path/to/keytab",
-        CatalogParam.key    -> "tableName").asJava).asInstanceOf[AccumuloDataStore]
+        CatalogParam.key    -> "tableName")
       if (AccumuloDataStoreFactory.isKerberosAvailable) {
-        ds must not(beNull)
+        AccumuloDataStoreFactory.canProcess(real) must beTrue
+        DataStoreFinder.getDataStore(mock).asInstanceOf[AccumuloDataStore] must not(beNull)
       } else {
-        ds must beNull
+        AccumuloDataStoreFactory.canProcess(real) must beFalse
+        DataStoreFinder.getDataStore(mock).asInstanceOf[AccumuloDataStore] must beNull
       }
     }
 
     "not accept password and keytab" in {
-      DataStoreFinder.getDataStore(Map(
-        MockParam.key -> "true",
+      val (real, mock) = maps(
         InstanceIdParam.key -> "my-instance",
         ZookeepersParam.key -> "zoo:2181",
-        UserParam.key -> "me",
-        PasswordParam.key -> "password",
+        UserParam.key       -> "me",
+        PasswordParam.key   -> "password",
         KeytabPathParam.key -> "/path/to/keytab",
-        CatalogParam.key -> "tableName").asJava) must beNull
+        CatalogParam.key    -> "tableName")
+      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      DataStoreFinder.getDataStore(mock) must beNull
     }
 
     "not accept a missing instanceId" in {
-      DataStoreFinder.getDataStore(Map(
-        MockParam.key          -> "true",
+      val (real, mock) = maps(
         // InstanceIdParam.key -> "my-instance",
         ZookeepersParam.key    -> "zoo:2181",
         UserParam.key          -> "me",
         PasswordParam.key      -> "password",
-        CatalogParam.key       -> "tableName").asJava) must beNull
+        CatalogParam.key       -> "tableName")
+      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      DataStoreFinder.getDataStore(mock) must beNull
     }
 
     "not accept a missing zookeepers" in {
-      DataStoreFinder.getDataStore(Map(
-        MockParam.key          -> "true",
+      val (real, mock) = maps(
         InstanceIdParam.key    -> "my-instance",
         // ZookeepersParam.key -> "zoo:2181",
         UserParam.key          -> "me",
         PasswordParam.key      -> "password",
-        CatalogParam.key       -> "tableName").asJava) must beNull
+        CatalogParam.key       -> "tableName")
+      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      // can't test actual data store since mock without zookeepers is ok
     }
 
     "not accept a missing user" in {
-      DataStoreFinder.getDataStore(Map(
-        MockParam.key       -> "true",
+      val (real, mock) = maps(
         InstanceIdParam.key -> "my-instance",
         ZookeepersParam.key -> "zoo:2181",
         // UserParam.key    -> "me",
         PasswordParam.key   -> "password",
-        CatalogParam.key    -> "tableName").asJava) must beNull
+        CatalogParam.key    -> "tableName")
+      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      DataStoreFinder.getDataStore(mock) must beNull
     }
 
     "not accept a missing password and keytab" in {
-      DataStoreFinder.getDataStore(Map(
-        MockParam.key        -> "true",
+      val (real, mock) = maps(
         InstanceIdParam.key  -> "my-instance",
         ZookeepersParam.key  -> "zoo:2181",
         UserParam.key        -> "me",
         // PasswordParam.key -> "password",
-        CatalogParam.key     -> "tableName").asJava) must beNull
+        CatalogParam.key     -> "tableName")
+      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      DataStoreFinder.getDataStore(mock) must beNull
     }
-
   }
-
 }

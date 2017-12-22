@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.cassandra.tools
 
-import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.cassandra.data.{CassandraDataStore, CassandraDataStoreFactory}
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand}
 

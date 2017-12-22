@@ -14,14 +14,12 @@ import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.FullColumnFamily
-import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.iterators.ArrowBatchScan
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
-import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
@@ -75,22 +73,11 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
         val iter = KryoLazyDensityIterator.configure(sft, this, filter.secondary, hints, dupes)
         (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None)
       } else if (hints.isArrowQuery) {
-        val dictionaryFields = hints.getArrowDictionaryFields
-        val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-        if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
-            dictionaryFields.forall(providedDictionaries.contains)) {
-          val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
-            providedDictionaries, hints.isArrowCachedDictionaries)
-          val iter = ArrowBatchIterator.configure(sft, this, filter.secondary, dictionaries, hints, dupes)
-          val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, dictionaries))
-          (Seq(iter), ArrowBatchIterator.kvsToFeatures(), reduce)
-        } else {
-          val iter = ArrowFileIterator.configure(sft, this, filter.secondary, dictionaryFields, hints, dupes)
-          (Seq(iter), ArrowFileIterator.kvsToFeatures(), None)
-        }
+        val (iter, reduce) = ArrowIterator.configure(sft, this, ds.stats, filter.filter, filter.secondary, hints, dupes)
+        (Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce))
       } else if (hints.isStatsQuery) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, dupes)
-        val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
+        val reduce = Some(StatsScan.reduceFeatures(sft, hints)(_))
         (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(), reduce)
       } else if (hints.isMapAggregatingQuery) {
         val iter = KryoLazyMapAggregatingIterator.configure(sft, this, filter.secondary, hints, dupes)

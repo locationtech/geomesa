@@ -80,7 +80,7 @@ To build and install the source distribution requires:
 * `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
 * `Apache Maven <http://maven.apache.org/>`__ |maven_version|
 
-Source can be cloned using `Git <http://git-scm.com/>`__ or downloaded from `GitHub`__
+Source can be cloned using `Git <http://git-scm.com/>`__ or downloaded from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/archive/master.tar.gz
 
@@ -97,6 +97,11 @@ provides the script ``build/mvn``, which is a wrapper around Maven that download
 .. code-block:: bash
 
     build/mvn clean install -T8 -DskipTests
+
+Upgrading
+---------
+
+For details on changes between versions, see :ref:`upgrade_guide`.
 
 Legal Review
 ------------

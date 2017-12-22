@@ -96,7 +96,7 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
     }
   }
 
-  override def processSingleInput(i: I, ec: EvaluationContext): Seq[SimpleFeature] = ???
+  override def processSingleInput(i: I, ec: EvaluationContext): Iterator[SimpleFeature] = ???
 
   override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] = ???
 }

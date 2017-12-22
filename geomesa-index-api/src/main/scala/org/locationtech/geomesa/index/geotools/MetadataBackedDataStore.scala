@@ -81,6 +81,14 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   protected def onSchemaCreated(sft: SimpleFeatureType): Unit
 
   /**
+    * Called after schema metadata has been persisted. Allows for creating tables, etc
+    *
+    * @param sft simple feature type
+    * @param previous previous feature type before changes
+    */
+  protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit
+
+  /**
     * Called after deleting schema metadata. Allows for deleting tables, etc
     *
     * @param sft simple feature type
@@ -244,6 +252,8 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
       // If all is well, update the metadata
       val attributesValue = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
       metadata.insert(sft.getTypeName, ATTRIBUTES_KEY, attributesValue)
+
+      onSchemaUpdated(sft, previousSft)
     } finally {
       lock.release()
     }
@@ -347,7 +357,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * Acquires a distributed lock for all data stores sharing this catalog table.
     * Make sure that you 'release' the lock in a finally block.
     */
-  protected def acquireCatalogLock(): Releasable = {
+  protected [geomesa] def acquireCatalogLock(): Releasable = {
     val path = s"/org.locationtech.geomesa/ds/$catalog"
     acquireDistributedLock(path, 120000).getOrElse {
       throw new RuntimeException(s"Could not acquire distributed lock at '$path'")

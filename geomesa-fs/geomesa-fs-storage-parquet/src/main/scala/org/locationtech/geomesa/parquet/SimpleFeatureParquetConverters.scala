@@ -119,15 +119,14 @@ object SimpleFeatureParquetConverters {
   // the true SFT types util a record passes a filter in the SimpleFeatureRecordMaterializer
   def converterFor(ad: AttributeDescriptor, index: Int, parent: SimpleFeatureGroupConverter): Converter = {
     val sfBinding = ad.getType.getBinding
-    val (objectType, binding) = ObjectType.selectType(sfBinding, ad.getUserData)
-    converterFor(objectType, binding, index, (index: Int, value: AnyRef) => parent.set(index, value))
+    val bindings = ObjectType.selectType(sfBinding, ad.getUserData)
+    converterFor(bindings, index, (index: Int, value: AnyRef) => parent.set(index, value))
   }
 
-  def converterFor(objectType: ObjectType,
-                   binding: Seq[ObjectType],
+  def converterFor(bindings: Seq[ObjectType],
                    index: Int,
                    set: Setter): Converter = {
-    objectType match {
+    bindings.head match {
 
       case ObjectType.GEOMETRY =>
         // TODO support union type of other geometries based on the SFT
@@ -210,7 +209,7 @@ object SimpleFeatureParquetConverters {
           private val conv =
             new GroupConverter {
               private val converter =
-                converterFor(binding.head, Seq.empty, 0, (index: Int, value: AnyRef) => values += value)
+                converterFor(bindings.drop(1), 0, (index: Int, value: AnyRef) => values += value)
 
               // better only be one field (0)
               override def getConverter(fieldIndex: Int): Converter = converter
@@ -237,9 +236,9 @@ object SimpleFeatureParquetConverters {
           val conv =
             new GroupConverter {
               private val keyConverter =
-                converterFor(binding.head, Seq.empty, 0, (index: Int, value: AnyRef) => k = value)
+                converterFor(bindings.slice(1, 2), 0, (index: Int, value: AnyRef) => k = value)
               private val valueConverter =
-                converterFor(binding.last, Seq.empty, 0, (index: Int, value: AnyRef) => v = value)
+                converterFor(bindings.drop(2), 0, (index: Int, value: AnyRef) => v = value)
 
               override def getConverter(fieldIndex: Int): Converter =
                 if (fieldIndex == 0) {

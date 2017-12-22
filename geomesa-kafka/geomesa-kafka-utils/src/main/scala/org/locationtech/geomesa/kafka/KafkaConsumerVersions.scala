@@ -38,7 +38,8 @@ object KafkaConsumerVersions {
   private val _resume: (Consumer[_, _], TopicPartition) => Unit = consumerTopicInvocation("resume")
 
   private val _subscribe: (Consumer[_, _], String) => Unit = {
-    val method = methods.find(m => m.getName == "subscribe" && m.getParameterCount == 1).getOrElse {
+    val method = methods.find(m => m.getName == "subscribe" && m.getParameterCount == 1 &&
+        m.getParameterTypes.apply(0).isAssignableFrom(classOf[java.util.List[_]])).getOrElse {
       throw new NoSuchMethodException(s"Couldn't find Consumer.subscribe method")
     }
     (consumer, topic) => method.invoke(consumer, Collections.singletonList(topic))

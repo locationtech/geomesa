@@ -24,8 +24,8 @@ If an application already uses GeoServer, integration with GeoMesa is simply a m
 Integration with GeoMesa
 ------------------------
 
-To expose the geospatial data that it stores for use by your applications,
-GeoMesa implements `GeoTools <http://geotools.org/>`_ interfaces to provide HTTP access to the following Open Geospatial Consortium standards:
+GeoMesa implements `GeoTools <http://geotools.org/>`_ interfaces to provide programmatic access, and HTTP access to
+the following Open Geospatial Consortium standards:
 
 * `Web Feature Service (WFS) <http://www.opengeospatial.org/standards/wfs>`_
 * `Web Mapping Service (WMS) <http://www.opengeospatial.org/standards/wms>`_
@@ -51,7 +51,7 @@ The data stores that GeoMesa uses for long-term storage are key-value databases,
 
 When using a key-value database, good design of the keys themselves can lead to more efficient applications. Unlike relational databases, where the keys are frequently sequential integers, key value stores usually use the key to represent a feature by which the data are frequently queried. For example, imagine a database of customer orders being indexed by the order number. Then, when a client queries by order number, the database goes directly to that key and returns that order's record.
 
-This is a simplification of how Accumulo, HBase, and Cloud Bigtable key structures actually work, but the foundational principle of GeoMesa can be explained in terms of keys and values. To store spatio-temporal data, we need to create a key that represents the time/space location of the record. GeoMesa uses this system to store locations as points along a special line that visits all the sectors of a map, like the red line shown here: 
+This is a simplification of how Accumulo, HBase, and Bigtable key structures actually work, but the foundational principle of GeoMesa can be explained in terms of keys and values. To store spatio-temporal data, we need to create a key that represents the time/space location of the record. GeoMesa uses this system to store locations as points along a special line that visits all the sectors of a map, like the red line shown here:
 
 .. image:: _static/img/Zcurve-LoRes.png
    :scale: 50%

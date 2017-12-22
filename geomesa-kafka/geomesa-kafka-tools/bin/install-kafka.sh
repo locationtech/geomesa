@@ -14,7 +14,7 @@ zookeeper_version="%%zookeeper.version.recommended%%"
 # kafka 9 versions
 kafka_version="%%kafka.version%%"
 zkclient_version="%%zkclient.version%%"
-jopt_version="%%jopt.version%%"
+jopt_version="%%kafka.jopt.version%%"
 
 # kafka 10 versions
 # kafka_version="0.10.2.1"

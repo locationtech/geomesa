@@ -73,7 +73,7 @@ tools classpath. This is the default case.
 
 ::
 
-    geomesa env | grep geolife
+    $ geomesa-accumulo env | grep geolife
 
 If it is not, merge the contents of ``reference.conf`` with
 ``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
@@ -83,12 +83,12 @@ Ensure that the extracted GeoLife data is in its original folder structure. This
 required for the converter to parse the user and track ID for each trace.
 
 Run the ingest. You may optionally point to a different accumulo
-instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``
+instance using ``-i`` and ``-z`` options. See ``geomesa-accumulo help ingest``
 for more detail.
 
 ::
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s geolife -C geolife \
+    $ geomesa-accumulo ingest -u USERNAME -c CATALOGNAME -s geolife -C geolife \
       --threads 4 /path/to/Geolife\ Trajectories\ 1.3/Data/**/*.plt
 
 

@@ -17,6 +17,7 @@ To get started with the HBase Data Store, try the :doc:`/tutorials/geomesa-quick
     install
     usage
     geoserver
+    commandline
     heatmaps
     visibilities
     kerberos

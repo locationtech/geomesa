@@ -11,9 +11,10 @@ package org.locationtech.geomesa.tools.ingest
 import java.io.{File, InputStream}
 import java.util.concurrent.atomic.AtomicLong
 
+import com.beust.jcommander.ParameterException
 import com.typesafe.config.{Config, ConfigRenderOptions}
-import org.apache.commons.pool2.{BasePooledObjectFactory, ObjectPool}
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool}
+import org.apache.commons.pool2.{BasePooledObjectFactory, ObjectPool}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters}
@@ -21,7 +22,10 @@ import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOut
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.util.Try
 
 /**
   * Ingestion that uses geomesa converters to process input files
@@ -46,11 +50,21 @@ class ConverterIngest(sft: SimpleFeatureType,
 
   override def beforeRunTasks(): Unit = {
     // create schema for the feature prior to Ingest job
-    Command.user.info(s"Creating schema ${sft.getTypeName}")
-    ds.createSchema(sft)
+    val existing = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+    if (existing == null) {
+      Command.user.info(s"Creating schema '${sft.getTypeName}'")
+      ds.createSchema(sft)
+    } else {
+      Command.user.info(s"Schema '${sft.getTypeName}' exists")
+      if (SimpleFeatureTypes.encodeType(sft) != SimpleFeatureTypes.encodeType(existing)) {
+        throw new ParameterException("Existing simple feature type does not match expected type" +
+            s"\n  existing: '${SimpleFeatureTypes.encodeType(existing)}'" +
+            s"\n  expected: '${SimpleFeatureTypes.encodeType(sft)}'")
+      }
+    }
   }
 
-  protected val factory = new BasePooledObjectFactory[SimpleFeatureConverter[_]] {
+  private val factory = new BasePooledObjectFactory[SimpleFeatureConverter[_]] {
     override def wrap(obj: SimpleFeatureConverter[_]) = new DefaultPooledObject[SimpleFeatureConverter[_]](obj)
     override def create(): SimpleFeatureConverter[_] = SimpleFeatureConverters.build(sft, converterConfig)
   }

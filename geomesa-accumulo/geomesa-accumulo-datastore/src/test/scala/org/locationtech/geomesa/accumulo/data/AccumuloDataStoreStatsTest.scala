@@ -34,7 +34,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
   sequential
 
   // note: attributes that are not indexed but still collect stats only store bounds and topK
-  val spec = "name:String:index=true,age:Int:keep-stats=true,height:Int,dtg:Date,*geom:Point:srid=4326"
+  val spec = "name:String:index=join,age:Int:keep-stats=true,height:Int,dtg:Date,*geom:Point:srid=4326"
   val sft  = createNewSchema(spec)
   val sftName = sft.getTypeName
 
@@ -179,10 +179,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         fs.setFeatures(features)
 
         ds.stats.getCount(sft) must beSome(1)
-        // note - we don't reduce bounds during delete...
-        ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 15, -10, 10, CRS_EPSG_4326)
+        // note - with setFeatures, stats get reset
+        ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(15.0, 15.0, 0.0, 0.0, CRS_EPSG_4326)
         ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
-            beSome((new Date(baseMillis - dayInMillis), new Date(baseMillis + dayInMillis), 4L))
+            beSome((new Date(baseMillis - dayInMillis), new Date(baseMillis - dayInMillis), 1L))
       }
 
       "update all stats" >> {
@@ -346,7 +346,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
       }
 
       "estimate counts for schemas without a date" >> {
-        val sft = createNewSchema("name:String:index=true,*geom:Point:srid=4326", None)
+        val sft = createNewSchema("name:String:index=join,*geom:Point:srid=4326", None)
         val reader = ds.getFeatureReader(new Query(AccumuloDataStoreStatsTest.this.sftName), Transaction.AUTO_COMMIT)
         val features = SelfClosingIterator(reader).map { f =>
           ScalaSimpleFeature.create(sft, f.getID, f.getAttribute("name"), f.getAttribute("geom"))

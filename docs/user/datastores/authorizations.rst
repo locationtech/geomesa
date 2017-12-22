@@ -1,7 +1,7 @@
 .. _authorizations:
 
-DataStore Authorizations
-------------------------
+Authorizations
+--------------
 
 When performing a query using the Accumulo or HBase datastore, GeoMesa delegates the retrieval of authorizations to
 ``service providers`` that implement the following interface:

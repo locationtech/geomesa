@@ -29,7 +29,7 @@ import java.util.Map;
 
 public abstract class AbstractMultiLineStringVector implements GeometryVector<MultiLineString, ListVector> {
 
-  private static FieldType createFieldType(Map<String, String> metadata) {
+  public static FieldType createFieldType(Map<String, String> metadata) {
     return new FieldType(true, ArrowType.List.INSTANCE, null, metadata);
   }
 

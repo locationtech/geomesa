@@ -11,18 +11,20 @@ Installing the Binary Distribution
 ----------------------------------
 
 GeoMesa HBase artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
-and untar it somewhere convenient:
+The easiest way to get started is to download the most recent binary version
+(|release|) from `GitHub`__.
+
+__ https://github.com/locationtech/geomesa/releases
+
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
-    # Install to /opt/ adapt as needed for your environment
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/$VERSION/geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz
-    $ tar xvf geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz -C /opt/
-
-    # Add symbolic links
-    $ ln -s /opt/geomesa-hbase-dist_2.11-$VERSION /opt/geomesa
-    $ ls /opt/geomesa
+    # download and unpackage the most recent distribution:
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-hbase-dist_2.11-$VERSION
+    $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 Configuration and Classpaths
@@ -352,6 +354,8 @@ There are two ways to get the coprocessor code on the classpath.
 For more information on managing coprocessors see
 `Coprocessor Introduction <https://blogs.apache.org/hbase/entry/coprocessor_introduction>`_ on Apache's Blog.
 
+.. _install_hbase_geoserver:
+
 Installing GeoMesa HBase in GeoServer
 -------------------------------------
 
@@ -422,6 +426,15 @@ doesn't exist). Utilizing a symbolic link will be use full here so any changes a
             ln -s /usr/hdp/current/hbase-client/hbase-site.xml /path/to/geoserver/WEB-INF/classes/hbase-site.xml
 
 Restart GeoServer after the JARs are installed.
+
+Jackson Version
+^^^^^^^^^^^^^^^
+
+.. warning::
+
+    Some GeoMesa functions (in particular Arrow conversion) requires ``jackson-core-2.6.x``. Some versions
+    of GeoServer ship with an older version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa
+    GeoServer plugin, be sure to delete the older JAR from GeoServer's ``WEB-INF/lib`` folder.
 
 Connecting to External HBase Clusters Backed By S3
 --------------------------------------------------

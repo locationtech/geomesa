@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.DistributedRunParam.ModeConverter
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.utils.DataFormats
-import org.locationtech.geomesa.tools.utils.ParameterConverters.FilterConverter
+import org.locationtech.geomesa.tools.utils.ParameterConverters.{FilterConverter, HintConverter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.filter.Filter
 
@@ -97,6 +97,11 @@ trait OptionalCqlFilterParam extends CqlFilterParam {
   var cqlFilter: Filter = _
 }
 
+trait QueryHintsParams {
+  @Parameter(names = Array("--hints"), description = "Query hints to set, in the form key1=value1;key2=value2", required = false, converter = classOf[HintConverter])
+  var hints: java.util.Map[String, String] = _
+}
+
 trait OptionalDtgParam {
   @Parameter(names = Array("--dtg"), description = "DateTime field name to use as the default dtg")
   var dtgField: String = null
@@ -136,16 +141,16 @@ trait OptionalZookeepersParam {
 }
 
 trait InputFilesParam {
-  @Parameter(description = "<file>...", required = true)
+  @Parameter(description = "<file>...")
   var files: java.util.List[String] = new util.ArrayList[String]()
 }
 
 trait InputFormatParam extends InputFilesParam {
-  import scala.collection.JavaConversions._
 
   def format: String
 
   def fmt: DataFormats.DataFormat = {
+    import scala.collection.JavaConversions._
     val fmtParam = Option(format).flatMap(f => DataFormats.values.find(_.toString.equalsIgnoreCase(f)))
     lazy val fmtFile = files.flatMap(DataFormats.fromFileName(_).right.toOption).headOption
     fmtParam.orElse(fmtFile).orNull

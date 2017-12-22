@@ -20,19 +20,8 @@
     </modules>
 
     <properties>
-        <!-- 0.9 versions -->
-        <kafka.version>0.9.0.1</kafka.version>
-        <zkclient.version>0.7</zkclient.version>
-        <jopt.version>3.2</jopt.version>
-
-        <!-- 0.10 versions -->
-        <!--<kafka.version>0.10.2.1</kafka.version>
-        <zkclient.version>0.10</zkclient.version>
-        <jopt.version>4.9</jopt.version>-->
-
-        <!-- common versions -->
         <kafka.guava.version>18.0</kafka.guava.version>
-        <commons-lang3.version>3.3.2</commons-lang3.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencyManagement>
@@ -46,11 +35,6 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons-lang3.version}</version>
             </dependency>
 
             <!-- provided dependencies -->
@@ -112,6 +96,23 @@
                     <exclusion>
                         <groupId>net.sf.jopt-simple</groupId>
                         <artifactId>jopt-simple</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka.version}</version>
+                <classifier>test</classifier>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>slf4j-log4j12</artifactId>
+                        <groupId>org.slf4j</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.xerial.snappy</groupId>
+                        <artifactId>snappy-java</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

@@ -5,13 +5,17 @@ Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa Lambda artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
-and untar it somewhere convenient. For example, to download and prepare the geomesa-lambda binary:
+The easiest way to get started is to download the most recent binary version
+(|release|) from `GitHub`__.
+
+__ https://github.com/locationtech/geomesa/releases
+
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
-    # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-lambda-dist_2.11/$VERSION/geomesa-lambda-dist_2.11-$VERSION-bin.tar.gz
+    # download and unpackage the most recent distribution:
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-lambda-dist_2.11-$VERSION-bin.tar.gz"
     $ tar xvf geomesa-lambda-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-lambda-dist_2.11-$VERSION
     $ ls
@@ -164,7 +168,7 @@ that match the version of Hadoop you are running.
 
 There are scripts in the ``geomesa-lambda_2.11-$VERSION/bin`` directory
 (``install-hadoop-accumulo.sh``, ``install-kafka.sh``) which will install these dependencies to a target directory
-using ``wget`` (requires an internet connection).
+using ``curl`` (requires an internet connection).
 
 .. note::
 
@@ -223,8 +227,8 @@ Kafka 0.9.0.1
 
 Restart GeoServer after the JARs are installed.
 
-A note about Accumulo versions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Accumulo Versions
+^^^^^^^^^^^^^^^^^
 
 .. note::
 
@@ -236,8 +240,8 @@ A note about Accumulo versions
 
 .. _install_geomesa_process_lambda:
 
-A note about GeoMesa Process
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+GeoMesa Process
+^^^^^^^^^^^^^^^
 
 .. note::
 
@@ -246,6 +250,15 @@ A note about GeoMesa Process
     This JAR is included in the ``geomesa-lambda_2.11-$VERSION/dist/gs-plugins`` directory of the binary
     distribution, or is built in the ``geomesa-process`` module of the source
     distribution.
+
+Jackson Version
+^^^^^^^^^^^^^^^
+
+.. warning::
+
+    Some GeoMesa functions (in particular Arrow conversion) requires ``jackson-core-2.6.x``. Some versions
+    of GeoServer ship with an older version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa
+    GeoServer plugin, be sure to delete the older JAR from GeoServer's ``WEB-INF/lib`` folder.
 
 Upgrading
 ---------

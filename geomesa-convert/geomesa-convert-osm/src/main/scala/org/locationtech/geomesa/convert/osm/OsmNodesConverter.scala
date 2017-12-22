@@ -35,13 +35,13 @@ class OsmNodesConverter(val targetSFT: SimpleFeatureType,
   private def gf = JTSFactoryFinder.getGeometryFactory
   private val toArray = if (needsMetadata) { OsmField.toArrayWithMetadata _ } else { OsmField.toArrayNoMetadata _ }
 
-  override def fromInputType(i: OsmNode): Seq[Array[Any]] =
-    Seq(toArray(i, gf.createPoint(new Coordinate(i.getLongitude, i.getLatitude))))
+  override def fromInputType(i: OsmNode, ec: EvaluationContext): Iterator[Array[Any]] =
+    Iterator.single(toArray(i, gf.createPoint(new Coordinate(i.getLongitude, i.getLatitude))))
 
   override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] = {
     val iterator = if (pbf) new PbfIterator(is, needsMetadata) else new OsmXmlIterator(is, needsMetadata)
     val entities = new Iterator[OsmNode] {
-      var element = if (iterator.hasNext) iterator.next else null
+      private var element = if (iterator.hasNext) { iterator.next } else { null }
       // nodes are first in the file, so we can stop when we hit another element type
       override def hasNext: Boolean = element != null && element.getType == EntityType.Node
       override def next(): OsmNode = {

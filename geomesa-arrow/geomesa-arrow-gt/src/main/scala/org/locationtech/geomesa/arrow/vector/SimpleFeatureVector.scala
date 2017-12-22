@@ -32,11 +32,11 @@ import scala.collection.mutable.ArrayBuffer
   * @param encoding options for encoding
   * @param allocator buffer allocator
   */
-class SimpleFeatureVector private (val sft: SimpleFeatureType,
-                                   val underlying: NullableMapVector,
-                                   val dictionaries: Map[String, ArrowDictionary],
-                                   val encoding: SimpleFeatureEncoding)
-                                  (implicit allocator: BufferAllocator) extends Closeable {
+class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
+                                           val underlying: NullableMapVector,
+                                           val dictionaries: Map[String, ArrowDictionary],
+                                           val encoding: SimpleFeatureEncoding)
+                                          (implicit allocator: BufferAllocator) extends Closeable {
 
   // note: writer creates the map child vectors based on the sft, and should be instantiated before the reader
   val writer = new Writer(this)
@@ -54,8 +54,8 @@ class SimpleFeatureVector private (val sft: SimpleFeatureType,
 
   class Writer(vector: SimpleFeatureVector) {
     private [SimpleFeatureVector] val arrowWriter = vector.underlying.getWriter
-    private val idWriter = ArrowAttributeWriter.id(vector.underlying, vector.encoding.fids)
-    private [arrow] val attributeWriters = ArrowAttributeWriter(sft, vector.underlying, dictionaries, encoding).toArray
+    private val idWriter = ArrowAttributeWriter.id(Some(vector.underlying), vector.encoding)
+    private [arrow] val attributeWriters = ArrowAttributeWriter(sft, Some(vector.underlying), dictionaries, encoding).toArray
 
     def set(index: Int, feature: SimpleFeature): Unit = {
       arrowWriter.setPosition(index)
@@ -151,6 +151,30 @@ object SimpleFeatureVector {
     */
   def wrap(vector: NullableMapVector, dictionaries: Map[String, ArrowDictionary])
           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
+    val (sft, encoding) = getFeatureType(vector)
+    new SimpleFeatureVector(sft, vector, dictionaries, encoding)
+  }
+
+  /**
+    * Create a simple feature vector using a new arrow vector
+    *
+    * @param vector simple feature vector to copy
+    * @param underlying arrow vector
+    * @param allocator buffer allocator
+    * @return
+    */
+  def clone(vector: SimpleFeatureVector, underlying: NullableMapVector)
+           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
+    new SimpleFeatureVector(vector.sft, underlying, vector.dictionaries, vector.encoding)
+  }
+
+  /**
+    * Reads the feature type and feature encoding from an existing arrow vector
+    *
+    * @param vector vector
+    * @return
+    */
+  def getFeatureType(vector: NullableMapVector): (SimpleFeatureType, SimpleFeatureEncoding) = {
     import scala.collection.JavaConversions._
     var includeFids = false
     val attributes = ArrayBuffer.empty[String]
@@ -174,19 +198,7 @@ object SimpleFeatureVector {
       if (isLong) { EncodingPrecision.Max } else { EncodingPrecision.Min }
     }
     val encoding = SimpleFeatureEncoding(includeFids, geomPrecision, datePrecision)
-    new SimpleFeatureVector(sft, vector, dictionaries, encoding)
-  }
 
-  /**
-    * Create a simple feature vector using a new arrow vector
-    *
-    * @param vector simple feature vector to copy
-    * @param underlying arrow vector
-    * @param allocator buffer allocator
-    * @return
-    */
-  def clone(vector: SimpleFeatureVector, underlying: NullableMapVector)
-           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
-    new SimpleFeatureVector(vector.sft, underlying, vector.dictionaries, vector.encoding)
+    (sft, encoding)
   }
 }

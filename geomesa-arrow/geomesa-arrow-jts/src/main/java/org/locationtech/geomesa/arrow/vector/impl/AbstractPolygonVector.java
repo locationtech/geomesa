@@ -30,7 +30,7 @@ import java.util.Map;
 
 public abstract class AbstractPolygonVector implements GeometryVector<Polygon, ListVector> {
 
-  private static FieldType createFieldType(Map<String, String> metadata) {
+  public static FieldType createFieldType(Map<String, String> metadata) {
     return new FieldType(true, ArrowType.List.INSTANCE, null, metadata);
   }
 
@@ -90,7 +90,7 @@ public abstract class AbstractPolygonVector implements GeometryVector<Polygon, L
 
     protected PolygonWriter(ListVector vector) {
       // the only way to access the bit vectors and set an index as null
-      this.nullSet = ((BitVector)vector.getFieldInnerVectors().get(0)).getMutator();
+      this.nullSet = ((BitVector) vector.getFieldInnerVectors().get(0)).getMutator();
       ListVector innerList = (ListVector) vector.getChildrenFromFields().get(0);
       FixedSizeListVector tuples = (FixedSizeListVector) innerList.getChildrenFromFields().get(0);
       this.mutator = vector.getMutator();

@@ -15,6 +15,7 @@ import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
+import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -28,6 +29,7 @@ import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.reflect.ClassTag
 
 @DescribeProcess(
   title = "Arrow Conversion",
@@ -57,7 +59,9 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               @DescribeParameter(name = "sortReverse", description = "Reverse the default sort order", min = 0)
               sortReverse: java.lang.Boolean,
               @DescribeParameter(name = "batchSize", description = "Number of features to include in each record batch", min = 0)
-              batchSize: java.lang.Integer
+              batchSize: java.lang.Integer,
+              @DescribeParameter(name = "doublePass", description = "Build dictionaries first, then query results in a separate scan", min = 0)
+              doublePass: java.lang.Boolean
              ): java.util.Iterator[Array[Byte]] = {
 
     import scala.collection.JavaConversions._
@@ -76,9 +80,10 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
     val cacheDictionaries = Option(useCachedDictionaries).map(_.booleanValue())
     val encoding = SimpleFeatureEncoding.min(Option(includeFids).forall(_.booleanValue))
     val reverse = Option(sortReverse).map(_.booleanValue())
-    val batch = Option(batchSize).map(_.intValue).getOrElse(100000)
+    val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)
+    val double = Option(doublePass).exists(_.booleanValue())
 
-    val visitor = new ArrowVisitor(sft, encoding, toEncode, cacheDictionaries, Option(sortField), reverse, batch)
+    val visitor = new ArrowVisitor(sft, encoding, toEncode, cacheDictionaries, Option(sortField), reverse, batch, double)
     features.accepts(visitor, null)
     visitor.getResult.results
   }
@@ -92,7 +97,8 @@ object ArrowConversionProcess {
                      cacheDictionaries: Option[Boolean],
                      sortField: Option[String],
                      sortReverse: Option[Boolean],
-                     batchSize: Int)
+                     batchSize: Int,
+                     doublePass: Boolean)
       extends GeoMesaProcessVisitor with LazyLogging {
 
     import scala.collection.JavaConversions._
@@ -132,6 +138,7 @@ object ArrowConversionProcess {
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaryFields.mkString(","))
       query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
+      query.getHints.put(QueryHints.ARROW_DOUBLE_PASS, doublePass)
       cacheDictionaries.foreach(query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, _))
       sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
       sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
@@ -162,7 +169,7 @@ object ArrowConversionProcess {
     private val bytes = ListBuffer.empty[Array[Byte]]
     private var count = 0L
 
-    private val writer = new SimpleFeatureArrowFileWriter(sft, out, Map.empty, encoding)
+    private val writer = SimpleFeatureArrowFileWriter(sft, out, Map.empty, encoding)
 
     override def visit(feature: SimpleFeature): Unit = {
       writer.add(feature.asInstanceOf[SimpleFeature])
@@ -213,7 +220,9 @@ object ArrowConversionProcess {
         features.foreach { f =>
           indicesAndValues.foreach { case (_, i, v) => v.add(f.getAttribute(i)) }
         }
-        indicesAndValues.map { case (n, _, v) => n -> ArrowDictionary.create(v.toSeq) }.toMap
+        indicesAndValues.map { case (n, i, v) =>
+          n -> ArrowDictionary.create(i, v.toArray)(ClassTag[AnyRef](sft.getDescriptor(i).getType.getBinding))
+        }.toMap
       }
 
       val ordering = sort.map { case (field, reverse) =>
@@ -226,7 +235,7 @@ object ArrowConversionProcess {
       }
 
       val out = new ByteArrayOutputStream()
-      val writer = new SimpleFeatureArrowFileWriter(sft, out, dictionaries, encoding, sort)
+      val writer = SimpleFeatureArrowFileWriter(sft, out, dictionaries, encoding, sort)
 
       new Iterator[Array[Byte]] {
         override def hasNext: Boolean = sorted.hasNext

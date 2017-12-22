@@ -11,8 +11,8 @@ package org.locationtech.geomesa.index.stats
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -32,7 +32,7 @@ class DistributedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       val result = try {
         // stats should always return exactly one result, even if there are no features in the table
-        KryoLazyStatsUtils.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
+        StatsScan.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
       } finally {
         reader.close()
       }

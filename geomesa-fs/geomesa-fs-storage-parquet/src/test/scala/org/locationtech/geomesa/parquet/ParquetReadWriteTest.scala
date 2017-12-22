@@ -46,7 +46,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
 
     val f = Files.createTempFile("geomesa", ".parquet")
     val gf = JTSFactoryFinder.getGeometryFactory
-    val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+    val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*position:Point:srid=4326")
 
     val sftConf = {
       val c = new Configuration()
@@ -103,7 +103,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
     }
 
     "only read transform columns" >> {
-      val tsft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
+      val tsft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*position:Point:srid=4326")
       val reader = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
         .withFilter(FilterCompat.NOOP)
         .withConf(transformConf(tsft))
@@ -125,7 +125,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
     }
 
     "perform filtering" >> {
-      val nameAndGeom = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")
+      val nameAndGeom = SimpleFeatureTypes.createType("test", "name:String,*position:Point:srid=4326")
 
       val ff = CommonFactoryFinder.getFilterFactory2
       val geoFilter = ff.equals(ff.property("name"), ff.literal("first"))
@@ -184,7 +184,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
 
         "small bbox" >> {
           val env = gf.buildGeometry(List(gf.createPoint(new Coordinate(25.236263, 27.436734)))).getEnvelopeInternal
-          val res = getFeatures(ff.bbox("geom", env.getMinX - .1, env.getMinY - .1, env.getMaxX + .1, env.getMaxY + .1, "EPSG:4326"), nameAndGeom)
+          val res = getFeatures(ff.bbox("position", env.getMinX - .1, env.getMinY - .1, env.getMaxX + .1, env.getMaxY + .1, "EPSG:4326"), nameAndGeom)
           res.size mustEqual 1
           res.head.getAttribute("name") mustEqual "first"
         }
@@ -194,7 +194,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
             gf.createPoint(new Coordinate(25.236263, 27.436734)),
             gf.createPoint(new Coordinate(67.2363, 55.236))
           )).getEnvelopeInternal
-          val res = getFeatures(ff.bbox("geom", env.getMinX - .1, env.getMinY - .1, env.getMaxX + .1, env.getMaxY + .1, "EPSG:4326"), nameAndGeom)
+          val res = getFeatures(ff.bbox("position", env.getMinX - .1, env.getMinY - .1, env.getMaxX + .1, env.getMaxY + .1, "EPSG:4326"), nameAndGeom)
           res.size mustEqual 2
           res.head.getAttribute("name") mustEqual "first"
 
@@ -202,7 +202,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
         }
 
         "3 points" >> {
-          val res = getFeatures(ff.bbox("geom", -30, -30, 80, 80, "EPSG:4326"), nameAndGeom)
+          val res = getFeatures(ff.bbox("position", -30, -30, 80, 80, "EPSG:4326"), nameAndGeom)
           res.size mustEqual 3
           res.head.getAttribute("name") mustEqual "first"
           res.last.getID mustEqual "3"

@@ -10,7 +10,9 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.Parameters
 import org.geotools.data.Query
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.tools._
@@ -28,6 +30,10 @@ trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[
   protected def explain(ds: DS): Unit = {
     val query = new Query(params.featureName, Option(params.cqlFilter).getOrElse(Filter.INCLUDE))
     Option(params.attributes).filterNot(_.isEmpty).foreach(query.setPropertyNames)
+    Option(params.hints).foreach { hints =>
+      query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
+      ViewParams.setHints(query)
+    }
     params.loadIndex(ds, IndexMode.Read).foreach { index =>
       query.getHints.put(QueryHints.QUERY_INDEX, index)
       Command.user.debug(s"Using index ${index.identifier}")
@@ -39,4 +45,4 @@ trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[
 }
 
 @Parameters(commandDescription = "Explain how a GeoMesa query will be executed")
-class ExplainParams extends QueryParams with RequiredCqlFilterParam with OptionalIndexParam
+class ExplainParams extends QueryParams with RequiredCqlFilterParam with QueryHintsParams with OptionalIndexParam

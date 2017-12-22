@@ -27,9 +27,8 @@ import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.AttributeIndex
-import org.locationtech.geomesa.index.iterators.ArrowBatchScan
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
@@ -182,8 +181,6 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-//    val table = getTableName(sft.getTypeName, ds)
-//    val numThreads = queryThreads(ds)
     val dedupe = hasDuplicates(sft, filter.primary)
     val cf = AccumuloFeatureIndex.IndexColumnFamily
 
@@ -220,41 +217,21 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         joinConfig(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyConfig)
       }
     } else if (hints.isArrowQuery) {
-      lazy val dictionaryFields = hints.getArrowDictionaryFields
-      lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-      lazy val dictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
-        providedDictionaries, hints.isArrowCachedDictionaries)
       // check to see if we can execute against the index values
       if (IteratorTrigger.canUseAttrIdxValues(sft, ecql, transform)) {
-        val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
-            hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
-          val iter = ArrowBatchIterator.configure(indexSft, this, ecql, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchScan.reduceFeatures(transform.get, hints, dictionaries)(_))
-          (iter, reduce, ArrowBatchIterator.kvsToFeatures())
-        } else {
-          val iter = ArrowFileIterator.configure(indexSft, this, ecql, dictionaryFields, hints, dedupe)
-          (iter, None, ArrowFileIterator.kvsToFeatures())
-        }
+        val (iter, reduce) = ArrowIterator.configure(indexSft, this, ds.stats, filter.filter, ecql, hints, dedupe)
         val iters = visibilityIter(indexSft) :+ iter
-        ScanConfig(ranges, cf, iters, kvsToFeatures, reduce, duplicates = false)
+        ScanConfig(ranges, cf, iters, ArrowIterator.kvsToFeatures(), Some(reduce), duplicates = false)
       } else if (IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, ecql, transform)) {
         val transformSft = transform.getOrElse {
           throw new IllegalStateException("Must have a transform for attribute key plus value scan")
         }
         hints.clearTransforms() // clear the transforms as we've already accounted for them
-        val (iter, reduce, kvsToFeatures) = if (hints.getArrowSort.isDefined ||
-            hints.isArrowComputeDictionaries || dictionaryFields.forall(providedDictionaries.contains)) {
-          val iter = ArrowBatchIterator.configure(transformSft, this, None, dictionaries, hints, dedupe)
-          val reduce = Some(ArrowBatchScan.reduceFeatures(transformSft, hints, dictionaries)(_))
-          (iter, reduce, ArrowBatchIterator.kvsToFeatures())
-        } else {
-          val iter = ArrowFileIterator.configure(transformSft, this, None, dictionaryFields, hints, dedupe)
-          (iter, None, ArrowFileIterator.kvsToFeatures())
-        }
-        // note: ECQL is handled here so we don't pass it to the arrow iters, above
+        // note: ECQL is handled below, so we don't pass it to the arrow iter here
+        val (iter, reduce) = ArrowIterator.configure(transformSft, this, ds.stats, filter.filter, None, hints, dedupe)
         val indexValueIter = AttributeIndexValueIterator.configure(this, indexSft, transformSft, attribute, ecql)
         val iters = visibilityIter(indexSft) :+ indexValueIter :+ iter
-        ScanConfig(ranges, cf, iters, kvsToFeatures, reduce, duplicates = false)
+        ScanConfig(ranges, cf, iters, ArrowIterator.kvsToFeatures(), Some(reduce), duplicates = false)
       } else {
         // have to do a join against the record table
         joinConfig(ds, sft, indexSft, filter, ecql, hints, dedupe, singleAttrValueOnlyConfig)
@@ -356,52 +333,37 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     // the scan against the attribute table
     val attributeScan = attributePlan(indexSft, stFilter, None)
 
-    lazy val dictionaryFields = hints.getArrowDictionaryFields
-    lazy val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-    lazy val arrowDictionaries = ArrowBatchScan.createDictionaries(ds.stats, sft, filter.filter, dictionaryFields,
-      providedDictionaries, hints.isArrowCachedDictionaries)
-
     // apply any secondary filters or transforms against the record table
-    val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
-      throw new RuntimeException("Record index does not exist for join query")
-    }
-    val recordIter = if (hints.isArrowQuery) {
-      if (hints.getArrowSort.isDefined || hints.isArrowComputeDictionaries ||
-          dictionaryFields.forall(providedDictionaries.contains)) {
-        Seq(ArrowBatchIterator.configure(sft, recordIndex, ecqlFilter, arrowDictionaries, hints, deduplicate = false))
-      } else {
-        Seq(ArrowFileIterator.configure(sft, recordIndex, ecqlFilter, dictionaryFields, hints, deduplicate = false))
+    val recordIndex = {
+      val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+      indices.find(AccumuloFeatureIndex.RecordIndices.contains).getOrElse {
+        throw new RuntimeException("Record index does not exist for join query")
       }
+    }
+    val (recordIter, reduce, kvsToFeatures) = if (hints.isArrowQuery) {
+      val (iter, reduce) = ArrowIterator.configure(sft, recordIndex, ds.stats, filter.filter, ecqlFilter, hints, deduplicate = false)
+      (Seq(iter), Some(reduce), ArrowIterator.kvsToFeatures())
     } else if (hints.isStatsQuery) {
-      Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
+      val iter = KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false)
+      val reduce = StatsScan.reduceFeatures(sft, hints)(_)
+      (Seq(iter), Some(reduce), KryoLazyStatsIterator.kvsToFeatures())
     } else if (hints.isDensityQuery) {
-      Seq(KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
+      val iter = KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false)
+      (Seq(iter), None, KryoLazyDensityIterator.kvsToFeatures())
+    } else if (hints.isBinQuery) {
+      // aggregating iterator wouldn't be very effective since each range is a single row
+      val iter = KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
+      val kvsToFeatures = BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO)
+      (iter, None, kvsToFeatures)
     } else {
-      KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
+      val iter = KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
+      (iter, None, recordIndex.entriesToFeatures(sft, hints.getReturnSft))
     }
     val (visibilityIter, recordCf) = sft.getVisibilityLevel match {
       case VisibilityLevel.Feature   => (Seq.empty, FullColumnFamily)
       case VisibilityLevel.Attribute => (Seq(KryoVisibilityRowEncoder.configure(sft)), AttributeColumnFamily)
     }
     val recordIterators = visibilityIter ++ recordIter
-
-    val (kvsToFeatures, reduce) = if (hints.isBinQuery) {
-      // aggregating iterator wouldn't be very effective since each range is a single row
-      (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
-    } else if (hints.isArrowQuery) {
-      if (hints.isArrowComputeDictionaries) {
-        val reduce = Some(ArrowBatchScan.reduceFeatures(hints.getTransformSchema.getOrElse(sft), hints, arrowDictionaries)(_))
-        (ArrowBatchIterator.kvsToFeatures(), reduce)
-      } else {
-        (ArrowFileIterator.kvsToFeatures(), None)
-      }
-    } else if (hints.isStatsQuery) {
-      (KryoLazyStatsIterator.kvsToFeatures(), Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_)))
-    } else if (hints.isDensityQuery) {
-      (KryoLazyDensityIterator.kvsToFeatures(), None)
-    } else {
-      (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
-    }
 
     new JoinScanConfig(recordIndex, recordIterators, recordCf, attributeScan.ranges, attributeScan.columnFamily,
       attributeScan.iterators, kvsToFeatures, reduce, hasDupes)
@@ -552,13 +514,13 @@ object AccumuloAttributeIndex {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (transform.isDefined || !hints.isStatsEncode) {
       // returned stats will be in the transform schema or in json
-      KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(_)
+      StatsScan.reduceFeatures(indexSft, hints)(_)
     } else {
       // we have to transform back into the original sft after operating on the index values
-      val decode = KryoLazyStatsUtils.decodeStat(indexSft)
-      val encode = KryoLazyStatsUtils.encodeStat(sft)
+      val decode = StatsScan.decodeStat(indexSft)
+      val encode = StatsScan.encodeStat(sft)
       (iter) => {
-        KryoLazyStatsUtils.reduceFeatures(indexSft, hints)(iter).map { feature =>
+        StatsScan.reduceFeatures(indexSft, hints)(iter).map { feature =>
           // we can create a new stat with the correct sft, then add the result
           // this should set the correct metadata but preserve the underlying data
           val stat = Stat(sft, hints.getStatsQuery)

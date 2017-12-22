@@ -17,10 +17,10 @@ To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-qu
 
    install
    configuration
-   commandline_tools
-   examples
    usage
    geoserver
+   commandline
+   examples
    visibilities
    data_management
    jobs

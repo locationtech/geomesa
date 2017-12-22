@@ -18,19 +18,17 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -116,9 +114,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       }
 
       // compose the query
-      val start   = new DateTime(2014, 6, 7, 11, 0, 0, DateTimeZone.forID("UTC"))
-      val end     = new DateTime(2014, 6, 7, 13, 0, 0, DateTimeZone.forID("UTC"))
-      val during  = ff.during(ff.property("dtg"), Filters.dts2lit(start, end))
+      val during = ECQL.toFilter("dtg DURING 2014-06-07T11:00:00.000Z/2014-06-07T13:00:00.000Z")
 
       "with correct result when using a dwithin of degrees" >> {
         val dwithinUsingDegrees = ff.dwithin(ff.property("geom"),
@@ -273,6 +269,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
     "handle requests with namespaces" in {
       import AccumuloDataStoreParams.NamespaceParam
+
       import scala.collection.JavaConversions._
 
       val ns = "mytestns"
@@ -467,7 +464,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "support IN queries without dtg on indexed string attributes" in {
-      val sft = createNewSchema("name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+      val sft = createNewSchema("name:String:index=join,dtg:Date,*geom:Point:srid=4326")
 
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
       addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", "2010-05-07T01:00:00.000Z", "POINT(45 46)"))
@@ -620,6 +617,11 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         explanation must not be null
         explanation.trim must not(beEmpty)
       }
+    }
+
+    "handle Query.ALL" in {
+      ds.getFeatureSource(defaultSft.getTypeName).getFeatures(Query.ALL).features() must throwAn[IllegalArgumentException]
+      ds.getFeatureReader(Query.ALL, Transaction.AUTO_COMMIT) must throwAn[IllegalArgumentException]
     }
   }
 }
