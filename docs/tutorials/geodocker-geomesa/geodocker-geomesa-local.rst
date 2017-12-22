@@ -58,21 +58,21 @@ To ingest some sample data, use the GeoMesa command line tools:
 .. code:: bash
 
     $ cd /opt/geomesa/bin
-    $ ./geomesa ingest -C example-csv -c example -u root -p GisPwd -s example-csv ../examples/ingest/csv/example.csv
+    $ ./geomesa-accumulo ingest -C example-csv -c example -u root -p GisPwd -s example-csv ../examples/ingest/csv/example.csv
 
 To export data:
 
 .. code:: bash
 
-    $ ./geomesa export -c example -u root -p GisPwd -f example-csv
+    $ ./geomesa-accumulo export -c example -u root -p GisPwd -f example-csv
 
 To view data in GeoServer, go to ``http://localhost:9090/geoserver/web``, login with ``admin:geoserver``, click
 'Stores' in the left gutter, then 'Add new store', then ``Accumulo (GeoMesa)``. Use the following parameters:
 
-* instanceId = accumulo
-* zookeepers = zookeeper
-* user = root
-* password = GisPwd
-* tableName = example (from the ingest command above)
+* accumulo.instance.id = accumulo
+* accumulo.zookeepers = zookeeper
+* accumulo.user = root
+* accumulo.password = GisPwd
+* accumulo.catalog = example (from the ingest command above)
 
 Click 'save'. You should see the 'example-csv' layer available to publish.

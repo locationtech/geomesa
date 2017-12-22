@@ -46,7 +46,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
   override val spec = "name:String:index=full,age:Integer:index=join,count:Long:index=join," +
       "weight:Double:index=join,height:Float:index=join,admin:Boolean:index=join," +
       "*geom:Point:srid=4326,dtg:Date,indexedDtg:Date:index=join,fingers:List[String]:index=join," +
-      "toes:List[Double]:index=join,track:String,geom2:Point:srid=4326;geomesa.indexes.enabled='attr,records'"
+      "toes:List[Double]:index=join,track:String,geom2:Point:srid=4326;geomesa.indexes.enabled='attr,id'"
 
   val df = ISODateTimeFormat.dateTime()
 

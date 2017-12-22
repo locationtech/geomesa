@@ -357,7 +357,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * Acquires a distributed lock for all data stores sharing this catalog table.
     * Make sure that you 'release' the lock in a finally block.
     */
-  protected def acquireCatalogLock(): Releasable = {
+  protected [geomesa] def acquireCatalogLock(): Releasable = {
     val path = s"/org.locationtech.geomesa/ds/$catalog"
     acquireDistributedLock(path, 120000).getOrElse {
       throw new RuntimeException(s"Could not acquire distributed lock at '$path'")

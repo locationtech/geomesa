@@ -18,7 +18,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.LambdaTest
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -93,7 +93,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
     // note: need to copy the features as the same object is re-used in the iterator
     val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
     result must haveLength(1)
-    val stat = KryoLazyStatsUtils.decodeStat(sft)(result.head.getAttribute(0).asInstanceOf[String])
+    val stat = StatsScan.decodeStat(sft)(result.head.getAttribute(0).asInstanceOf[String])
     stat must beAnInstanceOf[EnumerationStat[String]]
     stat.asInstanceOf[EnumerationStat[String]].frequencies must containTheSameElementsAs(Seq(("n0", 1L), ("n1", 1L)))
 

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.process.query
 import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
@@ -19,7 +20,6 @@ import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -114,11 +114,10 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       }
 
       // compose the query
-      val start   = new DateTime(2014, 6, 7, 11, 0, 0, DateTimeZone.forID("UTC"))
-      val end     = new DateTime(2014, 6, 7, 13, 0, 0, DateTimeZone.forID("UTC"))
+      val during = ECQL.toFilter("dtg DURING 2014-06-07T11:00:00.000Z/2014-06-07T13:00:00.000Z")
 
       val fs = ds.getFeatureSource(sftPointsName)
-      val dataFeatures = fs.getFeatures(ff.during(ff.property("dtg"), Filters.dts2lit(start, end)))
+      val dataFeatures = fs.getFeatures(during)
 
       val prox = new ProximitySearchProcess
       // note: size returns an estimated amount, instead we need to actually count the features

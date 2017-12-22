@@ -24,6 +24,7 @@
         <module>geomesa-accumulo</module>
         <module>geomesa-archetypes</module>
         <module>geomesa-arrow</module>
+        <module>geomesa-bigtable</module>
         <module>geomesa-blobstore</module>
         <module>geomesa-cassandra</module>
         <module>geomesa-convert</module>
@@ -69,8 +70,8 @@
 
         <geoserver.version>2.12.0</geoserver.version>
         <gt.version>18.0</gt.version>
-        <jaiext.version>1.0.15</jaiext.version>
-        <imageio-ext.version>1.1.17</imageio-ext.version>
+        <jaiext.version>1.0.16</jaiext.version>
+        <imageio-ext.version>1.1.18</imageio-ext.version>
         <jts.version>1.14.0</jts.version>
         <avro.version>1.7.5</avro.version>
         <parquet.version>1.9.0</parquet.version>
@@ -135,6 +136,7 @@
     </properties>
 
     <profiles>
+
         <profile>
             <id>zinc</id>
             <build>
@@ -541,6 +543,11 @@
                         <groupId>com.vividsolutions</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -683,8 +690,9 @@
                         <artifactId>jai_core</artifactId>
                     </exclusion>
                     <exclusion>
-                        <artifactId>imageio-ext-tiff</artifactId>
+                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -741,6 +749,11 @@
                         <groupId>com.vividsolutions</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -767,6 +780,11 @@
                         <groupId>com.vividsolutions</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -780,8 +798,9 @@
                         <artifactId>jai_core</artifactId>
                     </exclusion>
                     <exclusion>
-                        <artifactId>imageio-ext-tiff</artifactId>
+                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
@@ -1012,6 +1031,19 @@
             </dependency>
             <dependency>
                 <groupId>it.geosolutions.imageio-ext</groupId>
+                <artifactId>imageio-ext-library</artifactId>
+                <version>${imageio-ext.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_codec</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>it.geosolutions.imageio-ext</groupId>
                 <artifactId>imageio-ext-streams</artifactId>
                 <version>${imageio-ext.version}</version>
                 <exclusions>
@@ -1025,6 +1057,19 @@
             <dependency>
                 <groupId>it.geosolutions.imageio-ext</groupId>
                 <artifactId>imageio-ext-tiff</artifactId>
+                <version>${imageio-ext.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_codec</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>it.geosolutions.imageio-ext</groupId>
+                <artifactId>imageio-ext-utilities</artifactId>
                 <version>${imageio-ext.version}</version>
                 <scope>provided</scope>
                 <exclusions>
@@ -1448,8 +1493,8 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
-                <type>test-jar</type>
                 <version>${project.version}</version>
+                <classifier>tests</classifier>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -1641,6 +1686,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-convert-fixedwidth_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-convert-jdbc_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2497,7 +2547,7 @@
             <dependency>
                 <groupId>org.scalatra</groupId>
                 <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
-                <version>2.3.0</version>
+                <version>${scalatra.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

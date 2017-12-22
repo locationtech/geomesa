@@ -22,6 +22,7 @@ import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
@@ -88,32 +89,31 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
     }
   }
 
-  override def delete(sft: SimpleFeatureType, ds: HBaseDataStore, shared: Boolean): Unit = {
+  override def removeAll(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     import scala.collection.JavaConversions._
 
-    if (shared) {
-      val table = ds.connection.getTable(TableName.valueOf(getTableName(sft.getTypeName, ds)))
-      try {
-        val scan = new Scan()
-          .setRowPrefixFilter(sft.getTableSharingBytes)
-          .setFilter(new KeyOnlyFilter)
-        ds.applySecurity(scan)
-        val scanner = table.getScanner(scan)
-        try {
-          scanner.iterator.grouped(10000).foreach { result =>
-            // TODO set delete visibilities
-            val deletes = result.map(r => new Delete(r.getRow))
-            table.delete(deletes)
-          }
-        } finally {
-          scanner.close()
-        }
-      } finally {
-        table.close()
+    val tableName = TableName.valueOf(getTableName(sft.getTypeName, ds))
+
+    WithClose(ds.connection.getTable(tableName)) { table =>
+      val scan = new Scan().setFilter(new KeyOnlyFilter)
+      if (sft.isTableSharing) {
+        scan.setRowPrefixFilter(sft.getTableSharingBytes)
       }
-    } else {
+      ds.applySecurity(scan)
+      val mutateParams = new BufferedMutatorParams(tableName)
+      WithClose(table.getScanner(scan), ds.connection.getBufferedMutator(mutateParams)) { case (scanner, mutator) =>
+        scanner.iterator.grouped(10000).foreach { result =>
+          // TODO set delete visibilities
+          val deletes = result.map(r => new Delete(r.getRow))
+          mutator.mutate(deletes)
+        }
+      }
+    }
+  }
+
+  override def delete(sft: SimpleFeatureType, ds: HBaseDataStore, shared: Boolean): Unit = {
+    if (shared) { removeAll(sft, ds) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val admin = ds.connection.getAdmin
       try {

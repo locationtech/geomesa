@@ -16,8 +16,8 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
@@ -100,13 +100,13 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
       resultCalc
     } else {
       val stats = if (encode) {
-        KryoLazyStatsUtils.encodeStat(statSft)(stat)
+        StatsScan.encodeStat(statSft)(stat)
       } else {
         stat.toJson
       }
 
-      val sf = new ScalaSimpleFeature(KryoLazyStatsUtils.StatsSft, "", Array(stats, GeometryUtils.zeroPoint))
-      val manualVisitResults = new ListFeatureCollection(KryoLazyStatsUtils.StatsSft)
+      val sf = new ScalaSimpleFeature(StatsScan.StatsSft, "", Array(stats, GeometryUtils.zeroPoint))
+      val manualVisitResults = new ListFeatureCollection(StatsScan.StatsSft)
       manualVisitResults.add(sf)
       FeatureResult(manualVisitResults)
     }

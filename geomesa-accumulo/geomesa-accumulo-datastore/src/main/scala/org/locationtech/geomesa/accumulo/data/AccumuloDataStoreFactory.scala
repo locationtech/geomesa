@@ -145,7 +145,10 @@ object AccumuloDataStoreFactory {
     val authProvider = buildAuthsProvider(connector, params)
     val auditProvider = buildAuditProvider(params)
 
-    val auditQueries = !connector.isInstanceOf[MockConnector] && AuditQueriesParam.lookup(params)
+    // if explicit, use param, else if mocked, false, else use default
+    val auditQueries = if (AuditQueriesParam.exists(params)) { AuditQueriesParam.lookup(params).booleanValue() } else {
+      !connector.isInstanceOf[MockConnector] && AuditQueriesParam.default
+    }
     val auditService = {
       val auditTable = GeoMesaFeatureIndex.formatSharedTableName(catalog, "queries")
       new AccumuloAuditService(connector, authProvider, auditTable, auditQueries)
@@ -222,9 +225,10 @@ object AccumuloDataStoreFactory {
   def canProcess(params: JMap[String,Serializable]): Boolean = {
     val hasConnector = ConnectorParam.lookupOpt(params).isDefined
     def hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
+    def hasMock = InstanceIdParam.exists(params) && UserParam.exists(params) && MockParam.lookupOpt(params).contains(java.lang.Boolean.TRUE)
     def hasPassword = PasswordParam.exists(params) && !KeytabPathParam.exists(params)
     def hasKeytab = !PasswordParam.exists(params) && KeytabPathParam.exists(params) && isKerberosAvailable
-    hasConnector || (hasConnection && (hasPassword || hasKeytab))
+    hasConnector || ((hasConnection || hasMock) && (hasPassword || hasKeytab))
   }
 }
 

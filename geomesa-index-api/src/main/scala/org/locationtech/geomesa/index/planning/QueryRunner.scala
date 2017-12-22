@@ -47,7 +47,7 @@ trait QueryRunner {
     }
 
     // handle any params passed in through geoserver
-    ViewParams.setHints(sft, query)
+    ViewParams.setHints(query)
 
     // set transformations in the query
     QueryPlanner.setQueryTransforms(query, sft)

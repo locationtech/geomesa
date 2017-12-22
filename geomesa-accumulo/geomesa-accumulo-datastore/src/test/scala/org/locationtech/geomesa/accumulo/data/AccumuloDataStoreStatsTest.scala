@@ -179,10 +179,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         fs.setFeatures(features)
 
         ds.stats.getCount(sft) must beSome(1)
-        // note - we don't reduce bounds during delete...
-        ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 15, -10, 10, CRS_EPSG_4326)
+        // note - with setFeatures, stats get reset
+        ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(15.0, 15.0, 0.0, 0.0, CRS_EPSG_4326)
         ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
-            beSome((new Date(baseMillis - dayInMillis), new Date(baseMillis + dayInMillis), 4L))
+            beSome((new Date(baseMillis - dayInMillis), new Date(baseMillis - dayInMillis), 1L))
       }
 
       "update all stats" >> {

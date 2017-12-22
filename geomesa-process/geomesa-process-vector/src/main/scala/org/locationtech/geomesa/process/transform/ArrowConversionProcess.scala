@@ -15,6 +15,7 @@ import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
+import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -79,7 +80,7 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
     val cacheDictionaries = Option(useCachedDictionaries).map(_.booleanValue())
     val encoding = SimpleFeatureEncoding.min(Option(includeFids).forall(_.booleanValue))
     val reverse = Option(sortReverse).map(_.booleanValue())
-    val batch = Option(batchSize).map(_.intValue).getOrElse(100000)
+    val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)
     val double = Option(doublePass).exists(_.booleanValue())
 
     val visitor = new ArrowVisitor(sft, encoding, toEncode, cacheDictionaries, Option(sortField), reverse, batch, double)

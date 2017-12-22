@@ -112,10 +112,10 @@ class FilterConverter(sft: SimpleFeatureType) {
       }
       Some(
         List[FilterPredicate](
-          FilterApi.gtEq(FilterApi.doubleColumn("geom.x"), Double.box(xy._1)),
-          FilterApi.gtEq(FilterApi.doubleColumn("geom.y"), Double.box(xy._2)),
-          FilterApi.ltEq(FilterApi.doubleColumn("geom.x"), Double.box(xy._3)),
-          FilterApi.ltEq(FilterApi.doubleColumn("geom.y"), Double.box(xy._4))
+          FilterApi.gtEq(FilterApi.doubleColumn(s"$geomAttr.x"), Double.box(xy._1)),
+          FilterApi.gtEq(FilterApi.doubleColumn(s"$geomAttr.y"), Double.box(xy._2)),
+          FilterApi.ltEq(FilterApi.doubleColumn(s"$geomAttr.x"), Double.box(xy._3)),
+          FilterApi.ltEq(FilterApi.doubleColumn(s"$geomAttr.y"), Double.box(xy._4))
        ).reduce(FilterApi.and)
       )
     }
@@ -143,7 +143,7 @@ class FilterConverter(sft: SimpleFeatureType) {
           case _ =>
             val ad = sft.getDescriptor(name)
             val binding = ad.getType.getBinding
-            val (objectType: ObjectType, _) = ObjectType.selectType(binding, ad.getUserData)
+            val objectType: ObjectType = ObjectType.selectType(binding, ad.getUserData).head
             filter(objectType, binop, name, value)
         }
 

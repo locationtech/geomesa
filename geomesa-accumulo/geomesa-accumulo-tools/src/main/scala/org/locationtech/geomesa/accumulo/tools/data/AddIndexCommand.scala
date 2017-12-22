@@ -61,11 +61,10 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends R
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = ""
+
   override def execute(): Unit = {}
 
-  override def run(): Unit = {
-    try { withDataStore(addIndex) }
-  }
+  override def run(): Unit = withDataStore(addIndex)
 
   def addIndex(ds: AccumuloDataStore): Unit  = {
 

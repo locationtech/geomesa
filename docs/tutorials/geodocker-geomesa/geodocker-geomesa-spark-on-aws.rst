@@ -70,13 +70,13 @@ GeoMesa ships with predefined data models for many open spatio-temporal data set
 .. code-block:: shell
 
     $ FILES=$(seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d" | xargs -n 1 -I{} echo s3a://gdelt-open-data/events/{}.export.csv | tr '\n' ' ')
-    $ sudo docker exec accumulo-master geomesa ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt -u root -p secret $FILES
+    $ sudo docker exec accumulo-master geomesa-accumulo ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt -u root -p secret $FILES
 
 You can then query the data using the GeoMesa command line export tool.
 
 .. code-block:: shell
 
-    $ sudo docker exec accumulo-master geomesa export -c gdelt -f gdelt -u root -p secret -m 100
+    $ sudo docker exec accumulo-master geomesa-accumulo export -c gdelt -f gdelt -u root -p secret -m 100
 
 You can register GDELT as a layer in the provided GeoServer as well.  GeoServer is running on port 9090
 of the master node.  You can access it at *http://<ip_address>:9090/geoserver*, where *<ip_address>* is the
@@ -92,25 +92,26 @@ Then, in the *Stores -> Add New Store -> Accumulo (GeoMesa)* dialog in Geoserver
 .. code::
 
    DataSourceName: gdelt
-   instanceId: gis
-   zookeepers: $zookeeper
-   user: root
-   password: secret
-   tableName: geomesa.gdelt
+   accumulo.instance.id: gis
+   accumulo.zookeepers: $zookeeper
+   accumulo.user: root
+   accumulo.password: secret
+   accumulo.catalog: geomesa.gdelt
 
 Save the store and publish the ``gdelt`` layer.  Set the "Native Bounding Box" and the "Lat Lon Bounding Box" to
-``-180,-90,180,90``.  Save the layer.  Then, navigate to the preview page at
-*http://<ip_address>:9090/geoserver/cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:gdelt&styles=&bbox=-180,-90,180.0,90&width=768&height=356&srs=EPSG:4326&format=application/openlayers*.
+``-180,-90,180,90``.  Save the layer.  Then, navigate to the preview page at::
+
+    http://<ip_address>:9090/geoserver/cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:gdelt&styles=&bbox=-180,-90,180.0,90&width=768&height=356&srs=EPSG:4326&format=application/openlayers
 
 Analyze GDELT with GeoMesa, Jupyter, SparkSQL, Vegas, and Leaflet
 -----------------------------------------------------------------
 
 Your bootstrapped spatial analytic environment has an instance of Jupyter notebook configured to analyze data in GeoMesa using SparkSQL and to visualize the results using Leaflet maps and Vegas (Vega-Lite) charts.  To start, navigate to *http://<ip_address>:8888/* where *<ip_address>* is the publicly accessible IP address of the master node.  You will see a sample GDELT analysis notebook.
 
-.. image:: _static/img/jupyter_notebook_list.png
+.. image:: /tutorials/_static/img/jupyter_notebook_list.png
 
 Click the **GDELT Analysis** notebook.  Edit the zookeeper value in the first cell by setting it to the zookeeper ip address as described above.  Then, select *Cell -> Run All* from the menu bar.  This will execute all the cells in the notebook.  Scroll through the sample and you will see some map and chart visualizations at the bottom.
 
-.. image:: _static/img/jupyter_map_viz.png
+.. image:: /tutorials/_static/img/jupyter_map_viz.png
 
-.. image:: _static/img/jupyter_chart_viz.png
+.. image:: /tutorials/_static/img/jupyter_chart_viz.png

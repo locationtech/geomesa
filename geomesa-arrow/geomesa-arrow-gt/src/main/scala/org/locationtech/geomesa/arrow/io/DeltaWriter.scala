@@ -73,13 +73,12 @@ class DeltaWriter(val sft: SimpleFeatureType,
     val name = descriptor.getLocalName
     val isDictionary = dictionaryFields.contains(name)
     val classBinding = if (isDictionary) { classOf[Integer] } else { descriptor.getType.getBinding }
-    val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-    val attribute = ArrowAttributeWriter(name, bindings.+:(objectType), classBinding, Some(vector), None, Map.empty, encoding)
+    val bindings = ObjectType.selectType(classBinding, descriptor.getUserData)
+    val attribute = ArrowAttributeWriter(name, bindings, Some(vector), None, Map.empty, encoding)
 
     val dictionary = if (!isDictionary) { None } else {
-      val classBinding = descriptor.getType.getBinding
-      val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-      val attribute = ArrowAttributeWriter(name, bindings.+:(objectType), classBinding, None, None, Map.empty, encoding)
+      val bindings = ObjectType.selectType(descriptor)
+      val attribute = ArrowAttributeWriter(name, bindings, None, None, Map.empty, encoding)
       val writer = new BatchWriter(attribute.vector)
       attribute.vector.setInitialCapacity(initialCapacity)
       attribute.vector.allocateNew()

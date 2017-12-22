@@ -21,9 +21,9 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan}
+import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
@@ -86,7 +86,7 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
     } else if (hints.isDensityQuery) {
       DensityScan.DensitySft
     } else if (hints.isStatsQuery) {
-      KryoLazyStatsUtils.StatsSft
+      StatsScan.StatsSft
     } else {
       super.getReturnSft(sft, hints)
     }
@@ -280,8 +280,8 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
       case Some((tdefs, tsft)) => projectionTransform(features, sft, tsft, tdefs, None)
     }
     toObserve.foreach(stat.observe)
-    val encoded = if (encode) { KryoLazyStatsUtils.encodeStat(sft)(stat) } else { stat.toJson }
-    Iterator(new ScalaSimpleFeature(KryoLazyStatsUtils.StatsSft, "stat", Array(encoded, GeometryUtils.zeroPoint)))
+    val encoded = if (encode) { StatsScan.encodeStat(sft)(stat) } else { stat.toJson }
+    Iterator(new ScalaSimpleFeature(StatsScan.StatsSft, "stat", Array(encoded, GeometryUtils.zeroPoint)))
   }
 
   private def projectionTransform(features: Iterator[SimpleFeature],

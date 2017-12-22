@@ -13,6 +13,7 @@ import org.apache.accumulo.core.data.Range
 import org.apache.accumulo.core.security.Authorizations
 import org.joda.time.Interval
 import org.locationtech.geomesa.utils.audit.AuditedEvent
+import org.locationtech.geomesa.utils.collection.{IsSynchronized, MaybeSynchronized, NotSynchronized}
 
 
 /**
@@ -20,15 +21,14 @@ import org.locationtech.geomesa.utils.audit.AuditedEvent
   */
 class AccumuloEventReader(connector: Connector, table: String) {
 
-  private var tableExists = false
+  private val tableExists: MaybeSynchronized[Boolean] =
+    if (connector.tableOperations().exists(table)) { new NotSynchronized(true) } else { new IsSynchronized(false) }
 
   def query[T <: AuditedEvent](typeName: String,
                                dates: Interval,
                                auths: Authorizations)
                               (implicit transform: AccumuloEventTransform[T]): Iterator[T] = {
-    if (!checkTable) {
-      Iterator.empty
-    } else {
+    if (!checkTable) { Iterator.empty } else {
       val scanner = connector.createScanner(table, auths)
       val rangeStart = s"$typeName~${AccumuloEventTransform.dateFormat.print(dates.getStart)}"
       val rangeEnd = s"$typeName~${AccumuloEventTransform.dateFormat.print(dates.getEnd)}"
@@ -37,10 +37,14 @@ class AccumuloEventReader(connector: Connector, table: String) {
     }
   }
 
-  private def checkTable: Boolean = synchronized {
-    if (!tableExists) {
-      tableExists = connector.tableOperations().exists(table)
+  private def checkTable: Boolean = {
+    if (tableExists.get) {
+      true
+    } else if (connector.tableOperations().exists(table)) {
+      tableExists.set(true, false)
+      true
+    } else {
+      false
     }
-    tableExists
   }
 }

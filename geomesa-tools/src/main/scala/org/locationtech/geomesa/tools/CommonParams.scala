@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.DistributedRunParam.ModeConverter
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.utils.DataFormats
-import org.locationtech.geomesa.tools.utils.ParameterConverters.FilterConverter
+import org.locationtech.geomesa.tools.utils.ParameterConverters.{FilterConverter, HintConverter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.filter.Filter
 
@@ -95,6 +95,11 @@ trait RequiredCqlFilterParam extends CqlFilterParam {
 trait OptionalCqlFilterParam extends CqlFilterParam {
   @Parameter(names = Array("-q", "--cql"), description = "CQL predicate", converter = classOf[FilterConverter])
   var cqlFilter: Filter = _
+}
+
+trait QueryHintsParams {
+  @Parameter(names = Array("--hints"), description = "Query hints to set, in the form key1=value1;key2=value2", required = false, converter = classOf[HintConverter])
+  var hints: java.util.Map[String, String] = _
 }
 
 trait OptionalDtgParam {

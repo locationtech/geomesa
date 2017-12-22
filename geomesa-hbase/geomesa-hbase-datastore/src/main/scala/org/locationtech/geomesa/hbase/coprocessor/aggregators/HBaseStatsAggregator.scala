@@ -14,7 +14,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -25,7 +24,7 @@ class HBaseStatsAggregator extends HBaseAggregator[Stat] with StatsScan
 object HBaseStatsAggregator {
 
   def bytesToFeatures(bytes : Array[Byte]): SimpleFeature = {
-    val sf = new ScalaSimpleFeature(KryoLazyStatsUtils.StatsSft, "")
+    val sf = new ScalaSimpleFeature(StatsScan.StatsSft, "")
     sf.setAttribute(0, Base64.encodeBase64URLSafeString(bytes))
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     sf

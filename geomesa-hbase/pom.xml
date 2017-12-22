@@ -10,31 +10,11 @@
     <artifactId>geomesa-hbase_2.11</artifactId>
     <name>GeoMesa HBase Parent</name>
 
+    <packaging>pom</packaging>
+
     <properties>
-        <bigtable.version>0.9.6.1</bigtable.version>
         <protobuf.version>2.6.1</protobuf.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.cloud.bigtable</groupId>
-                <artifactId>bigtable-hbase-mapreduce</artifactId>
-                <version>${bigtable.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.cloud.bigtable</groupId>
-                <artifactId>bigtable-hbase-1.2</artifactId>
-                <version>${bigtable.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-    <packaging>pom</packaging>
 
     <modules>
         <module>geomesa-hbase-datastore</module>
@@ -46,19 +26,5 @@
         <module>geomesa-hbase-spark</module>
         <module>geomesa-hbase-spark-runtime</module>
     </modules>
-
-    <profiles>
-        <profile>
-            <id>bigtable</id>
-            <modules>
-                <module>geomesa-bigtable-datastore</module>
-                <module>geomesa-bigtable-dist</module>
-                <module>geomesa-bigtable-gs-plugin</module>
-                <module>geomesa-bigtable-tools</module>
-                <module>geomesa-bigtable-spark</module>
-                <module>geomesa-bigtable-spark-runtime</module>
-            </modules>
-        </profile>
-    </profiles>
 
 </project>
