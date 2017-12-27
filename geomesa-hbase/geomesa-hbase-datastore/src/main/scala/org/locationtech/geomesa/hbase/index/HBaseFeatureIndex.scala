@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.KeyOnlyFilter
+import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.util.Bytes
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.AllCoprocessors
@@ -21,11 +22,15 @@ import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
+import org.slf4j.LoggerFactory
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
+  private val log = LoggerFactory.getLogger(classOf[HBaseFeatureIndex])
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
     Seq(HBaseZ3Index, HBaseZ3IndexV1, HBaseXZ3Index, HBaseZ2Index, HBaseZ2IndexV1, HBaseXZ2Index,
@@ -40,7 +45,17 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
     super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 
   val DataColumnFamily: Array[Byte] = Bytes.toBytes("d")
-  val DataColumnFamilyDescriptor = new HColumnDescriptor(DataColumnFamily)
+  def buildDataColumnFamilyDescriptor(sft: SimpleFeatureType): HColumnDescriptor = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+    val dcfd = new HColumnDescriptor(DataColumnFamily)
+    if(sft.userData(Configs.COMPRESSION_ENABLED).isDefined) {
+      val compressionType =
+        sft.userData[String](Configs.COMPRESSION_TYPE).getOrElse("gz")
+      log.debug(s"Setting compression on index table for feature ${sft.getTypeName}")
+      dcfd.setCompressionType(Compression.getCompressionAlgorithmByName(compressionType))
+    }
+    dcfd
+  }
 
   val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
@@ -73,7 +88,8 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
       if (!admin.tableExists(name)) {
         logger.debug(s"Creating table $name")
         val descriptor = new HTableDescriptor(name)
-        descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
+        val dcfd = HBaseFeatureIndex.buildDataColumnFamilyDescriptor(sft)
+        descriptor.addFamily(dcfd)
         if (ds.config.remoteFilter) {
           import CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY
           // if the coprocessors are installed site-wide don't register them in the table descriptor
@@ -88,32 +104,32 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
     }
   }
 
-  override def delete(sft: SimpleFeatureType, ds: HBaseDataStore, shared: Boolean): Unit = {
+  override def removeAll(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     import scala.collection.JavaConversions._
 
-    if (shared) {
-      val table = ds.connection.getTable(TableName.valueOf(getTableName(sft.getTypeName, ds)))
-      try {
-        val scan = new Scan()
-          .setRowPrefixFilter(sft.getTableSharingBytes)
-          .setFilter(new KeyOnlyFilter)
-        ds.applySecurity(scan)
-        val scanner = table.getScanner(scan)
-        try {
-          scanner.iterator.grouped(10000).foreach { result =>
-            // TODO set delete visibilities
-            val deletes = result.map(r => new Delete(r.getRow))
-            table.delete(deletes)
-          }
-        } finally {
-          scanner.close()
-        }
-      } finally {
-        table.close()
+    val tableName = TableName.valueOf(getTableName(sft.getTypeName, ds))
+
+    WithClose(ds.connection.getTable(tableName)) { table =>
+      val scan = new Scan().setFilter(new KeyOnlyFilter)
+      if (sft.isTableSharing) {
+        scan.setRowPrefixFilter(sft.getTableSharingBytes)
       }
-    } else {
+      ds.applySecurity(scan)
+      val mutateParams = new BufferedMutatorParams(tableName)
+      WithClose(table.getScanner(scan), ds.connection.getBufferedMutator(mutateParams)) { case (scanner, mutator) =>
+        scanner.iterator.grouped(10000).foreach { result =>
+          // TODO set delete visibilities
+          val deletes = result.map(r => new Delete(r.getRow))
+          mutator.mutate(deletes)
+        }
+      }
+    }
+  }
+
+  override def delete(sft: SimpleFeatureType, ds: HBaseDataStore, shared: Boolean): Unit = {
+    if (shared) { removeAll(sft, ds) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val admin = ds.connection.getAdmin
       try {

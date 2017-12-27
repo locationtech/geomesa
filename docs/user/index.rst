@@ -7,11 +7,12 @@ User Manual
    :numbered:
 
    introduction
-   architecture
-   getting_started
    download
    install
+   getting_started
+   architecture
    datastores/index
+   cli/index
    accumulo/index
    hbase/index
    bigtable/index

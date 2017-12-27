@@ -47,7 +47,7 @@ trait QueryRunner {
     }
 
     // handle any params passed in through geoserver
-    ViewParams.setHints(sft, query)
+    ViewParams.setHints(query)
 
     // set transformations in the query
     QueryPlanner.setQueryTransforms(query, sft)
@@ -111,5 +111,14 @@ trait QueryRunner {
   protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     hints.getTransformSchema.getOrElse(sft)
+  }
+}
+
+object QueryRunner {
+  // used for configuring input queries
+  val default: QueryRunner = new QueryRunner {
+    override def runQuery(sft: SimpleFeatureType,
+                          query: Query,
+                          explain: Explainer): CloseableIterator[SimpleFeature] = throw new NotImplementedError
   }
 }

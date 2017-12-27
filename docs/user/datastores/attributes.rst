@@ -1,3 +1,5 @@
+.. _attribute_types:
+
 GeoTools Feature Types
 ======================
 
@@ -31,8 +33,8 @@ Integer            java.lang.Integer                              Yes
 Double             java.lang.Double                               Yes
 Long               java.lang.Long                                 Yes
 Float              java.lang.Float                                Yes
-Boolean            java.lang.Boolean                              No
-UUID               java.util.UUID                                 No
+Boolean            java.lang.Boolean                              Yes
+UUID               java.util.UUID                                 Yes
 Date               java.util.Date                                 Yes
 Timestamp          java.sql.Timestamp                             Yes
 Point              com.vividsolutions.jts.geom.Point              Yes

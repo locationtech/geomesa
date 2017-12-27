@@ -102,6 +102,21 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       }
 
       testTransforms(ds)
+
+      ds.getFeatureSource(typeName).removeFeatures(ECQL.toFilter("INCLUDE"))
+
+      forall(Seq("INCLUDE",
+        "IN('0', '2')",
+        "bbox(geom,42,48,52,62)",
+        "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z",
+        "bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z",
+        "dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z",
+        "attr = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z",
+        "name < 'name5'",
+        "name = 'name5'")) { filter =>
+        val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)
+        SelfClosingIterator(fr).toList must beEmpty
+      }
     }
 
     "work with polys" in {

@@ -1,3 +1,5 @@
+.. _index_config:
+
 Index Configuration
 ===================
 
@@ -18,13 +20,12 @@ the string, like so:
 
 .. code-block:: java
 
-    // append the user-data hints to the end of the string, separated by a semi-colon
+    // append the user-data values to the end of the string, separated by a semi-colon
     String spec = "name:String,dtg:Date,*geom:Point:srid=4326;option.one='foo',option.two='bar'";
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
 
-
 If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
-you may set the hints directly in the feature type:
+you may set the values directly in the feature type:
 
 .. code-block:: java
 
@@ -52,6 +53,50 @@ a 'user-data' key:
       }
     }
 
+.. _attribute_options:
+
+Setting Attribute Options
+-------------------------
+
+In addition to schema-level user data, each attribute also has user data associated with it. Just like
+the schema options, attribute user data can be set in multiple ways.
+
+If you are using a string to indicate your ``SimpleFeatureType`` (e.g. through the command line tools,
+or when using ``SimpleFeatureTypes.createType``), you can append the attribute options after the attribute type,
+separated with a colon:
+
+.. code-block:: java
+
+    // append the user-data after the attribute type, separated by a colon
+    String spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+
+If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
+you may set the user data directly in the attribute descriptor:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getDescriptor("name").getUserData().put("index", "true");
+
+If you are using TypeSafe configuration files to define your simple feature type, you may add user data keys
+to the attribute elements:
+
+.. code-block:: javascript
+
+    geomesa {
+      sfts {
+        "mySft" = {
+          attributes = [
+            { name = name, type = String, index = true }
+            { name = dtg,  type = Date                 }
+            { name = geom, type = Point, srid = 4326   }
+          ]
+        }
+      }
+    }
+
 .. _set_date_attribute:
 
 Setting the Indexed Date Attribute
@@ -71,8 +116,6 @@ key ``geomesa.index.dtg``. If you would prefer to not index any date, you may di
     // disable indexing by date
     sft2.getUserData().put("geomesa.ignore.dtg", true);
 
-.. _customizing_index_creation:
-
 Customizing Index Creation
 --------------------------
 
@@ -85,16 +128,11 @@ indices you have defined.
 
     Certain queries may be much slower if you disable an index.
 
-To enable only certain indices, you may set a hint in your simple feature type. The hint key is
-``geomesa.indexes.enabled``, and it should contain a comma-delimited list containing a subset of:
+To enable only certain indices, you may set a user data value in your simple feature type. The user data key is
+``geomesa.indices.enabled``, and it should contain a comma-delimited list containing a subset of index
+identifiers, as specified in :ref:`index_overview`.
 
-- ``z2`` - corresponds to the Z2 index
-- ``z3`` - corresponds to the Z3 index
-- ``records`` - corresponds to the id/record index (for Accumulo data stores)
-- ``id`` - corresponds to the id/record index (for non-Accumulo data stores)
-- ``attr`` - corresponds to the attribute index
-
-You may set the hint using :ref:`set_sft_options`. If you are using the GeoMesa ``SftBuilder``,
+See :ref:`set_sft_options` for details on setting user data. If you are using the GeoMesa ``SftBuilder``,
 you may instead call the ``withIndexes`` methods:
 
 .. code-block:: scala
@@ -106,7 +144,7 @@ you may instead call the ``withIndexes`` methods:
         .stringType("name")
         .date("dtg")
         .geometry("geom", default = true)
-        .withIndexes(List("records", "z3", "attr"))
+        .withIndexes(List("id", "z3", "attr"))
         .build("mySft")
 
 .. _configuring_z_shards:
@@ -124,7 +162,7 @@ shards are more important as the tables might never split due to size. Setting t
 reduce performance, as it requires more calculations to be performed per query.
 
 The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
-user data using the hint ``geomesa.z.splits``. See :ref:`set_sft_options`.
+user data using the key ``geomesa.z.splits``. See :ref:`set_sft_options` for details on setting user data.
 
 .. code-block:: java
 
@@ -145,8 +183,8 @@ Alternatively, if you typically query minutes of data at a time, indexing per da
 per week partitioning tends to provides a good balance for most scenarios. Note that the optimal partitioning
 depends on query patterns, not the distribution of data.
 
-The time partitioning is set when calling ``createSchema``. It may be specified through the simple feature type
-user data using the hint ``geomesa.z3.interval``.  See :ref:`set_sft_options`.
+The time interval is set when calling ``createSchema``. It may be specified through the simple feature type
+user data using the key ``geomesa.z3.interval``.  See :ref:`set_sft_options` for details on setting user data.
 
 .. code-block:: java
 
@@ -163,7 +201,8 @@ you have very large geometries, you may want to lower this value. Conversely, if
 geometries, you may want to raise it.
 
 The resolution level for an index is set when calling ``createSchema``. It may be specified through
-the simple feature type user data using the hint ``geomesa.xz.precision``.  See :ref:`set_sft_options`.
+the simple feature type user data using the key ``geomesa.xz.precision``.  See :ref:`set_sft_options` for
+details on setting user data.
 
 .. code-block:: java
 
@@ -184,11 +223,75 @@ GeoMesa will default to 4 shards. The number of shards must be between 1 and 127
 See :ref:`configuring_z_shards` for more background on shards.
 
 The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
-user data using the hint ``geomesa.attr.splits``. See :ref:`set_sft_options`.
+user data using the key ``geomesa.attr.splits``. See :ref:`set_sft_options` for details on setting user data.
 
 .. code-block:: java
 
     sft.getUserData().put("geomesa.attr.splits", "4");
+
+.. _cardinality_config:
+
+Configuring Attribute Cardinality
+---------------------------------
+
+GeoMesa allows attributes to be marked as either high or low cardinality. If set, this hint will be used in
+query planning. For more information, see :ref:`attribute_cardinality`.
+
+To set the cardinality of an attribute, use the key ``cardinality`` on the attribute, with a value of
+``high`` or ``low``.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ...
+    sft.getDescriptor("name").getUserData().put("index", "true");
+    sft.getDescriptor("name").getUserData().put("cardinality", "high");
+
+If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
+
+.. code-block:: scala
+
+    // scala example
+    import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
+    import org.locationtech.geomesa.utils.stats.Cardinality
+
+    val sft = new SftBuilder()
+        .stringType("name", Opts(index = true, cardinality = Cardinality.HIGH))
+        .date("dtg")
+        .geometry("geom", default = true)
+        .build("mySft")
+
+.. _stat_attribute_config:
+
+Configuring Cached Statistics
+-----------------------------
+
+GeoMesa allows for collecting summary statistics for attributes during ingest, which are then stored and
+available for instant querying. Hints are set on individual attributes using the key ``keep-stats``, as
+described in :ref:`attribute_options`.
+
+.. note::
+
+    Cached statistics are currently only implemented for the Accumulo data store
+
+Stats are always collected for the default geometry, default date and any indexed attributes. See
+:ref:`stats_collected` for more details. In addition, any other attribute can be flagged for stats. This
+will cause the following stats to be collected for those attributes:
+
+* Min/max (bounds)
+* Top-k
+
+Only attributes of the following types can be flagged for stats: ``String``, ``Integer``, ``Long``,
+``Float``, ``Double``, ``Date`` and ``Geometry``.
+
+For example:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getDescriptor("name").getUserData().put("keep-stats", "true");
+
+See :ref:`cli_analytic` and :ref:`stats_api` for information on reading cached stats.
 
 Mixed Geometry Types
 --------------------
@@ -197,11 +300,12 @@ A common pitfall is to unnecessarily specify a generic geometry type when creati
 Because GeoMesa relies on the geometry type for indexing decisions, this can negatively impact performance.
 
 If the default geometry type is ``Geometry`` (i.e. supporting both point and non-point
-features), you must explicitly enable "mixed" indexing mode. Any other geometry type (``Point``,
+features), you must explicitly enable "mixed" indexing mode. All other geometry types (``Point``,
 ``LineString``, ``Polygon``, etc) are not affected.
 
 Mixed geometries must be declared when calling ``createSchema``. It may be specified through
-the simple feature type user data using the hint ``geomesa.mixed.geometries``.  See :ref:`set_sft_options`.
+the simple feature type user data using the key ``geomesa.mixed.geometries``.  See :ref:`set_sft_options` for
+details on setting user data.
 
 .. code-block:: java
 

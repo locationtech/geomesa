@@ -1,11 +1,11 @@
+.. _analytic_queries:
+
 Analytic Querying
 =================
 
 GeoMesa provides advanced query capabilities through GeoTools query hints. You can use these hints to control
 various aspects of query processing, or to trigger distributed analytic processing. See :ref:`query_hints`
 for details on setting query hints.
-
-.. _analytic_queries:
 
 Feature Sampling
 ----------------
@@ -52,8 +52,8 @@ at 10%, you will get back anywhere from 1 to 5 features, depending on how your d
 
         ...&viewparams=SAMPLING:0.1
 
-Density Query
--------------
+Density Queries
+---------------
 
 To populate heatmaps or other pre-rendered maps, GeoMesa can use server-side aggregation to map features to
 pixels. This results in much less network traffic, and subsequently much faster queries.
@@ -102,6 +102,126 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
         }
         reader.close()
 
+.. _statistical_queries:
+
+Statistical Queries
+-------------------
+
+GeoMesa supports generating various statistics against a data set. These stats are generated in a distributed
+scan, so provide built-in parallelism and require less network traffic. The following stats are supported:
+
+* count
+* min/max values (bounds)
+* enumeration of values
+* top-k values
+* frequency of values
+* histogram of values
+* `descriptive statistics <https://en.wikipedia.org/wiki/Descriptive_statistics>`__
+
+In GeoServer you can use the ``StatsProcess``. Otherwise, the query is controlled through the
+following query hints:
+
++-------------------------------------+--------------------+----------------------+
+| Key                                 | Type               | GeoServer Conversion |
++=====================================+====================+======================+
+| QueryHints.STATS_STRING             | String             | Use WPS              |
++-------------------------------------+--------------------+                      +
+| QueryHints.ENCODE_STATS             | Boolean (optional) |                      |
++-------------------------------------+--------------------+----------------------+
+
+.. tabs::
+
+    .. code-tab:: scala
+
+        import org.geotools.data.Transaction
+        import org.locationtech.geomesa.index.conf.QueryHints
+        import org.locationtech.geomesa.index.iterators.StatsScan
+        import org.locationtech.geomesa.utils.stats.Stat
+
+        query.getHints.put(QueryHints.STATS_STRING, "Count()")
+        query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
+
+        val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
+
+        val result: Stat = try {
+          // stats should always return exactly one result, even if there are no features in the table
+          StatsScan.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
+        } finally {
+          reader.close()
+        }
+
+See :ref:`cli_analytic` for information on running statistical queries through the GeoMesa command-line
+tools.
+
+Explanation of Hints
+++++++++++++++++++++
+
+STATS_STRING
+^^^^^^^^^^^^
+
+This hint is a string describing the stats to be collected. Each type of stat has a corresponding string
+representation. Multiple stats can be collected at once by delimiting them with a semi-colon. Instead
+of constructing stat strings by hand, there are convenience methods in ``org.locationtech.geomesa.utils.stats.Stat``
+that will generate valid stat strings. Stat strings can be validated by trying to parse them with
+``org.locationtech.geomesa.utils.stats.Stat.apply``.
+
+Stat strings are as follows:
+
+========================== =====================================
+Type                       Representation
+========================== =====================================
+count                      ``Count()``
+min/max                    ``MinMax("foo")``
+enumeration                ``Enumeration("foo")``
+top-k                      ``TopK("foo")``
+frequency                  ``Frequency("foo",<precision>)``
+frequency (by time period) ``Frequency("foo","dtg",<time period>,<precision>)``
+Z3 frequency               ``Z3Frequency("geom","dtg",<time period>,<precision>)``
+histogram                  ``Histogram("foo",<bins>,<min>,<max>)``
+Z3 histogram               ``Z3Histogram("geom","dtg",<time period>,<bins>)``
+descriptive statistics     ``DescriptiveStats("foo","bar")``
+========================== =====================================
+
+In addition to the above, stats can be calculated on grouped values, using ``GroupBy``. For example,
+``GroupBy("foo",MinMax("bar"))``.
+
+The Z3 frequency and histogram are special stats that will operate on the Z3 value created from the geometry and date.
+
+``<time period>`` can be one of ``day``, ``week``, ``month``, or ``year``, and indicates how data should be grouped.
+
+The ``<precision>`` for frequencies is defined as:
+
+* for geometry and Z3 types, it is the number of bits of z-index to keep (max of 64). Note that the first 2
+  bits do not hold any information
+* for date types, it is the number of milliseconds to group for binning
+* for number types, it is the number of digits that will be grouped together
+* for floating point types, it is the number of decimal places that will be considered
+* for string types, it is the number of characters that will be considered
+
+The ``<bins>`` for a histogram indicate how many groupings should be made. The ``<min>`` and ``<max>`` values
+set the initial sizes of the groupings, but are not hard limits. The histogram will expand if needed as
+new values are added, but some precision may be lost.
+
+ENCODE_STATS
+^^^^^^^^^^^^
+
+This hint controls whether the stat will be returned as a serialized (encoded) object, or as a JSON string.
+Serialized stats can be deserialized using an instance of ``org.locationtech.geomesa.utils.stats.StatSerializer``,
+obtained through its factory ``apply`` method.
+
+.. _stats_api:
+
+Accessing Stats through the GeoMesa API
++++++++++++++++++++++++++++++++++++++++
+
+In addition to queries through the GeoTools API, stats can be accessed directly through the GeoMesa API. Most
+GeoMesa datastores implement ``org.locationtech.geomesa.index.stats.HasGeoMesaStats``, which defines a single method::
+
+    def stats: org.locationtech.geomesa.index.stats.GeoMesaStats
+
+In addition to running queries, the ``GeoMesaStats`` interface can be used to retrieve cached stats.
+See :ref:`stat_attribute_config` for details on configuring cached stats.
+
 Arrow Encoding
 --------------
 
@@ -126,9 +246,9 @@ following query hints:
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_SORT_REVERSE       | Boolean (optional) |                      |
 +-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DICTIONARY_FIELDS  | String  (optional) |                      |
+| QueryHints.ARROW_DICTIONARY_FIELDS  | String (optional)  |                      |
 +-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DICTIONARY_VALUES  | String  (optional) |                      |
+| QueryHints.ARROW_DICTIONARY_VALUES  | String (optional)  |                      |
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_DICTIONARY_CACHED  | Boolean (optional) |                      |
 +-------------------------------------+--------------------+                      +
@@ -240,10 +360,8 @@ Example Query
 
     .. code-tab:: scala
 
+        import java.io.ByteArrayOutputStream
         import org.geotools.data.Transaction
-        import org.geotools.geometry.jts.ReferencedEnvelope.ReferencedEnvelope
-        import org.geotools.referencing.CRS
-        import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
         import org.locationtech.geomesa.index.conf.QueryHints
 
         query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
@@ -257,3 +375,104 @@ Example Query
         reader.close()
 
         // use ArrowStreamReader or other Arrow libraries to process bytes
+
+
+Binary Encoding
+---------------
+
+GeoMesa supports returning features in a custom binary format (referred to as BIN) that uses 16 or 24 bytes
+per feature. This provides an extremely compact representation of a few key attributes.
+
+The 16 byte BIN format is as follows::
+
+    <4 byte int><4 byte int><4 byte floating point><4 byte floating point>
+
+The first integer is referred to as a track ID, and is generally used to group related points. For example,
+a line string may be turned into several BIN records with a common track ID. The second integer is a date
+represented as the number of seconds since the Java epoch (Jan. 1, 1970). The two floating point numbers
+represent the latitude and longitude of the record, respectively.
+
+The 24 byte BIN format is the same as the 16 byte version, but with an additional 8 bytes at the end for
+arbitrary data.
+
+The result of a BIN query will be an iterator of SimpleFeatures, where the first attribute of each will be a
+byte array containing one or more BIN-encoded features.
+
+In GeoServer you can use the ``BinConversionProcess``. Otherwise, the encoding is controlled through the
+following query hints:
+
++---------------------------+--------------------+----------------------+
+| Key                       | Type               | GeoServer Conversion |
++===========================+====================+======================+
+| QueryHints.BIN_TRACK      | String             | Use WPS              |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_GEOM       | String (optional)  |                      |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_DTG        | String (optional)  |                      |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_LABEL      | String (optional)  |                      |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_SORT       | Boolean (optional) |                      |
++---------------------------+--------------------+                      +
+| QueryHints.BIN_BATCH_SIZE | Integer (optional) |                      |
++---------------------------+--------------------+----------------------+
+
+Explanation of Hints
+++++++++++++++++++++
+
+BIN_TRACK
+^^^^^^^^^
+
+This hint is used to trigger a BIN query. It should be the name of an attribute that will be used to
+generate the track ID for each record.
+
+BIN_GEOM
+^^^^^^^^
+
+This hint controls the geometry attribute used for each record. If omitted, the default geometry of the
+feature type is used.
+
+BIN_DTG
+^^^^^^^
+
+This hint controls the date attribute used for each record. If omitted, the default date of the feature type
+is used.
+
+BIN_LABEL
+^^^^^^^^^
+
+This hint will trigger the creation of 24-byte records, instead of the standard 16. It should be the
+name of an attribute that will be used to general the label for each record.
+
+BIN_SORT
+^^^^^^^^
+
+This hint will cause the records to be sorted. It should be the name of an attribute in the feature type.
+
+BIN_BATCH_SIZE
+^^^^^^^^^^^^^^
+
+This hint controls the batch size used when generating BIN records.
+
+Example Query
++++++++++++++
+
+.. tabs::
+
+    .. code-tab:: scala
+
+        import java.io.ByteArrayOutputStream
+        import org.geotools.data.Transaction
+        import org.locationtech.geomesa.index.conf.QueryHints
+
+        query.getHints.put(QueryHints.BIN_TRACK, "name")
+
+        val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
+        val os = new ByteArrayOutputStream()
+
+        while (reader.hasNext) {
+          os.write(reader.next().getAttribute(0).asInstanceOf[Array[Byte]])
+        }
+        reader.close()
+
+        // process bytes appropriately

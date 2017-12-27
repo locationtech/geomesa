@@ -30,7 +30,7 @@ class ViewParamsTest extends Specification {
       def testHint(hint: Hints.Key, name: String, param: String, expected: Any): MatchResult[Any] = {
         val query = new Query()
         query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, Collections.singletonMap(name, param))
-        ViewParams.setHints(null, query)
+        ViewParams.setHints(query)
         query.getHints.get(hint) mustEqual expected
       }
 

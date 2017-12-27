@@ -19,7 +19,7 @@ import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.index.IndexAdapter
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -105,7 +105,7 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
       ScanConfig(ranges, FullColumnFamily, Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, duplicates = false)
     } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, dedupe)
-      val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
+      val reduce = Some(StatsScan.reduceFeatures(sft, hints)(_))
       ScanConfig(ranges, FullColumnFamily, Seq(iter), KryoLazyStatsIterator.kvsToFeatures(), reduce, duplicates = false)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, dedupe)

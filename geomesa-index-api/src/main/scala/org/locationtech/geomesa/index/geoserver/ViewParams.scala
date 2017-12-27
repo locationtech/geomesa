@@ -55,10 +55,9 @@ object ViewParams extends LazyLogging {
     * Examines the view parameters passed in through geoserver and sets the corresponding query hints
     * This kind of a hack, but it's the only way geoserver exposes custom data to the underlying data store.
     *
-    * @param sft simple feature type
     * @param query query to examine/update
     */
-  def setHints(sft: SimpleFeatureType, query: Query): Unit = {
+  def setHints(query: Query): Unit = {
     val params = {
       val viewParams = query.getHints.get(Hints.VIRTUAL_TABLE_PARAMETERS).asInstanceOf[jMap[String, String]]
       Option(viewParams).map(_.toMap).getOrElse(Map.empty)

@@ -27,7 +27,7 @@ import org.locationtech.geomesa.tools.{Command, DataStoreCommand, OptionalIndexP
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -39,10 +39,10 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
   override def params: ExportParams
 
   override def execute(): Unit = {
-    val timing = new Timing
-    val count = profile(withDataStore(export))(timing)
-    Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
-        s"in ${timing.time}ms${count.map(" for " + _ + " features").getOrElse("")}")
+    profile(withDataStore(export)) { (count, time) =>
+      Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
+          s"in ${time}ms${count.map(" for " + _ + " features").getOrElse("")}")
+    }
   }
 
   protected def export(ds: DS): Option[Long] = {
@@ -64,8 +64,8 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
       case GeoJson | Json => new GeoJsonExporter(getWriter(params))
       case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
       case Avro           => new AvroExporter(createOutputStream(params.file, null), avroCompression)
-      case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params.file, null), ArrowExporter.queryDictionaries(ds, query))
-      case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, null))
+      case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params.file, params.gzip), ArrowExporter.queryDictionaries(ds, query))
+      case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, params.gzip))
       case Null           => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format ${params.outputFormat} can't be exported")
@@ -119,7 +119,7 @@ object ExportCommand extends LazyLogging {
 
     Option(params.hints).foreach { hints =>
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
-      ViewParams.setHints(sft, query)
+      ViewParams.setHints(query)
     }
 
     val attributes = {

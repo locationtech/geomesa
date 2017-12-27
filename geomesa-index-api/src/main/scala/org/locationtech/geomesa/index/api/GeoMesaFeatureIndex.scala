@@ -82,6 +82,14 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: Wrapp
   def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[WriteResult]
 
   /**
+    * Removes all values from the index
+    *
+    * @param sft simple feature type
+    * @param ds data store
+    */
+  def removeAll(sft: SimpleFeatureType, ds: DS): Unit
+
+  /**
     * Deletes the entire index
     *
     * @param sft simple feature type

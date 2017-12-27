@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import java.util.Collections
 import java.util.Map.Entry
 
 import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
@@ -19,7 +20,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.{AttributeIndexV2, AttributeIndexV3, AttributeIndexV4, AttributeIndexV5}
-import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV1
+import org.locationtech.geomesa.accumulo.index.legacy.id.{RecordIndexV1, RecordIndexV2}
 import org.locationtech.geomesa.accumulo.index.legacy.z2.{Z2IndexV1, Z2IndexV2, Z2IndexV3}
 import org.locationtech.geomesa.accumulo.index.legacy.z3.{Z3IndexV1, Z3IndexV2, Z3IndexV3, Z3IndexV4}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
@@ -28,6 +29,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.Try
@@ -42,10 +44,10 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
 
   val EmptyColumnQualifier  = new Text()
 
-  private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV3, Z2IndexV2, Z2IndexV1)
-  private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV4, Z3IndexV3, Z3IndexV2, Z3IndexV1)
-  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV5, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
-  private val RecordIndices         = Seq(RecordIndex, RecordIndexV1)
+  val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV3, Z2IndexV2, Z2IndexV1)
+  val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV4, Z3IndexV3, Z3IndexV2, Z3IndexV1)
+  val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV5, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
+  val RecordIndices         = Seq(RecordIndex, RecordIndexV2, RecordIndexV1)
 
   // note: keep in priority order for running full table scans
   // before changing the order, consider the effect of feature validation in
@@ -104,10 +106,11 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     lazy val docs =
       "http://www.geomesa.org/documentation/user/jobs.html#updating-existing-data-to-the-latest-index-format"
+    // noinspection ScalaDeprecation
     val version = sft.getSchemaVersion
     val indices = if (version > 8) {
       // note: version 9 was never in a release
-      Seq(Z3IndexV3, XZ3Index, Z2IndexV2, XZ2Index, RecordIndex, AttributeIndexV3)
+      Seq(Z3IndexV3, XZ3Index, Z2IndexV2, XZ2Index, RecordIndexV2, AttributeIndexV3)
     } else if (version == 8) {
       Seq(Z3IndexV2, Z2IndexV1, RecordIndexV1, AttributeIndexV2)
     } else if (version > 5) {
@@ -169,23 +172,28 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 
-  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, shared: Boolean): Unit = {
-    import scala.collection.JavaConversions._
-
+  override def removeAll(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
     val table = getTableName(sft.getTypeName, ds)
     if (ds.tableOps.exists(table)) {
-      if (shared) {
-        val auths = ds.config.authProvider.getAuthorizations
-        val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
-        val prefix = new Text(sft.getTableSharingPrefix)
-        val deleter = ds.connector.createBatchDeleter(table, auths, ds.config.queryThreads, config)
-        try {
-          deleter.setRanges(Seq(new Range(prefix, true, Range.followingPrefix(prefix), false)))
-          deleter.delete()
-        } finally {
-          deleter.close()
+      val auths = ds.config.authProvider.getAuthorizations
+      val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
+      WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queryThreads, config)) { deleter =>
+        val range = if (sft.isTableSharing) {
+          val prefix = new Text(sft.getTableSharingBytes)
+          new Range(prefix, true, Range.followingPrefix(prefix), false)
+        } else {
+          new Range()
         }
-      } else {
+        deleter.setRanges(Collections.singletonList(range))
+        deleter.delete()
+      }
+    }
+  }
+
+  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, shared: Boolean): Unit = {
+    if (shared) { removeAll(sft, ds) } else {
+      val table = getTableName(sft.getTypeName, ds)
+      if (ds.tableOps.exists(table)) {
         // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
         if (ds.connector.isInstanceOf[MockConnector]) {
           ds.connector.synchronized(ds.tableOps.delete(table))
@@ -199,7 +207,7 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
   // back compatibility check for old metadata keys
   abstract override def getTableName(typeName: String, ds: AccumuloDataStore): String = {
     lazy val oldKey = this match {
-      case i if i.name == RecordIndex.name    => "tables.record.name"
+      case i if i.name == RecordIndexV1.name  => "tables.record.name"
       case i if i.name == AttributeIndex.name => "tables.idx.attr.name"
       case i => s"tables.${i.name}.name"
     }

@@ -5,13 +5,17 @@ Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa Accumulo artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
-and untar it somewhere convenient. For example, to download and prepare the geomesa-accumulo binary:
+The easiest way to get started is to download the most recent binary version
+(|release|) from `GitHub`__.
+
+__ https://github.com/locationtech/geomesa/releases
+
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
-    # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
+    # download and unpackage the most recent distribution:
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz"
     $ tar xvf geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-accumulo-dist_2.11-$VERSION
     $ ls
@@ -148,7 +152,7 @@ In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa configure
 .. code-block:: bash
 
     ### in geomesa-accumulo_2.11-$VERSION/:
-    $ bin/geomesa configure
+    $ bin/geomesa-accumulo configure
     Warning: GEOMESA_ACCUMULO_HOME is not set, using /path/to/geomesa-accumulo_2.11-$VERSION
     Using GEOMESA_ACCUMULO_HOME as set: /path/to/geomesa-accumulo_2.11-$VERSION
     Is this intentional? Y\n y
@@ -170,7 +174,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
 
 .. note::
 
-    ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
+    ``geomesa-accumulo`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
     appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
     installing the tools on the Accumulo master server, as you may also need various configuration
     files from Hadoop/Accumulo in order to run certain commands.
@@ -179,7 +183,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
     ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
     classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
     files using a colon (``:``) as a delimiter. These entries will also be added the the mapreduce libjars variable.
-    Use the ``geomesa classpath`` command to print the final classpath that will be used when executing geomesa
+    Use the ``geomesa-accumulo classpath`` command to print the final classpath that will be used when executing geomesa
     commands.
 
     If you are running the tools on a system without

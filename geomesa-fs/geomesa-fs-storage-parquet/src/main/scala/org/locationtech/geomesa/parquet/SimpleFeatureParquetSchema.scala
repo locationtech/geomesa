@@ -36,9 +36,8 @@ object SimpleFeatureParquetSchema {
     import PrimitiveTypeName._
     import Type.Repetition
 
-    val binding = ad.getType.getBinding
-    val (objectType, qualObjType) = ObjectType.selectType(binding, ad.getUserData)
-    objectType match {
+    val bindings = ObjectType.selectType(ad)
+    bindings.head match {
       case ObjectType.GEOMETRY =>
         // TODO: currently only dealing with Points
         Types.buildGroup(Repetition.REQUIRED)
@@ -80,13 +79,13 @@ object SimpleFeatureParquetSchema {
           .named(ad.getLocalName)
 
       case ObjectType.LIST =>
-        Types.optionalList().optionalElement(matchType(qualObjType.head))
+        Types.optionalList().optionalElement(matchType(bindings(1)))
           .named(ad.getLocalName)
 
       case ObjectType.MAP =>
         Types.optionalMap()
-          .key(matchType(qualObjType.head))
-          .optionalValue(matchType(qualObjType.last))
+          .key(matchType(bindings(1)))
+          .optionalValue(matchType(bindings(2)))
           .named(ad.getLocalName)
 
       case ObjectType.UUID =>

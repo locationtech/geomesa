@@ -20,6 +20,10 @@ Be aware that these files are actually tab-delimited, but are given the CSV exte
 
 For more information on features of the GDELT data, see their documentation [here.](http://www.gdeltproject.org/data.html#documentation)
 
+## GDELT Versions
+
+GDELT has two different data formats, the original 1.0 and the new 2.0. GeoMesa supports both formats, with the
+named simple feature types `gdelt` and `gdelt2`, respectively.
 
 ## Ingest Commands
 
