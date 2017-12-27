@@ -63,6 +63,8 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[Result] with LazyLogging {
 
+  def configureColumnFamilyDescriptor(desc: HColumnDescriptor): Unit = {}
+
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     super.configure(sft, ds)
 
@@ -90,6 +92,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
         val descriptor = new HTableDescriptor(name)
         val dcfd = HBaseFeatureIndex.buildDataColumnFamilyDescriptor(sft)
         descriptor.addFamily(dcfd)
+        configureColumnFamilyDescriptor(dcfd)
         if (ds.config.remoteFilter) {
           import CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY
           // if the coprocessors are installed site-wide don't register them in the table descriptor
