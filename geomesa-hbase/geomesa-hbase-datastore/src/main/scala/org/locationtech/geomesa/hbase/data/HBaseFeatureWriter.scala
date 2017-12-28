@@ -46,7 +46,7 @@ trait HBaseFeatureWriter extends HBaseFeatureWriterType {
   override protected def executeRemove(mutator: BufferedMutator, removes: Seq[Mutation]): Unit =
     removes.foreach(mutator.mutate)
 
-  override def wrapFeature(feature: SimpleFeature): HBaseFeature = new HBaseFeature(feature, serializer)
+  override protected def wrapFeature(feature: SimpleFeature): HBaseFeature = new HBaseFeature(feature, serializer)
 
   override def flush(): Unit = {
     // note: BufferedMutator doesn't implement Flushable, so super class won't call it

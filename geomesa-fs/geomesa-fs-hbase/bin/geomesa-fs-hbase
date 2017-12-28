@@ -1,0 +1,86 @@
+#! /usr/bin/env bash
+#
+# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+
+# Set environment variables in conf/geomesa-env.sh
+
+if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
+  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+fi
+
+# Load common functions and setup
+. "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
+
+# Start constructing GEOMESA_CP (classpath)
+# Note that we always include all of the lib and conf directories
+# include geomesa first so that the correct log4j.properties is picked up
+GEOMESA_CP=$(combineClasspaths ${GEOMESA_CONF_DIR} "${GEOMESA_LIB}/*")
+
+# Prepend user defined directories to the classpath using java classpath syntax
+# We preprend so that they take precedence when explicitly defined by the user
+if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
+  GEOMESA_CP="$(combineClasspaths ${GEOMESA_EXTRA_CLASSPATHS} ${GEOMESA_CP})"
+fi
+
+setHadoopClasspath
+
+# Set the HBase classpaths for geomesa tools
+# first check to see if it is defined already from the geomesa-env script
+if [[ -z "${GEOMESA_HBASE_CLASSPATH}" ]]; then
+  # HBase paths, user can hard set these in geomesa-env, or rely on this script to find set them via HBASE_HOME
+  if [[ -n "${HBASE_HOME}" ]]; then
+    if [[ -z "${HBASE_LIB}" && -d "${HBASE_HOME}/lib" ]]; then
+      HBASE_LIB=${HBASE_HOME}/lib
+    fi
+    if [[ -z "${HBASE_CONF_DIR}" && -d "${HBASE_HOME}/conf" ]]; then
+      HBASE_CONF_DIR="${HBASE_HOME}/conf"
+    fi
+  fi
+
+  HBASE_CP=""
+  if [[ -n "${HBASE_CONF_DIR}" ]]; then
+    HBASE_CP="$(combineClasspaths ${HBASE_CP} ${HBASE_CONF_DIR})"
+  fi
+
+  if [[ -n "${HBASE_LIB}" ]]; then
+    HBASE_CP="$(combineClasspaths ${HBASE_CP} $(findJars $HBASE_LIB true true))"
+  fi
+
+  # If the no hbase classpath is set from env vars perhaps try the path (works on AWS EMR)
+  if [[ -z "${HBASE_CP}" && -n "$(command -v hbase)" ]]; then
+    HBASE_CP=$(hbase classpath)
+  fi
+
+  GEOMESA_HBASE_CLASSPATH="${HBASE_CP}"
+fi
+
+# Geomesa tools setup completed, below we parse user arguments
+#
+# configure - runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
+# classpath - prints the Java classpath
+# else is running actual commands in the tools
+
+FILTERED_CLASSPATHS=$(combineClasspaths $(excludeLogJarsFromClasspath ${GEOMESA_HBASE_CLASSPATH}) $(excludeLogJarsFromClasspath ${GEOMESA_HADOOP_CLASSPATH}))
+CLASSPATH="${GEOMESA_CP}"
+if [[ -n "${FILTERED_CLASSPATHS}" ]]; then
+  CLASSPATH="${CLASSPATH}:${FILTERED_CLASSPATHS}"
+fi
+
+if  [[ $1 = configure ]]; then
+  geomesaConfigure
+elif [[ $1 = classpath ]]; then
+  for element in ${CLASSPATH//:/ } ; do
+    echo ${element}
+  done
+else
+  if [[ $1 = debug ]]; then
+    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
+    shift 1
+  fi
+  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.fs.hbase.tools.FsHBaseRunner "$@"
+fi

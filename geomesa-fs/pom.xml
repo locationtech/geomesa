@@ -11,6 +11,7 @@
     <name>GeoMesa FileSystem</name>
     <modules>
         <module>geomesa-fs-datastore</module>
+        <module>geomesa-fs-hbase</module>
         <module>geomesa-fs-storage-api</module>
         <module>geomesa-fs-storage-common</module>
         <module>geomesa-fs-storage-parquet</module>

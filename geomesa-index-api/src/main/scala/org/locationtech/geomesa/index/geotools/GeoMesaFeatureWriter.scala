@@ -118,14 +118,14 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
   private val (tables, writeConverters, removeConverters) =
     GeoMesaFeatureWriter.getTablesAndConverters[DS, F, W](sft, ds, indices)
 
-  protected val mutators = createMutators(tables)
+  protected val mutators: IndexedSeq[T] = createMutators(tables)
   private val writers = mutators.zip(writeConverters)
   private val removers = mutators.zip(removeConverters)
 
-  protected val exceptions = ArrayBuffer.empty[Throwable]
+  protected val exceptions: ArrayBuffer[Throwable] = ArrayBuffer.empty[Throwable]
 
   // returns a temporary id - we will replace it just before write
-  protected def nextFeatureId = GeoMesaFeatureWriter.tempFeatureIds.getAndIncrement().toString
+  protected def nextFeatureId: String = GeoMesaFeatureWriter.tempFeatureIds.getAndIncrement().toString
 
   protected def writeFeature(feature: SimpleFeature): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
