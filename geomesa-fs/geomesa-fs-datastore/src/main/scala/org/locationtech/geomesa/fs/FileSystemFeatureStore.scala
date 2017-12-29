@@ -8,8 +8,10 @@
 
 package org.locationtech.geomesa.fs
 
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
+import com.google.common.cache._
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.FileSystem
 import org.geotools.data.simple.DelegateSimpleFeatureReader
@@ -37,7 +39,27 @@ class FileSystemFeatureStore(entry: ContentEntry,
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
       private val typeName = query.getTypeName
 
-      private val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+      private val loader = new CacheLoader[String, FileSystemWriter]() {
+        override def load(key: String): FileSystemWriter = storage.getWriter(typeName, key)
+      }
+      private val removalListener = new RemovalListener[String, FileSystemWriter]() {
+        override def onRemoval(notification: RemovalNotification[String, FileSystemWriter]): Unit = {
+          if(notification.getCause == RemovalCause.EXPIRED) {
+            logger.info(s"Flushing writer for partition: ${notification.getKey}")
+            val writer = notification.getValue
+            writer.flush()
+            CloseWithLogging(writer)
+          }
+        }
+      }
+
+      private val GEOMESA_FSDS_FILE_EXPIRATION_MILLIS = "geomesa.fsds.file.expiration.millis"
+      private val fileExpirationMillis = System.getProperty(GEOMESA_FSDS_FILE_EXPIRATION_MILLIS, "60000").toInt
+      private val writers =
+        CacheBuilder.newBuilder()
+          .expireAfterAccess(fileExpirationMillis, TimeUnit.MILLISECONDS)
+          .removalListener[String, FileSystemWriter](removalListener)
+          .build(loader)
 
       private val sft = _sft
 
@@ -55,7 +77,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
 
       override def write(): Unit = {
         val partition = storage.getPartitionScheme(typeName).getPartitionName(feature)
-        val writer = writers.getOrElseUpdate(partition, storage.getWriter(typeName, partition))
+        val writer = writers.get(partition)
         writer.write(feature)
         feature = null
       }
@@ -63,7 +85,8 @@ class FileSystemFeatureStore(entry: ContentEntry,
       override def remove(): Unit = throw new NotImplementedError()
 
       override def close(): Unit = {
-        writers.foreach { case (_, writer) =>
+        import scala.collection.JavaConversions._
+        writers.asMap().values().foreach { writer =>
           writer.flush()
           CloseWithLogging(writer)
         }

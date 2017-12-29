@@ -206,6 +206,8 @@ class ParquetFileSystemStorage(root: Path,
 
       override def write(f: SimpleFeature): Unit = writer.write(f)
 
+      override def getDataSize: Long = writer.getDataSize
+
       override def flush(): Unit = {}
 
       override def close(): Unit = CloseQuietly(writer)
