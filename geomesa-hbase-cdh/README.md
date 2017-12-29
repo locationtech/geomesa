@@ -20,6 +20,13 @@ setvar ZOOKEEPER_HOME /opt/cloudera/parcels/CDH/lib/zookeeper
 * Upload `../dist/hbase/geomesa-hbase-distributed-runtime_2.11-1.3.5.jar` to HDFS under `hdfs:///hbase/lib`
 * Copy `geomesa-site.xml` to `../geomesa-hbase/conf`
 * Symlink `hbase-site.xml`: `ln -s /etc/hbase/conf.cloudera.hbase/hbase-site.xml ../geomesa-hbase/conf/hbase-site.xml`
-* Run `install-hbase.sh` script: `../geomesa-hbase/bin/./install-hbase.sh`
+* Run `install-hbase.sh` script: `../geomesa-hbase/bin/./install-hbase.sh /path/to/geomesa-hbase_2.11-1.3.5/lib -h 1.2.3`
+* Get missing jars from CDH HBase: 
+```
+ln -s /opt/cloudera/parcels/CDH/lib/hbase/lib/metrics-core-2.2.0.jar /path/to/geomesa-hbase_2.11-1.3.5/lib/metrics-core-2.2.0.jar;
+ln -s /opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.2.0-incubating.jar /path/to/geomesa-hbase_2.11-1.3.5/lib/htrace-core-3.2.0-incubating.jar;
+```
+* All Set! Test client tools:
+`bin/geomesa-hbase ingest -c example-csv -s example-csv -C example-csv examples/ingest/csv/example.csv`
 
 ## Build from source 
