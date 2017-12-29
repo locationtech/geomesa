@@ -1,4 +1,4 @@
-# Deploying GeoMesa 1.3.x on CDH 5.9.X
+# Deploying GeoMesa 1.3.x on CDH 5.X.X
 
 ## Quickstart
 * Download [GeoMesa HBase 1.3.5](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.5/geomesa-hbase_2.11-1.3.5-bin.tar.gz)
