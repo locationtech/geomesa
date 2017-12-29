@@ -32,7 +32,6 @@ import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.conf.DigitSplitter
 import org.locationtech.geomesa.index.geotools.CachingFeatureCollection
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -321,8 +320,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create a schema with custom record splitting options with table sharing off" in {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
-          s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
+          "table.splitter.options='id.type:digit,fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
       sft.setTableSharing(false)
       ds.createSchema(sft)
@@ -334,8 +333,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create a schema with custom record splitting options with table sharing on" in {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
-        s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
+        "table.splitter.options='id.type:digit,fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("customsplit2", spec)
       sft.setTableSharing(true)
 
