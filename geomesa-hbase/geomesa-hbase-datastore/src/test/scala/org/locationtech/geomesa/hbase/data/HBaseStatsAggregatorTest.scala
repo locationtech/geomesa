@@ -18,7 +18,6 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils.decodeStat
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats._
@@ -27,6 +26,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 
 class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
+
+  import org.locationtech.geomesa.index.iterators.StatsScan.decodeStat
 
   sequential
 

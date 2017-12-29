@@ -143,7 +143,7 @@ class FilterConverter(sft: SimpleFeatureType) {
           case _ =>
             val ad = sft.getDescriptor(name)
             val binding = ad.getType.getBinding
-            val (objectType: ObjectType, _) = ObjectType.selectType(binding, ad.getUserData)
+            val objectType: ObjectType = ObjectType.selectType(binding, ad.getUserData).head
             filter(objectType, binop, name, value)
         }
 

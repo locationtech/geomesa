@@ -25,9 +25,7 @@ case object RecordIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
 
   def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id
 
-  override val name: String = "records"
-
-  override val version: Int = 2
+  override val version: Int = 3
 
   override val serializedWithId: Boolean = false
 

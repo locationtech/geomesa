@@ -231,7 +231,8 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
     * We always collect a total count stat.
     * For the default geometry and default date, we collect a min/max and histogram.
     * If there is both a default geometry and date, we collect a z3 histogram.
-    * For any indexed attributes, we collect a min/max, frequency and histogram.
+    * For any indexed attributes, we collect a min/max, top-k, frequency and histogram.
+    * For any flagged attributes, we collect min/max and top-k
     *
     * @param sft simple feature type
     * @return stat string

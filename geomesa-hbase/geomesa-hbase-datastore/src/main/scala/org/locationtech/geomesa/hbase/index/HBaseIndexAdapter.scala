@@ -20,7 +20,7 @@ import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.hbase.{HBaseFeatureIndexType, HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -95,7 +95,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
         Some(CoprocessorConfig(options, HBaseArrowAggregator.bytesToFeatures, reduce))
       } else if (hints.isStatsQuery) {
         val options = HBaseStatsAggregator.configure(sft, filter.index, ecql, hints)
-        val reduce = KryoLazyStatsUtils.reduceFeatures(returnSchema, hints)(_)
+        val reduce = StatsScan.reduceFeatures(returnSchema, hints)(_)
         Some(CoprocessorConfig(options, HBaseStatsAggregator.bytesToFeatures, reduce))
       } else if (hints.isBinQuery) {
         val options = HBaseBinAggregator.configure(sft, filter.index, ecql, hints)

@@ -90,7 +90,7 @@ object ArrowAttributeReader {
   def id(vector: NullableMapVector, includeFids: Boolean): ArrowAttributeReader = {
     if (includeFids) {
       val child = vector.getChild(SimpleFeatureVector.FeatureIdField)
-      ArrowAttributeReader(Seq(ObjectType.STRING), classOf[String], child, None, null)
+      ArrowAttributeReader(Seq(ObjectType.STRING), child, None, null)
     } else {
       ArrowAttributeReader.ArrowIncrementingFeatureIdReader
     }
@@ -122,30 +122,26 @@ object ArrowAttributeReader {
             vector: FieldVector,
             dictionary: Option[ArrowDictionary],
             encoding: SimpleFeatureEncoding): ArrowAttributeReader = {
-    val classBinding = descriptor.getType.getBinding
-    val (objectType, bindings) = ObjectType.selectType(classBinding, descriptor.getUserData)
-    apply(bindings.+:(objectType), classBinding, vector, dictionary, encoding)
+    apply(ObjectType.selectType(descriptor), vector, dictionary, encoding)
   }
 
   /**
     * Creates an attribute reader for a single attribute
     *
     * @param bindings object bindings, the attribute type plus any subtypes (e.g. for lists or maps)
-    * @param classBinding the explicit class binding of the attribute
     * @param vector the simple feature vector to read from
     * @param dictionary the dictionary for the attribute, if any
     * @param encoding encoding options
     * @return reader
     */
   def apply(bindings: Seq[ObjectType],
-            classBinding: Class[_],
             vector: FieldVector,
             dictionary: Option[ArrowDictionary],
             encoding: SimpleFeatureEncoding): ArrowAttributeReader = {
     dictionary match {
       case None =>
         bindings.head match {
-          case ObjectType.GEOMETRY => ArrowGeometryReader(vector, classBinding, encoding.geometry)
+          case ObjectType.GEOMETRY => ArrowGeometryReader(vector, bindings(1), encoding.geometry)
           case ObjectType.DATE     => ArrowDateReader(vector, encoding.date)
           case ObjectType.STRING   => new ArrowStringReader(vector.asInstanceOf[NullableVarCharVector])
           case ObjectType.INT      => new ArrowIntReader(vector.asInstanceOf[NullableIntVector])
@@ -162,7 +158,7 @@ object ArrowAttributeReader {
         }
 
       case Some(dict) =>
-        val dictionaryType = TypeBindings(bindings, classBinding, encoding)
+        val dictionaryType = TypeBindings(bindings, encoding)
         vector match {
           case v: NullableTinyIntVector  => new ArrowDictionaryByteReader(v, dict, dictionaryType)
           case v: NullableSmallIntVector => new ArrowDictionaryShortReader(v, dict, dictionaryType)
@@ -238,41 +234,41 @@ object ArrowAttributeReader {
   }
 
   object ArrowGeometryReader {
-    def apply(vector: FieldVector, binding: Class[_], precision: EncodingPrecision): ArrowAttributeReader = {
-      if (binding == classOf[Point]) {
+    def apply(vector: FieldVector, binding: ObjectType, precision: EncodingPrecision): ArrowAttributeReader = {
+      if (binding == ObjectType.POINT) {
         val delegate = precision match {
           case EncodingPrecision.Min => new PointFloatReader(vector.asInstanceOf[FixedSizeListVector])
           case EncodingPrecision.Max => new PointDoubleReader(vector.asInstanceOf[FixedSizeListVector])
         }
         new ArrowPointReader(vector, delegate.asInstanceOf[AbstractPointVector.PointReader])
-      } else if (binding == classOf[LineString]) {
+      } else if (binding == ObjectType.LINESTRING) {
         val delegate = precision match {
           case EncodingPrecision.Min => new LineStringFloatReader(vector.asInstanceOf[ListVector])
           case EncodingPrecision.Max => new LineStringDoubleReader(vector.asInstanceOf[ListVector])
         }
         new ArrowLineStringReader(vector, delegate.asInstanceOf[AbstractLineStringVector.LineStringReader])
       } else {
-        val delegate: GeometryReader[_ <: Geometry] = if (binding == classOf[Polygon]) {
+        val delegate: GeometryReader[_ <: Geometry] = if (binding == ObjectType.POLYGON) {
           precision match {
             case EncodingPrecision.Min => new PolygonFloatReader(vector.asInstanceOf[ListVector])
             case EncodingPrecision.Max => new PolygonDoubleReader(vector.asInstanceOf[ListVector])
           }
-        } else if (binding == classOf[MultiLineString]) {
+        } else if (binding == ObjectType.MULTILINESTRING) {
           precision match {
             case EncodingPrecision.Min => new MultiLineStringFloatReader(vector.asInstanceOf[ListVector])
             case EncodingPrecision.Max => new MultiLineStringDoubleReader(vector.asInstanceOf[ListVector])
           }
-        } else if (binding == classOf[MultiPolygon]) {
+        } else if (binding == ObjectType.MULTIPOLYGON) {
           precision match {
             case EncodingPrecision.Min => new MultiPolygonFloatReader(vector.asInstanceOf[ListVector])
             case EncodingPrecision.Max => new MultiPolygonDoubleReader(vector.asInstanceOf[ListVector])
           }
-        } else if (binding == classOf[MultiPoint]) {
+        } else if (binding == ObjectType.MULTIPOINT) {
           precision match {
             case EncodingPrecision.Min => new MultiPointFloatReader(vector.asInstanceOf[ListVector])
             case EncodingPrecision.Max => new MultiPointDoubleReader(vector.asInstanceOf[ListVector])
           }
-        } else if (classOf[Geometry].isAssignableFrom(binding)) {
+        } else if (binding == ObjectType.GEOMETRY_COLLECTION) {
           throw new NotImplementedError(s"Geometry type $binding is not supported")
         } else {
           throw new IllegalArgumentException(s"Expected geometry type, got $binding")

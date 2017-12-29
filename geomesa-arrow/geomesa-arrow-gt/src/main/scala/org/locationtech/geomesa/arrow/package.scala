@@ -27,5 +27,5 @@ package object arrow {
     val BatchSize = SystemProperty("geomesa.arrow.batch.size", "10000")
   }
 
-  case class TypeBindings(bindings: Seq[ObjectType], classBinding: Class[_], encoding: SimpleFeatureEncoding)
+  case class TypeBindings(bindings: Seq[ObjectType], encoding: SimpleFeatureEncoding)
 }

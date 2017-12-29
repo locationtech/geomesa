@@ -18,7 +18,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.EnumerationStat
@@ -62,7 +62,7 @@ class AttributeIndexValuesTest extends TestWithDataStore {
           query.getHints.put(QueryHints.ENCODE_STATS, true)
           foreach(ds.getQueryPlan(query)) { plan => plan must beAnInstanceOf[BatchScanPlan] }
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-          val stats = results.map(f => KryoLazyStatsUtils.decodeStat(sft)(f.getAttribute(0).asInstanceOf[String])).toList
+          val stats = results.map(f => StatsScan.decodeStat(sft)(f.getAttribute(0).asInstanceOf[String])).toList
           stats must haveLength(1)
           stats.head must beAnInstanceOf[EnumerationStat[String]]
           stats.head.asInstanceOf[EnumerationStat[String]].attribute mustEqual sft.indexOf(enumeration)

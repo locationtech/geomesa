@@ -27,7 +27,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -38,10 +38,10 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
   override val params = new ConvertParameters
 
   override def execute(): Unit = {
-    implicit val timing: Timing = new Timing
-    val count = profile(convertAndExport())
-    Command.user.info(s"Conversion complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
-        s"in ${timing.time}ms${count.map(c => s" for $c features").getOrElse("")}")
+    profile(convertAndExport()) { (count, time) =>
+      Command.user.info(s"Conversion complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
+          s"in ${time}ms${count.map(c => s" for $c features").getOrElse("")}")
+    }
   }
 
   private def convertAndExport(): Option[Long] = {
@@ -67,7 +67,7 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
 
     def features() = ConvertCommand.convertFeatures(files, converter, ec, filter, maxFeatures)
 
-    val exporter = getExporter(params, sft, features())
+    val exporter = getExporter(params, features())
 
     try {
       exporter.start(sft)
@@ -95,9 +95,7 @@ object ConvertCommand extends LazyLogging {
     SimpleFeatureConverters.build(sft, converterConfig)
   }
 
-  def getExporter(params: ConvertParameters,
-                  sft: SimpleFeatureType,
-                  features: => Iterator[SimpleFeature]): FeatureExporter = {
+  def getExporter(params: ConvertParameters, features: => Iterator[SimpleFeature]): FeatureExporter = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     lazy val outputStream: OutputStream = ExportCommand.createOutputStream(params.file, params.gzip)
@@ -107,7 +105,7 @@ object ConvertCommand extends LazyLogging {
       val q = new Query("")
       Option(params.hints).foreach { hints =>
         q.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
-        ViewParams.setHints(sft, q)
+        ViewParams.setHints(q)
       }
       q.getHints
     }

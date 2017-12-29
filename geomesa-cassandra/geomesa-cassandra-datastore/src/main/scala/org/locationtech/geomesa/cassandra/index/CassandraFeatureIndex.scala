@@ -60,12 +60,19 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType with ClientSideFil
     }
   }
 
+  override def removeAll(sft: SimpleFeatureType, ds: CassandraDataStore): Unit = {
+    val tableName = getTableName(sft.getTypeName, ds)
+    val truncate = s"TRUNCATE $tableName"
+    logger.info(truncate)
+    ds.session.execute(truncate)
+  }
+
   override def delete(sft: SimpleFeatureType, ds: CassandraDataStore, shared: Boolean): Unit = {
     if (shared) {
-      throw new NotImplementedError() // TODO
+      throw new NotImplementedError("Cassandra tables are never shared")
     } else {
       val tableName = getTableName(sft.getTypeName, ds)
-      val delete = s"drop table if exists $tableName"
+      val delete = s"DROP TABLE IF EXISTS $tableName"
       logger.info(delete)
       ds.session.execute(delete)
     }

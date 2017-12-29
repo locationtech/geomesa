@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.tools
 import java.io.File
 import java.net.{MalformedURLException, URL}
 import java.util
-import java.util.concurrent.atomic.AtomicBoolean
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
@@ -57,13 +56,13 @@ object FsDataStoreCommand {
 }
 
 trait PathParam {
-  @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
+  @Parameter(names = Array("-p", "--path"), description = "Path to root of filesystem datastore", required = true)
   var path: String = _
 }
 
 // TODO future work would be nice to store this in metadata
 trait EncodingParam {
-  @Parameter(names = Array("--encoding", "-e"), description = "Encoding (parquet, csv, etc)", required = true)
+  @Parameter(names = Array("-e", "--encoding"), description = "Encoding (parquet, csv, etc)", required = true)
   var encoding: String = _
 }
 

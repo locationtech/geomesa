@@ -16,7 +16,6 @@ import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.Value
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -38,7 +37,7 @@ class IndexValueEncoderTest extends Specification {
 
   // b/c the IndexValueEncoder caches feature types, we need to change the sft name for each test
   val index = new AtomicInteger(0)
-  def getSft(schema: String = defaultSchema, version: Int = CURRENT_SCHEMA_VERSION) = {
+  def getSft(schema: String = defaultSchema, version: Int = 10) = {
     val sft = SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
     sft.setSchemaVersion(version)
     sft

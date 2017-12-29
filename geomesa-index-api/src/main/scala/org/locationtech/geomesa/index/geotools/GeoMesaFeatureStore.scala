@@ -13,9 +13,11 @@ import java.util.{List => jList}
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature._
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -66,21 +68,15 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
   }
 
   override def setFeatures(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): Unit = {
-    val remover = getDataStore.getFeatureWriter(sft.getTypeName, transaction)
-    val writer = getDataStore.getFeatureWriterAppend(sft.getTypeName, transaction)
-
+    removeFeatures(Filter.INCLUDE)
     try {
-      while (remover.hasNext) {
-        remover.next()
-        remover.remove()
-      }
-      while (reader.hasNext) {
-        FeatureUtils.copyToWriter(writer, reader.next())
-        writer.write()
+      WithClose(ds.getFeatureWriterAppend(sft.getTypeName, transaction)) { writer =>
+        while (reader.hasNext) {
+          FeatureUtils.copyToWriter(writer, reader.next())
+          writer.write()
+        }
       }
     } finally {
-      remover.close()
-      writer.close()
       reader.close()
     }
   }
@@ -107,8 +103,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
     attributes.foreach(a => require(sft.getDescriptor(a) != null, s"$a is not an attribute of ${sft.getName}"))
     require(attributes.length == values.length, "Modified names and values don't match")
 
-    val writer = getDataStore.getFeatureWriter(sft.getTypeName, filter, transaction)
-    try {
+    WithClose(ds.getFeatureWriter(sft.getTypeName, filter, transaction)) { writer =>
       while (writer.hasNext) {
         val sf = writer.next()
         var i = 0
@@ -124,20 +119,27 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
         }
         writer.write()
       }
-    } finally {
-      writer.close()
     }
   }
 
   override def removeFeatures(filter: Filter): Unit = {
-    val writer = getDataStore.getFeatureWriter(sft.getTypeName, filter, transaction)
-    try {
-      while (writer.hasNext) {
-        writer.next()
-        writer.remove()
+    // check for Filter.INCLUDE and optimized delete
+    if (filter == Filter.INCLUDE && ds.isInstanceOf[GeoMesaDataStore[_, _, _]]) {
+      // use reflection to get around scala's type checking...
+      val method = classOf[GeoMesaFeatureIndex[_, _, _]].getDeclaredMethods.find(_.getName == "removeAll").getOrElse {
+        throw new IllegalStateException("Can't find method 'removeAll' in GeoMesaFeatureIndex")
       }
-    } finally {
-      writer.close()
+      ds.asInstanceOf[GeoMesaDataStore[_, _, _]].manager.indices(sft, IndexMode.Write).foreach {
+        index: GeoMesaFeatureIndex[_, _, _] => method.invoke(index, sft, ds)
+      }
+      ds.asInstanceOf[GeoMesaDataStore[_, _, _]].stats.clearStats(sft)
+    } else {
+      WithClose(ds.getFeatureWriter(sft.getTypeName, filter, transaction)) { writer =>
+        while (writer.hasNext) {
+          writer.next()
+          writer.remove()
+        }
+      }
     }
   }
 

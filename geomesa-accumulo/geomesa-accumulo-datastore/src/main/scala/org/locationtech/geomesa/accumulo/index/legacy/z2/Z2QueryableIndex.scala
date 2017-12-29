@@ -22,8 +22,9 @@ import org.locationtech.geomesa.accumulo.iterators.{Z2DensityIterator, _}
 import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
-import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils, SplitArrays}
+import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
@@ -95,7 +96,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
       (Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce), FullColumnFamily, false)
     } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)
-      val reduce = Some(KryoLazyStatsUtils.reduceFeatures(sft, hints)(_))
+      val reduce = Some(StatsScan.reduceFeatures(sft, hints)(_))
       (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(), reduce, FullColumnFamily, false)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, sft.nonPoints)

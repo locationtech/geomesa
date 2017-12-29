@@ -1,23 +1,31 @@
 Installing GeoMesa Bigtable
 ===========================
 
+.. _install_bigtable_tools:
+
 Installing the Binary Distribution
 ----------------------------------
 
 GeoMesa Bigtable artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
-and untar it somewhere convenient:
+The easiest way to get started is to download the most recent binary version
+(|release|) from `GitHub`__.
+
+__ https://github.com/locationtech/geomesa/releases
+
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
-    # Install to /opt/ adapt as needed for your environment
+    # download and unpackage the most recent distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz -C /opt/
-
-    # Add symbolic links
-    $ ln -s /opt/geomesa-bigtable-dist_2.11-$VERSION /opt/geomesa
-    $ ls /opt/geomesa
+    $ tar xvf geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-bigtable-dist_2.11-$VERSION
+    $ ls
     bin  conf  dist  docs  examples  lib  LICENSE.txt  logs
+
+To run the command-line tools, the configuration file ``hbase-site.xml`` must be on the classpath. This can
+be accomplished by placing the file in the ``conf`` folder. For more information, see `Connecting to Cloud Bigtable
+<https://cloud.google.com/bigtable/docs/connecting-hbase>`__.
 
 .. _install_bigtable_geoserver:
 

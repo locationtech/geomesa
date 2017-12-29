@@ -35,53 +35,17 @@ Some queries are slow to answer using the default indices. For example, with twi
 might want to return all tweets for a given user. To speed up this type of query, any
 attribute in your simple feature type may be indexed individually.
 
-To index an attribute, add an ``index`` hint to the attribute descriptor with a value of ``true``. To set
-the cardinality of an attribute, use the hint ``cardinality`` with a value of ``high`` or ``low`` (see below
-for a description of cardinality hints).
+To index an attribute, add an ``index`` key to the attribute descriptor user data with a value of ``true``.
 
 .. note::
 
     Accumulo data stores have an additional option to create reduced 'join' attribute indices, which can
     save space. See :ref:`accumulo_attribute_indices` for details.
 
-Setting the hint can be done in multiple ways. If you are using a string to indicate your simple feature type
-(e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
-the hint to the attribute to be indexed, like so:
-
 .. code-block:: java
 
-    // append the hint after the attribute type, separated by a colon
-    String spec = "name:String:index=true:cardinality=high,age:Int:index=true,dtg:Date,*geom:Point:srid=4326"
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-
-If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
-you may set the hint directly in the feature type:
-
-.. code-block:: java
-
-    // set the hint directly
     SimpleFeatureType sft = ...
     sft.getDescriptor("name").getUserData().put("index", "true");
-    sft.getDescriptor("name").getUserData().put("cardinality", "high");
-    sft.getDescriptor("age").getUserData().put("index", "true");
-
-If you are using TypeSafe configuration files to define your simple feature type, you may include the hint in
-the attribute field:
-
-.. code-block:: javascript
-
-    geomesa {
-      sfts {
-        "mySft" = {
-          attributes = [
-            { name = name, type = String, index = true, cardinality = high }
-            { name = age,  type = Int,    index = true                     }
-            { name = dtg,  type = Date                                     }
-            { name = geom, type = Point,  srid = 4326                      }
-          ]
-        }
-      }
-    }
 
 If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
 
@@ -89,33 +53,13 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
 
     // scala example
     import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
-    import org.locationtech.geomesa.utils.stats.Cardinality
 
     val sft = new SftBuilder()
-        .stringType("name", Opts(index = true, cardinality = Cardinality.HIGH))
-        .intType("age", Opts(index = true))
+        .stringType("name", Opts(index = true)
         .date("dtg")
         .geometry("geom", default = true)
         .build("mySft")
 
-Cardinality Hints
-^^^^^^^^^^^^^^^^^
+Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
 
-GeoMesa has a query planner that tries to find the best strategy for answering a given query. In
-general, this means using the index that will filter the result set the most, before considering
-the entire query filter on the reduced data set. For simple queries, there is often only one
-suitable index. However, for mixed queries, there can be multiple options.
-
-For example, given the query ``bbox(geom, -120, -60, 120, 60) AND IN('id-01')``, we could try to
-execute against the spatial index using the bounding box, or we could try to execute against the
-ID index using the feature ID. In this case, we know that the ID filter will match at most one
-record, while the bbox filter could match many records, so we will choose the ID index.
-
-Attributes that are know to have many distinct values, i.e. a high cardinality, are likely to filter
-out many false positives through the index structure, and thus a query against the attribute index will
-touch relatively few records. Conversely, in the worst case, a Boolean attribute (for example), with only
-two distinct values, would likely require scanning half of the entire data set.
-
-Cardinality hints may be used to influence the query planner when considering attribute indices.
-If an attribute is marked as having a high cardinality, the attribute index will be prioritized.
-Conversely, if an attribute is marked with low cardinality, the attribute index will be de-prioritized.
+To prioritize certain attributes over others, see :ref:`attribute_cardinality`.

@@ -66,12 +66,9 @@ from target.versions import release,version,version_devel,release_last
 # Other versions and variables unlikely to change on every point release
 release_1_2 = '1.2.7.3'
 release_eclipse = '1.2.0'
-release_tutorial = '1.3.0.0-m2'
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
 
 url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
-
-
 
 
 # RST appended to every file. Used for global substitions.
@@ -115,13 +112,11 @@ rst_epilog = """
 
 .. |release_1_2_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release_1_2)s.tar.gz
 
-.. |release_tutorial| replace:: %(release_tutorial)s
+.. |maven_version| replace:: 3.2.2 or later
 
-.. |maven_version| replace:: 3.2.2 or better
+.. |geoserver_version| replace:: 2.12.x
 
-.. |geoserver_version| replace:: 2.9.x
-
-.. |geotools_version| replace:: 15.x
+.. |geotools_version| replace:: 18.x
 
 .. |accumulo_version| replace:: 1.7 or 1.8
 
@@ -139,7 +134,6 @@ rst_epilog = """
        "release_last": release_last,
        "release_1_2": release_1_2,
        "release_eclipse": release_eclipse,
-       "release_tutorial": release_tutorial,
        "version_devel": version_devel,
        "url_locationtech_release": url_locationtech_release,
        "url_github_archive": url_github_archive}

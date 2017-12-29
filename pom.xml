@@ -24,6 +24,7 @@
         <module>geomesa-accumulo</module>
         <module>geomesa-archetypes</module>
         <module>geomesa-arrow</module>
+        <module>geomesa-bigtable</module>
         <module>geomesa-blobstore</module>
         <module>geomesa-cassandra</module>
         <module>geomesa-convert</module>
@@ -135,6 +136,7 @@
     </properties>
 
     <profiles>
+
         <profile>
             <id>zinc</id>
             <build>

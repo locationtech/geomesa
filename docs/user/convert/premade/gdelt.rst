@@ -16,6 +16,11 @@ GDELT data is updated each morning at 6am.
 Getting GDELT data
 ------------------
 
+GDELT has two different formats, the original 1.0 and the new 2.0 format. See
+`the GDELT documentation, <https://www.gdeltproject.org/data.html#documentation>`__
+for more information. GeoMesa provides simple feature types and converters for both,
+named ``gdelt`` and ``gdelt2``, respectively.
+
 The GDELT data set can be downloaded using the provided
 ``download-data.sh`` script in ``$GEOMESA_ACCUMULO_HOME/bin/`` as such
 
@@ -41,7 +46,7 @@ documentation
 Ingest Commands
 ---------------
 
-Check that the ``gdelt`` simple feature type is available on the GeoMesa
+Check that the ``gdelt`` and ``gdelt2`` simple feature types are available on the GeoMesa
 tools classpath. This is the default case.
 
 ::

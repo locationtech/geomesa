@@ -99,13 +99,13 @@ object KryoFeatureSerialization {
   def getWriters(key: String, sft: SimpleFeatureType): Array[(Output, AnyRef) => Unit] = {
     import scala.collection.JavaConversions._
     writers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
-      val (otype, bindings) = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
-      matchWriter(otype, bindings)
+      val bindings = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
+      matchWriter(bindings)
     }.toArray)
   }
 
-  private def matchWriter(otype: ObjectType, bindings: Seq[ObjectType] = Seq.empty): (Output, AnyRef) => Unit = {
-    otype match {
+  private def matchWriter(bindings: Seq[ObjectType]): (Output, AnyRef) => Unit = {
+    bindings.head match {
       case ObjectType.STRING =>
         (o: Output, v: AnyRef) => o.writeString(v.asInstanceOf[String]) // write string supports nulls
       case ObjectType.INT =>
@@ -139,7 +139,7 @@ object KryoFeatureSerialization {
       case ObjectType.JSON =>
         (o: Output, v: AnyRef) => KryoJsonSerialization.serialize(o, v.asInstanceOf[String])
       case ObjectType.LIST =>
-        val valueWriter = matchWriter(bindings.head)
+        val valueWriter = matchWriter(bindings.drop(1))
         (o: Output, v: AnyRef) => {
           val list = v.asInstanceOf[java.util.List[AnyRef]]
           if (list == null) {
@@ -153,8 +153,8 @@ object KryoFeatureSerialization {
           }
         }
       case ObjectType.MAP =>
-        val keyWriter = matchWriter(bindings.head)
-        val valueWriter = matchWriter(bindings(1))
+        val keyWriter = matchWriter(bindings.slice(1, 2))
+        val valueWriter = matchWriter(bindings.drop(2))
         (o: Output, v: AnyRef) => {
           val map = v.asInstanceOf[java.util.Map[AnyRef, AnyRef]]
           if (map == null) {

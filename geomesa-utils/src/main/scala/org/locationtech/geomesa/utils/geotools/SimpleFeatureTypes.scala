@@ -45,6 +45,8 @@ object SimpleFeatureTypes {
     val Z_SPLITS_KEY        = "geomesa.z.splits"
     val ATTR_SPLITS_KEY     = "geomesa.attr.splits"
     val LOGICAL_TIME_KEY    = "geomesa.logical.time"
+    val COMPRESSION_ENABLED = "geomesa.table.compression.enabled"
+    val COMPRESSION_TYPE    = "geomesa.table.compression.type"  // valid: snappy, lzo, gz(default), bzip2, lz4, zstd
   }
 
   private [geomesa] object InternalConfigs {

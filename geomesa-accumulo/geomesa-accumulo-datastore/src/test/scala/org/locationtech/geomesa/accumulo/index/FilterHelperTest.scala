@@ -12,13 +12,14 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.filter.Bounds
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.FilterHelper._
-import org.locationtech.geomesa.utils.filters.Filters._
+import org.opengis.filter.expression.Expression
 import org.opengis.filter.{And, Filter}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -30,6 +31,14 @@ import scala.util.Random
 class FilterHelperTest extends Specification with Mockito with LazyLogging {
   val ff = CommonFactoryFinder.getFilterFactory2
   val gf = JTSFactoryFinder.getGeometryFactory
+
+  def dt2lit(dt: DateTime): Expression = ff.literal(dt.toDate)
+
+  def dts2lit(start: DateTime, end: DateTime): Expression = ff.literal(
+    new DefaultPeriod(
+      new DefaultInstant(new DefaultPosition(start.toDate)),
+      new DefaultInstant(new DefaultPosition(end.toDate))
+    ))
 
   val min: DateTime = null
   val max: DateTime = null
