@@ -54,7 +54,7 @@ object SimpleFeatureParquetWriter extends LazyLogging {
       .withValidation(false)
       .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
       .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
-      .withRowGroupSize(ParquetWriter.DEFAULT_BLOCK_SIZE)
+      .withRowGroupSize(8*1024*1024)
   }
 
 }
