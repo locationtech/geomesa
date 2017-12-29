@@ -468,7 +468,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     multiPolygonParserFn,
     geometryParserFn,
     geometryCollectionParserFn,
-    reprojectParserFn)
+    projectFromParserFn)
 
   private val gf = JTSFactoryFinder.getGeometryFactory
 
@@ -549,17 +549,17 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     }
   }
 
-  val reprojectParserFn = new TransformerFn {
+  val projectFromParserFn = new TransformerFn {
 
     private val cache = new ConcurrentHashMap[String, MathTransform]
 
-    override val names: Seq[String] = Seq("reproject")
+    override val names: Seq[String] = Seq("projectFrom")
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 
-      val geom = args(0).asInstanceOf[Geometry]
-      val epsg = args(1).asInstanceOf[String]
+      val epsg = args(0).asInstanceOf[String]
+      val geom = args(1).asInstanceOf[Geometry]
       val lenient = if (args.length > 2) { java.lang.Boolean.parseBoolean(args(2).toString) } else { true }
       // transforms should be thread safe according to https://sourceforge.net/p/geotools/mailman/message/32123017/
       val transform = cache.getOrElseUpdate(s"$epsg:$lenient",

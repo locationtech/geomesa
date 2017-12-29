@@ -310,19 +310,20 @@ Example: Parsing GeoJson geometry
         "geometry": {"type": "Point", "coordinates": [55, 56]}
     }
 
-reproject
-^^^^^^^^^
+projectFrom
+^^^^^^^^^^^
 
-Description: Project a geometry from its native CRS to EPSG:4326
+Description: Project a geometry from its native CRS to EPSG:4326. GeoMesa only supports EPSG:4326,
+so geometries must be transformed when ingesting from another CRS.
 
-Usage: ``reproject($0,'EPSG:3857')``
+Usage: ``projectFrom('EPSG:3857',$0)``
 
 Example: Reprojecting a parsed point from EPSG:3857 to EPSG:4326:
 
 ::
 
     # config
-    { name = "geom", transform="reproject(point($2::double, $3::double),'EPSG:3857')" }
+    { name = "geom", transform="projectFrom('EPSG:3857',point($2::double, $3::double))" }
 
     # data
     id,x,y,date

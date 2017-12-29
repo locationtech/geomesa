@@ -400,7 +400,7 @@ class TransformersTest extends Specification {
 
       "reproject to EPSG 4326" >> {
         val geom = WKTUtils.read("POINT (1113194.91 1689200.14)")
-        val trans = Transformers.parseTransform("reproject($1,'EPSG:3857')")
+        val trans = Transformers.parseTransform("projectFrom('EPSG:3857',$1)")
         val transformed = trans.eval(Array("", geom))
         transformed must beAnInstanceOf[Point]
         transformed.asInstanceOf[Point].getX must beCloseTo(15d, 0.001)
