@@ -66,7 +66,7 @@ class BulkCopyCommand extends FsHBaseDataStoreCommand {
     Command.user.info(s"Bulk copy ${if (ok) "complete" else "failed" } in ${TextTools.getTime(start)} with $success " +
         s"features copied and $failed features failed")
 
-    if (ok) {
+    if (ok && params.load) {
       Command.user.info(s"Running HBase incremental load...")
       val start = System.currentTimeMillis()
       val tableName = TableName.valueOf(index.getTableName(params.featureName, hbaseDs))
@@ -86,5 +86,7 @@ object BulkCopyCommand {
       with OptionalCqlFilterParam with RequiredIndexParam {
     @Parameter(names = Array("--output"), description = "Path to write output HFiles", required = true)
     var output: String = _
+    @Parameter(names = Array("--load"), description = "Run HBase incremental load on HFiles")
+    var load: Boolean = true
   }
 }
