@@ -3,7 +3,7 @@
 ## Quickstart
 * Download [GeoMesa HBase 1.3.5](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.5/geomesa-hbase_2.11-1.3.5-bin.tar.gz)
 
-* Unpack, and add to config `../geomesa-hbase/conf/geomesa-env.sh:
+* Unpack, and add to config `../geomesa-hbase/conf/geomesa-env.sh`:
 ```
 setvar HADOOP_HOME /opt/cloudera/parcels/CDH/lib/hadoop
 setvar HADOOP_CONF_DIR /etc/hadoop/conf
