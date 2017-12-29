@@ -72,6 +72,7 @@ class BulkCopyCommand extends FsHBaseDataStoreCommand {
       val tableName = TableName.valueOf(index.getTableName(params.featureName, hbaseDs))
       val table = hbaseDs.connection.getTable(tableName)
       val locator = hbaseDs.connection.getRegionLocator(tableName)
+      // TODO option for "hbase.loadincremental.validate.hfile"
       new LoadIncrementalHFiles(new Configuration).doBulkLoad(output, hbaseDs.connection.getAdmin, table, locator)
       Command.user.info(s"HBase incremental load complete in ${TextTools.getTime(start)}")
     }

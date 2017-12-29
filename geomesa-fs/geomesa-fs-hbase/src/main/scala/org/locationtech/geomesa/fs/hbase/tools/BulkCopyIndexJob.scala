@@ -91,7 +91,8 @@ class BulkCopyIndexJob {
         Thread.sleep(1000)
         if (job.getStatus.getState != JobStatus.State.PREP) {
           if (reducing) {
-            statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), mapCounters, done = false)
+            // TODO we could maybe hook into context.set/getStatus, which is used by the HFileReducer instead of counters
+            statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), Seq.empty, done = false)
           } else {
             val mapProgress = job.mapProgress()
             if (mapProgress < 1f) {
@@ -104,7 +105,7 @@ class BulkCopyIndexJob {
           }
         }
       }
-      statusCallback(s"Map (stage 2/$stageCount): ", job.reduceProgress(), mapCounters, done = true)
+      statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), Seq.empty, done = true)
 
       val counterResult = (written(job), failed(job))
 

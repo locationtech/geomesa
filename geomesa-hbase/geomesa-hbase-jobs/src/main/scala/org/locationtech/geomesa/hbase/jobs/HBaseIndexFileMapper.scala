@@ -112,9 +112,13 @@ object HBaseIndexFileMapper {
       GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
       GeoMesaConfigurator.setIndicesOut(job.getConfiguration, Seq(idx))
       FileOutputFormat.setOutputPath(job, output)
+
       // this defaults to /user/<user>/hbase-staging, which generally doesn't exist...
       job.getConfiguration.set(HConstants.TEMPORARY_FS_DIRECTORY_KEY,
         s"${System.getProperty("java.io.tmpdir")}/hbase-staging")
+      // this requires a connection to hbase, which we don't always have
+      // TODO allow this as an option
+      job.getConfiguration.set(HFileOutputFormat2.LOCALITY_SENSITIVE_CONF_KEY, "false")
 
       job.setMapperClass(classOf[HBaseIndexFileMapper])
       job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])
