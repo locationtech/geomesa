@@ -49,6 +49,8 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
   val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV5, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
   val RecordIndices         = Seq(RecordIndex, RecordIndexV2, RecordIndexV1)
 
+  val DeprecatedSchemaVersionKey = "geomesa.version"
+
   // note: keep in priority order for running full table scans
   // before changing the order, consider the effect of feature validation in
   // org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
@@ -106,8 +108,10 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     lazy val docs =
       "http://www.geomesa.org/documentation/user/jobs.html#updating-existing-data-to-the-latest-index-format"
-    // noinspection ScalaDeprecation
-    val version = sft.getSchemaVersion
+
+    // note: 10 was the last valid value for CURRENT_SCHEMA_VERSION, which is no longer used except
+    // to transition old schemas from the 1.2.5 era
+    val version = sft.userData[String](DeprecatedSchemaVersionKey).map(_.toInt).getOrElse(10)
     val indices = if (version > 8) {
       // note: version 9 was never in a release
       Seq(Z3IndexV3, XZ3Index, Z2IndexV2, XZ2Index, RecordIndexV2, AttributeIndexV3)

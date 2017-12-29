@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, TABLE_SHARING_KEY}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.SHARING_PREFIX_KEY
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
@@ -231,10 +232,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
       }
 
       // Check that unmodifiable user data has not changed
-      val unmodifiableUserdataKeys =
-        Set(SCHEMA_VERSION_KEY, TABLE_SHARING_KEY, SHARING_PREFIX_KEY, DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY)
-
-      unmodifiableUserdataKeys.foreach { key =>
+      MetadataBackedDataStore.unmodifiableUserdataKeys.foreach { key =>
         if (sft.userData[Any](key) != previousSft.userData[Any](key)) {
           throw new UnsupportedOperationException(s"Updating '$key' is not supported")
         }
@@ -405,4 +403,8 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
 
     metadata.insert(sft.getTypeName, metadataMap)
   }
+}
+
+object MetadataBackedDataStore {
+  private val unmodifiableUserdataKeys = Set(TABLE_SHARING_KEY, SHARING_PREFIX_KEY, DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY)
 }

@@ -33,23 +33,17 @@ object IndexValueEncoder {
   def apply(sft: SimpleFeatureType, transform: SimpleFeatureType): SimpleFeatureSerializer = {
     val key = CacheKeyGenerator.cacheKey(sft)
     val indexSft = cache.getOrElseUpdate(key, getIndexSft(sft))
-    if (sft.getSchemaVersion < 4) { // kryo encoding introduced in version 4
-      OldIndexValueEncoder(sft, transform)
-    } else {
-      val encoder = KryoFeatureSerializer(indexSft)
-      val decoder = new ProjectingKryoFeatureDeserializer(indexSft, transform)
-      val copyFunction = getCopyFunction(sft, indexSft)
-      new IndexValueEncoderImpl(copyFunction, indexSft, encoder, decoder)
-    }
+    val encoder = KryoFeatureSerializer(indexSft)
+    val decoder = new ProjectingKryoFeatureDeserializer(indexSft, transform)
+    val copyFunction = getCopyFunction(sft, indexSft)
+    new IndexValueEncoderImpl(copyFunction, indexSft, encoder, decoder)
   }
 
 
   def apply(sft: SimpleFeatureType, includeIds: Boolean = false): SimpleFeatureSerializer = {
     val key = CacheKeyGenerator.cacheKey(sft)
     val indexSft = cache.getOrElseUpdate(key, getIndexSft(sft))
-    if (sft.getSchemaVersion < 4) { // kryo encoding introduced in version 4
-      OldIndexValueEncoder(sft, indexSft)
-    } else if (includeIds) {
+    if (includeIds) {
       val encoder = KryoFeatureSerializer(indexSft)
       val copyFunction = getCopyFunction(sft, indexSft)
       new IndexValueEncoderImpl(copyFunction, indexSft, encoder, encoder)

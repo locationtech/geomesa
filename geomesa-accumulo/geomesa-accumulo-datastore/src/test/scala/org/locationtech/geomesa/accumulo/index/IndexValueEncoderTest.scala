@@ -18,7 +18,6 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
@@ -37,11 +36,8 @@ class IndexValueEncoderTest extends Specification {
 
   // b/c the IndexValueEncoder caches feature types, we need to change the sft name for each test
   val index = new AtomicInteger(0)
-  def getSft(schema: String = defaultSchema, version: Int = 10) = {
-    val sft = SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
-    sft.setSchemaVersion(version)
-    sft
-  }
+  def getSft(schema: String = defaultSchema) =
+    SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
 
   "IndexValueEncoder" should {
     "default to id,geom,date" in {
@@ -183,85 +179,6 @@ class IndexValueEncoderTest extends Specification {
       decoded.getAttribute("s") must beNull
       decoded.getAttribute("u") must beNull
       decoded.getAttribute("dtg") must beNull
-    }
-
-    "maintain backwards compatibility" in {
-      val sft = getSft(version = 0)
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, dt, null, null, null, null, null, null), id)
-      val encoder = IndexValueEncoder(sft)
-      val encoded = _encodeIndexValue(entry)
-      val decoded = encoder.deserialize(encoded.get())
-      decoded must not(beNull)
-      decoded.getAttributeCount mustEqual 2
-      decoded.getAttribute("geom") mustEqual geom
-      decoded.getAttribute("dtg") mustEqual dt
-      decoded.getID mustEqual id
-    }
-
-    "be at least as fast as before" in {
-      skipped("for integration")
-
-      val sft = getSft()
-
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, dt, null, null, null, null, null, null), id)
-
-      val encoder = IndexValueEncoder(sft)
-      val oldEncoder = IndexValueEncoder(getSft(version = 0))
-
-      var totalEncodeNew = 0L
-      var totalDecodeNew = 0L
-
-      var totalEncodeOld = 0L
-      var totalDecodeOld = 0L
-
-      var totalEncodeOriginal = 0L
-      var totalDecodeOriginal = 0L
-
-      // run once to remove any initialization time...
-      oldEncoder.deserialize(oldEncoder.serialize(entry))
-      encoder.deserialize(encoder.serialize(entry))
-      _decodeIndexValue(_encodeIndexValue(entry))
-
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = oldEncoder.serialize(entry)
-        val encode = System.currentTimeMillis()
-        oldEncoder.deserialize(value)
-        val decode = System.currentTimeMillis()
-
-        totalEncodeOld += encode - start
-        totalDecodeOld += decode - encode
-      }
-
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = encoder.serialize(entry)
-        val encode = System.currentTimeMillis()
-        encoder.deserialize(value)
-        val decode = System.currentTimeMillis()
-
-        totalEncodeNew += encode - start
-        totalDecodeNew += decode - encode
-      }
-
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = _encodeIndexValue(entry)
-        val encode = System.currentTimeMillis()
-        _decodeIndexValue(value)
-        val decode = System.currentTimeMillis()
-
-        totalEncodeOriginal += encode - start
-        totalDecodeOriginal += decode - encode
-      }
-
-      println(s"ori $totalEncodeOriginal $totalDecodeOriginal")
-      println(s"old $totalEncodeOld $totalDecodeOld")
-      println(s"new $totalEncodeNew $totalDecodeNew")
-      println
-      success
     }
   }
 
