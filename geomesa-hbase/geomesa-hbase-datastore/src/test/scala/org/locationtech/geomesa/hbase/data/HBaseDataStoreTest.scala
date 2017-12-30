@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
@@ -157,6 +158,27 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
         testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
         testQuery(ds, typeName, "name = 'name5'", null, Seq(toAdd(5)))
       }
+    }
+
+    "support table splits" in {
+      // TODO test non-z3 splits
+      val typeName = "testsplits"
+
+      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+
+      ds.getSchema(typeName) must beNull
+
+      ds.createSchema(SimpleFeatureTypes.createType(typeName,
+        "name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;" +
+            "table.splitter.options='z3.type:z3,min:2017-01-01,max:2017-01-02,bits:2'"))
+
+      val tableName = TableName.valueOf(ds.manager.index("z3:2").getTableName(typeName, ds))
+      val locator = ds.connection.getRegionLocator(tableName)
+      val (startKeys, endKeys) = (locator.getStartKeys, locator.getEndKeys)
+      println(startKeys.map(_.mkString(":")).mkString(","))
+      println(endKeys.map(_.mkString(":")).mkString(","))
+      ok
     }
   }
 

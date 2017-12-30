@@ -19,6 +19,8 @@ import org.geotools.factory.Hints
 import org.geotools.util.Converters
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
+import org.locationtech.geomesa.index.conf.TableSplitter
+import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.AttributeIndex.AttributeRowDecoder
 import org.locationtech.geomesa.index.index.z2.{XZ2IndexKeySpace, Z2IndexKeySpace}
@@ -101,11 +103,17 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
   }
 
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+    def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
+
     val sharing = sft.getTableSharingBytes
     val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
-    val shards = getShards(sft)
-    for (i <- indices; s <- shards) yield {
-      Bytes.concat(sharing, indexToBytes(i), s)
+    val shards = nonEmpty(getShards(sft))
+
+    val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
+    val splits = nonEmpty(splitter.getSplits(name, sft, sft.getTableSplitterOptions))
+
+    for (index <- indices; shard <- shards; split <- splits) yield {
+      Bytes.concat(sharing, indexToBytes(index), shard, split)
     }
   }
 
