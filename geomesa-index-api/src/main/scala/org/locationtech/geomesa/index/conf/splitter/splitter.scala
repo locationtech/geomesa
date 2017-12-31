@@ -9,11 +9,16 @@
 package org.locationtech.geomesa.index.conf
 
 import java.nio.charset.StandardCharsets
+import java.util
+import java.util.regex.Pattern
 import java.util.{Date, Locale}
+import javafx.scene.input.KeyCode
 
+import com.google.common.base.Ascii
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import org.geotools.util.Converters
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
 package object splitter {
@@ -102,8 +107,57 @@ package object splitter {
     Array.empty
   }
 
-  private def attributeSplits(sft: SimpleFeatureType, options: java.util.Map[String, String]): Array[Array[Byte]] = {
-    // TODO
-    Array.empty
+  def uppercaseSplits = ('A' to 'Z').map { c => Array(c.toByte) }.toArray
+  def lowercaseSplits = ('a' to 'z').map { c => Array(c.toByte) }.toArray
+
+  def splitsForStringAttribute(ad: AttributeDescriptor,
+                               sft: SimpleFeatureType,
+                               options: util.Map[String, String]): Array[Array[Byte]] = {
+    options.get(s"${ad.getLocalName}.pattern") match {
+      case "[:lower:]"           => lowercaseSplits
+
+      case "[:lower:][:lower:]"  =>
+        for {
+          c <- lowercaseSplits
+          d <- lowercaseSplits
+        } yield {
+          Bytes.concat(c, d)
+        }
+
+      case "[:upper:]"           => uppercaseSplits
+
+      case "[:upper:][:upper:]"  =>
+        for {
+          c <- uppercaseSplits
+          d <- uppercaseSplits
+        } yield {
+          Bytes.concat(c, d)
+        }
+    }
   }
+
+  def splitsForIntAttribute(ad: AttributeDescriptor,
+                               sft: SimpleFeatureType,
+                               options: util.Map[String, String]): Array[Array[Byte]] = {
+    ???
+  }
+
+  def splitsForAttribute(ad: AttributeDescriptor,
+                         sft: SimpleFeatureType,
+                         options: util.Map[String, String]): Array[Array[Byte]] = {
+    ad.getType.getBinding match {
+      case _: Class[String]            => splitsForStringAttribute(ad, sft, options)
+      case _: Class[java.lang.Integer] => splitsForIntAttribute(ad, sft, options)
+      case _: Class[java.lang.Long]    => splitsForIntAttribute(ad, sft, options)
+    }
+  }
+
+  private def attributeSplits(sft: SimpleFeatureType, options: java.util.Map[String, String]): Array[Array[Byte]] = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
+    import scala.collection.JavaConversions._
+
+    sft.getAttributeDescriptors.filter(_.isIndexed).map { ad => splitsForAttribute(ad, sft, options) }.reduce(_ ++ _)
+  }
+
+
 }

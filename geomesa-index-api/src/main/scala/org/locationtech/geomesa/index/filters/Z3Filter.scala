@@ -176,9 +176,9 @@ object Z3Filter {
   }
 
   // account for epoch - first 2 bytes
-  private def rowToZ(b: Array[Byte], i: Int): Long =
+  def rowToZ(b: Array[Byte], i: Int): Long =
     Longs.fromBytes(b(i + 2), b(i + 3), b(i + 4), b(i + 5), b(i + 6), b(i + 7), b(i + 8), b(i + 9))
 
-  private def rowToEpoch(bytes: Array[Byte], offset: Int): Short =
+  def rowToEpoch(bytes: Array[Byte], offset: Int): Short =
     Shorts.fromBytes(bytes(offset), bytes(offset + 1))
 }
