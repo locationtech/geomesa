@@ -23,18 +23,19 @@ import org.specs2.runner.JUnitRunner
 class DefaultSplitterTest extends Specification {
 
   "Default splitter" should {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    import scala.collection.JavaConversions._
+
+    val sft =
+      new SftBuilder()
+        .point("geom", default = true)
+        .date("dtg", default = true)
+        .stringType("stringattr", index = true)
+        .build("foo")
+
+    val splitter = new DefaultSplitter
 
     "produce correct z3 splits" in {
-      import scala.collection.JavaConversions._
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-      val sft =
-        new SftBuilder()
-          .point("geom", default = true)
-          .date("dtg", default = true)
-          .stringType("stringattr", index = true)
-          .build("foo")
-      val splitter = new DefaultSplitter
       val min = "2017-01-01T00:00:00.000Z"
       val max = "2017-01-31T23:59:59.999Z"
       val bits = 4
@@ -55,7 +56,26 @@ class DefaultSplitterTest extends Specification {
         println(s"$e   $t   ${lon.denormalize(x)}  ${lat.denormalize(y)}")
       }
 
+      // TODO: check that the z3 splits are correct
       true must beTrue
+    }
+
+    "produce correct string splits" in {
+      val splits = splitter.getSplits("stringattr", sft,
+        Map("stringattr.type"    -> "attribute"
+          , "stringattr.pattern" -> "[:upper:]"))
+
+      splits.length must be equalTo 26
+      new String(splits.head) must be equalTo "A"
+    }
+
+    "produce correct string splits multi" in {
+      val splits = splitter.getSplits("stringattr", sft,
+        Map("stringattr.type"    -> "attribute"
+          , "stringattr.pattern" -> "[:upper:][:upper:]"))
+
+      splits.length must be equalTo 26*26
+      new String(splits(27)) must be equalTo "AB"
     }
   }
 }
