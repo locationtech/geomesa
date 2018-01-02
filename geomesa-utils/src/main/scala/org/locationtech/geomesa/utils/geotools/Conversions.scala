@@ -297,7 +297,7 @@ object RichSimpleFeatureType {
   }
 
   private class KVPairParser(pairSep: String = ",", kvSep: String = ":") extends JavaTokenParsers {
-    def key = "[0-9a-zA-Z\\.]+".r
+    def key = "[0-9a-zA-Z_\\.]+".r
     def value = s"[^($pairSep)^($kvSep)]+".r
 
     def keyValue = key ~ kvSep ~ value ^^ { case key ~ sep ~ value => key -> value }
