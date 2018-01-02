@@ -60,6 +60,9 @@ class BulkCopyIndexJob {
       // general options
       job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
       job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
+      job.getConfiguration.set("mapred.compress.map.output", "true")
+      job.getConfiguration.set("mapreduce.map.output.compress", "true")
+      job.getConfiguration.set("mapred.map.output.compress.codec", "org.apache.hadoop.io.compress.SnappyCodec")
 
       // input format
       job.setInputFormatClass(classOf[PartitionInputFormat])

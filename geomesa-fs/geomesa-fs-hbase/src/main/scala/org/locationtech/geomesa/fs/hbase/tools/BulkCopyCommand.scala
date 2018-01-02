@@ -87,6 +87,6 @@ object BulkCopyCommand {
     @Parameter(names = Array("--output"), description = "Path to write output HFiles", required = true)
     var output: String = _
     @Parameter(names = Array("--load"), description = "Run HBase incremental load on HFiles")
-    var load: Boolean = true
+    var load: Boolean = false
   }
 }
