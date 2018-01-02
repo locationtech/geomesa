@@ -106,4 +106,6 @@ hadoop-client-2.6.0-cdh5.13.0.jar
 hadoop-hdfs.jar
 htrace-core4-4.0.1-incubating.jar
 ```
+Not able to show data after adding the datastore, try turning up the logging for `org.locationtech.geomesa.fs` and `org.locationtech.geomesa.parquet` in GeoServer. set those to debug or trace, it should print out which files it's scanning, etc
+
 
