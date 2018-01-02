@@ -16,6 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.calrissian.mango.types.{LexiTypeEncoders, TypeRegistry}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.util.Converters
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
@@ -110,10 +111,18 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     val shards = nonEmpty(getShards(sft))
 
     val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
-    val splits = nonEmpty(splitter.getSplits(name, sft, sft.getTableSplitterOptions))
-
-    for (index <- indices; shard <- shards; split <- splits) yield {
-      Bytes.concat(sharing, indexToBytes(index), shard, split)
+    indices.flatMap { indexOf =>
+      val singleAttributeType = {
+        val builder = new SimpleFeatureTypeBuilder()
+        builder.setName(sft.getName)
+        builder.add(sft.getDescriptor(indexOf))
+        builder.buildFeatureType()
+      }
+      val bytes = indexToBytes(indexOf)
+      val splits = nonEmpty(splitter.getSplits(name, singleAttributeType, sft.getTableSplitterOptions))
+      for (shard <- shards; split <- splits) yield {
+        Bytes.concat(sharing, bytes, shard, split)
+      }
     }
   }
 

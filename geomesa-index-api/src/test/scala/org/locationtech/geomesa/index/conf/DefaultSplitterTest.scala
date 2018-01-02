@@ -48,12 +48,14 @@ class DefaultSplitterTest extends Specification {
       val lat = NormalizedLat(21)
       val lon = NormalizedLon(21)
 
-      splits.foreach { s =>
+      splits.sortBy(s => Shorts.fromByteArray(s.take(2))).foreach { s =>
         val e = Shorts.fromByteArray(s.take(2))
         val z = new Z3(Z3Filter.rowToZ(s, 0))
         val (x, y, t) = z.decode
 
-        println(s"$e   $t   ${lon.denormalize(x)}  ${lat.denormalize(y)}")
+        // note: first bit is not used, so always should be 0
+        println(s"$e   ${padTo(z.z.toBinaryString)}")
+//        println(s"$e   $t   ${lon.denormalize(x)}  ${lat.denormalize(y)}")
       }
 
       // TODO: check that the z3 splits are correct
@@ -63,7 +65,7 @@ class DefaultSplitterTest extends Specification {
     "produce correct string splits" in {
       val splits = splitter.getSplits("stringattr", sft,
         Map("stringattr.type"    -> "attribute"
-          , "stringattr.pattern" -> "[:upper:]"))
+          , "stringattr.pattern" -> "[A-Z]"))
 
       splits.length must be equalTo 26
       new String(splits.head) must be equalTo "A"
@@ -72,10 +74,12 @@ class DefaultSplitterTest extends Specification {
     "produce correct string splits multi" in {
       val splits = splitter.getSplits("stringattr", sft,
         Map("stringattr.type"    -> "attribute"
-          , "stringattr.pattern" -> "[:upper:][:upper:]"))
+          , "stringattr.pattern" -> "[A-Z][A-Z]"))
 
       splits.length must be equalTo 26*26
-      new String(splits(27)) must be equalTo "AB"
+      new String(splits(27)) must be equalTo "BB"
     }
   }
+
+  def padTo(s: String): String = (new String(Array.fill(64)('0')) + s).takeRight(64)
 }
