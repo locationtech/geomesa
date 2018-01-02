@@ -10,12 +10,9 @@ package org.locationtech.geomesa.index.conf
 
 import com.google.common.primitives.Shorts
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.curve.NormalizedDimension.{NormalizedLat, NormalizedLon}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
-import org.locationtech.geomesa.index.filters.Z3Filter
 import org.locationtech.geomesa.utils.geotools.SftBuilder
-import org.locationtech.sfcurve.zorder.Z3
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -24,6 +21,7 @@ class DefaultSplitterTest extends Specification {
 
   "Default splitter" should {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     import scala.collection.JavaConversions._
 
     val sft =
@@ -37,49 +35,28 @@ class DefaultSplitterTest extends Specification {
 
     "produce correct z3 splits" in {
       val min = "2017-01-01T00:00:00.000Z"
-      val max = "2017-01-31T23:59:59.999Z"
+      val max = "2017-01-10T23:59:59.999Z"
       val bits = 4
-      val opts = Map("geom.type" -> "z3", "min" -> min, "max" -> max, "bits" -> s"$bits")
-      val splits = splitter.getSplits("geom", sft, opts)
+      val opts = Map("z3.min" -> min, "z3.max" -> max, "z3.bits" -> s"$bits")
+      val splits = splitter.getSplits("z3", sft, opts)
       val sfc = Z3SFC(sft.getZ3Interval)
 
-      splits.length must be equalTo 40
+      splits.length must be equalTo 32
 
-      val lat = NormalizedLat(21)
-      val lon = NormalizedLon(21)
-
-      splits.sortBy(s => Shorts.fromByteArray(s.take(2))).foreach { s =>
-        val e = Shorts.fromByteArray(s.take(2))
-        val z = new Z3(Z3Filter.rowToZ(s, 0))
-        val (x, y, t) = z.decode
-
-        // note: first bit is not used, so always should be 0
-        println(s"$e   ${padTo(z.z.toBinaryString)}")
-//        println(s"$e   $t   ${lon.denormalize(x)}  ${lat.denormalize(y)}")
-      }
-
-      // TODO: check that the z3 splits are correct
-      true must beTrue
+      splits.toSeq.map(s => (Shorts.fromByteArray(s.take(2)).toInt, s(2).toInt, s.drop(3).sum.toInt)) must
+          containTheSameElementsAs(Seq(2452, 2453).flatMap(w => Range(0, 128, 8).map((w, _, 0))))
     }
 
     "produce correct string splits" in {
-      val splits = splitter.getSplits("stringattr", sft,
-        Map("stringattr.type"    -> "attribute"
-          , "stringattr.pattern" -> "[A-Z]"))
-
+      val splits = splitter.getSplits("attr", sft, Map("attr.stringattr.pattern" -> "[A-Z]"))
       splits.length must be equalTo 26
       new String(splits.head) must be equalTo "A"
     }
 
     "produce correct string splits multi" in {
-      val splits = splitter.getSplits("stringattr", sft,
-        Map("stringattr.type"    -> "attribute"
-          , "stringattr.pattern" -> "[A-Z][A-Z]"))
-
+      val splits = splitter.getSplits("attr", sft, Map("attr.stringattr.pattern" -> "[A-Z][A-Z]"))
       splits.length must be equalTo 26*26
       new String(splits(27)) must be equalTo "BB"
     }
   }
-
-  def padTo(s: String): String = (new String(Array.fill(64)('0')) + s).takeRight(64)
 }

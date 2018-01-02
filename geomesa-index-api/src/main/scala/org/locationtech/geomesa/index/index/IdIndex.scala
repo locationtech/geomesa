@@ -27,7 +27,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  override val name: String = "id"
+  override val name: String = IdIndex.Name
 
   override def supports(sft: SimpleFeatureType): Boolean = true
 
@@ -105,4 +105,8 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
         scanPlan(sft, ds, filter, scanConfig(sft, ds, filter, ranges, filter.secondary, hints))
     }
   }
+}
+
+object IdIndex {
+  val Name = "id"
 }

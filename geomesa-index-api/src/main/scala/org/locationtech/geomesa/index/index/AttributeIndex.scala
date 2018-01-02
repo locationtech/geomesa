@@ -50,7 +50,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
   import AttributeIndex._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  override val name: String = "attr"
+  override val name: String = AttributeIndex.Name
 
   override def supports(sft: SimpleFeatureType): Boolean =
     sft.getAttributeDescriptors.exists(_.isIndexed)
@@ -310,6 +310,8 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 }
 
 object AttributeIndex {
+
+  val Name = "attr"
 
   val NullByte: Byte = 0
   val NullByteArray = Array(NullByte)

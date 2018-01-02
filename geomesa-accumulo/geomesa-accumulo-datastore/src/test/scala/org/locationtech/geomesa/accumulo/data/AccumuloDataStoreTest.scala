@@ -321,20 +321,20 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create a schema with custom record splitting options with table sharing off" in {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
-          "table.splitter.options='id.type:digit,fmt:%02d,min:0,max:99'"
+          "table.splitter.options='id.pattern:[a-z][0-9]'"
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
       sft.setTableSharing(false)
       ds.createSchema(sft)
       val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
       val splits = ds.connector.tableOperations().listSplits(recTable)
-      splits.size() mustEqual 100
-      splits.head mustEqual new Text("00")
-      splits.last mustEqual new Text("99")
-    }.pendingUntilFixed("foo") // TODO
+      splits.size() mustEqual 260
+      splits.head mustEqual new Text("a0")
+      splits.last mustEqual new Text("z9")
+    }
 
     "create a schema with custom record splitting options with table sharing on" in {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
-        "table.splitter.options='id.type:digit,fmt:%02d,min:0,max:99'"
+        "table.splitter.options='id.pattern:[0-9][0-9]'"
       val sft = SimpleFeatureTypes.createType("customsplit2", spec)
       sft.setTableSharing(true)
 
@@ -354,7 +354,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       newSplits.length mustEqual 100
       newSplits.head mustEqual new Text(s"${prefix}00")
       newSplits.last mustEqual new Text(s"${prefix}99")
-    }.pendingUntilFixed("foo") // TODO
+    }
 
     "Prevent mixed geometries in spec" in {
       "throw an exception if geometry is specified" >> {
