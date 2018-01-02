@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import com.google.common.primitives.Shorts
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
@@ -170,14 +171,18 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       ds.getSchema(typeName) must beNull
 
       ds.createSchema(SimpleFeatureTypes.createType(typeName,
-        "name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;" +
-            "table.splitter.options='z3.type:z3,min:2017-01-01,max:2017-01-02,bits:2'"))
+        "name:String:index=true,age:Int:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;" +
+            "table.splitter.options='z3.min:2017-01-01,z3.max:2017-01-02,z3.bits:2," +
+            "attr.name.pattern:[a-z],attr.age.pattern:[0-9][0-9]'"))
 
-      val tableName = TableName.valueOf(ds.manager.index("z3:2").getTableName(typeName, ds))
-      val locator = ds.connection.getRegionLocator(tableName)
-      val (startKeys, endKeys) = (locator.getStartKeys, locator.getEndKeys)
-      println(startKeys.map(_.mkString(":")).mkString(","))
-      println(endKeys.map(_.mkString(":")).mkString(","))
+      Seq(/*"z3:2", */"attr:4").foreach { tableName =>
+        val table = TableName.valueOf(ds.manager.index(tableName).getTableName(typeName, ds))
+        val locator = ds.connection.getRegionLocator(table)
+        val (startKeys, endKeys) = (locator.getStartKeys, locator.getEndKeys)
+        startKeys.map(k => if (k.length > 2) Shorts.fromBytes(k(0), k(1)) + " " + new String(k.drop(2)) else k.mkString(":")).foreach(println)
+//        println(endKeys.map(_.mkString(":")).mkString(","))
+      }
+
       ok
     }
   }
