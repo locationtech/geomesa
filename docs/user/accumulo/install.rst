@@ -331,7 +331,7 @@ The specific JARs needed for some common configurations are listed below:
 
 .. tabs::
 
-    .. tab:: Accumulo 1.8
+    .. tab:: Accumulo-1.8
 
         * accumulo-core-1.8.1.jar
         * accumulo-fate-1.8.1.jar
@@ -343,7 +343,7 @@ The specific JARs needed for some common configurations are listed below:
         * htrace-core-3.1.0-incubating.jar
         * commons-vfs2-2.1.jar
 
-    .. tab:: Accumulo 1.7
+    .. tab:: Accumulo-1.7
 
         * accumulo-core-1.7.3.jar
         * accumulo-fate-1.7.3.jar
@@ -355,7 +355,7 @@ The specific JARs needed for some common configurations are listed below:
         * htrace-core-3.1.0-incubating.jar
         * commons-vfs2-2.1.jar
 
-    .. tab:: Accumulo 1.6
+    .. tab:: Accumulo-1.6
 
         * accumulo-core-1.6.6.jar
         * accumulo-fate-1.6.6.jar
@@ -368,7 +368,7 @@ The specific JARs needed for some common configurations are listed below:
 
 .. tabs::
 
-    .. tab:: Hadoop 2.6-2.8
+    .. tab:: Hadoop-2.6-2.8
 
         (adjust versions as needed)
 
@@ -377,7 +377,6 @@ The specific JARs needed for some common configurations are listed below:
         * hadoop-client-2.7.4.jar
         * hadoop-common-2.7.4.jar
         * hadoop-hdfs-2.7.4.jar
-
 
 Restart GeoServer after the JARs are installed.
 
