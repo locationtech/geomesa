@@ -193,7 +193,7 @@ your GeoServer ``WEB-INF/lib`` directory:
 
 .. tabs::
 
-    .. tab:: Kafka 0.9
+    .. tab:: Kafka-0.9
 
         * kafka-clients-0.9.0.1.jar
         * kafka_2.11-0.9.0.1.jar
@@ -201,7 +201,7 @@ your GeoServer ``WEB-INF/lib`` directory:
         * zookeeper-3.4.6.jar
         * metrics-core-2.2.0.jar
 
-    .. tab:: Kafka 0.10
+    .. tab:: Kafka-0.10
 
         * kafka-clients-0.10.2.1.jar
         * kafka-2.11-0.10.2.1.jar
