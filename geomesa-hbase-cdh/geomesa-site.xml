@@ -4,7 +4,7 @@
 <configuration>
 <property>
     <name>geomesa.hbase.coprocessor.path</name>
-    <value>hdfs://1.sherpa.client.sysedata.no:8020/hbase/lib/geomesa-hbase-distributed-runtime_2.11-1.3.5.jar</value>
+    <value>hdfs://<name_node>:8020/hbase/lib/geomesa-hbase-distributed-runtime_2.11-1.3.5.jar</value>
     <description>HDFS or local path to GeoMesa-HBase Coprocessor JAR. If a local path is provided it must be    the same for all region server. A path provided through the DataStore parameters will always override this      property.
     </description>
     <final>false</final>
