@@ -16,7 +16,6 @@ import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter =
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
-import org.locationtech.geomesa.index.index.IndexAdapter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait HBasePlatform extends HBaseIndexAdapter {
@@ -45,13 +44,14 @@ trait HBasePlatform extends HBaseIndexAdapter {
   }
 
   private def configureGet(originalRanges: Seq[Query], hbaseFilters: Seq[(Int, HFilter)]): Seq[Scan] = {
-    val filterList = new FilterList(hbaseFilters.sortBy(_._1).map(_._2): _*)
+    val filterList = if (hbaseFilters.isEmpty) { None } else {
+      Some(new FilterList(hbaseFilters.sortBy(_._1).map(_._2): _*))
+    }
     // convert Gets to Scans for Spark SQL compatibility
     originalRanges.map { r =>
-      val g = r.asInstanceOf[Get]
-      val start = g.getRow
-      val end = IndexAdapter.rowFollowingRow(start)
-      new Scan(g).setStartRow(start).setStopRow(end).setFilter(filterList).setSmall(true)
+      val scan = new Scan(r.asInstanceOf[Get]).setSmall(true)
+      filterList.foreach(scan.setFilter)
+      scan
     }
   }
 
