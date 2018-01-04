@@ -2,8 +2,8 @@ Installing GeoMesa HBase
 ========================
 
 GeoMesa supports traditional HBase installations as well as HBase running on `Amazon's EMR <https://aws.amazon.com/emr/>`_
-and `Hortonworks' Data Platform (HDP) <https://hortonworks.com/products/data-center/hdp/>`_. For instructions on
-bootstrapping an EMR cluster, please read this tutorial: :doc:`/tutorials/geomesa-hbase-s3-on-aws`.
+, `Hortonworks' Data Platform (HDP) <https://hortonworks.com/products/data-center/hdp/>`_, and `Clouderas Distribution of Hadoop (CDH) <https://www.cloudera.com/products/enterprise-data-hub.html>`_. For instructions on
+bootstrapping an EMR cluster, please read this tutorial: :doc:`/tutorials/geomesa-hbase-s3-on-aws`. For instructions on deploying GeoMesa to Cloudera CDH, please read this tutorial: :doc:`/tutorials/geomesa-hbase-on-cdh`.
 
 Installing the Binary Distribution
 ----------------------------------
