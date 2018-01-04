@@ -1,9 +1,8 @@
 # Deploying GeoMesa 1.3.x on CDH 5.X.X
 
-## Quickstart
-* Download [GeoMesa HBase 1.3.5](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.5/geomesa-hbase_2.11-1.3.5-bin.tar.gz)
+* Download [GeoMesa HBase 1.3.5](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.5/geomesa-hbase_2.11-1.3.5-bin.tar.gz) or build from source.
 
-* Unpack, and add to config `../geomesa-hbase/conf/geomesa-env.sh`:
+* Unpack, and add/modify GeoMesa env variables in config `../geomesa-hbase/conf/geomesa-env.sh`:
 ```
 setvar HADOOP_HOME /opt/cloudera/parcels/CDH/lib/hadoop
 setvar HADOOP_CONF_DIR /etc/hadoop/conf
@@ -17,16 +16,28 @@ setvar HADOOP_MAPRED_HOME /opt/cloudera/parcels/CDH/lib/hadoop-mapreduce
 
 setvar ZOOKEEPER_HOME /opt/cloudera/parcels/CDH/lib/zookeeper
 ```
-* Upload `../dist/hbase/geomesa-hbase-distributed-runtime_2.11-1.3.5.jar` to HDFS under `hdfs:///hbase/lib`
-* Copy `geomesa-site.xml` to `../geomesa-hbase/conf`
-* Symlink `hbase-site.xml`: `ln -s /etc/hbase/conf.cloudera.hbase/hbase-site.xml ../geomesa-hbase/conf/hbase-site.xml`
+* Upload `../geomesa-hbase/dist/hbase/geomesa-hbase-distributed-runtime_2.11-1.3.5.jar` to HDFS under `hdfs:///hbase/lib`
+* Create `geomesa-site.xml` under `../geomesa-hbase/conf` and add:
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+<property>
+    <name>geomesa.hbase.coprocessor.path</name>
+    <value>hdfs://<name_node>:8020/hbase/lib/geomesa-hbase-distributed-runtime_2.11-1.3.5.jar</value>
+    <description>HDFS or local path to GeoMesa-HBase Coprocessor JAR. If a local path is provided it must be    the same for all region server. A path provided through the DataStore parameters will always override this      property.
+    </description>
+    <final>false</final>
+</property>
+</configuration> 
+```
+* Symlink `hbase-site.xml` to GeoMesa conf dir.: `ln -s /etc/hbase/conf.cloudera.hbase/hbase-site.xml ../geomesa-hbase/conf/hbase-site.xml`
 * Run `install-hbase.sh` script: `../geomesa-hbase/bin/./install-hbase.sh /path/to/geomesa-hbase_2.11-1.3.5/lib -h 1.2.3`
-* Get missing jars from CDH HBase: 
+* Add additional jars from CDHs HBase to GeoMesa Classpath: 
 ```
 ln -s /opt/cloudera/parcels/CDH/lib/hbase/lib/metrics-core-2.2.0.jar /path/to/geomesa-hbase_2.11-1.3.5/lib/metrics-core-2.2.0.jar;
 ln -s /opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.2.0-incubating.jar /path/to/geomesa-hbase_2.11-1.3.5/lib/htrace-core-3.2.0-incubating.jar;
 ```
 * All Set! Test client tools:
 `bin/geomesa-hbase ingest -c example-csv -s example-csv -C example-csv examples/ingest/csv/example.csv`
-
-## Build from source 
