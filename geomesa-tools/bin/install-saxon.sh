@@ -7,20 +7,22 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
+saxon_version="9.7.0-14"
+# Load common functions and setup
 if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
   export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
-lib_dir="${%%gmtools.dist.name%%_HOME}/lib"
+. $%%gmtools.dist.name%%_HOME/bin/common-functions.sh
 
-url='http://search.maven.org/remotecontent?filepath=net/sf/saxon/Saxon-HE/9.7.0-14/Saxon-HE-9.7.0-14.jar'
-read -r -p "Saxon is free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa... are you sure you want to install it from $url ? [Y/n] " confirm
-confirm=${confirm,,} #lowercasing
-if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-  echo "Trying to install Saxon from $url to ${lib_dir}"
-  wget -O /tmp/Saxon-HE-9.7.0-14.jar $url \
-    && mv /tmp/Saxon-HE-9.7.0-14.jar "${lib_dir}/" \
-    && echo "Successfully installed Saxon to ${lib_dir}" \
-    || { rm -f /tmp/Saxon-HE-9.7.0-14.jar; echo "Failed to download: ${url}"; };
-else
-  echo "Cancelled installation of Saxon"
-fi
+install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
+
+# Resource download location
+base_url="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath=}"
+
+declare -a urls=(
+  "${base_url}net/sf/saxon/Saxon-HE/${saxon_version}/Saxon-HE-${saxon_version}.jar"
+)
+
+echo "Warning: Saxon is free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa. However, you may download it yourself."
+
+downloadUrls "$install_dir" urls
