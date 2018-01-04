@@ -1,5 +1,5 @@
-Deploying GeoMesa HBase on Cloudera CDH
-=======================================
+Deploying GeoMesa HBase on Cloudera CDH 5.X
+===========================================
 
 - Download `GeoMesa HBase 1.3.X <https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.5/geomesa-hbase_2.11-1.3.5-bin.tar.gz>`_ or build from source.
 
