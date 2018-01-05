@@ -41,6 +41,9 @@ class HBaseIndexFileMapper extends Mapper[NullWritable, SimpleFeature, Immutable
 
   private val bytes = new ImmutableBytesWritable
 
+  // TODO remove
+  private var modifier: AtModifier = _
+
   override def setup(context: HBaseIndexFileMapper.MapContext): Unit = {
     import scala.collection.JavaConversions._
     val params = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
@@ -48,6 +51,7 @@ class HBaseIndexFileMapper extends Mapper[NullWritable, SimpleFeature, Immutable
     require(ds != null, "Could not find data store - check your configuration and hbase-site.xml")
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureTypeOut(context.getConfiguration))
     require(sft != null, "Could not find schema - check your configuration")
+    modifier = new AtModifier(sft)
     val index = GeoMesaConfigurator.getIndicesOut(context.getConfiguration) match {
       case Some(Seq(idx)) => ds.manager.index(idx)
       case _ => throw new IllegalArgumentException("Could not find write index - check your configuration")
@@ -64,6 +68,7 @@ class HBaseIndexFileMapper extends Mapper[NullWritable, SimpleFeature, Immutable
 
   override def map(key: NullWritable, value: SimpleFeature, context: HBaseIndexFileMapper.MapContext): Unit = {
     try {
+      modifier.modify(value)
       val feature = new HBaseFeature(value, serializer)
       writer.apply(feature).asInstanceOf[Seq[Put]].foreach { put =>
         bytes.set(put.getRow)
@@ -76,7 +81,26 @@ class HBaseIndexFileMapper extends Mapper[NullWritable, SimpleFeature, Immutable
         logger.error(s"Error writing feature ${Option(value).orNull}", e)
         failed.increment(1L)
     }
+  }
 
+  class AtModifier(sft: SimpleFeatureType) {
+    import scala.collection.JavaConversions._
+    private val strings = sft.getAttributeDescriptors.collect {
+      case d if d.getType.getBinding == classOf[String] => sft.indexOf(d.getLocalName)
+    }
+    def modify(feature: SimpleFeature): Unit = {
+      strings.foreach { i =>
+        var value = feature.getAttribute(i).asInstanceOf[String]
+        if (value != null && value.indexOf('@') != -1) {
+          value = value.replaceAll("@@+", "").trim
+          if (value.isEmpty) {
+            feature.setAttribute(i, null)
+          } else {
+            feature.setAttribute(i, value)
+          }
+        }
+      }
+    }
   }
 }
 
