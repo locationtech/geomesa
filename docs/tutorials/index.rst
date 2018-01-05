@@ -15,6 +15,7 @@ Getting Started
     geomesa-quickstart-nifi
     geodocker-geomesa/index
     geomesa-hbase-s3-on-aws
+    geomesa-hbase-on-cdh
 
 Data In/Out
 -----------
