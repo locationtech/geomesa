@@ -1,0 +1,8 @@
+org.locationtech.geomesa.convert.CompositeConverterFactory
+org.locationtech.geomesa.convert.avro.AvroSimpleFeatureConverterFactory
+org.locationtech.geomesa.convert.fixedwidth.FixedWidthConverterFactory
+org.locationtech.geomesa.convert.jdbc.JdbcConverterFactory
+org.locationtech.geomesa.convert.json.JsonSimpleFeatureConverterFactory
+org.locationtech.geomesa.convert.simplefeature.SimpleFeatureSimpleFeatureConverterFactory
+org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory
+org.locationtech.geomesa.convert.xml.XMLConverterFactory

@@ -26,7 +26,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-all_2.11</artifactId>
+            <artifactId>geomesa-convert-core_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
