@@ -166,7 +166,7 @@ reference <http://docs.geoserver.org/stable/en/user/filter/function_reference.ht
 JSON/Avro Transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See Parsing Json and Parsing Avro sections
+See :ref:`json_converter` and :ref:`avro_converter`.
 
 Enrichment Functions
 ~~~~~~~~~~~~~~~~~~~~

@@ -84,3 +84,4 @@ Standard command line ingest expects a data file to operate on. You may place se
     [============================================================] 100% complete 5 ingested 0 failed in 00:00:01
     INFO  Local ingestion complete in 00:00:01
     INFO  Ingested 5 features with no failures.
+

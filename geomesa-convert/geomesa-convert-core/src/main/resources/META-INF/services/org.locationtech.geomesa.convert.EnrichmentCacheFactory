@@ -1,0 +1,3 @@
+org.locationtech.geomesa.convert.SimpleEnrichmentCacheFactory
+org.locationtech.geomesa.convert.ResourceLoadingCacheFactory
+org.locationtech.geomesa.convert.redis.RedisEnrichmentCacheFactory
