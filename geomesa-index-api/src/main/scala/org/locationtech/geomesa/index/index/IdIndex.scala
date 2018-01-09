@@ -67,9 +67,13 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
     val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
     val splits = nonEmpty(splitter.getSplits(name, sft, sft.getTableSplitterOptions))
 
-    for (split <- splits) yield {
-      Bytes.concat(sharing, split)
+    val result = if (sharing.isEmpty) { splits } else {
+      for (split <- splits) yield {
+        Bytes.concat(sharing, split)
+      }
     }
+
+    result.drop(1)
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,

@@ -49,7 +49,7 @@ package object splitter {
     val min = options.get(s"$index.min")
     val max = options.get(s"$index.max")
     val minDate = Converters.convert(min, classOf[Date])
-    var maxDate = Option(Converters.convert(max, classOf[Date]))
+    val maxDate = Option(Converters.convert(max, classOf[Date]))
     if (min == null) {
       Array(Array.empty)
     } else if (minDate == null || (max != null && maxDate.isEmpty)) {
@@ -132,19 +132,14 @@ package object splitter {
     }
   }
 
-  // note: we don't include 0 to avoid an empty initial tablet
-  private def hexSplits(): Array[Array[Byte]] = "123456789abcdefABCDEF".map(b => Array(b.toByte)).toArray
+  private def hexSplits(): Array[Array[Byte]] = "0123456789abcdefABCDEF".map(b => Array(b.toByte)).toArray
 
-  // TODO note: we don't include 'A' to avoid an empty initial tablet
   private def uppercaseSplits(from: Char = 'A', to: Char = 'Z'): Array[Array[Byte]] = rangeSplits(from, to)
 
-  // TODO note: we don't include 'a' to avoid an empty initial tablet
   private def lowercaseSplits(from: Char = 'a', to: Char = 'z'): Array[Array[Byte]] = rangeSplits(from, to)
 
-  // TODO note: we don't include 0 to avoid an empty initial tablet
   private def digitSplits(from: Char = '0', to: Char = '9'): Array[Array[Byte]] = rangeSplits(from, to)
 
-  // note: we don't include 0 to avoid an empty initial tablet
   private def alphanumericSplits(): Array[Array[Byte]] = digitSplits() ++ lowercaseSplits() ++ uppercaseSplits()
 
   private def rangeSplits(from: Char, to: Char): Array[Array[Byte]] =
