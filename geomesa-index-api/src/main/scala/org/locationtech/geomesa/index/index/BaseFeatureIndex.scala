@@ -18,7 +18,6 @@ import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, 
 import org.locationtech.geomesa.index.conf.TableSplitter
 import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.AttributeIndex.indexToBytes
 import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -65,19 +64,23 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
 
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     import scala.collection.JavaConversions._
 
     def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
 
     val sharing = sft.getTableSharingBytes
-    val shards = nonEmpty(SplitArrays(sft).drop(1))
+    val shards = nonEmpty(SplitArrays(sft))
 
     val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
     val splits = nonEmpty(splitter.getSplits(name, sft, sft.getTableSplitterOptions))
 
-    for (shard <- shards; split <- splits) yield {
+    val result = for (shard <- shards; split <- splits) yield {
       Bytes.concat(sharing, shard, split)
     }
+
+    // drop the first split, which will otherwise be empty
+    result.drop(1)
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,
