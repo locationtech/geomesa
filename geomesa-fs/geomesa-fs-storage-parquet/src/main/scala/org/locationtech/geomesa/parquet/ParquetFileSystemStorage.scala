@@ -182,8 +182,8 @@ class ParquetFileSystemStorage(root: Path,
         .withConf(queryConf)
 
       transform match {
-        case None => new FilteringIterator(partition, builder, residualFilter)
-        case Some(tsft) => new FilteringTransformIterator(partition, builder, residualFilter, parquetSft, tsft)
+        case None => new FilteringIterator(partition, path, builder, residualFilter)
+        case Some(tsft) => new FilteringTransformIterator(partition, path, builder, residualFilter, parquetSft, tsft)
       }
     }
     new MultiIterator(partition, iters)
