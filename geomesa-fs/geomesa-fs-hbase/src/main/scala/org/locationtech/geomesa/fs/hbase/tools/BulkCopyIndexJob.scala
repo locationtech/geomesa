@@ -58,7 +58,6 @@ class BulkCopyIndexJob {
       job.setJarByClass(this.getClass)
 
       // general options
-      job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
       job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
       job.getConfiguration.set("mapred.compress.map.output", "true")
       job.getConfiguration.set("mapreduce.map.output.compress", "true")
