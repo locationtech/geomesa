@@ -9,13 +9,17 @@
 package org.locationtech.geomesa.parquet
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.fs.Path
 import org.apache.parquet.hadoop.ParquetReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemPartitionIterator
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.util.control.NonFatal
+
 class FilteringIterator(partition: String,
+                        file: Path,
                         builder: ParquetReader.Builder[SimpleFeature],
                         gtFilter: org.opengis.filter.Filter) extends FileSystemPartitionIterator with LazyLogging {
 
@@ -40,7 +44,9 @@ class FilteringIterator(partition: String,
 
   override def hasNext: Boolean = {
     while (staged == null && !done) {
-      val f = reader.read()
+      val f = try { reader.read() } catch {
+        case NonFatal(e) => logger.error(s"Error reading file '$file'", e); null
+      }
       if (f == null) {
         done = true
       } else if (gtFilter.evaluate(f)) {
@@ -54,11 +60,12 @@ class FilteringIterator(partition: String,
 }
 
 class FilteringTransformIterator(partition: String,
+                                 file: Path,
                                  builder: ParquetReader.Builder[SimpleFeature],
                                  gtFilter: org.opengis.filter.Filter,
                                  sft: SimpleFeatureType,
                                  transform: SimpleFeatureType)
-    extends FilteringIterator(partition, builder, gtFilter) {
+    extends FilteringIterator(partition, file, builder, gtFilter) {
 
   import scala.collection.JavaConversions._
 
