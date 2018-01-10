@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.accumulo.util
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.index.conf.DigitSplitter
+import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
+import org.locationtech.geomesa.utils.text.KVPairParser
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -23,15 +24,16 @@ class AccumuloSftBuilderTest extends Specification {
 
   "SpecBuilder" >> {
     "configure table splitters as strings" >> {
+      val config = Map("id.type" -> "digit", "fmt" ->"%02d", "min" -> "0", "max" -> "99")
       val sft1 = new AccumuloSftBuilder()
         .intType("i")
         .longType("l")
-        .recordSplitter(classOf[DigitSplitter].getName, Map("fmt" ->"%02d", "min" -> "0", "max" -> "99"))
+        .recordSplitter(classOf[DefaultSplitter].getName, config)
         .build("test")
 
       // better - uses class directly (or at least less annoying)
       val sft2 = new AccumuloSftBuilder()
-        .recordSplitter(classOf[DigitSplitter], Map("fmt" ->"%02d", "min" -> "0", "max" -> "99"))
+        .recordSplitter(classOf[DefaultSplitter], config)
         .intType("i")
         .longType("l")
         .build("test")
@@ -42,12 +44,9 @@ class AccumuloSftBuilderTest extends Specification {
         sft.getAttributeCount mustEqual 2
         sft.getAttributeDescriptors.map(_.getLocalName) must containAllOf(List("i", "l"))
 
-        sft.getTableSplitter must beSome(classOf[DigitSplitter])
-        val opts = sft.getTableSplitterOptions
-        opts.size must be equalTo 3
-        opts("fmt") must be equalTo "%02d"
-        opts("min") must be equalTo "0"
-        opts("max") must be equalTo "99"
+        sft.getTableSplitter must beSome(classOf[DefaultSplitter])
+        val opts = KVPairParser.parse(sft.getTableSplitterOptions)
+        opts.toSeq must containTheSameElementsAs(config.toSeq)
       }
 
       List(sft1, sft2) forall test

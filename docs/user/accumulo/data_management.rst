@@ -78,46 +78,6 @@ Table sharing can be disabled by setting the user data ``geomesa.table.sharing``
 
 See :ref:`set_sft_options` for more details on how to set user data values.
 
-Splitting the Record Index
---------------------------
-
-By default, GeoMesa assumes that feature IDs are UUIDs, and have an even distribution. If your
-feature IDs do not follow this pattern, you may define a custom table splitter for the record index.
-This will ensure that your features are spread across several different tablet servers, speeding
-up ingestion and queries.
-
-GeoMesa supplies three different table splitter options:
-
-============================================================= ========================================================================================
-Class                                                         ID Type
-============================================================= ========================================================================================
-``org.locationtech.geomesa.index.conf.HexSplitter`` (default) An even distribution of IDs starting with 0-9, a-f, A-F
-``org.locationtech.geomesa.index.conf.AlphaNumericSplitter``  An even distribution of IDs starting with 0-9, a-z, A-Z
-``org.locationtech.geomesa.index.conf.DigitSplitter``         An even distribution of IDs starting with numeric values, which are specified as options
-============================================================= ========================================================================================
-
-Custom splitters may also be used - any class that extends ``org.locationtech.geomesa.index.conf.TableSplitter``.
-
-Specifying a Table Splitter
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-A table splitter may be specified by through user data when creating a simple feature type.
-
-To indicate the table splitter class, use the key ``table.splitter.class``:
-
-.. code-block:: java
-
-    sft.getUserData().put("table.splitter.class", "org.locationtech.geomesa.index.conf.DigitSplitter");
-
-To indicate any options for the given table splitter, use the key ``table.splitter.options``:
-
-.. code-block:: java
-
-    sft.getUserData().put("table.splitter.class", "org.locationtech.geomesa.index.conf.DigitSplitter");
-    sft.getUserData().put("table.splitter.options", "fmt:%02d,min:0,max:99");
-
-See :ref:`set_sft_options` for more details on how to set user data values.
-
 Moving and Migrating Data
 -------------------------
 
