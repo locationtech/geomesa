@@ -14,6 +14,8 @@ public interface FileSystemWriter {
 
     void write(SimpleFeature f);
 
+    long getDataSize();
+
     void flush();
 
     void close();

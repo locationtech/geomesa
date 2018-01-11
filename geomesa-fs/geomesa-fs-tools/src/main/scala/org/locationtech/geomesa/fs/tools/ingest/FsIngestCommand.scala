@@ -105,7 +105,7 @@ class FsIngestParams extends IngestParams with FsParams with TempDirParam {
 }
 
 trait TempDirParam {
-  @Parameter(names = Array("--temp-path"), description = "Path to temp dir for parquet ingest. " +
+  @Parameter(names = Array("--temp-path"), description = "Path to temp dir for writing output. " +
     "Note that this may be useful when using s3 since its slow as a sink", required = false)
   var tempDir: String = _
 }
