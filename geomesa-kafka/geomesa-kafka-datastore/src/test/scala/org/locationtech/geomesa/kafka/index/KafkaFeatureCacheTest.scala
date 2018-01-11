@@ -181,8 +181,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
         cache.spatialIndex.remove(track0v0.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, track0v0)
 
         // consistency checker should detect and remove from the guava cache
-        cache.query(track0v0.getID) must eventually(40, 100.millis)(beNone)
-        cache.query(wholeWorldFilter).toSeq must eventually(40, 100.millis)(beEmpty)
+        cache.query(track0v0.getID) must eventually(30, 1000.millis)(beNone)
+        cache.query(wholeWorldFilter).toSeq must eventually(30, 1000.millis)(beEmpty)
         cache.size() mustEqual 0
       } finally {
         cache.close()

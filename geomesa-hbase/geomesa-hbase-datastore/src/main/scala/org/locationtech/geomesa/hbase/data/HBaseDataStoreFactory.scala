@@ -11,6 +11,7 @@ package org.locationtech.geomesa.hbase.data
 import java.awt.RenderingHints
 import java.io.Serializable
 
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -30,6 +31,7 @@ import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityParams
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.SystemPropertyStringParam
 
 import scala.collection.JavaConversions._
 
@@ -39,18 +41,20 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   import HBaseDataStoreParams._
 
   // TODO: investigate multiple HBase connections per jvm
-  private lazy val globalConnection: Connection = {
-    val conf = HBaseConfiguration.create()
-    HBaseDataStoreFactory.configureSecurity(conf)
-    checkClusterAvailability(conf)
-    val ret = ConnectionFactory.createConnection(conf)
-    Runtime.getRuntime.addShutdownHook(new Thread() {
-      override def run(): Unit = {
-        ret.close()
+  private val connectionCache = Caffeine.newBuilder().build(
+    new CacheLoader[String, Connection] {
+      override def load(paths: String): Connection = {
+        val conf = HBaseConfiguration.create()
+        paths.split(',').map(_.trim).filterNot(_.isEmpty).foreach(p => conf.addResource(new Path(p)))
+        HBaseDataStoreFactory.configureSecurity(conf)
+        checkClusterAvailability(conf)
+        ConnectionFactory.createConnection(conf)
       }
     })
-    ret
-  }
+
+  Runtime.getRuntime.addShutdownHook(new Thread() {
+    override def run(): Unit = connectionCache.asMap().foreach(_._2.close())
+  })
 
   // this is a pass-through required of the ancestor interface
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
@@ -58,12 +62,15 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
 
     // TODO HBase Connections don't seem to be Serializable...deal with it
-    val connection = ConnectionParam.lookupOpt(params).getOrElse(globalConnection)
+    val connection = {
+      def paths = ConfigPathsParam.lookupOpt(params).getOrElse("")
+      ConnectionParam.lookupOpt(params).getOrElse(connectionCache.get(paths))
+    }
 
     val catalog = getCatalog(params)
 
     val remoteFilters = RemoteFilteringParam.lookupOpt(params).map(_.booleanValue)
-      .getOrElse(SystemProperty("geomesa.hbase.remote.filtering", "true").get.toBoolean)
+      .getOrElse(HBaseDataStoreFactory.RemoteFilterProperty.get.toBoolean)
     logger.debug(s"Using ${if (remoteFilters) "remote" else "local" } filtering")
 
     val generateStats = GenerateStatsParam.lookup(params)
@@ -110,9 +117,10 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     Array(
       HBaseCatalogParam,
       RemoteFilteringParam,
+      CoprocessorUrlParam,
+      ConfigPathsParam,
       QueryThreadsParam,
       QueryTimeoutParam,
-      CoprocessorUrlParam,
       GenerateStatsParam,
       AuditQueriesParam,
       LooseBBoxParam,
@@ -140,6 +148,9 @@ object HBaseDataStoreFactory extends LazyLogging {
 
   val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
   val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
+
+  val RemoteFilterProperty = SystemProperty("geomesa.hbase.remote.filtering", "true")
+  val ConfigPathProperty   = SystemProperty("geomesa.hbase.config.paths")
 
   private [geomesa] val BigTableParamCheck = "google.bigtable.instance.id"
 
@@ -217,7 +228,6 @@ object HBaseDataStoreFactory extends LazyLogging {
         logger.debug(s"Hadoop is not configured to use Kerberos.  The value of the setting 'hbase.security.authentication' $auth.")
     }
   }
-
 }
 
 object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
@@ -227,4 +237,5 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val RemoteFilteringParam          = new GeoMesaParam[java.lang.Boolean]("hbase.remote.filtering", "Remote filtering", default = true, deprecatedKeys = Seq("remote.filtering"))
   val MaxRangesPerExtendedScanParam = new GeoMesaParam[java.lang.Integer]("hbase.ranges.max-per-extended-scan", "Max Ranges per Extended Scan", default = 100, deprecatedKeys = Seq("max.ranges.per.extended.scan"))
   val EnableSecurityParam           = new GeoMesaParam[java.lang.Boolean]("hbase.security.enabled", "Enable HBase Security (Visibilities)", default = false, deprecatedKeys = Seq("security.enabled"))
+  val ConfigPathsParam              = new GeoMesaParam[String]("hbase.config.paths", "Additional HBase configuration resource files (comma-delimited)", systemProperty = Some(SystemPropertyStringParam(HBaseDataStoreFactory.ConfigPathProperty)))
 }
