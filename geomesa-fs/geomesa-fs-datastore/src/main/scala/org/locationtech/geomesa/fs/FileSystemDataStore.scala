@@ -20,6 +20,7 @@ import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory}
 import org.locationtech.geomesa.fs.storage.common.PartitionScheme
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
@@ -50,6 +51,7 @@ class FileSystemDataStore(fs: FileSystem,
 
 class FileSystemDataStoreFactory extends DataStoreFactorySpi {
   import FileSystemDataStoreParams._
+
   private val storageFactory = ServiceLoader.load(classOf[FileSystemStorageFactory])
 
   override def createDataStore(params: util.Map[String, io.Serializable]): DataStore = {
@@ -93,6 +95,9 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object FileSystemDataStoreParams extends NamespaceParams {
+
+  val WriterFileTimeout    = SystemProperty("geomesa.fs.writer.partition.timeout", "60s")
+
   val PathParam            = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", optional = false)
   val EncodingParam        = new GeoMesaParam[String]("fs.encoding", "Encoding of data", optional = false)
 
