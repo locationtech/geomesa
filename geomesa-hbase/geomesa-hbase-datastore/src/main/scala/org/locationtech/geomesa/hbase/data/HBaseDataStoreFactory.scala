@@ -11,17 +11,13 @@ package org.locationtech.geomesa.hbase.data
 import java.awt.RenderingHints
 import java.io.Serializable
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, HBaseAdmin}
+import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.apache.hadoop.hbase.util.Bytes
-import org.apache.hadoop.security.UserGroupInformation
-import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
@@ -31,7 +27,6 @@ import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityParams
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.SystemPropertyStringParam
 
 import scala.collection.JavaConversions._
 
@@ -40,32 +35,13 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import HBaseDataStoreParams._
 
-  // TODO: investigate multiple HBase connections per jvm
-  private val connectionCache = Caffeine.newBuilder().build(
-    new CacheLoader[String, Connection] {
-      override def load(paths: String): Connection = {
-        val conf = HBaseConfiguration.create()
-        paths.split(',').map(_.trim).filterNot(_.isEmpty).foreach(p => conf.addResource(new Path(p)))
-        HBaseDataStoreFactory.configureSecurity(conf)
-        checkClusterAvailability(conf)
-        ConnectionFactory.createConnection(conf)
-      }
-    })
-
-  Runtime.getRuntime.addShutdownHook(new Thread() {
-    override def run(): Unit = connectionCache.asMap().foreach(_._2.close())
-  })
-
   // this is a pass-through required of the ancestor interface
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
 
     // TODO HBase Connections don't seem to be Serializable...deal with it
-    val connection = {
-      def paths = ConfigPathsParam.lookupOpt(params).getOrElse("")
-      ConnectionParam.lookupOpt(params).getOrElse(connectionCache.get(paths))
-    }
+    val connection = HBaseConnectionPool.getConnection(params, validateConnection)
 
     val catalog = getCatalog(params)
 
@@ -104,10 +80,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     new HBaseDataStore(connection, config)
 
   // overridden by BigtableFactory
-  protected def checkClusterAvailability(conf: Configuration): Unit = {
-    logger.debug("Checking configuration availability.")
-    HBaseAdmin.checkHBaseAvailable(conf)
-  }
+  protected def validateConnection: Boolean = true
 
   override def getDisplayName: String = HBaseDataStoreFactory.DisplayName
 
@@ -206,28 +179,6 @@ object HBaseDataStoreFactory extends LazyLogging {
 
     security.getAuthorizationsProvider(params, auths)
   }
-
-  def configureSecurity(conf: Configuration): Unit = {
-    val auth = conf.get("hbase.security.authentication")
-    auth match {
-      case "kerberos" =>
-        val authMethod: AuthenticationMethod = org.apache.hadoop.security.SecurityUtil.getAuthenticationMethod(conf)
-        logger.debug(s"Auth method: $authMethod")
-
-        if (authMethod != AuthenticationMethod.KERBEROS || authMethod != AuthenticationMethod.KERBEROS_SSL) {
-          logger.warn(s"HBase is configured to used Kerberos.  The Hadoop configuration is missing or not configured to use Kerberos.")
-        }
-
-        UserGroupInformation.setConfiguration(conf)
-
-        logger.debug(s"Is Hadoop security enabled: ${UserGroupInformation.isSecurityEnabled}")
-        logger.debug(s"Using Kerberos with principal ${conf.get(HBaseGeoMesaPrincipal)} and file ${conf.get(HBaseGeoMesaKeyTab)}")
-        UserGroupInformation.loginUserFromKeytab(conf.get(HBaseGeoMesaPrincipal), conf.get(HBaseGeoMesaKeyTab))
-
-      case _ =>
-        logger.debug(s"Hadoop is not configured to use Kerberos.  The value of the setting 'hbase.security.authentication' $auth.")
-    }
-  }
 }
 
 object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
@@ -237,5 +188,5 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val RemoteFilteringParam          = new GeoMesaParam[java.lang.Boolean]("hbase.remote.filtering", "Remote filtering", default = true, deprecatedKeys = Seq("remote.filtering"))
   val MaxRangesPerExtendedScanParam = new GeoMesaParam[java.lang.Integer]("hbase.ranges.max-per-extended-scan", "Max Ranges per Extended Scan", default = 100, deprecatedKeys = Seq("max.ranges.per.extended.scan"))
   val EnableSecurityParam           = new GeoMesaParam[java.lang.Boolean]("hbase.security.enabled", "Enable HBase Security (Visibilities)", default = false, deprecatedKeys = Seq("security.enabled"))
-  val ConfigPathsParam              = new GeoMesaParam[String]("hbase.config.paths", "Additional HBase configuration resource files (comma-delimited)", systemProperty = Some(SystemPropertyStringParam(HBaseDataStoreFactory.ConfigPathProperty)))
+  val ConfigPathsParam              = new GeoMesaParam[String]("hbase.config.paths", "Additional HBase configuration resource files (comma-delimited)")
 }
