@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark
 
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}

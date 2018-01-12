@@ -1,25 +1,26 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark
 
 import java.awt.geom.AffineTransform
 
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.operation.distance.DistanceOp
-//import org.apache.spark.sql.udaf.ConvexHull
-import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
+import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.udaf.ConvexHull
+import SQLFunctionHelper.nullableUDF
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.referencing.operation.transform.AffineTransform2D
 
-object  SQLSpatialFunctions {
+object SQLSpatialFunctions {
   import java.{lang => jl}
 
   // Geometry editors
@@ -58,7 +59,7 @@ object  SQLSpatialFunctions {
     nullableUDF(line => line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum)
 
   // Geometry Processing
-//  val ch = new ConvexHull
+  val ch = new ConvexHull
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     // Register geometry editors
@@ -90,7 +91,7 @@ object  SQLSpatialFunctions {
     sqlContext.udf.register("st_lengthSpheroid"  , ST_LengthSpheroid)
 
     // Register geometry Processing
-//    sqlContext.udf.register("st_convexhull", ch)
+    sqlContext.udf.register("st_convexhull", ch)
   }
 
   @transient private val geoCalcs = new ThreadLocal[GeodeticCalculator] {

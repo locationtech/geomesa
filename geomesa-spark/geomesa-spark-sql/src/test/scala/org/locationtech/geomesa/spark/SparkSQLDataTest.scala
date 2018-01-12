@@ -20,7 +20,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
+import org.apache.spark.sql.SQLTypes
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
@@ -44,6 +44,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       ds = DataStoreFinder.getDataStore(dsParams)
       spark = SparkSQLTestUtils.createSparkSession()
       sc = spark.sqlContext
+      SQLTypes.init(sc)
     }
 
     "ingest chicago" >> {

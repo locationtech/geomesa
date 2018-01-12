@@ -6,16 +6,16 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark
 
 import com.vividsolutions.jts.geom._
+import SQLFunctionHelper.nullableUDF
+import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.jts.SQLTypes
 import org.geotools.geometry.jts.JTS
-
-import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
 
 object SQLGeometricConstructorFunctions {
 
-//  val ST_GeomFromGeoHash: (String, Int) => Geometry = nullableUDF((hash, prec) => GeoHash(hash, prec).geom)
   val ST_GeomFromWKT: String => Geometry = nullableUDF(text => WKTUtils.read(text))
   val ST_GeomFromWKB: Array[Byte] => Geometry = nullableUDF(array => WKBUtils.read(array))
   val ST_LineFromText: String => LineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[LineString])
@@ -35,15 +35,12 @@ object SQLGeometricConstructorFunctions {
   val ST_MPointFromText: String => MultiPoint = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiPoint])
   val ST_MPolyFromText: String => MultiPolygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiPolygon])
   val ST_Point: (Double, Double) => Point = (x, y) => ST_MakePoint(x, y)
-//  val ST_PointFromGeoHash: (String, Int) => Point = nullableUDF((hash, prec) => GeoHash(hash, prec).getPoint)
   val ST_PointFromText: String => Point = nullableUDF(text => WKTUtils.read(text).asInstanceOf[Point])
   val ST_PointFromWKB: Array[Byte] => Point = array => ST_GeomFromWKB(array).asInstanceOf[Point]
   val ST_Polygon: LineString => Polygon = shell => ST_MakePolygon(shell)
   val ST_PolygonFromText: String => Polygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[Polygon])
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
-//    sqlContext.udf.register("st_box2DFromGeoHash"  , ST_GeomFromGeoHash)
-//    sqlContext.udf.register("st_geomFromGeoHash"   , ST_GeomFromGeoHash)
     sqlContext.udf.register("st_geomFromText"      , ST_GeomFromWKT)
     sqlContext.udf.register("st_geomFromWKB"       , ST_GeomFromWKB)
     sqlContext.udf.register("st_geomFromWKT"       , ST_GeomFromWKT)
@@ -59,7 +56,6 @@ object SQLGeometricConstructorFunctions {
     sqlContext.udf.register("st_makePointM"        , ST_MakePointM)
     sqlContext.udf.register("st_makePolygon"       , ST_MakePolygon)
     sqlContext.udf.register("st_point"             , ST_Point)
-//    sqlContext.udf.register("st_pointFromGeoHash"  , ST_PointFromGeoHash)
     sqlContext.udf.register("st_pointFromText"     , ST_PointFromText)
     sqlContext.udf.register("st_pointFromWKB"      , ST_PointFromWKB)
     sqlContext.udf.register("st_polygon"           , ST_Polygon)

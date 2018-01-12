@@ -44,7 +44,7 @@ The following is a Scala example of loading a DataFrame with user defined types
 
 Notice how the initial schema does not have a UserDefinedType, but after applying our
 User Defined Functions to the appropriate columns, we are left with a data frame with
- geospatial column types.
+geospatial column types.
 
 Configuration
 ^^^^^^^^^^^^^

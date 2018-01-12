@@ -6,12 +6,13 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark
 
 import java.{lang => jl}
 
 import com.vividsolutions.jts.geom._
-import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
+import SQLFunctionHelper.nullableUDF
+import org.apache.spark.sql.SQLContext
 
 object SQLSpatialAccessorFunctions {
   val ST_Boundary: Geometry => Geometry = nullableUDF(geom => geom.getBoundary)

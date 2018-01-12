@@ -6,15 +6,18 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.apache.spark.sql.jts
 
 import com.vividsolutions.jts.geom._
+import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.GenericInternalRow
 import org.apache.spark.sql.types._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.locationtech.geomesa.spark._
 import org.opengis.filter.FilterFactory2
+
 import scala.reflect.ClassTag
 
 

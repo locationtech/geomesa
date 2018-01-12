@@ -6,12 +6,13 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark
 
 import java.nio.charset.StandardCharsets
 
 import com.vividsolutions.jts.geom._
-import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
+import SQLFunctionHelper.nullableUDF
+import org.apache.spark.sql.SQLContext
 
 object SQLGeometricCastFunctions {
   val ST_CastToPoint:      Geometry => Point       = g => g.asInstanceOf[Point]

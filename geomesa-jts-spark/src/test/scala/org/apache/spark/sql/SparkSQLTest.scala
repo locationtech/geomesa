@@ -14,8 +14,9 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.apache.spark.sql.types._
-
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.jts.SQLTypes
+import org.locationtech.geomesa.spark.{SQLGeometricConstructorFunctions, WKTUtils}
 
 
 @RunWith(classOf[JUnitRunner])

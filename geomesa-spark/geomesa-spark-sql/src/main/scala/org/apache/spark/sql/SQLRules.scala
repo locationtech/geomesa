@@ -10,10 +10,10 @@ package org.apache.spark.sql
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
-import org.apache.spark.sql.SQLTypes._
+import org.apache.spark.sql.jts.SQLTypes._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
-import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, GenericInternalRow, LeafExpression, Literal, PredicateHelper, ScalaUDF}
+import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, LeafExpression,  PredicateHelper, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
@@ -27,7 +27,7 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 object SQLRules extends LazyLogging {
-  import SQLSpatialFunctions._
+  import org.locationtech.geomesa.spark.SQLSpatialFunctions._
 
   def scalaUDFtoGTFilter(udf: Expression): Option[GTFilter] = {
     val ScalaUDF(func, _, expressions, _, _) = udf
@@ -245,26 +245,6 @@ object SQLRules extends LazyLogging {
 
   }
 
-  object ScalaUDFRule extends Rule[LogicalPlan] with LazyLogging {
-    override def apply(plan: LogicalPlan): LogicalPlan = {
-      plan.transform {
-        case q: LogicalPlan => q.transformExpressionsDown {
-          case s@ScalaUDF(_, _, _, _, _) =>
-            // TODO: Break down by GeometryType
-            Try {
-                s.eval(null) match {
-                  case row: GenericInternalRow =>
-                    val ret = GeometryUDT.deserialize(row)
-                    GeometryLiteral(row, ret)
-                  case other: Any =>
-                    Literal(other)
-                }
-            }.getOrElse(s)
-        }
-      }
-    }
-  }
-
   // A catch for when we are able to precompute the join using the sweepline algorithm.
   // Skips doing a full cartesian product with catalyst.
   object SpatialJoinStrategy extends Strategy {
@@ -292,10 +272,6 @@ object SQLRules extends LazyLogging {
   }
 
   def registerOptimizations(sqlContext: SQLContext): Unit = {
-    Seq(ScalaUDFRule, STContainsRule).foreach { r =>
-      if(!sqlContext.experimental.extraOptimizations.contains(r))
-        sqlContext.experimental.extraOptimizations ++= Seq(r)
-    }
 
     Seq(SpatialJoinStrategy).foreach { s =>
       if(!sqlContext.experimental.extraStrategies.contains(s))
