@@ -74,6 +74,14 @@ class SparkSQLTest extends Specification {
       testDF.count() mustEqual df.count()
     }
 
+    "sql and df equivalence" >> {
+      import org.locationtech.geomesa.spark.SQLSpatialFunctions.st_contains
+      import org.locationtech.geomesa.spark.SQLGeometricConstructorFunctions.st_makeBBOX
+      val countSQL = sc.sql("select * from example where st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), point)").count()
+      val countDF = newDF.where(st_contains(st_makeBBOX(lit(0.0), lit(0.0), lit(90.0), lit(90.0)), col("point"))).count()
+      countSQL mustEqual countDF
+    }
+
     "st contains" >> {
       val r = sc.sql("select * from example where st_contains(polygon, point)")
       r.count() mustEqual 3

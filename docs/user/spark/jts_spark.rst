@@ -4,7 +4,7 @@ JTS Spark
 The JTS Spark module provides a set of User Defined Functions (UDFs) and User
 Defined Types (UDTs) that enable executing SQL queries in spark that perform
 geospatial operations on geospatial data types.
-on
+
 GeoMesa SparkSQL support builds upon the ``DataSet``/``DataFrame`` API present
 in the Spark SQL module to provide geospatial capabilities. This includes
 custom geospatial data types and functions, the ability to create a ``DataFrame``
@@ -23,9 +23,14 @@ This functionality is located in the ``geomesa-jts-spark`` module:
 Example
 ^^^^^^^
 
-The following is a Scala example of loading a DataFrame with user defined types
+The following is a Scala example of loading a DataFrame with user defined types:
 
 .. code-block:: scala
+
+    import org.apache.spark.sql.types._
+    import org.apache.spark.sql.functions._
+    import org.apache.spark.sql.jts.SQLTypes
+    import org.locationtech.geomesa.spark.SQLGeometricConstructorFunctions._
 
     val schema = StructType(Array(StructField("name",StringType, nullable=false),
                                 StructField("polygonText", StringType, nullable=false),
@@ -35,10 +40,8 @@ The following is a Scala example of loading a DataFrame with user defined types
     val dataFile = this.getClass.getClassLoader.getResource("jts-example.csv").getPath
     df = spark.read.schema(schema).option("sep", "-").csv(dataFile)
 
-    val polyFromText = udf(SQLGeometricConstructorFunctions.ST_PolygonFromText)
-    val pointFromCoord = udf(SQLGeometricConstructorFunctions.ST_MakePoint)
-    alteredDF = df.withColumn("polygon", polyFromText(col("polygonText")))
-                  .withColumn("point", pointFromCoord(col("latitude"), col("longitude")))
+    alteredDF = df.withColumn("polygon", st_polyFromText(col("polygonText")))
+                  .withColumn("point", st_makePoint(col("latitude"), col("longitude")))
 
 
 
@@ -46,14 +49,26 @@ Notice how the initial schema does not have a UserDefinedType, but after applyin
 User Defined Functions to the appropriate columns, we are left with a data frame with
 geospatial column types.
 
+
+It is also possible to construct a DataFrame from a list of geospatial objects:
+
+.. code-block:: scala
+
+    import org.locationtech.geomesa.spark.SpatialEncoders._
+    val df = spark.createDataset(Seq(point)).toDF()
+
 Configuration
 ^^^^^^^^^^^^^
 
-To enable this behavior, you must pass the  `SQLContext` of the `SparkSession` to
-`SQLTypes.init`. This will register the UDFs and UDTs as well as some catalyst
+To enable this behavior, you must pass the  ``SQLContext`` of the ``SparkSession`` to
+``SQLTypes.init``. This will register the UDFs and UDTs as well as some catalyst
 optimizations for these operations.
 
-.. code-block:: bash
+.. code-block:: scala
+
+    import org.apache.spark.sql.SparkSession
+    import org.apache.spark.sql.SQLContext
+    import org.apache.spark.sql.jts.SQLTypes
 
     val spark: SparkSession = SparkSession.builder() // ... initialize spark session
     val sc: SQLContext = spark.sqlContext
@@ -92,6 +107,16 @@ For example, the following SQL query
 
 uses two UDFs--``st_contains`` and ``st_makeBBOX``--to find the rows in the ``chicago``
 ``DataFrame`` where column ``geom`` is contained within the specified bounding box.
+
+The UDFs are also exposed for use with the DataFrame API, meaning the above example is
+also achievable with the following code:
+
+.. code::
+
+    import org.locationtech.geomesa.spark.SQLSpatialFunctions.st_contains
+    import org.locationtech.geomesa.spark.SQLGeometricConstructorFunctions.st_makeBBOX
+    import org.apache.spark.sql.functions._
+    chicagoDF.where(st_contains(st_makeBBOX(lit(0.0), lit(0.0), lit(90.0), lit(90.0)), col("geom")))
 
 A complete list of the implemented UDFs is given in the next section (:doc:`./sparksql_functions`).
 
