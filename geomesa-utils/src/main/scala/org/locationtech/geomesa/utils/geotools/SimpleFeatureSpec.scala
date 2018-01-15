@@ -155,11 +155,11 @@ object AttributeSpec {
     */
   case class GeomAttributeSpec(name: String, clazz: Class[_], options: Map[String, String]) extends AttributeSpec {
 
-    val default = options.get(OPT_DEFAULT).exists(_.toBoolean)
+    private val default = options.get(OPT_DEFAULT).exists(_.toBoolean)
 
-    override def toSpec = if (default) { s"*${super.toSpec}" } else { super.toSpec }
+    override def toSpec: String = if (default) { s"*${super.toSpec}" } else { super.toSpec }
 
-    override def builderHook(builder: AttributeTypeBuilder) = {
+    override def builderHook(builder: AttributeTypeBuilder): Unit = {
       require(!options.get(OPT_SRID).exists(_.toInt != 4326),
         s"Invalid SRID '${options(OPT_SRID)}'. Only 4326 is supported.")
       builder.crs(CRS_EPSG_4326)
@@ -178,7 +178,7 @@ object AttributeSpec {
   case class ListAttributeSpec(name: String, subClass: Class[_], options: Map[String, String]) extends AttributeSpec {
     import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs.USER_DATA_LIST_TYPE
 
-    override val clazz = classOf[java.util.List[_]]
+    override val clazz: Class[java.util.List[_]] = classOf[java.util.List[_]]
     override val getClassSpec = s"List[${typeEncode(subClass)}]"
 
     override protected def specOptions: Map[String, String] = options - USER_DATA_LIST_TYPE
@@ -192,7 +192,7 @@ object AttributeSpec {
       extends AttributeSpec {
     import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
 
-    override val clazz = classOf[java.util.Map[_, _]]
+    override val clazz: Class[java.util.Map[_, _]] = classOf[java.util.Map[_, _]]
     override val getClassSpec = s"Map[${typeEncode(keyClass)},${typeEncode(valueClass)}]"
 
     override protected def specOptions: Map[String, String] =
@@ -218,6 +218,7 @@ object AttributeSpec {
     classOf[MultiPolygon]        -> "MultiPolygon",
     classOf[GeometryCollection]  -> "GeometryCollection",
     classOf[Date]                -> "Date",
+    classOf[java.sql.Date]       -> "Date",
     classOf[java.sql.Timestamp]  -> "Timestamp",
     classOf[java.util.List[_]]   -> "List",
     classOf[java.util.Map[_, _]] -> "Map",
