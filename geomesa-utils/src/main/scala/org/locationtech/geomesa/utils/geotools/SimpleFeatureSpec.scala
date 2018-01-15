@@ -253,7 +253,7 @@ object AttributeSpec {
     "false"             -> classOf[java.lang.Boolean],
     "UUID"              -> classOf[UUID],
     "Date"              -> classOf[Date],
-    "Timestamp"         -> classOf[Date],
+    "Timestamp"         -> classOf[java.sql.Timestamp],
     "byte[]"            -> classOf[Array[Byte]],
     "Bytes"             -> classOf[Array[Byte]]
   )
