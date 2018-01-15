@@ -312,6 +312,11 @@ class SimpleFeatureTypesTest extends Specification {
       SimpleFeatureTypes.encodeDescriptor(sft, sft.getDescriptor(2)) mustEqual "sqlTimestamp:Timestamp"
     }
 
+    "create schemas from sql dates" >> {
+      SimpleFeatureTypes.createType("test", "dtg:Timestamp,*geom:Point:srid=4326")
+          .getDescriptor(0).getType.getBinding mustEqual classOf[java.sql.Timestamp]
+    }
+
     "return meaningful error messages" >> {
       Try(SimpleFeatureTypes.createType("test", null)) must
           beAFailedTry.withThrowable[IllegalArgumentException](Pattern.quote("Invalid spec string: null"))
