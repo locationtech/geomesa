@@ -13,6 +13,7 @@ The current version of GeoMesa Spark supports Apache Spark 2.0.
 
    architecture
    core
+   spark_jts
    sparksql
    sparksql_functions
    accumulo_spark_runtime

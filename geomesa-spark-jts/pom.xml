@@ -7,8 +7,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>GeoMesa JTS Spark</name>
-    <artifactId>geomesa-jts-spark_2.11</artifactId>
+    <name>GeoMesa Spark JTS</name>
+    <artifactId>geomesa-spark-jts_2.11</artifactId>
 
     <dependencies>
 

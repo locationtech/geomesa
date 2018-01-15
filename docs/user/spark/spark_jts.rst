@@ -1,7 +1,7 @@
-JTS Spark
+Spark JTS
 ---------
 
-The JTS Spark module provides a set of User Defined Functions (UDFs) and User
+The Spark JTS module provides a set of User Defined Functions (UDFs) and User
 Defined Types (UDTs) that enable executing SQL queries in spark that perform
 geospatial operations on geospatial data types.
 
@@ -10,13 +10,13 @@ in the Spark SQL module to provide geospatial capabilities. This includes
 custom geospatial data types and functions, the ability to create a ``DataFrame``
 from a GeoTools ``DataStore``, and optimizations to improve SQL query performance.
 
-This functionality is located in the ``geomesa-jts-spark`` module:
+This functionality is located in the ``geomesa-spark-jts`` module:
 
 .. code-block:: xml
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-jts-spark_2.11</artifactId>
+      <artifactId>geomesa-spark-jts_2.11</artifactId>
       // version, etc.
     </dependency>
 
@@ -77,7 +77,7 @@ optimizations for these operations.
 Geospatial User-defined Types and Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The JTS Spark module takes several `classes representing geometry objects`_
+The Spark JTS module takes several `classes representing geometry objects`_
 (as described by the OGC `OpenGIS Simple feature access common architecture`_ specification and
 implemented by the Java Topology Suite) and registers them as user-defined types (UDTs) in
 SparkSQL. For example the ``Geometry`` class is registered as ``GeometryUDT``. The following types are registered:
@@ -91,7 +91,7 @@ SparkSQL. For example the ``Geometry`` class is registered as ``GeometryUDT``. T
  * ``MultiPolygonUDT``
  * ``GeometryCollectionUDT``
 
-JTS Spark also implements a subset of the functions described in the
+Spark JTS also implements a subset of the functions described in the
 OGC `OpenGIS Simple feature access SQL option`_ specification as SparkSQL
 user-defined functions (UDFs). These include functions
 for creating geometries, accessing properties of geometries, casting
