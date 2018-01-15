@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.operation.distance.DistanceOp
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.udaf.ConvexHull
+import org.apache.spark.sql.functions.udf
 import SQLFunctionHelper.nullableUDF
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.GeodeticCalculator
@@ -57,6 +58,27 @@ object SQLSpatialFunctions {
 
   val ST_LengthSpheroid: LineString => jl.Double =
     nullableUDF(line => line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum)
+
+  implicit def st_translate = udf(ST_Translate)
+  implicit def st_contains = udf(ST_Contains)
+  implicit def st_covers = udf(ST_Covers)
+  implicit def st_crosses = udf(ST_Crosses)
+  implicit def st_disjoint = udf(ST_Disjoint)
+  implicit def st_equals = udf(ST_Equals)
+  implicit def st_intersects = udf(ST_Intersects)
+  implicit def st_overlaps = udf(ST_Overlaps)
+  implicit def st_touches = udf(ST_Touches)
+  implicit def st_within = udf(ST_Within)
+  implicit def st_relate = udf(ST_Relate)
+  implicit def st_relateBool = udf(ST_RelateBool)
+  implicit def st_area = udf(ST_Area)
+  implicit def st_centroid = udf(ST_Centroid)
+  implicit def st_closestPoint = udf(ST_ClosestPoint)
+  implicit def st_cistance = udf(ST_Distance)
+  implicit def st_distanceSpheroid = udf(ST_DistanceSpheroid)
+  implicit def st_length = udf(ST_Length)
+  implicit def st_aggregateDistanceSpheroid = udf(ST_AggregateDistanceSpheroid)
+  implicit def st_lengthSpheroid = udf(ST_LengthSpheroid)
 
   // Geometry Processing
   val ch = new ConvexHull

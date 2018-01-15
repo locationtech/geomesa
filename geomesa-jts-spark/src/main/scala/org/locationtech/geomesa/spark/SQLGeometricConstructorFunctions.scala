@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom._
 import SQLFunctionHelper.nullableUDF
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.jts.SQLTypes
+import org.apache.spark.sql.functions.udf
 import org.geotools.geometry.jts.JTS
 
 object SQLGeometricConstructorFunctions {
@@ -39,6 +40,24 @@ object SQLGeometricConstructorFunctions {
   val ST_PointFromWKB: Array[Byte] => Point = array => ST_GeomFromWKB(array).asInstanceOf[Point]
   val ST_Polygon: LineString => Polygon = shell => ST_MakePolygon(shell)
   val ST_PolygonFromText: String => Polygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[Polygon])
+
+  implicit def st_geomFromWKT = udf(ST_GeomFromWKT)
+  implicit def st_geomFromWKB = udf(ST_GeomFromWKB)
+  implicit def st_lineFromText = udf(ST_LineFromText)
+  implicit def st_makeBox2D = udf(ST_MakeBox2D)
+  implicit def st_makeBBOX = udf(ST_MakeBBOX)
+  implicit def st_makePolygon = udf(ST_MakePolygon)
+  implicit def st_makePoint = udf(ST_MakePoint)
+  implicit def st_makeLine = udf(ST_MakeLine)
+  implicit def st_makePointM = udf(ST_MakePointM)
+  implicit def st_mLineFromText = udf(ST_MLineFromText)
+  implicit def st_mPointFromText = udf(ST_MPointFromText)
+  implicit def st_mPolyFromText = udf(ST_MPolyFromText)
+  implicit def st_point = udf(ST_Point)
+  implicit def st_pointFromText = udf(ST_PointFromText)
+  implicit def st_pointFromWKB = udf(ST_PointFromWKB)
+  implicit def st_polygon = udf(ST_Polygon)
+  implicit def st_polygonFromText = udf(ST_PolygonFromText)
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_geomFromText"      , ST_GeomFromWKT)

@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.jts.SQLTypes
-import org.locationtech.geomesa.spark.{SQLGeometricConstructorFunctions, WKTUtils}
+import org.locationtech.geomesa.spark.WKTUtils
 
 
 @RunWith(classOf[JUnitRunner])
@@ -53,14 +53,10 @@ class SparkSQLTest extends Specification {
     }
 
     "row types are udt" >> {
-
-      val pointFromText = udf(SQLGeometricConstructorFunctions.ST_PointFromText)
-      val polyFromText = udf(SQLGeometricConstructorFunctions.ST_PolygonFromText)
-      val pointFromCoord = udf(SQLGeometricConstructorFunctions.ST_MakePoint)
-
-      newDF = df.withColumn("point", pointFromText(col("pointText")))
-                .withColumn("polygon", polyFromText(col("polygonText")))
-                .withColumn("pointB", pointFromCoord(col("latitude"), col("longitude")))
+      import org.locationtech.geomesa.spark.SQLGeometricConstructorFunctions._
+      newDF = df.withColumn("point", st_pointFromText(col("pointText")))
+                .withColumn("polygon", st_polygonFromText(col("polygonText")))
+                .withColumn("pointB", st_makePoint(col("latitude"), col("longitude")))
 
       newDF.createOrReplaceTempView("example")
       val row = newDF.first()
@@ -68,6 +64,14 @@ class SparkSQLTest extends Specification {
       val point = gf.createPoint(new Coordinate(40,40))
       row.getAs[Point](5) mustEqual point
       row.getAs[Point](7) mustEqual point
+    }
+
+    "create df from sequence of points" >> {
+      import org.locationtech.geomesa.spark.SpatialEncoders._
+
+      val points = newDF.collect().map{r => r.getAs[Point](5)}
+      val testDF = spark.createDataset(points).toDF()
+      testDF.count() mustEqual df.count()
     }
 
     "st contains" >> {

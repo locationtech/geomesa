@@ -12,6 +12,7 @@ package org.locationtech.geomesa.spark
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import SQLFunctionHelper.nullableUDF
 import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.functions.udf
 import org.geotools.geojson.geom.GeometryJSON
 
 object SQLGeometricOutputFunctions {
@@ -23,6 +24,11 @@ object SQLGeometricOutputFunctions {
   val ST_AsGeoJSON: Geometry => String = nullableUDF(geom => geomJSON.get().toString(geom))
   val ST_AsLatLonText: Point => String = nullableUDF(point => toLatLonString(point))
   val ST_AsText: Geometry => String = nullableUDF(geom => geom.toText)
+
+  implicit def st_asBinary = udf(ST_AsBinary)
+  implicit def st_asGeoJSON = udf(ST_AsGeoJSON)
+  implicit def st_asLatLonText = udf(ST_AsLatLonText)
+  implicit def st_asText = udf(ST_AsText)
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_asBinary", ST_AsBinary)
