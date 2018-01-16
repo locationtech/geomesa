@@ -8,34 +8,30 @@
 
 package org.locationtech.geomesa.spark
 
-import java.util.{Map => JMap}
 
-import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{LineString, Polygon, Point, Geometry}
-import org.apache.spark.sql._
-import org.geotools.data.{DataStoreFinder, DataStore}
+import com.vividsolutions.jts.geom.{LineString, Point, Polygon}
+import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.sql.jts.SQLTypes
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometricCastTest extends Specification with LazyLogging {
+class SparkSQLGeometricCastTest extends Specification {
 
   "sql geometry accessors" should {
     sequential
 
-    val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
-    var ds: DataStore = null
     var spark: SparkSession = null
     var sc: SQLContext = null
 
     // before
     step {
-      ds = DataStoreFinder.getDataStore(dsParams)
-      spark = SparkSQLTestUtils.createSparkSession()
+      spark = SparkSession.builder()
+        .appName("testSpark")
+        .master("local[*]")
+        .getOrCreate()
       sc = spark.sqlContext
       SQLTypes.init(sc)
     }
@@ -89,7 +85,6 @@ class SparkSQLGeometricCastTest extends Specification with LazyLogging {
 
     // after
     step {
-      ds.dispose()
       spark.stop()
     }
   }

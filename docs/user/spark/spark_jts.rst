@@ -126,3 +126,11 @@ A complete list of the implemented UDFs is given in the next section (:doc:`./sp
 
 .. _OpenGIS Simple feature access SQL option: http://www.opengeospatial.org/standards/sfs
 
+Building
+^^^^^^^^
+
+This module can be built and used independently of GeoMesa with the following command:
+
+.. code:: bash
+
+    $ mvn install -pl geomesa-spark-jts
