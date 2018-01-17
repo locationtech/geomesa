@@ -24,7 +24,7 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
+import org.geotools.data.DataUtilities.compare
 import scala.util.Try
 
 /**
@@ -56,7 +56,7 @@ class ConverterIngest(sft: SimpleFeatureType,
       ds.createSchema(sft)
     } else {
       Command.user.info(s"Schema '${sft.getTypeName}' exists")
-      if (SimpleFeatureTypes.encodeType(sft) != SimpleFeatureTypes.encodeType(existing)) {
+      if (compare(sft, existing) != 0) {
         throw new ParameterException("Existing simple feature type does not match expected type" +
             s"\n  existing: '${SimpleFeatureTypes.encodeType(existing)}'" +
             s"\n  expected: '${SimpleFeatureTypes.encodeType(sft)}'")
