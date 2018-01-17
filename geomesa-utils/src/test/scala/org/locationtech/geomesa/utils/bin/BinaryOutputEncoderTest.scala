@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,8 +11,9 @@ package org.locationtech.geomesa.utils.bin
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 
+import com.vividsolutions.jts.geom.{LineString, Point}
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -145,6 +146,78 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.trackId mustEqual "1234-0".hashCode
           decoded.label mustEqual -1L
         }
+      }
+    }
+
+    "encode timestamps" in {
+      val sft = {
+        // use a builder to create the Timestamp binding, we bind it to classOf[Date] in SimpleFeatureTypes
+        val builder = new SimpleFeatureTypeBuilder
+        builder.setName("bintest")
+        builder.add("track", classOf[String])
+        builder.add("dtg", classOf[java.sql.Timestamp])
+        builder.add("geom", classOf[Point], org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+        builder.buildFeatureType()
+      }
+      val baseDtg = dateFormat.parse("2014-01-01 08:09:00").getTime
+
+      val fc = new ListFeatureCollection(sft)
+      val builder = new SimpleFeatureBuilder(sft)
+      (0 until 4).foreach { i =>
+        val point = WKTUtils.read(s"POINT (45 5$i)")
+        val date = s"2014-01-01T08:0${9-i}:00.000Z"
+        builder.addAll(Array(s"1234-$i", date, point).asInstanceOf[Array[AnyRef]])
+        fc.add(builder.buildFeature(s"$i"))
+      }
+
+      val out = new ByteArrayOutputStream()
+      val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(1), Some(0), None))
+      encoder.encode(CloseableIterator(fc.features), out)
+      val encoded = out.toByteArray
+      forall(0 until 4) { i =>
+        val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 16, (i + 1) * 16))
+        decoded.dtg mustEqual baseDtg - 60 * 1000 * i
+        decoded.lat mustEqual 50 + i
+        decoded.lon mustEqual 45
+        decoded.trackId mustEqual s"1234-$i".hashCode
+        decoded.label mustEqual -1L
+      }
+    }
+
+    "encode lists of timestamps" in {
+      val sft = {
+        // use a builder to create the Timestamp binding, we bind it to classOf[Date] in SimpleFeatureTypes
+        val builder = new SimpleFeatureTypeBuilder
+        builder.setName("binlinetest")
+        builder.add("track", classOf[String])
+        builder.add("dtg", classOf[java.sql.Timestamp])
+        builder.userData(SimpleFeatureTypes.AttributeConfigs.USER_DATA_LIST_TYPE, classOf[java.sql.Timestamp].getName)
+        builder.add("dates", classOf[java.util.List[java.sql.Timestamp]])
+        builder.add("geom", classOf[LineString], org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+        builder.buildFeatureType()
+      }
+      val line = WKTUtils.read("LINESTRING(45 50, 46 51, 47 52, 50 55)")
+      val date = dateFormat.parse("2014-01-01 08:00:00")
+      val dates = (0 until 4).map(i => dateFormat.parse(s"2014-01-01 08:00:0${9-i}"))
+
+      val fc = new ListFeatureCollection(sft)
+      val builder = new SimpleFeatureBuilder(sft)
+      (0 until 1).foreach { i =>
+        builder.addAll(Array[AnyRef](s"1234-$i", date, dates, line))
+        fc.add(builder.buildFeature(s"$i"))
+      }
+
+      val out = new ByteArrayOutputStream()
+      val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(2), Some(0), None))
+      encoder.encode(CloseableIterator(fc.features), out)
+      val encoded = out.toByteArray
+      forall(0 until 4) { i =>
+        val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 16, (i + 1) * 16))
+        decoded.dtg mustEqual dates(i).getTime
+        decoded.lat mustEqual line.getCoordinates()(i).y.toFloat
+        decoded.lon mustEqual line.getCoordinates()(i).x.toFloat
+        decoded.trackId mustEqual "1234-0".hashCode
+        decoded.label mustEqual -1L
       }
     }
   }

@@ -52,6 +52,41 @@ function findJars() {
   echo "$ret"
 }
 
+# get stuff
+function downloadUrls() {
+  local dest=$1
+  local -n urlarray=$2
+
+  echo "Downloading the following files to '$dest':"
+  for url in "${urlarray[@]}"; do
+    echo "  $url"
+  done
+  read -r -p "Continue? (y/n) " confirm
+  confirm=${confirm,,} # lower-casing
+
+  if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+    mkdir -p "$dest"
+    declare -a downloads=()
+    for url in "${urlarray[@]}"; do
+      fname="$(basename "$url")" # filename we'll save to
+      tmpfile=$(mktemp)
+      # -sS disables progress meter but keeps error messages, -f don't save failed files, -o write to destination file
+      downloads+=("echo fetching $fname && curl -sSfo '$tmpfile' '$url' && mv '$tmpfile' '${dest}/${fname}' && chmod 644 '${dest}/${fname}'")
+    done
+    # pass to xargs to run with 4 threads
+    # delimit with null char to avoid issues with spaces
+    # execute in a new shell to allow for multiple commands per file
+    printf "%s\0" "${downloads[@]}" | xargs -P 4 -n 1 -0 sh -c
+    error=$?
+    if [[ "$error" != "0" ]]; then
+      echo "Error: failed to download some dependencies"
+      return $error
+    fi
+  else
+    echo "Download cancelled"
+  fi
+}
+
 # Combine two arguments into a classpath (aka add a : between them)
 # Handles if either argument is empty
 # TODO in the future take a variable number of arguments and combine them all

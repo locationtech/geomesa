@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -61,7 +61,7 @@ object BinaryOutputEncoder extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.Conversions._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val BinEncodedSft = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
+  val BinEncodedSft: SimpleFeatureType = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
   val BIN_ATTRIBUTE_INDEX = 0 // index of 'bin' attribute in BinEncodedSft
 
   // compares the 4 bytes representing the date in a bin array
@@ -156,7 +156,7 @@ object BinaryOutputEncoder extends LazyLogging {
     if (dtgIndex == -1) {
       throw new RuntimeException(s"Invalid date field requested for feature type ${sft.getTypeName}")
     }
-    val isSingleDate = sft.getDescriptor(dtgIndex).getType.getBinding == classOf[Date]
+    val isSingleDate = classOf[Date].isAssignableFrom(sft.getDescriptor(dtgIndex).getType.getBinding)
     val axisOrder = options.axisOrder.getOrElse(AxisOrder.LonLat)
 
     val (isPoint, isLineString) = {
@@ -174,7 +174,8 @@ object BinaryOutputEncoder extends LazyLogging {
         val dtgField = sft.getDescriptor(dtgIndex).getLocalName
         val sftAttributes = SimpleFeatureSpecParser.parse(SimpleFeatureTypes.encodeType(sft)).attributes
         sftAttributes.find(_.name == dtgField).foreach { spec =>
-          if (!spec.isInstanceOf[ListAttributeSpec] || spec.asInstanceOf[ListAttributeSpec].subClass != classOf[Date]) {
+          if (!spec.isInstanceOf[ListAttributeSpec] ||
+                !classOf[Date].isAssignableFrom(spec.asInstanceOf[ListAttributeSpec].subClass)) {
             throw new RuntimeException(s"Invalid date field requested for feature type ${sft.getTypeName}")
           }
         }

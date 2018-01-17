@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -37,11 +37,11 @@ class FileSystemFeatureStore(entry: ContentEntry,
     require((flags | WRITER_ADD) == WRITER_ADD, "Only append supported")
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
+
       private val typeName = query.getTypeName
 
-      private val loader = new CacheLoader[String, FileSystemWriter]() {
-        override def load(key: String): FileSystemWriter = storage.getWriter(typeName, key)
-      }
+      private val fileExpirationMillis = FileSystemDataStoreParams.WriterFileTimeout.toDuration.get.toMillis
+
       private val removalListener = new RemovalListener[String, FileSystemWriter]() {
         override def onRemoval(notification: RemovalNotification[String, FileSystemWriter]): Unit = {
           if(notification.getCause == RemovalCause.EXPIRED) {
@@ -53,13 +53,13 @@ class FileSystemFeatureStore(entry: ContentEntry,
         }
       }
 
-      private val GEOMESA_FSDS_FILE_EXPIRATION_MILLIS = "geomesa.fsds.file.expiration.millis"
-      private val fileExpirationMillis = System.getProperty(GEOMESA_FSDS_FILE_EXPIRATION_MILLIS, "60000").toInt
       private val writers =
         CacheBuilder.newBuilder()
           .expireAfterAccess(fileExpirationMillis, TimeUnit.MILLISECONDS)
           .removalListener[String, FileSystemWriter](removalListener)
-          .build(loader)
+          .build(new CacheLoader[String, FileSystemWriter]() {
+            override def load(partition: String): FileSystemWriter = storage.getWriter(typeName, partition)
+          })
 
       private val sft = _sft
 
@@ -126,5 +126,4 @@ class FileSystemFeatureStore(entry: ContentEntry,
   override def canRetype: Boolean = true
   override def canSort: Boolean = true
   override def canFilter: Boolean = true
-
 }

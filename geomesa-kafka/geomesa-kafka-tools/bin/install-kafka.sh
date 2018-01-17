@@ -6,9 +6,6 @@
 # accompanies this distribution and is available at
 # http://www.opensource.org/licenses/apache2.0.php.
 #
-
-maven_server="https://search.maven.org/remotecontent?filepath="
-
 zookeeper_version="%%zookeeper.version.recommended%%"
 
 # kafka 9 versions
@@ -21,36 +18,24 @@ jopt_version="%%kafka.jopt.version%%"
 # zkclient_version="0.10"
 # jopt_version="4.9"
 
+# Load common functions and setup
+if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+fi
+. $%%gmtools.dist.name%%_HOME/bin/common-functions.sh
+
+install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
+
+# Resource download location
+base_url="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath=}"
+
 declare -a urls=(
-  "${maven_server}org/apache/kafka/kafka_2.11/$kafka_version/kafka_2.11-$kafka_version.jar"
-  "${maven_server}org/apache/kafka/kafka-clients/$kafka_version/kafka-clients-$kafka_version.jar"
-  "${maven_server}org/apache/zookeeper/zookeeper/$zookeeper_version/zookeeper-$zookeeper_version.jar"
-  "${maven_server}com/101tec/zkclient/$zkclient_version/zkclient-$zkclient_version.jar"
-  "${maven_server}net/sf/jopt-simple/jopt-simple/$jopt_version/jopt-simple-$jopt_version.jar"
-  "${maven_server}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
+  "${base_url}org/apache/kafka/kafka_2.11/$kafka_version/kafka_2.11-$kafka_version.jar"
+  "${base_url}org/apache/kafka/kafka-clients/$kafka_version/kafka-clients-$kafka_version.jar"
+  "${base_url}org/apache/zookeeper/zookeeper/$zookeeper_version/zookeeper-$zookeeper_version.jar"
+  "${base_url}com/101tec/zkclient/$zkclient_version/zkclient-$zkclient_version.jar"
+  "${base_url}net/sf/jopt-simple/jopt-simple/$jopt_version/jopt-simple-$jopt_version.jar"
+  "${base_url}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
 )
 
-if [[ (-z "$1") ]]; then
-  echo "Error: Provide one arg which is the target directory (e.g. /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib)"
-  exit
-fi
-
-install_dir=$1
-NL=$'\n'
-read -r -p "Install Kafka ${kafka_version} DataStore dependencies to '${install_dir}' (y/n)? " confirm
-confirm=${confirm,,} #lowercasing
-if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-  # get stuff
-  for x in "${urls[@]}"; do
-    fname=$(basename "$x");
-    echo "fetching ${x}";
-    wget -O "${1}/${fname}" "$x" || { rm -f "${1}/${fname}"; echo "Failed to download: ${x}"; \
-      errorList="${errorList[@]} ${x} ${NL}"; };
-  done
-
-  if [[ -n "${errorList}" ]]; then
-    echo "Failed to download: ${NL} ${errorList[@]}";
-  fi
-else
-  echo "Installation cancelled"
-fi
+downloadUrls "$install_dir" urls

@@ -28,6 +28,7 @@ Parameter                              Type    Description
 ====================================== ======= ====================================================================================
 ``hbase.catalog *``                    String  The name of the GeoMesa catalog table (previously ``bigtable.table.name``)
 ``hbase.coprocessor.url``              String  Path to the GeoMesa jar containing coprocessors, for auto registration
+``hbase.config.paths``                 String  Additional HBase configuration resource files (comma-delimited)
 ``hbase.remote.filtering``             Boolean Can be used to disable remote filtering and coprocessors, for environments
                                                where custom code can't be installed
 ``hbase.security.enabled``             Boolean Enable HBase security (visibilities)
