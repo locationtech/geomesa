@@ -190,7 +190,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override def getSchema(typeName: String): SimpleFeatureType = {
     import GeoMesaMetadata.{ATTRIBUTES_KEY, SCHEMA_ID_KEY, STATS_GENERATION_KEY, VERSION_KEY}
     import SimpleFeatureTypes.Configs.{ENABLED_INDEX_OPTS, ENABLED_INDICES}
-    import SimpleFeatureTypes.InternalConfigs.{INDEX_VERSIONS, SCHEMA_VERSION_KEY}
+    import SimpleFeatureTypes.InternalConfigs.INDEX_VERSIONS
 
     var sft = super.getSchema(typeName)
 
@@ -213,9 +213,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       // back compatible check for index versions
       if (!sft.getUserData.contains(INDEX_VERSIONS)) {
         // back compatible check if user data wasn't encoded with the sft
-        if (!sft.getUserData.containsKey(SCHEMA_VERSION_KEY)) {
+        if (!sft.getUserData.containsKey(AccumuloFeatureIndex.DeprecatedSchemaVersionKey)) {
           metadata.read(typeName, "dtgfield").foreach(sft.setDtgField)
-          sft.getUserData.put(SCHEMA_VERSION_KEY, metadata.readRequired(typeName, VERSION_KEY))
+          sft.getUserData.put(AccumuloFeatureIndex.DeprecatedSchemaVersionKey, metadata.readRequired(typeName, VERSION_KEY))
 
           // If no data is written, we default to 'false' in order to support old tables.
           if (metadata.read(typeName, "tables.sharing").exists(_.toBoolean)) {

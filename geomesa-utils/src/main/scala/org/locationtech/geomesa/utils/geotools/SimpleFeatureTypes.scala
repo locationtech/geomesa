@@ -51,7 +51,6 @@ object SimpleFeatureTypes {
 
   private [geomesa] object InternalConfigs {
     val GEOMESA_PREFIX      = "geomesa."
-    val SCHEMA_VERSION_KEY  = "geomesa.version"
     val SHARING_PREFIX_KEY  = "geomesa.table.sharing.prefix"
     val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
     val INDEX_VERSIONS      = "geomesa.indices"
