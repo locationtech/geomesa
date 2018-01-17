@@ -22,20 +22,19 @@ function setGeoLog() {
 }
 
 # findJars [path] [bool: remove slf4j jars] [bool: do not descend into sub directories]
-# TODO this function only finds lowercase .jar extensions
 function findJars() {
   home="$1"
   CP=()
   if [[ -d "${home}" ]]; then
     if [[ "$3" == "true" ]]; then
-      for jar in $(find ${home} -maxdepth 1 -name "*.jar" -type f); do
-        if [[ "$2" != "true" || "$jar" != *slf4j* ]]; then
+      for jar in $(find ${home} -maxdepth 1 -iname "*.jar" -type f); do
+        if [[ "$jar" != *-sources.jar && ("$2" != "true" || "$jar" != *slf4j*) ]]; then
           CP+=(${jar})
         fi
       done
     else
-      for jar in $(find ${home} -type f -name "*.jar"); do
-        if [[ "$2" != "true" || "$jar" != *slf4j* ]]; then
+      for jar in $(find ${home} -type f -iname "*.jar"); do
+        if [[ "$jar" != *-sources.jar && ("$2" != "true" || "$jar" != *slf4j*) ]]; then
           CP+=(${jar})
         fi
       done

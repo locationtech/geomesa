@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>geomesa-fs_2.11</artifactId>
+        <groupId>org.locationtech.geomesa</groupId>
+        <version>1.4.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>geomesa-fs-storage_2.11</artifactId>
+    <name>GeoMesa FileSystem Storage</name>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>geomesa-fs-storage-api</module>
+        <module>geomesa-fs-storage-common</module>
+        <module>geomesa-fs-storage-convert</module>
+        <module>geomesa-fs-storage-orc</module>
+        <module>geomesa-fs-storage-parquet</module>
+    </modules>
+
+</project>

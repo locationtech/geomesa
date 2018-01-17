@@ -529,7 +529,7 @@ object FilterHelper {
   }
 
   def propertyNames(filter: Filter, sft: SimpleFeatureType): Seq[String] =
-    DataUtilities.attributeNames(filter, sft).toSeq.sorted
+    DataUtilities.attributeNames(filter, sft).toSeq.distinct.sorted
 
   def hasIdFilter(filter: Filter): Boolean =
     filter.accept(new IdDetectingFilterVisitor, false).asInstanceOf[Boolean]

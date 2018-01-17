@@ -1,1 +1,2 @@
-org.locationtech.geomesa.fs.spark.ParquetFileSystemRDD
+org.locationtech.geomesa.fs.spark.OrcFileSystemRDDProvider
+org.locationtech.geomesa.fs.spark.ParquetFileSystemRDDProvider
