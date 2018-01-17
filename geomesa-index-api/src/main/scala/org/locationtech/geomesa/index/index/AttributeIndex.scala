@@ -360,8 +360,13 @@ object AttributeIndex {
     * Lexicographically encode the value. Will convert types appropriately.
     */
   def encodeForQuery(value: Any, descriptor: AttributeDescriptor): Array[Byte] =
+    encodeForQuery(value, if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding })
+
+  /**
+    * Lexicographically encode the value. Will convert types appropriately.
+    */
+  def encodeForQuery(value: Any, binding: Class[_]): Array[Byte] = {
     if (value == null) { Array.empty } else {
-      val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
       val converted = Option(Converters.convert(value, binding)).getOrElse(value)
       val encoded = typeEncode(converted)
       if (encoded == null || encoded.isEmpty) {
@@ -370,6 +375,7 @@ object AttributeIndex {
         encoded.getBytes(StandardCharsets.UTF_8)
       }
     }
+  }
 
   // Lexicographically encode a value using it's runtime class
   private def typeEncode(value: Any): String = Try(typeRegistry.encode(value)).getOrElse(value.toString)

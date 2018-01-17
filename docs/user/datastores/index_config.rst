@@ -354,6 +354,11 @@ For data hot-spots, multiple patterns can be specified by adding additional opti
 the key. For example, if most of the ``name`` values start with the letter ``f`` and ``t``, splits could be
 specified as ``attr.name.pattern:[a-z],attr.name.pattern2:[f][a-z],attr.name.pattern3:[t][a-z]``
 
+For number-type attributes, only numbers are considered valid characters. Due to lexicoding, normal number
+prefixing will not work correctly. E.g., if the data has numbers in the range 8000-9000, specifying
+``[8-9][0-9]`` will not split the data properly. Instead, trailing zeros should be added to reach the appropriate
+length, e.g. ``[8-9][0-9][0][0]``.
+
 Full Example
 ++++++++++++
 

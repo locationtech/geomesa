@@ -64,7 +64,7 @@ object DefaultSplitter {
     } else {
       Iterator("[0]", "[4]", "[8]", "[c]") // 4 splits assuming hex layout
     }
-    patterns.takeWhile(_ != null).map(SplitPatternParser.parse).reduceLeft(_ ++ _)
+    patterns.takeWhile(_ != null).flatMap(SplitPatternParser.parse).map(stringPatternSplits).reduceLeft(_ ++ _)
   }
 
   /**
@@ -86,13 +86,25 @@ object DefaultSplitter {
     import scala.collection.JavaConversions._
 
     sft.getAttributeDescriptors.collect { case ad if ad.isIndexed =>
+      val binding = ad.getType.getBinding
       val option = s"${AttributeIndex.Name}.${ad.getLocalName}.pattern"
-      val patterns = Iterator.single(options.get(option).orNull) ++
+      val patternIterator = Iterator.single(options.get(option).orNull) ++
           Iterator.range(2, Int.MaxValue).map(i => options.get(s"$option$i").orNull)
-      patterns.takeWhile(_ != null)
-          .map(SplitPatternParser.parse)
-          .reduceLeftOption(_ ++ _)
-          .getOrElse(Array(Array.empty[Byte]))
+      val patterns = patternIterator.takeWhile(_ != null).toSeq
+      val ranges = patterns.flatMap(SplitPatternParser.parse)
+      val splits = if (classOf[Number].isAssignableFrom(binding)) {
+        try {
+          ranges.map(numberPatternSplits(_, binding))
+        } catch {
+          case e: NumberFormatException =>
+            throw new IllegalArgumentException(s"Trying to create splits for attribute '${ad.getLocalName}' " +
+                s"of type ${ad.getType.getBinding.getSimpleName}, but splits could not be parsed as a number: " +
+                patterns.mkString(" "), e)
+        }
+      } else {
+        ranges.map(stringPatternSplits)
+      }
+      splits.reduceLeftOption(_ ++ _).getOrElse(Array.empty)
     }.reduce(_ ++ _)
   }
 
@@ -179,4 +191,37 @@ object DefaultSplitter {
 
     add(Seq.empty, Seq.empty, bits).map(toBytes).toArray
   }
+
+  private def stringPatternSplits(range: (String, String)): Array[Array[Byte]] = {
+    (0 until range._1.length).map(i => rangeSplits(range._1.charAt(i), range._2.charAt(i))).reduceLeft {
+      (left, right) => for (a <- left; b <- right) yield { Bytes.concat(a, b) }
+    }
+  }
+
+  @throws(classOf[NumberFormatException])
+  private def numberPatternSplits(range: (String, String), binding: Class[_]): Array[Array[Byte]] = {
+    // recursive function to create all number permutations
+    def add(result: Seq[String], value: String, remaining: Seq[(Int, Int)]): Seq[String] = {
+      if (remaining.isEmpty) { Seq(value) } else {
+        val (start, end) = remaining.head
+        result ++ (start to end).flatMap(i => add(result, value + i, remaining.tail))
+      }
+    }
+
+    val remaining = (0 until range._1.length).map { i =>
+      (Integer.parseInt(range._1(i).toString), Integer.parseInt(range._2(i).toString))
+    }
+    val splits = add(Seq.empty, "", remaining)
+    splits.map(AttributeIndex.encodeForQuery(_, binding)).toArray
+  }
+
+  /**
+    * Splits from one char to a second (inclusive)
+    *
+    * @param from from
+    * @param to to
+    * @return
+    */
+  private def rangeSplits(from: Char, to: Char): Array[Array[Byte]] =
+    Array.range(from, to + 1).map(b => Array(b.toByte))
 }
