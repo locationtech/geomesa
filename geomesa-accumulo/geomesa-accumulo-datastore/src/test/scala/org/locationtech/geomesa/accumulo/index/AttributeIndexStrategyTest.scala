@@ -131,6 +131,21 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       bins.map(_.trackId) must containAllOf(Seq("bill", "bob", "charles").map(_.hashCode))
     }
 
+    "support bin queries with join queries and transforms" in {
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+      val query = new Query(sftName, ECQL.toFilter("count>=2"), Array("dtg", "geom", "name")) // note: swap order
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_DTG, "dtg")
+      query.getHints.put(BIN_GEOM, "geom")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
+      forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      forall(results)(_ must beAnInstanceOf[Array[Byte]])
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
+      bins must haveSize(3)
+      bins.map(_.trackId) must containAllOf(Seq("bill", "bob", "charles").map(_.hashCode))
+    }
+
     "support bin queries against index values" in {
       import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))

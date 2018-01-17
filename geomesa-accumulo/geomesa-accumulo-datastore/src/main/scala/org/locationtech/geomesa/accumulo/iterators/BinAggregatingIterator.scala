@@ -258,10 +258,10 @@ object BinAggregatingIterator extends LazyLogging {
     // don't use return sft from query hints, as it will be bin_sft
     val returnSft = hints.getTransformSchema.getOrElse(sft)
 
-    val trackId = Option(hints.getBinTrackIdField).filter(_ != "id").map(sft.indexOf)
-    val geom = hints.getBinGeomField.map(sft.indexOf)
-    val dtg = hints.getBinDtgField.map(sft.indexOf)
-    val label = hints.getBinLabelField.map(sft.indexOf)
+    val trackId = Option(hints.getBinTrackIdField).filter(_ != "id").map(returnSft.indexOf)
+    val geom = hints.getBinGeomField.map(returnSft.indexOf)
+    val dtg = hints.getBinDtgField.map(returnSft.indexOf)
+    val label = hints.getBinLabelField.map(returnSft.indexOf)
 
     val encoder = BinaryOutputEncoder(returnSft, EncodingOptions(geom, dtg, trackId, label))
 
