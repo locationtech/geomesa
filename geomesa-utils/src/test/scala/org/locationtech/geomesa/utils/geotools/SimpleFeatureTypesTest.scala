@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.geotools
 import java.util.regex.Pattern
 
 import com.typesafe.config.ConfigFactory
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
@@ -295,6 +296,25 @@ class SimpleFeatureTypesTest extends Specification {
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getDescriptor("name").getUserData.get(OPT_INDEX) mustEqual("true")
       sft.getDescriptor("name").getIndexCoverage() mustEqual(IndexCoverage.JOIN)
+    }
+
+    "encode date attribute types" >> {
+      val sft: SimpleFeatureType = {
+        val builder = new SimpleFeatureTypeBuilder()
+        builder.setName("test")
+        builder.add("date", classOf[java.util.Date])
+        builder.add("sqlDate", classOf[java.sql.Date])
+        builder.add("sqlTimestamp", classOf[java.sql.Timestamp])
+        builder.buildFeatureType()
+      }
+      SimpleFeatureTypes.encodeDescriptor(sft, sft.getDescriptor(0)) mustEqual "date:Date"
+      SimpleFeatureTypes.encodeDescriptor(sft, sft.getDescriptor(1)) mustEqual "sqlDate:Date"
+      SimpleFeatureTypes.encodeDescriptor(sft, sft.getDescriptor(2)) mustEqual "sqlTimestamp:Timestamp"
+    }
+
+    "create schemas from sql dates" >> {
+      SimpleFeatureTypes.createType("test", "dtg:Timestamp,*geom:Point:srid=4326")
+          .getDescriptor(0).getType.getBinding mustEqual classOf[java.sql.Timestamp]
     }
 
     "return meaningful error messages" >> {
