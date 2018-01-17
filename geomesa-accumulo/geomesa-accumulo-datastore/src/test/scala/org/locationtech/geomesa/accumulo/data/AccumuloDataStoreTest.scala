@@ -327,8 +327,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.createSchema(sft)
       val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
       val splits = ds.connector.tableOperations().listSplits(recTable)
-      splits.size() mustEqual 260
-      splits.head mustEqual new Text("a0")
+      // note: first split is dropped, which creates 259 splits but 260 regions
+      splits.size() mustEqual 259
+      splits.head mustEqual new Text("a1")
       splits.last mustEqual new Text("z9")
     }
 
@@ -351,8 +352,15 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
       val newSplits = (afterSplits.toSet -- prevsplits.toSet).toList.sorted(TextOrdering)
       val prefix = ds.getSchema(sft.getTypeName).getTableSharingPrefix
-      newSplits.length mustEqual 100
-      newSplits.head mustEqual new Text(s"${prefix}00")
+      if (prefix.head == 0.toByte) {
+        // note: first split is dropped this is the first schema in the table
+        newSplits.length mustEqual 99
+        newSplits.head mustEqual new Text(s"${prefix}01")
+      } else {
+        // note: first split is not dropped since table sharing is on and this is not the first schema in the table
+        newSplits.length mustEqual 100
+        newSplits.head mustEqual new Text(s"${prefix}00")
+      }
       newSplits.last mustEqual new Text(s"${prefix}99")
     }
 

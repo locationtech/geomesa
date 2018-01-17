@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.util
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
+import org.locationtech.geomesa.utils.text.KVPairParser
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -44,7 +45,7 @@ class AccumuloSftBuilderTest extends Specification {
         sft.getAttributeDescriptors.map(_.getLocalName) must containAllOf(List("i", "l"))
 
         sft.getTableSplitter must beSome(classOf[DefaultSplitter])
-        val opts = sft.getTableSplitterOptions
+        val opts = KVPairParser.parse(sft.getTableSplitterOptions)
         opts.toSeq must containTheSameElementsAs(config.toSeq)
       }
 

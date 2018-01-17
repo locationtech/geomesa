@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import com.google.common.primitives.Shorts
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
@@ -162,7 +161,6 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     }
 
     "support table splits" in {
-      // TODO test non-z3 splits
       val typeName = "testsplits"
 
       val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
@@ -170,20 +168,20 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
       ds.getSchema(typeName) must beNull
 
+      // note: we keep the number of splits small b/c the embedded hbase is slow to create them
       ds.createSchema(SimpleFeatureTypes.createType(typeName,
         "name:String:index=true,age:Int:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;" +
             "table.splitter.options='z3.min:2017-01-01,z3.max:2017-01-02,z3.bits:2," +
-            "attr.name.pattern:[a-z],attr.age.pattern:[0-9][0-9]'"))
+            "attr.name.pattern:[a-f],attr.age.pattern:[0-9],attr.age.pattern2:[8-8][0-9]'"))
 
-      Seq(/*"z3:2", */"attr:4").foreach { tableName =>
-        val table = TableName.valueOf(ds.manager.index(tableName).getTableName(typeName, ds))
-        val locator = ds.connection.getRegionLocator(table)
-        val (startKeys, endKeys) = (locator.getStartKeys, locator.getEndKeys)
-        startKeys.map(k => if (k.length > 2) Shorts.fromBytes(k(0), k(1)) + " " + new String(k.drop(2)) else k.mkString(":")).foreach(println)
-//        println(endKeys.map(_.mkString(":")).mkString(","))
+      def splits(index: String): Seq[Array[Byte]] = {
+        val table = TableName.valueOf(ds.manager.index(index).getTableName(typeName, ds))
+        ds.connection.getRegionLocator(table).getStartKeys
       }
 
-      ok
+      splits("attr:4") must haveLength((6 + 10 + 10) * 4) // a-f for name, 0-9 + [8]0-9 for age * 4 shards
+      splits("z3:2") must haveLength(16) // 2 bits * 4 shards
+      splits("id:1") must haveLength(4) // default 4 splits
     }
   }
 

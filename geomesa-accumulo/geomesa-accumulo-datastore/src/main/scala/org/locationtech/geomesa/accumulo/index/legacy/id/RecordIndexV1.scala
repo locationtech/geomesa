@@ -43,7 +43,7 @@ case object RecordIndexV1 extends AccumuloFeatureIndex with RecordWritableIndex 
     val sharing = sft.getTableSharingBytes
 
     val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
-    val splits = nonEmpty(splitter.getSplits(name, sft, sft.getTableSplitterOptions))
+    val splits = nonEmpty(splitter.getSplits(sft, name, sft.getTableSplitterOptions))
 
     for (split <- splits) yield {
       Bytes.concat(sharing, split)

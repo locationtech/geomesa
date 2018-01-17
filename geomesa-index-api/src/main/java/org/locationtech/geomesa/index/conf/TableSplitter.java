@@ -10,8 +10,6 @@ package org.locationtech.geomesa.index.conf;
 
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import java.util.Map;
-
 public interface TableSplitter {
-    byte[][] getSplits(String index, SimpleFeatureType sft, Map<String, String> options);
+    byte[][] getSplits(SimpleFeatureType sft, String index, String options);
 }
