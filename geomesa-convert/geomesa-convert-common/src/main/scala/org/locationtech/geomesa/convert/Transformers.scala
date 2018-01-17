@@ -9,17 +9,21 @@
 package org.locationtech.geomesa.convert
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
 import java.util.{Date, DoubleSummaryStatistics, ServiceLoader, UUID}
 
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
-import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
+import org.geotools.referencing.CRS
 import org.geotools.util.Converters
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeFormat}
+import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
+import org.opengis.referencing.operation.MathTransform
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -463,9 +467,11 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     polygonParserFn,
     multiPolygonParserFn,
     geometryParserFn,
-    geometryCollectionParserFn)
+    geometryCollectionParserFn,
+    projectFromParserFn)
 
   private val gf = JTSFactoryFinder.getGeometryFactory
+
   val pointParserFn = TransformerFn("point") { args =>
     args.length match {
       case 1 =>
@@ -540,6 +546,25 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
       case s: String   => WKTUtils.read(s)
       case _ =>
         throw new IllegalArgumentException(s"Invalid geometrycollection conversion argument: ${args.toList}")
+    }
+  }
+
+  val projectFromParserFn = new TransformerFn {
+
+    private val cache = new ConcurrentHashMap[String, MathTransform]
+
+    override val names: Seq[String] = Seq("projectFrom")
+
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+      import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+
+      val epsg = args(0).asInstanceOf[String]
+      val geom = args(1).asInstanceOf[Geometry]
+      val lenient = if (args.length > 2) { java.lang.Boolean.parseBoolean(args(2).toString) } else { true }
+      // transforms should be thread safe according to https://sourceforge.net/p/geotools/mailman/message/32123017/
+      val transform = cache.getOrElseUpdate(s"$epsg:$lenient",
+        CRS.findMathTransform(CRS.decode(epsg), CRS_EPSG_4326, lenient))
+      JTS.transform(geom, transform)
     }
   }
 }
