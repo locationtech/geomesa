@@ -56,4 +56,4 @@ declare -a urls=(
   "${base_url}commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar"
 )
 
-downloadUrls "$install_dir" urls
+downloadUrls "$install_dir" urls[@]

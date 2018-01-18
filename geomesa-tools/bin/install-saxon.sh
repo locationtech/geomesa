@@ -25,4 +25,4 @@ declare -a urls=(
 
 echo "Warning: Saxon is free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa. However, you may download it yourself."
 
-downloadUrls "$install_dir" urls
+downloadUrls "$install_dir" urls[@]

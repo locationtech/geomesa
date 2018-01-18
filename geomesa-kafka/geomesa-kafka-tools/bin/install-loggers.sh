@@ -22,4 +22,4 @@ declare -a urls=(
   "${base_url}org/slf4j/slf4j-log4j12/1.7.21/slf4j-log4j12-1.7.21.jar"
 )
 
-downloadUrls "$install_dir" urls
+downloadUrls "$install_dir" urls[@]

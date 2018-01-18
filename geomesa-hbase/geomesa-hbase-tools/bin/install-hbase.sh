@@ -34,4 +34,4 @@ declare -a urls=(
   "${base_url}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
 )
 
-downloadUrls "$install_dir" urls
+downloadUrls "$install_dir" urls[@]
