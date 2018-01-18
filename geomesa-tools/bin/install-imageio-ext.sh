@@ -48,4 +48,4 @@ declare -a urls=(
 
 echo "Warning: Imageio-ext is LGPL licensed, and thus not distributed with GeoMesa. However, you may download it yourself."
 
-downloadUrls "$install_dir" urls
+downloadUrls "$install_dir" urls[@]
