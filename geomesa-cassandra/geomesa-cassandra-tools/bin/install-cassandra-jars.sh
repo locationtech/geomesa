@@ -29,4 +29,4 @@ declare -a urls=(
   "${base_url}io/dropwizard/metrics/metrics-core/3.1.2/metrics-core-3.1.2.jar"
 )
 
-downloadUrls "$install_dir" urls
+downloadUrls "$install_dir" urls[@]
