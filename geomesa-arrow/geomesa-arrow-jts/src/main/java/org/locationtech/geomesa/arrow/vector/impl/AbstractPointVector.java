@@ -76,6 +76,18 @@ public abstract class AbstractPointVector implements GeometryVector<Point, Fixed
     vector.close();
   }
 
+  @Override
+  public void transfer(int fromIndex, int toIndex, GeometryVector<Point, FixedSizeListVector> to) {
+    PointWriter writer = (PointWriter) to.getWriter();
+    if (reader.accessor.isNull(fromIndex)) {
+      writer.mutator.setNull(toIndex);
+    } else {
+      writer.mutator.setNotNull(toIndex);
+      writer.writeOrdinal(toIndex * 2, reader.readOrdinal(fromIndex * 2));
+      writer.writeOrdinal(toIndex * 2 + 1, reader.readOrdinal(fromIndex * 2 + 1));
+    }
+  }
+
   public static abstract class PointWriter extends AbstractGeometryWriter<Point> {
 
     private final FixedSizeListVector.Mutator mutator;
@@ -152,7 +164,12 @@ public abstract class AbstractPointVector implements GeometryVector<Point, Fixed
 
     @Override
     public int getNullCount() {
-      return accessor.getNullCount();
+      int count = accessor.getNullCount();
+      if (count < 0) {
+        return 0;
+      } else {
+        return count;
+      }
     }
   }
 }

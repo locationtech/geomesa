@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream
 import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.NullableMapVector
@@ -107,7 +108,7 @@ object SimpleFeatureArrowIO extends LazyLogging {
                   iter: CloseableIterator[Array[Byte]])
                  (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
     val batches = iter.toSeq
-    if (batches.length < 2) {
+    if (batches.lengthCompare(2) < 0) {
       CloseableIterator(batches.iterator, iter.close())
     } else {
       // gets the attribute we're sorting by from the i-th feature in the vector
@@ -129,7 +130,29 @@ object SimpleFeatureArrowIO extends LazyLogging {
         val loader = RecordBatchLoader(field)
         val vector = SimpleFeatureVector.wrap(loader.vector.asInstanceOf[NullableMapVector], dictionaries)
         loader.load(bytes)
-        val transfer = vector.underlying.makeTransferPair(result.underlying)
+        val transfers: Seq[(Int, Int) => Unit] = {
+          val fromVectors = vector.underlying.getChildrenFromFields
+          val toVectors = result.underlying.getChildrenFromFields
+          val builder = Seq.newBuilder[(Int, Int) => Unit]
+          builder.sizeHint(fromVectors.size())
+          var i = 0
+          while (i < fromVectors.size()) {
+            val fromVector = fromVectors.get(i)
+            val toVector = toVectors.get(i)
+            if (SimpleFeatureVector.isGeometryVector(fromVector)) {
+              // geometry vectors use FixedSizeList vectors, for which transfer pairs aren't implemented
+              val from = GeometryFields.wrap(fromVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+              val to = GeometryFields.wrap(toVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+              builder += { (fromIndex: Int, toIndex: Int) => from.transfer(fromIndex, toIndex, to) }
+            } else {
+              val transfer = fromVector.makeTransferPair(toVector)
+              builder += { (fromIndex: Int, toIndex: Int) => transfer.copyValueSafe(fromIndex, toIndex) }
+            }
+            i += 1
+          }
+          builder.result()
+        }
+        val transfer: (Int, Int) => Unit = (from, to) => transfers.foreach(_.apply(from, to))
         (vector, transfer)
       }.toArray
 
@@ -164,7 +187,8 @@ object SimpleFeatureArrowIO extends LazyLogging {
           while (queue.nonEmpty && resultIndex < batchSize) {
             val (_, i, batch) = queue.dequeue()
             val (vector, transfer) = inputs(batch)
-            transfer.copyValueSafe(i, resultIndex)
+            transfer.apply(i, resultIndex)
+            result.underlying.getMutator.setIndexDefined(resultIndex)
             resultIndex += 1
             val nextBatchIndex = i + 1
             if (vector.reader.getValueCount > nextBatchIndex) {
