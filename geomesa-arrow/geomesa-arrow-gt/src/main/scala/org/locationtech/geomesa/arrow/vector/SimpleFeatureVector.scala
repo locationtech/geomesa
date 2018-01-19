@@ -10,10 +10,11 @@ package org.locationtech.geomesa.arrow.vector
 
 import java.io.Closeable
 
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.NullableBigIntVector
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.types.FloatingPointPrecision
+import org.apache.arrow.vector.{FieldVector, NullableBigIntVector}
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.EncodingPrecision.EncodingPrecision
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -96,8 +97,8 @@ class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
 object SimpleFeatureVector {
 
   val DefaultCapacity = 8096
-  val FeatureIdField = "id"
-  val DescriptorKey  = "descriptor"
+  val FeatureIdField  = "id"
+  val DescriptorKey   = "descriptor"
 
   object EncodingPrecision extends Enumeration {
     type EncodingPrecision = Value
@@ -200,5 +201,11 @@ object SimpleFeatureVector {
     val encoding = SimpleFeatureEncoding(includeFids, geomPrecision, datePrecision)
 
     (sft, encoding)
+  }
+
+  def isGeometryVector(vector: FieldVector): Boolean = {
+    Option(vector.getField.getMetadata.get(DescriptorKey))
+        .map(SimpleFeatureTypes.createDescriptor)
+        .exists(d => classOf[Geometry].isAssignableFrom(d.getType.getBinding))
   }
 }
