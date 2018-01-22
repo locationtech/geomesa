@@ -25,23 +25,25 @@ object SimpleFeatureOrdering {
   def apply(i: Int): Ordering[SimpleFeature] =
     if (i < cached.length) { cached(i) } else { new AttributeOrdering(i) }
 
-  def apply(sft: SimpleFeatureType, sortBy: String): Ordering[SimpleFeature] =
-    if (sortBy == null || sortBy.equalsIgnoreCase("id")) { fid } else { apply(sft.indexOf(sortBy)) }
+  def apply(sft: SimpleFeatureType, sortBy: String): Ordering[SimpleFeature] = apply(sft, sortBy, reverse = false)
+
+  def apply(sft: SimpleFeatureType, sortBy: String, reverse: Boolean): Ordering[SimpleFeature] = {
+    val sort = if (sortBy == null || sortBy.isEmpty || sortBy.equalsIgnoreCase("id")) { fid } else {
+      apply(sft.indexOf(sortBy))
+    }
+    if (reverse) { sort.reverse } else { sort }
+  }
 
   def apply(sft: SimpleFeatureType, sortBy: SortBy): Ordering[SimpleFeature] = {
-    val property = sortBy.getPropertyName
-    val ordering = if (property == null) { fid } else {
-      val i = sft.indexOf(property.getPropertyName)
-      if (i == -1) {
-        new PropertyOrdering(property)
-      } else {
-        apply(i)
-      }
-    }
-    if (sortBy.getSortOrder == SortOrder.ASCENDING) {
-      ordering
+    val name = Option(sortBy.getPropertyName).map(_.getPropertyName).orNull
+    apply(sft, name, sortBy.getSortOrder == SortOrder.DESCENDING)
+  }
+
+  def apply(sft: SimpleFeatureType, sortBy: Seq[(String, Boolean)]): Ordering[SimpleFeature] = {
+    if (sortBy.lengthCompare(1) == 0) {
+      apply(sft, sortBy.head._1, sortBy.head._2)
     } else {
-      ordering.reverse
+      TieredOrdering(sortBy.map { case (field, reverse) => apply(sft, field, reverse) })
     }
   }
 

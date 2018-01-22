@@ -91,8 +91,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
       reduce.foreach(r => iterator = r(iterator))
     }
 
-    if (query.getSortBy != null && query.getSortBy.length > 0) {
-      iterator = new SortingSimpleFeatureIterator(iterator, query.getSortBy)
+    query.getHints.getSortFields.foreach { sort =>
+      iterator = new SortingSimpleFeatureIterator(iterator, sort)
     }
 
     iterator
@@ -128,7 +128,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
       output(s"Hints: bin[${hints.isBinQuery}] arrow[${hints.isArrowQuery}] density[${hints.isDensityQuery}] " +
           s"stats[${hints.isStatsQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
-      output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
+      output(s"Sort: ${query.getHints.getSortReadableString}")
       output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
 
       output.pushLevel("Strategy selection:")
@@ -223,6 +223,23 @@ object QueryPlanner extends LazyLogging {
     (transforms, derivedSchema)
   }
 
+  /**
+    * Sets query hints for sorting and clears sortBy
+    *
+    * @param sft sft
+    * @param query query
+    */
+  def setQuerySort(sft: SimpleFeatureType, query: Query): Unit = {
+    val sortBy = query.getSortBy
+    if (sortBy != null) {
+      val hint = QueryHints.Internal.toSortHint(sortBy)
+      if (hint.nonEmpty) {
+        query.getHints.put(QueryHints.Internal.SORT_FIELDS, hint)
+      }
+      query.setSortBy(null)
+    }
+  }
+
   private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
     val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
       val name = definition.name
@@ -257,10 +274,12 @@ object QueryPlanner extends LazyLogging {
           } else {
             ab.buildDescriptor(name, ab.buildType())
           }
-        // Do math ops always return doubles?
-        case a: MathExpressionImpl =>
+
+        case _: MathExpressionImpl =>
+          // Do math ops always return doubles?
           val ab = new AttributeTypeBuilder().binding(classOf[java.lang.Double])
           ab.buildDescriptor(name, ab.buildType())
+
         // TODO: Add support for LiteralExpressionImpl and/or ClassificationFunction?
       }
     }
@@ -270,7 +289,7 @@ object QueryPlanner extends LazyLogging {
     sftBuilder.setName(origSFT.getName)
     sftBuilder.addAll(descriptors.toArray)
     if (geomAttributes.nonEmpty) {
-      val defaultGeom = if (geomAttributes.size == 1) { geomAttributes.head } else {
+      val defaultGeom = if (geomAttributes.lengthCompare(1) == 0) { geomAttributes.head } else {
         // try to find a geom with the same name as the original default geom
         val origDefaultGeom = origSFT.getGeometryDescriptor.getLocalName
         geomAttributes.find(_ == origDefaultGeom).getOrElse(geomAttributes.head)
