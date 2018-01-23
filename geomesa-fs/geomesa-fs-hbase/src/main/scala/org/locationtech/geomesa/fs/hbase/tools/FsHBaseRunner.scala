@@ -18,6 +18,7 @@ object FsHBaseRunner extends Runner {
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
     new BulkCopyCommand,
+    new CopyFeaturesCommand,
     new HelpCommand(this, jc),
     new VersionCommand,
     new ClasspathCommand,

@@ -34,6 +34,7 @@
             <filtered>true</filtered>
             <excludes>
                 <exclude>geomesa-fs</exclude>
+                <exclude>install-hadoop.sh</exclude>
             </excludes>
         </fileSet>
         <fileSet>
@@ -44,6 +45,7 @@
             <filtered>true</filtered>
             <excludes>
                 <exclude>geomesa-hbase</exclude>
+                <exclude>install-hadoop.sh</exclude>
             </excludes>
         </fileSet>
         <fileSet>
