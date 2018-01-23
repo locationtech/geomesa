@@ -11,10 +11,13 @@ package org.locationtech.geomesa.fs.tools
 import java.io.File
 import java.net.{MalformedURLException, URL}
 import java.util
+import java.util.ServiceLoader
 
-import com.beust.jcommander.{Parameter, ParameterException}
+import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
-import org.locationtech.geomesa.fs.{FileSystemDataStore, FileSystemDataStoreParams}
+import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.EncodingValidator
 import org.locationtech.geomesa.tools.DataStoreCommand
 
 /**
@@ -26,43 +29,53 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
 
   override def connection: Map[String, String] = {
     FsDataStoreCommand.configureURLFactory()
-    val url = if (params.path.matches("""\w+://.*""")) {
-      try {
+    val url = try {
+      if (params.path.matches("""\w+://.*""")) {
         new URL(params.path)
-      } catch {
-        case e: MalformedURLException => throw new ParameterException(s"Invalid URL ${params.path}: ", e)
-      }
-    } else {
-      try {
+      } else {
         new File(params.path).toURI.toURL
-      } catch {
-        case e: MalformedURLException => throw new ParameterException(s"Invalid URL ${params.path}: ", e)
       }
+    } catch {
+      case e: MalformedURLException => throw new ParameterException(s"Invalid URL ${params.path}: ", e)
     }
-    Map(FileSystemDataStoreParams.PathParam.getName -> url.toString,
-      FileSystemDataStoreParams.EncodingParam.getName -> params.encoding)
+    Map(FileSystemStorageFactory.PathParam.getName -> url.toString,
+      FileSystemStorageFactory.EncodingParam.getName -> params.encoding)
   }
 }
 
 object FsDataStoreCommand {
+
   private var urlStreamHandlerSet = false
-  def configureURLFactory(): Unit =
-    synchronized {
-      if (!urlStreamHandlerSet) {
-        URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory())
-        urlStreamHandlerSet = true
+
+  def configureURLFactory(): Unit = synchronized {
+    if (!urlStreamHandlerSet) {
+      URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory())
+      urlStreamHandlerSet = true
+    }
+  }
+
+  class EncodingValidator extends IValueValidator[String] {
+    override def validate(name: String, value: String): Unit = {
+      import scala.collection.JavaConversions._
+      val factories = ServiceLoader.load(classOf[org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory])
+      val encodings = factories.iterator().map(_.encoding).toSeq.sorted
+      if (!encodings.exists(_.equalsIgnoreCase(value))) {
+        throw new ParameterException(s"$value is not a valid encoding for parameter $name." +
+            s"Available encodings are: ${encodings.mkString(", ")}")
       }
     }
+  }
 }
 
 trait PathParam {
-  @Parameter(names = Array("-p", "--path"), description = "Path to root of filesystem datastore", required = true)
+  @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
   var path: String = _
 }
 
 // TODO future work would be nice to store this in metadata
 trait EncodingParam {
-  @Parameter(names = Array("-e", "--encoding"), description = "Encoding (parquet, csv, etc)", required = true)
+  // TODO csv???
+  @Parameter(names = Array("--encoding", "-e"), description = "Encoding (parquet, orc, csv, etc)", required = true, validateValueWith = classOf[EncodingValidator])
   var encoding: String = _
 }
 

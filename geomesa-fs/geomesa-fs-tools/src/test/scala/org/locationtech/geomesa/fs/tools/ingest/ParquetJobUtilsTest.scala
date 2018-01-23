@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit
 
 import org.apache.hadoop.conf.Configuration
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.{DateTimeScheme, PartitionScheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -26,9 +27,9 @@ class ParquetJobUtilsTest extends Specification {
       val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily, ChronoUnit.DAYS, 1, "dtg", false)
       val conf = new Configuration
       PartitionScheme.addToSft(sft, partitionScheme)
-      ParquetJobUtils.setSimpleFeatureType(conf, sft)
+      StorageConfiguration.setSft(conf, sft)
 
-      val newSFT = ParquetJobUtils.getSimpleFeatureType(conf)
+      val newSFT = StorageConfiguration.getSft(conf)
       val extractedScheme = PartitionScheme.extractFromSft(newSFT)
       extractedScheme.name mustEqual partitionScheme.name()
     }

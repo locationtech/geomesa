@@ -7,7 +7,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>GeoMesa Spark Filesystem RDD Provider</name>
+    <name>GeoMesa FileSystem Spark RDD Provider</name>
     <artifactId>geomesa-fs-spark_2.11</artifactId>
 
     <dependencyManagement>
@@ -42,6 +42,10 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-storage-orc_${scala.binary.version}</artifactId>
         </dependency>
         
         <!-- test dependencies -->

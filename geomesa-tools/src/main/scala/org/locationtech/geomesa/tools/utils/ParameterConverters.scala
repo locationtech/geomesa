@@ -79,4 +79,16 @@ object ParameterConverters {
       }
     }
   }
+
+  class KeyValueConverter(name: String) extends BaseConverter[(String, String)](name) {
+    override def convert(value: String): (String, String) = {
+      try {
+        val Array(k, v) = value.split("=", 1)
+        (k, v)
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
+      }
+    }
+
+  }
 }
