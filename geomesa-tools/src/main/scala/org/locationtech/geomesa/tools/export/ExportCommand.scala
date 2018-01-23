@@ -19,13 +19,11 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter, ShapefileExporter, _}
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, OptionalIndexParam, TypeNameParam}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
@@ -49,7 +47,7 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
     import ExportCommand._
     import org.locationtech.geomesa.tools.utils.DataFormats._
 
-    val (query, attributes) = createQuery(ds, getSchema(ds), params.outputFormat, params)
+    val (query, attributes) = createQuery(getSchema(ds), params.outputFormat, params)
 
     val features = try { getFeatures(ds, query) } catch {
       case NonFatal(e) =>
@@ -92,8 +90,7 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
 
 object ExportCommand extends LazyLogging {
 
-  def createQuery(ds: DataStore,
-                  toSft: => SimpleFeatureType,
+  def createQuery(toSft: => SimpleFeatureType,
                   fmt: DataFormat,
                   params: ExportParams): (Query, Option[ExportAttributes]) = {
     val typeName = Option(params).collect { case p: TypeNameParam => p.featureName }.orNull
@@ -103,10 +100,9 @@ object ExportCommand extends LazyLogging {
     val query = new Query(typeName, filter)
     Option(params.maxFeatures).map(Int.unbox).foreach(query.setMaxFeatures)
     Option(params).collect { case p: OptionalIndexParam => p }.foreach { p =>
-      val gmds = Option(ds).collect { case d: GeoMesaDataStore[_, _, _] => d }.orNull
-      p.loadIndex(gmds, IndexMode.Read).foreach { index =>
+      Option(p.index).foreach { index =>
+        logger.debug(s"Using index $index")
         query.getHints.put(QueryHints.QUERY_INDEX, index)
-        logger.debug(s"Using index ${index.identifier}")
       }
     }
 
