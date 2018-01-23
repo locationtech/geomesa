@@ -32,7 +32,8 @@ object CassandraRunner extends Runner {
     new CassandraExportCommand,
     new CassandraExplainCommand,
     new ConfigureCommand,
-    new ClasspathCommand
+    new ClasspathCommand,
+    new ConsoleCommand
   )
 
   override def environmentErrorInfo(): Option[String] = {

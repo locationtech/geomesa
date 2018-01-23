@@ -73,6 +73,8 @@ fi
 
 if  [[ $1 = configure ]]; then
   geomesaConfigure
+elif [[ $1 = console ]]; then
+    geomesaConsole ${CLASSPATH}
 elif [[ $1 = classpath ]]; then
   for element in ${CLASSPATH//:/ } ; do
     echo ${element}

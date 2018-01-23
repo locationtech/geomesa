@@ -279,6 +279,49 @@ function registerAutocomplete() {
   fi
 }
 
+function installScala() {
+  # Download scala to %%gmtools.dist.name%%_HOME}/dist/
+  sourceURL="https://downloads.lightbend.com/scala/%%scala.version%%/scala-%%scala.version%%.tgz"
+  outputFile="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%.tgz"
+  wget $sourceURL -O $outputFile
+  tar xf $outputFile -C "${%%gmtools.dist.name%%_HOME}/dist/"
+  "${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
+}
+
+function geomesaConsole() {
+  classpath=${1}
+  # Check if we already downloaded scala
+  if [[ -d "${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/" ]]; then
+    scalaCMD="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
+  else
+    if which scala > /dev/null; then
+      scalaCMD=`which scala`
+      version=$(scala -version 2>&1 | grep %%scala.binary.version%%)
+      if [[ -z "${version}" ]]; then
+        read -p "The wrong Scala version is installed, do you want to download the correct one? (This will not effect your current install) Y\n" -n 1 -r
+        if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+          echo >&2 ""
+          scalaCMD=installScala
+        else
+          echo "\nThe correct Scala version, Scala %%scala.binary.version%%, is required to continue."
+          exit 1
+        fi
+      fi
+    else
+      read -p "Scala not installed, do you want to download it? (This will not install it) Y\n" -n 1 -r
+      if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+        echo >&2 ""
+        scalaCMD=installScala
+      else
+        echo "\nScala is required to run the console."
+        exit 1
+      fi
+    fi
+  fi
+
+  exec $scalaCMD -classpath ${classpath}
+}
+
 # Reconfigure %%gmtools.dist.name%%_HOME
 if [[ $1 = configure ]]; then
   echo >&2 "Using %%gmtools.dist.name%%_HOME = $%%gmtools.dist.name%%_HOME"

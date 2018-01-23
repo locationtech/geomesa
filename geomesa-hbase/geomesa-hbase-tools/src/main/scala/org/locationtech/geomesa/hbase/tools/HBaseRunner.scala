@@ -46,7 +46,8 @@ object HBaseRunner extends Runner {
     new HBaseStatsHistogramCommand,
     new ConvertCommand,
     new ConfigureCommand,
-    new ClasspathCommand
+    new ClasspathCommand,
+    new ConsoleCommand
   )
 
   override def environmentErrorInfo(): Option[String] = {
