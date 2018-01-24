@@ -86,6 +86,37 @@ if [[ -d "${ZOOKEEPER_HOME}" ]]; then
   ZOOKEEPER_JAR="$(find $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar)"
 fi
 
+# Killing the command line tools while a job is running can leave the database
+# in a bad state, prevent this from happening.
+#
+# Must be called after $PID is set
+function trapHandler() {
+  echo "Warning: Interrupting a FSDS command can leave the database in an inconsistent or unusable state."
+  read -p "Is this intentional? y/N" -n 1 -r
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    kill -s SIGINT $PID
+  else
+    main
+  fi
+}
+
+unset PID
+function main() {
+  if [[ -z "${PID}" ]]; then
+    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.fs.tools.FsRunner "$@" &
+    PID=$!
+    trap trapHandler SIGINT
+    wait $PID
+  else
+    # We need to re-initialize to handle multiple ctrl-c's
+    trap trapHandler SIGINT
+    wait $PID
+  fi
+
+  # Reset the trap
+  trap - SIGINT
+}
+
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
@@ -105,5 +136,5 @@ else
     GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
     shift 1
   fi
-  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.fs.tools.FsRunner "$@"
+  main $@
 fi
