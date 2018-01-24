@@ -298,7 +298,7 @@ function geomesaConsole() {
       scalaCMD=`which scala`
       version=$(scala -version 2>&1 | grep %%scala.binary.version%%)
       if [[ -z "${version}" ]]; then
-        read -p "The wrong Scala version is installed, do you want to download the correct one? (This will not effect your current install) Y\n" -n 1 -r
+        read -p "The wrong Scala version is installed, do you want to download the correct one? (This will not affect your current install) Y\n" -n 1 -r
         if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
           echo >&2 ""
           scalaCMD=installScala
