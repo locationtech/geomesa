@@ -8,13 +8,14 @@
 
 package org.locationtech.geomesa.index.index.z3
 
+import java.time.ZonedDateTime
+
 import com.vividsolutions.jts.geom.Geometry
-import org.joda.time.DateTime
 import org.locationtech.geomesa.curve.XZ3SFC
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 
 case class XZ3IndexValues(sfc: XZ3SFC,
                           geometries: FilterValues[Geometry],
                           spatialBounds: Seq[(Double, Double, Double, Double)],
-                          intervals: FilterValues[Bounds[DateTime]],
+                          intervals: FilterValues[Bounds[ZonedDateTime]],
                           temporalBounds: Map[Short, (Double, Double)])

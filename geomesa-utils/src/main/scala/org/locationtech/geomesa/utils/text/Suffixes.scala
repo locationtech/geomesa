@@ -8,39 +8,47 @@
 
 package org.locationtech.geomesa.utils.text
 
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.{Period, Duration}
-import org.joda.time.format.PeriodFormatterBuilder
 
+import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 object Suffixes {
 
   object Time extends LazyLogging {
-    val format = new PeriodFormatterBuilder()
-      .appendDays().appendSuffix("d")
-      .appendHours().appendSuffix("h")
-      .appendMinutes().appendSuffix("m")
-      .appendSeconds().appendSuffix("s")
-      .appendMillis().appendSuffix("ms")
-      .toFormatter
 
-    def duration(s: String): Try[Duration] = {
-      Try[Duration](Period.parse(s.toLowerCase, format).toStandardDuration)
-        .orElse(Try(Duration.millis(s.toLong)))
+    // noinspection ScalaDeprecation
+    def duration(s: String): Try[Duration] =
+      Try(Duration(s))
+          .orElse(Try(Duration(s.toLong, TimeUnit.MILLISECONDS)))
+          .orElse(jodaMinute(s))
+
+    def millis(s: String): Try[Long]  = duration(s).map(_.toMillis)
+    def seconds(s: String): Try[Long] = duration(s).map(_.toMillis * 1000)
+    def minutes(s: String): Try[Long] = duration(s).map(_.toMinutes)
+    def hours(s: String): Try[Long]   = duration(s).map(_.toHours)
+    def days(s: String): Try[Long]    = duration(s).map(_.toDays)
+
+    // provide back compatibility with joda period parsing, which accepts 'm' for minutes
+    @deprecated("joda parsing")
+    private def jodaMinute(s: String): Try[Duration] = {
+      if (s == null) { Failure(new NullPointerException()) } else {
+        val replaced = s.replaceAll("m", "min") // scala parsing requires 'min', 'mins', 'minute' or 'minutes'
+        val res = Try(Duration(replaced))
+        if (res.isSuccess) {
+          logger.warn("Parsed duration using deprecated minute parsing. Please update duration value: " +
+              s"'$s' successfully parsed as '$replaced'")
+        }
+        res
+      }
     }
-
-    def millis(s: String): Try[Long]  = duration(s).map(_.getMillis)
-    def seconds(s: String): Try[Long] = duration(s).map(_.getStandardSeconds)
-    def minutes(s: String): Try[Long] = duration(s).map(_.getStandardMinutes)
-    def hours(s: String): Try[Long]   = duration(s).map(_.getStandardHours)
-    def days(s: String): Try[Long]    = duration(s).map(_.getStandardDays)
   }
 
   object Memory extends LazyLogging {
-    val memPattern = Pattern.compile("(\\d+)([kmgt]?)b?")
+    private val memPattern = Pattern.compile("(\\d+)([kmgt]?)b?")
 
     def bytes(s: String): Option[Long] = {
       val m = memPattern.matcher(s.toLowerCase.trim)

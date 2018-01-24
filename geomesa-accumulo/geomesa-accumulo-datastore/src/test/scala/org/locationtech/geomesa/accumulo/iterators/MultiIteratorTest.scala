@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
+import java.time.{ZoneOffset, ZonedDateTime}
+
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Polygon
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.iterators.TestData._
@@ -34,8 +35,8 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
   val spec = SimpleFeatureTypes.encodeType(TestData.featureType, includeUserData = true)
 
-  val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
-  val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+  val MinDateTime = ZonedDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
+  val MaxDateTime = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999000000, ZoneOffset.UTC)
 
   // noinspection LanguageFeature
   // note: size returns an estimated amount, instead we need to actually count the features
@@ -43,17 +44,18 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
   def getQuery(sft: SimpleFeatureType,
                ecqlFilter: Option[String],
-               dtFilter: Interval = null,
+               dtFilter: (ZonedDateTime, ZonedDateTime) = null,
                overrideGeometry: Boolean = false): Query = {
-    val polygon: Polygon = overrideGeometry match {
-      case true => org.locationtech.geomesa.utils.geotools.WholeWorldPolygon
-      case false => WKTUtils.read(TestData.wktQuery).asInstanceOf[Polygon]
+    val polygon: Polygon = if (overrideGeometry) {
+      org.locationtech.geomesa.utils.geotools.WholeWorldPolygon
+    } else {
+      WKTUtils.read(TestData.wktQuery).asInstanceOf[Polygon]
     }
 
     val gf = s"INTERSECTS(geom, ${polygon.toText})"
-    val dt: Option[String] = Option(dtFilter).map(int =>
-      s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
-    )
+    val dt: Option[String] = Option(dtFilter).map { case (start, end) =>
+      s"(dtg between '$start' AND '$end')"
+    }
 
     def red(f: String, og: Option[String]) = og match {
       case Some(g) => s"$f AND $g"
@@ -183,9 +185,9 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     "return a filtered results-set with a meaningful time-range" in {
       val filterString = "true = true"
 
-      val dtFilter = new Interval(
-        new DateTime(2010, 8, 8, 0, 0, 0, DateTimeZone.forID("UTC")),
-        new DateTime(2010, 8, 8, 23, 59, 59, DateTimeZone.forID("UTC"))
+      val dtFilter = (
+        ZonedDateTime.of(2010, 8, 8, 0, 0, 0, 0, ZoneOffset.UTC),
+        ZonedDateTime.of(2010, 8, 8, 23, 59, 59, 999000000, ZoneOffset.UTC)
       )
 
       val q = getQuery(sft, Some(filterString), dtFilter)
@@ -202,7 +204,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     "return a filtered results-set with a degenerate time-range" in {
       val filterString = "true = true"
 
-      val dtFilter = new Interval(MinDateTime, MaxDateTime)
+      val dtFilter = (MinDateTime, MaxDateTime)
       val q = getQuery(sft, Some(filterString), dtFilter)
 
       val filteredCount = features.count(q.getFilter.evaluate)
@@ -215,7 +217,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
 
     "return an unfiltered results-set with a global request" in {
-      val dtFilter = new Interval(MinDateTime, MaxDateTime)
+      val dtFilter = (MinDateTime, MaxDateTime)
       val q = getQuery(sft, None, dtFilter, overrideGeometry = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)

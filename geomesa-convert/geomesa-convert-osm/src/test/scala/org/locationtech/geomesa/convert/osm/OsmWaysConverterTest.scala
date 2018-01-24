@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert.osm
 import java.util.Date
 
 import com.typesafe.config.ConfigFactory
-import org.joda.time.format.ISODateTimeFormat
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -108,8 +108,7 @@ class OsmWaysConverterTest extends Specification {
         import scala.collection.JavaConverters._
         features.head.getAttribute("tags") mustEqual Map("name" -> "Church Avenue", "highway" -> "residential").asJava
         features.head.getAttribute("name") mustEqual "Church Avenue"
-        ISODateTimeFormat.dateTimeNoMillis.print(features.head.getAttribute("dtg").asInstanceOf[Date].getTime) mustEqual
-            "2010-10-28T18:06:37Z"
+        features.head.getAttribute("dtg").asInstanceOf[Date] mustEqual Converters.convert("2010-10-28T18:06:37Z", classOf[Date])
         features.head.getDefaultGeometry.toString mustEqual
             "LINESTRING (-6.3341538 54.1790829, -6.3339244 54.179083, -6.3316723 54.179379, -6.3314593 54.1794726)"
       } finally {

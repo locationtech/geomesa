@@ -11,18 +11,15 @@ package org.locationtech.geomesa.accumulo.data.stats.usage
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
-import org.joda.time.Interval
-import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventReader, AccumuloEventWriter, AccumuloQueryEventTransform}
 import org.locationtech.geomesa.index.audit.QueryEvent
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloEventWriterTest extends Specification {
-
-  val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
 
   val catalogTable = "geomesa_catalog"
   val featureName = "stat_writer_test"
@@ -38,11 +35,11 @@ class AccumuloEventWriterTest extends Specification {
 
     "write query stats asynchronously" in {
       val writer = new AccumuloEventWriter(connector, statsTable)
-      implicit val transform = AccumuloQueryEventTransform
+      implicit val transform: AccumuloQueryEventTransform.type = AccumuloQueryEventTransform
 
       writer.queueStat(QueryEvent(AccumuloAuditService.StoreType,
                                   featureName,
-                                  df.parseMillis("2014.07.26 13:20:01"),
+                                  DateParsing.parseMillis("2014-07-26T13:20:01Z"),
                                   "user1",
                                   "query1",
                                   "hint1=true",
@@ -51,7 +48,7 @@ class AccumuloEventWriterTest extends Specification {
                                   11))
       writer.queueStat(QueryEvent(AccumuloAuditService.StoreType,
                                   featureName,
-                                  df.parseMillis("2014.07.26 14:20:01"),
+                                  DateParsing.parseMillis("2014-07-26T14:20:01Z"),
                                   "user1",
                                   "query2",
                                   "hint2=true",
@@ -60,7 +57,7 @@ class AccumuloEventWriterTest extends Specification {
                                   12))
       writer.queueStat(QueryEvent(AccumuloAuditService.StoreType,
                                   featureName,
-                                  df.parseMillis("2014.07.27 13:20:01"),
+                                  DateParsing.parseMillis("2014-07-27T13:20:01Z"),
                                   "user1",
                                   "query3",
                                   "hint3=true",
@@ -68,7 +65,7 @@ class AccumuloEventWriterTest extends Specification {
                                   202L,
                                   12))
 
-      val dates = new Interval(0, df.parseMillis("2014.07.29 00:00:00"))
+      val dates = (DateParsing.Epoch, DateParsing.parse("2014-07-29T00:00:00Z"))
       val unwritten = statReader.query[QueryEvent](featureName, dates, auths).toList
       unwritten must not(beNull)
       unwritten.size mustEqual 0

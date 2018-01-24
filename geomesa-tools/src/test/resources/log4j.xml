@@ -7,6 +7,9 @@
         </layout>
     </appender>
 
+    <category name="org.locationtech.geomesa">
+        <priority value="warn"/>
+    </category>
     <category name="org.apache.zookeeper">
         <priority value="warn"/>
     </category>

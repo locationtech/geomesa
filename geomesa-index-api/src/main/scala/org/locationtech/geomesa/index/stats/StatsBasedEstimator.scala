@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.index.stats
 
+import java.time.ZonedDateTime
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
-import org.joda.time.DateTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter._
@@ -164,7 +164,8 @@ trait StatsBasedEstimator {
           val minTime = bounds.min.getTime
           val maxTime = bounds.max.getTime
           intervals.values.filter { i =>
-            i.lower.value.forall(_.getMillis <= maxTime) && i.upper.value.forall(_.getMillis >= minTime)
+            i.lower.value.forall(_.toInstant.toEpochMilli <= maxTime) &&
+                i.upper.value.forall(_.toInstant.toEpochMilli >= minTime)
           }
         }
         estimateSpatioTemporalCount(sft, geomField, dateField, geometries.values, inRangeIntervals)
@@ -186,7 +187,7 @@ trait StatsBasedEstimator {
                                           geomField: String,
                                           dateField: String,
                                           geometries: Seq[Geometry],
-                                          intervals: Seq[Bounds[DateTime]]): Long = {
+                                          intervals: Seq[Bounds[ZonedDateTime]]): Long = {
     val period = sft.getZ3Interval
     val dateToBins = BinnedTime.dateToBinnedTime(period)
     val boundsToDates = BinnedTime.boundsToIndexableDates(period)
@@ -339,15 +340,15 @@ trait StatsBasedEstimator {
       if intervals.nonEmpty
       histogram <- stats.getStats[Histogram[Date]](sft, Seq(dateField)).headOption
     } yield {
-      def inRange(interval: Bounds[DateTime]) = {
-        interval.lower.value.forall(_.getMillis <= histogram.max.getTime) &&
-            interval.upper.value.forall(_.getMillis >= histogram.min.getTime)
+      def inRange(interval: Bounds[ZonedDateTime]) = {
+        interval.lower.value.forall(_.toInstant.toEpochMilli <= histogram.max.getTime) &&
+            interval.upper.value.forall(_.toInstant.toEpochMilli >= histogram.min.getTime)
       }
 
       if (intervals.disjoint) { 0L } else {
         val indices = intervals.values.filter(inRange).flatMap { interval =>
-          val loIndex = interval.lower.value.map(i => histogram.indexOf(i.toDate)).filter(_ != -1).getOrElse(0)
-          val hiIndex = interval.upper.value.map(i => histogram.indexOf(i.toDate)).filter(_ != -1).getOrElse(histogram.length - 1)
+          val loIndex = interval.lower.value.map(i => histogram.indexOf(Date.from(i.toInstant))).filter(_ != -1).getOrElse(0)
+          val hiIndex = interval.upper.value.map(i => histogram.indexOf(Date.from(i.toInstant))).filter(_ != -1).getOrElse(histogram.length - 1)
           loIndex to hiIndex
         }
         indices.distinct.map(histogram.count).sumOrElse(0L)
@@ -431,7 +432,7 @@ trait StatsBasedEstimator {
 object CountEstimator {
 
   // we only need enough precision to cover the number of bins (e.g. 2^n == bins), plus 2 for unused bits
-  val ZHistogramPrecision = math.ceil(math.log(GeoMesaStats.MaxHistogramSize) / math.log(2)).toInt + 2
+  val ZHistogramPrecision: Int = math.ceil(math.log(GeoMesaStats.MaxHistogramSize) / math.log(2)).toInt + 2
 
   val ErrorThresholds = Seq(0.1, 0.3, 0.5, 0.7, 0.9, 1.0)
 
@@ -450,13 +451,13 @@ object CountEstimator {
         val intervals = FilterHelper.extractIntervals(filter, dtg)
         if (intervals.disjoint) { None } else {
           // don't consider gaps, just get the endpoints of the intervals
-          val dateTimes = intervals.values.reduceOption[Bounds[DateTime]] { case (left, right) =>
+          val dateTimes = intervals.values.reduceOption[Bounds[ZonedDateTime]] { case (left, right) =>
             val lower = Bounds.smallerLowerBound(left.lower, right.lower)
             val upper = Bounds.largerUpperBound(left.upper, right.upper)
             Bounds(lower, upper)
           }
-          val lower = dateTimes.map(d => Bound(d.lower.value.map(_.toDate), d.lower.inclusive))
-          val upper = dateTimes.map(d => Bound(d.upper.value.map(_.toDate), d.upper.inclusive))
+          val lower = dateTimes.map(d => Bound(d.lower.value.map(i => Date.from(i.toInstant)), d.lower.inclusive))
+          val upper = dateTimes.map(d => Bound(d.upper.value.map(i => Date.from(i.toInstant)), d.upper.inclusive))
           Some(Bounds(lower.getOrElse(Bound.unbounded[Date]), upper.getOrElse(Bound.unbounded[Date])))
         }
     }

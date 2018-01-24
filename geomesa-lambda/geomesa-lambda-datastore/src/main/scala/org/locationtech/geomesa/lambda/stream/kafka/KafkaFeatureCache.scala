@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantLock
 
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.{ExpiringFeatureCache, ReadableFeatureCache, WritableFeatureCache}
 import org.opengis.feature.simple.SimpleFeature
@@ -53,7 +53,8 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
 
   override def add(feature: SimpleFeature, partition: Int, offset: Long, created: Long): Unit = {
     if (offsets(partition).get < offset) {
-      logger.trace(s"Adding [$partition:$offset] $feature created at ${new DateTime(created, DateTimeZone.UTC)}")
+      logger.trace(s"Adding [$partition:$offset] $feature created at " +
+          s"${ZonedDateTime.ofInstant(Instant.ofEpochMilli(created), ZoneOffset.UTC)}")
       features.put(feature.getID, feature)
       val (lock, queue) = queues(partition)
       lock.lock()
@@ -61,12 +62,14 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
         lock.unlock()
       }
     } else {
-      logger.trace(s"Ignoring [$partition:$offset] $feature created at ${new DateTime(created, DateTimeZone.UTC)}")
+      logger.trace(s"Ignoring [$partition:$offset] $feature created at " +
+          s"${ZonedDateTime.ofInstant(Instant.ofEpochMilli(created), ZoneOffset.UTC)}")
     }
   }
 
   override def delete(feature: SimpleFeature, partition: Int, offset: Long, created: Long): Unit = {
-    logger.trace(s"Deleting [$partition:$offset] $feature created at ${new DateTime(created, DateTimeZone.UTC)}")
+    logger.trace(s"Deleting [$partition:$offset] $feature created at " +
+        s"${ZonedDateTime.ofInstant(Instant.ofEpochMilli(created), ZoneOffset.UTC)}")
     features.remove(feature.getID)
   }
 

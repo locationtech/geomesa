@@ -75,7 +75,7 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
 
   private def fromKey(timeBin: Short, z: Long): (Geometry, Date) = {
     val (x, y, t) = sfc.invert(new Z3(z))
-    val dtg = binToDate(BinnedTime(timeBin, t)).toDate
+    val dtg = Date.from(binToDate(BinnedTime(timeBin, t)).toInstant)
     val geom = Z3Histogram.gf.createPoint(new Coordinate(x, y))
     (geom, dtg)
   }
@@ -150,7 +150,7 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
     }
   }
 
-  override def toJsonObject =
+  override def toJsonObject: Any =
     binMap.toSeq.sortBy(_._1)
       .map { case (p, bins) => (String.format(jsonFormat, Short.box(p)), bins) }
       .map { case (label, bins) => Map(label-> Map("bins" -> bins.counts)) }
@@ -170,8 +170,8 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
 
 object Z3Histogram {
 
-  val gf = JTSFactoryFinder.getGeometryFactory
+  private val gf = JTSFactoryFinder.getGeometryFactory
 
-  val minGeom = MinMaxGeometry.min.asInstanceOf[Point]
-  val maxGeom = MinMaxGeometry.max.asInstanceOf[Point]
+  val minGeom: Point = MinMaxGeometry.min.asInstanceOf[Point]
+  val maxGeom: Point = MinMaxGeometry.max.asInstanceOf[Point]
 }

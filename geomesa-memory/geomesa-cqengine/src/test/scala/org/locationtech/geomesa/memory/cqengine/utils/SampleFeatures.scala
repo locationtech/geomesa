@@ -8,11 +8,13 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
+
 import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -51,11 +53,11 @@ object SampleFeatures {
   val cq = SFTAttributes(sft)
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  val MIN_DATE = new DateTime(2014, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
+  val MIN_DATE = ZonedDateTime.of(2014, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
   val seconds_per_year = 365L * 24L * 60L * 60L
   val string = "foo"
 
-  def randDate = MIN_DATE.plusSeconds(scala.math.round(scala.util.Random.nextFloat * seconds_per_year)).toDate
+  def randDate = Date.from(MIN_DATE.plusSeconds(scala.math.round(scala.util.Random.nextFloat * seconds_per_year)).toInstant)
 
   val builder = new SimpleFeatureBuilder(sft)
 

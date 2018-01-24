@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.index.index.legacy
 
 import java.nio.charset.StandardCharsets
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -29,8 +29,8 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
   import AttributeIndex._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
-  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+  private val MinDateTime = ZonedDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
+  private val MaxDateTime = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999000000, ZoneOffset.UTC)
 
   override protected def secondaryIndex(sft: SimpleFeatureType): Option[IndexKeySpace[_]] =
     Some(DateIndexKeySpace).filter(_.supports(sft))
@@ -54,8 +54,8 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
     override def getRanges(sft: SimpleFeatureType, indexValues: Filter): Iterator[(Array[Byte], Array[Byte])] = {
       val intervals = sft.getDtgField.map(FilterHelper.extractIntervals(indexValues, _)).getOrElse(FilterValues.empty)
       intervals.values.iterator.map { bounds =>
-        (timeToBytes(bounds.lower.value.getOrElse(MinDateTime).getMillis),
-            roundUpTime(timeToBytes(bounds.upper.value.getOrElse(MaxDateTime).getMillis)))
+        (timeToBytes(bounds.lower.value.getOrElse(MinDateTime).toInstant.toEpochMilli),
+            roundUpTime(timeToBytes(bounds.upper.value.getOrElse(MaxDateTime).toInstant.toEpochMilli)))
       }
     }
 

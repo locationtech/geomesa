@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.accumulo.tools.raster
 
 import java.io.{File, FilenameFilter}
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 import org.geotools.coverage.grid.GridCoverage2D
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.index.encoders.DecodedIndexValue
 import org.locationtech.geomesa.accumulo.tools.ingest.IngestRasterCommand
 import org.locationtech.geomesa.raster.data.Raster
@@ -31,7 +32,7 @@ class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterInges
   lazy val parLevel = config(IngestRasterParams.PARLEVEL).get.toInt
   lazy val rs = createRasterStore(config)
 
-  val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  val df = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
   def runIngestTask() = Try {
     val fileOrDir = new File(path)
@@ -61,8 +62,8 @@ class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterInges
     val envelope = rasterGrid.getEnvelope2D
     val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
 
-    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime).getOrElse(new DateTime(DateTimeZone.UTC))
-    val metadata = DecodedIndexValue(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.toDate), null)
+    val ingestTime = config(IngestRasterParams.TIME).map(ZonedDateTime.parse(_, df)).getOrElse(ZonedDateTime.now(ZoneOffset.UTC))
+    val metadata = DecodedIndexValue(Raster.getRasterId(rasterName), bbox.geom, Some(Date.from(ingestTime.toInstant)), null)
 
     val res =  RasterUtils.sharedRasterParams(rasterGrid.getGridGeometry, envelope).suggestedQueryResolution
 

@@ -11,8 +11,6 @@ package org.locationtech.geomesa.tools.utils
 import com.beust.jcommander.ParameterException
 import com.beust.jcommander.converters.BaseConverter
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.Period
-import org.joda.time.format.PeriodFormat
 import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
 import org.opengis.filter.Filter
 
@@ -32,17 +30,6 @@ object ParameterConverters {
         map
       } catch {
         case NonFatal(e) => throw new ParameterException(getErrorString(value, s"hint map: $e"))
-      }
-    }
-  }
-
-  class PeriodConverter(name: String) extends BaseConverter[Period](name) {
-    private val format = PeriodFormat.getDefault
-    override def convert(value: String): Period = {
-      try {
-        format.parsePeriod(value)
-      } catch {
-        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"period: $e"))
       }
     }
   }

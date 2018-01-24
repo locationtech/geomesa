@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage
 import java.io.{Closeable, Serializable}
 import java.util.Map.Entry
 import java.util.concurrent.TimeUnit
-import java.util.{Map => JMap}
+import java.util.{Date, Map => JMap}
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.common.collect.{ImmutableMap, ImmutableSetMultimap}
@@ -21,7 +21,6 @@ import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExist
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.TablePermission
 import org.geotools.coverage.grid.GridEnvelope2D
-import org.joda.time.DateTime
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.raster._
@@ -165,7 +164,7 @@ class AccumuloRasterStore(val connector: Connector,
     iter.map(entry => RasterIndexSchema.decode((entry.getKey, entry.getValue)))
   }
 
-  private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
+  private def dateToAccTimestamp(dt: Date): Long =  dt.getTime / 1000
 
   private def createBoundsMutation(raster: Raster): Mutation = {
     // write the bounds mutation

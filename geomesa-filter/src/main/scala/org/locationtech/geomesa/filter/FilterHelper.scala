@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.filter
 
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.spatial.BBOXImpl
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
@@ -267,9 +267,9 @@ object FilterHelper {
   def extractIntervals(filter: Filter,
                        attribute: String,
                        intersect: Boolean = true,
-                       handleExclusiveBounds: Boolean = false): FilterValues[Bounds[DateTime]] = {
+                       handleExclusiveBounds: Boolean = false): FilterValues[Bounds[ZonedDateTime]] = {
     extractAttributeBounds(filter, attribute, classOf[Date]).map { bounds =>
-      var lower, upper: Bound[DateTime] = null
+      var lower, upper: Bound[ZonedDateTime] = null
       if (!handleExclusiveBounds || bounds.lower.value.isEmpty || bounds.upper.value.isEmpty ||
           (bounds.lower.inclusive && bounds.upper.inclusive)) {
         lower = createDateTime(bounds.lower, roundSecondsUp, handleExclusiveBounds)
@@ -287,10 +287,10 @@ object FilterHelper {
   }
 
   private def createDateTime(bound: Bound[Date],
-                             round: (DateTime) => DateTime,
-                             roundExclusive: Boolean): Bound[DateTime] = {
+                             round: (ZonedDateTime) => ZonedDateTime,
+                             roundExclusive: Boolean): Bound[ZonedDateTime] = {
     if (bound.value.isEmpty) { Bound.unbounded } else {
-      val dt = bound.value.map(new DateTime(_, DateTimeZone.UTC))
+      val dt = bound.value.map(d => ZonedDateTime.ofInstant(d.toInstant, ZoneOffset.UTC))
       if (roundExclusive && !bound.inclusive) {
         Bound(dt.map(round), inclusive = true)
       } else {
@@ -299,11 +299,11 @@ object FilterHelper {
     }
   }
 
-  private def roundSecondsUp(dt: DateTime): DateTime = dt.plusSeconds(1).withMillisOfSecond(0)
+  private def roundSecondsUp(dt: ZonedDateTime): ZonedDateTime = dt.plusSeconds(1).withNano(0)
 
-  private def roundSecondsDown(dt: DateTime): DateTime = {
-    val millis = dt.getMillisOfSecond
-    if (millis == 0) dt.minusSeconds(1) else dt.withMillisOfSecond(0)
+  private def roundSecondsDown(dt: ZonedDateTime): ZonedDateTime = {
+    val nanos = dt.getNano
+    if (nanos == 0) { dt.minusSeconds(1) } else { dt.withNano(0) }
   }
 
   /**

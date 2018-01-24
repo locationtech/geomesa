@@ -24,7 +24,6 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
@@ -106,7 +105,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
         Array(
           i.toString,
           Map("a" -> i, "b" -> i * 2, (if (random.nextBoolean()) "c" else "d") -> random.nextInt(10)).asJava,
-          new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate,
+          "2012-01-01T19:00:00Z",
           "POINT(-77 38)")
     }
 

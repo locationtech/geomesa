@@ -17,7 +17,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.{DateTime, DateTimeZone}
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -55,7 +55,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
+        sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(-77 38)")
         sf
       }
@@ -72,7 +72,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
+        sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(-77 38)")
         sf
       }
@@ -85,7 +85,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
 
     "maintain weights irrespective of dates" in {
       clearFeatures()
-      val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
+      val date = Converters.convert("2012-01-01T19:00:00Z", classOf[Date]).getTime
       val features = (0 until 150).toArray.map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
@@ -103,7 +103,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
 
     "correctly bin points" in {
       clearFeatures()
-      val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
+      val date = Converters.convert("2012-01-01T19:00:00Z", classOf[Date]).getTime
       val features = (0 until 150).toArray.map { i =>
         // space out the points very slightly around 5 primary latitudes 1 degree apart
         val lat = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
