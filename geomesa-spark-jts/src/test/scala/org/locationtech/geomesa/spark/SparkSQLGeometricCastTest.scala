@@ -11,7 +11,7 @@ package org.locationtech.geomesa.spark
 
 import com.vividsolutions.jts.geom.{LineString, Point, Polygon}
 import org.apache.spark.sql.{SQLContext, SparkSession}
-import org.apache.spark.sql.jts.SQLTypes
+import org.apache.spark.sql.jts.JTSTypes
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -33,7 +33,7 @@ class SparkSQLGeometricCastTest extends Specification {
         .master("local[*]")
         .getOrCreate()
       sc = spark.sqlContext
-      SQLTypes.init(sc)
+      JTSTypes.init(sc)
     }
 
     "st_castToPoint" >> {

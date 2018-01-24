@@ -21,7 +21,7 @@ import org.opengis.filter.FilterFactory2
 import scala.reflect.ClassTag
 
 
-object SQLTypes {
+object JTSTypes {
 
   @transient val geomFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory
   @transient val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
@@ -108,14 +108,14 @@ object MultiPolygonUDT extends MultiPolygonUDT
 private [spark] class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometry") {
   private[sql] override def acceptsType(dataType: DataType): Boolean = {
     super.acceptsType(dataType) ||
-      dataType.getClass == SQLTypes.GeometryTypeInstance.getClass ||
-      dataType.getClass == SQLTypes.PointTypeInstance.getClass ||
-      dataType.getClass == SQLTypes.LineStringTypeInstance.getClass ||
-      dataType.getClass == SQLTypes.PolygonTypeInstance.getClass ||
-      dataType.getClass == SQLTypes.MultiLineStringTypeInstance.getClass ||
-      dataType.getClass == SQLTypes.MultiPointTypeInstance.getClass ||
-      dataType.getClass == SQLTypes.MultipolygonTypeInstance.getClass ||
-      dataType.getClass == SQLTypes.GeometryCollectionTypeInstance.getClass
+      dataType.getClass == JTSTypes.GeometryTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.PointTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.LineStringTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.PolygonTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.MultiLineStringTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.MultiPointTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.MultipolygonTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.GeometryCollectionTypeInstance.getClass
   }
 }
 

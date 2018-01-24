@@ -10,10 +10,10 @@
 package org.locationtech.geomesa.spark
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import SQLFunctionHelper.nullableUDF
-import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.functions.udf
+import org.locationtech.geomesa.spark.SQLFunctionHelper._
+import org.apache.spark.sql.{Column, SQLContext}
 import org.geotools.geojson.geom.GeometryJSON
+import org.locationtech.geomesa.spark.SparkDefaultEncoders._
 
 object SQLGeometricOutputFunctions {
   // use ThreadLocal to ensure thread safety
@@ -25,10 +25,15 @@ object SQLGeometricOutputFunctions {
   val ST_AsLatLonText: Point => String = nullableUDF(point => toLatLonString(point))
   val ST_AsText: Geometry => String = nullableUDF(geom => geom.toText)
 
-  implicit def st_asBinary = udf(ST_AsBinary)
-  implicit def st_asGeoJSON = udf(ST_AsGeoJSON)
-  implicit def st_asLatLonText = udf(ST_AsLatLonText)
-  implicit def st_asText = udf(ST_AsText)
+
+  def st_asBinary(geom: Column) = udfToColumn(ST_AsBinary, "st_asBinary", geom).as[Array[Byte]]
+  def st_asBinary(geom: Geometry) = udfToColumnLiterals(ST_AsBinary, "st_asBinary", geom).as[Array[Byte]]
+  def st_asGeoJSON(geom: Column) = udfToColumn(ST_AsGeoJSON, "st_asGeoJSON", geom).as[String]
+  def st_asGeoJSON(geom: Geometry) = udfToColumnLiterals(ST_AsGeoJSON, "st_asGeoJSON", geom).as[String]
+  def st_asLatLonText(point: Column) = udfToColumn(ST_AsLatLonText, "st_asLatLonText", point).as[String]
+  def st_asLatLonText(point: Point) = udfToColumnLiterals(ST_AsLatLonText, "st_asLatLonText", point).as[String]
+  def st_asText(geom: Column) = udfToColumn(ST_AsText, "st_asText", geom).as[String]
+  def st_asText(geom: Geometry) = udfToColumnLiterals(ST_AsText, "st_asText", geom).as[String]
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_asBinary", ST_AsBinary)

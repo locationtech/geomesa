@@ -16,7 +16,7 @@ import org.apache.spark.sql.catalyst.expressions.{GenericInternalRow, LeafExpres
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.types.DataType
-import org.apache.spark.sql.jts.SQLTypes._
+import org.apache.spark.sql.jts.JTSTypes._
 import scala.util.Try
 
 object SQLRules {

@@ -8,13 +8,13 @@
 
 package org.apache.spark.sql
 
-import org.apache.spark.sql.jts.{SQLTypes => jtsSQLTypes}
+import org.apache.spark.sql.jts.JTSTypes
 
 
 object SQLTypes {
 
   def init(sqlContext: SQLContext): Unit = {
-    jtsSQLTypes.init(sqlContext)
+    JTSTypes.init(sqlContext)
     SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
     SQLGeometryProcessingFunctions.registerFunctions(sqlContext)
     SQLGeometricOutputFunctions.registerFunctions(sqlContext)

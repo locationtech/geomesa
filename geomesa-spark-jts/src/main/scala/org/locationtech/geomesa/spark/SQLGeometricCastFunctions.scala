@@ -11,9 +11,11 @@ package org.locationtech.geomesa.spark
 import java.nio.charset.StandardCharsets
 
 import com.vividsolutions.jts.geom._
-import SQLFunctionHelper.nullableUDF
+import org.locationtech.geomesa.spark.SQLFunctionHelper._
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.functions.udf
+import org.apache.spark.sql.Column
+import org.locationtech.geomesa.spark.SpatialEncoders._
+import org.locationtech.geomesa.spark.SparkDefaultEncoders._
 
 object SQLGeometricCastFunctions {
   val ST_CastToPoint:      Geometry => Point       = g => g.asInstanceOf[Point]
@@ -22,10 +24,18 @@ object SQLGeometricCastFunctions {
   val ST_ByteArray: (String) => Array[Byte] =
     nullableUDF((string) => string.getBytes(StandardCharsets.UTF_8))
 
-  implicit def castToPoint = udf(ST_CastToPoint)
-  implicit def castToPolygon = udf(ST_CastToPolygon)
-  implicit def castToLineString = udf(ST_CastToLineString)
-  implicit def byteArray = udf(ST_ByteArray)
+  def castToPoint(geom: Column) = udfToColumn(ST_CastToPoint, "castToPoint", geom).as[Point]
+  def castToPoint(geom: Geometry) = udfToColumnLiterals(ST_CastToPoint, "castToPoint", geom).as[Point]
+
+  def castToPolygon(geom: Column) = udfToColumn(ST_CastToPoint, "castToPolygon", geom).as[Polygon]
+  def castToPolygon(geom: Geometry) = udfToColumnLiterals(ST_CastToPoint, "castToPolygon", geom).as[Polygon]
+
+  def castToLineString(geom: Column) = udfToColumn(ST_CastToLineString, "castToLineString", geom).as[LineString]
+  def castToLineString(geom: Geometry) = udfToColumnLiterals(ST_CastToLineString, "castToLineString", geom).as[LineString]
+
+  def byteArray(str: Column) = udfToColumn(ST_ByteArray, "byteArray", str).as[Array[Byte]]
+  def byteArray(str: String) = udfToColumnLiterals(ST_ByteArray, "byteArray", str).as[Array[Byte]]
+
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     // Register type casting functions

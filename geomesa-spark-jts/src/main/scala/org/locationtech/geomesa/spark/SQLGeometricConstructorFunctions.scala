@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.spark
 
 import com.vividsolutions.jts.geom._
-import SQLFunctionHelper.nullableUDF
-import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.jts.SQLTypes
-import org.apache.spark.sql.functions.udf
+import org.locationtech.geomesa.spark.SQLFunctionHelper._
+import org.apache.spark.sql.{Column, SQLContext}
+import org.apache.spark.sql.jts.JTSTypes
 import org.geotools.geometry.jts.JTS
+import org.locationtech.geomesa.spark.SpatialEncoders._
 
 object SQLGeometricConstructorFunctions {
 
@@ -25,11 +25,11 @@ object SQLGeometricConstructorFunctions {
   val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = nullableUDF((lowerX, lowerY, upperX, upperY) =>
     JTS.toGeometry(new Envelope(lowerX, upperX, lowerY, upperY)))
   val ST_MakePolygon: LineString => Polygon = nullableUDF(shell => {
-    val ring = SQLTypes.geomFactory.createLinearRing(shell.getCoordinateSequence)
-    SQLTypes.geomFactory.createPolygon(ring)
+    val ring = JTSTypes.geomFactory.createLinearRing(shell.getCoordinateSequence)
+    JTSTypes.geomFactory.createPolygon(ring)
   })
-  val ST_MakePoint: (Double, Double) => Point = nullableUDF((x, y) => SQLTypes.geomFactory.createPoint(new Coordinate(x, y)))
-  val ST_MakeLine: Seq[Point] => LineString = nullableUDF(s => SQLTypes.geomFactory.createLineString(s.map(_.getCoordinate).toArray))
+  val ST_MakePoint: (Double, Double) => Point = nullableUDF((x, y) => JTSTypes.geomFactory.createPoint(new Coordinate(x, y)))
+  val ST_MakeLine: Seq[Point] => LineString = nullableUDF(s => JTSTypes.geomFactory.createLineString(s.map(_.getCoordinate).toArray))
   val ST_MakePointM: (Double, Double, Double) => Point = nullableUDF((x, y, m) =>
     WKTUtils.read(s"POINT($x $y $m)").asInstanceOf[Point])
   val ST_MLineFromText: String => MultiLineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiLineString])
@@ -41,23 +41,62 @@ object SQLGeometricConstructorFunctions {
   val ST_Polygon: LineString => Polygon = shell => ST_MakePolygon(shell)
   val ST_PolygonFromText: String => Polygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[Polygon])
 
-  implicit def st_geomFromWKT = udf(ST_GeomFromWKT)
-  implicit def st_geomFromWKB = udf(ST_GeomFromWKB)
-  implicit def st_lineFromText = udf(ST_LineFromText)
-  implicit def st_makeBox2D = udf(ST_MakeBox2D)
-  implicit def st_makeBBOX = udf(ST_MakeBBOX)
-  implicit def st_makePolygon = udf(ST_MakePolygon)
-  implicit def st_makePoint = udf(ST_MakePoint)
-  implicit def st_makeLine = udf(ST_MakeLine)
-  implicit def st_makePointM = udf(ST_MakePointM)
-  implicit def st_mLineFromText = udf(ST_MLineFromText)
-  implicit def st_mPointFromText = udf(ST_MPointFromText)
-  implicit def st_mPolyFromText = udf(ST_MPolyFromText)
-  implicit def st_point = udf(ST_Point)
-  implicit def st_pointFromText = udf(ST_PointFromText)
-  implicit def st_pointFromWKB = udf(ST_PointFromWKB)
-  implicit def st_polygon = udf(ST_Polygon)
-  implicit def st_polygonFromText = udf(ST_PolygonFromText)
+  def st_geomFromWKT(wkt: Column) = udfToColumn(ST_GeomFromWKT, "st_geomFromWKT", wkt).as[Geometry]
+  def st_geomFromWKT(wkt: String) = udfToColumnLiterals(ST_GeomFromWKT, "st_geomFromWKT", wkt).as[Geometry]
+
+
+  def st_geomFromWKB(wkb: Column) = udfToColumn(ST_GeomFromWKB, "st_geomFromWKB", wkb).as[Geometry]
+  def st_geomFromWKB(wkb: Array[Byte]) = udfToColumnLiterals(ST_GeomFromWKB, "st_geomFromWKB", wkb).as[Geometry]
+
+  def st_lineFromText(wkt: Column) = udfToColumn(ST_LineFromText, "st_lineFromText", wkt).as[LineString]
+  def st_lineFromText(wkt: String) = udfToColumnLiterals(ST_LineFromText, "st_lineFromText", wkt).as[LineString]
+
+  def st_makeBox2D(lowerLeft: Column, upperRight: Column) =
+    udfToColumn(ST_MakeBox2D, "st_makeBox2D", lowerLeft, upperRight).as[Geometry]
+  def st_makeBox2D(lowerLeft: Point, upperRight: Point) =
+    udfToColumnLiterals(ST_MakeBox2D, "st_makeBox2D", lowerLeft, upperRight).as[Geometry]
+
+  def st_makeBBOX(lowerX: Column, upperX: Column, lowerY: Column, upperY: Column) =
+    udfToColumn(ST_MakeBBOX, "st_makeBBOX", lowerX, upperX, lowerY, upperY).as[Geometry]
+  def st_makeBBOX(lowerX: Double, upperX: Double, lowerY: Double, upperY: Double) =
+    udfToColumnLiterals(ST_MakeBBOX, "st_makeBBOX", lowerX, upperX, lowerY, upperY).as[Geometry]
+
+  def st_makePolygon(lineString: Column) = udfToColumn(ST_MakePolygon, "st_makePolygon", lineString).as[Polygon]
+  def st_makePolygon(lineString: LineString) = udfToColumnLiterals(ST_MakePolygon, "st_makePolygon", lineString).as[Polygon]
+
+  def st_makePoint(x: Column, y: Column) = udfToColumn(ST_MakePoint, "st_makePoint", x, y).as[Point]
+  def st_makePoint(x: Double, y: Double) = udfToColumnLiterals(ST_MakePoint, "st_makePoint", x, y).as[Point]
+
+  def st_makeLine(pointSeq: Column) = udfToColumn(ST_MakeLine, "st_makeLine", pointSeq).as[LineString]
+  def st_makeLine(pointSeq: Seq[Point]) = udfToColumnLiterals(ST_MakeLine, "st_makeLine", pointSeq).as[LineString]
+
+  def st_makePointM(x: Column, y: Column, m: Column) = udfToColumn(ST_MakePointM, "st_makePointM", x, y, m).as[Point]
+  def st_makePointM(x: Double, y: Double, m: Double) = udfToColumnLiterals(ST_MakePointM, "st_makePointM", x, y, m).as[Point]
+
+  def st_mLineFromText(wkt: Column) = udfToColumn(ST_MLineFromText, "st_mLineFromText", wkt).as[MultiLineString]
+  def st_mLineFromText(wkt: String) = udfToColumnLiterals(ST_MLineFromText, "st_mLineFromText", wkt).as[MultiLineString]
+
+  def st_mPointFromText(wkt: Column) = udfToColumn(ST_MPointFromText, "st_mPointFromText", wkt).as[MultiPoint]
+  def st_mPointFromText(wkt: String) = udfToColumnLiterals(ST_MPointFromText, "st_mPointFromText", wkt).as[MultiPoint]
+
+  def st_mPolyFromText(wkt: Column) = udfToColumn(ST_MPolyFromText, "st_mPolyFromText", wkt).as[MultiPolygon]
+  def st_mPolyFromText(wkt: String) = udfToColumnLiterals(ST_MPolyFromText, "st_mPolyFromText", wkt).as[MultiPolygon]
+
+  def st_point(x: Column, y: Column) = udfToColumn(ST_Point, "st_point", x, y).as[Point]
+  def st_point(x: Double, y: Double) = udfToColumnLiterals(ST_Point, "st_point", x, y).as[Point]
+
+  def st_pointFromText(wkt: Column) = udfToColumn(ST_PointFromText, "st_pointFromText", wkt).as[Point]
+  def st_pointFromText(wkt: String) = udfToColumnLiterals(ST_PointFromText, "st_pointFromText", wkt).as[Point]
+
+  def st_pointFromWKB(wkb: Column) = udfToColumn(ST_PointFromWKB, "st_pointFromWKB", wkb).as[Point]
+  def st_pointFromWKB(wkb: Array[Byte]) = udfToColumnLiterals(ST_PointFromWKB, "st_pointFromWKB", wkb).as[Point]
+
+  def st_polygon(lineString: Column) = udfToColumn(ST_Polygon, "st_polygon", lineString).as[Polygon]
+  def st_polygon(lineString: LineString) = udfToColumnLiterals(ST_Polygon, "st_polygon", lineString).as[Polygon]
+
+  def st_polygonFromText(wkt: Column) = udfToColumn(ST_PolygonFromText, "st_polygonFromText", wkt).as[Polygon]
+  def st_polygonFromText(wkt: String) = udfToColumnLiterals(ST_PolygonFromText, "st_polygonFromText", wkt).as[Polygon]
+
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_geomFromText"      , ST_GeomFromWKT)

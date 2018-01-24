@@ -11,11 +11,12 @@ package org.locationtech.geomesa.spark
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.jts.SQLTypes
+import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.types._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLTest extends Specification {
@@ -37,7 +38,7 @@ class SparkSQLTest extends Specification {
         .getOrCreate()
 
       sc = spark.sqlContext
-      SQLTypes.init(sc)
+      JTSTypes.init(sc)
 
       val schema = StructType(Array(StructField("name",StringType, nullable=false),
                                     StructField("pointText", StringType, nullable=false),

@@ -11,14 +11,14 @@ package org.apache.spark.sql.udaf
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.jts.SQLTypes
+import org.apache.spark.sql.jts.JTSTypes
 
 class ConvexHull extends UserDefinedAggregateFunction {
   import org.apache.spark.sql.types.{DataTypes => DT}
 
-  override val inputSchema = DT.createStructType(Array(DT.createStructField("inputGeom", SQLTypes.GeometryTypeInstance, true)))
-  override val bufferSchema = DT.createStructType(Array(DT.createStructField("convexHull", SQLTypes.GeometryTypeInstance, true)))
-  override val dataType = DT.createStructType(Array(DT.createStructField("convexHull", SQLTypes.GeometryTypeInstance, true)))
+  override val inputSchema = DT.createStructType(Array(DT.createStructField("inputGeom", JTSTypes.GeometryTypeInstance, true)))
+  override val bufferSchema = DT.createStructType(Array(DT.createStructField("convexHull", JTSTypes.GeometryTypeInstance, true)))
+  override val dataType = DT.createStructType(Array(DT.createStructField("convexHull", JTSTypes.GeometryTypeInstance, true)))
   override val deterministic = true
 
   override def initialize(buffer: MutableAggregationBuffer): Unit = {

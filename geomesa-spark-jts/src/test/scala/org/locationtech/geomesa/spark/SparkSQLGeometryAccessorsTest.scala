@@ -12,7 +12,7 @@ import java.util.{Map => JMap}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.apache.spark.sql.jts.SQLTypes
+import org.apache.spark.sql.jts.JTSTypes
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -37,7 +37,7 @@ class SparkSQLGeometryAccessorsTest extends Specification {
         .master("local[*]")
         .getOrCreate()
       sc = spark.sqlContext
-      SQLTypes.init(sc)
+      JTSTypes.init(sc)
     }
 
     "st_boundary" >> {

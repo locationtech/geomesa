@@ -29,7 +29,7 @@ The following is a Scala example of loading a DataFrame with user defined types:
 
     import org.apache.spark.sql.types._
     import org.apache.spark.sql.functions._
-    import org.apache.spark.sql.jts.SQLTypes
+    import org.apache.spark.sql.jts.JTSTypes
     import org.locationtech.geomesa.spark.SQLGeometricConstructorFunctions._
 
     val schema = StructType(Array(StructField("name",StringType, nullable=false),
@@ -61,18 +61,18 @@ Configuration
 ^^^^^^^^^^^^^
 
 To enable this behavior, you must pass the  ``SQLContext`` of the ``SparkSession`` to
-``SQLTypes.init``. This will register the UDFs and UDTs as well as some catalyst
+``JTSTypes.init``. This will register the UDFs and UDTs as well as some catalyst
 optimizations for these operations.
 
 .. code-block:: scala
 
     import org.apache.spark.sql.SparkSession
     import org.apache.spark.sql.SQLContext
-    import org.apache.spark.sql.jts.SQLTypes
+    import org.apache.spark.sql.jts.JTSTypes
 
     val spark: SparkSession = SparkSession.builder() // ... initialize spark session
     val sc: SQLContext = spark.sqlContext
-    SQLTypes.init(sc)
+    JTSTypes.init(sc)
 
 Geospatial User-defined Types and Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

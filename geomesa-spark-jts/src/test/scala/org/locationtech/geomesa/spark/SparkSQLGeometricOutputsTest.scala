@@ -12,7 +12,7 @@ package org.locationtech.geomesa.spark
 import com.vividsolutions.jts.geom.GeometryFactory
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.spark.sql._
-import org.apache.spark.sql.jts.SQLTypes
+import org.apache.spark.sql.jts.JTSTypes
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -35,7 +35,7 @@ class SparkSQLGeometricOutputsTest extends Specification {
         .master("local[*]")
         .getOrCreate()
       sc = spark.sqlContext
-      SQLTypes.init(sc)
+      JTSTypes.init(sc)
     }
 
     "st_asBinary" >> {
@@ -142,7 +142,7 @@ class SparkSQLGeometricOutputsTest extends Specification {
       val df = sc.createDataset(Seq(gf.createPoint(new Coordinate(-76.5, 38.5)))).toDF()
       val r = df.select(st_asLatLonText(col("value")))
 
-      r.collect().head.getAs[String](0) mustEqual """38°30'0.000"N 77°30'0.000"W"""
+      r.collect().head mustEqual """38°30'0.000"N 77°30'0.000"W"""
     }
 
     "st_asText" >> {

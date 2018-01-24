@@ -10,7 +10,7 @@ package org.apache.spark.sql
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
-import org.apache.spark.sql.jts.SQLTypes._
+import org.apache.spark.sql.jts.JTSTypes._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
 import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, LeafExpression,  PredicateHelper, ScalaUDF}

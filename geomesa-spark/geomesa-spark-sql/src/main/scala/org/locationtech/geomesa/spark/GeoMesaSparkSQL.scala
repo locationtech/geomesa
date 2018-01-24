@@ -33,7 +33,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.apache.spark.sql.jts.{SQLTypes => jtsSQLTypes}
+import org.apache.spark.sql.jts.JTSTypes
 import scala.collection.Iterator
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
@@ -121,11 +121,11 @@ class GeoMesaDataSource extends DataSourceRegister
           case DataTypes.LongType   => builder.add(field.name, classOf[jl.Long])
           case DataTypes.TimestampType => builder.add(field.name, classOf[java.util.Date])
 
-          case jtsSQLTypes.PointTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Point])
-          case jtsSQLTypes.LineStringTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.LineString])
-          case jtsSQLTypes.PolygonTypeInstance  => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Polygon])
-          case jtsSQLTypes.MultipolygonTypeInstance  => builder.add(field.name, classOf[com.vividsolutions.jts.geom.MultiPolygon])
-          case jtsSQLTypes.GeometryTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Geometry])
+          case JTSTypes.PointTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Point])
+          case JTSTypes.LineStringTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.LineString])
+          case JTSTypes.PolygonTypeInstance  => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Polygon])
+          case JTSTypes.MultipolygonTypeInstance  => builder.add(field.name, classOf[com.vividsolutions.jts.geom.MultiPolygon])
+          case JTSTypes.GeometryTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Geometry])
         }
     }
     builder.setName(name)
@@ -143,14 +143,14 @@ class GeoMesaDataSource extends DataSourceRegister
       case t if t == classOf[jl.Long]                         => DataTypes.LongType
       case t if t == classOf[java.util.Date]                  => DataTypes.TimestampType
 
-      case t if t == classOf[com.vividsolutions.jts.geom.Point]            => jtsSQLTypes.PointTypeInstance
-      case t if t == classOf[com.vividsolutions.jts.geom.MultiPoint]       => jtsSQLTypes.MultiPointTypeInstance
-      case t if t == classOf[com.vividsolutions.jts.geom.LineString]       => jtsSQLTypes.LineStringTypeInstance
-      case t if t == classOf[com.vividsolutions.jts.geom.MultiLineString]  => jtsSQLTypes.MultiLineStringTypeInstance
-      case t if t == classOf[com.vividsolutions.jts.geom.Polygon]          => jtsSQLTypes.PolygonTypeInstance
-      case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon]     => jtsSQLTypes.MultipolygonTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.Point]            => JTSTypes.PointTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiPoint]       => JTSTypes.MultiPointTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.LineString]       => JTSTypes.LineStringTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiLineString]  => JTSTypes.MultiLineStringTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.Polygon]          => JTSTypes.PolygonTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon]     => JTSTypes.MultipolygonTypeInstance
 
-      case t if      classOf[Geometry].isAssignableFrom(t)    => jtsSQLTypes.GeometryTypeInstance
+      case t if      classOf[Geometry].isAssignableFrom(t)    => JTSTypes.GeometryTypeInstance
 
       // NB:  List and Map types are not supported.
       case _                                                  => null
