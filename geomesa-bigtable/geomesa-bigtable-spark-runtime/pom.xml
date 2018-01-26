@@ -28,6 +28,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!--Mark dependency as provided to avoid Spark 2.2.x conflicts-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.cloud.bigtable</groupId>
             <artifactId>bigtable-hbase-mapreduce</artifactId>
