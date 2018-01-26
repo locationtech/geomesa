@@ -345,6 +345,8 @@
                 <artifactId>scala-logging_${scala.binary.version}</artifactId>
                 <version>${scalalogging.version}</version>
             </dependency>
+            <!-- we've removed our direct joda dependency, but it still gets pulled in
+                 transitively by scalatra and osm4j -->
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
