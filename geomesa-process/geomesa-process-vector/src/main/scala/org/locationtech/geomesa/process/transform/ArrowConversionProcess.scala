@@ -82,7 +82,8 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
     val batch = Option(batchSize).map(_.intValue).getOrElse(100000)
     val double = Option(doublePass).exists(_.booleanValue())
 
-    val visitor = new ArrowVisitor(sft, encoding, toEncode, cacheDictionaries, Option(sortField), reverse, batch, double)
+    val visitor =
+      new ArrowVisitor(sft, encoding, toEncode, cacheDictionaries, Option(sortField), reverse, false, batch, double)
     features.accepts(visitor, null)
     visitor.getResult.results
   }
@@ -96,6 +97,7 @@ object ArrowConversionProcess {
                      cacheDictionaries: Option[Boolean],
                      sortField: Option[String],
                      sortReverse: Option[Boolean],
+                     preSorted: Boolean,
                      batchSize: Int,
                      doublePass: Boolean)
       extends GeoMesaProcessVisitor with LazyLogging {
@@ -103,13 +105,14 @@ object ArrowConversionProcess {
     import scala.collection.JavaConversions._
 
     // for collecting results manually
-    private lazy val manualVisitor: ArrowManualVisitor =
-      if (dictionaryFields.isEmpty && sortField.isEmpty) {
-        new SimpleArrowManualVisitor(sft, encoding, batchSize)
+    private lazy val manualVisitor: ArrowManualVisitor = {
+      val sort = sortField.map(s => (s, sortReverse.getOrElse(false)))
+      if (dictionaryFields.isEmpty && (sortField.isEmpty || preSorted)) {
+        new SimpleArrowManualVisitor(sft, encoding, sort, batchSize)
       } else {
-        val sort = sortField.map(s => (s, sortReverse.getOrElse(false)))
-        new ComplexArrowManualVisitor(sft, encoding, dictionaryFields, sort, batchSize)
+        new ComplexArrowManualVisitor(sft, encoding, dictionaryFields, sort, preSorted, batchSize)
       }
+    }
 
     private var result: Iterator[Array[Byte]] = _
 
@@ -159,7 +162,10 @@ object ArrowConversionProcess {
     * @param encoding arrow encoding
     * @param batchSize batch size
     */
-  private class SimpleArrowManualVisitor(sft: SimpleFeatureType, encoding: SimpleFeatureEncoding, batchSize: Int)
+  private class SimpleArrowManualVisitor(sft: SimpleFeatureType,
+                                         encoding: SimpleFeatureEncoding,
+                                         sort: Option[(String, Boolean)],
+                                         batchSize: Int)
       extends ArrowManualVisitor {
 
     import org.locationtech.geomesa.arrow.allocator
@@ -168,7 +174,7 @@ object ArrowConversionProcess {
     private val bytes = ListBuffer.empty[Array[Byte]]
     private var count = 0L
 
-    private val writer = SimpleFeatureArrowFileWriter(sft, out, Map.empty, encoding)
+    private val writer = SimpleFeatureArrowFileWriter(sft, out, Map.empty, encoding, sort)
 
     override def visit(feature: SimpleFeature): Unit = {
       writer.add(feature.asInstanceOf[SimpleFeature])
@@ -200,6 +206,7 @@ object ArrowConversionProcess {
                                           encoding: SimpleFeatureEncoding,
                                           dictionaryFields: Seq[String],
                                           sort: Option[(String, Boolean)],
+                                          preSorted: Boolean,
                                           batchSize: Int) extends ArrowManualVisitor {
 
     import org.locationtech.geomesa.arrow.allocator
@@ -224,9 +231,11 @@ object ArrowConversionProcess {
         }.toMap
       }
 
-      val ordering = sort.map { case (field, reverse) =>
-        val o = SimpleFeatureOrdering(sft.indexOf(field))
-        if (reverse) { o.reverse } else { o }
+      val ordering = if (preSorted) { None } else {
+        sort.map { case (field, reverse) =>
+          val o = SimpleFeatureOrdering(sft.indexOf(field))
+          if (reverse) { o.reverse } else { o }
+        }
       }
       val sorted = ordering match {
         case None    => features.iterator
