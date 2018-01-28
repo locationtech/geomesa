@@ -16,7 +16,6 @@ import com.vividsolutions.jts.geom._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, NullableMapVector}
 import org.apache.arrow.vector.holders._
-import org.joda.time.{DateTimeZone, LocalDateTime}
 import org.locationtech.geomesa.arrow.TypeBindings
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryReader
 import org.locationtech.geomesa.arrow.vector.LineStringFloatVector.LineStringFloatReader
@@ -36,7 +35,6 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{EncodingPrecis
 import org.locationtech.geomesa.arrow.vector.impl.{AbstractLineStringVector, AbstractPointVector}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -149,8 +147,8 @@ object ArrowAttributeReader {
           case ObjectType.FLOAT    => new ArrowFloatReader(vector.asInstanceOf[NullableFloat4Vector])
           case ObjectType.DOUBLE   => new ArrowDoubleReader(vector.asInstanceOf[NullableFloat8Vector])
           case ObjectType.BOOLEAN  => new ArrowBooleanReader(vector.asInstanceOf[NullableBitVector])
-          case ObjectType.LIST     => new ArrowListReader(vector.asInstanceOf[ListVector], bindings(1))
-          case ObjectType.MAP      => new ArrowMapReader(vector.asInstanceOf[NullableMapVector], bindings(1), bindings(2))
+          case ObjectType.LIST     => new ArrowListReader(vector.asInstanceOf[ListVector], bindings(1), encoding)
+          case ObjectType.MAP      => new ArrowMapReader(vector.asInstanceOf[NullableMapVector], bindings(1), bindings(2), encoding)
           case ObjectType.BYTES    => new ArrowByteReader(vector.asInstanceOf[NullableVarBinaryVector])
           case ObjectType.JSON     => new ArrowStringReader(vector.asInstanceOf[NullableVarCharVector])
           case ObjectType.UUID     => new ArrowUuidReader(vector.asInstanceOf[NullableVarCharVector])
@@ -443,33 +441,6 @@ object ArrowAttributeReader {
     }
   }
 
-  class ArrowListReader(override val vector: ListVector, binding: ObjectType) extends ArrowAttributeReader {
-    private val accessor = vector.getAccessor
-    import scala.collection.JavaConverters._
-    private val convert: (AnyRef) => AnyRef = arrowConversion(binding)
-    override def apply(i: Int): AnyRef =
-      accessor.getObject(i).asInstanceOf[java.util.List[AnyRef]].asScala.map(convert).asJava
-  }
-
-  class ArrowMapReader(override val vector: NullableMapVector, keyBinding: ObjectType, valueBinding: ObjectType)
-      extends ArrowAttributeReader {
-    private val accessor = vector.getAccessor
-    private val convertKey: (AnyRef) => AnyRef = arrowConversion(keyBinding)
-    private val convertValue: (AnyRef) => AnyRef = arrowConversion(valueBinding)
-    override def apply(i: Int): AnyRef = {
-      val map    = accessor.getObject(i).asInstanceOf[java.util.Map[AnyRef, AnyRef]]
-      val keys   = map.get("k").asInstanceOf[java.util.List[AnyRef]]
-      val values = map.get("v").asInstanceOf[java.util.List[AnyRef]]
-      val result = new java.util.HashMap[AnyRef, AnyRef]
-      var j = 0
-      while (j < keys.size) {
-        result.put(convertKey(keys.get(j)), convertValue(values.get(j)))
-        j += 1
-      }
-      result
-    }
-  }
-
   class ArrowByteReader(override val vector: NullableVarBinaryVector) extends ArrowAttributeReader {
     private val accessor = vector.getAccessor
     override def apply(i: Int): AnyRef = accessor.getObject(i)
@@ -485,20 +456,42 @@ object ArrowAttributeReader {
     }
   }
 
-  /**
-    * Conversion for arrow accessor object types to simple feature type standard types.
-    *
-    * Note: geometry conversion is only correct for nested lists and maps
-    *
-    * @param binding object type being read
-    * @return
-    */
-  private def arrowConversion(binding: ObjectType): (AnyRef)=> AnyRef = binding match {
-    case ObjectType.STRING   => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
-    case ObjectType.GEOMETRY => (v) => WKTUtils.read(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
-    case ObjectType.DATE     => (v) => v.asInstanceOf[LocalDateTime].toDate(DateTimeZone.UTC.toTimeZone)
-    case ObjectType.JSON     => (v) => v.asInstanceOf[org.apache.arrow.vector.util.Text].toString
-    case ObjectType.UUID     => (v) => UUID.fromString(v.asInstanceOf[org.apache.arrow.vector.util.Text].toString)
-    case _                   => (v) => v
+  class ArrowListReader(override val vector: ListVector, binding: ObjectType, encoding: SimpleFeatureEncoding)
+      extends ArrowAttributeReader {
+    private val offsets = vector.getFieldInnerVectors.get(1).asInstanceOf[UInt4Vector].getAccessor
+    private val reader = ArrowAttributeReader(Seq(binding), vector.getDataVector, None, encoding)
+    override def apply(i: Int): AnyRef = {
+      if (vector.getAccessor.isNull(i)) { null } else {
+        var offset = offsets.get(i)
+        val end = offsets.get(i + 1)
+        val list = new java.util.ArrayList[AnyRef](end - offset)
+        while (offset < end) {
+          list.add(reader.apply(offset))
+          offset += 1
+        }
+        list
+      }
+    }
+  }
+
+  class ArrowMapReader(override val vector: NullableMapVector,
+                       keyBinding: ObjectType,
+                       valueBinding: ObjectType,
+                       encoding: SimpleFeatureEncoding) extends ArrowAttributeReader {
+    private val keyReader = ArrowAttributeReader(Seq(ObjectType.LIST, keyBinding), vector.getChild("k"), None, encoding)
+    private val valueReader = ArrowAttributeReader(Seq(ObjectType.LIST, valueBinding), vector.getChild("v"), None, encoding)
+    override def apply(i: Int): AnyRef = {
+      if (vector.getAccessor.isNull(i)) { null } else {
+        val keys = keyReader.apply(i).asInstanceOf[java.util.List[AnyRef]]
+        val values = valueReader.apply(i).asInstanceOf[java.util.List[AnyRef]]
+        val map = new java.util.HashMap[AnyRef, AnyRef](keys.size)
+        var count = 0
+        while (count < keys.size()) {
+          map.put(keys.get(count), values.get(count))
+          count += 1
+        }
+        map
+      }
+    }
   }
 }

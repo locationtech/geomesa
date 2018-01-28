@@ -9,17 +9,18 @@
 package org.locationtech.geomesa.convert
 
 import java.nio.charset.StandardCharsets
-import java.util.{Date, DoubleSummaryStatistics, ServiceLoader, UUID}
+import java.util.concurrent.ConcurrentHashMap
+import java.util.{Date, DoubleSummaryStatistics, Locale, ServiceLoader, UUID}
 
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
-import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
+import org.geotools.referencing.CRS
 import org.geotools.util.Converters
-import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeFormat}
-import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
+import org.locationtech.geomesa.utils.text.{DateParsing, EnhancedTokenParsers, WKTUtils}
+import org.opengis.referencing.operation.MathTransform
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -408,23 +409,99 @@ class StringFunctionFactory extends TransformerFunctionFactory {
 
 class DateFunctionFactory extends TransformerFunctionFactory {
 
+  import java.time.{ZoneOffset, ZonedDateTime}
+  import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+  import java.time.temporal.ChronoField
+
+  // yyyy-MM-dd'T'HH:mm:ss.SSSZZ (ZZ is time zone with colon)
+  private val dateTimeFormat =
+    new DateTimeFormatterBuilder()
+      .parseCaseInsensitive()
+      .append(DateTimeFormatter.ISO_LOCAL_DATE)
+      .parseLenient()
+      .appendLiteral('T')
+      .appendValue(ChronoField.HOUR_OF_DAY, 2)
+      .appendLiteral(':')
+      .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+      .appendLiteral(':')
+      .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+      .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+      .optionalStart()
+      .appendOffsetId()
+      .toFormatter(Locale.US)
+      .withZone(ZoneOffset.UTC)
+
+  // yyyyMMdd
+  private val basicDateFormat = DateTimeFormatter.BASIC_ISO_DATE.withZone(ZoneOffset.UTC)
+
+  // yyyyMMdd'T'HHmmss.SSSZ
+  private val basicDateTimeFormat =
+    new DateTimeFormatterBuilder()
+      .parseCaseInsensitive()
+      .appendValue(ChronoField.YEAR, 4)
+      .appendValue(ChronoField.MONTH_OF_YEAR, 2)
+      .appendValue(ChronoField.DAY_OF_MONTH, 2)
+      .appendLiteral('T')
+      .appendValue(ChronoField.HOUR_OF_DAY, 2)
+      .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+      .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+      .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+      .optionalStart()
+      .appendOffsetId()
+      .toFormatter(Locale.US)
+      .withZone(ZoneOffset.UTC)
+
+  // yyyyMMdd'T'HHmmssZ
+  private val basicDateTimeNoMillisFormat =
+    new DateTimeFormatterBuilder()
+      .parseCaseInsensitive()
+      .appendValue(ChronoField.YEAR, 4)
+      .appendValue(ChronoField.MONTH_OF_YEAR, 2)
+      .appendValue(ChronoField.DAY_OF_MONTH, 2)
+      .appendLiteral('T')
+      .appendValue(ChronoField.HOUR_OF_DAY, 2)
+      .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+      .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+      .optionalStart()
+      .appendOffsetId()
+      .toFormatter(Locale.US)
+      .withZone(ZoneOffset.UTC)
+
+  // yyyy-MM-dd'T'HH:mm:ss.SSS
+  private val dateHourMinuteSecondMillisFormat =
+    new DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
+        .append(DateTimeFormatter.ISO_LOCAL_DATE)
+        .parseLenient()
+        .appendLiteral('T')
+        .appendValue(ChronoField.HOUR_OF_DAY, 2)
+        .appendLiteral(':')
+        .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+        .appendLiteral(':')
+        .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+        .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+        .toFormatter(Locale.US)
+        .withZone(ZoneOffset.UTC)
+
   override def functions: Seq[TransformerFn] =
     Seq(now, customFormatDateParser, datetime, isodate, isodatetime, basicDateTimeNoMillis,
       dateHourMinuteSecondMillis, millisToDate, secsToDate, dateToString)
 
-  val now                        = TransformerFn("now") { args => DateTime.now.toDate }
-  val millisToDate               = TransformerFn("millisToDate") { args => new Date(args(0).asInstanceOf[Long]) }
-  val secsToDate                 = TransformerFn("secsToDate") { args => new Date(args(0).asInstanceOf[Long] * 1000L) }
-  val customFormatDateParser     = CustomFormatDateParser()
-  val datetime                   = StandardDateParser("datetime", "dateTime")(ISODateTimeFormat.dateTime().withZoneUTC())
-  val isodate                    = StandardDateParser("isodate", "basicDate")(ISODateTimeFormat.basicDate().withZoneUTC())
-  val isodatetime                = StandardDateParser("isodatetime", "basicDateTime")(ISODateTimeFormat.basicDateTime().withZoneUTC())
-  val basicDateTimeNoMillis      = StandardDateParser("basicDateTimeNoMillis")(ISODateTimeFormat.basicDateTimeNoMillis().withZoneUTC())
-  val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis")(ISODateTimeFormat.dateHourMinuteSecondMillis().withZoneUTC())
+  private val now                        = TransformerFn("now") { _ => Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant) }
+  private val millisToDate               = TransformerFn("millisToDate") { args => new Date(args(0).asInstanceOf[Long]) }
+  private val secsToDate                 = TransformerFn("secsToDate") { args => new Date(args(0).asInstanceOf[Long] * 1000L) }
+  private val customFormatDateParser     = CustomFormatDateParser()
+  private val datetime                   = StandardDateParser("datetime", "dateTime")(dateTimeFormat)
+  private val isodate                    = StandardDateParser("isodate", "basicDate")(basicDateFormat)
+  private val isodatetime                = StandardDateParser("isodatetime", "basicDateTime")(basicDateTimeFormat)
+  private val basicDateTimeNoMillis      = StandardDateParser("basicDateTimeNoMillis")(basicDateTimeNoMillisFormat)
+  private val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis")(dateHourMinuteSecondMillisFormat)
+
+  private val dateToString = DateToString()
 
   case class StandardDateParser(names: String*)(format: DateTimeFormatter) extends TransformerFn {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      format.parseDateTime(args(0).toString).toDate
+      DateParsing.parseDate(args(0).toString, format)
   }
 
   case class CustomFormatDateParser(var format: DateTimeFormatter = null) extends TransformerFn {
@@ -433,9 +510,9 @@ class DateFunctionFactory extends TransformerFunctionFactory {
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       if (format == null) {
-        format = DateTimeFormat.forPattern(args(0).asInstanceOf[String]).withZoneUTC()
+        format = DateTimeFormatter.ofPattern(args(0).asInstanceOf[String]).withZone(ZoneOffset.UTC)
       }
-      format.parseDateTime(args(1).asInstanceOf[String]).toDate
+      DateParsing.parseDate(args(1).toString, format)
     }
   }
 
@@ -445,14 +522,11 @@ class DateFunctionFactory extends TransformerFunctionFactory {
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       if (format == null) {
-        format = DateTimeFormat.forPattern(args(0).asInstanceOf[String]).withZoneUTC()
+        format = DateTimeFormatter.ofPattern(args(0).asInstanceOf[String]).withZone(ZoneOffset.UTC)
       }
-      format.print(args(1).asInstanceOf[java.util.Date].getTime)
+      DateParsing.formatDate(args(1).asInstanceOf[java.util.Date], format)
     }
   }
-
-  val dateToString = DateToString()
-
 }
 
 class GeometryFunctionFactory extends TransformerFunctionFactory {
@@ -463,9 +537,11 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     polygonParserFn,
     multiPolygonParserFn,
     geometryParserFn,
-    geometryCollectionParserFn)
+    geometryCollectionParserFn,
+    projectFromParserFn)
 
   private val gf = JTSFactoryFinder.getGeometryFactory
+
   val pointParserFn = TransformerFn("point") { args =>
     args.length match {
       case 1 =>
@@ -540,6 +616,25 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
       case s: String   => WKTUtils.read(s)
       case _ =>
         throw new IllegalArgumentException(s"Invalid geometrycollection conversion argument: ${args.toList}")
+    }
+  }
+
+  val projectFromParserFn = new TransformerFn {
+
+    private val cache = new ConcurrentHashMap[String, MathTransform]
+
+    override val names: Seq[String] = Seq("projectFrom")
+
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+      import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+
+      val epsg = args(0).asInstanceOf[String]
+      val geom = args(1).asInstanceOf[Geometry]
+      val lenient = if (args.length > 2) { java.lang.Boolean.parseBoolean(args(2).toString) } else { true }
+      // transforms should be thread safe according to https://sourceforge.net/p/geotools/mailman/message/32123017/
+      val transform = cache.getOrElseUpdate(s"$epsg:$lenient",
+        CRS.findMathTransform(CRS.decode(epsg), CRS_EPSG_4326, lenient))
+      JTS.transform(geom, transform)
     }
   }
 }

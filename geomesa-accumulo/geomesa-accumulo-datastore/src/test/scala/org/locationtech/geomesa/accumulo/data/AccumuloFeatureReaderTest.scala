@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.time.ZonedDateTime
+
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.Interval
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.ParamsAuditProvider
@@ -49,7 +50,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
   class MockAuditWriter(events: ArrayBuffer[AuditedEvent]) extends AuditWriter with AuditReader {
     override def writeEvent[T <: AuditedEvent](stat: T)(implicit ct: ClassTag[T]): Unit = events.append(stat)
-    override def getEvents[T <: AuditedEvent](typeName: String, dates: Interval)(implicit ct: ClassTag[T]): Iterator[T] = null
+    override def getEvents[T <: AuditedEvent](typeName: String, dates: (ZonedDateTime, ZonedDateTime))(implicit ct: ClassTag[T]): Iterator[T] = null
     override def close(): Unit = {}
   }
 

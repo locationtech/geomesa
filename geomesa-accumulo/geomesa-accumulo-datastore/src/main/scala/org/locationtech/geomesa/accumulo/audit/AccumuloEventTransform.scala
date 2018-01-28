@@ -8,15 +8,17 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Scanner
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
-import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.utils.audit.AuditedEvent
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.text.DateParsing
 
 import scala.util.Random
 
@@ -25,14 +27,16 @@ import scala.util.Random
  */
 trait AccumuloEventTransform[T <: AuditedEvent] extends LazyLogging {
 
+  import AccumuloEventTransform.dateFormat
+
   private val RowId = "(.*)~(.*)".r
 
   protected def createMutation(stat: T): Mutation =
-    new Mutation(s"${stat.typeName}~${AccumuloEventTransform.dateFormat.print(stat.date)}")
+    new Mutation(s"${stat.typeName}~${DateParsing.formatMillis(stat.date, dateFormat)}")
 
   protected def typeNameAndDate(key: Key): (String, Long) = {
     val RowId(typeName, dateString) = key.getRow.toString
-    val date = AccumuloEventTransform.dateFormat.parseMillis(dateString)
+    val date = ZonedDateTime.parse(dateString, dateFormat).toInstant.toEpochMilli
     (typeName, date)
   }
 
@@ -67,9 +71,9 @@ trait AccumuloEventTransform[T <: AuditedEvent] extends LazyLogging {
 
       var last: Option[Entry[Key, Value]] = None
 
-      override def close() = scanner.close()
+      override def close(): Unit = scanner.close()
 
-      override def next() = {
+      override def next(): T = {
         // get the data for the stat entry, which consists of a several CQ/values
         val entries = collection.mutable.ListBuffer.empty[Entry[Key, Value]]
         if (last.isEmpty) {
@@ -86,12 +90,12 @@ trait AccumuloEventTransform[T <: AuditedEvent] extends LazyLogging {
         toEvent(entries)
       }
 
-      override def hasNext = last.isDefined || iter.hasNext
+      override def hasNext: Boolean = last.isDefined || iter.hasNext
     }
     SelfClosingIterator(wrappedIter)
   }
 }
 
 object AccumuloEventTransform {
-  val dateFormat = DateTimeFormat.forPattern("yyyyMMdd-HH:mm:ss.SSS").withZoneUTC()
+  val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH:mm:ss.SSS").withZone(ZoneOffset.UTC)
 }

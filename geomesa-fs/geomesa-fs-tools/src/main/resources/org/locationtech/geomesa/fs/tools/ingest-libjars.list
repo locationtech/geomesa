@@ -1,5 +1,5 @@
+aircompressor
 avro
-parquet
 caffeine
 commons-csv
 commons-pool
@@ -10,6 +10,7 @@ curator-recipes
 geomesa
 gson
 gt
+hive
 joda
 json4s-ast
 json4s-core
@@ -23,8 +24,10 @@ kryo
 libthrift
 mango
 minlog
+orc
 paranamer
 parboiled
+parquet
 Saxon-HE
 scala
 scalap

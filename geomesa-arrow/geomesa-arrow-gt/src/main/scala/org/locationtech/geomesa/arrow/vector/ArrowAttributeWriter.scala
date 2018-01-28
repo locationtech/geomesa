@@ -14,7 +14,6 @@ import java.util.Date
 import com.vividsolutions.jts.geom._
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
-import org.apache.arrow.vector.complex.writer.BaseWriter.ListWriter
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, NullableMapVector}
 import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding, FieldType}
@@ -26,7 +25,6 @@ import org.locationtech.geomesa.arrow.vector.impl._
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -144,7 +142,7 @@ object ArrowAttributeWriter {
             metadata: Map[String, String],
             encoding: SimpleFeatureEncoding)
            (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
-    val toVector = vector.map(new ToChildVector(name, _)).getOrElse(new ToNewVector(name))
+    val toVector = vector.map(new ToMapChildVector(name, _)).getOrElse(new ToNewVector(name))
     apply(bindings, toVector, dictionary, metadata, encoding)
   }
 
@@ -197,14 +195,12 @@ object ArrowAttributeWriter {
             new ArrowBooleanWriter(toVector[NullableBitVector](MinorType.BIT.getType, null, metadata))
 
           case ObjectType.LIST =>
-            // TODO list types
             val vector = toVector[ListVector](MinorType.LIST.getType, null, metadata)
-            new ArrowListWriter(vector, bindings(1), allocator)
+            new ArrowListWriter(vector, bindings(1), encoding)
 
           case ObjectType.MAP =>
-            // TODO map types
             val vector = toVector[NullableMapVector](MinorType.MAP.getType, null, metadata)
-            new ArrowMapWriter(vector, bindings(1), bindings(2), allocator)
+            new ArrowMapWriter(vector, bindings(1), bindings(2), encoding)
 
           case ObjectType.BYTES =>
             new ArrowBytesWriter(toVector[NullableVarBinaryVector](MinorType.VARBINARY.getType, null, metadata))
@@ -469,100 +465,52 @@ object ArrowAttributeWriter {
       }
   }
 
-  class ArrowListWriter(override val vector: ListVector, binding: ObjectType, allocator: BufferAllocator)
-      extends ArrowAttributeWriter {
-    private val writer = vector.getWriter
-    private val subWriter = toListWriter(writer, binding, allocator)
+  class ArrowListWriter(override val vector: ListVector,
+                        binding: ObjectType,
+                        encoding: SimpleFeatureEncoding)
+                       (implicit allocator: BufferAllocator) extends ArrowAttributeWriter {
+    private val subWriter = ArrowAttributeWriter(Seq(binding), new ToListChildVector(vector), None, Map.empty[String, String], encoding)
     override def apply(i: Int, value: AnyRef): Unit = {
-      writer.setPosition(i)
-      writer.startList()
+      val start = vector.getMutator.startNewValue(i)
       // note: null gets converted to empty list
-      if (value != null) {
-        value.asInstanceOf[java.util.List[AnyRef]].foreach(subWriter)
+      if (value == null) {
+        vector.getMutator.endValue(i, 0)
+      } else {
+        val list = value.asInstanceOf[java.util.List[AnyRef]]
+        var offset = 0
+        while (offset < list.size()) {
+          subWriter.apply(start + offset, list.get(offset))
+          offset += 1
+        }
+        vector.getMutator.endValue(i, offset)
       }
-      writer.endList()
     }
   }
 
   class ArrowMapWriter(override val vector: NullableMapVector,
                        keyBinding: ObjectType,
                        valueBinding: ObjectType,
-                       allocator: BufferAllocator)
-      extends ArrowAttributeWriter {
-    private val writer = vector.getWriter
-    private val keyList   = writer.list("k")
-    private val valueList = writer.list("v")
-    private val keyWriter   = toListWriter(keyList, keyBinding, allocator)
-    private val valueWriter = toListWriter(valueList, valueBinding, allocator)
+                       encoding: SimpleFeatureEncoding)
+                      (implicit allocator: BufferAllocator) extends ArrowAttributeWriter {
+    private val keyVector = new ToMapChildVector("k", vector).apply[ListVector](FieldType.nullable(ArrowType.List.INSTANCE))
+    private val valueVector = new ToMapChildVector("v", vector).apply[ListVector](FieldType.nullable(ArrowType.List.INSTANCE))
+    private val keyWriter = new ArrowListWriter(keyVector, keyBinding, encoding)
+    private val valueWriter = new ArrowListWriter(valueVector, valueBinding, encoding)
     override def apply(i: Int, value: AnyRef): Unit = {
-      writer.setPosition(i)
-      writer.start()
-      keyList.startList()
-      valueList.startList()
-      // note: null gets converted to empty map
-      if (value != null) {
-        value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].foreach { case (k, v) =>
-          keyWriter(k)
-          valueWriter(v)
+      if (value == null) {
+        vector.getMutator.setNull(i)
+      } else {
+        vector.getMutator.setIndexDefined(i)
+        val map = value.asInstanceOf[java.util.Map[AnyRef, AnyRef]]
+        val keys = new java.util.ArrayList[AnyRef](map.size())
+        val values = new java.util.ArrayList[AnyRef](map.size())
+        map.foreach { case (k, v) =>
+          keys.add(k)
+          values.add(v)
         }
+        keyWriter.apply(i, keys)
+        valueWriter.apply(i, values)
       }
-      keyList.endList()
-      valueList.endList()
-      writer.end()
-    }
-  }
-
-  private def toListWriter(writer: ListWriter, binding: ObjectType, allocator: BufferAllocator): (AnyRef) => Unit = {
-    if (binding == ObjectType.STRING || binding == ObjectType.JSON || binding == ObjectType.UUID) {
-      (value: AnyRef) => if (value != null) {
-        val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
-        val buffer = allocator.buffer(bytes.length)
-        buffer.setBytes(0, bytes)
-        writer.varChar().writeVarChar(0, bytes.length, buffer)
-        buffer.close()
-      }
-    } else if (binding == ObjectType.INT) {
-      (value: AnyRef) => if (value != null) {
-        writer.integer().writeInt(value.asInstanceOf[Int])
-      }
-    } else if (binding == ObjectType.LONG) {
-      (value: AnyRef) => if (value != null) {
-        writer.bigInt().writeBigInt(value.asInstanceOf[Long])
-      }
-    } else if (binding == ObjectType.FLOAT) {
-      (value: AnyRef) => if (value != null) {
-        writer.float4().writeFloat4(value.asInstanceOf[Float])
-      }
-    } else if (binding == ObjectType.DOUBLE) {
-      (value: AnyRef) => if (value != null) {
-        writer.float8().writeFloat8(value.asInstanceOf[Double])
-      }
-    } else if (binding == ObjectType.BOOLEAN) {
-      (value: AnyRef) => if (value != null) {
-        writer.bit().writeBit(if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
-      }
-    } else if (binding == ObjectType.DATE) {
-      (value: AnyRef) => if (value != null) {
-        writer.dateMilli().writeDateMilli(value.asInstanceOf[Date].getTime)
-      }
-    } else if (binding == ObjectType.GEOMETRY) {
-      (value: AnyRef) => if (value != null) {
-        val bytes = WKTUtils.write(value.asInstanceOf[Geometry]).getBytes(StandardCharsets.UTF_8)
-        val buffer = allocator.buffer(bytes.length)
-        buffer.setBytes(0, bytes)
-        writer.varChar().writeVarChar(0, bytes.length, buffer)
-        buffer.close()
-      }
-    } else if (binding == ObjectType.BYTES) {
-      (value: AnyRef) => if (value != null) {
-        val bytes = value.asInstanceOf[Array[Byte]]
-        val buffer = allocator.buffer(bytes.length)
-        buffer.setBytes(0, bytes)
-        writer.varBinary().writeVarBinary(0, bytes.length, buffer)
-        buffer.close()
-      }
-    } else {
-      throw new IllegalArgumentException(s"Unexpected list object type $binding")
     }
   }
 
@@ -575,7 +523,7 @@ object ArrowAttributeWriter {
     def apply[T <: FieldVector](fieldType: FieldType): T
   }
 
-  private class ToChildVector(val name: String, val container: NullableMapVector) extends ToVector {
+  private class ToMapChildVector(val name: String, val container: NullableMapVector) extends ToVector {
     override def apply[T <: FieldVector](fieldType: FieldType): T = {
       var child = container.getChild(name)
       if (child == null) {
@@ -583,6 +531,17 @@ object ArrowAttributeWriter {
         child.allocateNew()
       }
       child.asInstanceOf[T]
+    }
+  }
+
+  private class ToListChildVector(val container: ListVector) extends ToVector {
+    override def apply[T <: FieldVector](fieldType: FieldType): T = {
+      var child = container.getDataVector.asInstanceOf[T]
+      if (child == ZeroVector.INSTANCE) {
+        child = container.addOrGetVector[T](fieldType).getVector
+        child.allocateNew()
+      }
+      child
     }
   }
 

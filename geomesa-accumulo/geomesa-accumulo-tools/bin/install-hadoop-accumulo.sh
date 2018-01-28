@@ -52,4 +52,4 @@ declare -a urls=(
   "${base_url}org/apache/htrace/htrace-core/${htrace_core_version}/htrace-core-${htrace_core_version}.jar"
 )
 
-downloadUrls "$install_dir" urls
+downloadUrls "$install_dir" urls[@]

@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.filter
 
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
@@ -28,9 +28,9 @@ class FilterHelperTest extends Specification {
 
   def updateFilter(filter: Filter): Filter = filter.accept(new QueryPlanFilterVisitor(null), null).asInstanceOf[Filter]
 
-  def toInterval(dt1: String, dt2: String, inclusive: Boolean = true): Bounds[DateTime] = {
-    val s = Option(Converters.convert(dt1, classOf[Date])).map(new DateTime(_, DateTimeZone.UTC))
-    val e = Option(Converters.convert(dt2, classOf[Date])).map(new DateTime(_, DateTimeZone.UTC))
+  def toInterval(dt1: String, dt2: String, inclusive: Boolean = true): Bounds[ZonedDateTime] = {
+    val s = Option(Converters.convert(dt1, classOf[Date])).map(d => ZonedDateTime.ofInstant(d.toInstant, ZoneOffset.UTC))
+    val e = Option(Converters.convert(dt2, classOf[Date])).map(d => ZonedDateTime.ofInstant(d.toInstant, ZoneOffset.UTC))
     Bounds(Bound(s, if (s.isDefined) inclusive else false), Bound(e, if (e.isDefined) inclusive else false))
   }
 

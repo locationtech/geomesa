@@ -16,7 +16,6 @@ import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.tools._
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.filter.Filter
 
 trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[DS] {
@@ -34,9 +33,9 @@ trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
       ViewParams.setHints(query)
     }
-    params.loadIndex(ds, IndexMode.Read).foreach { index =>
+    Option(params.index).foreach { index =>
+      Command.user.debug(s"Using index $index")
       query.getHints.put(QueryHints.QUERY_INDEX, index)
-      Command.user.debug(s"Using index ${index.identifier}")
     }
     val explainString = new ExplainString()
     ds.getQueryPlan(query, None, explainString)

@@ -10,11 +10,10 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.{Serializable => JSerializable}
-import java.util.{Date, Map => JMap}
+import java.util.{Map => JMap}
 
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
@@ -58,7 +57,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
       val feats = (0 until 150).map { i =>
         val id = i.toString
         val map = Map("a" -> i, "b" -> i * 2, (if (random.nextBoolean()) "c" else "d") -> random.nextInt(10)).asJava
-        val dtg = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate
+        val dtg = "2012-01-01T19:00:00Z"
         val geom = "POINT(-77 38)"
         ScalaSimpleFeatureFactory.buildFeature(sft, Array(id, map, dtg, geom), id)
       }
@@ -92,7 +91,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
       val feats = (0 until 200).map { i =>
         val id = i.toString
         val map = Map("a" -> i, "b" -> i * 2, (if (random.nextBoolean()) "c" else "d") -> random.nextInt(10)).asJava
-        val dtg = if (i < 100) new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate else new DateTime("2012-01-01T23:30:00", DateTimeZone.UTC).toDate
+        val dtg = if (i < 100) "2012-01-01T19:00:00Z" else "2012-01-01T23:30:00Z"
         val geom = "POINT(-77 38)"
         ScalaSimpleFeatureFactory.buildFeature(sft, Array(id, map, dtg, geom), id)
       }
@@ -123,7 +122,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
     "do aggregation on a single feature" in {
       val id = "0"
       val map = Map("a" -> 0, "b" -> 0 * 2, "c" -> 9).asJava
-      val dtg = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate
+      val dtg = "2012-01-01T19:00:00Z"
       val geom = testData("[POLYGON] Charlottesville")
       val feature = ScalaSimpleFeatureFactory.buildFeature(sft, Array(id, map, dtg, geom), id)
 
@@ -160,13 +159,12 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 
     "do aggregation on a realistic set" in {
 
-      val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate
       val feats = Seq[Array[AnyRef]](
-        Array("1", Map("a" -> 1, "b" -> 2, "c" -> 9).asJava, new Date(date.getTime + 1 * 60000), testData("[POLYGON] Charlottesville")),
-        Array("2", Map("a" -> 2, "b" -> 2, "d" -> 9).asJava, new Date(date.getTime + 2 * 60000), testData("[MULTIPOLYGON] test box")),
-        Array("3", Map("a" -> 3, "b" -> 2, "c" -> 3).asJava, new Date(date.getTime + 3 * 60000), testData("[LINE] test line")),
-        Array("4", Map("a" -> 4, "b" -> 2, "d" -> 3).asJava, new Date(date.getTime + 4 * 60000), testData("[LINE] Cherry Avenue segment")),
-        Array("5", Map("a" -> 5, "b" -> 2, "c" -> 6).asJava, new Date(date.getTime + 5 * 60000), testData("[MULTILINE] Cherry Avenue entirety"))
+        Array("1", Map("a" -> 1, "b" -> 2, "c" -> 9).asJava, "2012-01-01T19:01:00Z", testData("[POLYGON] Charlottesville")),
+        Array("2", Map("a" -> 2, "b" -> 2, "d" -> 9).asJava, "2012-01-01T19:02:00Z", testData("[MULTIPOLYGON] test box")),
+        Array("3", Map("a" -> 3, "b" -> 2, "c" -> 3).asJava, "2012-01-01T19:03:00Z", testData("[LINE] test line")),
+        Array("4", Map("a" -> 4, "b" -> 2, "d" -> 3).asJava, "2012-01-01T19:04:00Z", testData("[LINE] Cherry Avenue segment")),
+        Array("5", Map("a" -> 5, "b" -> 2, "c" -> 6).asJava, "2012-01-01T19:05:00Z", testData("[MULTILINE] Cherry Avenue entirety"))
       ).map(a => ScalaSimpleFeatureFactory.buildFeature(sft, a, a(0).asInstanceOf[String]))
 
       clearFeatures()
@@ -203,7 +201,7 @@ class MapAggregatingIteratorDoubleTest extends Specification with TestWithDataSt
   val features = (0 until 150).map { i =>
     val id = i.toString
     val map = Map(key1 -> i, key2 -> i * 2, (if(random.nextBoolean()) key3 else key4) -> random.nextInt(10)).asJava
-    val dtg = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate
+    val dtg = "2012-01-01T19:00:00Z"
     val geom = "POINT(-77 38)"
     ScalaSimpleFeatureFactory.buildFeature(sft, Array(id, map, dtg, geom), id)
   }

@@ -25,20 +25,22 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class BinaryOutputEncoderTest extends Specification {
 
-  "BinaryViewerOutputFormat" should {
+  val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
-    val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+  def getDate(d: String): java.util.Date = synchronized { dateFormat.parse(d) }
+
+  "BinaryViewerOutputFormat" should {
 
     "encode a point feature collection" in {
       val sft = SimpleFeatureTypes.createType("bintest",
         "track:String,label:Long,lat:Double,lon:Double,dtg:Date,geom:Point:srid=4326")
-      val baseDtg = dateFormat.parse("2014-01-01 08:09:00").getTime
+      val baseDtg = getDate("2014-01-01 08:09:00").getTime
 
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)
       (0 until 4).foreach { i =>
         val point = WKTUtils.read(s"POINT (45 5$i)")
-        val date = dateFormat.parse(s"2014-01-01 08:0${9-i}:00")
+        val date = s"2014-01-01T08:0${9-i}:00.000Z"
         builder.addAll(Array(s"1234-$i", java.lang.Long.valueOf(10 + i), 45 + i, 50, date, point).asInstanceOf[Array[AnyRef]])
         fc.add(builder.buildFeature(s"$i"))
       }
@@ -93,8 +95,8 @@ class BinaryOutputEncoderTest extends Specification {
       val sft = SimpleFeatureTypes.createType("binlinetest",
         "track:String,label:Long,dtg:Date,dates:List[Date],geom:LineString:srid=4326")
       val line = WKTUtils.read("LINESTRING(45 50, 46 51, 47 52, 50 55)")
-      val date = dateFormat.parse("2014-01-01 08:00:00")
-      val dates = (0 until 4).map(i => dateFormat.parse(s"2014-01-01 08:00:0${9-i}"))
+      val date = getDate("2014-01-01 08:00:00")
+      val dates = (0 until 4).map(i => getDate(s"2014-01-01 08:00:0${9-i}"))
 
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)
@@ -159,7 +161,7 @@ class BinaryOutputEncoderTest extends Specification {
         builder.add("geom", classOf[Point], org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
         builder.buildFeatureType()
       }
-      val baseDtg = dateFormat.parse("2014-01-01 08:09:00").getTime
+      val baseDtg = getDate("2014-01-01 08:09:00").getTime
 
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)
@@ -197,8 +199,8 @@ class BinaryOutputEncoderTest extends Specification {
         builder.buildFeatureType()
       }
       val line = WKTUtils.read("LINESTRING(45 50, 46 51, 47 52, 50 55)")
-      val date = dateFormat.parse("2014-01-01 08:00:00")
-      val dates = (0 until 4).map(i => dateFormat.parse(s"2014-01-01 08:00:0${9-i}"))
+      val date = getDate("2014-01-01 08:00:00")
+      val dates = (0 until 4).map(i => getDate(s"2014-01-01 08:00:0${9-i}"))
 
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)

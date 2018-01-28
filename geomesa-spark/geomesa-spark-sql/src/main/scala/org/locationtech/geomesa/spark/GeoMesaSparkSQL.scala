@@ -24,6 +24,7 @@ import org.apache.spark.sql.catalyst.expressions.{AttributeReference, Expression
 import org.apache.spark.sql.sources.{Filter, _}
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
 import org.apache.spark.storage.StorageLevel
+import org.geotools.data.DataUtilities.compare
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
@@ -174,7 +175,7 @@ class GeoMesaDataSource extends DataSourceRegister
     val schemaInDs = ds.getTypeNames.contains(newFeatureName)
 
     if (schemaInDs) {
-      if (ds.getSchema(newFeatureName) != sft.getTypes) {
+      if (compare(ds.getSchema(newFeatureName),sft) != 0) {
         throw new IllegalStateException(s"The schema of the RDD conflicts with schema:$newFeatureName in the data store")
       }
     } else {

@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.raster.data
 
 import java.awt.image.RenderedImage
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.index.encoders.DecodedIndexValue
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
@@ -25,7 +24,7 @@ trait Raster {
   def chunk: RenderedImage
   def id = metadata.id
 
-  lazy val time: DateTime = new DateTime(metadata.date.getOrElse(0L), DateTimeZone.UTC)
+  lazy val time: Date = metadata.date.getOrElse(new Date(0L))
 
   // The minimum bounding geohash is the 32bit representable GeoHash that
   // most closely matches the extent of the Raster. The permits fuzzy indexing of Rasters.

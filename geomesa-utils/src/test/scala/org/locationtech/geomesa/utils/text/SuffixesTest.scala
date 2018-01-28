@@ -58,9 +58,8 @@ class SuffixesTest extends Specification {
     "return none on overflow" >> {
       //java.Long.MAX_VALUE =  9223372036854775807
       val bigNum            = "9999999999999999999"
-      bytes(bigNum) mustEqual None
-
-      bytes(s"${Long.MaxValue}k") mustEqual None
+      bytes(bigNum) must beNone
+      bytes(s"${Long.MaxValue}k") must beNone
     }
   }
 }

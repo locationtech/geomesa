@@ -14,7 +14,6 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities}
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.interop.WKTUtils
@@ -47,13 +46,12 @@ object SparkSQLTestUtils {
 
     val fs = ds.getFeatureSource("chicago").asInstanceOf[SimpleFeatureStore]
 
-    val parseDate = ISODateTimeFormat.basicDateTime().parseDateTime _
     val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
     val f = List(
-      new ScalaSimpleFeature(sft, "1", initialValues = Array("true","1",parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-76.5, 38.5)))),
-      new ScalaSimpleFeature(sft, "2", initialValues = Array("true","2",parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-77.0, 38.0)))),
-      new ScalaSimpleFeature(sft, "3", initialValues = Array("true","3",parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-78.0, 39.0))))
+      ScalaSimpleFeature.create(sft, "1", "true", "1", "2016-01-01T00:00:00.000Z", createPoint(new Coordinate(-76.5, 38.5))),
+      ScalaSimpleFeature.create(sft, "2", "true", "2", "2016-01-02T00:00:00.000Z", createPoint(new Coordinate(-77.0, 38.0))),
+      ScalaSimpleFeature.create(sft, "3", "true", "3", "2016-01-03T00:00:00.000Z", createPoint(new Coordinate(-78.0, 39.0)))
     )
 
     f.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))

@@ -24,4 +24,4 @@ declare -a urls=(
   "${base_url}ch/qos/logback/logback-core/1.1.3/logback-core-1.1.3.jar"
 )
 
-downloadUrls "$install_dir" urls
+downloadUrls "$install_dir" urls[@]

@@ -15,14 +15,15 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.referencing.GeodeticCalculator
-import org.joda.time.format.DateTimeFormat
+import org.geotools.util.Converters
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 
 object TubeBuilder {
@@ -38,16 +39,13 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
                            val maxBins: Int) extends LazyLogging {
 
   val calc = new GeodeticCalculator()
-  val dtgField = tubeFeatures.getSchema.getDtgField.getOrElse(TubeBuilder.DefaultDtgField)
+  val dtgField: String = tubeFeatures.getSchema.getDtgField.getOrElse(TubeBuilder.DefaultDtgField)
   val geoFac = new GeometryFactory
 
   val GEOM_PROP = "geom"
 
-  val tubeType = SimpleFeatureTypes.createType("tubeType", s"$GEOM_PROP:Geometry:srid=4326,start:Date,end:Date")
-  val builder = ScalaSimpleFeatureFactory.featureBuilder(tubeType)
-
-  // default to ISO 8601 date format
-  val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+  val tubeType: SimpleFeatureType = SimpleFeatureTypes.createType("tubeType", s"$GEOM_PROP:Geometry:srid=4326,start:Date,end:Date")
+  val builder: SimpleFeatureBuilder = ScalaSimpleFeatureFactory.featureBuilder(tubeType)
 
   def getGeom(sf: SimpleFeature): Geometry = sf.getAttribute(0).asInstanceOf[Geometry]
   def getStartTime(sf: SimpleFeature): Date = sf.getAttribute(1).asInstanceOf[Date]
@@ -82,10 +80,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   // handle date parsing from input -> TODO revisit date parsing...
   def transform(tubeFeatures: SimpleFeatureCollection, dtgField: String): Iterator[SimpleFeature] = {
     SelfClosingIterator(tubeFeatures.features).map { sf =>
-      val date = sf.getAttribute(dtgField) match {
-        case s: String => df.parseDateTime(s).toDate
-        case d => d
-      }
+      val date = Converters.convert(sf.getAttribute(dtgField), classOf[Date])
 
       if (date == null) {
         logger.error("Unable to retrieve date field from input tubeFeatures...ensure there a field named " + dtgField)
@@ -195,7 +190,7 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
     val pointsAndTimes = sortedTube.map(sf => (getGeom(sf).safeCentroid(), getStartTime(sf)))
-    val lineFeatures = if (pointsAndTimes.length == 1) {
+    val lineFeatures = if (pointsAndTimes.lengthCompare(1) == 0) {
       val (p1, t1) = pointsAndTimes.head
       logger.debug("Only a single result - can't create a line")
       Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
@@ -212,9 +207,9 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
 
 /**
   * Class to create an interpolated line-gap filled tube
-  * @param tubeFeatures
-  * @param bufferDistance
-  * @param maxBins
+  * @param tubeFeatures features
+  * @param bufferDistance distance
+  * @param maxBins max bins
   */
 class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
                           bufferDistance: Double,
@@ -232,7 +227,7 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
     val pointsAndTimes = sortedTube.map(sf => (getGeom(sf).safeCentroid(), getStartTime(sf)))
-    val lineFeatures = if (pointsAndTimes.length == 1) {
+    val lineFeatures = if (pointsAndTimes.lengthCompare(1) == 0) {
       val (p1, t1) = pointsAndTimes.head
       logger.debug("Only a single result - can't create a line")
       Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))

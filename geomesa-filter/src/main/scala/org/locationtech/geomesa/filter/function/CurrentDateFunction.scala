@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.filter.function
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
+
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
-import org.joda.time.{DateTime, DateTimeZone}
 import org.opengis.feature.simple.SimpleFeature
 
 class CurrentDateFunction
@@ -21,6 +23,5 @@ class CurrentDateFunction
   def evaluate(feature: SimpleFeature): AnyRef = super.evaluate(feature)
 
   override def evaluate(o: java.lang.Object): AnyRef =
-    new DateTime().withZone(DateTimeZone.UTC).toDate
-
+    Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant)
 }

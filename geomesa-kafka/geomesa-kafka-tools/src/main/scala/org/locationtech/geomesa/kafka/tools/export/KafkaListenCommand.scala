@@ -8,10 +8,12 @@
 
 package org.locationtech.geomesa.kafka.tools.export
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter
+
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataUtilities, FeatureEvent, FeatureListener}
-import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.kafka.tools.export.KafkaListenCommand.{ListenParameters, OutFeatureListener}
 import org.locationtech.geomesa.kafka.tools.{ConsumerDataStoreParams, KafkaDataStoreCommand}
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
@@ -48,8 +50,9 @@ object KafkaListenCommand {
   class ListenParameters extends ConsumerDataStoreParams with RequiredTypeNameParam
 
   class OutFeatureListener extends FeatureListener {
-    private val formatter = ISODateTimeFormat.dateTime().withZoneUTC()
-    private def format(ts: Long): String = formatter.print(ts)
+    private val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
+    private def format(ts: Long): String =
+      ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), ZoneOffset.UTC).format(formatter)
 
     override def changed(event: FeatureEvent): Unit = {
       val msg = event match {

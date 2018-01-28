@@ -10,15 +10,15 @@ package org.locationtech.geomesa.kafka.utils
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
-import org.joda.time.Instant
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
-import org.locationtech.geomesa.kafka.utils.GeoMessage.{Clear, Change, Delete}
+import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Random
@@ -139,7 +139,7 @@ class GeoMessageSerializer(sft: SimpleFeatureType) extends LazyLogging {
     require(version == 1 && key.length == 10, s"Invalid version/length (expected 1-10): $version-${key.length}")
 
     val msgType = buffer.get()
-    val ts = new Instant(buffer.getLong)
+    val ts = Instant.ofEpochMilli(buffer.getLong)
 
     msgType match {
       case ChangeType => Change(ts, serializer.deserialize(value))
@@ -153,7 +153,7 @@ class GeoMessageSerializer(sft: SimpleFeatureType) extends LazyLogging {
     val bb = ByteBuffer.allocate(10)
     bb.put(Version)
     bb.put(msgType)
-    bb.putLong(ts.getMillis)
+    bb.putLong(ts.toEpochMilli)
     bb.array()
   }
 }

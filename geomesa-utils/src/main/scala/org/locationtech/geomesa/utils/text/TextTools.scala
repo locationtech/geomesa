@@ -8,13 +8,9 @@
 
 package org.locationtech.geomesa.utils.text
 
-import org.joda.time.Period
-import org.joda.time.format.PeriodFormatterBuilder
+import java.time.Duration
 
 object TextTools {
-  val PeriodFormatter =
-    new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways()
-      .appendHours().appendSeparator(":").appendMinutes().appendSeparator(":").appendSeconds().toFormatter
 
   def getPlural(i: Long, base: String): String = getPlural(i, base, s"${base}s")
 
@@ -23,7 +19,14 @@ object TextTools {
   /**
    * Gets elapsed time as a string
    */
-  def getTime(start: Long): String = PeriodFormatter.print(new Period(System.currentTimeMillis() - start))
+  def getTime(start: Long): String = {
+    val duration = Duration.ofMillis(System.currentTimeMillis() - start)
+    val hours = duration.toHours
+    val minusHours = duration.minusHours(hours)
+    val minutes = minusHours.toMinutes
+    val seconds = minusHours.minusMinutes(minutes).getSeconds
+    f"$hours%02d:$minutes%02d:$seconds%02d"
+  }
 
   def buildString(c: Char, length: Int): String = {
     if (length < 0) { "" } else {

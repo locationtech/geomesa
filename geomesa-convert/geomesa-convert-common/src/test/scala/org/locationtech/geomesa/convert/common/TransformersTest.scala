@@ -15,7 +15,7 @@ import java.util.Date
 import com.google.common.hash.Hashing
 import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
-import org.joda.time.DateTime
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.{EvaluationContext, EvaluationContextImpl, Transformers}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -214,14 +214,15 @@ class TransformersTest extends Specification {
       }
 
       "handle dates" >> {
-        val testDate = DateTime.parse("2015-01-01T00:00:00.000Z").toDate
+        val testDate = Converters.convert("2015-01-01T00:00:00.000Z", classOf[Date])
+        testDate must not(beNull)
 
         "date with custom format" >> {
           val exp = Transformers.parseTransform("date('yyyyMMdd', $1)")
           exp.eval(Array("", "20150101")).asInstanceOf[Date] must be equalTo testDate
         }
         "date with a realistic custom format" >> {
-          val exp = Transformers.parseTransform("date('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
+          val exp = Transformers.parseTransform("date('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
           exp.eval(Array("", "2015-01-01T00:00:00.000000")).asInstanceOf[Date] must be equalTo testDate
         }
         "datetime" >> {
@@ -398,6 +399,15 @@ class TransformersTest extends Specification {
           "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0))))")
       }
 
+      "reproject to EPSG 4326" >> {
+        val geom = WKTUtils.read("POINT (1113194.91 1689200.14)")
+        val trans = Transformers.parseTransform("projectFrom('EPSG:3857',$1)")
+        val transformed = trans.eval(Array("", geom))
+        transformed must beAnInstanceOf[Point]
+        transformed.asInstanceOf[Point].getX must beCloseTo(15d, 0.001)
+        transformed.asInstanceOf[Point].getY must beCloseTo(10d, 0.001)
+      }
+
       "handle identity functions" >> {
         val bytes = Array.ofDim[Byte](32)
         Random.nextBytes(bytes)
@@ -418,7 +428,7 @@ class TransformersTest extends Specification {
       }
 
       "handle named values" >> {
-        implicit val ctx = EvaluationContext(IndexedSeq(null, "foo", null), Array[Any](null, "bar", null), null, Map.empty)
+        val ctx = EvaluationContext(IndexedSeq(null, "foo", null), Array[Any](null, "bar", null), null, Map.empty)
         val exp = Transformers.parseTransform("capitalize($foo)")
         exp.eval(Array(null))(ctx) must be equalTo "Bar"
       }
