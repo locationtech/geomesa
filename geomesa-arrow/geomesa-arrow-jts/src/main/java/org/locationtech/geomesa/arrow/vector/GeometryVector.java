@@ -20,11 +20,13 @@ import org.apache.arrow.vector.FieldVector;
  */
 public interface GeometryVector<T extends Geometry, V extends FieldVector> extends AutoCloseable {
 
-  static final GeometryFactory factory = new GeometryFactory();
+  GeometryFactory factory = new GeometryFactory();
 
   GeometryWriter<T> getWriter();
   GeometryReader<T> getReader();
   V getVector();
+
+  void transfer(int fromIndex, int toIndex, GeometryVector<T, V> to);
 
   interface GeometryWriter<T extends Geometry> {
     void set(int i, T geom);

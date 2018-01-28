@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.vector.impl;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.arrow.memory.BufferAllocator;
@@ -79,6 +80,11 @@ public abstract class AbstractMultiPointVector implements GeometryVector<MultiPo
     vector.close();
   }
 
+  @Override
+  public void transfer(int fromIndex, int toIndex, GeometryVector<MultiPoint, ListVector> to) {
+    to.getWriter().set(toIndex, reader.get(fromIndex));
+  }
+
   public static abstract class MultiPointWriter extends AbstractGeometryWriter<MultiPoint> {
 
     private final BitVector.Mutator nullSet;
@@ -96,6 +102,10 @@ public abstract class AbstractMultiPointVector implements GeometryVector<MultiPo
 
     @Override
     public void set(int index, MultiPoint geom) {
+      if (index == 0) {
+        // need to do this to avoid issues with re-setting the value at index 0
+        mutator.setLastSet(0);
+      }
       if (geom == null) {
         nullSet.setSafe(index, 0);
       } else {
@@ -152,7 +162,12 @@ public abstract class AbstractMultiPointVector implements GeometryVector<MultiPo
 
     @Override
     public int getNullCount() {
-      return accessor.getNullCount();
+      int count = accessor.getNullCount();
+      if (count < 0) {
+        return 0;
+      } else {
+        return count;
+      }
     }
   }
 }
