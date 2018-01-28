@@ -476,3 +476,15 @@ Then start up the Spark shell:
 .. code-block:: shell
 
     spark-shell --jars $SPARK_JARS
+
+Configuring HBase on Azure HDInsight
+------------------------------------
+
+HDInsight generally creates ``HBASE_HOME`` in HDFS under the path ``/hbase``. In order to make the GeoMesa
+coprocessors and filters available to the region servers, use the ``hadoop`` filesystem command to put
+the GeoMesa JAR there:
+
+.. code-block:: shell
+
+    hadoop fs -mkdir /hbase/lib
+    hadoop fs -put geomesa-hbase-distributed-runtime-$VERSION.jar /hbase/lib/
