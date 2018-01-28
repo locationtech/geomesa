@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
+import java.time.ZonedDateTime
+
 import org.apache.accumulo.core.client.Connector
-import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.utils.audit._
@@ -31,7 +32,9 @@ class AccumuloAuditService(connector: Connector,
     super.writeEvent(event)
   }
 
-  override def getEvents[T <: AuditedEvent](typeName: String, dates: Interval)(implicit ct: ClassTag[T]): Iterator[T] = {
+  override def getEvents[T <: AuditedEvent](typeName: String,
+                                            dates: (ZonedDateTime, ZonedDateTime))
+                                           (implicit ct: ClassTag[T]): Iterator[T] = {
     val iter = reader.query(typeName, dates, authProvider.getAuthorizations)(transform(ct.runtimeClass.asInstanceOf[Class[T]]))
     iter.asInstanceOf[Iterator[T]]
   }

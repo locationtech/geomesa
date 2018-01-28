@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.raster.data
 
-import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 
 /**
@@ -17,13 +16,8 @@ import org.locationtech.geomesa.utils.geohash.BoundingBox
  *
  * @param bbox Bounding box defines geometric area of desired raster
  * @param resolution Desired resolution of grid
- * @param startTime Optional earliest ingestion time of rasters
- * @param endTime Optional latest ingestion time of rasters
  */
-case class RasterQuery(bbox: BoundingBox,
-                       resolution: Double,
-                       startTime: Option[DateTime],
-                       endTime: Option[DateTime])
+case class RasterQuery(bbox: BoundingBox, resolution: Double)
 
 // TODO: WCS: include a list of bands as an optional parameter
 // ticket is GEOMESA-559

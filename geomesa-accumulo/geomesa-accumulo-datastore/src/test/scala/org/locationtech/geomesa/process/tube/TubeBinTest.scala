@@ -13,7 +13,6 @@ import org.apache.log4j.Logger
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -45,7 +44,7 @@ class TubeBinTest extends Specification {
         val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), day.toString)
         val lat = 40+day
         sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-        sf.setAttribute(DefaultDtgField, new DateTime(f"2011-01-$day%02dT00:00:00Z", DateTimeZone.UTC).toDate)
+        sf.setAttribute(DefaultDtgField, f"2011-01-$day%02dT00:00:00Z")
         sf.setAttribute("type","test")
         sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
         sf
@@ -56,9 +55,10 @@ class TubeBinTest extends Specification {
       val binnedFeatures = ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 6)
 
       binnedFeatures.foreach { sf =>
-        if (sf.getDefaultGeometry.isInstanceOf[GeometryCollection])
-          log.debug("size: " + sf.getDefaultGeometry.asInstanceOf[GeometryCollection].getNumGeometries +" "+ sf.getDefaultGeometry)
-        else log.debug("size: 1")
+        sf.getDefaultGeometry match {
+          case collection: GeometryCollection => log.debug("size: " + collection.getNumGeometries + " " + sf.getDefaultGeometry)
+          case _ => log.debug("size: 1")
+        }
       }
 
       ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 1).size mustEqual 1

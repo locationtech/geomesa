@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
@@ -16,7 +17,6 @@ import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -44,7 +44,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
     sf.getAttribute(3).asInstanceOf[Date].getTime
   }
 
-  val dayInMillis = new DateTime(baseMillis, DateTimeZone.UTC).plusDays(1).getMillis - baseMillis
+  val dayInMillis = ZonedDateTime.ofInstant(Instant.ofEpochMilli(baseMillis), ZoneOffset.UTC).plusDays(1).toInstant.toEpochMilli - baseMillis
 
   "AccumuloDataStore" should {
     "track stats for ingested features" >> {

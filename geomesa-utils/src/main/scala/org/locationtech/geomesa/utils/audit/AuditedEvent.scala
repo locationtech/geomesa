@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.utils.audit
 
 import java.io.Closeable
+import java.time.ZonedDateTime
 
 import com.google.gson.{Gson, GsonBuilder}
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time.Interval
 
 import scala.reflect.ClassTag
 
@@ -84,7 +84,9 @@ trait AuditReader extends Closeable {
     * @tparam T event type
     * @return iterator of events
     */
-  def getEvents[T <: AuditedEvent](typeName: String, dates: Interval)(implicit ct: ClassTag[T]): Iterator[T]
+  def getEvents[T <: AuditedEvent](typeName: String,
+                                   dates: (ZonedDateTime, ZonedDateTime))
+                                  (implicit ct: ClassTag[T]): Iterator[T]
 }
 
 /**

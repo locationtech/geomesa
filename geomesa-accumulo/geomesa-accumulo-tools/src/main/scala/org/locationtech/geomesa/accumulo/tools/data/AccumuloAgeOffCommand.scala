@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.tools.data
 import java.util.Date
 
 import com.beust.jcommander.{ParameterException, Parameters}
-import org.joda.time.Period
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator}
 import org.locationtech.geomesa.accumulo.tools.data.AccumuloAgeOffCommand.AccumuloAgeOffParams
@@ -21,6 +20,8 @@ import org.locationtech.geomesa.tools.data.AgeOffCommand
 import org.locationtech.geomesa.tools.data.AgeOffCommand.AgeOffParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.concurrent.duration.Duration
 
 class AccumuloAgeOffCommand extends AgeOffCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
 
@@ -32,14 +33,14 @@ class AccumuloAgeOffCommand extends AgeOffCommand[AccumuloDataStore] with Accumu
     Command.user.info(s"Timestamp age-off: ${AgeOffIterator.list(ds, sft).getOrElse("None")}")
   }
 
-  override protected def set(ds: AccumuloDataStore, typeName: String, expiry: Period): Unit = {
+  override protected def set(ds: AccumuloDataStore, typeName: String, expiry: Duration): Unit = {
     val sft = getSft(ds, typeName)
     AgeOffIterator.clear(ds, sft)
     DtgAgeOffIterator.clear(ds, sft)
     AgeOffIterator.set(ds, getSft(ds, typeName), expiry)
   }
 
-  override protected def set(ds: AccumuloDataStore, typeName: String, dtg: String, expiry: Period): Unit = {
+  override protected def set(ds: AccumuloDataStore, typeName: String, dtg: String, expiry: Duration): Unit = {
     val sft = getSft(ds, typeName)
     if (!Option(sft.getDescriptor(dtg)).exists(d => classOf[Date].isAssignableFrom(d.getType.getBinding))) {
       throw new ParameterException(s"Attribute '$dtg' does not exist or is not an date type in $typeName " +

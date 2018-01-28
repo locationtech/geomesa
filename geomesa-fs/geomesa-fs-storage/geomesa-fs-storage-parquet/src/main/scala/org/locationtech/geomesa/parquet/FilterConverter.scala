@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.parquet
 
 import java.lang.{Boolean, Float, Long}
+import java.time.{ZoneOffset, ZonedDateTime}
 
 import org.apache.parquet.filter2.predicate.{FilterApi, FilterPredicate}
 import org.apache.parquet.io.api.Binary
 import org.geotools.factory.CommonFactoryFinder
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.filter.FilterHelper
@@ -32,14 +32,14 @@ class FilterConverter(sft: SimpleFeatureType) {
   protected val dtgAttrOpt: Option[String] = sft.getDtgField
   private val ff = CommonFactoryFinder.getFilterFactory2
 
-  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
-  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+  private val MinDateTime = ZonedDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
+  private val MaxDateTime = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999000000, ZoneOffset.UTC)
 
   /**
     * Convert a geotools filter into a parquet filter and new partial geotools filter
     * to apply to parquet files for filtering
     *
-    * @param f
+    * @param f filter
     * @return a tuple representing the parquet filter and a residual geotools filter
     *         to apply for fine grained filtering since some of the predicates may
     *         be fully covered by the parquet filter
@@ -66,7 +66,7 @@ class FilterConverter(sft: SimpleFeatureType) {
       case binop: org.opengis.filter.BinaryComparisonOperator =>
         // These are all handled by the parquet attribute or date filter
         binop match {
-          case _ if dtgAttrOpt.exists(_ == binop.getExpression1.asInstanceOf[PropertyName].getPropertyName) =>
+          case _ if dtgAttrOpt.contains(binop.getExpression1.asInstanceOf[PropertyName].getPropertyName) =>
             org.opengis.filter.Filter.INCLUDE
 
           case _ @(_: org.opengis.filter.PropertyIsEqualTo |
@@ -86,8 +86,8 @@ class FilterConverter(sft: SimpleFeatureType) {
     dtgAttrOpt.map { dtgAttr =>
       val filters = FilterHelper.extractIntervals(f, dtgAttr).values.map { bounds =>
         FilterApi.and(
-          FilterApi.gtEq(FilterApi.longColumn(dtgAttr), Long.valueOf(bounds.lower.value.getOrElse(MinDateTime).getMillis)),
-          FilterApi.ltEq(FilterApi.longColumn(dtgAttr), Long.valueOf(bounds.upper.value.getOrElse(MaxDateTime).getMillis))
+          FilterApi.gtEq(FilterApi.longColumn(dtgAttr), Long.valueOf(bounds.lower.value.getOrElse(MinDateTime).toInstant.toEpochMilli)),
+          FilterApi.ltEq(FilterApi.longColumn(dtgAttr), Long.valueOf(bounds.upper.value.getOrElse(MaxDateTime).toInstant.toEpochMilli))
         )
       }
 
@@ -137,7 +137,7 @@ class FilterConverter(sft: SimpleFeatureType) {
         val value = binop.getExpression2.toString
 
         binop match {
-          case _ if name == geomAttr | dtgAttrOpt.exists(_ == name) =>
+          case _ if name == geomAttr | dtgAttrOpt.contains(name) =>
             None
 
           case _ =>

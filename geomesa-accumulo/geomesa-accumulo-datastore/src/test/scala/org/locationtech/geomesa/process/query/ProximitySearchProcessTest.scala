@@ -13,7 +13,6 @@ import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.iterators.TestData
@@ -48,7 +47,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
           val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           featureCollection.add(sf)
@@ -72,7 +71,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       List(1, 2, 3).zip(List(p1, p2, p3)).foreach { case (i, p) =>
         val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), i.toString)
         sf.setDefaultGeometry(p)
-        sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+        sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
         sf.setAttribute("type", "fake")
         sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
         inputFeatures.add(sf)
@@ -143,7 +142,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       List(1, 2, 3).zip(List(p1, p2, p3)).foreach { case (i, p) =>
         val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), i.toString)
         sf.setDefaultGeometry(p)
-        sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+        sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
         sf.setAttribute("type", "fake")
         sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
         inputFeatures.add(sf)
@@ -155,7 +154,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
           val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           nonAccumulo.add(sf)

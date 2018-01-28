@@ -46,20 +46,20 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
 
   protected def fireEvent(message: Change): Unit = {
     if (!listeners.isEmpty) {
-      fireEvent(KafkaFeatureEvent.changed(_, message.feature, message.timestamp.getMillis))
+      fireEvent(KafkaFeatureEvent.changed(_, message.feature, message.timestamp.toEpochMilli))
     }
   }
 
   protected def fireEvent(message: Delete): Unit = {
     if (!listeners.isEmpty) {
       val removed = cache.query(message.id).orNull
-      fireEvent(KafkaFeatureEvent.removed(_, message.id, removed, message.timestamp.getMillis))
+      fireEvent(KafkaFeatureEvent.removed(_, message.id, removed, message.timestamp.toEpochMilli))
     }
   }
 
   protected def fireEvent(message: Clear): Unit = {
     if (!listeners.isEmpty) {
-      fireEvent(KafkaFeatureEvent.cleared(_, message.timestamp.getMillis))
+      fireEvent(KafkaFeatureEvent.cleared(_, message.timestamp.toEpochMilli))
     }
   }
 

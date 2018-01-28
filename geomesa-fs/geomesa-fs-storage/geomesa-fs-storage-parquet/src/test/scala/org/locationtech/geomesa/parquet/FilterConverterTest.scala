@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.parquet
 
+import java.util.Date
+
 import org.apache.parquet.filter2.predicate.Operators
 import org.geotools.factory.CommonFactoryFinder
-import org.joda.time.format.ISODateTimeFormat
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -41,10 +43,10 @@ class FilterConverterTest extends Specification with AllExpectations {
       pfilter must beAnInstanceOf[Operators.And]
       val and = pfilter.asInstanceOf[Operators.And]
       and.getLeft.asInstanceOf[Operators.GtEq[java.lang.Long]].getColumn.getColumnPath.toDotString mustEqual "dtg"
-      and.getLeft.asInstanceOf[Operators.GtEq[java.lang.Long]].getValue mustEqual ISODateTimeFormat.dateTime().parseDateTime("2017-01-01T00:00:00.000Z").getMillis
+      and.getLeft.asInstanceOf[Operators.GtEq[java.lang.Long]].getValue mustEqual Converters.convert("2017-01-01T00:00:00.000Z", classOf[Date]).getTime
 
       and.getRight.asInstanceOf[Operators.LtEq[java.lang.Long]].getColumn.getColumnPath.toDotString mustEqual "dtg"
-      and.getRight.asInstanceOf[Operators.LtEq[java.lang.Long]].getValue mustEqual ISODateTimeFormat.dateTime().parseDateTime("2017-01-05T00:00:00.000Z").getMillis
+      and.getRight.asInstanceOf[Operators.LtEq[java.lang.Long]].getValue mustEqual Converters.convert("2017-01-05T00:00:00.000Z", classOf[Date]).getTime
     }
 
     "ignore dtg column for now for filter augmentation" >> {

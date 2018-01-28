@@ -18,7 +18,6 @@ import org.apache.commons.io.IOUtils
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
-import org.joda.time.format.{PeriodFormatter, PeriodFormatterBuilder}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
@@ -232,10 +231,6 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 }
 
 object AbstractIngest {
-
-  val PeriodFormatter: PeriodFormatter =
-    new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways()
-      .appendHours().appendSeparator(":").appendMinutes().appendSeparator(":").appendSeconds().toFormatter
 
   lazy private val terminalWidth: () => Float = {
     val jline = for {
