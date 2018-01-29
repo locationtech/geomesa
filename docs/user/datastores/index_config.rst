@@ -323,7 +323,7 @@ Z3/XZ3 Splits
 +++++++++++++
 
 Dates are used to split based on the Z3 time prefix (typically weeks). They are specified in the form
-``YYYY-MM-dd``. If the minimum date is specified, but the maximum date is not, it will default to the current date.
+``yyyy-MM-dd``. If the minimum date is specified, but the maximum date is not, it will default to the current date.
 After the dates, the Z value can be split based on a number of bits (note that due to the index format, bits can
 not be specified without dates). For example, specifying two bits would create splits 00, 01, 10 and 11. The total
 number of splits created will be ``<number of z shards> * <number of time periods> * 2 ^ <number of bits>``.
