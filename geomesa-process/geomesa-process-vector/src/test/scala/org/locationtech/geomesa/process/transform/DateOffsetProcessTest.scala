@@ -57,5 +57,13 @@ class DateOffsetProcessTest extends Specification {
       val expected = (0 until 10).map(i => Converters.convert(s"2017-02-19T23:00:0$i.000Z", classOf[Date]))
       dates must containTheSameElementsAs(expected)
     }
+
+    "move a feature collection forward with mixed units" in {
+      val collection = new ListFeatureCollection(sft, new Random(-1L).shuffle(features))
+      val result = process.execute(collection, "dtg", "P5DT1H")
+      val dates = SelfClosingIterator(result.features()).map(_.getAttribute("dtg")).toList
+      val expected = (0 until 10).map(i => Converters.convert(s"2017-02-25T01:00:0$i.000Z", classOf[Date]))
+      dates must containTheSameElementsAs(expected)
+    }
   }
 }
