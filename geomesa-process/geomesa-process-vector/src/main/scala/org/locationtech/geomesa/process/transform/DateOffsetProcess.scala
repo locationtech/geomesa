@@ -8,18 +8,16 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.time.{Period, ZoneId}
+import java.time._
+import java.time.format.DateTimeParseException
 import java.util.Date
 
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 
 import scala.collection.JavaConversions._
 
@@ -38,23 +36,20 @@ class DateOffsetProcess extends GeoMesaProcess {
               @DescribeParameter(name = "timeOffset", description = "Time offset (e.g. P1D)")
               timeOffset: String): SimpleFeatureCollection = {
 
-    val iter = CloseableIterator(obsFeatures.features())
-    // TODO: Throw exception if dateField is not in SFT.
-    val period = Period.parse(timeOffset)
+    val period = try { Duration.parse(timeOffset) } catch {
+      case e: DateTimeParseException => throw new IllegalArgumentException(s"Invalid offset $timeOffset", e)
+    }
+    val dtgIndex = obsFeatures.getSchema.indexOf(dateField)
+    require(dtgIndex != -1, s"Field '$dateField' does not exist in input feature collection: ${obsFeatures.getSchema}")
 
-    val iter2 = iter.map { sf =>
-
+    val iter = SelfClosingIterator(obsFeatures.features()).map { sf =>
       val dtg = sf.getAttribute(dateField).asInstanceOf[Date]
-      val ld = dtg.toInstant.atZone(ZoneId.systemDefault()).toLocalDate
-      val ld2 = ld.plus(period)
-      val newDtg = Date.from(ld2.atStartOfDay(ZoneId.systemDefault()).toInstant)
+      val offset = ZonedDateTime.ofInstant(dtg.toInstant, ZoneOffset.UTC).plus(period)
+      val newDtg = Date.from(offset.toInstant)
+      sf.setAttribute(dtgIndex, newDtg)
+      sf
+    }
 
-      val updatedSF = ScalaSimpleFeature.copy(sf)
-      updatedSF.setAttribute(dateField, newDtg)
-
-      updatedSF
-    }.toList
-
-    new ListFeatureCollection(obsFeatures.getSchema, iter2)
+    new ListFeatureCollection(obsFeatures.getSchema, iter.toList)
   }
 }
