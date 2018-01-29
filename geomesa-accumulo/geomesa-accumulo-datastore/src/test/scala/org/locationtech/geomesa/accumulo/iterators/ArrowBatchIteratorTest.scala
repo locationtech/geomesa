@@ -24,6 +24,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+import org.opengis.filter.sort.SortOrder
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 
@@ -275,6 +276,23 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
           query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
           query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features, ordered = true)
+          }
+        }
+      }
+    }
+    "return sorted batches from query sort" in {
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          query.setSortBy(Array(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.ASCENDING)))
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
           results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))

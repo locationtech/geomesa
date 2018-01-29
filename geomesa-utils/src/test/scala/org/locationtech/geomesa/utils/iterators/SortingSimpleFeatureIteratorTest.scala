@@ -16,7 +16,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.sort.{SortBy, SortOrder}
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -51,7 +50,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
         features.hasNext returns true thenReturns true thenReturns false
         features.next returns b thenReturns a thenThrows new NoSuchElementException
 
-        val test = new SortingSimpleFeatureIterator(features, Array(SortBy.NATURAL_ORDER))
+        val test = new SortingSimpleFeatureIterator(features, Seq(("", false)))
 
         there was no(features).hasNext
         there was no(features).next
@@ -69,7 +68,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
         features.hasNext returns true thenReturns true thenReturns false
         features.next returns b thenReturns a thenThrows new NoSuchElementException
 
-        val test = new SortingSimpleFeatureIterator(features, Array(SortBy.NATURAL_ORDER))
+        val test = new SortingSimpleFeatureIterator(features, Seq(("", false)))
 
         there was no(features).hasNext
         there was no(features).next
@@ -85,21 +84,21 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
     "be able to sort by id asc" >> {
       val features = CloseableIterator(Iterator(b, c1, d, a, c2))
-      val sortBy = Array(SortBy.NATURAL_ORDER)
+      val sortBy = Seq(("", false))
 
       test(features, sortBy, Seq(a, b, c1, c2, d), sft)
     }
 
     "be able to sort by id desc" >> {
       val features = CloseableIterator(Iterator(b, c1, d, a, c2))
-      val sortBy =Array(SortBy.REVERSE_ORDER)
+      val sortBy = Seq(("", true))
 
       test(features, sortBy, Seq(d, c2, c1, b, a), sft)
     }
 
     "be able to sort by an attribute asc" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.ASCENDING))
+      val sortBy = Seq(("name", false))
 
       // sort is stable
       test(features, sortBy, Seq(a, b, c2, c1, d), sft)
@@ -107,7 +106,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
     "be able to sort by an attribute desc" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.DESCENDING))
+      val sortBy = Seq(("name", true))
 
       // sort is stable
       test(features, sortBy, Seq(d, c2, c1, b, a), sft)
@@ -115,24 +114,22 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
     "be able to sort by an attribute and id" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER)
+      val sortBy = Seq(("name", false), ("", false))
 
       test(features, sortBy, Seq(a, b, c1, c2, d), sft)
     }
 
     "be able to sort by an multiple attributes" >> {
       val features = CloseableIterator(Iterator(a, b, c1, d, c2))
-      val sortBy = Array(ff.sort("age", SortOrder.DESCENDING), ff.sort("name", SortOrder.ASCENDING))
-
+      val sortBy = Seq(("age", true), ("name", false))
       test(features, sortBy, Seq(b, c2, a, c1, d), sft)
     }
   }
 
   def test(features: CloseableIterator[SimpleFeature],
-           sortBy: Array[SortBy],
+           sortBy: Seq[(String, Boolean)],
            expected: Seq[SimpleFeature],
            sft: SimpleFeatureType): MatchResult[Any] = {
-
     val test = new SortingSimpleFeatureIterator(features, sortBy)
 
     expected.foreach {f =>

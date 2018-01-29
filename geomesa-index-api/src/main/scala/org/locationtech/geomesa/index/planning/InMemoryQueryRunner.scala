@@ -32,7 +32,6 @@ import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleF
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.sort.SortBy
 
 abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[AuthorizationsProvider])
     extends QueryRunner {
@@ -66,13 +65,13 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
     explain(s"bin[${query.getHints.isBinQuery}] arrow[${query.getHints.isArrowQuery}] " +
         s"density[${query.getHints.isDensityQuery}] stats[${query.getHints.isStatsQuery}]")
     explain(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
-    explain(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
+    explain(s"Sort: ${query.getHints.getSortReadableString}")
     explain.popLevel()
 
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
     val iter = features(sft, filter).filter(isVisible(_, auths))
 
-    CloseableIterator(transform(iter, sft, query.getHints, filter, query.getSortBy))
+    CloseableIterator(transform(iter, sft, query.getHints, filter))
   }
 
   override protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter =
@@ -95,8 +94,7 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
   private def transform(features: Iterator[SimpleFeature],
                         sft: SimpleFeatureType,
                         hints: Hints,
-                        filter: Option[Filter],
-                        sortBy: Array[SortBy]): Iterator[SimpleFeature] = {
+                        filter: Option[Filter]): Iterator[SimpleFeature] = {
     if (hints.isBinQuery) {
       val trackId = Option(hints.getBinTrackIdField).map(sft.indexOf)
       val geom = hints.getBinGeomField.map(sft.indexOf)
@@ -113,10 +111,10 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
     } else {
       hints.getTransform match {
         case None =>
-          val sort = Option(sortBy).filter(_.length > 0).map(SimpleFeatureOrdering(sft, _))
+          val sort = hints.getSortFields.map(SimpleFeatureOrdering(sft, _))
           noTransform(sft, features, sort)
         case Some((defs, tsft)) =>
-          val sort = Option(sortBy).filter(_.length > 0).map(SimpleFeatureOrdering(tsft, _))
+          val sort = hints.getSortFields.map(SimpleFeatureOrdering(tsft, _))
           projectionTransform(features, sft, tsft, defs, sort)
       }
     }

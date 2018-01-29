@@ -208,9 +208,6 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * @param sft new simple feature type
     */
   override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
-    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
-    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs._
-
     // validate type name has not changed
     if (typeName.getLocalPart != sft.getTypeName) {
       val msg = s"Updating the name of a schema is not allowed: '$typeName' changed to '${sft.getTypeName}'"

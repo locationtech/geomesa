@@ -16,6 +16,7 @@ import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.sort.{SortBy, SortOrder}
 
 object QueryHints {
 
@@ -65,7 +66,28 @@ object QueryHints {
     val RETURN_SFT       = new ClassKey(classOf[SimpleFeatureType])
     val TRANSFORMS       = new ClassKey(classOf[String])
     val TRANSFORM_SCHEMA = new ClassKey(classOf[SimpleFeatureType])
+    val SORT_FIELDS      = new ClassKey(classOf[String])
     val SKIP_REDUCE      = new ClassKey(classOf[java.lang.Boolean])
+
+    def toSortHint(sortBy: Array[SortBy]): String = {
+      val hints = sortBy.map {
+        case SortBy.NATURAL_ORDER => ":false"
+        case SortBy.REVERSE_ORDER => ":true"
+        case sb =>
+          val name = Option(sb.getPropertyName).map(_.getPropertyName).getOrElse("")
+          s"$name:${sb.getSortOrder == SortOrder.DESCENDING}"
+      }
+      hints.mkString(",")
+    }
+
+    def fromSortHint(hint: String): Seq[(String, Boolean)] = {
+      hint.split(",").toSeq.map { h =>
+        h.split(":") match {
+          case Array(field, reverse) => (field, reverse.toBoolean)
+          case _ => throw new IllegalArgumentException(s"Invalid sort field, expected 'name:reverse' but got '$h'")
+        }
+      }
+    }
   }
 
   implicit class RichHints(val hints: Hints) extends AnyRef {
@@ -129,6 +151,10 @@ object QueryHints {
       hints.remove(Internal.TRANSFORM_SCHEMA)
       hints.remove(Internal.TRANSFORMS)
     }
+    def getSortFields: Option[Seq[(String, Boolean)]] =
+      Option(hints.get(Internal.SORT_FIELDS).asInstanceOf[String]).map(Internal.fromSortHint).filterNot(_.isEmpty)
+    def getSortReadableString: String =
+      getSortFields.map(_.map { case (f, r) => s"$f ${if (r) "DESC" else "ASC" }"}.mkString(", ")).getOrElse("none")
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
     def isLambdaQueryPersistent: Boolean =
       Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)

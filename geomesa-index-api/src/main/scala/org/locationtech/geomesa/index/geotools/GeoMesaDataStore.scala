@@ -100,7 +100,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
   // hooks to allow extended functionality
 
-  protected def createQueryPlanner(): QueryPlanner[DS, F, W] = new QueryPlanner(this)
+  protected def createQueryPlanner(): QueryPlanner[DS, F, W] = new QueryPlanner[DS, F, W](this)
 
   protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
     new GeoMesaFeatureCollection(source, query)
