@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadLocalRandom
 import com.google.common.collect.HashBiMap
 import com.google.common.primitives.{Ints, Longs}
 import com.typesafe.scalalogging.StrictLogging
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
@@ -278,29 +279,38 @@ object DeltaWriter extends StrictLogging {
       private val loader = RecordBatchLoader(result.underlying.getField)
       private val unloader = new RecordBatchUnloader(result)
 
-      private val transfers: Seq[(String, (Int, Int, collection.Map[Integer, Integer]) => Unit)] =
-        loader.vector.getChildrenFromFields.map { child =>
-          val name = child.getField.getName
-          val to = result.underlying.getChild(name)
-          val transfer = if (child.getField.getDictionary == null) {
-            val pair = child.makeTransferPair(to)
-            (fromIndex: Int, toIndex: Int, _: collection.Map[Integer, Integer]) => {
-              pair.copyValueSafe(fromIndex, toIndex)
-            }
-          } else {
-            val accessor = child.getAccessor.asInstanceOf[NullableIntVector#Accessor]
-            val m = to.getMutator.asInstanceOf[NullableIntVector#Mutator]
-            (fromIndex: Int, toIndex: Int, mapping: collection.Map[Integer, Integer]) => {
-              val n = accessor.getObject(fromIndex)
-              if (n == null) {
-                m.setNull(toIndex)
-              } else {
-                m.setSafe(toIndex, mapping(n))
+      private val transfers: Seq[(String, (Int, Int, scala.collection.Map[Integer, Integer]) => Unit)] = {
+        loader.vector.getChildrenFromFields.map { fromVector =>
+          val name = fromVector.getField.getName
+          val toVector = result.underlying.getChild(name)
+          val transfer: (Int, Int, scala.collection.Map[Integer, Integer]) => Unit =
+            if (fromVector.getField.getDictionary != null) {
+              val from = fromVector.asInstanceOf[NullableIntVector]
+              val to = toVector.asInstanceOf[NullableIntVector]
+              (fromIndex: Int, toIndex: Int, mapping: scala.collection.Map[Integer, Integer]) => {
+                val n = from.getAccessor.getObject(fromIndex)
+                if (n == null) {
+                  to.getMutator.setNull(toIndex)
+                } else {
+                  to.getMutator.setSafe(toIndex, mapping(n))
+                }
               }
+            } else if (SimpleFeatureVector.isGeometryVector(fromVector)) {
+              // geometry vectors use FixedSizeList vectors, for which transfer pairs aren't implemented
+              val from = GeometryFields.wrap(fromVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+              val to = GeometryFields.wrap(toVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+              (fromIndex: Int, toIndex: Int, _: scala.collection.Map[Integer, Integer]) => {
+                from.transfer(fromIndex, toIndex, to)
+              }
+            } else {
+              val pair = fromVector.makeTransferPair(toVector)
+              (fromIndex: Int, toIndex: Int, _: scala.collection.Map[Integer, Integer]) => {
+                pair.copyValueSafe(fromIndex, toIndex)
             }
           }
           (name, transfer)
         }
+      }
 
       private val threadIterator = threadedBatches.iterator
       private var threadIndex = -1
@@ -438,23 +448,29 @@ object DeltaWriter extends StrictLogging {
         offset += 4 // skip the length bytes
         // load the record batch
         loader.load(batch, offset, messageLength)
-        val transfers: Seq[(Int, Int) => Unit] = loader.vector.getChildrenFromFields.map { child =>
-          val to = result.underlying.getChild(child.getField.getName)
-          if (child.getField.getDictionary == null) {
-            val transfer = child.makeTransferPair(to)
-            (fromIndex: Int, toIndex: Int) => transfer.copyValueSafe(fromIndex, toIndex)
-          } else {
-            val mapping = mappings(child.getField.getName)
-            val accessor = child.getAccessor
-            val m = to.getMutator.asInstanceOf[NullableIntVector#Mutator]
+        val transfers: Seq[(Int, Int) => Unit] = loader.vector.getChildrenFromFields.map { fromVector =>
+          val toVector = result.underlying.getChild(fromVector.getField.getName)
+          if (fromVector.getField.getDictionary != null) {
+            val mapping = mappings(fromVector.getField.getName)
+            val to = toVector.asInstanceOf[NullableIntVector]
             (fromIndex: Int, toIndex: Int) => {
-              val n = accessor.getObject(fromIndex).asInstanceOf[Integer]
+              val n = fromVector.getAccessor.getObject(fromIndex).asInstanceOf[Integer]
               if (n == null) {
-                m.setNull(toIndex)
+                to.getMutator.setNull(toIndex)
               } else {
-                m.setSafe(toIndex, mapping(n))
+                to.getMutator.setSafe(toIndex, mapping(n))
               }
             }
+          } else if (SimpleFeatureVector.isGeometryVector(fromVector)) {
+            // geometry vectors use FixedSizeList vectors, for which transfer pairs aren't implemented
+            val from = GeometryFields.wrap(fromVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+            val to = GeometryFields.wrap(toVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+            (fromIndex: Int, toIndex: Int) => {
+              from.transfer(fromIndex, toIndex, to)
+            }
+          } else {
+            val transfer = fromVector.makeTransferPair(toVector)
+            (fromIndex: Int, toIndex: Int) => transfer.copyValueSafe(fromIndex, toIndex)
           }
         }
         val mapVector = loader.vector.asInstanceOf[NullableMapVector]

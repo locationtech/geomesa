@@ -99,8 +99,8 @@ class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
 object SimpleFeatureVector {
 
   val DefaultCapacity = 8096
-  val FeatureIdField = "id"
-  val DescriptorKey  = "descriptor"
+  val FeatureIdField  = "id"
+  val DescriptorKey   = "descriptor"
 
   object EncodingPrecision extends Enumeration {
     type EncodingPrecision = Value
@@ -179,6 +179,7 @@ object SimpleFeatureVector {
     */
   def getFeatureType(vector: NullableMapVector): (SimpleFeatureType, SimpleFeatureEncoding) = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     import scala.collection.JavaConversions._
 
     var includeFids = false
@@ -207,6 +208,12 @@ object SimpleFeatureVector {
     val encoding = SimpleFeatureEncoding(includeFids, geomPrecision, datePrecision)
 
     (sft, encoding)
+  }
+
+  def isGeometryVector(vector: FieldVector): Boolean = {
+    Option(vector.getField.getMetadata.get(DescriptorKey))
+        .map(SimpleFeatureTypes.createDescriptor)
+        .exists(d => classOf[Geometry].isAssignableFrom(d.getType.getBinding))
   }
 
   /**
