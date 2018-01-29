@@ -13,9 +13,8 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.{AttributeIndex, Z2Index, Z3Index}
+import org.locationtech.geomesa.accumulo.index.{AttributeIndex, Z3Index}
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithDataStore}
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -37,7 +36,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
     List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
       val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-      sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
       sf.setAttribute("age", i)
       sf.setAttribute("name", name)
       sf

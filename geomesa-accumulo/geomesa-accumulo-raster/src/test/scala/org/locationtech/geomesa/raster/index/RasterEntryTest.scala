@@ -11,7 +11,6 @@ package org.locationtech.geomesa.raster.index
 import java.util.Date
 
 import org.apache.accumulo.core.data.Key
-import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -22,7 +21,7 @@ class RasterEntryTest extends Specification {
 
   sequential
 
-  val now = new DateTime().toDate
+  val now = new Date()
   val emptyByte = Array.empty[Byte]
 
   def makeKey(cq: Array[Byte]): Key = new Key(emptyByte, emptyByte, cq, emptyByte, Long.MaxValue)

@@ -286,7 +286,8 @@ public class GeometryVectorTest {
       }
     }
   }
-        @Test
+
+  @Test
   public void testPolygon() throws Exception {
     WKTReader wktReader = new WKTReader();
     WKTWriter wktWriter = new WKTWriter();

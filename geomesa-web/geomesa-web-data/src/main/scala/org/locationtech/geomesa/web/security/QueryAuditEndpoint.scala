@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.web.security
 
-import org.joda.time.Interval
-import org.joda.time.format.ISODateTimeFormat
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter
+
 import org.json4s.{DefaultFormats, Formats, JValue}
 import org.locationtech.geomesa.accumulo.audit.SerializedQueryEvent
 import org.locationtech.geomesa.index.audit.QueryEvent
@@ -55,7 +56,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
       withDataStore((ds) => {
         val sft = params.get("typeName").orNull
         // corresponds to 2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z - same as used by geotools
-        val dates = params.get("dates").flatMap(d => Try(d.split("/").map(DtFormat.parseDateTime)).toOption).orNull
+        val dates = params.get("dates").flatMap(d => Try(d.split("/").map(ZonedDateTime.parse(_, DtFormat))).toOption).orNull
         val binTry = Try(params.get("bin").map(_.toBoolean))
         val arrowTry = Try(params.get("arrow").map(_.toBoolean))
         if (sft == null || dates == null || dates.length != 2 || binTry.isFailure || arrowTry.isFailure) {
@@ -75,7 +76,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
           BadRequest(reason = reason.toString())
         } else {
           val reader = ds.config.audit.get._1
-          val interval = new Interval(dates(0), dates(1))
+          val interval = (dates(0), dates(1))
           // note: json response doesn't seem to handle iterators directly, have to convert to iterable
           val iter = reader.getEvents[QueryEvent](sft, interval)
           // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
@@ -108,7 +109,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
       withDataStore((ds) => {
         val sft = params.get("typeName").orNull
         // corresponds to 2015-11-01T00:00:00.000Z/2015-12-5T00:00:00.000Z - same as used by geotools
-        val dates = params.get("dates").flatMap(d => Try(d.split("/").map(DtFormat.parseDateTime)).toOption).orNull
+        val dates = params.get("dates").flatMap(d => Try(d.split("/").map(ZonedDateTime.parse(_, DtFormat))).toOption).orNull
         if (sft == null || dates == null || dates.length != 2) {
           val reason = new StringBuilder
           if (sft == null) {
@@ -120,7 +121,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
           BadRequest(reason = reason.toString())
         } else {
           val reader = ds.config.audit.get._1
-          val interval = new Interval(dates(0), dates(1))
+          val interval = (dates(0), dates(1))
           // note: json response doesn't seem to handle iterators directly, have to convert to iterable
           val iter = reader.getEvents[SerializedQueryEvent](sft, interval)
           // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
@@ -143,7 +144,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
 
 object QueryAuditEndpoint {
 
-  private val DtFormat = ISODateTimeFormat.dateTime().withZoneUTC()
+  private val DtFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
 
   private val ArrowHintString = ViewParams.hintToString(QueryHints.ARROW_ENCODE)
   private val BinHintString = ViewParams.hintToString(QueryHints.BIN_TRACK)

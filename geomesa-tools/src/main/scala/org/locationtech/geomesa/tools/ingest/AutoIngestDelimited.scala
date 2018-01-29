@@ -22,7 +22,8 @@ import org.locationtech.geomesa.jobs.mapreduce.{FileStreamInputFormat, FileStrea
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.geotools.{ConverterFactories, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.converters.StringCollectionConverterFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -74,11 +75,11 @@ object AutoIngestDelimited {
       val hints = GeoTools.getDefaultHints
       // for maps/lists, we have to pass along the subtype info during type conversion
       if (ad.isList) {
-        hints.put(ConverterFactories.ListTypeKey, ad.getListType())
+        hints.put(StringCollectionConverterFactory.ListTypeKey, ad.getListType())
       } else if (ad.isMap) {
         val (k, v) = ad.getMapTypes()
-        hints.put(ConverterFactories.MapKeyTypeKey, k)
-        hints.put(ConverterFactories.MapValueTypeKey, v)
+        hints.put(StringCollectionConverterFactory.MapKeyTypeKey, k)
+        hints.put(StringCollectionConverterFactory.MapValueTypeKey, v)
       }
       (ad.getType.getBinding, hints)
     }.toArray

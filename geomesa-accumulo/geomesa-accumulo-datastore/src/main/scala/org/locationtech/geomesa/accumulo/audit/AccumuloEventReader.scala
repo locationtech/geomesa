@@ -8,10 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
+import java.time.ZonedDateTime
+
 import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.data.Range
 import org.apache.accumulo.core.security.Authorizations
-import org.joda.time.Interval
 import org.locationtech.geomesa.utils.audit.AuditedEvent
 import org.locationtech.geomesa.utils.collection.{IsSynchronized, MaybeSynchronized, NotSynchronized}
 
@@ -25,13 +26,13 @@ class AccumuloEventReader(connector: Connector, table: String) {
     if (connector.tableOperations().exists(table)) { new NotSynchronized(true) } else { new IsSynchronized(false) }
 
   def query[T <: AuditedEvent](typeName: String,
-                               dates: Interval,
+                               dates: (ZonedDateTime, ZonedDateTime),
                                auths: Authorizations)
                               (implicit transform: AccumuloEventTransform[T]): Iterator[T] = {
     if (!checkTable) { Iterator.empty } else {
       val scanner = connector.createScanner(table, auths)
-      val rangeStart = s"$typeName~${AccumuloEventTransform.dateFormat.print(dates.getStart)}"
-      val rangeEnd = s"$typeName~${AccumuloEventTransform.dateFormat.print(dates.getEnd)}"
+      val rangeStart = s"$typeName~${dates._1.format(AccumuloEventTransform.dateFormat)}"
+      val rangeEnd = s"$typeName~${dates._2.format(AccumuloEventTransform.dateFormat)}"
       scanner.setRange(new Range(rangeStart, rangeEnd))
       transform.iterator(scanner)
     }

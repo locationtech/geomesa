@@ -10,12 +10,11 @@
 package org.locationtech.geomesa.raster
 
 import java.awt.image.{BufferedImage, RenderedImage, WritableRaster}
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.DateTime
 import org.locationtech.geomesa.accumulo.index.encoders.DecodedIndexValue
 import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, Raster, RasterQuery}
 import org.locationtech.geomesa.raster.util.RasterUtils
@@ -45,15 +44,14 @@ object RasterTestsUtils {
 
   def generateQuery(minX: Double, maxX: Double, minY: Double, maxY: Double, res: Double = 10.0) = {
     val bb = BoundingBox(new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84))
-    new RasterQuery(bb, res, None, None)
+    new RasterQuery(bb, res)
   }
 
   implicit def bboxToRefEnv(b: BoundingBox): ReferencedEnvelope =
     new ReferencedEnvelope(b.minLon, b.maxLon, b.minLat, b.maxLat, DefaultGeographicCRS.WGS84)
 
   def generateRaster(bbox: BoundingBox, buf: BufferedImage, id: String = Raster.getRasterId("testRaster")): Raster = {
-    val ingestTime = new DateTime()
-    val metadata = DecodedIndexValue(id, bbox.geom, Option(ingestTime.toDate), null)
+    val metadata = DecodedIndexValue(id, bbox.geom, Some(new Date()), null)
     val coverage = imageToCoverage(buf.getRaster, bbox, defaultGridCoverageFactory)
     Raster(coverage.getRenderedImage, metadata, 10.0)
   }
@@ -61,10 +59,9 @@ object RasterTestsUtils {
   def generateTestRaster(minX: Double, maxX: Double, minY: Double, maxY: Double,
                          w: Int = 256, h: Int = 256, res: Double = 10.0,
                          color: Array[Int] = white): Raster = {
-    val ingestTime = new DateTime()
     val env = new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84)
     val bbox = BoundingBox(env)
-    val metadata = DecodedIndexValue(Raster.getRasterId("testRaster"), bbox.geom, Option(ingestTime.toDate), null)
+    val metadata = DecodedIndexValue(Raster.getRasterId("testRaster"), bbox.geom, Some(new Date()), null)
     val image = RasterUtils.getNewImage(w, h, color)
     val coverage = imageToCoverage(image.getRaster, env, defaultGridCoverageFactory)
     Raster(coverage.getRenderedImage, metadata, res)

@@ -8,27 +8,26 @@
 
 package org.locationtech.geomesa.accumulo.data.stats.usage
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
-import org.joda.time.Interval
-import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventReader, AccumuloEventWriter, AccumuloQueryEventTransform}
+import org.locationtech.geomesa.accumulo.audit._
 import org.locationtech.geomesa.index.audit.QueryEvent
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class UsageStatReaderTest extends Specification {
 
-  val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
-
   val catalogTable = "geomesa_catalog"
   val featureName = "stat_reader_test"
   val statsTable = s"${catalogTable}_${featureName}_queries"
 
-  implicit val transform = AccumuloQueryEventTransform
+  implicit val transform: AccumuloEventTransform[QueryEvent] = AccumuloQueryEventTransform
 
   val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
 
@@ -36,7 +35,7 @@ class UsageStatReaderTest extends Specification {
 
   val writer = new AccumuloEventWriter(connector, statsTable)
 
-  def writeStat(stats: Seq[QueryEvent], tableName: String) = {
+  def writeStat(stats: Seq[QueryEvent], tableName: String): Unit = {
     stats.foreach(writer.queueStat(_))
     writer.run()
   }
@@ -44,16 +43,16 @@ class UsageStatReaderTest extends Specification {
   "QueryStatReader" should {
 
     val stats = Seq(
-      QueryEvent(AccumuloAuditService.StoreType, featureName, df.parseMillis("2014.07.26 13:20:01"), "user1", "query1", "hint1=true", 101L, 201L, 11),
-      QueryEvent(AccumuloAuditService.StoreType, featureName, df.parseMillis("2014.07.26 14:20:01"), "user1", "query2", "hint2=true", 102L, 202L, 12),
-      QueryEvent(AccumuloAuditService.StoreType, featureName, df.parseMillis("2014.07.27 13:20:01"), "user1", "query3", "hint3=true", 102L, 202L, 12)
+      QueryEvent(AccumuloAuditService.StoreType, featureName, DateParsing.parseMillis("2014-07-26T13:20:01Z"), "user1", "query1", "hint1=true", 101L, 201L, 11),
+      QueryEvent(AccumuloAuditService.StoreType, featureName, DateParsing.parseMillis("2014-07-26T14:20:01Z"), "user1", "query2", "hint2=true", 102L, 202L, 12),
+      QueryEvent(AccumuloAuditService.StoreType, featureName, DateParsing.parseMillis("2014-07-27T13:20:01Z"), "user1", "query3", "hint3=true", 102L, 202L, 12)
     )
     writeStat(stats, statsTable)
 
     val reader = new AccumuloEventReader(connector, statsTable)
 
     "query all stats in order" in {
-      val dates = new Interval(0, System.currentTimeMillis())
+      val dates = (ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC), ZonedDateTime.now(ZoneOffset.UTC))
       val queries = reader.query[QueryEvent](featureName, dates, auths)
 
       queries must not(beNull)
@@ -67,9 +66,9 @@ class UsageStatReaderTest extends Specification {
     }
 
     "query by day" in {
-      val s = df.parseDateTime("2014.07.26 00:00:00")
-      val e = df.parseDateTime("2014.07.26 23:59:59")
-      val queries = reader.query[QueryEvent](featureName, new Interval(s, e), auths)
+      val s = DateParsing.parse("2014-07-26T00:00:00Z")
+      val e = DateParsing.parse("2014-07-26T23:59:59Z")
+      val queries = reader.query[QueryEvent](featureName, (s, e), auths)
 
       queries must not(beNull)
 
@@ -81,9 +80,9 @@ class UsageStatReaderTest extends Specification {
     }
 
     "query by hour" in {
-      val s = df.parseDateTime("2014.07.26 13:00:00")
-      val e = df.parseDateTime("2014.07.26 13:59:59")
-      val queries = reader.query[QueryEvent](featureName, new Interval(s, e), auths)
+      val s = DateParsing.parse("2014-07-26T13:00:00Z")
+      val e = DateParsing.parse("2014-07-26T13:59:59Z")
+      val queries = reader.query[QueryEvent](featureName, (s, e), auths)
 
       queries must not(beNull)
 

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs
 
 import java.nio.file.Files
 import java.time.temporal.ChronoUnit
-import java.util
+import java.util.Date
 import java.util.stream.Collectors
 
 import com.vividsolutions.jts.geom.Coordinate
@@ -19,7 +19,7 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureIterator, SimpleFeatureStore}
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.format.ISODateTimeFormat
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.{CompositeScheme, DateTimeScheme, PartitionScheme, Z2Scheme}
@@ -46,7 +46,7 @@ class BucketVsLeafStorageTest extends Specification {
         "parquet.compression" -> "gzip"
       )).asInstanceOf[FileSystemDataStore]
 
-    def date(str: String) = ISODateTimeFormat.date().parseDateTime(str).toDate
+    def date(str: String) = Converters.convert(str, classOf[Date])
 
     def features(sft: SimpleFeatureType) = List(
       new ScalaSimpleFeature(sft, "1", Array("first",  date("2016-01-01"), gf.createPoint(new Coordinate(-5, 5)))), // z2 = 2
@@ -116,7 +116,7 @@ class BucketVsLeafStorageTest extends Specification {
 
       "in two schemes" >> {
         val sft = mkSft("leaf-two")
-        val scheme = new CompositeScheme(Seq(
+        val scheme = CompositeScheme(Seq(
           new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", true),
           new Z2Scheme(2, "geom", true))
         )
@@ -210,7 +210,7 @@ class BucketVsLeafStorageTest extends Specification {
       "with two schemes" >> {
         val typeName = "bucket-two"
         val sft = mkSft(typeName)
-        val scheme = new CompositeScheme(Seq(
+        val scheme = CompositeScheme(Seq(
           new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", false),
           new Z2Scheme(2, "geom", false))
         )

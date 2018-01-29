@@ -10,11 +10,12 @@ package org.locationtech.geomesa.tools.data
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.data.DataStore
-import org.joda.time.Period
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.data.AgeOffCommand.AgeOffParams
-import org.locationtech.geomesa.tools.utils.ParameterConverters.PeriodConverter
+import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 import org.locationtech.geomesa.tools.utils.Prompt
+
+import scala.concurrent.duration.Duration
 
 trait AgeOffCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
@@ -54,17 +55,17 @@ trait AgeOffCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   protected def list(ds: DS, featureName: String): Unit
 
-  protected def set(ds: DS, featureName: String, expiry: Period): Unit
+  protected def set(ds: DS, featureName: String, expiry: Duration): Unit
 
-  protected def set(ds: DS, featureName: String, dtg: String, expiry: Period): Unit
+  protected def set(ds: DS, featureName: String, dtg: String, expiry: Duration): Unit
 
   protected def remove(ds: DS, featureName: String): Unit
 }
 
 object AgeOffCommand {
   trait AgeOffParams extends RequiredTypeNameParam with OptionalDtgParam {
-    @Parameter(names = Array("-e", "--expiry"), description = "Duration before entries are aged-off, e.g. '1 day', '2 weeks and 1 hour', etc", converter = classOf[PeriodConverter])
-    var expiry: Period = _
+    @Parameter(names = Array("-e", "--expiry"), description = "Duration before entries are aged-off, e.g. '1 day', '2 weeks and 1 hour', etc", converter = classOf[DurationConverter])
+    var expiry: Duration = _
 
     @Parameter(names = Array("-l", "--list"), description = "List existing age-off for a simple feature type")
     var list: Boolean = _

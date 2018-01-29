@@ -15,7 +15,6 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
@@ -62,15 +61,14 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
   val chicagoSft = SimpleFeatureTypes.createType("chicago", "arrest:String,case_number:Int,dtg:Date,*geom:Point:srid=4326")
 
   def chicagoFeatures(): List[SimpleFeature] = {
-    val parseDate = ISODateTimeFormat.basicDateTime().parseDateTime _
     val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
     val features = List(
-      new ScalaSimpleFeature(chicagoSft, "1", initialValues = Array("true", new Integer(1), parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-76.5, 38.5)))),
-      new ScalaSimpleFeature(chicagoSft, "2", initialValues = Array("true", new Integer(2), parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-77.0, 38.0)))),
-      new ScalaSimpleFeature(chicagoSft, "3", initialValues = Array("true", new Integer(3), parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-78.0, 39.0)))),
-      new ScalaSimpleFeature(chicagoSft, "4", initialValues = Array("true", new Integer(4), parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-73.5, 39.5)))),
-      new ScalaSimpleFeature(chicagoSft, "5", initialValues = Array("true", new Integer(5), parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-74.0, 35.5)))),
-      new ScalaSimpleFeature(chicagoSft, "6", initialValues = Array("true", new Integer(6), parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-79.0, 37.5))))
+      ScalaSimpleFeature.create(chicagoSft, "1", "true", 1, "2016-01-01T00:00:00.000Z", createPoint(new Coordinate(-76.5, 38.5))),
+      ScalaSimpleFeature.create(chicagoSft, "2", "true", 2, "2016-01-02T00:00:00.000Z", createPoint(new Coordinate(-77.0, 38.0))),
+      ScalaSimpleFeature.create(chicagoSft, "3", "true", 3, "2016-01-03T00:00:00.000Z", createPoint(new Coordinate(-78.0, 39.0))),
+      ScalaSimpleFeature.create(chicagoSft, "4", "true", 4, "2016-01-01T00:00:00.000Z", createPoint(new Coordinate(-73.5, 39.5))),
+      ScalaSimpleFeature.create(chicagoSft, "5", "true", 5, "2016-01-02T00:00:00.000Z", createPoint(new Coordinate(-74.0, 35.5))),
+      ScalaSimpleFeature.create(chicagoSft, "6", "true", 6, "2016-01-03T00:00:00.000Z", createPoint(new Coordinate(-79.0, 37.5)))
     )
     features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
     features
@@ -81,9 +79,6 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
     ds.createSchema(sft)
 
     val fs = ds.getFeatureSource("chicago").asInstanceOf[SimpleFeatureStore]
-
-    val parseDate = ISODateTimeFormat.basicDateTime().parseDateTime _
-    val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
     val features = DataUtilities.collection(chicagoFeatures().take(3))
 

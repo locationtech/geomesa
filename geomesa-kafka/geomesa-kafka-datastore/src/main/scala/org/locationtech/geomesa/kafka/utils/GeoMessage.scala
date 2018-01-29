@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import org.joda.time.Instant
+import java.time.Instant
+
 import org.opengis.feature.simple.SimpleFeature
 
 sealed trait GeoMessage {

@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.process.knn
 
+import java.util.Date
+
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
@@ -28,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 import scala.util.Random
 
-case class TestEntry(wkt: String, id: String, dt: DateTime = new DateTime())
+case class TestEntry(wkt: String, id: String, dt: Date = new Date())
 
 @RunWith(classOf[JUnitRunner])
 class KNearestNeighborSearchProcessTest extends Specification {
@@ -95,8 +96,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
         (centerLon + width * (rng.nextDouble() - 0.5)).toString + " " +
         (centerLat + width * (rng.nextDouble() - 0.5)).toString + " " +
         ")"
-      val dt = new DateTime()
-      TestEntry(wkt, (100000 + i).toString, dt)
+      TestEntry(wkt, (100000 + i).toString)
     }).toList
   }
   // load data into the featureCollection
