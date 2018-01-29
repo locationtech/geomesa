@@ -75,7 +75,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val sf = SimpleFeatureBuilder.build(sft, Array[AnyRef](), i.toString)
         sf.setAttribute("longAttr", i)
         sf.setAttribute("geom", "POINT(-75 45)")
-        sf.setAttribute("dtg", dayStart.plusDays(i % 28).toDate)
+        sf.setAttribute("dtg", Date.from(dayStart.plusDays(i % 28).toInstant))
         stat.observe(sf)
       }
       val serializer = StatSerializer(sft)

@@ -22,20 +22,19 @@ function setGeoLog() {
 }
 
 # findJars [path] [bool: remove slf4j jars] [bool: do not descend into sub directories]
-# TODO this function only finds lowercase .jar extensions
 function findJars() {
   home="$1"
   CP=()
   if [[ -d "${home}" ]]; then
     if [[ "$3" == "true" ]]; then
-      for jar in $(find ${home} -maxdepth 1 -name "*.jar" -type f); do
-        if [[ "$2" != "true" || "$jar" != *slf4j* ]]; then
+      for jar in $(find ${home} -maxdepth 1 -iname "*.jar" -type f); do
+        if [[ "$jar" != *-sources.jar && ("$2" != "true" || "$jar" != *slf4j*) ]]; then
           CP+=(${jar})
         fi
       done
     else
-      for jar in $(find ${home} -type f -name "*.jar"); do
-        if [[ "$2" != "true" || "$jar" != *slf4j* ]]; then
+      for jar in $(find ${home} -type f -iname "*.jar"); do
+        if [[ "$jar" != *-sources.jar && ("$2" != "true" || "$jar" != *slf4j*) ]]; then
           CP+=(${jar})
         fi
       done
@@ -52,13 +51,23 @@ function findJars() {
   echo "$ret"
 }
 
-# get stuff
+#############################################################
+# Download a list of urls to a destination - takes two args:
+#  - destination directory
+#  - list of urls passed as an array reference
+# 
+# for example:
+#   urls=("1" "2" "3")
+#   downloadURLS /tmp/foobar urls[@]
+#############################################################
 function downloadUrls() {
   local dest=$1
-  local -n urlarray=$2
+  # requires that the urls be passed in with the syntax urls[@]
+  # old fashioned bash before local -n (namerefs) which came in bash 4.3
+  local urls=("${!2}")
 
-  echo "Downloading the following files to '$dest':"
-  for url in "${urlarray[@]}"; do
+  echo "Downloading the following ${#urls[@]} files to '${dest}':"
+  for url in "${urls[@]}"; do
     echo "  $url"
   done
   read -r -p "Continue? (y/n) " confirm
@@ -67,11 +76,11 @@ function downloadUrls() {
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     mkdir -p "$dest"
     declare -a downloads=()
-    for url in "${urlarray[@]}"; do
+    for url in "${urls[@]}"; do
       fname="$(basename "$url")" # filename we'll save to
       tmpfile=$(mktemp)
       # -sS disables progress meter but keeps error messages, -f don't save failed files, -o write to destination file
-      downloads+=("echo fetching $fname && curl -sSfo '$tmpfile' '$url' && mv '$tmpfile' '${dest}/${fname}' && chmod 644 '${dest}/${fname}'")
+      downloads+=("(echo fetching $fname && curl -sSfo '$tmpfile' '$url' && mv '$tmpfile' '${dest}/${fname}' && chmod 644 '${dest}/${fname}') || echo [ERROR] Failed to fetch $fname")
     done
     # pass to xargs to run with 4 threads
     # delimit with null char to avoid issues with spaces

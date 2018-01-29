@@ -9,12 +9,13 @@
 package org.locationtech.geomesa.convert.text
 
 import java.io.{ByteArrayInputStream, IOException}
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 import com.typesafe.config.ConfigFactory
-import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.curve.BinnedTime
+import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -68,7 +69,7 @@ class ValidatorTest extends Specification {
     "skip empty dtg with default mode" >> {
       val conf = baseConf
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
       converter.process(is("20160101,Point(2 2)")).toList.size mustEqual 1
       converter.process(is(
@@ -83,7 +84,7 @@ class ValidatorTest extends Specification {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.validation-mode = raise-errors } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
       converter.process(is(
         """20160101,Point(2 2)
@@ -97,7 +98,7 @@ class ValidatorTest extends Specification {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.validation-mode = raise-errors } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
       converter.process(is(
         """20160101,Point(2 2)
@@ -114,11 +115,11 @@ class ValidatorTest extends Specification {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.validation-mode = raise-errors, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
-
-      val tooYoung = new DateTime(0).minusDays(1).toString("yyyyMMdd")
-      val tooOld = BinnedTime.WeeksMaxDate.plusDays(1).toString("yyyyMMdd")
+      val format = DateTimeFormatter.BASIC_ISO_DATE.withZone(ZoneOffset.UTC)
+      val tooYoung = BinnedTime.ZMinDate.minusDays(1).format(format)
+      val tooOld = BinnedTime.maxDate(TimePeriod.Week).plusDays(1).format(format)
       converter.process(is("20371231,Point(2 2)")).toList.size mustEqual 1
       converter.process(is("20371231,Point(2 2)")).next().point.getX mustEqual 2.0
       converter.process(is("20371231,Point(2 2)")).next().point.getY mustEqual 2.0
@@ -130,9 +131,10 @@ class ValidatorTest extends Specification {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.validation-mode = skip-bad-records, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
-      val tooOld = BinnedTime.WeeksMaxDate.plusDays(1).toString("yyyyMMdd")
+      val format = DateTimeFormatter.BASIC_ISO_DATE.withZone(ZoneOffset.UTC)
+      val tooOld = BinnedTime.maxDate(TimePeriod.Week).plusDays(1).format(format)
       converter.process(is("20371231,Point(2 2)")).toList.size mustEqual 1
       converter.process(is(s"$tooOld,Point(2 2)")).toList.size mustEqual 0
     }
@@ -141,7 +143,7 @@ class ValidatorTest extends Specification {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.validation-mode = raise-errors, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
       converter.process(is("20120101,Point(2 2)")).toList.size mustEqual 1
       converter.process(is("20120101,Point(2 2)")).next().point.getX mustEqual 2.0
@@ -153,7 +155,7 @@ class ValidatorTest extends Specification {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.validation-mode = skip-bad-records, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
       converter.process(is("20120101,Point(2 2)")).toList.size mustEqual 1
       converter.process(is("20120101,Point(2 2)")).next().point.getX mustEqual 2.0
@@ -165,7 +167,7 @@ class ValidatorTest extends Specification {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.validation-mode = skip-bad-records, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
       val res = converter.process(is(
         """20120101,Point(2 2)

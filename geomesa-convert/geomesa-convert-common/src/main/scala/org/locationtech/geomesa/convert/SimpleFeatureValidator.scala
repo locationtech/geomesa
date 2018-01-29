@@ -30,7 +30,7 @@ object ValidatorLoader {
       case unk => throw new IllegalArgumentException(s"Unknown validator $unk")
     }
 
-    val validator = if (validators.size == 1) {
+    val validator = if (validators.lengthCompare(1) == 0) {
       validators.head
     } else {
       new CompositeValidator(validators)
@@ -115,8 +115,8 @@ class ZIndexValidator extends SimpleFeatureValidator {
       import org.locationtech.geomesa.utils.geotools.Conversions._
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-      val maxDate = BinnedTime.maxDate(sft.getZ3Interval).toDate
-      val minDate = BinnedTime.ZMinDate.toDate
+      val maxDate = Date.from(BinnedTime.maxDate(sft.getZ3Interval).toInstant)
+      val minDate = Date.from(BinnedTime.ZMinDate.toInstant)
       val dtgFn: (SimpleFeature) => Boolean = sft.getDtgIndex match {
         case Some(dtgIdx) => (sf: SimpleFeature) =>
           lastErr = null

@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.ingest.UpdateMetadataCommand.UpdateMetadataParams
 import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
@@ -29,5 +30,7 @@ class UpdateMetadataCommand extends FsDataStoreCommand {
   }
 }
 
-@Parameters(commandDescription = "Generate the metadata file")
-class UpdateMetadataParams extends FsParams with RequiredTypeNameParam
+object UpdateMetadataCommand {
+  @Parameters(commandDescription = "Generate the metadata file")
+  class UpdateMetadataParams extends FsParams with RequiredTypeNameParam
+}

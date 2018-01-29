@@ -10,6 +10,9 @@
 package org.locationtech.geomesa.accumulo.index.legacy.attribute
 
 import java.nio.charset.StandardCharsets
+import java.time.ZoneOffset
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.temporal.ChronoField
 import java.util.{Date, Locale, Collection => JCollection}
 
 import com.google.common.collect.ImmutableSortedSet
@@ -18,7 +21,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
-import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.AttributeSplittable
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
@@ -27,6 +29,7 @@ import org.locationtech.geomesa.index.index.AttributeIndex.AttributeRowDecoder
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -105,7 +108,15 @@ object AttributeWritableIndex extends LazyLogging {
 
   private val typeRegistry   = LexiTypeEncoders.LEXI_TYPES
   private val simpleEncoders = SimpleTypeEncoders.SIMPLE_TYPES.getAllEncoders
-  private val dateFormat     = ISODateTimeFormat.dateTime()
+
+  private val dateFormat =
+    new DateTimeFormatterBuilder()
+        .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+        .optionalStart()
+        .appendOffsetId()
+        .toFormatter(Locale.US)
+        .withZone(ZoneOffset.UTC)
 
   private type TryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]
 
@@ -321,7 +332,7 @@ object AttributeWritableIndex extends LazyLogging {
     }
     val result = if (desired == classOf[Date] && current == classOf[String]) {
       // try to parse the string as a date - right now we support just ISO format
-      Try(dateFormat.parseDateTime(value.asInstanceOf[String]).toDate)
+      Try(DateParsing.parseDate(value.asInstanceOf[String], dateFormat))
     } else {
       // cheap way to convert between basic classes (string, int, double, etc) - encode the value
       // to a string and then decode to the desired class

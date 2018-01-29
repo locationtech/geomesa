@@ -9,6 +9,8 @@
 
 package org.locationtech.geomesa.filter.function
 
+import java.time.temporal.ChronoField
+
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.Base64
 import org.geotools.filter.FunctionExpressionImpl
@@ -38,9 +40,9 @@ class Convert2ViewerFunction
   }
 
   private def dtg2Long(d: Any): Long = d match {
-    case l:    Long                           => l
-    case jud:  java.util.Date                 => jud.getTime
-    case inst: org.joda.time.ReadableInstant  => inst.getMillis
-    case inst: org.opengis.temporal.Instant   => inst.getPosition.getDate.getTime
+    case l:    Long                         => l
+    case jud:  java.util.Date               => jud.getTime
+    case tmp: java.time.temporal.Temporal   => tmp.getLong(ChronoField.INSTANT_SECONDS) + tmp.get(ChronoField.MILLI_OF_SECOND)
+    case inst: org.opengis.temporal.Instant => inst.getPosition.getDate.getTime
   }
 }

@@ -10,38 +10,39 @@ package org.locationtech.geomesa.fs.tools.compact
 
 import java.io.File
 
-import com.beust.jcommander.{Parameter, ParameterException, Parameters}
+import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
-import org.locationtech.geomesa.fs.tools.ingest.TempDirParam
+import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.tools.compact.CompactCommand.CompactParams
+import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.{OrcCompactionJob, ParquetCompactionJob}
+import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.TempDirParam
 import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams, PartitionParam}
+import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.ingest.AbstractIngest
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.PrintProgress
-import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, DistributedRunParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
 import scala.collection.JavaConversions._
 
 class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
-  override val name: String = "compact"
-  override val params = new CompactParams
+  private val libjarsFileName = "org/locationtech/geomesa/fs/tools/ingest-libjars.list"
 
-  override def execute(): Unit = {
-    if (!Seq(RunModes.Distributed, RunModes.Local).contains(params.runMode)) {
-      throw new ParameterException(s"Invalid run mode '${params.runMode}'")
-    }
-    withDataStore(compact)
-  }
-
-  val libjarsFile: String = "org/locationtech/geomesa/fs/tools/ingest-libjars.list"
-
-  def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
+  private def libjarsSearchPath: Iterator[() => Seq[File]] = Iterator(
     () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_FS_HOME"),
     () => ClassPathUtils.getJarsFromClasspath(classOf[FileSystemDataStore])
   )
+
+  override val name: String = "compact"
+  override val params = new CompactParams
+
+  override def execute(): Unit = withDataStore(compact)
 
   def compact(ds: FileSystemDataStore): Unit = {
     Command.user.info(s"Beginning Compaction Process...updating metadata")
@@ -61,7 +62,15 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
     }
     Command.user.info(s"Compacting ${toCompact.size} partitions")
 
-    params.runMode match {
+    val mode = Option(params.mode).getOrElse {
+      if (PathUtils.isRemote(ds.storage.getRoot.toString)) {
+        RunModes.Distributed
+      } else {
+        RunModes.Local
+      }
+    }
+
+    mode match {
       case RunModes.Local =>
         toCompact.foreach { p =>
           logger.info(s"Compacting ${params.featureName}:$p")
@@ -70,12 +79,18 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
         }
 
       case RunModes.Distributed =>
+        val job = if (params.encoding == ParquetFileSystemStorage.ParquetEncoding) {
+          new ParquetCompactionJob()
+        } else if (params.encoding == OrcFileSystemStorage.OrcEncoding) {
+          new OrcCompactionJob()
+        } else {
+          throw new ParameterException(s"Compaction is not supported for encoding ${params.encoding}")
+        }
         val tempDir = Option(params.tempDir).map(t => new Path(t))
-        val job = new ParquetCompactionJob(ds.getSchema(params.featureName), ds.root, tempDir)
         val statusCallback = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
 
         val start = System.currentTimeMillis()
-        val (success, failed) = job.run(connection, params.featureName, toCompact, libjarsFile, libjarsPaths, statusCallback)
+        val (success, failed) = job.run(connection, params.featureName, toCompact, tempDir, libjarsFileName, libjarsSearchPath, statusCallback)
         Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
         Command.user.info(AbstractIngest.getStatInfo(success, failed))
     }
@@ -84,13 +99,8 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
   }
 }
 
-@Parameters(commandDescription = "Compact partitions")
-class CompactParams extends FsParams with RequiredTypeNameParam with TempDirParam with PartitionParam {
-  @Parameter(names = Array("--mode"), description = "Run mode for compaction ('local' or 'distributed' via mapreduce)", required = false)
-  var runMode: String = "distributed"
-}
-
-object RunModes {
-  val Distributed = "distributed"
-  val Local = "local"
+object CompactCommand {
+  @Parameters(commandDescription = "Compact partitions")
+  class CompactParams extends FsParams
+      with RequiredTypeNameParam with TempDirParam with PartitionParam with DistributedRunParam
 }

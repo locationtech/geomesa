@@ -65,8 +65,8 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     }
 
     lazy val dates = intervals.map { i =>
-      (i.values.map(_.lower.value.map(_.getMillis).getOrElse(0L)).min,
-          i.values.map(_.upper.value.map(_.getMillis).getOrElse(Long.MaxValue)).max)
+      (i.values.map(_.lower.value.map(_.toInstant.toEpochMilli).getOrElse(0L)).min,
+          i.values.map(_.upper.value.map(_.toInstant.toEpochMilli).getOrElse(Long.MaxValue)).max)
     }
     // TODO GEOMESA-1336 fix exclusive AND handling for list types
     lazy val bounds = AttributeQueryableIndex.getBounds(sft, primary, dates)

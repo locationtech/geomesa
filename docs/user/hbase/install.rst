@@ -123,7 +123,17 @@ A few suggested configurations are below:
 
         You will also need to provide the hbase-site.xml file within a the GeoMesa ``conf`` directory, an external
         directory, zip, or JAR archive (an entry referencing the XML file directly will not work with the Java
-        classpath)
+        classpath). 
+
+        When creating a zip or jar file, the hbase-site.xml should be at the root level of the archive
+        and not nested within any packages or subfolders. For example:
+
+        .. code-block:: bash
+
+            $ jar tf my.jar
+            META-INF/
+            META-INF/MANIFEST.MF
+            hbase-site.xml 
 
         .. code-block:: bash
 
@@ -131,6 +141,8 @@ A few suggested configurations are below:
             cp /path/to/hbase-site.xml ${GEOMESA_HBASE_HOME}/conf/
 
             # or this
+            cd /path/to/hbase-conf-dir
+            jar cvf conf.jar hbase-site.xml
             export GEOMESA_EXTRA_CLASSPATHS=/path/to/confdir:/path/to/conf.zip:/path/to/conf.jar
 
 
@@ -464,3 +476,15 @@ Then start up the Spark shell:
 .. code-block:: shell
 
     spark-shell --jars $SPARK_JARS
+
+Configuring HBase on Azure HDInsight
+------------------------------------
+
+HDInsight generally creates ``HBASE_HOME`` in HDFS under the path ``/hbase``. In order to make the GeoMesa
+coprocessors and filters available to the region servers, use the ``hadoop`` filesystem command to put
+the GeoMesa JAR there:
+
+.. code-block:: shell
+
+    hadoop fs -mkdir /hbase/lib
+    hadoop fs -put geomesa-hbase-distributed-runtime-$VERSION.jar /hbase/lib/

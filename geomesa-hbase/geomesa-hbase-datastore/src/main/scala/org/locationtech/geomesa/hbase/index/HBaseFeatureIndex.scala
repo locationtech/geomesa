@@ -134,12 +134,11 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
   override def delete(sft: SimpleFeatureType, ds: HBaseDataStore, shared: Boolean): Unit = {
     if (shared) { removeAll(sft, ds) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
-      val admin = ds.connection.getAdmin
-      try {
-        admin.disableTable(table)
-        admin.deleteTable(table)
-      } finally {
-        admin.close()
+      WithClose(ds.connection.getAdmin) { admin =>
+        if (admin.tableExists(table)) {
+          admin.disableTable(table)
+          admin.deleteTable(table)
+        }
       }
     }
   }

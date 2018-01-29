@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.index
 import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.iterators.{KryoAttributeKeyValueIterator, KryoLazyFilterTransformIterator}
@@ -34,13 +33,11 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
     "dtg:Date:default=true," +
     "*geom:Point:srid=4326"
 
-  val dtf = ISODateTimeFormat.dateTime().withZoneUTC()
-
   def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = Seq(
-    Array("alice",   20,   1, dtf.parseDateTime("2014-01-01T12:00:00.000Z").toDate, WKTUtils.read("POINT(45.0 49.0)")),
-    Array("bill",    21,   2, dtf.parseDateTime("2014-01-02T12:00:00.000Z").toDate, WKTUtils.read("POINT(46.0 49.0)")),
-    Array("bob",     30,   3, dtf.parseDateTime("2014-01-03T12:00:00.000Z").toDate, WKTUtils.read("POINT(47.0 49.0)")),
-    Array("charles", null, 4, dtf.parseDateTime("2014-01-04T12:00:00.000Z").toDate, WKTUtils.read("POINT(48.0 49.0)"))
+    Array("alice",   20,   1, "2014-01-01T12:00:00.000Z", WKTUtils.read("POINT(45.0 49.0)")),
+    Array("bill",    21,   2, "2014-01-02T12:00:00.000Z", WKTUtils.read("POINT(46.0 49.0)")),
+    Array("bob",     30,   3, "2014-01-03T12:00:00.000Z", WKTUtils.read("POINT(47.0 49.0)")),
+    Array("charles", null, 4, "2014-01-04T12:00:00.000Z", WKTUtils.read("POINT(48.0 49.0)"))
   ).map { entry =>
     val feature = new ScalaSimpleFeature(sft, entry.head.toString)
     feature.setAttributes(entry.asInstanceOf[Array[AnyRef]])

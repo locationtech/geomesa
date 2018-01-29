@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.metrics.reporters
 
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -21,7 +23,6 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
-import org.joda.time.format.DateTimeFormat
 
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
@@ -67,7 +68,7 @@ object AccumuloReporter {
     private var clock: Clock = Clock.defaultClock
     private var filter: MetricFilter = MetricFilter.ALL
     private var table: String = "metrics"
-    private var visibilities: String = null
+    private var visibilities: String = _
     private var mock: Boolean = false
 
     def formatFor(locale: Locale): Builder = { this.locale = locale; this }
@@ -120,7 +121,7 @@ class AccumuloReporter private (registry: MetricRegistry,
     }
   }
   private val writer = connector.createBatchWriter(table, new BatchWriterConfig)
-  private val timeEncoder = DateTimeFormat.forPattern("yyyyMMddHHmmss").withZoneUTC()
+  private val timeEncoder = DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.US).withZone(ZoneOffset.UTC)
   private val visibility = visibilities.map(new ColumnVisibility(_))
 
   override def stop(): Unit = {
@@ -132,8 +133,8 @@ class AccumuloReporter private (registry: MetricRegistry,
                       counters: java.util.SortedMap[String, Counter],
                       histograms: java.util.SortedMap[String, Histogram],
                       meters: java.util.SortedMap[String, Meter],
-                      timers: java.util.SortedMap[String, Timer]) = {
-    lazy val timestamp = timeEncoder.print(clock.getTime)
+                      timers: java.util.SortedMap[String, Timer]): Unit = {
+    lazy val timestamp = ZonedDateTime.ofInstant(Instant.ofEpochMilli(clock.getTime), ZoneOffset.UTC).format(timeEncoder)
     addMutations(gauges.toSeq.map { case (name, metric) => gaugeToMutation(name, timestamp, metric) })
     addMutations(counters.toSeq.map { case (name, metric) => counterToMutation(name, timestamp, metric) })
     addMutations(histograms.toSeq.map { case (name, metric) => histogramToMutation(name, metric) })

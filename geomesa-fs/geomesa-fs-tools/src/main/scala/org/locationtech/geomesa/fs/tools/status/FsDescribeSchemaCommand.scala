@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.status.FsDescribeSchemaCommand.FsDescribeSchemaParams
 import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.status.DescribeSchemaCommand
@@ -18,5 +19,7 @@ class FsDescribeSchemaCommand extends DescribeSchemaCommand[FileSystemDataStore]
   override val params = new FsDescribeSchemaParams
 }
 
-@Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
-class FsDescribeSchemaParams extends FsParams with RequiredTypeNameParam
+object FsDescribeSchemaCommand {
+  @Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
+  class FsDescribeSchemaParams extends FsParams with RequiredTypeNameParam
+}

@@ -9,18 +9,17 @@
 
     <artifactId>geomesa-fs_2.11</artifactId>
     <name>GeoMesa FileSystem</name>
+
+    <packaging>pom</packaging>
+
     <modules>
         <module>geomesa-fs-datastore</module>
-        <module>geomesa-fs-storage-api</module>
-        <module>geomesa-fs-storage-common</module>
-        <module>geomesa-fs-storage-parquet</module>
+        <module>geomesa-fs-storage</module>
         <module>geomesa-fs-tools</module>
         <module>geomesa-fs-gs-plugin</module>
         <module>geomesa-fs-spark</module>
         <module>geomesa-fs-spark-runtime</module>
         <module>geomesa-fs-dist</module>
     </modules>
-
-    <packaging>pom</packaging>
 
 </project>

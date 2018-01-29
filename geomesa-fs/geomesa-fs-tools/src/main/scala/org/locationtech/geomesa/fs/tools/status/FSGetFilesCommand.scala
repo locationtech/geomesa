@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.{ParameterException, Parameters}
+import org.locationtech.geomesa.fs.tools.status.FSGetFilesCommand.FSGetFilesParams
 import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
@@ -39,5 +40,7 @@ class FSGetFilesCommand extends FsDataStoreCommand {
   }
 }
 
-@Parameters(commandDescription = "List files for partitions")
-class FSGetFilesParams extends FsParams with RequiredTypeNameParam with PartitionParam
+object FSGetFilesCommand {
+  @Parameters(commandDescription = "List files for partitions")
+  class FSGetFilesParams extends FsParams with RequiredTypeNameParam with PartitionParam
+}

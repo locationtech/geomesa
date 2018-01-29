@@ -14,7 +14,6 @@ import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloQueryEventTransform}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
@@ -28,8 +27,6 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class QueryStatTransformTest extends Specification {
-
-  val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
 
   val table = "QueryStatTransformTest"
   val featureName = "stat-writer-test"

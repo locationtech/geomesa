@@ -144,7 +144,7 @@ Next, initialize an ``RDD[SimpleFeature]`` using this provider:
 .. code-block:: scala
 
     // Get an RDD[SimpleFeature] from the spatial RDD provider
-    val rdd = spatialRDDProvider.rdd(new Configuration, sc, params, q)
+    val queryRDD = spatialRDDProvider.rdd(new Configuration, sc, params, q)
 
 Finally, we construct our computation which consists of extracting the
 ``SQLDATE`` from each ``SimpleFeature`` and truncating it to the day

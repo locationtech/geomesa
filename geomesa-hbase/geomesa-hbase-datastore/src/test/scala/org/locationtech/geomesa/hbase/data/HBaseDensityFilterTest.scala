@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
@@ -19,7 +20,6 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
@@ -68,14 +68,14 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
+        sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(-77 38)")
         sf
       }  :+ {
         val sf2 = new ScalaSimpleFeature(sft, "200")
         sf2.setAttribute(0, "200")
         sf2.setAttribute(1, "1.0")
-        sf2.setAttribute(2, new DateTime("2010-01-01T19:00:00", DateTimeZone.UTC).toDate)
+        sf2.setAttribute(2, "2010-01-01T19:00:00Z")
         sf2.setAttribute(3, "POINT(1 1)")
         sf2
       }
@@ -95,7 +95,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
+        sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(-77 38)")
         sf
       }
@@ -116,7 +116,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate)
+        sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(-77 38)")
         sf
       }
@@ -133,12 +133,11 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
     "maintain weights irrespective of dates" in {
       clearFeatures()
 
-      val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
       val toAdd = (0 until 150).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
+        sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
         sf.setAttribute(3, "POINT(-77 38)")
         sf
       }
@@ -155,14 +154,13 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
     "correctly bin points" in {
       clearFeatures()
 
-      val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
       val toAdd = (0 until 150).map { i =>
         // space out the points very slightly around 5 primary latitudes 1 degree apart
         val lat = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
+        sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
         sf.setAttribute(3, s"POINT($lat 37)")
         sf
       }
@@ -175,7 +173,7 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
       val density = getDensity(typeName, q, fs)
       density.map(_._3).sum mustEqual 150
 
-      val compiled = density.groupBy(d => (d._1, d._2)).map { case (pt, group) => group.map(_._3).sum }
+      val compiled = density.groupBy(d => (d._1, d._2)).map { case (_, group) => group.map(_._3).sum }
 
       // should be 5 bins of 30
       compiled must haveLength(5)

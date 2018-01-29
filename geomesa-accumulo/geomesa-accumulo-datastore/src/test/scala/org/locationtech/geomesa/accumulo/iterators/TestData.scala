@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.util.Date
+
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.data.Value
@@ -16,7 +19,6 @@ import org.geotools.data.DataStore
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
@@ -34,7 +36,7 @@ object TestData extends LazyLogging {
   val TEST_AUTHORIZATIONS = new Authorizations()
   val emptyBytes = new Value(Array[Byte]())
 
-  case class Entry(wkt: String, id: String, dt: DateTime = new DateTime(defaultDateTime))
+  case class Entry(wkt: String, id: String, dt: ZonedDateTime = defaultDateTime)
 
   // set up the geographic query polygon
   val wktQuery = "POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"
@@ -85,7 +87,7 @@ object TestData extends LazyLogging {
 
   lazy val binEncoder = BinEncoder(featureType)
 
-  val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
+  val defaultDateTime = ZonedDateTime.of(2011, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC)
 
   def createSF(e: Entry): SimpleFeature = createSF(e, featureType)
 
@@ -94,7 +96,7 @@ object TestData extends LazyLogging {
     val entry =
       AvroSimpleFeatureFactory.buildAvroFeature(
         sft,
-        List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate),
+        List(null, null, null, null, geometry, Date.from(e.dt.toInstant), Date.from(e.dt.toInstant)),
         s"${e.id}")
     entry.setAttribute("attr2", "2nd" + e.id)
     entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -163,17 +165,17 @@ object TestData extends LazyLogging {
 
   def generateTestData(num: Int) = {
     val rng = new Random(0)
-    val minTime = new DateTime(2010, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).getMillis
-    val maxTime = new DateTime(2010, 8, 31, 23, 59, 59, DateTimeZone.forID("UTC")).getMillis
+    val minTime = ZonedDateTime.of(2010, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC).toInstant.toEpochMilli
+    val maxTime = ZonedDateTime.of(2010, 8, 31, 23, 59, 59, 999000000, ZoneOffset.UTC).toInstant.toEpochMilli
 
     val pts = (1 to num).map(i => {
       val wkt = "POINT(" +
         (40.0 + 10.0 * rng.nextDouble()).toString + " " +
         (20.0 + 10.0 * rng.nextDouble()).toString + " " +
         ")"
-      val dt = new DateTime(
-        math.round(minTime + (maxTime - minTime) * rng.nextDouble()),
-        DateTimeZone.forID("UTC")
+      val dt = ZonedDateTime.ofInstant(
+        Instant.ofEpochMilli(math.round(minTime + (maxTime - minTime) * rng.nextDouble())),
+        ZoneOffset.UTC
       )
       Entry(wkt, (100000 + i).toString, dt)
     }).toList

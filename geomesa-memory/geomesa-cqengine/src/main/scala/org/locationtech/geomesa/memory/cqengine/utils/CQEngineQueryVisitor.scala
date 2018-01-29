@@ -362,8 +362,8 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         FilterHelper.extractIntervals(after, name).values.headOption.getOrElse {
           throw new RuntimeException(s"Can't parse after values ${filterToString(after)}")
         }.bounds match {
-          case (Some(lo), None) => new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, lo.toDate, false)
-          case (None, Some(hi)) => new cqquery.simple.LessThan[SimpleFeature, Date](attr, hi.toDate, false)
+          case (Some(lo), None) => new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, Date.from(lo.toInstant), false)
+          case (None, Some(hi)) => new cqquery.simple.LessThan[SimpleFeature, Date](attr, Date.from(hi.toInstant), false)
         }
 
       case c => throw new RuntimeException(s"After: $c not supported")
@@ -381,8 +381,8 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         FilterHelper.extractIntervals(before, name).values.headOption.getOrElse {
           throw new RuntimeException(s"Can't parse before values ${filterToString(before)}")
         }.bounds match {
-          case (Some(lo), None) => new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, lo.toDate, false)
-          case (None, Some(hi)) => new cqquery.simple.LessThan[SimpleFeature, Date](attr, hi.toDate, false)
+          case (Some(lo), None) => new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, Date.from(lo.toInstant), false)
+          case (None, Some(hi)) => new cqquery.simple.LessThan[SimpleFeature, Date](attr, Date.from(hi.toInstant), false)
         }
 
       case c => throw new RuntimeException(s"Before: $c not supported")
@@ -400,8 +400,8 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         val bounds = FilterHelper.extractIntervals(during, name).values.headOption.getOrElse {
           throw new RuntimeException(s"Can't parse during values ${filterToString(during)}")
         }
-        new cqquery.simple.Between[SimpleFeature, java.util.Date](attr, bounds.lower.value.get.toDate,
-          bounds.lower.inclusive, bounds.upper.value.get.toDate, bounds.upper.inclusive)
+        new cqquery.simple.Between[SimpleFeature, java.util.Date](attr, Date.from(bounds.lower.value.get.toInstant),
+          bounds.lower.inclusive, Date.from(bounds.upper.value.get.toInstant), bounds.upper.inclusive)
 
       case c => throw new RuntimeException(s"During: $c not supported")
     }

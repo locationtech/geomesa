@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicLong
 
 import com.google.common.cache._
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.FileSystem
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
@@ -25,10 +24,9 @@ import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class FileSystemFeatureStore(entry: ContentEntry,
+class FileSystemFeatureStore(storage: FileSystemStorage,
+                             entry: ContentEntry,
                              query: Query,
-                             fs: FileSystem,
-                             storage: FileSystemStorage,
                              readThreads: Int) extends ContentFeatureStore(entry, query) with LazyLogging {
   private val _sft = storage.getFeatureType(entry.getTypeName)
 
@@ -114,7 +112,7 @@ class FileSystemFeatureStore(entry: ContentEntry,
     val transformSft = query.getHints.getTransformSchema.getOrElse(_sft)
 
     val scheme = storage.getPartitionScheme(_sft.getTypeName)
-    val iter = new FileSystemFeatureIterator(fs, scheme, _sft, query, readThreads, storage)
+    val iter = new FileSystemFeatureIterator(_sft, storage, scheme, query, readThreads)
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 
@@ -123,7 +121,8 @@ class FileSystemFeatureStore(entry: ContentEntry,
   override def canTransact: Boolean = false
   override def canEvent: Boolean = false
   override def canReproject: Boolean = false
+  override def canSort: Boolean = false
+
   override def canRetype: Boolean = true
-  override def canSort: Boolean = true
   override def canFilter: Boolean = true
 }
