@@ -16,7 +16,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.io.Text
 import org.geotools.data.{Query, Transaction}
-import org.joda.time._
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -52,7 +51,7 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
     override def run(): Unit = {
       import org.locationtech.geomesa.accumulo.AccumuloProperties.StatsProperties.STAT_COMPACTION_INTERVAL
       val compactInterval = STAT_COMPACTION_INTERVAL.toDuration.get.toMillis
-      if (lastCompaction.get < DateTimeUtils.currentTimeMillis() - compactInterval &&
+      if (lastCompaction.get < System.currentTimeMillis() - compactInterval &&
           compactionScheduled.compareAndSet(true, false) ) {
         compact()
       }
@@ -168,7 +167,7 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
   private def compact(): Unit = {
     compactionScheduled.set(false)
     ds.connector.tableOperations().compact(statsTable, null, null, true, true)
-    lastCompaction.set(DateTimeUtils.currentTimeMillis())
+    lastCompaction.set(System.currentTimeMillis())
   }
 }
 

@@ -37,7 +37,7 @@ class GeoMesaCoverageQueryParams(parameters: Array[GeneralParameterValue]) {
   val max = Array(correctedMaxLongitude, correctedMaxLatitude)
   val bbox = BoundingBox(Bounds(min(0), max(0)), Bounds(min(1), max(1)))
 
-  def toRasterQuery: RasterQuery = RasterQuery(bbox, suggestedQueryResolution, None, None)
+  def toRasterQuery: RasterQuery = RasterQuery(bbox, suggestedQueryResolution)
 
   def correctedMaxLongitude: Double = Math.max(Math.min(envelope.getMaximum(0), 180), -180.0)
 

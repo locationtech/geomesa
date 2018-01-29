@@ -16,7 +16,6 @@ import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter =
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
-import org.locationtech.geomesa.index.index.IndexAdapter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait HBasePlatform extends HBaseIndexAdapter {
@@ -33,8 +32,8 @@ trait HBasePlatform extends HBaseIndexAdapter {
       case None =>
         // optimize the scans
         val scans = ranges.head match {
-          case t: Get  => configureGet(ranges, hbaseFilters)
-          case t: Scan => configureMultiRowRangeFilter(ds, ranges, hbaseFilters)
+          case t: Get  => configureGet(ranges.asInstanceOf[Seq[Get]], hbaseFilters)
+          case t: Scan => configureMultiRowRangeFilter(ds, ranges.asInstanceOf[Seq[Scan]], hbaseFilters)
         }
         ScanPlan(filter, table, scans, toFeatures)
 
@@ -44,19 +43,20 @@ trait HBasePlatform extends HBaseIndexAdapter {
     }
   }
 
-  private def configureGet(originalRanges: Seq[Query], hbaseFilters: Seq[(Int, HFilter)]): Seq[Scan] = {
-    val filterList = new FilterList(hbaseFilters.sortBy(_._1).map(_._2): _*)
+  private def configureGet(originalRanges: Seq[Get], hbaseFilters: Seq[(Int, HFilter)]): Seq[Scan] = {
+    val filterList = if (hbaseFilters.isEmpty) { None } else {
+      Some(new FilterList(hbaseFilters.sortBy(_._1).map(_._2): _*))
+    }
     // convert Gets to Scans for Spark SQL compatibility
     originalRanges.map { r =>
-      val g = r.asInstanceOf[Get]
-      val start = g.getRow
-      val end = IndexAdapter.rowFollowingRow(start)
-      new Scan(g).setStartRow(start).setStopRow(end).setFilter(filterList).setSmall(true)
+      val scan = new Scan(r).setSmall(true)
+      filterList.foreach(scan.setFilter)
+      scan
     }
   }
 
   private def configureMultiRowRangeFilter(ds: HBaseDataStore,
-                                           originalRanges: Seq[Query],
+                                           originalRanges: Seq[Scan],
                                            hbaseFilters: Seq[(Int, HFilter)]) = {
     import scala.collection.JavaConversions._
 
@@ -64,7 +64,7 @@ trait HBasePlatform extends HBaseIndexAdapter {
 
     val rowRanges = Lists.newArrayList[RowRange]()
     originalRanges.foreach { r =>
-      rowRanges.add(new RowRange(r.asInstanceOf[Scan].getStartRow, true, r.asInstanceOf[Scan].getStopRow, false))
+      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
     }
     val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
     val numRanges = sortedRowRanges.length

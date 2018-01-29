@@ -37,7 +37,7 @@ public class GeometryFields {
       if (type instanceof ArrowType.FloatingPoint) {
         return ((ArrowType.FloatingPoint) type).getPrecision();
       } else if (type instanceof ArrowType.FixedSizeList || type instanceof ArrowType.List) {
-        toCheck = field.getChildren().get(0);
+        toCheck = toCheck.getChildren().get(0);
       } else {
         return null;
       }

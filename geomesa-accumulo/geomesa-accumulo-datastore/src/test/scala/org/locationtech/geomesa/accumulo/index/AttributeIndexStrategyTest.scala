@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import java.util.Date
+
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.geotools.data._
@@ -15,7 +17,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.format.ISODateTimeFormat
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
@@ -48,17 +50,15 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       "*geom:Point:srid=4326,dtg:Date,indexedDtg:Date:index=join,fingers:List[String]:index=join," +
       "toes:List[Double]:index=join,track:String,geom2:Point:srid=4326;geomesa.indexes.enabled='attr,id'"
 
-  val df = ISODateTimeFormat.dateTime()
-
   val aliceGeom   = WKTUtils.read("POINT(45.0 49.0)")
   val billGeom    = WKTUtils.read("POINT(46.0 49.0)")
   val bobGeom     = WKTUtils.read("POINT(47.0 49.0)")
   val charlesGeom = WKTUtils.read("POINT(48.0 49.0)")
 
-  val aliceDate   = df.parseDateTime("2012-01-01T12:00:00.000Z").toDate
-  val billDate    = df.parseDateTime("2013-01-01T12:00:00.000Z").toDate
-  val bobDate     = df.parseDateTime("2014-01-01T12:00:00.000Z").toDate
-  val charlesDate = df.parseDateTime("2014-01-01T12:30:00.000Z").toDate
+  val aliceDate   = Converters.convert("2012-01-01T12:00:00.000Z", classOf[Date])
+  val billDate    = Converters.convert("2013-01-01T12:00:00.000Z", classOf[Date])
+  val bobDate     = Converters.convert("2014-01-01T12:00:00.000Z", classOf[Date])
+  val charlesDate = Converters.convert("2014-01-01T12:30:00.000Z", classOf[Date])
 
   val aliceFingers   = List("index")
   val billFingers    = List("ring", "middle")
@@ -124,6 +124,21 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
+      forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      forall(results)(_ must beAnInstanceOf[Array[Byte]])
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
+      bins must haveSize(3)
+      bins.map(_.trackId) must containAllOf(Seq("bill", "bob", "charles").map(_.hashCode))
+    }
+
+    "support bin queries with join queries and transforms" in {
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+      val query = new Query(sftName, ECQL.toFilter("count>=2"), Array("dtg", "geom", "name")) // note: swap order
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_DTG, "dtg")
+      query.getHints.put(BIN_GEOM, "geom")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList

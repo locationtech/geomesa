@@ -11,7 +11,6 @@ package org.locationtech.geomesa.process.query
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
@@ -31,7 +30,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
     List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
       val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-      sf.setAttribute("dtg", new DateTime(s"2011-01-0${i}T00:00:00Z", DateTimeZone.UTC).toDate)
+      sf.setAttribute("dtg", s"2011-01-0${i}T00:00:00Z")
       sf.setAttribute("type", name)
       sf
     }

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.process.analytic
 
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import org.geotools.data.collection.ListFeatureCollection
@@ -16,8 +17,6 @@ import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuild
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.DateTime
-import org.joda.time.DateTime.Property
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SftBuilder
@@ -73,7 +72,7 @@ class Point2PointProcess extends GeoMesaProcess {
     val lineFeatures =
       SelfClosingIterator(data.features()).toList
         .groupBy(_.get(groupingFieldIndex).asInstanceOf[String])
-        .filter { case (_, coll) => coll.size > minPoints }
+        .filter { case (_, coll) => coll.lengthCompare(minPoints) > 0 }
         .flatMap { case (group, coll) =>
 
         val globalSorted = coll.sortBy(_.get[java.util.Date](sortFieldIndex))
@@ -83,7 +82,7 @@ class Point2PointProcess extends GeoMesaProcess {
           else
             globalSorted
               .groupBy { f => getDayOfYear(sortFieldIndex, f) }
-              .filter { case (_, g) => g.size >= 2 }  // need at least two points in a day to create a
+              .filter { case (_, g) => g.lengthCompare(2) >= 0 }  // need at least two points in a day to create a
               .map { case (_, g) => g }.toArray
 
         val results = groups.flatMap { sorted =>
@@ -110,6 +109,6 @@ class Point2PointProcess extends GeoMesaProcess {
     new ListFeatureCollection(sft, lineFeatures.toList)
   }
 
-  def getDayOfYear(sortFieldIndex: Int, f: SimpleFeature): Property =
-    new DateTime(f.getAttribute(sortFieldIndex).asInstanceOf[Date]).dayOfYear()
+  def getDayOfYear(sortFieldIndex: Int, f: SimpleFeature): Int =
+    ZonedDateTime.ofInstant(f.getAttribute(sortFieldIndex).asInstanceOf[Date].toInstant, ZoneOffset.UTC).getDayOfYear
 }

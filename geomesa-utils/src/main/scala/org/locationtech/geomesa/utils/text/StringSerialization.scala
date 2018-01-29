@@ -8,16 +8,17 @@
 
 package org.locationtech.geomesa.utils.text
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter}
-import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
 import org.opengis.feature.simple.SimpleFeatureType
 
 object StringSerialization extends LazyLogging {
 
-  private val dateFormat: DateTimeFormatter = ISODateTimeFormat.dateTime().withZoneUTC()
+  private val dateFormat: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
 
   /**
     * Encode a map of sequences as a string
@@ -30,7 +31,7 @@ object StringSerialization extends LazyLogging {
     val printer = new CSVPrinter(sb, CSVFormat.DEFAULT)
     map.foreach { case (k, v) =>
       val strings = v.headOption match {
-        case Some(_: Date) => v.map(d => dateFormat.print(d.asInstanceOf[Date].getTime))
+        case Some(_: Date) => v.map(d => ZonedDateTime.ofInstant(d.asInstanceOf[Date].toInstant, ZoneOffset.UTC).format(dateFormat))
         case _ => v
       }
       printer.print(k)
@@ -72,7 +73,7 @@ object StringSerialization extends LazyLogging {
         case Some(c) if c == classOf[java.lang.Long]      => iter.map(java.lang.Long.valueOf).toArray[AnyRef]
         case Some(c) if c == classOf[java.lang.Float]     => iter.map(java.lang.Float.valueOf).toArray[AnyRef]
         case Some(c) if c == classOf[java.lang.Double]    => iter.map(java.lang.Double.valueOf).toArray[AnyRef]
-        case Some(c) if classOf[Date].isAssignableFrom(c) => iter.map(v => new Date(dateFormat.parseMillis(v))).toArray[AnyRef]
+        case Some(c) if classOf[Date].isAssignableFrom(c) => iter.map(v => Date.from(ZonedDateTime.parse(v, dateFormat).toInstant)).toArray[AnyRef]
         case Some(c) if c == classOf[java.lang.Boolean]   => iter.map(java.lang.Boolean.valueOf).toArray[AnyRef]
         case c => logger.warn(s"No conversion defined for encoded attribute '$key' of type ${c.orNull}"); iter.toArray[AnyRef]
       }

@@ -17,7 +17,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.{DateTime, DateTimeZone}
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.RecordIndex
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
@@ -42,7 +42,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
     dataFile.load(getClass.getClassLoader.getResourceAsStream("data/density-iterator.properties"))
     dataFile.toMap
   }
-  val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
+  val date = Converters.convert("2012-01-01T19:00:00Z", classOf[Date]).getTime
 
   def spec(binding: String) = s"an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,*geom:$binding:srid=4326"
 

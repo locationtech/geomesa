@@ -132,7 +132,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
       output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
 
       output.pushLevel("Strategy selection:")
-      val requestedIndex = requested.orElse(hints.getRequestedIndex.flatMap(toIndex(sft, _)))
+      val requestedIndex = requested.orElse(hints.getRequestedIndex.map(toIndex(sft, _)))
       val transform = query.getHints.getTransformSchema
       val evaluation = query.getHints.getCostEvaluation
       val strategies = StrategyDecider.getFilterPlan(ds, sft, query.getFilter, transform, evaluation, requestedIndex, output)
@@ -153,7 +153,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
     }
   }
 
-  private def toIndex(sft: SimpleFeatureType, name: String): Option[GeoMesaFeatureIndex[DS, F, W]] = {
+  private def toIndex(sft: SimpleFeatureType, name: String): GeoMesaFeatureIndex[DS, F, W] = {
     val check = name.toLowerCase(Locale.US)
     val indices = ds.manager.indices(sft, IndexMode.Read)
     val value = if (check.contains(":")) {
@@ -161,11 +161,10 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
     } else {
       indices.find(_.name.toLowerCase(Locale.US) == check)
     }
-    if (value.isEmpty) {
-      logger.error(s"Ignoring invalid strategy name: $name. Valid values " +
+    value.getOrElse {
+      throw new IllegalArgumentException(s"Invalid index strategy name: $name. Valid values " +
           s"are ${indices.map(i => s"${i.name}, ${i.identifier}").mkString(", ")}")
     }
-    value
   }
 }
 

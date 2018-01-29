@@ -35,7 +35,10 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-storage-orc_${scala.binary.version}</artifactId>
+        </dependency>
 
         <!-- provided dependencies -->
         <dependency>

@@ -50,7 +50,7 @@ class QueryAndMosaicTest extends Specification {
   val permutationsOfThree = List(0, 1, 2).permutations.toSeq
 
   val lessPreciseQBox = BoundingBox(-77.1152343750, -77.1042480469, 43.0012207031, 43.0122070313)
-  val lessPreciseQuery = RasterQuery(lessPreciseQBox, 10.0, null, null)
+  val lessPreciseQuery = RasterQuery(lessPreciseQBox, 10.0)
 
   def getNewIteration() = {
     testIteration += 1

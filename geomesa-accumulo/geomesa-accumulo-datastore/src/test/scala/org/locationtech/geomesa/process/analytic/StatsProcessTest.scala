@@ -13,7 +13,6 @@ import java.util.Collections
 import org.geotools.data.Query
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -32,8 +31,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
   override val spec = "an_id:java.lang.Integer,attr:java.lang.Long,dtg:Date,*geom:Point:srid=4326"
 
   addFeatures((0 until 150).toArray.map { i =>
-    val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef],
-      new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+    val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef], "2012-01-01T19:00:00Z", "POINT(-77 38)")
     val sf = new ScalaSimpleFeature(sft, i.toString)
     sf.setAttributes(attrs)
     sf

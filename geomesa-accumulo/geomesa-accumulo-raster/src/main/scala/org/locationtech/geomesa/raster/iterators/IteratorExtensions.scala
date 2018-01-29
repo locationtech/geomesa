@@ -42,7 +42,6 @@ object IteratorExtensions {
   val GEOMESA_ITERATORS_TRANSFORM                = "geomesa.iterators.transform"
   val GEOMESA_ITERATORS_TRANSFORM_SCHEMA         = "geomesa.iterators.transform.schema"
   val GEOMESA_ITERATORS_IS_DENSITY_TYPE          = "geomesa.iterators.is-density-type"
-  val GEOMESA_ITERATORS_VERSION                  = "geomesa.iterators.version"
 
   val USER_DATA = ".userdata."
 
@@ -97,20 +96,10 @@ trait HasFeatureType {
   }
 }
 
-trait HasVersion extends IteratorExtensions {
-
-  var version: Int = -1
-
-  abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
-    super.init(featureType, options)
-    version = options.get(GEOMESA_ITERATORS_VERSION).toInt
-  }
-}
-
 /**
  * Provides an index value decoder
  */
-trait HasIndexValueDecoder extends HasVersion {
+trait HasIndexValueDecoder extends IteratorExtensions {
 
   var indexSft: SimpleFeatureType = null
   var indexEncoder: SimpleFeatureSerializer = null
@@ -118,10 +107,8 @@ trait HasIndexValueDecoder extends HasVersion {
   // index value encoder/decoder
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
-    val version = options.get(GEOMESA_ITERATORS_VERSION).toInt
     indexSft = SimpleFeatureTypes.createType(featureType.getTypeName,
       options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
-    indexSft.setSchemaVersion(version)
     // noinspection ScalaDeprecation
     indexEncoder = IndexValueEncoder(indexSft, featureType)
   }

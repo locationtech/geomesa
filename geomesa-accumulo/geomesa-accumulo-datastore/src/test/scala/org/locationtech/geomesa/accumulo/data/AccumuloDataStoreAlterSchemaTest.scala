@@ -8,13 +8,15 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
+
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.AttributeIndex
@@ -91,21 +93,21 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithDataStore {
         features.map(_.getID) must containTheSameElementsAs(Seq("f1", "f2"))
         features.sortBy(_.getID).map(_.getAttribute("geom").toString) mustEqual Seq("POINT (51 50)", "POINT (52 50)")
         features.sortBy(_.getID).map(_.getAttribute("dtg"))
-            .map(new DateTime(_).withZone(DateTimeZone.UTC).getHourOfDay) mustEqual Seq(1, 2)
+            .map(d => ZonedDateTime.ofInstant(d.asInstanceOf[Date].toInstant, ZoneOffset.UTC).getHour) mustEqual Seq(1, 2)
       }
       "for old attributes with new features" >> {
         val query = new Query(sftName, ECQL.toFilter("IN ('f1')"), Array("geom", "dtg"))
         val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
         features.map(_.getID) must containTheSameElementsAs(Seq("f1"))
         features.head.getAttribute("geom").toString mustEqual "POINT (51 50)"
-        new DateTime(features.head.getAttribute("dtg")).withZone(DateTimeZone.UTC).getHourOfDay mustEqual 1
+        ZonedDateTime.ofInstant(features.head.getAttribute("dtg").asInstanceOf[Date].toInstant, ZoneOffset.UTC).getHour mustEqual 1
       }
       "for old attributes with old features" >> {
         val query = new Query(sftName, ECQL.toFilter("IN ('f2')"), Array("geom", "dtg"))
         val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
         features.map(_.getID) must containTheSameElementsAs(Seq("f2"))
         features.head.getAttribute("geom").toString mustEqual "POINT (52 50)"
-        new DateTime(features.head.getAttribute("dtg")).withZone(DateTimeZone.UTC).getHourOfDay mustEqual 2
+        ZonedDateTime.ofInstant(features.head.getAttribute("dtg").asInstanceOf[Date].toInstant, ZoneOffset.UTC).getHour mustEqual 2
       }
       "for new attributes with new and old features" >> {
         val query = new Query(sftName, ECQL.toFilter("IN ('f1', 'f2')"), Array("geom", "attr1"))

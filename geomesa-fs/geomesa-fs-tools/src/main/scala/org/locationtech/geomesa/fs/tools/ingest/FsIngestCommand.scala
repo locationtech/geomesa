@@ -9,21 +9,27 @@
 package org.locationtech.geomesa.fs.tools.ingest
 
 import java.io.File
-import java.util
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.storage.common.conf.{PartitionSchemeArgResolver, SchemeArgs}
 import org.locationtech.geomesa.fs.storage.common.{PartitionOpts, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{OrcConverterJob, ParquetConverterJob}
+import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.{FileSystemConverterIngest, FsIngestParams}
 import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
+import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.DataFormats
+import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
-import scala.util.control.NonFatal
 
 // TODO we need multi threaded ingest for this
 class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStoreCommand {
@@ -66,46 +72,71 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
 
     // Can use this to set things like compression and summary levels for parquet in the sft user data
     // to be picked up by the ingest job
-    params.storageOpts.foreach { s =>
-      try {
-        val Array(k, v) = s.split("=", 1)
-        sft.getUserData.put(k,v)
-      } catch {
-        case NonFatal(e) => throw new ParameterException(s"Unable to parse storage opt $s")
-      }
-    }
+    params.storageOpts.foreach { case (k, v) => sft.getUserData.put(k,v) }
 
-    new ParquetConverterIngest(sft,
+    new FileSystemConverterIngest(sft,
         connection,
         converterConfig,
         params.files,
         Option(params.mode),
+        params.encoding,
         libjarsFile,
         libjarsPaths,
         params.threads,
-        new Path(params.path),
         Option(params.tempDir).map(new Path(_)),
         Option(params.reducers))
   }
 }
 
-@Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-class FsIngestParams extends IngestParams with FsParams with TempDirParam {
-  @Parameter(names = Array("--num-reducers"), description = "Num reducers (required for distributed ingest)", required = false)
-  var reducers: java.lang.Integer = _
+object FsIngestCommand {
+  @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
+  class FsIngestParams extends IngestParams with FsParams with TempDirParam {
+    @Parameter(names = Array("--num-reducers"), description = "Num reducers (required for distributed ingest)", required = false)
+    var reducers: java.lang.Integer = _
 
-  @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file", required = true)
-  var scheme: java.lang.String = _
+    @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file", required = true)
+    var scheme: java.lang.String = _
 
-  @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", required = false, arity = 1)
-  var leafStorage: java.lang.Boolean = true
+    @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", required = false, arity = 1)
+    var leafStorage: java.lang.Boolean = true
 
-  @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", required = false)
-  var storageOpts: java.util.List[java.lang.String] = new util.ArrayList[String]()
-}
+    @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", required = false, converter = classOf[KeyValueConverter])
+    var storageOpts: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
+  }
 
-trait TempDirParam {
-  @Parameter(names = Array("--temp-path"), description = "Path to temp dir for parquet ingest. " +
-    "Note that this may be useful when using s3 since its slow as a sink", required = false)
-  var tempDir: String = _
+  trait TempDirParam {
+    @Parameter(names = Array("--temp-path"), description = "Path to temp dir for writing output. " +
+        "Note that this may be useful when using s3 since it is slow as a sink", required = false)
+    var tempDir: String = _
+  }
+
+
+  class FileSystemConverterIngest(sft: SimpleFeatureType,
+                                  dsParams: Map[String, String],
+                                  converterConfig: Config,
+                                  inputs: Seq[String],
+                                  mode: Option[RunMode],
+                                  encoding: String,
+                                  libjarsFile: String,
+                                  libjarsPaths: Iterator[() => Seq[File]],
+                                  numLocalThreads: Int,
+                                  tempPath: Option[Path],
+                                  reducers: Option[java.lang.Integer])
+      extends ConverterIngest(sft, dsParams, converterConfig, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
+
+    override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
+      if (reducers.isEmpty) {
+        throw new ParameterException("Must provide num-reducers argument for distributed ingest")
+      }
+      val job = if (encoding == ParquetFileSystemStorage.ParquetEncoding) {
+        new ParquetConverterJob()
+      } else if (encoding == OrcFileSystemStorage.OrcEncoding) {
+        new OrcConverterJob()
+      } else {
+        throw new ParameterException(s"Ingestion is not supported for encoding $encoding")
+      }
+      job.run(dsParams, sft.getTypeName, converterConfig, inputs, tempPath, reducers.get,
+        libjarsFile, libjarsPaths, statusCallback)
+    }
+  }
 }

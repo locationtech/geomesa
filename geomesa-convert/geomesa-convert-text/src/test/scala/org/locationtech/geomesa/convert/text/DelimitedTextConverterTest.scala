@@ -665,5 +665,42 @@ class DelimitedTextConverterTest extends Specification {
         SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
       }
     }
+
+    "handle multiline csv escape" >> {
+
+      val data =
+        """
+          |'1','he
+          |llo','45.0','45.0'
+          |'2','world','90.0','90.0'
+        """.stripMargin
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          |   options = {
+          |      quote = "'"
+          |      escape = "#"
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not(beNull)
+      val res = converter.process(new ByteArrayInputStream(data.getBytes)).toList
+      converter.close()
+      "must have size 2 " >> { res.size must be equalTo 2 }.pendingUntilFixed("GEOMESA-339,GEOMESA-1039")
+      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello" }.pendingUntilFixed("GEOMESA-339,GEOMESA-1039")
+    }
   }
 }

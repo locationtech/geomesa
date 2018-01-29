@@ -34,6 +34,20 @@ been standardized . New parameters are outlined in the individual data store pag
 
 The older parameter names will continue to work, but are deprecated and may be removed in future versions.
 
+Removal of Joda Time
+--------------------
+
+With the introduction of ``java.time`` in Java 8, the Joda Time project has been deprecated. As such, GeoMesa
+has removed its Joda dependency in favor of ``java.time``. One consequence of this is that custom date patterns
+in ``geomesa-convert`` are interpreted slightly differently. See `DateTimeFormatter`__ for details.
+
+__ https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
+
+.. warning::
+
+  In particular, "year of era" has changed from ``Y`` to ``y``. ``Y`` now means "week-based year", and will
+  give different results.
+
 Kafka Data Store
 ----------------
 
@@ -91,9 +105,3 @@ geomesa.stats.compact.interval       geomesa.stats.compact.millis
 geomesa.cassandra.read.timeout       geomesa.cassandra.read.timeout.millis
 geomesa.cassandra.connection.timeout geomesa.cassandra.connection.timeout.millis
 ==================================== ===========================================
-
-Accumulo Tools
---------------
-
-To conform with the scripts from other distributions, the Accumulo command line tools script has been
-renamed from ``geomesa`` to ``geomesa-accumulo``.
