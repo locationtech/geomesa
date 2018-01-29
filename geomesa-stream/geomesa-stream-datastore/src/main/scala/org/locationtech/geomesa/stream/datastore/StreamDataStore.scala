@@ -54,6 +54,13 @@ case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
   }
 }
 
+/**
+  * Stream data store
+  *
+  * @param source source
+  * @param timeout feature cache timeout, in seconds
+  * @param ns namespace
+  */
 class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Option[String]) extends ContentDataStore {
   
   val sft = source.sft
@@ -62,7 +69,7 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
 
   val cb = {
     val builder = Caffeine.newBuilder()
-    if(timeout > 0) builder.expireAfterWrite(timeout, TimeUnit.SECONDS)
+    if (timeout > 0) { builder.expireAfterWrite(timeout, TimeUnit.SECONDS) }
     builder.removalListener(
       new RemovalListener[String, FeatureHolder] {
         override def onRemoval(k: String, v: FeatureHolder, removalCause: RemovalCause): Unit = {
@@ -168,7 +175,8 @@ object StreamDataStoreParams {
   val SftConfig = new GeoMesaParam[String]("geomesa.stream.datastore.config.sft", "Name of the SFT", optional = true)
   val ConverterConfig = new GeoMesaParam[String]("geomesa.stream.datastore.config.converter", "Name of the converter", optional = true)
   val ThreadsConfig = new GeoMesaParam[Integer]("geomesa.stream.datastore.config.num.threads", "Number of threads to use", optional = true, default = 1)
-  val CacheTimeout = new GeoMesaParam[Integer]("geomesa.stream.datastore.cache.timeout", "", optional = false, default = -1)
+  // TODO GEOMESA-2161 standardize timeout units
+  val CacheTimeout = new GeoMesaParam[Integer]("geomesa.stream.datastore.cache.timeout", "Timeout for feature cache, in seconds", optional = false, default = -1)
   val NamespaceParam     = new GeoMesaParam[String]("namespace", "Namespace")
 }
 
