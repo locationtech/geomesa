@@ -16,9 +16,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.calrissian.mango.types.{LexiTypeEncoders, TypeRegistry}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.util.Converters
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
+import org.locationtech.geomesa.index.conf.TableSplitter
+import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.AttributeIndex.AttributeRowDecoder
 import org.locationtech.geomesa.index.index.z2.{XZ2IndexKeySpace, Z2IndexKeySpace}
@@ -47,7 +50,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
   import AttributeIndex._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  override val name: String = "attr"
+  override val name: String = AttributeIndex.Name
 
   override def supports(sft: SimpleFeatureType): Boolean =
     sft.getAttributeDescriptors.exists(_.isIndexed)
@@ -101,11 +104,32 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
   }
 
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+    def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
+
     val sharing = sft.getTableSharingBytes
     val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
-    val shards = getShards(sft)
-    for (i <- indices; s <- shards) yield {
-      Bytes.concat(sharing, indexToBytes(i), s)
+    val shards = nonEmpty(getShards(sft))
+
+    val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
+    val result = indices.flatMap { indexOf =>
+      val singleAttributeType = {
+        val builder = new SimpleFeatureTypeBuilder()
+        builder.setName(sft.getName)
+        builder.add(sft.getDescriptor(indexOf))
+        builder.buildFeatureType()
+      }
+      val bytes = indexToBytes(indexOf)
+      val splits = nonEmpty(splitter.getSplits(singleAttributeType, name, sft.getTableSplitterOptions))
+      for (shard <- shards; split <- splits) yield {
+        Bytes.concat(sharing, bytes, shard, split)
+      }
+    }
+
+    // if not sharing, or the first feature in the table, drop the first split, which will otherwise be empty
+    if (sharing.isEmpty || sharing.head == 0.toByte) {
+      result.drop(1)
+    } else {
+      result
     }
   }
 
@@ -294,6 +318,8 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 
 object AttributeIndex {
 
+  val Name = "attr"
+
   val NullByte: Byte = 0
   val NullByteArray = Array(NullByte)
 
@@ -334,8 +360,13 @@ object AttributeIndex {
     * Lexicographically encode the value. Will convert types appropriately.
     */
   def encodeForQuery(value: Any, descriptor: AttributeDescriptor): Array[Byte] =
+    encodeForQuery(value, if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding })
+
+  /**
+    * Lexicographically encode the value. Will convert types appropriately.
+    */
+  def encodeForQuery(value: Any, binding: Class[_]): Array[Byte] = {
     if (value == null) { Array.empty } else {
-      val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
       val converted = Option(Converters.convert(value, binding)).getOrElse(value)
       val encoded = typeEncode(converted)
       if (encoded == null || encoded.isEmpty) {
@@ -344,6 +375,7 @@ object AttributeIndex {
         encoded.getBytes(StandardCharsets.UTF_8)
       }
     }
+  }
 
   // Lexicographically encode a value using it's runtime class
   private def typeEncode(value: Any): String = Try(typeRegistry.encode(value)).getOrElse(value.toString)

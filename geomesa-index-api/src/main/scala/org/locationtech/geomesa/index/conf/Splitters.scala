@@ -9,35 +9,77 @@
 package org.locationtech.geomesa.index.conf
 
 import java.nio.charset.StandardCharsets
-import java.util
 
-import scala.collection.JavaConversions._
+import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.index.index.IdIndex
+import org.locationtech.geomesa.utils.text.KVPairParser
+import org.opengis.feature.simple.SimpleFeatureType
 
-class DigitSplitter extends TableSplitter {
+@deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
+class DigitSplitter extends TableSplitter with LazyLogging {
   /**
    * @param options allowed options are "fmt", "min", and "max"
    * @return
    */
-  override def getSplits(options: java.util.Map[String, String]): Array[Array[Byte]] = {
-    val fmt = options.getOrElse("fmt", "%01d")
-    val min = options.getOrElse("min", "0").toInt
-    val max = options.getOrElse("max", "0").toInt
-    (min to max).map(fmt.format(_).getBytes(StandardCharsets.UTF_8)).toArray
+  override def getSplits(sft: SimpleFeatureType,
+                         index: String,
+                         options: String): Array[Array[Byte]] = {
+    if (index == IdIndex.Name) {
+      logger.warn("Using deprecated split implementation. See" +
+          "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
+      val opts = KVPairParser.parse(options)
+      val fmt = opts.getOrElse("fmt", "%01d")
+      val min = opts.getOrElse("min", "0").toInt
+      val max = opts.getOrElse("max", "0").toInt
+      (min to max).map(fmt.format(_).getBytes(StandardCharsets.UTF_8)).toArray
+    } else {
+      Array(Array.empty[Byte])
+    }
   }
 }
 
-class HexSplitter extends TableSplitter {
+@deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
+class HexSplitter extends TableSplitter with LazyLogging {
   // note: we don't include 0 to avoid an empty initial tablet
-  val hexSplits = "123456789abcdefABCDEF".map(_.toString.getBytes(StandardCharsets.UTF_8)).toArray
-  override def getSplits(options: util.Map[String, String]): Array[Array[Byte]] = hexSplits
+  private val hexSplits = "123456789abcdefABCDEF".map(_.toString.getBytes(StandardCharsets.UTF_8)).toArray
+  override def getSplits(sft: SimpleFeatureType,
+                         index: String,
+                         options: String): Array[Array[Byte]] = {
+    if (index == IdIndex.Name) {
+      logger.warn("Using deprecated split implementation. See" +
+          "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
+      hexSplits
+    } else {
+      Array(Array.empty[Byte])
+    }
+  }
 }
 
-class AlphaNumericSplitter extends TableSplitter {
+@deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
+class AlphaNumericSplitter extends TableSplitter with LazyLogging {
   // note: we don't include 0 to avoid an empty initial tablet
-  override def getSplits(options: util.Map[String, String]): Array[Array[Byte]] =
-    (('1' to '9') ++ ('a' to 'z') ++ ('A' to 'Z')).map(c => Array(c.toByte)).toArray
+  override def getSplits(sft: SimpleFeatureType,
+                         index: String,
+                         options: String): Array[Array[Byte]] = {
+    if (index == IdIndex.Name) {
+      logger.warn("Using deprecated split implementation. See" +
+          "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
+      (('1' to '9') ++ ('a' to 'z') ++ ('A' to 'Z')).map(c => Array(c.toByte)).toArray
+    } else {
+      Array(Array.empty[Byte])
+    }
+  }
 }
 
-class NoSplitter extends TableSplitter {
-  override def getSplits(options: util.Map[String, String]): Array[Array[Byte]] = Array.empty
+@deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
+class NoSplitter extends TableSplitter with LazyLogging {
+  override def getSplits(sft: SimpleFeatureType,
+                         index: String,
+                         options: String): Array[Array[Byte]] = {
+    if (index == IdIndex.Name) {
+      logger.warn("Using deprecated split implementation. See" +
+          "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
+    }
+    Array(Array.empty)
+  }
 }

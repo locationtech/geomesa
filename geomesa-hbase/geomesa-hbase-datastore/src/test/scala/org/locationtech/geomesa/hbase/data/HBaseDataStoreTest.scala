@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
@@ -157,6 +158,30 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
         testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
         testQuery(ds, typeName, "name = 'name5'", null, Seq(toAdd(5)))
       }
+    }
+
+    "support table splits" in {
+      val typeName = "testsplits"
+
+      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+
+      ds.getSchema(typeName) must beNull
+
+      // note: we keep the number of splits small b/c the embedded hbase is slow to create them
+      ds.createSchema(SimpleFeatureTypes.createType(typeName,
+        "name:String:index=true,age:Int:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;" +
+            "table.splitter.options='z3.min:2017-01-01,z3.max:2017-01-02,z3.bits:2," +
+            "attr.name.pattern:[a-f],attr.age.pattern:[0-9],attr.age.pattern2:[8-8][0-9]'"))
+
+      def splits(index: String): Seq[Array[Byte]] = {
+        val table = TableName.valueOf(ds.manager.index(index).getTableName(typeName, ds))
+        ds.connection.getRegionLocator(table).getStartKeys
+      }
+
+      splits("attr:4") must haveLength((6 + 10 + 10) * 4) // a-f for name, 0-9 + [8]0-9 for age * 4 shards
+      splits("z3:2") must haveLength(16) // 2 bits * 4 shards
+      splits("id:1") must haveLength(4) // default 4 splits
     }
   }
 

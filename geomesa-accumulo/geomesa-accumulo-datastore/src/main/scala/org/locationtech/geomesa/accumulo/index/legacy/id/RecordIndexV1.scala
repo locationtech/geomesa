@@ -13,7 +13,8 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature, EMPTY_COLQ}
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, RecordIndex}
-import org.locationtech.geomesa.index.conf.{HexSplitter, TableSplitter}
+import org.locationtech.geomesa.index.conf.TableSplitter
+import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
 import org.opengis.feature.simple.SimpleFeatureType
 
 case object RecordIndexV1 extends AccumuloFeatureIndex with RecordWritableIndex with RecordQueryableIndex {
@@ -33,13 +34,19 @@ case object RecordIndexV1 extends AccumuloFeatureIndex with RecordWritableIndex 
   override def supports(sft: SimpleFeatureType): Boolean = true
 
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+    def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
+
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     import scala.collection.JavaConversions._
 
-    val prefix = sft.getTableSharingBytes
-    val splitter = sft.getTableSplitter.getOrElse(classOf[HexSplitter]).newInstance().asInstanceOf[TableSplitter]
-    val splits = splitter.getSplits(sft.getTableSplitterOptions)
-    if (prefix.length == 0) { splits } else {
-      splits.map(Bytes.concat(prefix, _))
+    val sharing = sft.getTableSharingBytes
+
+    val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
+    val splits = nonEmpty(splitter.getSplits(sft, name, sft.getTableSplitterOptions))
+
+    for (split <- splits) yield {
+      Bytes.concat(sharing, split)
     }
   }
 

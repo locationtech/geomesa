@@ -17,7 +17,8 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, RecordIndex}
-import org.locationtech.geomesa.index.conf.{HexSplitter, TableSplitter}
+import org.locationtech.geomesa.index.conf.TableSplitter
+import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -45,8 +46,8 @@ trait RecordWritableIndex extends AccumuloFeatureIndex {
 
     val prefix = sft.getTableSharingPrefix
     val prefixFn = getRowKey(prefix, _: String)
-    val splitter = sft.getTableSplitter.getOrElse(classOf[HexSplitter]).newInstance().asInstanceOf[TableSplitter]
-    val splits = splitter.getSplits(sft.getTableSplitterOptions)
+    val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
+    val splits = splitter.getSplits(sft, name, sft.getTableSplitterOptions)
     val sortedSplits = splits.map(new String(_, StandardCharsets.UTF_8)).map(prefixFn).map(new Text(_)).toSet
     val splitsToAdd = sortedSplits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {

@@ -132,12 +132,14 @@ Usage: ``now()``
 date
 ^^^^
 
-Description: Custom date parser.
+Description: Custom date parser. The date format is defined by the Java 8 `DateTimeFormatter`__ class.
+
+.. __: https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
 
 Usage: ``date($format, $1)``
 
 Example:
-``date('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')``
+``date('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')``
 
 dateTime
 ^^^^^^^^

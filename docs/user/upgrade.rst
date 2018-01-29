@@ -77,6 +77,14 @@ Tools Command Name
 
 The Accumulo command line tools script has been renamed from ``geomesa`` to ``geomesa-accumulo``.
 
+Table Splitters
+---------------
+
+The table splitting API has changed. Any custom table splitters implementing
+``org.locationtech.geomesa.index.conf.TableSplitter`` will need to be updated for the new method signatures.
+In addition, the provided GeoMesa splitters have been deprecated and replaced. See :ref:`table_split_config`
+for more details.
+
 System Properties
 -----------------
 

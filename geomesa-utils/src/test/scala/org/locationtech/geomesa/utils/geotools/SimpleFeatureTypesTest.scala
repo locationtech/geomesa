@@ -17,6 +17,7 @@ import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
+import org.locationtech.geomesa.utils.text.KVPairParser
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -215,11 +216,11 @@ class SimpleFeatureTypesTest extends Specification {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getUserData.get(TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
-      val opts = sft.getTableSplitterOptions
-      opts.size must be equalTo 3
-      opts("fmt") must be equalTo "%02d"
-      opts("min") must be equalTo "0"
-      opts("max") must be equalTo "99"
+      val opts = KVPairParser.parse(sft.getTableSplitterOptions)
+      opts must haveSize(3)
+      opts.get("fmt") must beSome("%02d")
+      opts.get("min") must beSome("0")
+      opts.get("max") must beSome("99")
     }
 
     "handle enabled indexes" >> {
@@ -236,11 +237,11 @@ class SimpleFeatureTypesTest extends Specification {
       specs.forall { spec =>
         val sft = SimpleFeatureTypes.createType("test", spec)
         sft.getUserData.get(TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
-        val opts = sft.getTableSplitterOptions
-        opts.size must be equalTo 3
-        opts("fmt") must be equalTo "%02d"
-        opts("min") must be equalTo "0"
-        opts("max") must be equalTo "99"
+        val opts = KVPairParser.parse(sft.getTableSplitterOptions)
+        opts must haveSize(3)
+        opts.get("fmt") must beSome("%02d")
+        opts.get("min") must beSome("0")
+        opts.get("max") must beSome("99")
         sft.getUserData.get(ENABLED_INDICES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
       }
     }
@@ -260,7 +261,7 @@ class SimpleFeatureTypesTest extends Specification {
     "allow specification of ST index entry values" >> {
       val spec = s"name:String:index=true:$OPT_INDEX_VALUE=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("name").isIndexValue() mustEqual(true)
+      sft.getDescriptor("name").isIndexValue() must beTrue
     }
 
     "allow specification of attribute cardinality" >> {
