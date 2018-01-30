@@ -11,7 +11,8 @@ package org.locationtech.geomesa.hbase.data
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
-import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, MetadataSerializer, MetadataAdapter}
+import org.locationtech.geomesa.hbase.utils.HBaseVersions
+import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, MetadataAdapter, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.JavaConversions._
@@ -38,7 +39,7 @@ trait HBaseMetadataAdapter extends MetadataAdapter {
     try {
       if (!admin.tableExists(catalog)) {
         val descriptor = new HTableDescriptor(catalog)
-        descriptor.addFamily(ColumnFamilyDescriptor)
+        HBaseVersions.addFamily(descriptor, ColumnFamilyDescriptor)
         admin.createTable(descriptor)
       }
     } finally {
@@ -72,7 +73,7 @@ trait HBaseMetadataAdapter extends MetadataAdapter {
 }
 
 object HBaseMetadataAdapter {
-  val ColumnFamily = Bytes.toBytes("m")
+  val ColumnFamily: Array[Byte] = Bytes.toBytes("m")
   val ColumnFamilyDescriptor = new HColumnDescriptor(ColumnFamily)
-  val ColumnQualifier = Bytes.toBytes("v")
+  val ColumnQualifier: Array[Byte] = Bytes.toBytes("v")
 }
