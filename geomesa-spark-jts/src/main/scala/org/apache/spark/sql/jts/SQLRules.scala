@@ -38,7 +38,7 @@ object SQLRules {
     override def apply(plan: LogicalPlan): LogicalPlan = {
       plan.transform {
         case q: LogicalPlan => q.transformExpressionsDown {
-          case s@ScalaUDF(_, _, _, _, _) =>
+          case s: ScalaUDF =>
             // TODO: Break down by GeometryType
             Try {
                 s.eval(null) match {

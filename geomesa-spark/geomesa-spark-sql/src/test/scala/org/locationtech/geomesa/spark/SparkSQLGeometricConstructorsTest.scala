@@ -74,31 +74,6 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
       ur.y must beCloseTo(42.627, .022) // lat
     }
 
-    "st_makeBBOX" >> {
-      sc.sql("select st_makeBBOX(null, null, null, null)").collect.head(0) must beNull
-
-      val r = sc.sql(
-        """
-          |select st_makeBBOX(0.0, 0.0, 2.0, 2.0)
-        """.stripMargin
-      )
-      r.collect().head.getAs[Geometry](0) mustEqual JTS.toGeometry(BoundingBox(0, 2, 0, 2))
-    }
-
-    "st_makeBox2D" >> {
-      sc.sql("select st_makeBox2D(null, null)").collect.head(0) must beNull
-
-      val r = sc.sql(
-        """
-          |select st_makeBox2D(st_castToPoint(st_geomFromWKT('POINT(0 0)')),
-          |                    st_castToPoint(st_geomFromWKT('POINT(2 2)')))
-        """.stripMargin
-      )
-      r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
-        "2.0 2.0, 0.0 2.0, 0.0 0.0))")
-    }
-
-
     "st_pointFromGeoHash" >> {
       sc.sql("select st_pointFromGeoHash(null, null)").collect.head(0) must beNull
       val r = sc.sql(

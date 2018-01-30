@@ -90,6 +90,30 @@ class SparkSQLGeometricConstructorsTest extends Specification {
       r.collect().head.getAs[LineString](0) mustEqual WKTUtils.read("LINESTRING(0 0, 1 1, 2 2)")
     }
 
+    "st_makeBBOX" >> {
+      sc.sql("select st_makeBBOX(null, null, null, null)").collect.head(0) must beNull
+
+      val r = sc.sql(
+        """
+          |select st_makeBBOX(0.0, 0.0, 2.0, 2.0)
+        """.stripMargin
+      )
+      r.collect().head.getAs[Geometry](0) mustEqual JTS.toGeometry(new Envelope(0, 2, 0, 2))
+    }
+
+    "st_makeBox2D" >> {
+      sc.sql("select st_makeBox2D(null, null)").collect.head(0) must beNull
+
+      val r = sc.sql(
+        """
+          |select st_makeBox2D(st_castToPoint(st_geomFromWKT('POINT(0 0)')),
+          |                    st_castToPoint(st_geomFromWKT('POINT(2 2)')))
+        """.stripMargin
+      )
+      r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
+        "2.0 2.0, 0.0 2.0, 0.0 0.0))")
+    }
+
     "st_makePolygon" >> {
       sc.sql("select st_makePolygon(null)").collect.head(0) must beNull
 

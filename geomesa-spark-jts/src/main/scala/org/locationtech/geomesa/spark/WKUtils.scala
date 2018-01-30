@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
 import org.apache.commons.pool.impl.GenericObjectPool
 
+// NB: This is a duplicate of a file in geomesa-utils
 trait ObjectPoolUtils[A] {
   val pool: GenericObjectPool[A]
 

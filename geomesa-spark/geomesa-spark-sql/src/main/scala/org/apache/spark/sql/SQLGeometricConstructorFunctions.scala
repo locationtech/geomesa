@@ -16,17 +16,11 @@ import org.locationtech.geomesa.spark.SQLFunctionHelper.nullableUDF
 object SQLGeometricConstructorFunctions {
 
   val ST_GeomFromGeoHash: (String, Int) => Geometry = nullableUDF((hash, prec) => GeoHash(hash, prec).geom)
-  val ST_MakeBox2D: (Point, Point) => Geometry = nullableUDF((lowerLeft, upperRight) =>
-    JTS.toGeometry(new Envelope(lowerLeft.getX, upperRight.getX, lowerLeft.getY, upperRight.getY)))
-  val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = nullableUDF((lowerX, lowerY, upperX, upperY) =>
-    JTS.toGeometry(BoundingBox(lowerX, upperX, lowerY, upperY)))
   val ST_PointFromGeoHash: (String, Int) => Point = nullableUDF((hash, prec) => GeoHash(hash, prec).getPoint)
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_box2DFromGeoHash"  , ST_GeomFromGeoHash)
     sqlContext.udf.register("st_geomFromGeoHash"   , ST_GeomFromGeoHash)
-    sqlContext.udf.register("st_makeBBOX"          , ST_MakeBBOX)
-    sqlContext.udf.register("st_makeBox2D"         , ST_MakeBox2D)
     sqlContext.udf.register("st_pointFromGeoHash"  , ST_PointFromGeoHash)
   }
 }
