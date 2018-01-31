@@ -97,7 +97,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
        requested: Option[GeoMesaFeatureIndex[DS, F, W]],
        explain: Explainer = ExplainNull): Seq[FilterStrategy[DS, F, W]] = {
 
-    val availableIndices = ds.manager.indices(sft, IndexMode.Read)
+    val availableIndices = ds.manager.indices(sft, mode = IndexMode.Read)
 
     // get the various options that we could potentially use
     val options = profile(new FilterSplitter(sft, availableIndices).getQueryOptions(filter, transform)) {

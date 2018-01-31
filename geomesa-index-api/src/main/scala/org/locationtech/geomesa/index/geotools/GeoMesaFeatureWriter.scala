@@ -91,7 +91,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       sft: SimpleFeatureType,
       ds: DS,
       indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]] = None): (IndexedSeq[String], IndexedSeq[(F) => Seq[W]], IndexedSeq[(F) => Seq[W]]) = {
-    val toWrite = indices.getOrElse(ds.manager.indices(sft, IndexMode.Write)).toIndexedSeq
+    val toWrite = indices.getOrElse(ds.manager.indices(sft, mode = IndexMode.Write)).toIndexedSeq
     val key = s"${ds.config.catalog};${CacheKeyGenerator.cacheKey(sft)};${toWrite.map(_.identifier).mkString(",")}"
 
     val load = new java.util.function.Function[String, (IndexedSeq[String], IndexedSeq[(Any) => Seq[Any]], IndexedSeq[(Any) => Seq[Any]])] {

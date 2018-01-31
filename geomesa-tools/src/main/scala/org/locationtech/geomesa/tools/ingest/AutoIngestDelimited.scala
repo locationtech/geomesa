@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.{Closeable, InputStream, InputStreamReader}
+import java.io.{Closeable, File, InputStream, InputStreamReader}
 
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord, QuoteMode}
 import org.apache.hadoop.fs.{Path, Seekable}
@@ -71,7 +71,7 @@ object AutoIngestDelimited {
     val sftString = (1 until header.size()).map(header.get).mkString(",")
     val sft = SimpleFeatureTypes.createType(typeName, sftString)
 
-    val converters = sft.getAttributeDescriptors.zipWithIndex.map { case (ad, i) =>
+    val converters = sft.getAttributeDescriptors.map { ad =>
       val hints = GeoTools.getDefaultHints
       // for maps/lists, we have to pass along the subtype info during type conversion
       if (ad.isList) {
@@ -111,8 +111,8 @@ object AutoIngestDelimited {
  */
 class DelimitedIngestConverter(ds: DataStore, typeName: String, format: DataFormat) extends LocalIngestConverter {
 
-  var reader: CSVParser = null
-  val csvFormat = AutoIngestDelimited.getCsvFormat(format)
+  private var reader: CSVParser = _
+  private val csvFormat = AutoIngestDelimited.getCsvFormat(format)
 
   override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = {
     reader = csvFormat.parse(new InputStreamReader(is, "UTF-8"))
@@ -134,7 +134,13 @@ class DelimitedIngestConverter(ds: DataStore, typeName: String, format: DataForm
  * @param typeName simple feature type name
  * @param format csv or tsv
  */
-class DelimitedIngestJob(typeName: String, format: DataFormat) extends AbstractIngestJob {
+class DelimitedIngestJob(dsParams: Map[String, String],
+                         typeName: String,
+                         format: DataFormat,
+                         paths: Seq[String],
+                         libjarsFile: String,
+                         libjarsPaths: Iterator[() => Seq[File]])
+    extends AbstractIngestJob(dsParams, typeName, paths, libjarsFile, libjarsPaths) {
 
   import AutoIngestDelimited.Counters
 
@@ -142,6 +148,7 @@ class DelimitedIngestJob(typeName: String, format: DataFormat) extends AbstractI
     classOf[DelimitedIngestInputFormat]
 
   override def configureJob(job: Job): Unit = {
+    super.configureJob(job)
     job.getConfiguration.set(AutoIngestDelimited.TypeNameConfig, typeName)
     job.getConfiguration.set(AutoIngestDelimited.FormatConfig, format.toString)
   }

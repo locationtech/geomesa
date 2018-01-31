@@ -27,39 +27,23 @@ import org.opengis.feature.simple.SimpleFeature
 /**
  * Abstract class that handles configuration and tracking of the remote job
  */
-abstract class AbstractIngestJob extends JobWithLibJars {
+abstract class AbstractIngestJob(dsParams: Map[String, String],
+                                 typeName: String,
+                                 paths: Seq[String],
+                                 libjarsFile: String,
+                                 libjarsPaths: Iterator[() => Seq[File]]) extends JobWithLibJars {
 
   def inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]]
-  def configureJob(job: Job): Unit
   def written(job: Job): Long
   def failed(job: Job): Long
 
-  def run(dsParams: Map[String, String],
-          typeName: String,
-          paths: Seq[String],
-          libjarsFile: String,
-          libjarsPaths: Iterator[() => Seq[File]],
-          statusCallback: StatusCallback): (Long, Long) = {
+  def run(statusCallback: StatusCallback): (Long, Long) = {
 
     val job = Job.getInstance(new Configuration, "GeoMesa Tools Ingest")
 
     setLibJars(job, libjarsFile, libjarsPaths)
 
-    job.setJarByClass(getClass)
-    job.setMapperClass(classOf[IngestMapper])
-    job.setInputFormatClass(inputFormatClass)
-    job.setOutputFormatClass(classOf[GeoMesaOutputFormat])
-    job.setMapOutputKeyClass(classOf[Text])
-    job.setOutputValueClass(classOf[ScalaSimpleFeature])
-    job.setNumReduceTasks(0)
-    job.getConfiguration.set("mapred.reduce.tasks.speculative.execution", "false")
-    job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
-
-    FileInputFormat.setInputPaths(job, paths.mkString(","))
     configureJob(job)
-
-    GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
-    GeoMesaOutputFormat.configureDataStore(job, dsParams)
 
     Command.user.info("Submitting job - please wait...")
     job.submit()
@@ -81,6 +65,23 @@ abstract class AbstractIngestJob extends JobWithLibJars {
     }
 
     (written(job), failed(job))
+  }
+
+  def configureJob(job: Job): Unit = {
+    job.setJarByClass(getClass)
+    job.setMapperClass(classOf[IngestMapper])
+    job.setInputFormatClass(inputFormatClass)
+    job.setOutputFormatClass(classOf[GeoMesaOutputFormat])
+    job.setMapOutputKeyClass(classOf[Text])
+    job.setOutputValueClass(classOf[ScalaSimpleFeature])
+    job.setNumReduceTasks(0)
+    job.getConfiguration.set("mapred.reduce.tasks.speculative.execution", "false")
+    job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
+
+    FileInputFormat.setInputPaths(job, paths.mkString(","))
+
+    GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
+    GeoMesaOutputFormat.configureDataStore(job, dsParams)
   }
 }
 

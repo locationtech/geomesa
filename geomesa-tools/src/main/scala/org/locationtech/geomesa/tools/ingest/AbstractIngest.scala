@@ -43,8 +43,8 @@ import scala.util.control.NonFatal
   * @param numLocalThreads for local ingest, how many threads to use
   */
 abstract class AbstractIngest(val dsParams: Map[String, String],
-                              typeName: String,
-                              inputs: Seq[String],
+                              val typeName: String,
+                              val inputs: Seq[String],
                               mode: Option[RunMode],
                               libjarsFile: String,
                               libjarsPaths: Iterator[() => Seq[File]],
@@ -80,35 +80,25 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
    * Main method to kick off ingestion
    */
   override def run(): Unit = {
-    def local(): Unit = {
-      beforeRunTasks()
-      Command.user.info("Running ingestion in local mode")
-      runLocal()
-    }
-
-    def distributed(): Unit = {
-      beforeRunTasks()
-      Command.user.info("Running ingestion in distributed mode")
-      runDistributed()
-    }
-
     if (inputs.isEmpty && !StdInHandle.isAvailable) {
       throw new ParameterException("Missing option: <files>... is required")
     } else if (inputs.headOption.exists(PathUtils.isRemote)) {
       if (mode.contains(RunModes.Local)) {
-        local()
+        runLocal()
       } else {
-        distributed()
+        runDistributed()
       }
     } else if (mode.forall(_ == RunModes.Local)) {
-      local()
+      runLocal()
     } else {
       throw new ParameterException("To run in distributed mode, please copy input files to a distributed file system")
     }
     ds.dispose()
   }
 
-  private def runLocal(): Unit = {
+  protected def runLocal(): Unit = {
+    beforeRunTasks()
+    Command.user.info("Running ingestion in local mode")
 
     // Global failure shared between threads
     val (written, failed) = (new AtomicLong(0), new AtomicLong(0))
@@ -213,7 +203,9 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     Command.user.info(getStatInfo(written.get, failed.get))
   }
 
-  private def runDistributed(): Unit = {
+  protected def runDistributed(): Unit = {
+    beforeRunTasks()
+    Command.user.info("Running ingestion in distributed mode")
     val start = System.currentTimeMillis()
     val statusCallback = createCallback()
     val (success, failed) = runDistributedJob(statusCallback)

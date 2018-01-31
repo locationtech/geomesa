@@ -21,10 +21,11 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore}
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.hbase.jobs.HBaseGeoMesaRecordReader
 import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDD
-import org.locationtech.geomesa.spark.hbase.{HBaseGeoMesaRecordReader, HBaseSpatialRDDProvider}
+import org.locationtech.geomesa.spark.hbase.HBaseSpatialRDDProvider
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {

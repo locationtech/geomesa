@@ -155,6 +155,12 @@ function setHadoopClasspath() {
     return
   fi
 
+  if [[ -n "$HADOOP_HOME" ]]; then
+    if [[ -z "$HADOOP_CONF_DIR" && -d "${HADOOP_HOME}/etc/hadoop" ]]; then
+      HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+    fi
+  fi
+
   # Lastly, do a bunch of complicated guessing
   # Get the hadoop jars, ignoring jars with names containing slf4j and test
   # Copied from accumulo classpath
@@ -198,12 +204,17 @@ function setHadoopClasspath() {
   for home in ${hadoopDirs[*]}; do
     tmp="$(findJars $home true)"
     if [[ -n "$tmp" ]]; then
-      HADOOP_CP="${tmp}"
-    fi
-    if [[ "${HADOOP_CP:0:1}" = ":" ]]; then
-      HADOOP_CP="${HADOOP_CP:1}"
+      HADOOP_CP="$HADOOP_CP:$tmp"
     fi
   done
+
+  if [[ -n "${HADOOP_CONF_DIR}" && -n "${HADOOP_CP}" ]]; then
+    HADOOP_CP="${HADOOP_CP}:${HADOOP_CONF_DIR}"
+  fi
+
+  if [[ "${HADOOP_CP:0:1}" = ":" ]]; then
+    HADOOP_CP="${HADOOP_CP:1}"
+  fi
 
   # Next attempt to cheat by stealing the classpath from the hadoop command
   if [[ -z "${HADOOP_CP}" && -n "$(command -v hadoop)" ]]; then

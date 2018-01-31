@@ -19,6 +19,7 @@ import org.apache.spark.rdd.RDD
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory}
+import org.locationtech.geomesa.hbase.jobs.GeoMesaHBaseInputFormat
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.{DataStoreConnector, SpatialRDD, SpatialRDDProvider}

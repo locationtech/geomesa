@@ -23,6 +23,7 @@ import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
@@ -39,8 +40,11 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   override val CurrentIndices: Seq[HBaseFeatureIndex] =
     Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex)
 
-  override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[HBaseFeatureIndex] =
-    super.indices(sft, mode).asInstanceOf[Seq[HBaseFeatureIndex]]
+  override def indices(sft: SimpleFeatureType,
+                       idx: Option[String] = None,
+                       mode: IndexMode = IndexMode.Any): Seq[HBaseFeatureIndex] =
+    super.indices(sft, idx, mode).asInstanceOf[Seq[HBaseFeatureIndex]]
+
   override def index(identifier: String): HBaseFeatureIndex =
     super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 
