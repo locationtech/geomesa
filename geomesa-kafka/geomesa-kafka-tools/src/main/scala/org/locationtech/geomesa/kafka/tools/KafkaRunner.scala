@@ -32,7 +32,7 @@ object KafkaRunner extends Runner {
     new HelpCommand(this, jc),
     new ConfigureCommand,
     new ClasspathCommand,
-    new ConsoleCommand,
+    new ScalaConsoleCommand,
     new VersionCommand
   )
 

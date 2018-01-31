@@ -45,7 +45,7 @@ object BigtableRunner extends Runner {
     new HBaseStatsHistogramCommand,
     new ConfigureCommand,
     new ClasspathCommand,
-    new ConsoleCommand
+    new ScalaConsoleCommand
   )
 
   override def environmentErrorInfo(): Option[String] = {

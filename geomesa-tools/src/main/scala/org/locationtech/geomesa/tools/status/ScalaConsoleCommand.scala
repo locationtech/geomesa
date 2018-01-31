@@ -15,9 +15,9 @@ import org.locationtech.geomesa.tools.Command
  * Note: this class is a placeholder for the 'console' function implemented in the 'geomesa-*' script, to get it
  * to show up in the JCommander help
  */
-class ConsoleCommand extends Command {
+class ScalaConsoleCommand extends Command {
 
-  override val name = "console"
+  override val name = "scala-console"
   override val params = new ConsoleParameters
   override def execute(): Unit = {}
 }

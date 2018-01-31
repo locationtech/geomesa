@@ -96,7 +96,7 @@ if  [[ $1 = configure ]]; then
   geomesaConfigure
 else
   CLASSPATH="$GEOMESA_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
-  if [[ $1 = console ]]; then
+  if [[ $1 = scala-console ]]; then
     geomesaConsole ${CLASSPATH}
   elif [[ $1 = classpath ]]; then
     for element in ${CLASSPATH//:/ } ; do

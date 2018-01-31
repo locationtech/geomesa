@@ -62,7 +62,7 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
     new ConvertCommand,
     new ConfigureCommand,
     new ClasspathCommand,
-    new ConsoleCommand
+    new ScalaConsoleCommand
   )
 }
 

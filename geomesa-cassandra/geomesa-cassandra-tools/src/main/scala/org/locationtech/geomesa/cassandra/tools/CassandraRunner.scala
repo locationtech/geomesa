@@ -33,7 +33,7 @@ object CassandraRunner extends Runner {
     new CassandraExplainCommand,
     new ConfigureCommand,
     new ClasspathCommand,
-    new ConsoleCommand
+    new ScalaConsoleCommand
   )
 
   override def environmentErrorInfo(): Option[String] = {
