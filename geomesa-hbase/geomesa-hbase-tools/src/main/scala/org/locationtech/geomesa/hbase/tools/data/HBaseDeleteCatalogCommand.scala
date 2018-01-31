@@ -8,8 +8,11 @@
 
 package org.locationtech.geomesa.hbase.tools.data
 
+import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.RemoteFilterNotUsedParam
+import org.locationtech.geomesa.hbase.tools.data.HBaseDeleteCatalogCommand.HBaseDeleteCatalogParams
 import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.data.{DeleteCatalogCommand, DeleteCatalogParams}
 
@@ -17,4 +20,7 @@ class HBaseDeleteCatalogCommand extends DeleteCatalogCommand[HBaseDataStore] wit
   override val params = new HBaseDeleteCatalogParams
 }
 
-class HBaseDeleteCatalogParams extends DeleteCatalogParams with CatalogParam
+object HBaseDeleteCatalogCommand {
+  @Parameters(commandDescription = "Delete a GeoMesa catalog completely (and all features in it)")
+  class HBaseDeleteCatalogParams extends DeleteCatalogParams with CatalogParam with RemoteFilterNotUsedParam
+}

@@ -11,6 +11,8 @@ package org.locationtech.geomesa.hbase.tools.status
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.ToggleRemoteFilterParam
+import org.locationtech.geomesa.hbase.tools.status.HBaseExplainCommand.HBaseExplainParams
 import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.status.{ExplainCommand, ExplainParams}
 
@@ -18,5 +20,7 @@ class HBaseExplainCommand extends ExplainCommand[HBaseDataStore] with HBaseDataS
   override val params = new HBaseExplainParams()
 }
 
-@Parameters(commandDescription = "Explain how a GeoMesa query will be executed")
-class HBaseExplainParams extends ExplainParams with CatalogParam
+object HBaseExplainCommand {
+  @Parameters(commandDescription = "Explain how a GeoMesa query will be executed")
+  class HBaseExplainParams extends ExplainParams with CatalogParam with ToggleRemoteFilterParam
+}

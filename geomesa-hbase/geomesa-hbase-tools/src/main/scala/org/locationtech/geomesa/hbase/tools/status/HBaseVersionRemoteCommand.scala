@@ -11,6 +11,7 @@ package org.locationtech.geomesa.hbase.tools.status
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.RemoteFilterNotUsedParam
 import org.locationtech.geomesa.hbase.tools.status.HBaseVersionRemoteCommand.HBaseVersionParams
 import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.status.VersionRemoteCommand
@@ -21,5 +22,5 @@ class HBaseVersionRemoteCommand extends VersionRemoteCommand[HBaseDataStore] wit
 
 object HBaseVersionRemoteCommand {
   @Parameters(commandDescription = "Display the GeoMesa version installed on a cluster")
-  class HBaseVersionParams extends CatalogParam
+  class HBaseVersionParams extends CatalogParam with RemoteFilterNotUsedParam
 }
