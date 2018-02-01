@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.stream.generic
 
+import java.util.Collections
 import java.util.concurrent.{ExecutorService, Executors, LinkedBlockingQueue, TimeUnit}
+import java.util.function.Function
 
-import com.google.common.collect.Queues
+import com.google.common.collect.{Maps, Queues}
 import com.typesafe.config.Config
 import org.apache.camel.CamelContext
 import org.apache.camel.impl._
@@ -23,25 +25,33 @@ import org.slf4j.LoggerFactory
 
 import scala.util.Try
 
-class GenericSimpleFeatureStreamSourceFactory extends SimpleFeatureStreamSourceFactory {
+object GenericSimpleFeatureStreamSourceFactory {
+  val contexts: java.util.Map[String, CamelContext] = Collections.synchronizedMap(Maps.newHashMap[String, CamelContext]())
 
-  lazy val ctx: CamelContext = {
-    val context = new DefaultCamelContext()
-    context.start()
-    context
+  def getContext(namespace: String): CamelContext = {
+    contexts.computeIfAbsent(namespace, new Function[String, CamelContext] {
+      override def apply(t: String): CamelContext = {
+        val context = new DefaultCamelContext()
+        context.start()
+        context
+      }
+    })
   }
+}
+
+class GenericSimpleFeatureStreamSourceFactory extends SimpleFeatureStreamSourceFactory {
 
   override def canProcess(conf: Config): Boolean =
     if(conf.hasPath("type") && conf.getString("type").equals("generic")) true
     else false
 
-  override def create(conf: Config): SimpleFeatureStreamSource = {
+  override def create(conf: Config, namespace: String): SimpleFeatureStreamSource = {
     val sourceRoute = conf.getString("source-route")
     val sft = SimpleFeatureTypes.createType(conf.getConfig("sft"))
     val threads = Try(conf.getInt("threads")).getOrElse(1)
     val converterConf = conf.getConfig("converter")
     val fac = () => SimpleFeatureConverters.build[String](sft, converterConf)
-    new GenericSimpleFeatureStreamSource(ctx, sourceRoute, sft, threads, fac)
+    new GenericSimpleFeatureStreamSource(GenericSimpleFeatureStreamSourceFactory.getContext(namespace), sourceRoute, sft, threads, fac)
   }
 }
 

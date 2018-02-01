@@ -22,8 +22,12 @@ import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
+import org.locationtech.geomesa.utils.text.{BasicParser, KVPairParser}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.parboiled.errors.{ErrorUtils, ParsingException}
+import org.parboiled.scala.Rule0
+import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
 
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -266,8 +270,7 @@ object RichSimpleFeatureType {
       Seq(GEOMESA_PREFIX) ++ userData[String](USER_DATA_PREFIX).map(_.split(",")).getOrElse(Array.empty)
 
     def getTableSplitter: Option[Class[_]] = userData[String](TABLE_SPLITTER).map(Class.forName)
-    def getTableSplitterOptions: Map[String, String] =
-      userData[String](TABLE_SPLITTER_OPTS).map(new KVPairParser().parse).getOrElse(Map.empty)
+    def getTableSplitterOptions: String = userData[String](TABLE_SPLITTER_OPTS).orNull
 
     def setZShards(splits: Int): Unit = sft.getUserData.put(Z_SPLITS_KEY, splits.toString)
     def getZShards: Int = userData[String](Z_SPLITS_KEY).map(_.toInt).getOrElse(4)
@@ -287,19 +290,5 @@ object RichSimpleFeatureType {
       sft.getUserData.put(KEYWORDS_KEY, getKeywords.diff(keywords).mkString(KEYWORDS_DELIMITER))
 
     def removeAllKeywords(): Unit = sft.getUserData.remove(KEYWORDS_KEY)
-  }
-
-  private class KVPairParser(pairSep: String = ",", kvSep: String = ":") extends JavaTokenParsers {
-    def key = "[0-9a-zA-Z\\.]+".r
-    def value = s"[^($pairSep)^($kvSep)]+".r
-
-    def keyValue = key ~ kvSep ~ value ^^ { case key ~ sep ~ value => key -> value }
-    def keyValueList = repsep(keyValue, pairSep) ^^ { x => x.toMap }
-
-    def parse(s: String): Map[String, String] = parse(keyValueList, s.trim) match {
-      case Success(result, next) if next.atEnd => result
-      case NoSuccess(msg, next) if next.atEnd => throw new IllegalArgumentException(s"Error parsing spec '$s' : $msg")
-      case other => throw new IllegalArgumentException(s"Error parsing spec '$s' : $other")
-    }
   }
 }

@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.utils.text
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
-import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -35,8 +36,8 @@ class StringSerializationTest extends Specification {
       StringSerialization.decodeSeqMap(encoded, Map.empty[String, Class[_]]).mapValues(_.toSeq) mustEqual values
     }
     "encode and decode non-string values" >> {
-      val dt = ISODateTimeFormat.dateTime.withZoneUTC
-      val dates = Seq("2017-01-01T00:00:00.000Z", "2017-01-01T01:00:00.000Z").map(dt.parseDateTime(_).toDate)
+      val dt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
+      val dates = Seq("2017-01-01T00:00:00.000Z", "2017-01-01T01:00:00.000Z").map(d => Date.from(ZonedDateTime.parse(d, dt).toInstant))
       val values = Map("dtg" -> dates, "age" -> Seq(0, 1, 2).map(Int.box), "height" -> Seq(0.1f, 0.2f, 0.5f).map(Float.box))
       val encoded = StringSerialization.encodeSeqMap(values)
       val bindings = Map("dtg" -> classOf[Date], "age" -> classOf[Integer], "height" -> classOf[java.lang.Float])

@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.joda.time.Period
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloIndexManagerType}
 import org.locationtech.geomesa.index.filters.DtgAgeOffFilter
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.concurrent.duration.Duration
 
 /**
   * Age off data based on the dtg value stored in the SimpleFeature
@@ -64,7 +64,7 @@ object DtgAgeOffIterator {
 
   def configure(sft: SimpleFeatureType,
                 index: AccumuloFeatureIndexType,
-                expiry: Period,
+                expiry: Duration,
                 dtgField: Option[String],
                 priority: Int = 5): IteratorSetting = {
     val is = new IteratorSetting(priority, Name, classOf[DtgAgeOffIterator])
@@ -80,7 +80,7 @@ object DtgAgeOffIterator {
     }.headOption.map(_.toString)
   }
 
-  def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Period, dtg: String): Unit = {
+  def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Duration, dtg: String): Unit = {
     val tableOps = ds.connector.tableOperations()
     ds.manager.indices(sft, IndexMode.Any).foreach { index =>
       val table = index.getTableName(sft.getTypeName, ds)

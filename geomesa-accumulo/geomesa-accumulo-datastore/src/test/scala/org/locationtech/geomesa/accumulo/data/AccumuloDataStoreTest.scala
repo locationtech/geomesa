@@ -24,7 +24,6 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
@@ -32,7 +31,6 @@ import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.conf.DigitSplitter
 import org.locationtech.geomesa.index.geotools.CachingFeatureCollection
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -321,21 +319,22 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create a schema with custom record splitting options with table sharing off" in {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
-          s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
+          "table.splitter.options='id.pattern:[a-z][0-9]'"
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
       sft.setTableSharing(false)
       ds.createSchema(sft)
       val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
       val splits = ds.connector.tableOperations().listSplits(recTable)
-      splits.size() mustEqual 100
-      splits.head mustEqual new Text("00")
-      splits.last mustEqual new Text("99")
+      // note: first split is dropped, which creates 259 splits but 260 regions
+      splits.size() mustEqual 259
+      splits.head mustEqual new Text("a1")
+      splits.last mustEqual new Text("z9")
     }
 
     "create a schema with custom record splitting options with table sharing on" in {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
-        s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
+        "table.splitter.options='id.pattern:[0-9][0-9]'"
       val sft = SimpleFeatureTypes.createType("customsplit2", spec)
       sft.setTableSharing(true)
 
@@ -352,8 +351,15 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
       val newSplits = (afterSplits.toSet -- prevsplits.toSet).toList.sorted(TextOrdering)
       val prefix = ds.getSchema(sft.getTypeName).getTableSharingPrefix
-      newSplits.length mustEqual 100
-      newSplits.head mustEqual new Text(s"${prefix}00")
+      if (prefix.head == 0.toByte) {
+        // note: first split is dropped this is the first schema in the table
+        newSplits.length mustEqual 99
+        newSplits.head mustEqual new Text(s"${prefix}01")
+      } else {
+        // note: first split is not dropped since table sharing is on and this is not the first schema in the table
+        newSplits.length mustEqual 100
+        newSplits.head mustEqual new Text(s"${prefix}00")
+      }
       newSplits.last mustEqual new Text(s"${prefix}99")
     }
 
@@ -445,8 +451,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
 
       val pt = WKTUtils.read("POINT (0 0)")
-      val one = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("one", new Integer(1), new DateTime(), pt), "1")
-      val two = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("two", new Integer(2), new DateTime(), pt), "2")
+      val one = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("one", new Integer(1), new Date(), pt), "1")
+      val two = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("two", new Integer(2), new Date(), pt), "2")
 
       val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
       fs.addFeatures(DataUtilities.collection(List(one, two)))

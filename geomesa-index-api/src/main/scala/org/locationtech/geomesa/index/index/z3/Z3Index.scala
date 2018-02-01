@@ -20,7 +20,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
     extends BaseFeatureIndex[DS, F, W, R, C, Z3IndexValues] with SpatioTemporalFilterStrategy[DS, F, W] {
 
-  override val name: String = "z3"
+  override val name: String = Z3Index.Name
 
   override protected val keySpace: Z3IndexKeySpace = Z3IndexKeySpace
 
@@ -38,4 +38,8 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
     def simpleGeoms = indexValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
     !looseBBox || !simpleGeoms
   }
+}
+
+object Z3Index {
+  val Name = "z3"
 }

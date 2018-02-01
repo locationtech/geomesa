@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.arrow.vector
 
 import java.io.Closeable
+import java.util.Date
 
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.NullableBigIntVector
-import org.apache.arrow.vector.complex.NullableMapVector
+import org.apache.arrow.vector.complex.{ListVector, MapVector, NullableMapVector}
 import org.apache.arrow.vector.types.FloatingPointPrecision
+import org.apache.arrow.vector.{FieldVector, NullableBigIntVector}
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.EncodingPrecision.EncodingPrecision
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -21,6 +23,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.reflect.ClassTag
 
 /**
   * Abstraction for using simple features in Arrow vectors
@@ -96,8 +99,8 @@ class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
 object SimpleFeatureVector {
 
   val DefaultCapacity = 8096
-  val FeatureIdField = "id"
-  val DescriptorKey  = "descriptor"
+  val FeatureIdField  = "id"
+  val DescriptorKey   = "descriptor"
 
   object EncodingPrecision extends Enumeration {
     type EncodingPrecision = Value
@@ -175,7 +178,10 @@ object SimpleFeatureVector {
     * @return
     */
   def getFeatureType(vector: NullableMapVector): (SimpleFeatureType, SimpleFeatureEncoding) = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     import scala.collection.JavaConversions._
+
     var includeFids = false
     val attributes = ArrayBuffer.empty[String]
     vector.getField.getChildren.foreach { field =>
@@ -187,18 +193,53 @@ object SimpleFeatureVector {
     }
     val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))
     val geomPrecision = {
-      val geomVector = Option(sft.getGeometryDescriptor).flatMap(d => Option(vector.getChild(d.getLocalName)))
+      val geomVector: Option[FieldVector] =
+        Option(sft.getGeomField).flatMap(d => Option(vector.getChild(d))).orElse(getNestedVector[Geometry](sft, vector))
       val isDouble = geomVector.exists(v => GeometryFields.precisionFromField(v.getField) == FloatingPointPrecision.DOUBLE)
       if (isDouble) { EncodingPrecision.Max } else { EncodingPrecision.Min }
     }
     val datePrecision = {
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-      val dateVector = sft.getDtgField.flatMap(d => Option(vector.getChild(d)))
+
+      val dateVector: Option[FieldVector] =
+        sft.getDtgField.flatMap(d => Option(vector.getChild(d))).orElse(getNestedVector[Date](sft, vector))
       val isLong = dateVector.exists(_.isInstanceOf[NullableBigIntVector])
       if (isLong) { EncodingPrecision.Max } else { EncodingPrecision.Min }
     }
     val encoding = SimpleFeatureEncoding(includeFids, geomPrecision, datePrecision)
 
     (sft, encoding)
+  }
+
+  def isGeometryVector(vector: FieldVector): Boolean = {
+    Option(vector.getField.getMetadata.get(DescriptorKey))
+        .map(SimpleFeatureTypes.createDescriptor)
+        .exists(d => classOf[Geometry].isAssignableFrom(d.getType.getBinding))
+  }
+
+  /**
+    * Checks nested vector types (lists and maps) for instances of the given type
+    *
+    * @param sft simple feature type
+    * @param vector simple feature vector
+    * @param ct class tag
+    *
+    * @return
+    */
+  private def getNestedVector[T](sft: SimpleFeatureType,
+                                 vector: NullableMapVector)
+                                (implicit ct: ClassTag[T]): Option[FieldVector] = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+    import scala.collection.JavaConversions._
+
+    sft.getAttributeDescriptors.flatMap {
+      case d if d.isList && ct.runtimeClass.isAssignableFrom(d.getListType()) =>
+        Option(vector.getChild(d.getLocalName).asInstanceOf[ListVector]).map(_.getDataVector)
+      case d if d.isMap && ct.runtimeClass.isAssignableFrom(d.getMapTypes()._1) =>
+        Option(vector.getChild(d.getLocalName).asInstanceOf[MapVector]).map(_.getChildrenFromFields.get(0))
+      case d if d.isMap && ct.runtimeClass.isAssignableFrom(d.getMapTypes()._2) =>
+        Option(vector.getChild(d.getLocalName).asInstanceOf[MapVector]).map(_.getChildrenFromFields.get(1))
+      case _ => None
+    }.headOption
   }
 }

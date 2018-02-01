@@ -54,6 +54,9 @@ trait QueryRunner {
     // set return SFT in the query
     query.getHints.put(QueryHints.Internal.RETURN_SFT, getReturnSft(sft, query.getHints))
 
+    // set sorting in the query
+    QueryPlanner.setQuerySort(sft, query)
+
     // add the bbox from the density query to the filter
     if (query.getHints.isDensityQuery) {
       val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]

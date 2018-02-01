@@ -18,6 +18,7 @@ import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVect
 import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan}
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.ArrowScan._
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
@@ -137,6 +138,29 @@ object ArrowScan {
                 hints: Hints): ArrowScanConfig = {
     import AggregatingScan.{OptionToConfig, StringToConfig}
     import Configuration._
+
+    // handle sort from query
+    hints.getSortFields.foreach { sort =>
+      if (sort.lengthCompare(1) > 0) {
+        throw new IllegalArgumentException("Arrow queries only support sort by a single field: " +
+            hints.getSortReadableString)
+      } else if (sort.head._1.isEmpty) {
+        throw new IllegalArgumentException("Arrow queries only support sort by properties: " +
+            hints.getSortReadableString)
+      } else {
+        hints.getArrowSort match {
+          case None =>
+            hints.put(QueryHints.ARROW_SORT_FIELD, sort.head._1)
+            hints.put(QueryHints.ARROW_SORT_REVERSE, sort.head._2)
+          case Some(s) =>
+            if (s != sort.head) {
+              throw new IllegalArgumentException(s"Query sort does not match Arrow hints sort: " +
+                  s"${hints.getSortReadableString} != ${s._1}:${if (s._2) "DESC" else "ASC"}")
+            }
+        }
+        hints.remove(QueryHints.Internal.SORT_FIELDS)
+      }
+    }
 
     val arrowSft = hints.getTransformSchema.getOrElse(sft)
     val includeFids = hints.isArrowIncludeFid

@@ -260,6 +260,117 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .geometry("geom", default = true)
         .build("mySft")
 
+.. _table_split_config:
+
+Configuring Index Splits
+------------------------
+
+When planning to ingest large amounts of data, if the distribution is known up front, it can be useful to
+pre-split tables before writing. This provides parallelism across a cluster from the start, and doesn't
+depend on implementation triggers (which typically split tables based on size).
+
+Splits are managed through implementations of the ``org.locationtech.geomesa.index.conf.TableSplitter`` interface.
+
+Specifying a Table Splitter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A table splitter may be specified by through user data when creating a simple feature type, before calling
+``createSchema``.
+
+To indicate the table splitter class, use the key ``table.splitter.class``:
+
+.. code-block:: java
+
+    sft.getUserData().put("table.splitter.class", "org.example.CustomSplitter");
+
+To indicate any options for the given table splitter, use the key ``table.splitter.options``:
+
+.. code-block:: java
+
+    sft.getUserData().put("table.splitter.options", "foo,bar,baz");
+
+See :ref:`set_sft_options` for details on setting user data.
+
+The Default Table Splitter
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Generally, ``table.splitter.class`` can be omitted. If so, GeoMesa will use a default implementation that allows
+for a flexible configuration using ``table.splitter.options``. If no options are specified, then all tables
+will generally create 4 split (based on the number of shards). The default ID index splits assume
+that feature IDs are randomly distributed UUIDs.
+
+For the default splitter, ``table.splitter.options`` should consist of comma-separated entries, in the form
+``key1:value1,key2:value2``. Entries related to a given index should start with the index identifier, e.g. one
+of ``id``, ``z3``, ``z2`` or ``attr`` (``xz3`` and ``xz2`` indices use ``z3`` and ``z2``, respectively).
+
++------------+-------------------------------+----------------------------------------+
+| Index Type | Option                        | Description                            |
++============+===============================+========================================+
+| Z3/XZ3     | ``z3.min``                    | The minimum date for the data          |
++            +-------------------------------+----------------------------------------+
+|            | ``z3.max``                    | The maximum date for the data          |
++            +-------------------------------+----------------------------------------+
+|            | ``z3.bits``                   | The number of leading bits to split on |
++------------+-------------------------------+----------------------------------------+
+| Z2/XZ2     | ``z2.bits``                   | The number of leading bits to split on |
++------------+-------------------------------+----------------------------------------+
+| ID         | ``id.pattern``                | Split pattern                          |
++------------+-------------------------------+----------------------------------------+
+| Attribute  |  ``attr.<attribute>.pattern`` | Split pattern for a given attribute    |
++------------+-------------------------------+----------------------------------------+
+
+Z3/XZ3 Splits
++++++++++++++
+
+Dates are used to split based on the Z3 time prefix (typically weeks). They are specified in the form
+``yyyy-MM-dd``. If the minimum date is specified, but the maximum date is not, it will default to the current date.
+After the dates, the Z value can be split based on a number of bits (note that due to the index format, bits can
+not be specified without dates). For example, specifying two bits would create splits 00, 01, 10 and 11. The total
+number of splits created will be ``<number of z shards> * <number of time periods> * 2 ^ <number of bits>``.
+
+Z2/XZ2 Splits
++++++++++++++
+
+If any options are given, the number of bits must be specified. For example, specifying two bits would create
+splits 00, 01, 10 and 11. The total number of splits created will be ``<number of z shards> * 2 ^ <number of bits>``.
+
+ID and Attribute Splits
++++++++++++++++++++++++
+
+Splits are defined by patterns. For an ID index, the pattern(s) are applied to the single feature ID. For an
+attribute index, each attribute that is indexed can be configured separately, by specifying the attribute name
+as part of the option. For example, given the schema ``name:String:index=true,*geom:Point:srid=4326``, the
+``name`` attribute splits can be configured with ``attr.name.pattern``.
+
+Patterns consist of one or more single characters or ranges enclosed in square brackets. Valid characters
+can be any of the numbers 0 to 9, or any letter a to z, in upper or lower case. Ranges are two characters
+separated by a dash. Each set of brackets corresponds to a single character, allowing for nested splits.
+
+For example, the pattern ``[0-9]`` would create 10 splits, based on the numbers 0 through 9. The
+pattern ``[0-9][0-9]`` would create 100 splits. The pattern ``[0-9a-f]`` would create 16 splits based on lower-case
+hex characters. The pattern ``[0-9A-F]`` would do the same with upper-case characters.
+
+For data hot-spots, multiple patterns can be specified by adding additional options with a 2, 3, etc appended to
+the key. For example, if most of the ``name`` values start with the letter ``f`` and ``t``, splits could be
+specified as ``attr.name.pattern:[a-z],attr.name.pattern2:[f][a-z],attr.name.pattern3:[t][a-z]``
+
+For number-type attributes, only numbers are considered valid characters. Due to lexicoding, normal number
+prefixing will not work correctly. E.g., if the data has numbers in the range 8000-9000, specifying
+``[8-9][0-9]`` will not split the data properly. Instead, trailing zeros should be added to reach the appropriate
+length, e.g. ``[8-9][0-9][0][0]``.
+
+Full Example
+++++++++++++
+
+.. code-block:: java
+
+    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+
+    String spec = "name:String:index=true,age:Int:index=true,dtg:Date,*geom:Point:srid=4326";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("foo", "spec");
+    sft.getUserData().put("table.splitter.options",
+        "id.pattern:[0-9a-f],attr.name.pattern:[a-z],z3.min:2018-01-01,z3.max:2018-01-31,z3.bits:2,z2.bits:4");
+
 .. _stat_attribute_config:
 
 Configuring Cached Statistics

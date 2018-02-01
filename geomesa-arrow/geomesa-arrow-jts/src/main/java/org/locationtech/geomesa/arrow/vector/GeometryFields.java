@@ -8,7 +8,10 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
+import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
+import org.apache.arrow.vector.complex.FixedSizeListVector;
+import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.types.FloatingPointPrecision;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
@@ -24,6 +27,37 @@ public class GeometryFields {
 
   private GeometryFields() {}
 
+  public static GeometryVector<?, ?> wrap(FieldVector vector) {
+    List<Field> fields = vector.getField().getChildren();
+    if (fields.equals(PointFloatVector.fields)) {
+      return new PointFloatVector((FixedSizeListVector) vector);
+    } else if (fields.equals(LineStringFloatVector.fields)) {
+      return new LineStringFloatVector((ListVector) vector);
+    } else if (fields.equals(PolygonFloatVector.fields)) {
+      return new PolygonFloatVector((ListVector) vector);
+    } else if (fields.equals(MultiPolygonFloatVector.fields)) {
+      return new MultiPolygonFloatVector((ListVector) vector);
+    } else if (fields.equals(MultiLineStringFloatVector.fields)) {
+      return new MultiLineStringFloatVector((ListVector) vector);
+    } else if (fields.equals(MultiPointFloatVector.fields)) {
+      return new MultiPointFloatVector((ListVector) vector);
+    } else if (fields.equals(PointVector.fields)) {
+      return new PointVector((FixedSizeListVector) vector);
+    } else if (fields.equals(LineStringVector.fields)) {
+      return new LineStringVector((ListVector) vector);
+    } else if (fields.equals(PolygonVector.fields)) {
+      return new PolygonVector((ListVector) vector);
+    } else if (fields.equals(MultiPolygonVector.fields)) {
+      return new MultiPolygonVector((ListVector) vector);
+    } else if (fields.equals(MultiLineStringVector.fields)) {
+      return new MultiLineStringVector((ListVector) vector);
+    } else if (fields.equals(MultiPointVector.fields)) {
+      return new MultiPointVector((ListVector) vector);
+    } else {
+      throw new IllegalArgumentException("Vector " + vector + " does not match any geometry type");
+    }
+  }
+
   /**
    * Determines the geometry precision of a vector based on its field
    *
@@ -37,7 +71,7 @@ public class GeometryFields {
       if (type instanceof ArrowType.FloatingPoint) {
         return ((ArrowType.FloatingPoint) type).getPrecision();
       } else if (type instanceof ArrowType.FixedSizeList || type instanceof ArrowType.List) {
-        toCheck = field.getChildren().get(0);
+        toCheck = toCheck.getChildren().get(0);
       } else {
         return null;
       }

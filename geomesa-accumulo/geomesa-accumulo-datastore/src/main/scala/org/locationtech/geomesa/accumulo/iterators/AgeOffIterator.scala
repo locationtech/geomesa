@@ -12,11 +12,12 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKeyValueIterator}
-import org.joda.time.Period
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.filters.AgeOffFilter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.concurrent.duration.Duration
 
 /**
   * Accumulo implementation of AgeOffFilter, based on an expiry. Features with a timestamp older than
@@ -51,7 +52,7 @@ object AgeOffIterator {
 
   val Name = "age-off"
 
-  def configure(sft: SimpleFeatureType, expiry: Period, priority: Int = 5): IteratorSetting = {
+  def configure(sft: SimpleFeatureType, expiry: Duration, priority: Int = 5): IteratorSetting = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     require(!sft.isLogicalTime, "AgeOff iterator will not work with Accumulo logical time - set user data " +
           s"'${SimpleFeatureTypes.Configs.LOGICAL_TIME_KEY}=false' at schema creation")
@@ -70,7 +71,7 @@ object AgeOffIterator {
     }.headOption.map(_.toString)
   }
 
-  def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Period): Unit = {
+  def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Duration): Unit = {
     val tableOps = ds.connector.tableOperations()
     ds.getAllIndexTableNames(sft.getTypeName).foreach { table =>
       if (tableOps.exists(table)) {

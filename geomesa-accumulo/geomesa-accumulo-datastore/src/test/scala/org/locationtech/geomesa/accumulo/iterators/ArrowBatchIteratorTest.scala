@@ -8,36 +8,53 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable}
 
+import com.vividsolutions.jts.geom.LineString
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{Query, Transaction}
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+import org.opengis.filter.sort.SortOrder
+import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 
+import scala.util.Try
+
 @RunWith(classOf[JUnitRunner])
-class ArrowBatchIteratorTest extends TestWithDataStore {
+class ArrowBatchIteratorTest extends TestWithMultipleSfts {
 
   sequential
 
-  override val spec = "name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326"
+  lazy val pointSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326")
+  lazy val lineSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
-  val features = (0 until 10).map { i =>
+  val pointFeatures = (0 until 10).map { i =>
     val name = s"name${i % 2}"
     val team = s"team$i"
     val age = i % 5
     val weight = Option(i % 3).filter(_ != 0).map(Int.box).orNull
-    ScalaSimpleFeature.create(sft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
+    ScalaSimpleFeature.create(pointSft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
+  }
+
+  val lineFeatures = (0 until 10).map { i =>
+    val name = s"name${i % 2}"
+    val team = s"team$i"
+    val age = i % 5
+    val weight = Option(i % 3).filter(_ != 0).map(Int.box).orNull
+    val geom = s"LINESTRING(40 6$i, 40.1 6$i, 40.2 6$i, 40.3 6$i)"
+    ScalaSimpleFeature.create(lineSft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", geom)
   }
 
   // hit all major indices
@@ -45,28 +62,117 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
     "bbox(geom, 38, 59, 42, 70)",
     "bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z",
     "name IN('name0', 'name1')",
-    s"IN(${features.map(_.getID).mkString("'", "', '", "'")})").map(ECQL.toFilter)
+    s"IN(${pointFeatures.map(_.getID).mkString("'", "', '", "'")})").map(ECQL.toFilter)
 
-  addFeatures(features)
+  addFeatures(pointSft, pointFeatures)
+  addFeatures(lineSft, lineFeatures)
+
+  val sfts = Seq((pointSft, pointFeatures), (lineSft, lineFeatures))
+
+  def compare(results: Iterator[SimpleFeature] with Closeable,
+              expected: Seq[SimpleFeature],
+              transform: Seq[String] = Seq.empty,
+              ordered: Boolean = false): MatchResult[Any] = {
+    val transformed = if (transform.isEmpty) { expected } else {
+      import scala.collection.JavaConversions._
+      val tsft = {
+        val builder = new SimpleFeatureTypeBuilder
+        builder.setName(expected.head.getFeatureType.getTypeName)
+        val descriptors = expected.head.getFeatureType.getAttributeDescriptors
+        transform.foreach(t => builder.add(descriptors.find(_.getLocalName == t).orNull))
+        builder.buildFeatureType()
+      }
+      expected.map { e =>
+        new ScalaSimpleFeature(tsft, e.getID, tsft.getAttributeDescriptors.map(d => e.getAttribute(d.getLocalName)).toArray)
+      }
+    }
+    if (ordered) {
+      val features = SelfClosingIterator(results).map(ScalaSimpleFeature.copy).toSeq
+      features must haveLength(transformed.length)
+      foreach(features.zip(transformed)) { case (f, e) => compare(f, e) }
+    } else {
+      val features = SelfClosingIterator(results).map(ScalaSimpleFeature.copy).toList
+      features must containTheSameElementsAs(transformed,
+        (a: SimpleFeature, e: SimpleFeature) => Try(compare(a, e).isSuccess).getOrElse(false))
+    }
+  }
+
+  def compare(feature: SimpleFeature, expected: SimpleFeature): MatchResult[Any] = {
+    feature.getID mustEqual expected.getID
+    feature.getAttributeCount mustEqual expected.getAttributeCount
+    foreach(0 until feature.getAttributeCount)(i => compareAttributes(feature.getAttribute(i), expected.getAttribute(i)))
+  }
+
+  def compareAttributes(attribute: AnyRef, expected: AnyRef): MatchResult[Any] = {
+    expected match {
+      case els: LineString =>
+        // because of our limited precision in arrow queries, points don't exactly match up
+        attribute must beAnInstanceOf[LineString]
+        val als = attribute.asInstanceOf[LineString]
+        als.getNumPoints mustEqual els.getNumPoints
+        foreach(0 until als.getNumPoints) { n =>
+          als.getCoordinateN(n).x must beCloseTo(els.getCoordinateN(n).x, 0.001)
+          als.getCoordinateN(n).y must beCloseTo(els.getCoordinateN(n).y, 0.001)
+        }
+
+      case _ => attribute mustEqual expected
+    }
+  }
 
   "ArrowBatchIterator" should {
     "return arrow encoded data" in {
-      foreach(filters) { filter =>
-        val query = new Query(sft.getTypeName, filter)
-        query.getHints.put(QueryHints.ARROW_ENCODE, true)
-        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-        val out = new ByteArrayOutputStream
-        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-              containTheSameElementsAs(features)
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          query.getHints.put(QueryHints.ARROW_DOUBLE_PASS, true)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features)
+          }
         }
       }
     }
     "return arrow dictionary encoded data" in {
-      foreach(filters) { filter =>
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features)
+          }
+        }
+      }
+    }
+    "return arrow dictionary encoded ints" in {
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "age")
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features)
+          }
+        }
+      }
+    }
+    "return arrow dictionary encoded data with cached data" in {
+      foreach(sfts) { case (sft, features) =>
+        val filter = ECQL.toFilter("name = 'name0'")
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
@@ -76,64 +182,34 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
         def in() = new ByteArrayInputStream(out.toByteArray)
         WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-              containTheSameElementsAs(features)
+          compare(reader.features(), features.filter(filter.evaluate))
+          // verify all cached values were used for the dictionary
+          reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0", "name1"))
         }
       }
     }
-    "return arrow dictionary encoded ints" in {
-      foreach(filters) { filter =>
+    "return arrow dictionary encoded data without caching" in {
+      foreach(sfts) { case (sft, features) =>
+        val filter = ECQL.toFilter("name = 'name0'")
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
-        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "age")
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
         def in() = new ByteArrayInputStream(out.toByteArray)
         WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-              containTheSameElementsAs(features)
+          compare(reader.features(), features.filter(filter.evaluate))
+          // verify only exact values were used for the dictionary
+          reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0"))
         }
-      }
-    }
-    "return arrow dictionary encoded data with cached data" in {
-      val filter = ECQL.toFilter("name = 'name0'")
-      val query = new Query(sft.getTypeName, filter)
-      query.getHints.put(QueryHints.ARROW_ENCODE, true)
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-      val out = new ByteArrayOutputStream
-      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-            containTheSameElementsAs(features.filter(filter.evaluate))
-        // verify all cached values were used for the dictionary
-        reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0", "name1"))
-      }
-    }
-    "return arrow dictionary encoded data without caching" in {
-      val filter = ECQL.toFilter("name = 'name0'")
-      val query = new Query(sft.getTypeName, filter)
-      query.getHints.put(QueryHints.ARROW_ENCODE, true)
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
-      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-      val out = new ByteArrayOutputStream
-      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-            containTheSameElementsAs(features.filter(filter.evaluate))
-        // verify only exact values were used for the dictionary
-        reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0"))
       }
     }
     "return arrow dictionary encoded data without caching and with z-values" in {
       val filter = ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
-      val query = new Query(sft.getTypeName, filter)
+      val query = new Query(pointSft.getTypeName, filter)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
@@ -146,145 +222,168 @@ class ArrowBatchIteratorTest extends TestWithDataStore {
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
       WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-            containTheSameElementsAs(features.filter(filter.evaluate))
+        compare(reader.features(), pointFeatures.filter(filter.evaluate))
       }
     }
     "return arrow dictionary encoded data with provided dictionaries" in {
-      foreach(filters) { filter =>
-        val query = new Query(sft.getTypeName, filter)
-        query.getHints.put(QueryHints.ARROW_ENCODE, true)
-        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-        query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0")
-        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-        val out = new ByteArrayOutputStream
-        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          val expected = features.map {
-            case f if f.getAttribute(0) != "name1" => f
-            case f =>
-              val e = ScalaSimpleFeature.copy(sft, f)
-              e.setAttribute(0, "[other]")
-              e
-          }
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-              containTheSameElementsAs(expected)
-        }
-      }
-    }
-    "return arrow encoded projections" in {
-      import scala.collection.JavaConverters._
-      foreach(filters) { filter =>
-        foreach(Seq(Array("dtg", "geom"), Array("name", "geom"))) { transform =>
-          val query = new Query(sft.getTypeName, filter, transform)
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0")
           query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
           results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
           def in() = new ByteArrayInputStream(out.toByteArray)
           WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-            SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
-                containTheSameElementsAs(features.map(f => transform.toSeq.map(f.getAttribute)))
+            val expected = features.map {
+              case f if f.getAttribute(0) != "name1" => f
+              case f =>
+                val e = ScalaSimpleFeature.copy(sft, f)
+                e.setAttribute(0, "[other]")
+                e
+            }
+            compare(reader.features(), expected)
+          }
+        }
+      }
+    }
+    "return arrow encoded projections" in {
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters.take(1)) { filter =>
+          foreach(Seq(Array("dtg", "geom")/*, Array("name", "geom")*/)) { transform =>
+            val query = new Query(sft.getTypeName, filter, transform)
+            query.getHints.put(QueryHints.ARROW_ENCODE, true)
+            query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+            val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+            val out = new ByteArrayOutputStream
+            results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+            def in() = new ByteArrayInputStream(out.toByteArray)
+            WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+              compare(reader.features(), features, transform.toSeq)
+            }
           }
         }
       }
     }
     "return sorted batches" in {
       // TODO figure out how to test multiple batches (client side merge)
-      foreach(filters) { filter =>
-        val query = new Query(sft.getTypeName, filter)
-        query.getHints.put(QueryHints.ARROW_ENCODE, true)
-        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
-        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-        val out = new ByteArrayOutputStream
-        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features, ordered = true)
+          }
+        }
+      }
+    }
+    "return sorted batches from query sort" in {
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          query.setSortBy(Array(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.ASCENDING)))
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features, ordered = true)
+          }
         }
       }
     }
     "return sampled arrow encoded data" in {
-      val query = new Query(sft.getTypeName, Filter.INCLUDE)
-      query.getHints.put(QueryHints.ARROW_ENCODE, true)
-      query.getHints.put(QueryHints.SAMPLING, 0.2f)
-      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-      val out = new ByteArrayOutputStream
-      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq
-        results must haveLength(2)
-        foreach(results)(features must contain(_))
-      }
-    }
-    "return sorted, dictionary encoded projections for non-indexed attributes" in {
-      import scala.collection.JavaConverters._
-      foreach(filters) { filter =>
-        val transform = Array("team", "dtg", "geom")
-        val query = new Query(sft.getTypeName, filter, transform)
+      foreach(sfts) { case (sft, features) =>
+        val query = new Query(sft.getTypeName, Filter.INCLUDE)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
-        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team")
-        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+        query.getHints.put(QueryHints.SAMPLING, 0.2f)
         query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
         def in() = new ByteArrayInputStream(out.toByteArray)
         WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          reader.dictionaries.keySet mustEqual Set("team")
-          SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
-              containTheSameElementsAs(features.map(f => transform.toSeq.map(f.getAttribute)))
+          // we don't know exactly which features will be selected
+          val expected = SelfClosingIterator(reader.features()).flatMap(f => features.find(_.getID == f.getID)).toSeq
+          compare(reader.features(), expected)
+          expected must haveLength(2)
+        }
+      }
+    }
+    "return sorted, dictionary encoded projections for non-indexed attributes" in {
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val transform = Array("team", "dtg", "geom")
+          val query = new Query(sft.getTypeName, filter, transform)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team")
+          query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features, transform.toSeq)
+            reader.dictionaries.keySet mustEqual Set("team")
+          }
         }
       }
     }
     "return sorted, dictionary encoded projections for different attribute queries" in {
-      import scala.collection.JavaConverters._
       val filter = ECQL.toFilter("name IN('name0', 'name1')")
       val transforms = Seq(
         Array("dtg", "geom"),
         Array("name", "dtg", "geom"),
         Array("team", "dtg", "geom"),
         Array("name", "team", "dtg", "geom"))
-      foreach(transforms) { transform =>
-        val query = new Query(sft.getTypeName, filter, transform)
-        query.getHints.put(QueryHints.ARROW_ENCODE, true)
-        val dictionaries = Option(transform.toSeq.filter(t => t != "dtg" && t != "geom")).filter(_.nonEmpty)
-        dictionaries.foreach(d => query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, d.mkString(",")))
-        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
-        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-        val out = new ByteArrayOutputStream
-        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
-              containTheSameElementsAs(features.map(f => transform.toSeq.map(f.getAttribute)))
-          reader.dictionaries.keySet mustEqual dictionaries.map(_.toSet).getOrElse(Set.empty)
+      foreach(sfts) { case (sft, features) =>
+        foreach(transforms) { transform =>
+          val query = new Query(sft.getTypeName, filter, transform)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          val dictionaries = Option(transform.toSeq.filter(t => t != "dtg" && t != "geom")).filter(_.nonEmpty)
+          dictionaries.foreach(d => query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, d.mkString(",")))
+          query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features, transform.toSeq)
+            reader.dictionaries.keySet mustEqual dictionaries.map(_.toSet).getOrElse(Set.empty)
+          }
         }
       }
     }
     "work with different batch sizes" in {
-      foreach(Seq(2,4,10,20)) { batchSize =>
-        val query = new Query(sft.getTypeName, Filter.INCLUDE)
-        // ensure we create a unique cache key so we can test out the batch size change
-        query.getHints.put(QueryHints.ARROW_ENCODE, true)
-        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
-        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-        query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0,name1,name2,foo,bar,baz")
-        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
-        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-        val out = new ByteArrayOutputStream
-        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-              containTheSameElementsAs(features)
+      foreach(sfts) { case (sft, features) =>
+        foreach(Seq(2, 4, 10, 20)) { batchSize =>
+          val query = new Query(sft.getTypeName, Filter.INCLUDE)
+          // ensure we create a unique cache key so we can test out the batch size change
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0,name1,name2,foo,bar,baz")
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features)
+          }
         }
       }
     }

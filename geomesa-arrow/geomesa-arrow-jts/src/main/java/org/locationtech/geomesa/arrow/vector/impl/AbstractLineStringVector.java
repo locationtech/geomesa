@@ -78,6 +78,11 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
     vector.close();
   }
 
+  @Override
+  public void transfer(int fromIndex, int toIndex, GeometryVector<LineString, ListVector> to) {
+    to.getWriter().set(toIndex, reader.get(fromIndex));
+  }
+
   public static abstract class LineStringWriter extends AbstractGeometryWriter<LineString> {
 
     private final BitVector.Mutator nullSet;
@@ -95,10 +100,15 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
 
     @Override
     public void set(int index, LineString geom) {
+      if (index == 0) {
+        // need to do this to avoid issues with re-setting the value at index 0
+        mutator.setLastSet(0);
+      }
+      int position = mutator.startNewValue(index);
       if (geom == null) {
+        mutator.endValue(index, 0);
         nullSet.setSafe(index, 0);
       } else {
-        int position = mutator.startNewValue(index);
         for (int i = 0; i < geom.getNumPoints(); i++) {
           Coordinate p = geom.getCoordinateN(i);
           tupleMutator.setNotNull(position + i);
@@ -166,7 +176,12 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
 
     @Override
     public int getNullCount() {
-      return accessor.getNullCount();
+      int count = accessor.getNullCount();
+      if (count < 0) {
+        return 0;
+      } else {
+        return count;
+      }
     }
   }
 }

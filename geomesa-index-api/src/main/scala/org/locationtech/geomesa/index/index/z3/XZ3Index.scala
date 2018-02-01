@@ -18,7 +18,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
     extends BaseFeatureIndex[DS, F, W, R, C, XZ3IndexValues] with SpatioTemporalFilterStrategy[DS, F, W] {
 
-  override val name: String = "xz3"
+  override val name: String = XZ3Index.Name
 
   override protected val keySpace: XZ3IndexKeySpace = XZ3IndexKeySpace
 
@@ -30,3 +30,6 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
                                        hints: Hints): Boolean = true
 }
 
+object XZ3Index {
+  val Name = "xz3"
+}

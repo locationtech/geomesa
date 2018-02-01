@@ -6,13 +6,15 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.geotools
+package org.locationtech.geomesa.utils.geotools.converters
 
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.{Date, UUID}
 
 import org.geotools.factory.GeoTools
-import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.converters.ScalaCollectionsConverterFactory.{ListToListConverter, MapToMapConverter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -130,9 +132,9 @@ class ConverterFactoriesTest extends Specification {
     val factory = new StringCollectionConverterFactory
 
     val hints = GeoTools.getDefaultHints
-    hints.put(ConverterFactories.ListTypeKey, classOf[Int])
-    hints.put(ConverterFactories.MapKeyTypeKey, classOf[String])
-    hints.put(ConverterFactories.MapValueTypeKey, classOf[Int])
+    hints.put(StringCollectionConverterFactory.ListTypeKey, classOf[Int])
+    hints.put(StringCollectionConverterFactory.MapKeyTypeKey, classOf[String])
+    hints.put(StringCollectionConverterFactory.MapValueTypeKey, classOf[Int])
 
     "create converters" >> {
       "string to list" >> {
@@ -215,14 +217,14 @@ class ConverterFactoriesTest extends Specification {
     }
   }
 
-  "Joda Date Conversions" should {
-    val factory = new JodaConverterFactory
+  "Java Date Conversions" should {
+    val factory = new JavaTimeConverterFactory
 
-    val dtf  = ISODateTimeFormat.dateTime().withZoneUTC()
     val dStr = "2015-01-01T00:00:00.000Z"
-    val date = dtf.parseDateTime(dStr).toDate
+    val date = Date.from(ZonedDateTime.parse(dStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant)
 
     "convert a range of ISO8601 strings to dates" >> {
+      date must not(beNull)
       val converter = factory.createConverter(classOf[String], classOf[java.util.Date], null)
       converter.convert("2015-01-01T00:00:00.000Z", classOf[java.util.Date]) mustEqual date
       converter.convert("2015-01-01T00:00:00.000", classOf[java.util.Date]) mustEqual date
@@ -237,6 +239,5 @@ class ConverterFactoriesTest extends Specification {
       val converter = factory.createConverter(classOf[Date], classOf[String], null)
       converter.convert(date, classOf[String]) mustEqual "2015-01-01T00:00:00.000Z"
     }
-
   }
 }

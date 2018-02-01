@@ -33,7 +33,7 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
         |   id-field    = "uuid()"
         |   fields = [
         |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
-        |     { name = "dtg",  transform = "date('YYYY-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
+        |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
         |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
         |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
         |     { name = "geom", transform = "point($lon, $lat)" }
@@ -80,7 +80,7 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
           |   }
           |   fields = [
           |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
-          |     { name = "dtg",  transform = "date('YYYY-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
+          |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
           |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
           |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
           |     { name = "geom", transform = "point($lon, $lat)" }

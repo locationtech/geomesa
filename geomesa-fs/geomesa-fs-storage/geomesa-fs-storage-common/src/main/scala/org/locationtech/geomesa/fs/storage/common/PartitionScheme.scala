@@ -11,13 +11,12 @@ package org.locationtech.geomesa.fs.storage.common
 import java.io.Serializable
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, ZoneOffset}
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util
 import java.util.Date
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.FilterHelper.extractGeometries
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
@@ -184,7 +183,6 @@ object PartitionScheme {
   def apply(sft: SimpleFeatureType, conf: String): PartitionScheme = {
     apply(sft, ConfigFactory.parseString(conf))
   }
-
 }
 
 case class DateTimeScheme(fmtStr: String,
@@ -193,8 +191,8 @@ case class DateTimeScheme(fmtStr: String,
                           dtgAttribute: String,
                           leafStorage: Boolean) extends PartitionScheme {
 
-  private val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
-  private val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+  private val MinDateTime = ZonedDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
+  private val MaxDateTime = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999000000, ZoneOffset.UTC)
 
   private val fmt = DateTimeFormatter.ofPattern(fmtStr)
   override def getPartitionName(sf: SimpleFeature): String = {
@@ -205,8 +203,7 @@ case class DateTimeScheme(fmtStr: String,
   override def getCoveringPartitions(f: Filter): java.util.List[String] = {
     val bounds = FilterHelper.extractIntervals(f, dtgAttribute, handleExclusiveBounds = true)
     val intervals = bounds.values.map { b =>
-      (Instant.ofEpochMilli(b.lower.value.getOrElse(MinDateTime).getMillis).atZone(ZoneOffset.UTC),
-          Instant.ofEpochMilli(b.upper.value.getOrElse(MaxDateTime).getMillis).atZone(ZoneOffset.UTC))
+      (b.lower.value.getOrElse(MinDateTime), b.upper.value.getOrElse(MaxDateTime))
     }
 
     intervals.flatMap { case (start, end) =>
@@ -321,8 +318,8 @@ object Z2Scheme {
 
 case class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
 
-  require(schemes.size > 1, "Must provide at least 2 schemes for a composite scheme")
-  require(schemes.map(_.isLeafStorage).distinct.size == 1, "All schemes must share the same value for isLeafStorage")
+  require(schemes.lengthCompare(1) > 0, "Must provide at least 2 schemes for a composite scheme")
+  require(schemes.map(_.isLeafStorage).distinct.lengthCompare(1) == 0, "All schemes must share the same value for isLeafStorage")
 
   override def getPartitionName(sf: SimpleFeature): String = schemes.map(_.getPartitionName(sf)).mkString("/")
 

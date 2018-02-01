@@ -82,6 +82,11 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
     vector.close();
   }
 
+  @Override
+  public void transfer(int fromIndex, int toIndex, GeometryVector<MultiPolygon, ListVector> to) {
+    to.getWriter().set(toIndex, reader.get(fromIndex));
+  }
+
   public static abstract class MultiPolygonWriter extends AbstractGeometryWriter<MultiPolygon> {
 
     private final BitVector.Mutator nullSet;
@@ -105,6 +110,12 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
 
     @Override
     public void set(int index, MultiPolygon geom) {
+      if (index == 0) {
+        // need to do this to avoid issues with re-setting the value at index 0
+        mutator.setLastSet(0);
+        innerMutator.setLastSet(0);
+        innerInnerMutator.setLastSet(0);
+      }
       if (geom == null) {
         nullSet.setSafe(index, 0);
       } else {
@@ -192,7 +203,12 @@ public abstract class AbstractMultiPolygonVector implements GeometryVector<Multi
 
     @Override
     public int getNullCount() {
-      return accessor.getNullCount();
+      int count = accessor.getNullCount();
+      if (count < 0) {
+        return 0;
+      } else {
+        return count;
+      }
     }
   }
 }

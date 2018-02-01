@@ -21,14 +21,17 @@ trait SimpleFeatureStreamSource {
 
 trait SimpleFeatureStreamSourceFactory {
   def canProcess(conf: Config): Boolean
-  def create(conf: Config): SimpleFeatureStreamSource
+  def create(conf: Config): SimpleFeatureStreamSource = create(conf, "")
+  def create(conf: Config, namespace: String): SimpleFeatureStreamSource
 }
 
 object SimpleFeatureStreamSource {
-  def buildSource(conf: Config): SimpleFeatureStreamSource = {
+  def buildSource(conf: Config): SimpleFeatureStreamSource = buildSource(conf, "")
+
+  def buildSource(conf: Config, namespace: String): SimpleFeatureStreamSource = {
     import scala.collection.JavaConversions._
     val factory = ServiceLoader.load(classOf[SimpleFeatureStreamSourceFactory]).iterator().find(_.canProcess(conf))
-    factory.map { f => f.create(conf) }.getOrElse(throw new RuntimeException("Cannot load source"))
+    factory.map { f => f.create(conf, namespace) }.getOrElse(throw new RuntimeException("Cannot load source"))
   }
 }
 

@@ -345,15 +345,12 @@
                 <artifactId>scala-logging_${scala.binary.version}</artifactId>
                 <version>${scalalogging.version}</version>
             </dependency>
+            <!-- we've removed our direct joda dependency, but it still gets pulled in
+                 transitively by scalatra and osm4j -->
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>2.3</version>
-            </dependency>
-            <dependency>
-                <groupId>org.joda</groupId>
-                <artifactId>joda-convert</artifactId>
-                <version>1.6</version>
             </dependency>
             <dependency>
                 <groupId>com.vividsolutions</groupId>

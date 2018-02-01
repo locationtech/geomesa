@@ -77,7 +77,7 @@ object RasterEntryEncoder extends LazyLogging {
   private def getCF(raster: Raster): Text = new Text("")
 
   private def getCQ(raster: Raster): Text = {
-    new Text(RasterEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Option(raster.time.toDate)))
+    new Text(RasterEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Option(Date.from(raster.time.toInstant))))
   }
 
   private def encodeValue(raster: Raster): Value = new Value(raster.serializedChunk)

@@ -20,7 +20,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
     extends BaseFeatureIndex[DS, F, W, R, C, Z2IndexValues] with SpatialFilterStrategy[DS, F, W] {
 
-  override val name: String = "z2"
+  override val name: String = Z2Index.Name
 
   override protected val keySpace: Z2IndexKeySpace = Z2IndexKeySpace
 
@@ -39,4 +39,8 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
 
     !looseBBox || !simpleGeoms
   }
+}
+
+object Z2Index {
+  val Name = "z2"
 }

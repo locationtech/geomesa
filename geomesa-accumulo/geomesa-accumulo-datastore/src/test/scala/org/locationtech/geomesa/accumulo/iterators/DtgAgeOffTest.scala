@@ -8,12 +8,15 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
+import java.util.concurrent.TimeUnit
+
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
-import org.joda.time.{DateTime, DateTimeZone, Period}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
@@ -25,6 +28,8 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class DtgAgeOffTest extends Specification with TestWithDataStore {
@@ -38,16 +43,16 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
 
     def configAgeOff(ads: AccumuloDataStore, days: Int): Unit = {
       DtgAgeOffIterator.clear(ads, ads.getSchema(sft.getTypeName))
-      DtgAgeOffIterator.set(ads, ads.getSchema(sft.getTypeName), Period.days(days), "dtg")
+      DtgAgeOffIterator.set(ads, ads.getSchema(sft.getTypeName), Duration.create(days, TimeUnit.DAYS), "dtg")
     }
 
-    val today: DateTime = DateTime.now(DateTimeZone.UTC)
+    val today: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
 
     def createSF(i: Int, id: String, vis: Option[String]): SimpleFeature = {
       val geom = WKTUtils.read(s"POINT($i $i)")
       val arr = Array[AnyRef](
         id,
-        today.minusDays(i).toDate,
+        Date.from(today.minusDays(i).toInstant),
         geom
       )
       val sf = ScalaSimpleFeature.create(sft, id, arr: _*)

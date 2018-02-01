@@ -14,7 +14,6 @@ import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.Value
-import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
@@ -32,7 +31,7 @@ class IndexValueEncoderTest extends Specification {
   val allSchema = s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String:$OPT_INDEX_VALUE=true,i:Int:$OPT_INDEX_VALUE=true,d:Double:$OPT_INDEX_VALUE=true,f:Float:$OPT_INDEX_VALUE=true,u:UUID:$OPT_INDEX_VALUE=true,l:List[String]"
   val id = "Feature0123456789"
   val geom = WKTUtils.read("POINT (-78.495356 38.075215)")
-  val dt = new DateTime().toDate
+  val dt = new Date()
 
   // b/c the IndexValueEncoder caches feature types, we need to change the sft name for each test
   val index = new AtomicInteger(0)
