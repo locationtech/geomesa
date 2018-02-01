@@ -289,15 +289,6 @@ function registerAutocomplete() {
   fi
 }
 
-function installScala() {
-  # Download scala to %%gmtools.dist.name%%_HOME}/dist/
-
-
-  wget $sourceURL -O $outputFile
-
-
-}
-
 function geomesaConsole() {
   classpath=${1}
   # Check if we already downloaded scala
