@@ -271,8 +271,8 @@ class TransformersTest extends Specification {
 
         "transform a date to a string" >> {
           val d = LocalDateTime.now()
-          val fmt = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss.SSSSSS")
-          val exp = Transformers.parseTransform("dateToString('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
+          val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+          val exp = Transformers.parseTransform("dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
           exp.eval(Array("", Date.from(d.toInstant(ZoneOffset.UTC)))).asInstanceOf[String] must be equalTo fmt.format(d)
         }
       }
