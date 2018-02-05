@@ -16,6 +16,7 @@ import org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.RemoteFilterNotUsedParam
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseBulkLoadCommand.BulkLoadParams
 import org.locationtech.geomesa.tools.{CatalogParam, Command, RequiredIndexParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -51,7 +52,8 @@ class HBaseBulkLoadCommand extends HBaseDataStoreCommand {
 
 object HBaseBulkLoadCommand {
   @Parameters(commandDescription = "Bulk load HFiles into HBase")
-  class BulkLoadParams extends CatalogParam with RequiredTypeNameParam with RequiredIndexParam {
+  class BulkLoadParams extends CatalogParam
+      with RequiredTypeNameParam with RequiredIndexParam with RemoteFilterNotUsedParam {
     @Parameter(names = Array("--input"), description = "Path to HFiles to be loaded", required = true)
     var input: String = _
 

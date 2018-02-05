@@ -11,6 +11,8 @@ package org.locationtech.geomesa.hbase.tools.stats
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.ToggleRemoteFilterParam
+import org.locationtech.geomesa.hbase.tools.stats.HBaseStatsTopKCommand.HBaseStatsTopKParams
 import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.stats.{StatsTopKCommand, StatsTopKParams}
 
@@ -18,5 +20,7 @@ class HBaseStatsTopKCommand extends StatsTopKCommand[HBaseDataStore] with HBaseD
   override val params = new HBaseStatsTopKParams
 }
 
-@Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
-class HBaseStatsTopKParams extends StatsTopKParams with CatalogParam
+object HBaseStatsTopKCommand {
+  @Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
+  class HBaseStatsTopKParams extends StatsTopKParams with CatalogParam with ToggleRemoteFilterParam
+}
