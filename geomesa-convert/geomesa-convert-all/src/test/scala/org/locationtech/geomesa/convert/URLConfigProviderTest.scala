@@ -57,7 +57,7 @@ class URLConfigProviderTest extends Specification {
               |        { name = "id",       transform = "$1::int"                 }
               |        { name = "name",     transform = "$2::string"              }
               |        { name = "age",      transform = "$3::int"                 }
-              |        { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
+              |        { name = "lastseen", transform = "date('yyyy-MM-dd', $4)"  }
               |        { name = "friends",  transform = "parseList('string', $5)" }
               |        { name = "lon",      transform = "$6::double"              }
               |        { name = "lat",      transform = "$7::double"              }
@@ -91,7 +91,7 @@ class URLConfigProviderTest extends Specification {
               |        { name = "id",       transform = "$1::int"                 }
               |        { name = "name",     transform = "$2::string"              }
               |        { name = "age",      transform = "$3::int"                 }
-              |        { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
+              |        { name = "lastseen", transform = "date('yyyy-MM-dd', $4)"  }
               |        { name = "friends",  transform = "parseList('string', $5)" }
               |        { name = "lon",      transform = "$6::double"              }
               |        { name = "lat",      transform = "$7::double"              }

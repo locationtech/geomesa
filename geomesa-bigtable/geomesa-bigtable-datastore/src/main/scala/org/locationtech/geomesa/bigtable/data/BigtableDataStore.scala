@@ -10,7 +10,6 @@ package org.locationtech.geomesa.bigtable.data
 
 import java.io.Serializable
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client._
 import org.geotools.data.DataAccessFactory.Param
@@ -41,7 +40,7 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
     new BigtableDataStore(connection, config.copy(remoteFilter = false))
   }
 
-  override protected def checkClusterAvailability(conf: Configuration): Unit = {}
+  override protected def validateConnection: Boolean = false
 
   override def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean =
     BigtableDataStoreFactory.canProcess(params)
