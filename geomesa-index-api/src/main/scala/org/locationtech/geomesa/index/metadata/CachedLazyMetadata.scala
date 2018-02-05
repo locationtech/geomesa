@@ -16,6 +16,9 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, IsSynchronized, MaybeSynchronized, NotSynchronized}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.io.WithClose
+
+import scala.util.control.NonFatal
 
 /**
   * Backs metadata with a cache to save repeated database reads. Underlying table will be lazily created
@@ -55,13 +58,17 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   override def getFeatureTypes: Array[String] = {
     if (tableExists.get) {
-      val rows = scanRows(None)
-      try {
-        rows.map(CachedLazyMetadata.decodeRow(_, typeNameSeparator)).toArray.collect {
-          case (name, GeoMesaMetadata.ATTRIBUTES_KEY) => name
-        }
-      } finally {
-        rows.close()
+      WithClose(scanRows(None)) { rows =>
+        rows.flatMap { row =>
+          try {
+            val (name, key) = CachedLazyMetadata.decodeRow(row, typeNameSeparator)
+            if (key == GeoMesaMetadata.ATTRIBUTES_KEY) { Iterator.single(name) } else { Iterator.empty }
+          } catch {
+            case NonFatal(_) =>
+              logger.warn(s"Ignoring unexpected row in catalog table: ${new String(row, StandardCharsets.UTF_8)}")
+              Iterator.empty
+          }
+        }.toArray
       }
     } else {
       Array.empty
@@ -132,16 +139,16 @@ object CachedLazyMetadata {
 
   def encodeRow(typeName: String, key: String, separator: Char): Array[Byte] = {
     // escaped to %U+XXXX unicode since decodeRow splits by separator
-    val ESCAPE = s"%${"U+%04X".format(separator.toInt)}"
-    s"${typeName.replace(separator.toString, ESCAPE)}$separator$key".getBytes(StandardCharsets.UTF_8)
+    val escape = s"%${"U+%04X".format(separator.toInt)}"
+    s"${typeName.replace(separator.toString, escape)}$separator$key".getBytes(StandardCharsets.UTF_8)
   }
 
   def decodeRow(row: Array[Byte], separator: Char): (String, String) = {
     // escaped to %U+XXXX unicode since decodeRow splits by separator
-    val ESCAPE = s"%${"U+%04X".format(separator.toInt)}"
+    val escape = s"%${"U+%04X".format(separator.toInt)}"
     val all = new String(row, StandardCharsets.UTF_8)
     val split = all.indexOf(separator)
-    (all.substring(0, split).replace(ESCAPE, separator.toString), all.substring(split + 1, all.length))
+    (all.substring(0, split).replace(escape, separator.toString), all.substring(split + 1, all.length))
   }
 }
 

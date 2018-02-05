@@ -63,7 +63,7 @@ object TestGeoMesaDataStore {
   type TestQueryPlanType = QueryPlan[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
   type TestFilterStrategyType = FilterStrategy[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
 
-  val byteComparator = new Comparator[Array[Byte]] {
+  val ByteComparator = new Comparator[Array[Byte]] {
     override def compare(o1: Array[Byte], o2: Array[Byte]): Int = {
       val minLength = if (o1.length < o2.length) { o1.length } else { o2.length }
       var i = 0
@@ -130,7 +130,7 @@ object TestGeoMesaDataStore {
 
     private val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
       override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
-        byteComparator.compare(x._1, y._1)
+        ByteComparator.compare(x._1, y._1)
     }
 
     val features = scala.collection.mutable.SortedSet.empty[(Array[Byte], SimpleFeature)](ordering)
@@ -198,7 +198,7 @@ object TestGeoMesaDataStore {
                            ecql: Option[Filter]) extends TestQueryPlanType {
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
       def contained(range: TestRange, row: Array[Byte]): Boolean =
-        byteComparator.compare(range.start, row) <= 0 && byteComparator.compare(range.end, row) > 0
+        ByteComparator.compare(range.start, row) <= 0 && ByteComparator.compare(range.end, row) > 0
       index.features.toIterator.collect {
         case (row, sf) if ranges.exists(contained(_, row)) && ecql.forall(_.evaluate(sf)) => sf
       }
