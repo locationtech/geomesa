@@ -12,14 +12,37 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.{Coprocessor, HColumnDescriptor, HTableDescriptor}
 
 /**
-  * Reflection wrapper for AdminUtils methods between kafka versions 0.9 and 0.10
+  * Reflection wrapper for method signature differences in the HBase API
   */
 object HBaseVersions {
 
   private val hTableDescriptorMethods = classOf[HTableDescriptor].getDeclaredMethods
 
+  /**
+    * HBase 1.3 signature: public HTableDescriptor addFamily(final HColumnDescriptor family)
+    * CDH 5.12 signature: public void addFamily(final HColumnDescriptor family)
+    *
+    * @see `HTableDescriptor.addFamily`
+    *
+    * @param descriptor table descriptor
+    * @param family column family descriptor
+    */
   def addFamily(descriptor: HTableDescriptor, family: HColumnDescriptor): Unit = _addFamily(descriptor, family)
 
+  /**
+    * HBase 1.3 signature: public HTableDescriptor addCoprocessor(String className, Path jarFilePath,
+                             int priority, final Map&lt;String, String&gt; kvs)
+    * CDH 5.12 signature: public void addCoprocessor(String className, Path jarFilePath,
+                             int priority, final Map&lt;String, String&gt; kvs)
+    *
+    * @see `HTableDescriptor.addCoprocessor`
+    *
+    * @param descriptor table descriptor
+    * @param className class name of coprocessor
+    * @param jarFilePath optional path to jar file containing coprocessor
+    * @param priority optional priority for the coprocessor
+    * @param kvs optional configuration for the coprocessor
+    */
   def addCoprocessor(descriptor: HTableDescriptor,
                      className: String,
                      jarFilePath: Option[Path] = None,
