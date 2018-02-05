@@ -16,7 +16,6 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloIndexManagerType}
 import org.locationtech.geomesa.index.filters.DtgAgeOffFilter
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.concurrent.duration.Duration
@@ -82,7 +81,7 @@ object DtgAgeOffIterator {
 
   def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Duration, dtg: String): Unit = {
     val tableOps = ds.connector.tableOperations()
-    ds.manager.indices(sft, IndexMode.Any).foreach { index =>
+    ds.manager.indices(sft).foreach { index =>
       val table = index.getTableName(sft.getTypeName, ds)
       if (tableOps.exists(table)) {
         tableOps.attachIterator(table, configure(sft, index, expiry, Option(dtg))) // all scopes

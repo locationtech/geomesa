@@ -335,7 +335,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
 
     // apply any secondary filters or transforms against the record table
     val recordIndex = {
-      val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+      val indices = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Read)
       indices.find(AccumuloFeatureIndex.RecordIndices.contains).getOrElse {
         throw new RuntimeException("Record index does not exist for join query")
       }

@@ -18,7 +18,6 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
@@ -54,7 +53,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val typeName = sft.getTypeName
 
       // tests that tables exist before being deleted
-      val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any)
+      val tables = AccumuloFeatureIndex.indices(sft)
       val tableNames = tables.map(_.getTableName(typeName, ds))
       tables must containTheSameElementsAs(Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index))
       forall(tableNames)(tableOps.exists(_) must beTrue)
@@ -84,12 +83,12 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val typeName2 = sft2.getTypeName
 
       // tests that tables exist before being deleted
-      val tables1 = AccumuloFeatureIndex.indices(sft1, IndexMode.Any)
+      val tables1 = AccumuloFeatureIndex.indices(sft1)
       val tableNames1 = tables1.map(_.getTableName(typeName1, ds))
       tables1 must containTheSameElementsAs(Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index))
       forall(tableNames1)(tableOps.exists(_) must beTrue)
 
-      val tables2 = AccumuloFeatureIndex.indices(sft2, IndexMode.Any)
+      val tables2 = AccumuloFeatureIndex.indices(sft2)
       val tableNames2 = tables2.map(_.getTableName(typeName2, ds))
       tables2 must containTheSameElementsAs(Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index))
       forall(tableNames2)(tableOps.exists(_) must beTrue)
@@ -129,7 +128,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val typeName = sft.getTypeName
 
       // tests that tables exist before being deleted
-      val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any)
+      val tables = AccumuloFeatureIndex.indices(sft)
       val tableNames = tables.map(_.getTableName(typeName, ds))
       tables must containTheSameElementsAs(Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index))
       forall(tableNames)(tableOps.exists(_) must beTrue)
@@ -166,12 +165,12 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val typeName2 = sft2.getTypeName
 
       // tests that tables exist before being deleted
-      val tables1 = AccumuloFeatureIndex.indices(sft1, IndexMode.Any)
+      val tables1 = AccumuloFeatureIndex.indices(sft1)
       val tableNames1 = tables1.map(_.getTableName(typeName1, ds))
       tables1 must containTheSameElementsAs(Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index))
       forall(tableNames1)(tableOps.exists(_) must beTrue)
 
-      val tables2 = AccumuloFeatureIndex.indices(sft2, IndexMode.Any)
+      val tables2 = AccumuloFeatureIndex.indices(sft2)
       val tableNames2 = tables2.map(_.getTableName(typeName2, ds))
       tables2 must containTheSameElementsAs(Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index))
       forall(tableNames2)(tableOps.exists(_) must beTrue)
@@ -258,7 +257,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
-      val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog, s"${catalog}_stats")
+      val tables = AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog, s"${catalog}_stats")
       tables must haveSize(6)
       forall(tables)(tableOps.exists(_) must beTrue)
       ds.delete()

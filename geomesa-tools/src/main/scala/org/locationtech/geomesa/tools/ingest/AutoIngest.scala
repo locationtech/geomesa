@@ -52,8 +52,8 @@ class AutoIngest(typeName: String,
 
   override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
     format match {
-      case Avro      => new AvroIngestJob(typeName).run(dsParams, typeName, inputs, libjarsFile, libjarsPaths, statusCallback)
-      case Tsv | Csv => new DelimitedIngestJob(typeName, format).run(dsParams, typeName, inputs, libjarsFile, libjarsPaths, statusCallback)
+      case Avro      => new AvroIngestJob(dsParams, typeName, inputs, libjarsFile, libjarsPaths).run(statusCallback)
+      case Tsv | Csv => new DelimitedIngestJob(dsParams, typeName, format, inputs, libjarsFile, libjarsPaths).run(statusCallback)
       // in case someone forgets to add a new type here
       case _ => throw new UnsupportedOperationException(s"Invalid input format $format")
     }

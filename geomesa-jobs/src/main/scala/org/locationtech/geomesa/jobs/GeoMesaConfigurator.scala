@@ -18,6 +18,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
+import scala.reflect.ClassTag
 
 /**
  * Common place for setting and getting values out of the mapreduce config

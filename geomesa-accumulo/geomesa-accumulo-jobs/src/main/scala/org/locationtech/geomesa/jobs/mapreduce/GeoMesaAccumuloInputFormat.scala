@@ -239,7 +239,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
 
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     val tableName = GeoMesaConfigurator.getTable(conf)
-    table = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+    table = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Read)
         .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
         .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
     ds.dispose()

@@ -32,11 +32,18 @@ trait GeoMesaIndexManager[O <: GeoMesaDataStore[O, F, W], F <: WrappedFeature, W
 
   def lookup: Map[(String, Int), GeoMesaFeatureIndex[O, F, W]] = indexMap
 
-  def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[GeoMesaFeatureIndex[O, F, W]] = {
+  def indices(sft: SimpleFeatureType,
+              idx: Option[String] = None,
+              mode: IndexMode = IndexMode.Any): Seq[GeoMesaFeatureIndex[O, F, W]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val withMode = sft.getIndices.filter { case (_, _, m) => m.supports(mode) }
     // filter the list of all indices so that we maintain priority order
-    AllIndices.filter(i => withMode.exists { case (n, v, _) => i.name == n && i.version == v})
+    val filtered = AllIndices.filter(i => withMode.exists { case (n, v, _) => i.name == n && i.version == v})
+    idx match {
+      case None => filtered
+      case Some(i) if i.indexOf(":") == -1 => filtered.filter(_.name.equalsIgnoreCase(i))
+      case Some(i) => filtered.filter(_.identifier.equalsIgnoreCase(i))
+    }
   }
 
   def index(identifier: String): GeoMesaFeatureIndex[O, F, W] = {

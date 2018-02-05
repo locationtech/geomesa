@@ -107,7 +107,7 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
     val writer = writerCache.getOrElseUpdate(sftName, {
       val i = indices match {
         case Some(names) => names.map(ds.manager.index)
-        case None => ds.manager.indices(sft, IndexMode.Write)
+        case None => ds.manager.indices(sft, mode = IndexMode.Write)
       }
       ds.getIndexWriterAppend(sftName, i)
     })

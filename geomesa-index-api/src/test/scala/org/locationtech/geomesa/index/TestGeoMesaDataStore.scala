@@ -103,8 +103,10 @@ object TestGeoMesaDataStore {
     override val AllIndices: Seq[TestFeatureIndex] = CurrentIndices :+ new TestAttributeDateIndex
     override def lookup: Map[(String, Int), TestFeatureIndex] =
       super.lookup.asInstanceOf[Map[(String, Int), TestFeatureIndex]]
-    override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[TestFeatureIndex] =
-      super.indices(sft, mode).asInstanceOf[Seq[TestFeatureIndex]]
+    override def indices(sft: SimpleFeatureType,
+                         idx: Option[String] = None,
+                         mode: IndexMode = IndexMode.Any): Seq[TestFeatureIndex] =
+      super.indices(sft, idx, mode).asInstanceOf[Seq[TestFeatureIndex]]
     override def index(identifier: String): TestFeatureIndex = super.index(identifier).asInstanceOf[TestFeatureIndex]
   }
 
@@ -180,7 +182,7 @@ object TestGeoMesaDataStore {
   trait TestFeatureWriter extends TestFeatureWriterType {
 
     override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[TestFeatureIndex] =
-      tables.map(t => ds.manager.indices(sft, IndexMode.Write).find(_.getTableName(sft.getTypeName, ds) == t).orNull)
+      tables.map(t => ds.manager.indices(sft, mode = IndexMode.Write).find(_.getTableName(sft.getTypeName, ds) == t).orNull)
 
     override protected def executeWrite(mutator: TestFeatureIndex, writes: Seq[TestWrite]): Unit = {
       writes.foreach { case TestWrite(row, feature, _) => mutator.features.add((row, feature)) }

@@ -93,7 +93,7 @@ class AttributeIndexJob extends Tool {
     require(ds != null, "The specified input data store could not be created - check your job parameters")
     val sft = ds.getSchema(typeName)
     require(sft != null, s"The schema '$typeName' does not exist in the input data store")
-    val index = AccumuloFeatureIndex.indices(sft, IndexMode.Write)
+    val index = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Write)
         .find(_.name == AttributeIndex.name).getOrElse {
       AttributeIndex.configure(sft, ds)
       AttributeIndex
@@ -172,7 +172,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
       d.setIndexCoverage(if (attributes.contains(d.getLocalName)) coverage else IndexCoverage.NONE)
     }
 
-    val index = AccumuloFeatureIndex.indices(sft, IndexMode.Write)
+    val index = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Write)
         .find(_.name == AttributeIndex.name).getOrElse(AttributeIndex)
     writer = index.writer(sft, ds)
     toWritable = AccumuloFeature.wrapper(sft, ds.config.defaultVisibilities)

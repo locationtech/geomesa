@@ -242,30 +242,27 @@ The query should generate results that look like :download:`this </user/_static/
 
 .. code-block:: json
 
-	{
-	  "type": "FeatureCollection",
-	  "features": [
-	    {
-	      "type": "Feature",
-	      "geometry": {
-		"type": "Point",
-		"coordinates": [
-		  -76.513,
-		  -37.4941
-		]
-	      },
-	      "properties": {
-		"Who": "Bierce",
-		"What": 931,
-		"When": "2014-07-04T22:25:38.000+0000"
-	      },
-	      "id": "Observation.931"
-	    },
-	    .
-	    .
-	    .
-	  ]
-	}
+    {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -76.513,
+              -37.4941
+            ]
+          },
+          "properties": {
+            "Who": "Bierce",
+            "What": 931,
+            "When": "2014-07-04T22:25:38.000+0000"
+          },
+          "id": "Observation.931"
+        }
+      ]
+    }
 
 .. _unique_process:
 

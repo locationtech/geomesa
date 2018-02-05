@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.planning
 
-import java.util.Locale
-
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.Query
@@ -154,16 +152,9 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
   }
 
   private def toIndex(sft: SimpleFeatureType, name: String): GeoMesaFeatureIndex[DS, F, W] = {
-    val check = name.toLowerCase(Locale.US)
-    val indices = ds.manager.indices(sft, IndexMode.Read)
-    val value = if (check.contains(":")) {
-      indices.find(_.identifier.toLowerCase(Locale.US) == check)
-    } else {
-      indices.find(_.name.toLowerCase(Locale.US) == check)
-    }
-    value.getOrElse {
-      throw new IllegalArgumentException(s"Invalid index strategy name: $name. Valid values " +
-          s"are ${indices.map(i => s"${i.name}, ${i.identifier}").mkString(", ")}")
+    ds.manager.indices(sft, Option(name), IndexMode.Read).headOption.getOrElse {
+      throw new IllegalArgumentException(s"Invalid index strategy name: $name. Valid values are " +
+          ds.manager.indices(sft, mode = IndexMode.Read).map(i => s"${i.name}, ${i.identifier}").mkString(", "))
     }
   }
 }

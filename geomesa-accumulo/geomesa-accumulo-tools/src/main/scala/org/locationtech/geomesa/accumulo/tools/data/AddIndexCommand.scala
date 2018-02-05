@@ -80,7 +80,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends R
       }
     }
 
-    val existing = AccumuloFeatureIndex.indices(sft, IndexMode.Any)
+    val existing = AccumuloFeatureIndex.indices(sft)
     require(indices.forall(i => !existing.contains(i)),
       s"Requested indices already exist: ${existing.map(_.identifier).mkString("[", "][", "]")}")
     require(indices.forall(_.supports(sft)), "Requested indices are not compatible with the simple feature type")

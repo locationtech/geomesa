@@ -75,8 +75,7 @@ class ConverterIngest(sft: SimpleFeatureType,
     new LocalIngestConverterImpl(sft, path, converters, failures)
 
   override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
-    val job = new ConverterIngestJob(sft, converterConfig)
-    job.run(dsParams, sft.getTypeName, inputs, libjarsFile, libjarsPaths, statusCallback)
+    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
   }
 }
 
@@ -102,7 +101,13 @@ class LocalIngestConverterImpl(sft: SimpleFeatureType, path: String, converters:
  * @param sft simple feature type
  * @param converterConfig converter definition
  */
-class ConverterIngestJob(sft: SimpleFeatureType, converterConfig: Config) extends AbstractIngestJob {
+class ConverterIngestJob(dsParams: Map[String, String],
+                         sft: SimpleFeatureType,
+                         converterConfig: Config,
+                         paths: Seq[String],
+                         libjarsFile: String,
+                         libjarsPaths: Iterator[() => Seq[File]])
+    extends AbstractIngestJob(dsParams, sft.getTypeName, paths, libjarsFile, libjarsPaths) {
 
   import ConverterInputFormat.{Counters => ConvertCounters}
   import GeoMesaOutputFormat.{Counters => OutCounters}
@@ -113,6 +118,7 @@ class ConverterIngestJob(sft: SimpleFeatureType, converterConfig: Config) extend
   override val inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]] = classOf[ConverterInputFormat]
 
   override def configureJob(job: Job): Unit = {
+    super.configureJob(job)
     ConverterInputFormat.setConverterConfig(job, converterConfig.root().render(ConfigRenderOptions.concise()))
     ConverterInputFormat.setSft(job, sft)
   }

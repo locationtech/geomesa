@@ -17,7 +17,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.FlushableFeatureWriter
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.utils.ExplainLogging
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
@@ -96,7 +95,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     * @return
     */
   def getAllIndexTableNames(typeName: String): Seq[String] =
-    Option(getSchema(typeName)).toSeq.flatMap(manager.indices(_, IndexMode.Any).map(_.getTableName(typeName, this)))
+    Option(getSchema(typeName)).toSeq.flatMap(manager.indices(_).map(_.getTableName(typeName, this)))
 
   // hooks to allow extended functionality
 
@@ -138,14 +137,14 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
   // create the index tables
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit =
-    manager.indices(sft, IndexMode.Any).foreach(_.configure(sft, this))
+    manager.indices(sft).foreach(_.configure(sft, this))
 
   override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {}
 
   // delete the index tables
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
     val shared = sft.isTableSharing && getTypeNames.filter(_ != sft.getTypeName).map(getSchema).exists(_.isTableSharing)
-    manager.indices(sft, IndexMode.Any).par.foreach(_.delete(sft, this, shared))
+    manager.indices(sft).par.foreach(_.delete(sft, this, shared))
     stats.clearStats(sft)
   }
 

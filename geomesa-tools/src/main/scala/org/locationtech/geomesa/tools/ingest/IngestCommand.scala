@@ -36,7 +36,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     ensureSameFs(PathUtils.RemotePrefixes)
 
     val ingest = if (params.fmt == Shp) {
-      new ShapefileIngest(connection, Option(params.featureName), params.files, params.threads)
+      createShpIngest()
     } else if (params.spec == null && params.config == null && Seq(Csv, Tsv, Avro).contains(params.fmt)) {
       // if there is no sft and no converter passed in, try to use the auto ingest which will
       // pick up the schema from the input files themselves
@@ -45,8 +45,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       }
       // auto-detect the import schema
       Command.user.info("No schema or converter defined - will attempt to detect schema from input files")
-      new AutoIngest(params.featureName, connection, params.files, params.fmt, Option(params.mode),
-        libjarsFile, libjarsPaths, params.threads)
+      createAutoIngest()
     } else {
       // validate arguments
       if (params.config == null) {
@@ -74,6 +73,15 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
     new ConverterIngest(sft, connection, converterConfig, params.files, Option(params.mode),
       libjarsFile, libjarsPaths, params.threads)
+  }
+
+  protected def createAutoIngest(): Runnable = {
+    new AutoIngest(params.featureName, connection, params.files, params.fmt, Option(params.mode),
+      libjarsFile, libjarsPaths, params.threads)
+  }
+
+  protected def createShpIngest(): Runnable = {
+    new ShapefileIngest(connection, Option(params.featureName), params.files, params.threads)
   }
 
   def ensureSameFs(prefixes: Seq[String]): Unit = {
