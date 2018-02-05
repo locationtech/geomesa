@@ -55,10 +55,10 @@ class AttributeIndexTest extends Specification {
   }
 
   def overlaps(r1: TestRange, r2: TestRange): Boolean = {
-    TestGeoMesaDataStore.byteComparator.compare(r1.start, r2.start) match {
+    TestGeoMesaDataStore.ByteComparator.compare(r1.start, r2.start) match {
       case 0 => true
-      case i if i < 0 => TestGeoMesaDataStore.byteComparator.compare(r1.end, r2.start) > 0
-      case i if i > 0 => TestGeoMesaDataStore.byteComparator.compare(r2.end, r1.start) > 0
+      case i if i < 0 => TestGeoMesaDataStore.ByteComparator.compare(r1.end, r2.start) > 0
+      case i if i > 0 => TestGeoMesaDataStore.ByteComparator.compare(r2.end, r1.start) > 0
     }
   }
 
@@ -87,7 +87,7 @@ class AttributeIndexTest extends Specification {
         val q = new Query(typeName, ECQL.toFilter(filter))
         // validate that ranges do not overlap
         foreach(ds.getQueryPlan(q, explainer = explain)) { qp =>
-          val ordering = Ordering.comparatorToOrdering(TestGeoMesaDataStore.byteComparator)
+          val ordering = Ordering.comparatorToOrdering(TestGeoMesaDataStore.ByteComparator)
           val ranges = qp.asInstanceOf[TestQueryPlan].ranges.sortBy(_.start)(ordering)
           forall(ranges.sliding(2)) { case Seq(left, right) => overlaps(left, right) must beFalse }
         }
