@@ -37,7 +37,7 @@ object HBaseCreateSchemaCommand {
   class CompressionTypeValidator extends IValueValidator[String] {
     val VALID_COMPRESSION_TYPES = Seq("snappy", "lzo", "gz", "bzip2", "lz4", "zstd")
     override def validate(name: String, value: String): Unit = {
-      if(!VALID_COMPRESSION_TYPES.contains(value)) {
+      if (!VALID_COMPRESSION_TYPES.contains(value)) {
         throw new ParameterException(s"Invalid compression type.  Values types are ${VALID_COMPRESSION_TYPES.mkString(", ")}")
       }
     }
