@@ -20,6 +20,7 @@ import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.AllCoprocessors
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.legacy._
+import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
@@ -79,10 +80,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
       if (!desc.getCoprocessors.contains(name)) {
         // TODO: Warn if the path given is different from paths registered in other coprocessors
         // if so, other tables would need updating
-        coprocessorUrl match {
-          case Some(path) => desc.addCoprocessor(name, path, Coprocessor.PRIORITY_USER, null)
-          case None       => desc.addCoprocessor(name)
-        }
+        HBaseVersions.addCoprocessor(desc, name, coprocessorUrl)
       }
     }
 
@@ -91,7 +89,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
         logger.debug(s"Creating table $name")
         val descriptor = new HTableDescriptor(name)
         val dcfd = HBaseFeatureIndex.buildDataColumnFamilyDescriptor(sft)
-        descriptor.addFamily(dcfd)
+        HBaseVersions.addFamily(descriptor, dcfd)
         configureColumnFamilyDescriptor(dcfd)
         if (ds.config.remoteFilter) {
           import CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY
