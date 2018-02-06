@@ -43,7 +43,7 @@ geospatial analytics.
   [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-1.3.4.tar.gz) |
   [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-1.3.4)
 
-**Development version: 1.4.0-SNAPSHOT** &nbsp;
+**Development version: 2.0.0-SNAPSHOT** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 
 ### Upgrading
