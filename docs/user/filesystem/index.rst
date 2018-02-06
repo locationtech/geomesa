@@ -18,6 +18,7 @@ directory structures.
     partition_schemes
     install
     configuration
+    usage
     geoserver
     commandline
     example
