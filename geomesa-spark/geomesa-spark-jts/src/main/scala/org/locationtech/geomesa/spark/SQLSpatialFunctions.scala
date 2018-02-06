@@ -6,14 +6,16 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark
 
 import java.awt.geom.AffineTransform
 
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.operation.distance.DistanceOp
+import org.apache.spark.sql.{Column, SQLContext}
 import org.apache.spark.sql.udaf.ConvexHull
-import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
+import org.locationtech.geomesa.spark.SQLFunctionHelper._
+import org.locationtech.geomesa.spark.SparkDefaultEncoders._
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -56,6 +58,80 @@ object SQLSpatialFunctions {
 
   val ST_LengthSpheroid: LineString => jl.Double =
     nullableUDF(line => line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum)
+
+  def st_translate(geom: Column, deltaX: Column, deltaY: Column) =
+    udfToColumn(ST_Translate, "st_translate", geom, deltaX, deltaY).as[Boolean]
+  def st_translate(geom: Geometry, deltaX: Double, deltaY: Double) =
+    udfToColumnLiterals(ST_Translate, "st_translate", geom, deltaX, deltaY).as[Boolean]
+
+  def st_contains(left: Column, right: Column) =
+    udfToColumn(ST_Contains, "st_contains", left, right).as[Boolean]
+  def st_contains(left: Geometry, right: Geometry) =
+    udfToColumnLiterals(ST_Contains, "st_contains", left, right).as[Boolean]
+
+  def st_covers(left: Column, right: Column) = udfToColumn(ST_Covers, "st_covers", left, right).as[Boolean]
+  def st_covers(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Covers, "st_covers", left, right).as[Boolean]
+
+  def st_crosses(left: Column, right: Column) = udfToColumn(ST_Crosses, "st_crosses", left, right).as[Boolean]
+  def st_crosses(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Crosses, "st_crosses", left, right).as[Boolean]
+
+  def st_disjoint(left: Column, right: Column) = udfToColumn(ST_Disjoint, "st_disjoint", left, right).as[Boolean]
+  def st_disjoint(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Disjoint, "st_disjoint", left, right).as[Boolean]
+
+  def st_equals(left: Column, right: Column) = udfToColumn(ST_Equals, "st_equals", left, right).as[Boolean]
+  def st_equals(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Equals, "st_equals", left, right).as[Boolean]
+
+  def st_intersects(left: Column, right: Column) = udfToColumn(ST_Intersects, "st_intersects", left, right).as[Boolean]
+  def st_intersects(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Intersects, "st_intersects", left, right).as[Boolean]
+
+  def st_overlaps(left: Column, right: Column) = udfToColumn(ST_Overlaps, "st_overlaps", left, right).as[Boolean]
+  def st_overlaps(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Overlaps, "st_overlaps", left, right).as[Boolean]
+
+  def st_touches(left: Column, right: Column) = udfToColumn(ST_Touches, "st_touches", left, right).as[Boolean]
+  def st_touches(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Touches, "st_touches", left, right).as[Boolean]
+
+  def st_within(left: Column, right: Column) = udfToColumn(ST_Within, "st_within", left, right).as[Boolean]
+  def st_within(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Within, "st_within", left, right).as[Boolean]
+
+  def st_relate(left: Column, right: Column) = udfToColumn(ST_Relate, "st_relate", left, right).as[Boolean]
+  def st_relate(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Relate, "st_relate", left, right).as[Boolean]
+
+  def st_relateBool(left: Column, right: Column, pattern: Column) =
+    udfToColumn(ST_RelateBool, "st_relateBool", left, right, pattern).as[Boolean]
+  def st_relateBool(left: Geometry, right: Geometry, pattern: String) =
+    udfToColumnLiterals(ST_RelateBool, "st_relateBool", left, right, pattern).as[Boolean]
+
+  def st_area(geom: Column) = udfToColumn(ST_Area, "st_area", geom).as[Boolean]
+  def st_area(geom: Geometry) = udfToColumnLiterals(ST_Area, "st_area", geom).as[Boolean]
+
+  def st_closestPoint(left: Column, right: Column) =
+    udfToColumn(ST_ClosestPoint, "st_closestPoint", left, right).as[Boolean]
+  def st_closestPoint(left: Geometry, right: Geometry) =
+    udfToColumnLiterals(ST_ClosestPoint, "st_closestPoint", left, right).as[Boolean]
+
+  def st_centroid(geom: Column) = udfToColumn(ST_Centroid, "st_centroid", geom).as[Boolean]
+  def st_centroid(geom: Geometry) = udfToColumnLiterals(ST_Centroid, "st_centroid", geom).as[Boolean]
+
+  def st_distance(left: Column, right: Column) = udfToColumn(ST_Distance, "st_distance", left, right).as[Boolean]
+  def st_distance(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Distance, "st_distance", left, right).as[Boolean]
+
+  def st_distanceSpheroid(left: Column, right: Column) =
+    udfToColumn(ST_DistanceSpheroid, "st_distanceSpheroid", left, right).as[Boolean]
+  def st_distanceSpheroid(left: Geometry, right: Geometry) =
+    udfToColumnLiterals(ST_DistanceSpheroid, "st_distanceSpheroid", left, right).as[Boolean]
+
+  def st_length(geom: Column) = udfToColumn(ST_Length, "st_length", geom).as[Boolean]
+  def st_length(geom: Geometry) = udfToColumnLiterals(ST_Length, "st_length", geom).as[Boolean]
+
+  def st_aggregateDistanceSpheroid(geomSeq: Column) =
+    udfToColumn(ST_AggregateDistanceSpheroid, "st_aggregateDistanceSpheroid", geomSeq).as[Boolean]
+  def st_aggregateDistanceSpheroid(geomSeq: Seq[Geometry]) =
+    udfToColumnLiterals(ST_AggregateDistanceSpheroid, "Literalsst_aggregateDistanceSpheroid", geomSeq).as[Boolean]
+
+  def st_lengthSpheroid(line: Column) = udfToColumn(ST_LengthSpheroid, "st_lengthSpheroid", line).as[Boolean]
+  def st_lengthSpheroid(line: LineString) = udfToColumnLiterals(ST_LengthSpheroid, "Literalsst_lengthSpheroid", line).as[Boolean]
+
+
 
   // Geometry Processing
   val ch = new ConvexHull
