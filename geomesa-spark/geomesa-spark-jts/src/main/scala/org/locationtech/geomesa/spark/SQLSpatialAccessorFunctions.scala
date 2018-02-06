@@ -12,7 +12,7 @@ import java.{lang => jl}
 
 import com.vividsolutions.jts.geom._
 import org.locationtech.geomesa.spark.SQLFunctionHelper._
-import org.apache.spark.sql.{Column, SQLContext}
+import org.apache.spark.sql.{Column, SQLContext, TypedColumn}
 import org.locationtech.geomesa.spark.SpatialEncoders._
 import org.locationtech.geomesa.spark.SparkDefaultEncoders._
 
@@ -77,83 +77,143 @@ object SQLSpatialAccessorFunctions {
     case _ => null
   }
 
-  def st_boundary(geom: Column) = udfToColumn(ST_Boundary, "st_boundary", geom).as[Geometry]
-  def st_boundary(geom: Geometry) = udfToColumnLiterals(ST_Boundary, "st_boundary", geom).as[Geometry]
+  private[geomesa] val namer = Map(
+    ST_Boundary -> "st_boundary",
+    ST_CoordDim -> "st_coordDim",
+    ST_Dimension -> "st_dimension",
+    ST_Envelope -> "st_envelope",
+    ST_ExteriorRing -> "st_exteriorRing",
+    ST_GeometryN -> "st_geometryN",
+    ST_GeometryType -> "st_geometryType",
+    ST_InteriorRingN -> "st_interiorRingN",
+    ST_IsClosed -> "st_isClosed",
+    ST_IsCollection -> "st_isCollection",
+    ST_IsEmpty -> "st_isEmpty",
+    ST_IsRing -> "st_isRing",
+    ST_IsSimple -> "st_isSimple",
+    ST_IsValid -> "st_isValid",
+    ST_NumGeometries -> "st_numGeometries",
+    ST_NumPoints -> "st_numPoints",
+    ST_PointN -> "st_pointN",
+    ST_X -> "st_x",
+    ST_Y -> "st_y"
+  )
 
-  def st_coordDim(geom: Column) = udfToColumn(ST_CoordDim, "st_coordDim", geom).as[Int]
-  def st_coordDim(geom: Geometry) = udfToColumnLiterals(ST_CoordDim, "st_coordDim", geom).as[Int]
+  def st_boundary(geom: Column): TypedColumn[Any, Geometry] =
+    udfToColumn(ST_Boundary, namer, geom)
+  def st_boundary(geom: Geometry): TypedColumn[Any, Geometry] =
+    udfToColumnLiterals(ST_Boundary, namer, geom)
 
-  def st_dimension(geom: Column) = udfToColumn(ST_Dimension, "st_dimension", geom).as[Int]
-  def st_dimension(geom: Geometry) = udfToColumnLiterals(ST_Dimension, "st_dimension", geom).as[Int]
+  def st_coordDim(geom: Column): TypedColumn[Any, Int] =
+    udfToColumn(ST_CoordDim, namer, geom)
+  def st_coordDim(geom: Geometry): TypedColumn[Any, Int] =
+    udfToColumnLiterals(ST_CoordDim, namer, geom)
 
-  def st_envelope(geom: Column) = udfToColumn(ST_Envelope, "st_envelope", geom).as[Geometry]
-  def st_envelope(geom: Geometry) = udfToColumnLiterals(ST_Envelope, "st_envelope", geom).as[Geometry]
+  def st_dimension(geom: Column): TypedColumn[Any, Int] =
+    udfToColumn(ST_Dimension, namer, geom)
+  def st_dimension(geom: Geometry): TypedColumn[Any, Int] =
+    udfToColumnLiterals(ST_Dimension, namer, geom)
 
-  def st_exteriorRing(geom: Column) = udfToColumn(ST_ExteriorRing, "st_exteriorRing", geom).as[LineString]
-  def st_exteriorRing(geom: Geometry) = udfToColumnLiterals(ST_ExteriorRing, "st_exteriorRing", geom).as[LineString]
+  def st_envelope(geom: Column): TypedColumn[Any, Geometry] =
+    udfToColumn(ST_Envelope, namer, geom)
+  def st_envelope(geom: Geometry): TypedColumn[Any, Geometry] =
+    udfToColumnLiterals(ST_Envelope, namer, geom)
 
-  def st_geometryN(geom: Column, n: Column) = udfToColumn(ST_GeometryN, "st_geometryN", geom, n).as[Geometry]
-  def st_geometryN(geom: Geometry, n: Int) = udfToColumnLiterals(ST_GeometryN, "st_geometryN", geom, n).as[Geometry]
+  def st_exteriorRing(geom: Column): TypedColumn[Any, LineString] =
+    udfToColumn(ST_ExteriorRing, namer, geom)
+  def st_exteriorRing(geom: Geometry): TypedColumn[Any, LineString] =
+    udfToColumnLiterals(ST_ExteriorRing, namer, geom)
 
-  def st_geometryType(geom: Column) = udfToColumn(ST_GeometryType, "st_geometryType", geom).as[String]
-  def st_geometryType(geom: Geometry) = udfToColumnLiterals(ST_GeometryType, "st_geometryType", geom).as[String]
+  def st_geometryN(geom: Column, n: Column): TypedColumn[Any, Geometry] =
+    udfToColumn(ST_GeometryN, namer, geom, n)
+  def st_geometryN(geom: Geometry, n: Int): TypedColumn[Any, Geometry] =
+    udfToColumnLiterals(ST_GeometryN, namer, geom, n)
 
-  def st_interiorRingN(geom: Column, n: Column) = udfToColumn(ST_InteriorRingN, "st_interiorRingN", geom, n).as[Geometry]
-  def st_interiorRingN(geom: Geometry, n: Int) = udfToColumnLiterals(ST_InteriorRingN, "st_interiorRingN", geom, n).as[Geometry]
+  def st_geometryType(geom: Column): TypedColumn[Any, String] =
+    udfToColumn(ST_GeometryType, namer, geom)
+  def st_geometryType(geom: Geometry): TypedColumn[Any, String] =
+    udfToColumnLiterals(ST_GeometryType, namer, geom)
 
-  def st_isClosed(geom: Column) = udfToColumn(ST_IsClosed, "st_isClosed", geom).as[Boolean]
-  def st_isClosed(geom: Geometry) = udfToColumnLiterals(ST_IsClosed, "st_isClosed", geom).as[Boolean]
+  def st_interiorRingN(geom: Column, n: Column): TypedColumn[Any, Geometry] =
+    udfToColumn(ST_InteriorRingN, namer, geom, n)
+  def st_interiorRingN(geom: Geometry, n: Int): TypedColumn[Any, Geometry] =
+    udfToColumnLiterals(ST_InteriorRingN, namer, geom, n)
 
-  def st_isCollection(geom: Column) = udfToColumn(ST_IsCollection, "st_isCollection", geom).as[Boolean]
-  def st_isCollection(geom: Geometry) = udfToColumnLiterals(ST_IsCollection, "st_isCollection", geom).as[Boolean]
+  def st_isClosed(geom: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_IsClosed, namer, geom)
+  def st_isClosed(geom: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_IsClosed, namer, geom)
 
-  def st_isEmpty(geom: Column) = udfToColumn(ST_IsEmpty, "st_isEmpty", geom).as[Boolean]
-  def st_isEmpty(geom: Geometry) = udfToColumnLiterals(ST_IsEmpty, "st_isEmpty", geom).as[Boolean]
+  def st_isCollection(geom: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_IsCollection, namer, geom)
+  def st_isCollection(geom: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_IsCollection, namer, geom)
 
-  def st_isRing(geom: Column) = udfToColumn(ST_IsRing, "st_isRing", geom).as[Boolean]
-  def st_isRing(geom: Geometry) = udfToColumnLiterals(ST_IsRing, "st_isRing", geom).as[Boolean]
+  def st_isEmpty(geom: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_IsEmpty, namer, geom)
+  def st_isEmpty(geom: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_IsEmpty, namer, geom)
 
-  def st_isSimple(geom: Column) = udfToColumn(ST_IsSimple, "st_isSimple", geom).as[Boolean]
-  def st_isSimple(geom: Geometry) = udfToColumnLiterals(ST_IsSimple, "st_isSimple", geom).as[Boolean]
+  def st_isRing(geom: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_IsRing, namer, geom)
+  def st_isRing(geom: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_IsRing, namer, geom)
 
-  def st_isValid(geom: Column) = udfToColumn(ST_IsValid, "st_isValid", geom).as[Boolean]
-  def st_isValid(geom: Geometry) = udfToColumnLiterals(ST_IsValid, "st_isValid", geom).as[Boolean]
+  def st_isSimple(geom: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_IsSimple, namer, geom)
+  def st_isSimple(geom: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_IsSimple, namer, geom)
 
-  def st_numGeometries(geom: Column) = udfToColumn(ST_NumGeometries, "st_numGeometries", geom).as[Int]
-  def st_numGeometries(geom: Geometry) = udfToColumnLiterals(ST_NumGeometries, "st_numGeometries", geom).as[Int]
+  def st_isValid(geom: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_IsValid, namer, geom)
+  def st_isValid(geom: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_IsValid, namer, geom)
 
-  def st_numPoints(geom: Column) = udfToColumn(ST_NumPoints, "st_numPoints", geom).as[Int]
-  def st_numPoints(geom: Geometry) = udfToColumnLiterals(ST_NumPoints, "st_numPoints", geom).as[Int]
+  def st_numGeometries(geom: Column): TypedColumn[Any, Int] =
+    udfToColumn(ST_NumGeometries, namer, geom)
+  def st_numGeometries(geom: Geometry): TypedColumn[Any, Int] =
+    udfToColumnLiterals(ST_NumGeometries, namer, geom)
 
-  def st_pointN(geom: Column, n: Column) = udfToColumn(ST_PointN, "st_pointN", geom, n).as[Point]
-  def st_pointN(geom: Geometry, n: Int) = udfToColumnLiterals(ST_PointN, "st_pointN", geom, n).as[Point]
+  def st_numPoints(geom: Column): TypedColumn[Any, Int] =
+    udfToColumn(ST_NumPoints, namer, geom)
+  def st_numPoints(geom: Geometry): TypedColumn[Any, Int] =
+    udfToColumnLiterals(ST_NumPoints, namer, geom)
 
-  def st_x(geom: Column) = udfToColumn(ST_X, "st_x", geom).as[Float]
-  def st_x(geom: Geometry) = udfToColumnLiterals(ST_X, "st_x", geom).as[Float]
+  def st_pointN(geom: Column, n: Column): TypedColumn[Any, Point] =
+    udfToColumn(ST_PointN, namer, geom, n)
+  def st_pointN(geom: Geometry, n: Int): TypedColumn[Any, Point] =
+    udfToColumnLiterals(ST_PointN, namer, geom, n)
 
-  def st_y(geom: Column) = udfToColumn(ST_Y, "st_y", geom).as[Float]
-  def st_y(geom: Geometry) = udfToColumnLiterals(ST_Y, "st_y", geom).as[Float]
+  def st_x(geom: Column): TypedColumn[Any, jl.Float] =
+    udfToColumn(ST_X, namer, geom)
+  def st_x(geom: Geometry): TypedColumn[Any, jl.Float] =
+    udfToColumnLiterals(ST_X, namer, geom)
+
+  def st_y(geom: Column): TypedColumn[Any, jl.Float] =
+    udfToColumn(ST_Y, namer, geom)
+  def st_y(geom: Geometry): TypedColumn[Any, jl.Float] =
+    udfToColumnLiterals(ST_Y, namer, geom)
 
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register("st_boundary"      , ST_Boundary)
-    sqlContext.udf.register("st_coordDim"      , ST_CoordDim)
-    sqlContext.udf.register("st_dimension"     , ST_Dimension)
-    sqlContext.udf.register("st_envelope"      , ST_Envelope)
-    sqlContext.udf.register("st_exteriorRing"  , ST_ExteriorRing)
-    sqlContext.udf.register("st_geometryN"     , ST_GeometryN)
-    sqlContext.udf.register("st_geometryType"  , ST_GeometryType)
-    sqlContext.udf.register("st_interiorRingN" , ST_InteriorRingN)
-    sqlContext.udf.register("st_isClosed"      , ST_IsClosed)
-    sqlContext.udf.register("st_isCollection"  , ST_IsCollection)
-    sqlContext.udf.register("st_isEmpty"       , ST_IsEmpty)
-    sqlContext.udf.register("st_isRing"        , ST_IsRing)
-    sqlContext.udf.register("st_isSimple"      , ST_IsSimple)
-    sqlContext.udf.register("st_isValid"       , ST_IsValid)
-    sqlContext.udf.register("st_numGeometries" , ST_NumGeometries)
-    sqlContext.udf.register("st_numPoints"     , ST_NumPoints)
-    sqlContext.udf.register("st_pointN"        , ST_PointN)
-    sqlContext.udf.register("st_x"             , ST_X)
-    sqlContext.udf.register("st_y"             , ST_Y)
+    sqlContext.udf.register(namer(ST_Boundary), ST_Boundary)
+    sqlContext.udf.register(namer(ST_CoordDim), ST_CoordDim)
+    sqlContext.udf.register(namer(ST_Dimension), ST_Dimension)
+    sqlContext.udf.register(namer(ST_Envelope), ST_Envelope)
+    sqlContext.udf.register(namer(ST_ExteriorRing), ST_ExteriorRing)
+    sqlContext.udf.register(namer(ST_GeometryN), ST_GeometryN)
+    sqlContext.udf.register(namer(ST_GeometryType), ST_GeometryType)
+    sqlContext.udf.register(namer(ST_InteriorRingN), ST_InteriorRingN)
+    sqlContext.udf.register(namer(ST_IsClosed), ST_IsClosed)
+    sqlContext.udf.register(namer(ST_IsCollection), ST_IsCollection)
+    sqlContext.udf.register(namer(ST_IsEmpty), ST_IsEmpty)
+    sqlContext.udf.register(namer(ST_IsRing), ST_IsRing)
+    sqlContext.udf.register(namer(ST_IsSimple), ST_IsSimple)
+    sqlContext.udf.register(namer(ST_IsValid), ST_IsValid)
+    sqlContext.udf.register(namer(ST_NumGeometries), ST_NumGeometries)
+    sqlContext.udf.register(namer(ST_NumPoints), ST_NumPoints)
+    sqlContext.udf.register(namer(ST_PointN), ST_PointN)
+    sqlContext.udf.register(namer(ST_X), ST_X)
+    sqlContext.udf.register(namer(ST_Y), ST_Y)
   }
 }

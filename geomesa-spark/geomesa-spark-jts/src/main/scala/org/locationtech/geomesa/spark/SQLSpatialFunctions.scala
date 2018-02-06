@@ -12,10 +12,11 @@ import java.awt.geom.AffineTransform
 
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.operation.distance.DistanceOp
-import org.apache.spark.sql.{Column, SQLContext}
+import org.apache.spark.sql.{Column, SQLContext, TypedColumn}
 import org.apache.spark.sql.udaf.ConvexHull
 import org.locationtech.geomesa.spark.SQLFunctionHelper._
 import org.locationtech.geomesa.spark.SparkDefaultEncoders._
+import org.locationtech.geomesa.spark.SpatialEncoders._
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -59,111 +60,163 @@ object SQLSpatialFunctions {
   val ST_LengthSpheroid: LineString => jl.Double =
     nullableUDF(line => line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum)
 
-  def st_translate(geom: Column, deltaX: Column, deltaY: Column) =
-    udfToColumn(ST_Translate, "st_translate", geom, deltaX, deltaY).as[Boolean]
-  def st_translate(geom: Geometry, deltaX: Double, deltaY: Double) =
-    udfToColumnLiterals(ST_Translate, "st_translate", geom, deltaX, deltaY).as[Boolean]
 
-  def st_contains(left: Column, right: Column) =
-    udfToColumn(ST_Contains, "st_contains", left, right).as[Boolean]
-  def st_contains(left: Geometry, right: Geometry) =
-    udfToColumnLiterals(ST_Contains, "st_contains", left, right).as[Boolean]
+  private[geomesa] val namer = Map(
+    ST_Translate -> "st_translate" ,
+    ST_Contains -> "st_contains",
+    ST_Covers -> "st_covers",
+    ST_Crosses -> "st_crosses",
+    ST_Disjoint -> "st_disjoint",
+    ST_Equals -> "st_equals",
+    ST_Intersects -> "st_intersects",
+    ST_Overlaps -> "st_overlaps",
+    ST_Touches -> "st_touches",
+    ST_Within -> "st_within",
+    ST_Relate -> "st_relate",
+    ST_RelateBool -> "st_relateBool",
+    ST_Area -> "st_area",
+    ST_Centroid -> "st_centroid",
+    ST_ClosestPoint -> "st_closestPoint",
+    ST_Distance -> "st_distance",
+    ST_DistanceSpheroid -> "st_distanceSpheroid",
+    ST_Length -> "st_length",
+    ST_AggregateDistanceSpheroid -> "st_aggregateDistanceSpheroid",
+    ST_LengthSpheroid -> "st_lengthSpheroid"
+  )
 
-  def st_covers(left: Column, right: Column) = udfToColumn(ST_Covers, "st_covers", left, right).as[Boolean]
-  def st_covers(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Covers, "st_covers", left, right).as[Boolean]
+  // DataFrame DSL function wrappers
 
-  def st_crosses(left: Column, right: Column) = udfToColumn(ST_Crosses, "st_crosses", left, right).as[Boolean]
-  def st_crosses(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Crosses, "st_crosses", left, right).as[Boolean]
+  def st_translate(geom: Column, deltaX: Column, deltaY: Column): TypedColumn[Any, Geometry] =
+    udfToColumn(ST_Translate, namer, geom, deltaX, deltaY)
+  def st_translate(geom: Geometry, deltaX: Double, deltaY: Double): TypedColumn[Any, Geometry] =
+    udfToColumnLiterals(ST_Translate, namer, geom, deltaX, deltaY)
 
-  def st_disjoint(left: Column, right: Column) = udfToColumn(ST_Disjoint, "st_disjoint", left, right).as[Boolean]
-  def st_disjoint(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Disjoint, "st_disjoint", left, right).as[Boolean]
+  def st_contains(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Contains, namer, left, right)
+  def st_contains(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Contains, namer, left, right)
 
-  def st_equals(left: Column, right: Column) = udfToColumn(ST_Equals, "st_equals", left, right).as[Boolean]
-  def st_equals(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Equals, "st_equals", left, right).as[Boolean]
+  def st_covers(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Covers, namer, left, right)
+  def st_covers(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Covers, namer, left, right)
 
-  def st_intersects(left: Column, right: Column) = udfToColumn(ST_Intersects, "st_intersects", left, right).as[Boolean]
-  def st_intersects(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Intersects, "st_intersects", left, right).as[Boolean]
+  def st_crosses(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Crosses, namer, left, right)
+  def st_crosses(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Crosses, namer, left, right)
 
-  def st_overlaps(left: Column, right: Column) = udfToColumn(ST_Overlaps, "st_overlaps", left, right).as[Boolean]
-  def st_overlaps(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Overlaps, "st_overlaps", left, right).as[Boolean]
+  def st_disjoint(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Disjoint, namer, left, right)
+  def st_disjoint(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Disjoint, namer, left, right)
 
-  def st_touches(left: Column, right: Column) = udfToColumn(ST_Touches, "st_touches", left, right).as[Boolean]
-  def st_touches(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Touches, "st_touches", left, right).as[Boolean]
+  def st_equals(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Equals, namer, left, right)
+  def st_equals(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Equals, namer, left, right)
 
-  def st_within(left: Column, right: Column) = udfToColumn(ST_Within, "st_within", left, right).as[Boolean]
-  def st_within(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Within, "st_within", left, right).as[Boolean]
+  def st_intersects(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Intersects, namer, left, right)
+  def st_intersects(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Intersects, namer, left, right)
 
-  def st_relate(left: Column, right: Column) = udfToColumn(ST_Relate, "st_relate", left, right).as[Boolean]
-  def st_relate(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Relate, "st_relate", left, right).as[Boolean]
+  def st_overlaps(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Overlaps, namer, left, right)
+  def st_overlaps(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Overlaps, namer, left, right)
 
-  def st_relateBool(left: Column, right: Column, pattern: Column) =
-    udfToColumn(ST_RelateBool, "st_relateBool", left, right, pattern).as[Boolean]
-  def st_relateBool(left: Geometry, right: Geometry, pattern: String) =
-    udfToColumnLiterals(ST_RelateBool, "st_relateBool", left, right, pattern).as[Boolean]
+  def st_touches(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Touches, namer, left, right)
+  def st_touches(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Touches, namer, left, right)
 
-  def st_area(geom: Column) = udfToColumn(ST_Area, "st_area", geom).as[Boolean]
-  def st_area(geom: Geometry) = udfToColumnLiterals(ST_Area, "st_area", geom).as[Boolean]
+  def st_within(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
+    udfToColumn(ST_Within, namer, left, right)
+  def st_within(left: Geometry, right: Geometry): TypedColumn[Any, jl.Boolean] =
+    udfToColumnLiterals(ST_Within, namer, left, right)
 
-  def st_closestPoint(left: Column, right: Column) =
-    udfToColumn(ST_ClosestPoint, "st_closestPoint", left, right).as[Boolean]
-  def st_closestPoint(left: Geometry, right: Geometry) =
-    udfToColumnLiterals(ST_ClosestPoint, "st_closestPoint", left, right).as[Boolean]
+  def st_relate(left: Column, right: Column): TypedColumn[Any, String] =
+    udfToColumn(ST_Relate, namer, left, right)
+  def st_relate(left: Geometry, right: Geometry): TypedColumn[Any, String] =
+    udfToColumnLiterals(ST_Relate, namer, left, right)
 
-  def st_centroid(geom: Column) = udfToColumn(ST_Centroid, "st_centroid", geom).as[Boolean]
-  def st_centroid(geom: Geometry) = udfToColumnLiterals(ST_Centroid, "st_centroid", geom).as[Boolean]
+  def st_relateBool(left: Column, right: Column, pattern: Column): TypedColumn[Any, Boolean] =
+    udfToColumn(ST_RelateBool, namer, left, right, pattern)
+  def st_relateBool(left: Geometry, right: Geometry, pattern: String): TypedColumn[Any, Boolean] =
+    udfToColumnLiterals(ST_RelateBool, namer, left, right, pattern)
 
-  def st_distance(left: Column, right: Column) = udfToColumn(ST_Distance, "st_distance", left, right).as[Boolean]
-  def st_distance(left: Geometry, right: Geometry) = udfToColumnLiterals(ST_Distance, "st_distance", left, right).as[Boolean]
+  def st_area(geom: Column): TypedColumn[Any, jl.Double] =
+    udfToColumn(ST_Area, namer, geom)
+  def st_area(geom: Geometry): TypedColumn[Any, jl.Double] =
+    udfToColumnLiterals(ST_Area, namer, geom)
 
-  def st_distanceSpheroid(left: Column, right: Column) =
-    udfToColumn(ST_DistanceSpheroid, "st_distanceSpheroid", left, right).as[Boolean]
-  def st_distanceSpheroid(left: Geometry, right: Geometry) =
-    udfToColumnLiterals(ST_DistanceSpheroid, "st_distanceSpheroid", left, right).as[Boolean]
+  def st_closestPoint(left: Column, right: Column): TypedColumn[Any, Point] =
+    udfToColumn(ST_ClosestPoint, namer, left, right)
+  def st_closestPoint(left: Geometry, right: Geometry): TypedColumn[Any, Point] =
+    udfToColumnLiterals(ST_ClosestPoint, namer, left, right)
 
-  def st_length(geom: Column) = udfToColumn(ST_Length, "st_length", geom).as[Boolean]
-  def st_length(geom: Geometry) = udfToColumnLiterals(ST_Length, "st_length", geom).as[Boolean]
+  def st_centroid(geom: Column): TypedColumn[Any, Point] =
+    udfToColumn(ST_Centroid, namer, geom)
+  def st_centroid(geom: Geometry): TypedColumn[Any, Point] =
+    udfToColumnLiterals(ST_Centroid, namer, geom)
 
-  def st_aggregateDistanceSpheroid(geomSeq: Column) =
-    udfToColumn(ST_AggregateDistanceSpheroid, "st_aggregateDistanceSpheroid", geomSeq).as[Boolean]
-  def st_aggregateDistanceSpheroid(geomSeq: Seq[Geometry]) =
-    udfToColumnLiterals(ST_AggregateDistanceSpheroid, "Literalsst_aggregateDistanceSpheroid", geomSeq).as[Boolean]
+  def st_distance(left: Column, right: Column): TypedColumn[Any, jl.Double] =
+    udfToColumn(ST_Distance, namer, left, right)
+  def st_distance(left: Geometry, right: Geometry): TypedColumn[Any, jl.Double] =
+    udfToColumnLiterals(ST_Distance, namer, left, right)
 
-  def st_lengthSpheroid(line: Column) = udfToColumn(ST_LengthSpheroid, "st_lengthSpheroid", line).as[Boolean]
-  def st_lengthSpheroid(line: LineString) = udfToColumnLiterals(ST_LengthSpheroid, "Literalsst_lengthSpheroid", line).as[Boolean]
+  def st_distanceSpheroid(left: Column, right: Column): TypedColumn[Any, jl.Double] =
+    udfToColumn(ST_DistanceSpheroid, namer, left, right)
+  def st_distanceSpheroid(left: Geometry, right: Geometry): TypedColumn[Any, jl.Double] =
+    udfToColumnLiterals(ST_DistanceSpheroid, namer, left, right)
+
+  def st_length(geom: Column): TypedColumn[Any, jl.Double] = udfToColumn(ST_Length, namer, geom)
+  def st_length(geom: Geometry): TypedColumn[Any, jl.Double] = udfToColumnLiterals(ST_Length, namer, geom)
+
+  def st_aggregateDistanceSpheroid(geomSeq: Column): TypedColumn[Any, jl.Double] =
+    udfToColumn(ST_AggregateDistanceSpheroid, namer, geomSeq)
+  def st_aggregateDistanceSpheroid(geomSeq: Seq[Geometry]): TypedColumn[Any, jl.Double] =
+    udfToColumnLiterals(ST_AggregateDistanceSpheroid, namer, geomSeq)
+
+  def st_lengthSpheroid(line: Column): TypedColumn[Any, jl.Double] =
+    udfToColumn(ST_LengthSpheroid, namer, line)
+  def st_lengthSpheroid(line: LineString): TypedColumn[Any, jl.Double] =
+    udfToColumnLiterals(ST_LengthSpheroid, namer, line)
 
 
 
   // Geometry Processing
-  val ch = new ConvexHull
+  private[geomesa] val ch = new ConvexHull
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     // Register geometry editors
-    sqlContext.udf.register("st_translate", ST_Translate)
+    sqlContext.udf.register(namer(ST_Translate), ST_Translate)
 
     // Register spatial relationships
-    sqlContext.udf.register("st_contains"    , ST_Contains)
-    sqlContext.udf.register("st_covers"      , ST_Covers)
-    sqlContext.udf.register("st_crosses"     , ST_Crosses)
-    sqlContext.udf.register("st_disjoint"    , ST_Disjoint)
-    sqlContext.udf.register("st_equals"      , ST_Equals)
-    sqlContext.udf.register("st_intersects"  , ST_Intersects)
-    sqlContext.udf.register("st_overlaps"    , ST_Overlaps)
-    sqlContext.udf.register("st_touches"     , ST_Touches)
-    sqlContext.udf.register("st_within"      , ST_Within)
+    sqlContext.udf.register(namer(ST_Contains), ST_Contains)
+    sqlContext.udf.register(namer(ST_Covers), ST_Covers)
+    sqlContext.udf.register(namer(ST_Crosses), ST_Crosses)
+    sqlContext.udf.register(namer(ST_Disjoint), ST_Disjoint)
+    sqlContext.udf.register(namer(ST_Equals), ST_Equals)
+    sqlContext.udf.register(namer(ST_Intersects), ST_Intersects)
+    sqlContext.udf.register(namer(ST_Overlaps), ST_Overlaps)
+    sqlContext.udf.register(namer(ST_Touches), ST_Touches)
+    sqlContext.udf.register(namer(ST_Within), ST_Within)
     // renamed st_relate variant that returns a boolean since
     // Spark SQL doesn't seem to support polymorphic UDFs
-    sqlContext.udf.register("st_relate"      , ST_Relate)
-    sqlContext.udf.register("st_relateBool"  , ST_RelateBool)
+    sqlContext.udf.register(namer(ST_Relate), ST_Relate)
+    sqlContext.udf.register(namer(ST_RelateBool), ST_RelateBool)
 
-    sqlContext.udf.register("st_area"            , ST_Area)
-    sqlContext.udf.register("st_closestpoint"    , ST_ClosestPoint)
-    sqlContext.udf.register("st_centroid"        , ST_Centroid)
-    sqlContext.udf.register("st_distance"        , ST_Distance)
-    sqlContext.udf.register("st_length"          , ST_Length)
+    sqlContext.udf.register(namer(ST_Area), ST_Area)
+    sqlContext.udf.register(namer(ST_ClosestPoint), ST_ClosestPoint)
+    sqlContext.udf.register(namer(ST_Centroid), ST_Centroid)
+    sqlContext.udf.register(namer(ST_Distance), ST_Distance)
+    sqlContext.udf.register(namer(ST_Length), ST_Length)
 
-    sqlContext.udf.register("st_distanceSpheroid", ST_DistanceSpheroid)
-    sqlContext.udf.register("st_aggregateDistanceSpheroid"  , ST_AggregateDistanceSpheroid)
-    sqlContext.udf.register("st_lengthSpheroid"  , ST_LengthSpheroid)
+    sqlContext.udf.register(namer(ST_DistanceSpheroid), ST_DistanceSpheroid)
+    sqlContext.udf.register(namer(ST_AggregateDistanceSpheroid), ST_AggregateDistanceSpheroid)
+    sqlContext.udf.register(namer(ST_LengthSpheroid), ST_LengthSpheroid)
 
     // Register geometry Processing
     sqlContext.udf.register("st_convexhull", ch)
@@ -172,7 +225,7 @@ object SQLSpatialFunctions {
   @transient private val geoCalcs = new ThreadLocal[GeodeticCalculator] {
     override def initialValue(): GeodeticCalculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
   }
-  @transient val geomFactory = JTSFactoryFinder.getGeometryFactory
+  @transient private[geomesa] val geomFactory = JTSFactoryFinder.getGeometryFactory
 
   def closestPoint(g1: Geometry, g2: Geometry): Point = {
     val op = new DistanceOp(g1, g2)
