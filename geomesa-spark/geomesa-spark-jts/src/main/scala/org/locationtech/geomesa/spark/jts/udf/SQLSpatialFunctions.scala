@@ -6,21 +6,21 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts.udf
 
 import java.awt.geom.AffineTransform
 
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.operation.distance.DistanceOp
 import org.apache.spark.sql.{Column, SQLContext, TypedColumn}
-import org.apache.spark.sql.udaf.ConvexHull
-import org.locationtech.geomesa.spark.SQLFunctionHelper._
-import org.locationtech.geomesa.spark.SparkDefaultEncoders._
-import org.locationtech.geomesa.spark.SpatialEncoders._
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.referencing.operation.transform.AffineTransform2D
+import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
+import org.locationtech.geomesa.spark.util.SQLFunctionHelper._
+import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders._
+import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders._
 
 object SQLSpatialFunctions {
   import java.{lang => jl}

@@ -6,17 +6,18 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts
 
 import com.vividsolutions.jts.geom.Geometry
-import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.jts.JTSTypes
+import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.jts.udf.SQLGeometricConstructorFunctions._
+import org.locationtech.geomesa.spark.jts.udf.SQLSpatialAccessorFunctions._
+import org.locationtech.geomesa.spark.util.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import SQLSpatialAccessorFunctions._
-import SQLGeometricConstructorFunctions._
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLGeometryAccessorsTest extends Specification with BlankDataFrame {

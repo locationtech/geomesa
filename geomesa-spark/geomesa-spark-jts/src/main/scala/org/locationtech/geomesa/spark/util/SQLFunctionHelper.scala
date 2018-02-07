@@ -6,12 +6,10 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.util
 
-import com.vividsolutions.jts.geom.{Geometry, Point, Polygon}
-import org.apache.spark.sql.{Column, Encoder, TypedColumn}
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
-import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference, Literal}
+import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.{Column, Encoder, TypedColumn}
 
@@ -21,11 +19,6 @@ import scala.reflect.runtime.universe._
 // from org.apache.spark.sql.SQLGeometricConstructorFunctions, which could/should be moved
 // into a org.locationtech.geomesa package eventually, and this access restriction reenabled
 /*private[geomesa]*/ object SQLFunctionHelper {
-import org.apache.spark.sql.jts.{PointUDT, PolygonUDT}
-
-import scala.reflect.runtime.universe._
-
-private[geomesa] object SQLFunctionHelper {
   def nullableUDF[A1, RT](f: A1 => RT): A1 => RT = {
     in1 => in1 match {
       case null => null.asInstanceOf[RT]

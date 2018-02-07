@@ -372,7 +372,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
     "st_centroid" >> {
       val r = sc.sql(s"select st_centroid(st_geomFromWKT('$boxRef'))")
       val d = r.collect()
-      d.head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 5)").asInstanceOf[Point]
+      d.head.getAs[Point](0) mustEqual util.WKTUtils.read("POINT(5 5)").asInstanceOf[Point]
 
       sc.sql("select st_centroid(null)").collect.head(0) must beNull
     }
@@ -381,7 +381,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       val box1 = "st_geomFromWKT('POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))')"
       val pt1  = "st_geomFromWKT('POINT(15 5)')"
       val r = sc.sql(s"select st_closestpoint($box1, $pt1)").collect()
-      r.head.getAs[Point](0) mustEqual WKTUtils.read("POINT(10 5)")
+      r.head.getAs[Point](0) mustEqual util.WKTUtils.read("POINT(10 5)")
 
       sc.sql("select st_closestpoint(null, null)").collect.head(0) must beNull
     }

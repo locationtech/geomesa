@@ -6,18 +6,17 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
-
+package org.locationtech.geomesa.spark.jts
 
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.lit
 import org.apache.spark.sql.jts.JTSTypes
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.jts.udf.SQLGeometricCastFunctions._
+import org.locationtech.geomesa.spark.jts.udf.SQLGeometricConstructorFunctions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import SQLGeometricCastFunctions._
-import SQLGeometricConstructorFunctions._
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLGeometricCastTest extends Specification with BlankDataFrame {

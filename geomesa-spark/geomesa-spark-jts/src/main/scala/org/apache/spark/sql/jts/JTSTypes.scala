@@ -16,6 +16,9 @@ import org.apache.spark.sql.types._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.spark._
+import org.locationtech.geomesa.spark.jts.rules.JTSRules
+import org.locationtech.geomesa.spark.jts.udf._
+import org.locationtech.geomesa.spark.util.WKBUtils
 import org.opengis.filter.FilterFactory2
 
 import scala.reflect.ClassTag
@@ -64,7 +67,7 @@ object JTSTypes {
     SQLSpatialFunctions.registerFunctions(sqlContext)
     SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
     SQLGeometricOutputFunctions.registerFunctions(sqlContext)
-    SQLRules.registerOptimizations(sqlContext)
+    JTSRules.registerOptimizations(sqlContext)
   }
 
 }

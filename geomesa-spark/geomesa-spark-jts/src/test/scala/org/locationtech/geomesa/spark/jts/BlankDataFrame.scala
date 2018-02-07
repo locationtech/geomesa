@@ -7,10 +7,10 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts
 
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 /**
  * Mixin providing constructor for creating a DataFrame with a single row and no columns.

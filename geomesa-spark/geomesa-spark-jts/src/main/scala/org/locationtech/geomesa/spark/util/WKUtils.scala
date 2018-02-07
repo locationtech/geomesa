@@ -6,25 +6,10 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.util
 
 import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
-import org.apache.commons.pool.impl.GenericObjectPool
-
-// NB: This is a duplicate of a file in geomesa-utils
-trait ObjectPoolUtils[A] {
-  val pool: GenericObjectPool[A]
-
-  def withResource[B](f: A => B): B = {
-    val obj = pool.borrowObject()
-    try {
-      f(obj)
-    } finally {
-      pool.returnObject(obj)
-    }
-  }
-}
+import com.vividsolutions.jts.io._
 
 trait WKTUtils {
   private[this] val readerPool = new ThreadLocal[WKTReader]{

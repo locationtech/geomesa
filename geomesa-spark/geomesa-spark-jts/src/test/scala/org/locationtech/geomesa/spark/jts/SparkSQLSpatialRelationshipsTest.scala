@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts
 
 import java.{lang => jl}
 
@@ -15,10 +15,10 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.SQLGeometricConstructorFunctions._
-import org.locationtech.geomesa.spark.SQLSpatialFunctions._
-import org.locationtech.geomesa.spark.SparkDefaultEncoders._
-import org.locationtech.geomesa.spark.SpatialEncoders._
+import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders._
+import org.locationtech.geomesa.spark.jts.udf.SQLGeometricConstructorFunctions._
+import org.locationtech.geomesa.spark.jts.udf.SQLSpatialFunctions._
+import org.locationtech.geomesa.spark.util.{SQLFunctionHelper, WKTUtils}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

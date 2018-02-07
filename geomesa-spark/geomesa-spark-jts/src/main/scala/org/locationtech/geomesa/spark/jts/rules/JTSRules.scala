@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql.jts
+package org.locationtech.geomesa.spark.jts.rules
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.spark.sql.SQLContext
@@ -15,11 +15,13 @@ import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
 import org.apache.spark.sql.catalyst.expressions.{GenericInternalRow, LeafExpression, Literal, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
-import org.apache.spark.sql.types.DataType
+import org.apache.spark.sql.jts.GeometryUDT
 import org.apache.spark.sql.jts.JTSTypes._
+import org.apache.spark.sql.types.DataType
+
 import scala.util.Try
 
-object SQLRules {
+object JTSRules {
 
   // new AST expressions
   case class GeometryLiteral(repr: InternalRow, geom: Geometry) extends LeafExpression  with CodegenFallback {

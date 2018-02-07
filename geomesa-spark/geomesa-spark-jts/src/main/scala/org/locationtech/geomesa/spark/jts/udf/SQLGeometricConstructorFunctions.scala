@@ -6,14 +6,16 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts.udf
 
 import com.vividsolutions.jts.geom._
-import org.locationtech.geomesa.spark.SQLFunctionHelper._
-import org.apache.spark.sql.{Column, SQLContext, TypedColumn}
 import org.apache.spark.sql.jts.JTSTypes
+import org.apache.spark.sql.{Column, SQLContext, TypedColumn}
 import org.geotools.geometry.jts.JTS
-import org.locationtech.geomesa.spark.SpatialEncoders._
+import org.locationtech.geomesa.spark.util.SQLFunctionHelper._
+import org.locationtech.geomesa.spark.util.{WKBUtils, WKTUtils}
+import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders._
+import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders._
 
 object SQLGeometricConstructorFunctions {
 

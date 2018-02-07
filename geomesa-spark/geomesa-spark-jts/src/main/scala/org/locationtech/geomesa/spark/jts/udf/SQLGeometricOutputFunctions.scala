@@ -7,13 +7,15 @@
  ***********************************************************************/
 
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts.udf
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.locationtech.geomesa.spark.SQLFunctionHelper._
 import org.apache.spark.sql.{Column, SQLContext, TypedColumn}
 import org.geotools.geojson.geom.GeometryJSON
-import org.locationtech.geomesa.spark.SparkDefaultEncoders._
+import org.locationtech.geomesa.spark.util.SQLFunctionHelper._
+import org.locationtech.geomesa.spark.util.WKBUtils
+import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders._
+import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders._
 
 object SQLGeometricOutputFunctions {
   // use ThreadLocal to ensure thread safety

@@ -6,19 +6,17 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts
 
-
-import com.vividsolutions.jts.geom.GeometryFactory
-import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.jts.JTSTypes
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.jts.udf.SQLGeometricConstructorFunctions._
+import org.locationtech.geomesa.spark.jts.udf.SQLGeometricOutputFunctions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import SQLGeometricOutputFunctions._
-import SQLGeometricConstructorFunctions._
 
 
 @RunWith(classOf[JUnitRunner])
@@ -160,9 +158,8 @@ class SparkSQLGeometricOutputsTest extends Specification with BlankDataFrame {
 
     "st_asLatLonText" >> {
       sc.sql("select st_asLatLonText(null)").collect.head(0) must beNull
-      import SQLGeometricOutputFunctions.st_asLatLonText
       import org.apache.spark.sql.functions.col
-      import org.locationtech.geomesa.spark.SpatialEncoders.jtsPointEncoder
+      import org.locationtech.geomesa.spark.jts.udf.SQLGeometricOutputFunctions.st_asLatLonText
       val gf = new GeometryFactory()
       val df = sc.createDataset(Seq(gf.createPoint(new Coordinate(-76.5, 38.5)))).toDF()
       val r = df.select(st_asLatLonText(col("value")))

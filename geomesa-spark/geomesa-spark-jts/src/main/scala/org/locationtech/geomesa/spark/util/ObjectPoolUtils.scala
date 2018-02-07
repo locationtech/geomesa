@@ -1,3 +1,4 @@
+
 /***********************************************************************
  * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
@@ -6,18 +7,20 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark.util
 
-import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.spark.util.SQLFunctionHelper.nullableUDF
-import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.apache.commons.pool.impl.GenericObjectPool
 
-object SQLGeometricOutputFunctions {
-  val ST_GeoHash: (Geometry, Int) => String =
-    nullableUDF((geom, prec) => GeoHash(geom.getInteriorPoint, prec).hash)
+// NB: This is a duplicate of a file in geomesa-utils
+trait ObjectPoolUtils[A] {
+  val pool: GenericObjectPool[A]
 
-  def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register("st_geoHash", ST_GeoHash)
+  def withResource[B](f: A => B): B = {
+    val obj = pool.borrowObject()
+    try {
+      f(obj)
+    } finally {
+      pool.returnObject(obj)
+    }
   }
-
 }

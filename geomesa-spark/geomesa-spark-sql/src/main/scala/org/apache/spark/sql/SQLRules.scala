@@ -27,7 +27,7 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 object SQLRules extends LazyLogging {
-  import org.locationtech.geomesa.spark.SQLSpatialFunctions._
+  import org.locationtech.geomesa.spark.jts.udf.SQLSpatialFunctions._
 
   def scalaUDFtoGTFilter(udf: Expression): Option[GTFilter] = {
     val ScalaUDF(func, _, expressions, _, _) = udf

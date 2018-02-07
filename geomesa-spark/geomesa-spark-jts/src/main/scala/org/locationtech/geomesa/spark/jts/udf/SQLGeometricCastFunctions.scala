@@ -6,15 +6,15 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts.udf
 
 import java.nio.charset.StandardCharsets
 
 import com.vividsolutions.jts.geom._
-import org.locationtech.geomesa.spark.SQLFunctionHelper._
 import org.apache.spark.sql.{Column, SQLContext, TypedColumn}
-import org.locationtech.geomesa.spark.SpatialEncoders._
-import org.locationtech.geomesa.spark.SparkDefaultEncoders._
+import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders._
+import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders._
+import org.locationtech.geomesa.spark.util.SQLFunctionHelper._
 
 object SQLGeometricCastFunctions {
   val ST_CastToPoint:      Geometry => Point       = g => g.asInstanceOf[Point]

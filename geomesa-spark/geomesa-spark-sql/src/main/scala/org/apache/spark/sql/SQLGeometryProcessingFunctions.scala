@@ -11,7 +11,7 @@ package org.apache.spark.sql
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Coordinate, Point, Polygon}
 import com.vividsolutions.jts.util.GeometricShapeFactory
-import org.locationtech.geomesa.spark.SQLFunctionHelper.nullableUDF
+import org.locationtech.geomesa.spark.util.SQLFunctionHelper.nullableUDF
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
