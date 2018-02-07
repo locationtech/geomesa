@@ -71,38 +71,40 @@ class Point2PointProcess extends GeoMesaProcess {
 
     val lineFeatures =
       SelfClosingIterator(data.features()).toList
-        .groupBy(_.get(groupingFieldIndex).asInstanceOf[String])
+        .groupBy(f => String.valueOf(f.getAttribute(groupingFieldIndex)))
         .filter { case (_, coll) => coll.lengthCompare(minPoints) > 0 }
-        .flatMap { case (group, coll) =>
+        .flatMap { case (_, coll) =>
 
-        val globalSorted = coll.sortBy(_.get[java.util.Date](sortFieldIndex))
+          val globalSorted = coll.sortBy(_.get[java.util.Date](sortFieldIndex))
 
-        val groups =
-          if (!breakOnDay) Array(globalSorted)
-          else
+          val groups = if (!breakOnDay) { Array(globalSorted) } else {
             globalSorted
               .groupBy { f => getDayOfYear(sortFieldIndex, f) }
               .filter { case (_, g) => g.lengthCompare(2) >= 0 }  // need at least two points in a day to create a
               .map { case (_, g) => g }.toArray
+          }
 
-        val results = groups.flatMap { sorted =>
-          sorted.sliding(2).zipWithIndex.map { case (ptLst, idx) =>
-            import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-            val pts = ptLst.map(_.point.getCoordinate)
-            val length = JTS.orthodromicDistance(pts.head, pts.last, DefaultGeographicCRS.WGS84)
+          val results = groups.flatMap { sorted =>
+            sorted.sliding(2).zipWithIndex.map { case (ptLst, idx) =>
+              import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+              val pts = ptLst.map(_.point.getCoordinate)
+              val length = JTS.orthodromicDistance(pts.head, pts.last, DefaultGeographicCRS.WGS84)
 
-            val group    = ptLst.head.getAttribute(groupingFieldIndex)
-            val startDtg = ptLst.head.getAttribute(sortAttrName)
-            val endDtg   = ptLst.last.getAttribute(sortAttrName)
-            val attrs    = Array[AnyRef](gf.createLineString(pts.toArray), group, startDtg, endDtg)
-            val sf = builder.buildFeature(s"$group-$idx", attrs)
-            (length, sf)
+              val group    = ptLst.head.getAttribute(groupingFieldIndex)
+              val startDtg = ptLst.head.getAttribute(sortAttrName)
+              val endDtg   = ptLst.last.getAttribute(sortAttrName)
+              val attrs    = Array[AnyRef](gf.createLineString(pts.toArray), group, startDtg, endDtg)
+              val sf = builder.buildFeature(s"$group-$idx", attrs)
+              (length, sf)
+            }
+          }
+
+          if (filterSingularPoints) {
+            results.collect { case (length, sf) if length > 0.0 => sf }
+          } else {
+            results.map { case (_, sf) => sf }
           }
         }
-
-        if (filterSingularPoints) results.filter { case (length, _) => length > 0.0 }.map { case (_, sf) => sf }
-        else results.map { case (_, sf) => sf }
-      }
 
     import scala.collection.JavaConversions._
 
