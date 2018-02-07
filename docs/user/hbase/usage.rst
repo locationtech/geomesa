@@ -5,9 +5,15 @@ Creating a Data Store
 ---------------------
 
 An instance of an HBase data store can be obtained through the normal GeoTools discovery methods,
-assuming that the GeoMesa code is on the classpath. The HBase data store also requires that an
-``hbase-site.xml`` be located on the classpath; the connection parameters for the HBase data store,
-including ``hbase.zookeeper.quorum`` and ``hbase.zookeeper.property.clientPort``, are obtained from this file.
+assuming that the GeoMesa code is on the classpath.
+
+The HBase data store also requires that an appropriate ``hbase-site.xml`` file is available on the classpath; the
+connection parameters for HBase are obtained from this file, including ``hbase.zookeeper.quorum`` and
+``hbase.zookeeper.property.clientPort``.
+
+As an alternative to providing ``hbase-site.xml``, the Zookeeper connection can be specified through the
+parameter ``hbase.zookeepers``. However, this method is not recommended, as other important configurations
+(including security, if any) from ``hbase-site.xml`` may be required for correct operation.
 
 .. code-block:: java
 
@@ -27,6 +33,8 @@ The data store takes several parameters (required parameters are marked with ``*
 Parameter                              Type    Description
 ====================================== ======= ====================================================================================
 ``hbase.catalog *``                    String  The name of the GeoMesa catalog table (previously ``bigtable.table.name``)
+``hbase.zookeepers``                   String  A comma-separated list of servers in the HBase zookeeper ensemble. This is optional,
+                                               the preferred method for defining the HBase connection is with ``hbase-site.xml``
 ``hbase.coprocessor.url``              String  Path to the GeoMesa jar containing coprocessors, for auto registration
 ``hbase.config.paths``                 String  Additional HBase configuration resource files (comma-delimited)
 ``hbase.remote.filtering``             Boolean Can be used to disable remote filtering and coprocessors, for environments

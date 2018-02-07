@@ -10,25 +10,28 @@ package org.locationtech.geomesa.hbase.tools
 
 import com.beust.jcommander.Parameter
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreParams}
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.RemoteFilterParam
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand}
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterParam}
+import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalZookeepersParam}
 
 /**
  * Abstract class for commands that have a pre-existing catalog
  */
 trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
 
-  override def params: CatalogParam with RemoteFilterParam
+  override def params: HBaseParams
 
   override def connection: Map[String, String] = {
     Map(
       HBaseDataStoreParams.HBaseCatalogParam.getName    -> params.catalog,
+      HBaseDataStoreParams.ZookeeperParam.getName       -> params.zookeepers,
       HBaseDataStoreParams.RemoteFilteringParam.getName -> (!params.noRemote).toString
     )
   }
 }
 
 object HBaseDataStoreCommand {
+
+  trait HBaseParams extends CatalogParam with OptionalZookeepersParam with RemoteFilterParam
 
   /**
     * Disables remote filtering/coprocessors
