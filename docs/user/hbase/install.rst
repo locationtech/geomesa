@@ -29,6 +29,19 @@ Extract it somewhere convenient:
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
+.. _hbase_install_source:
+
+Building from Source
+--------------------
+
+GeoMesa HBase may also be built from source. For more information refer to :ref:`building_from_source`
+in the developer manual, or to the ``README.md`` file in the the source distribution.
+The remainder of the instructions in this chapter assume the use of the binary GeoMesa HBase
+distribution. If you have built from source, the distribution is created in the ``target`` directory of
+``geomesa-hbase/geomesa-hbase-dist``.
+
+More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
+
 Configuration and Classpaths
 ----------------------------
 
@@ -156,7 +169,7 @@ Do this with the following commands:
 
 .. _hbase_deploy_distributed_runtime:
 
-Deploying the GeoMesa HBase distributed runtime jar
+Deploying the GeoMesa HBase Distributed Runtime JAR
 ---------------------------------------------------
 
 GeoMesa uses an HBase custom filter to improve processing of CQL queries.  In order to use the custom filter, you must
@@ -176,19 +189,6 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 
 If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
 to ``false``. Note that this may have an adverse effect on performance.
-
-.. _hbase_install_source:
-
-Building from Source
---------------------
-
-GeoMesa HBase may also be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution.
-The remainder of the instructions in this chapter assume the use of the binary GeoMesa HBase
-distribution. If you have built from source, the distribution is created in the ``target`` directory of
-``geomesa-hbase/geomesa-hbase-dist``.
-
-More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 .. _registering_coprocessors:
 

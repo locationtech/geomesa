@@ -8,15 +8,20 @@
 #
 zookeeper_version="%%zookeeper.version.recommended%%"
 
-# kafka 9 versions
+# kafka 0.9 versions
 kafka_version="%%kafka.version%%"
 zkclient_version="%%zkclient.version%%"
 jopt_version="%%kafka.jopt.version%%"
 
-# kafka 10 versions
+# kafka 0.10 versions
 # kafka_version="0.10.2.1"
 # zkclient_version="0.10"
 # jopt_version="4.9"
+
+# kafka 1.0 versions
+# kafka_version="1.0.0"
+# zkclient_version="0.10"
+# jopt_version="5.0.4"
 
 # Load common functions and setup
 if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
