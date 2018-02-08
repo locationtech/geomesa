@@ -10,20 +10,23 @@ package org.locationtech.geomesa.spark
 
 
 import com.vividsolutions.jts.geom._
-import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.jts.JTSTypes
 import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import SQLGeometricConstructorFunctions._
+import SQLGeometricCastFunctions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometricConstructorsTest extends Specification {
+class SparkSQLGeometricConstructorsTest extends Specification with BlankDataFrame {
 
   "sql geometry constructors" should {
     sequential
 
-    var spark: SparkSession = null
+    implicit var spark: SparkSession = null
     var sc: SQLContext = null
 
     // before
@@ -38,14 +41,21 @@ class SparkSQLGeometricConstructorsTest extends Specification {
 
     "st_geomFromWKT" >> {
       sc.sql("select st_geomFromWKT(null)").collect.head(0) must beNull
+      dfBlank.select(st_geomFromWKT(lit(null))).first must beNull
 
+      val point = "POINT(0 0)"
       val r = sc.sql(
-        """
-          |select st_geomFromWKT('POINT(0 0)')
+        s"""
+          |select st_geomFromWKT('$point')
         """.stripMargin
       )
 
-      r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POINT(0 0)")
+      val expected = WKTUtils.read(point)
+
+      r.collect().head.getAs[Geometry](0) mustEqual expected
+
+      dfBlank.select(st_geomFromWKT(point)).first mustEqual expected
+
     }
 
     "st_geometryFromText" >> {
@@ -62,6 +72,7 @@ class SparkSQLGeometricConstructorsTest extends Specification {
 
     "st_geomFromWKB" >> {
       sc.sql("select st_geomFromWKB(null)").collect.head(0) must beNull
+      dfBlank.select(st_geomFromWKB(lit(null))).first must beNull
 
       val geomArr = Array[Byte](0,
         0, 0, 0, 3,
@@ -76,33 +87,45 @@ class SparkSQLGeometricConstructorsTest extends Specification {
       val r = sc.sql(
         s"""select st_geomFromWKB(st_byteArray('${new String(geomArr)}'))"""
       )
-      r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))")
+      val expected = WKTUtils.read("POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))")
+      r.collect().head.getAs[Geometry](0) mustEqual expected
+
+      dfBlank.select(st_geomFromWKB(st_byteArray(new String(geomArr)))).first mustEqual expected
     }
 
     "st_lineFromText" >> {
       sc.sql("select st_lineFromText(null)").collect.head(0) must beNull
+      dfBlank.select(st_lineFromText(lit(null))).first must beNull
 
+      val line = "LINESTRING(0 0, 1 1, 2 2)"
       val r = sc.sql(
-        """
-          |select st_lineFromText('LINESTRING(0 0, 1 1, 2 2)')
+        s"""
+          |select st_lineFromText('$line')
         """.stripMargin
       )
-      r.collect().head.getAs[LineString](0) mustEqual WKTUtils.read("LINESTRING(0 0, 1 1, 2 2)")
+      val expected = WKTUtils.read(line)
+      r.collect().head.getAs[LineString](0) mustEqual expected
+      dfBlank.select(st_lineFromText(line)).first mustEqual expected
     }
 
     "st_makeBBOX" >> {
       sc.sql("select st_makeBBOX(null, null, null, null)").collect.head(0) must beNull
+      dfBlank.select(st_makeBBOX(lit(null), lit(null), lit(null), lit(null))).first must beNull
 
       val r = sc.sql(
         """
           |select st_makeBBOX(0.0, 0.0, 2.0, 2.0)
         """.stripMargin
       )
-      r.collect().head.getAs[Geometry](0) mustEqual JTS.toGeometry(new Envelope(0, 2, 0, 2))
+      val expected = JTS.toGeometry(new Envelope(0, 2, 0, 2))
+      r.collect().head.getAs[Geometry](0) mustEqual expected
+
+      dfBlank.select(st_makeBBOX(0.0, 0.0, 2.0, 2.0)).first mustEqual expected
     }
 
     "st_makeBox2D" >> {
       sc.sql("select st_makeBox2D(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_makeBox2D(lit(null), lit(null))).first must beNull
 
       val r = sc.sql(
         """
@@ -110,107 +133,139 @@ class SparkSQLGeometricConstructorsTest extends Specification {
           |                    st_castToPoint(st_geomFromWKT('POINT(2 2)')))
         """.stripMargin
       )
-      r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
-        "2.0 2.0, 0.0 2.0, 0.0 0.0))")
+      val expected = WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, 2.0 2.0, 0.0 2.0, 0.0 0.0))")
+      r.collect().head.getAs[Geometry](0) mustEqual expected
+
+      dfBlank.select(st_makeBox2D(
+        st_castToPoint(st_geomFromWKT("POINT(0 0)")),
+        st_castToPoint(st_geomFromWKT("POINT(2 2)"))
+      )).first mustEqual expected
     }
 
     "st_makePolygon" >> {
       sc.sql("select st_makePolygon(null)").collect.head(0) must beNull
+      dfBlank.select(st_makePolygon(lit(null))).first must beNull
 
+      val line = "LINESTRING(0 0, 2 2, 5 4, 7 2, 5 2, 3 0, 0 0)"
       val r = sc.sql(
         s"""
            |select st_makePolygon(st_castToLineString(
-           |    st_geomFromWKT('LINESTRING(0 0, 2 2, 5 4, 7 2, 5 2, 3 0, 0 0)')))
+           |    st_geomFromWKT('$line')))
         """.stripMargin
       )
-      r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0 0, 2 2, 5 4, 7 2, 5 2, 3 0, 0 0))")
+      val expected = WKTUtils.read("POLYGON((0 0, 2 2, 5 4, 7 2, 5 2, 3 0, 0 0))")
+      r.collect().head.getAs[Polygon](0) mustEqual expected
+
+      dfBlank.select(st_makePolygon(st_castToLineString(st_geomFromWKT(line)))).first mustEqual expected
     }
 
     "st_makePoint" >> {
       sc.sql("select st_makePoint(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_makePoint(lit(null), lit(null))).first must beNull
 
       val r = sc.sql(
         """
           |select st_makePoint(0, 0)
         """.stripMargin
       )
-      r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(0 0)")
+      val expected = WKTUtils.read("POINT(0 0)")
+      r.collect().head.getAs[Point](0) mustEqual expected
+      dfBlank.select(st_makePoint(0, 0)).first mustEqual expected
     }
 
     "st_makePointM" >> {
       sc.sql("select st_makePointM(null, null, null)").collect.head(0) must beNull
+      dfBlank.select(st_makePointM(lit(null), lit(null), lit(null))).first must beNull
 
       val r = sc.sql(
         """
           |select st_makePointM(0, 0, 1)
         """.stripMargin
       )
-      r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(0 0 1)")
+      val expected = WKTUtils.read("POINT(0 0 1)")
+      r.collect().head.getAs[Point](0) mustEqual expected
+      dfBlank.select(st_makePointM(0, 0, 1)).first mustEqual expected
     }
 
     "st_mLineFromText" >> {
       sc.sql("select st_mLineFromText(null)").collect.head(0) must beNull
+      dfBlank.select(st_mLineFromText(lit(null))).first must beNull
 
+      val line = "MULTILINESTRING((0 0, 1 1, 2 2), (0 1, 1 2, 2 3))"
       val r = sc.sql(
-        """
-          |select st_mLineFromText('MULTILINESTRING((0 0, 1 1, 2 2), (0 1, 1 2, 2 3))')
+        s"""
+          |select st_mLineFromText('$line')
         """.stripMargin
       )
-
-      r.collect().head.getAs[MultiLineString](0) mustEqual WKTUtils.read("MULTILINESTRING((0 0, 1 1, 2 2), " +
-        "(0 1, 1 2, 2 3))")
+      val expected = WKTUtils.read("MULTILINESTRING((0 0, 1 1, 2 2), (0 1, 1 2, 2 3))")
+      r.collect().head.getAs[MultiLineString](0) mustEqual expected
+      dfBlank.select(st_mLineFromText(line)).first mustEqual expected
     }
 
     "st_mPointFromText" >> {
       sc.sql("select st_mPointFromText(null)").collect.head(0) must beNull
+      dfBlank.select(st_mPointFromText(lit(null))).first must beNull
 
+      val point = "MULTIPOINT((0 0), (1 1))"
       val r = sc.sql(
-        """
-          |select st_mPointFromText('MULTIPOINT((0 0), (1 1))')
+        s"""
+          |select st_mPointFromText('$point')
         """.stripMargin
       )
-
-      r.collect().head.getAs[MultiPoint](0) mustEqual WKTUtils.read("MULTIPOINT((0 0), (1 1))")
+      val expected = WKTUtils.read("MULTIPOINT((0 0), (1 1))")
+      r.collect().head.getAs[MultiPoint](0) mustEqual expected
+      dfBlank.select(st_mPointFromText(point)).first mustEqual expected
     }
 
     "st_mPolyFromText" >> {
       sc.sql("select st_mPolyFromText(null)").collect.head(0) must beNull
+      dfBlank.select(st_mPolyFromText(lit(null))).first must beNull
 
+      val poly = "MULTIPOLYGON((( -1 -1, 0 1, 1 -1, -1 -1 )),((-4 4, 4 4, 4 -4, -4 -4, -4 4), (2 2, -2 2, -2 -2, 2 -2, 2 2)))"
       val r = sc.sql(
-        """
-          |select st_mPolyFromText('MULTIPOLYGON((( -1 -1, 0 1, 1 -1, -1 -1 )),((-4 4, 4 4, 4 -4, -4 -4, -4 4),
-          |                                    (2 2, -2 2, -2 -2, 2 -2, 2 2)))')
+        s"""
+          |select st_mPolyFromText('$poly')
         """.stripMargin
       )
 
-      r.collect().head.getAs[MultiPolygon](0) mustEqual
-        WKTUtils.read("MULTIPOLYGON((( -1 -1, 0 1, 1 -1, -1 -1 ))," +
-          "((-4 4, 4 4, 4 -4, -4 -4, -4 4),(2 2, -2 2, -2 -2, 2 -2, 2 2)))")
+      val expected = WKTUtils.read(poly)
+      r.collect().head.getAs[MultiPolygon](0) mustEqual expected
+      dfBlank.select(st_mPolyFromText(poly)).first mustEqual expected
     }
 
     "st_point" >> {
       sc.sql("select st_point(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_point(lit(null), lit(null))).first must beNull
 
       val r = sc.sql(
         """
           |select st_point(0, 0)
         """.stripMargin
       )
-      r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(0 0)")
+      val expected = WKTUtils.read("POINT(0 0)")
+      r.collect().head.getAs[Point](0) mustEqual expected
+      dfBlank.select(st_point(0, 0)).first mustEqual expected
     }
 
     "st_pointFromText" >> {
       sc.sql("select st_pointFromText(null)").collect.head(0) must beNull
+      dfBlank.select(st_pointFromText(lit(null))).first must beNull
+
+      val point = "Point(0 0)"
       val r = sc.sql(
-        """
-          |select st_pointFromText('Point(0 0)')
+        s"""
+          |select st_pointFromText('$point')
         """.stripMargin
       )
-      r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(0 0)")
+      val expected = WKTUtils.read(point)
+      r.collect().head.getAs[Point](0) mustEqual expected
+      dfBlank.select(st_pointFromText(point)).first mustEqual expected
     }
 
     "st_pointFromWKB" >> {
       sc.sql("select st_pointFromWKB(null)").collect.head(0) must beNull
+      dfBlank.select(st_pointFromWKB(lit(null))).first must beNull
+
       val pointArr = Array[Byte](0, 0, 0, 0, 1,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0)
@@ -219,29 +274,41 @@ class SparkSQLGeometricConstructorsTest extends Specification {
            |select st_pointFromWKB(st_byteArray('${new String(pointArr)}'))
         """.stripMargin
       )
-      r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(0 0)")
+      val expected = WKTUtils.read("POINT(0 0)")
+      r.collect().head.getAs[Point](0) mustEqual expected
+      dfBlank.select(st_pointFromWKB(st_byteArray(new String(pointArr)))).first mustEqual expected
     }
 
     "st_polygon" >> {
       sc.sql("select st_polygon(null)").collect.head(0) must beNull
+      dfBlank.select(st_polygon(lit(null))).first must beNull
+
+      val line = "LINESTRING(0 0, 2 2, 5 2, 3 0, 0 0)"
       val r = sc.sql(
         s"""
            |select st_polygon(st_castToLineString(
-           |    st_geomFromWKT('LINESTRING(0 0, 2 2, 5 2, 3 0, 0 0)')))
+           |    st_geomFromWKT('$line')))
         """.stripMargin
       )
-      r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0 0, 2 2, 5 2, 3 0, 0 0))")
+      val expected = WKTUtils.read("POLYGON((0 0, 2 2, 5 2, 3 0, 0 0))")
+      r.collect().head.getAs[Polygon](0) mustEqual expected
+      dfBlank.select(st_polygon(st_castToLineString(st_geomFromWKT(line)))).first mustEqual expected
     }
 
     "st_polygonFromText" >> {
       sc.sql("select st_polygonFromText(null)").collect.head(0) must beNull
+      dfBlank.select(st_polygonFromText(lit(null))).first must beNull
+
+      val poly = "POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))"
       val r = sc.sql(
-        """
-          |select st_polygonFromText('POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))')
+        s"""
+          |select st_polygonFromText('$poly')
         """.stripMargin
       )
-      r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
-        "2.0 2.0, 0.0 2.0, 0.0 0.0))")
+
+      val expected =  WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, 2.0 2.0, 0.0 2.0, 0.0 0.0))")
+      r.collect().head.getAs[Polygon](0) mustEqual expected
+      dfBlank.select(st_polygonFromText(poly)).first mustEqual expected
     }
 
     // after

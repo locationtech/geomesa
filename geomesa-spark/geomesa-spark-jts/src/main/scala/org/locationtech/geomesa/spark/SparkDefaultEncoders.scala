@@ -8,16 +8,22 @@
 
 package org.locationtech.geomesa.spark
 
+import java.lang
 
+import org.apache.spark.sql.{Encoder, Encoders}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+
 import scala.reflect.runtime.universe._
 
-trait SparkDefaultEncoders {
-  implicit def stringEncoder = ExpressionEncoder[String]()
-  implicit def floatEncoder = ExpressionEncoder[Float]()
-  implicit def intEncoder = ExpressionEncoder[Int]()
-  implicit def booleanEncoder = ExpressionEncoder[Boolean]()
-  implicit def arrayEncoder[T: TypeTag] = ExpressionEncoder[Array[T]]()
+private[geomesa] trait SparkDefaultEncoders {
+  implicit def stringEncoder: Encoder[String] = Encoders.STRING
+  implicit def jFloatEncoder: Encoder[lang.Float] = Encoders.FLOAT
+  implicit def doubleEncoder: Encoder[Double] = Encoders.scalaDouble
+  implicit def jDoubleEncoder: Encoder[lang.Double] = Encoders.DOUBLE
+  implicit def intEncoder: Encoder[Int] = Encoders.scalaInt
+  implicit def jBooleanEncoder: Encoder[lang.Boolean] = Encoders.BOOLEAN
+  implicit def booleanEncoder: Encoder[Boolean] = Encoders.scalaBoolean
+  implicit def arrayEncoder[T: TypeTag]: Encoder[Array[T]] = ExpressionEncoder()
 }
 
-object SparkDefaultEncoders extends SparkDefaultEncoders
+private[geomesa] object SparkDefaultEncoders extends SparkDefaultEncoders

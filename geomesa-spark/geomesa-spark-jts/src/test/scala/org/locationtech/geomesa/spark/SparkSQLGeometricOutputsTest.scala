@@ -12,21 +12,23 @@ package org.locationtech.geomesa.spark
 import com.vividsolutions.jts.geom.GeometryFactory
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.jts.JTSTypes
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import SQLGeometricOutputFunctions._
+import SQLGeometricConstructorFunctions._
 
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometricOutputsTest extends Specification {
+class SparkSQLGeometricOutputsTest extends Specification with BlankDataFrame {
 
   "sql geometry constructors" should {
     sequential
 
-    var spark: SparkSession = null
+    implicit var spark: SparkSession = null
     var sc: SQLContext = null
-    var df: DataFrame = null
 
     // before
     step {
@@ -40,22 +42,28 @@ class SparkSQLGeometricOutputsTest extends Specification {
 
     "st_asBinary" >> {
       sc.sql("select st_asBinary(null)").collect.head(0) must beNull
+      dfBlank.select(st_asBinary(lit(null))).first must beNull
 
       val r = sc.sql(
         """
           |select st_asBinary(st_geomFromWKT('POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))'))
         """.stripMargin
       )
-      r.collect().head.getAs[Array[Byte]](0) mustEqual Array[Byte](0, 0, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0, 0,
+      val expected = Array[Byte](0, 0, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0,
         64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0
       )
+
+      r.collect().head.getAs[Array[Byte]](0) mustEqual expected
+
+      dfBlank.select(st_asBinary(st_geomFromWKT("POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))"))).first mustEqual expected
     }
 
     "st_asGeoJSON" >> {
       "null" >> {
         sc.sql("select st_asGeoJSON(null)").collect.head(0) must beNull
+        dfBlank.select(st_asGeoJSON(lit(null))).first must beNull
       }
 
       "point" >> {
@@ -64,72 +72,89 @@ class SparkSQLGeometricOutputsTest extends Specification {
             |select st_asGeoJSON(st_geomFromWKT('POINT(0 0)'))
           """.stripMargin
         )
-        r.collect().head.getAs[String](0) mustEqual
-          """{"type":"Point","coordinates":[0.0,0.0]}"""
+        val expected = """{"type":"Point","coordinates":[0.0,0.0]}"""
+        r.collect().head.getAs[String](0) mustEqual expected
+        dfBlank.select(st_asGeoJSON(st_geomFromWKT("POINT(0 0)"))).first mustEqual expected
       }
 
       "lineString" >> {
+        val line = "LINESTRING(0 0, 1 1, 2 2)"
         val r = sc.sql(
-          """
-            |select st_asGeoJSON(st_geomFromWKT('LINESTRING(0 0, 1 1, 2 2)'))
+          s"""
+            |select st_asGeoJSON(st_geomFromWKT('$line'))
           """.stripMargin
         )
-        r.collect().head.getAs[String](0) mustEqual
-          """{"type":"LineString","coordinates":[[0.0,0.0],[1,1],[2,2]]}"""
+        val expected = """{"type":"LineString","coordinates":[[0.0,0.0],[1,1],[2,2]]}"""
+        r.collect().head.getAs[String](0) mustEqual expected
+        dfBlank.select(st_asGeoJSON(st_geomFromWKT(line))).first mustEqual expected
+
       }
 
       "polygon" >> {
+        val poly = "POLYGON((0.45 0.75, 1.15 0.75, 1.15 1.45, 0.45 1.45, 0.45 0.75))"
         val r = sc.sql(
-          """
-            |select st_asGeoJSON(st_geomFromWKT('POLYGON((0.45 0.75, 1.15 0.75, 1.15 1.45, 0.45 1.45, 0.45 0.75))'))
+          s"""
+            |select st_asGeoJSON(st_geomFromWKT('$poly'))
           """.stripMargin
         )
-        r.collect().head.getAs[String](0) mustEqual
-          """{"type":"Polygon","coordinates":[[[0.45,0.75],[1.15,0.75],[1.15,1.45],[0.45,1.45],[0.45,0.75]]]}"""
+        val expected = """{"type":"Polygon","coordinates":[[[0.45,0.75],[1.15,0.75],[1.15,1.45],[0.45,1.45],[0.45,0.75]]]}"""
+        r.collect().head.getAs[String](0) mustEqual expected
 
+        dfBlank.select(st_asGeoJSON(st_geomFromWKT(poly)))
+          .first mustEqual expected
       }
 
       "multiPoint" >> {
+        val point = "MULTIPOINT((0 0), (1 1))"
         val r = sc.sql(
-          """
-            |select st_asGeoJSON(st_geomFromWKT('MULTIPOINT((0 0), (1 1))'))
+          s"""
+            |select st_asGeoJSON(st_geomFromWKT('$point'))
           """.stripMargin
         )
-        r.collect().head.getAs[String](0) mustEqual
-          """{"type":"MultiPoint","coordinates":[[0.0,0.0],[1,1]]}"""
+        val expected = """{"type":"MultiPoint","coordinates":[[0.0,0.0],[1,1]]}"""
+        r.collect().head.getAs[String](0) mustEqual expected
+
+        dfBlank.select(st_asGeoJSON(st_geomFromWKT(point))).first mustEqual expected
       }
 
       "multiLineString" >> {
+        val line = "MULTILINESTRING((0 0, 1 1, 2 2), (-3 -3, -2 -2, -1 -1))"
         val r = sc.sql(
-          """
-            |select st_asGeoJSON(st_geomFromWKT('MULTILINESTRING((0 0, 1 1, 2 2), (-3 -3, -2 -2, -1 -1))'))
+          s"""
+            |select st_asGeoJSON(st_geomFromWKT('$line'))
           """.stripMargin
         )
-        r.collect().head.getAs[String](0) mustEqual
-          """{"type":"MultiLineString","coordinates":[[[0.0,0.0],[1,1],[2,2]],[[-3,-3],[-2,-2],[-1,-1]]]}"""
+        val expected = """{"type":"MultiLineString","coordinates":[[[0.0,0.0],[1,1],[2,2]],[[-3,-3],[-2,-2],[-1,-1]]]}"""
+        r.collect().head.getAs[String](0) mustEqual expected
+
       }
 
       "multiPolygon" >> {
+        val poly = "MULTIPOLYGON(((0.45 0.75, 1.15 0.75, 1.15 1.45, 0.45 1.45, 0.45 0.75)),((0 0, 1 0, 1 1, 0 1, 0 0)))"
         val r = sc.sql(
-          """
-            |select st_asGeoJSON(st_geomFromWKT('MULTIPOLYGON(((0.45 0.75, 1.15 0.75, 1.15 1.45, 0.45 1.45, 0.45 0.75))
-            |,((0 0, 1 0, 1 1, 0 1, 0 0)))'))
+          s"""
+            |select st_asGeoJSON(st_geomFromWKT('$poly'))
           """.stripMargin
         )
-        r.collect().head.getAs[String](0) mustEqual
-          """{"type":"MultiPolygon","coordinates":[[[[0.45,0.75],[1.15,0.75],[1.15,1.45],[0.45,1.45],""" +
-            """[0.45,0.75]]],[[[0.0,0.0],[1,0.0],[1,1],[0.0,1],[0.0,0.0]]]]}"""
+        val expected = """{"type":"MultiPolygon","coordinates":[[[[0.45,0.75],[1.15,0.75],[1.15,1.45],[0.45,1.45],""" +
+          """[0.45,0.75]]],[[[0.0,0.0],[1,0.0],[1,1],[0.0,1],[0.0,0.0]]]]}"""
+
+        r.collect().head.getAs[String](0) mustEqual expected
+        dfBlank.select(st_asGeoJSON(st_geomFromWKT(poly))).first mustEqual expected
       }
 
       "geometryCollection" >> {
-        val r =sc.sql(
-          """
-            |select st_asGeoJSON(st_geomFromWKT('GEOMETRYCOLLECTION(POINT(0 0), LINESTRING(0 0, 1 1, 2 2))'))
+        val geom = "GEOMETRYCOLLECTION(POINT(0 0), LINESTRING(0 0, 1 1, 2 2))"
+        val r = sc.sql(
+          s"""
+            |select st_asGeoJSON(st_geomFromWKT('$geom'))
           """.stripMargin
         )
-        r.collect().head.getAs[String](0) mustEqual
-          """{"type":"GeometryCollection","geometries":[{"type":"Point","coordinates":[0.0,0.0]},""" +
-            """{"type":"LineString","coordinates":[[0.0,0.0],[1,1],[2,2]]}]}"""
+        val expected = """{"type":"GeometryCollection","geometries":[{"type":"Point","coordinates":[0.0,0.0]},""" +
+          """{"type":"LineString","coordinates":[[0.0,0.0],[1,1],[2,2]]}]}"""
+
+        r.collect().head.getAs[String](0) mustEqual expected
+        dfBlank.select(st_asGeoJSON(st_geomFromWKT(geom))).first mustEqual expected
       }
     }
 
@@ -147,13 +172,18 @@ class SparkSQLGeometricOutputsTest extends Specification {
 
     "st_asText" >> {
       sc.sql("select st_asText(null)").collect.head(0) must beNull
+      dfBlank.select(st_asText(lit(null))).first must beNull
 
+      val point = "POINT (-76.5 38.5)"
       val r = sc.sql(
-        """
-          |select st_asText(st_geomFromWKT('POINT (-76.5 38.5)'))
+        s"""
+          |select st_asText(st_geomFromWKT('$point'))
         """.stripMargin
       )
-      r.collect().head.getAs[String](0) mustEqual "POINT (-76.5 38.5)"
+      val expected = "POINT (-76.5 38.5)"
+      r.collect().head.getAs[String](0) mustEqual expected
+
+      dfBlank.select(st_asText(st_geomFromWKT(point))).first mustEqual expected
     }
 
     //after
