@@ -30,7 +30,7 @@ import scala.util.Try
 object AccumuloJobUtils extends LazyLogging {
 
   // default jars that will be included with m/r jobs
-  lazy val defaultLibJars = {
+  lazy val defaultLibJars: List[String] = {
     val defaultLibJarsFile = "org/locationtech/geomesa/jobs/accumulo-libjars.list"
     val url = Try(getClass.getClassLoader.getResource(defaultLibJarsFile))
     val source = url.map(Source.fromURL)
@@ -70,7 +70,7 @@ object AccumuloJobUtils extends LazyLogging {
     try {
       lazy val fallbackIndex = {
         val schema = ds.getSchema(query.getTypeName)
-        AccumuloFeatureIndex.indices(schema, IndexMode.Read).headOption.getOrElse {
+        AccumuloFeatureIndex.indices(schema, mode = IndexMode.Read).headOption.getOrElse {
           throw new IllegalStateException(s"Schema '${schema.getTypeName}' does not have any readable indices")
         }
       }
@@ -79,12 +79,12 @@ object AccumuloJobUtils extends LazyLogging {
 
       if (queryPlans.isEmpty) {
         EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE)))
-      } else if (queryPlans.length > 1) {
+      } else if (queryPlans.lengthCompare(1) > 0) {
         // this query requires multiple scans, which we can't execute from some input formats
         // instead, fall back to a full table scan
         logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
         val qps = ds.getQueryPlan(query, Some(fallbackIndex))
-        if (qps.length > 1) {
+        if (qps.lengthCompare(1) > 0) {
           logger.error("The query being executed requires multiple scans, which is not currently " +
               "supported by GeoMesa. Your result set will be partially incomplete. " +
               s"Query: ${filterToString(query.getFilter)}")
@@ -114,7 +114,7 @@ object AccumuloJobUtils extends LazyLogging {
     try {
       lazy val fallbackIndex = {
         val schema = ds.getSchema(query.getTypeName)
-        AccumuloFeatureIndex.indices(schema, IndexMode.Read).headOption.getOrElse {
+        AccumuloFeatureIndex.indices(schema, mode = IndexMode.Read).headOption.getOrElse {
           throw new IllegalStateException(s"Schema '${schema.getTypeName}' does not have any readable indices")
         }
       }

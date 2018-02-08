@@ -169,7 +169,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     // check for newly indexed attributes and re-configure the splits
     val previousAttrIndices = previous.getAttributeDescriptors.collect { case d if d.isIndexed => d.getLocalName }
     if (sft.getAttributeDescriptors.exists(d => d.isIndexed && !previousAttrIndices.contains(d.getLocalName))) {
-      manager.indices(sft, IndexMode.Any).foreach {
+      manager.indices(sft).foreach {
         case s: AttributeSplittable => s.configureSplits(sft, this)
         case _ => // no-op
       }

@@ -26,7 +26,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -161,7 +160,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val features = SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toSeq
       features must beEmpty
 
-      forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))) { name =>
+      forall(AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds))) { name =>
         val scanner = connector.createScanner(name, new Authorizations())
         try {
           scanner.iterator().hasNext must beFalse
@@ -406,7 +405,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       )
       forall(invalid) { feature =>
         addFeatures(Seq(feature)) must throwAn[IllegalArgumentException]
-        forall(ds.manager.indices(sft, IndexMode.Any)) { index =>
+        forall(ds.manager.indices(sft)) { index =>
           val table = index.getTableName(sft.getTypeName, ds)
           val scanner = ds.connector.createScanner(table, new Authorizations())
           try {
@@ -463,7 +462,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
   }
 
   def clearTablesHard(): Unit = {
-    AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)).foreach { name =>
+    AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds)).foreach { name =>
       val deleter = connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
       deleter.setRanges(Seq(new aRange()))
       deleter.delete()

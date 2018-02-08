@@ -100,7 +100,7 @@ object TableConfCommand {
   }
 
   def getTableName(ds: AccumuloDataStore, sft: SimpleFeatureType, index: String): String = {
-    val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Any)
+    val indices = AccumuloFeatureIndex.indices(sft)
     indices.find(_.name.equalsIgnoreCase(index)).map(_.getTableName(sft.getTypeName, ds)).getOrElse {
       throw new IllegalArgumentException(s"Index '$index' does not exist for schema '${sft.getTypeName}'. " +
           s"Available indices: ${indices.map(_.name).mkString(", ")}")

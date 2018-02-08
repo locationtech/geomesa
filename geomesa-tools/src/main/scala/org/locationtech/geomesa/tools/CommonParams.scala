@@ -14,10 +14,13 @@ import java.util.regex.Pattern
 
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{Parameter, ParameterException}
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.DistributedRunParam.ModeConverter
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{FilterConverter, HintConverter}
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.filter.Filter
 
 /**
@@ -107,6 +110,7 @@ trait OptionalDtgParam {
 trait AttributesParam {
   def attributes: java.util.List[String]
 }
+
 trait OptionalAttributesParam extends AttributesParam {
   @Parameter(names = Array("-a", "--attributes"), description = "Attributes to evaluate (comma-separated)")
   var attributes: java.util.List[String] = _
@@ -175,8 +179,40 @@ trait RequiredConverterConfigParam extends ConverterConfigParam {
   var config: String = _
 }
 
-trait OptionalIndexParam extends TypeNameParam {
+trait IndexParam extends TypeNameParam {
+
+  def index: String
+
+  @throws[ParameterException]
+  def loadRequiredIndex(ds: GeoMesaDataStore[_, _, _], mode: IndexMode): GeoMesaFeatureIndex[_, _, _] =
+    loadIndex(ds, mode).get
+
+  @throws[ParameterException]
+  def loadIndex(ds: GeoMesaDataStore[_, _, _], mode: IndexMode): Option[GeoMesaFeatureIndex[_, _, _]] = {
+    Option(index).filter(_.length > 0).map { name =>
+      val sft = ds.getSchema(featureName)
+      def all = ds.manager.indices(sft, None, mode).asInstanceOf[Seq[GeoMesaFeatureIndex[_, _, _]]]
+      ds.manager.indices(sft, Some(name), mode) match {
+        case Nil =>
+          throw new ParameterException(s"Specified index '$index' not found. Available indices are: " +
+              all.map(i => s"${i.name}, ${i.identifier}").mkString(", "))
+        case Seq(idx) =>
+          idx.asInstanceOf[GeoMesaFeatureIndex[_ <: GeoMesaDataStore[_, _, _], _ <: WrappedFeature, _]]
+        case s =>
+          throw new ParameterException(s"Specified index '$index' is ambiguous. Available indices are: " +
+              all.map(_.identifier).mkString(", "))
+      }
+    }
+  }
+}
+
+trait OptionalIndexParam extends IndexParam {
   @Parameter(names = Array("--index"), description = "Specify a particular index to query", required = false)
+  var index: String = _
+}
+
+trait RequiredIndexParam extends IndexParam {
+  @Parameter(names = Array("--index"), description = "Specify a particular GeoMesa index", required = true)
   var index: String = _
 }
 
@@ -199,4 +235,9 @@ object DistributedRunParam {
       }
     }
   }
+}
+
+trait OutputPathParam {
+  @Parameter(names = Array("--output"), description = "Path to use for writing output", required = true)
+  var outputPath: String = _
 }

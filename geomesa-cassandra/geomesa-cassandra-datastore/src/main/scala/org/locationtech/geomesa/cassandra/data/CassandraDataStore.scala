@@ -16,7 +16,6 @@ import org.locationtech.geomesa.cassandra.index.CassandraFeatureIndex
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils.LocalLocking
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -47,7 +46,7 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
 
   override def delete(): Unit = {
     val tables = getTypeNames.map(getSchema).flatMap { sft =>
-      manager.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, this))
+      manager.indices(sft).map(_.getTableName(sft.getTypeName, this))
     }
 
     (tables.distinct :+ config.catalog).par.foreach { table =>

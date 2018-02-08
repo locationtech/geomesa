@@ -36,7 +36,6 @@ import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -434,7 +433,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "return a list of all accumulo tables associated with a schema" in {
-      val indices = ds.manager.indices(defaultSft, IndexMode.Any).map(_.getTableName(defaultSft.getTypeName, ds))
+      val indices = ds.manager.indices(defaultSft).map(_.getTableName(defaultSft.getTypeName, ds))
       val expected = Seq(sftBaseName, s"${sftBaseName}_stats", s"${sftBaseName}_queries") ++ indices
       ds.getAllTableNames(defaultTypeName) must containTheSameElementsAs(expected)
     }
@@ -444,7 +443,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftName = sft.getTypeName
 
       "create all appropriate tables" >> {
-        val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))
+        val tables = AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds))
         tables must haveLength(4)
         forall(Seq(Z2Index, Z3Index, AttributeIndex))(t => tables must contain(endWith(t.name)))
         forall(tables)(t => ds.connector.tableOperations.exists(t) must beTrue)
@@ -492,7 +491,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val encodedSFT = "nihao" + enc("你") + enc("好")
       encodedSFT mustEqual hexEncodeNonAlphaNumeric(sftName)
 
-      forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any)) { table =>
+      forall(AccumuloFeatureIndex.indices(sft)) { table =>
         formatTableName(ds.config.catalog, tableSuffix(table), sft) mustEqual
             s"${ds.config.catalog}_${encodedSFT}_${tableSuffix(table)}"
       }
@@ -500,7 +499,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val c = ds.connector
 
       c.tableOperations().exists(ds.config.catalog) must beTrue
-      forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any)) { table =>
+      forall(AccumuloFeatureIndex.indices(sft)) { table =>
         c.tableOperations().exists(s"${ds.config.catalog}_${encodedSFT}_${tableSuffix(table)}") must beTrue
       }
     }
@@ -749,7 +748,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
-      val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog)
+      val tables = AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog)
       tables must haveSize(5)
       connector.tableOperations().list().toSeq must containAllOf(tables)
       ds.delete()

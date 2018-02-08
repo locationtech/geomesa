@@ -63,7 +63,7 @@ object TestGeoMesaDataStore {
   type TestQueryPlanType = QueryPlan[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
   type TestFilterStrategyType = FilterStrategy[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
 
-  val byteComparator = new Comparator[Array[Byte]] {
+  val ByteComparator = new Comparator[Array[Byte]] {
     override def compare(o1: Array[Byte], o2: Array[Byte]): Int = {
       val minLength = if (o1.length < o2.length) { o1.length } else { o2.length }
       var i = 0
@@ -103,8 +103,10 @@ object TestGeoMesaDataStore {
     override val AllIndices: Seq[TestFeatureIndex] = CurrentIndices :+ new TestAttributeDateIndex
     override def lookup: Map[(String, Int), TestFeatureIndex] =
       super.lookup.asInstanceOf[Map[(String, Int), TestFeatureIndex]]
-    override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[TestFeatureIndex] =
-      super.indices(sft, mode).asInstanceOf[Seq[TestFeatureIndex]]
+    override def indices(sft: SimpleFeatureType,
+                         idx: Option[String] = None,
+                         mode: IndexMode = IndexMode.Any): Seq[TestFeatureIndex] =
+      super.indices(sft, idx, mode).asInstanceOf[Seq[TestFeatureIndex]]
     override def index(identifier: String): TestFeatureIndex = super.index(identifier).asInstanceOf[TestFeatureIndex]
   }
 
@@ -130,7 +132,7 @@ object TestGeoMesaDataStore {
 
     private val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
       override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
-        byteComparator.compare(x._1, y._1)
+        ByteComparator.compare(x._1, y._1)
     }
 
     val features = scala.collection.mutable.SortedSet.empty[(Array[Byte], SimpleFeature)](ordering)
@@ -180,7 +182,7 @@ object TestGeoMesaDataStore {
   trait TestFeatureWriter extends TestFeatureWriterType {
 
     override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[TestFeatureIndex] =
-      tables.map(t => ds.manager.indices(sft, IndexMode.Write).find(_.getTableName(sft.getTypeName, ds) == t).orNull)
+      tables.map(t => ds.manager.indices(sft, mode = IndexMode.Write).find(_.getTableName(sft.getTypeName, ds) == t).orNull)
 
     override protected def executeWrite(mutator: TestFeatureIndex, writes: Seq[TestWrite]): Unit = {
       writes.foreach { case TestWrite(row, feature, _) => mutator.features.add((row, feature)) }
@@ -198,7 +200,7 @@ object TestGeoMesaDataStore {
                            ecql: Option[Filter]) extends TestQueryPlanType {
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
       def contained(range: TestRange, row: Array[Byte]): Boolean =
-        byteComparator.compare(range.start, row) <= 0 && byteComparator.compare(range.end, row) > 0
+        ByteComparator.compare(range.start, row) <= 0 && ByteComparator.compare(range.end, row) > 0
       index.features.toIterator.collect {
         case (row, sf) if ranges.exists(contained(_, row)) && ecql.forall(_.evaluate(sf)) => sf
       }

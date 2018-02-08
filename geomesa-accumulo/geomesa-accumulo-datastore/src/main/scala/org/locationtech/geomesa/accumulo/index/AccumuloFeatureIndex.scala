@@ -28,6 +28,7 @@ import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloInde
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -60,8 +61,10 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
   override val CurrentIndices: Seq[AccumuloFeatureIndex] =
     Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, RecordIndex, AttributeIndex)
 
-  override def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[AccumuloFeatureIndex] =
-    super.indices(sft, mode).asInstanceOf[Seq[AccumuloFeatureIndex]]
+  override def indices(sft: SimpleFeatureType,
+                       idx: Option[String] = None,
+                       mode: IndexMode = IndexMode.Any): Seq[AccumuloFeatureIndex] =
+    super.indices(sft, idx, mode).asInstanceOf[Seq[AccumuloFeatureIndex]]
 
   override def index(identifier: String): AccumuloFeatureIndex =
     super.index(identifier).asInstanceOf[AccumuloFeatureIndex]

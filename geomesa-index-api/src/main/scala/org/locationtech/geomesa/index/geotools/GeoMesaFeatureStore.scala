@@ -62,7 +62,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
     if (errors.isEmpty) { fids } else {
       val e = new IllegalArgumentException("Some features were not written:")
       // suppressed exceptions should contain feature ids and attributes
-      errors.foreach(e.addSuppressed)
+      errors.foreach(e.addSuppressed(_))
       throw e
     }
   }
@@ -129,7 +129,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
       val method = classOf[GeoMesaFeatureIndex[_, _, _]].getDeclaredMethods.find(_.getName == "removeAll").getOrElse {
         throw new IllegalStateException("Can't find method 'removeAll' in GeoMesaFeatureIndex")
       }
-      ds.asInstanceOf[GeoMesaDataStore[_, _, _]].manager.indices(sft, IndexMode.Write).foreach {
+      ds.asInstanceOf[GeoMesaDataStore[_, _, _]].manager.indices(sft, mode = IndexMode.Write).foreach {
         index: GeoMesaFeatureIndex[_, _, _] => method.invoke(index, sft, ds)
       }
       ds.asInstanceOf[GeoMesaDataStore[_, _, _]].stats.clearStats(sft)

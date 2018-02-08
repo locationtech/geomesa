@@ -13,7 +13,7 @@ import java.io.File
 import org.apache.hadoop.hbase.client.Connection
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestParams
+import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand.HBaseIngestParams
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 

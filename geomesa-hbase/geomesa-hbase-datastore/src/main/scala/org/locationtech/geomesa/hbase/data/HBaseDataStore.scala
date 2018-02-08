@@ -23,7 +23,6 @@ import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.{DistributedRunnableStats, GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -57,7 +56,7 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
 
   override def delete(): Unit = {
     val tables = getTypeNames.map(getSchema).flatMap { sft =>
-      manager.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, this))
+      manager.indices(sft).map(_.getTableName(sft.getTypeName, this))
     }
     val admin = connection.getAdmin
     try {

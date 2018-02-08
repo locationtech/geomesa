@@ -342,7 +342,7 @@ public class GeoMesaIndexTest {
 
         // require that the function to pre-compute the names of all tables for this feature type is accurate
         scala.collection.Iterator<HBaseFeatureIndex> indices =
-                HBaseFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), IndexMode$.MODULE$.Any()).iterator();
+                HBaseFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), scala.Option.apply(null), IndexMode$.MODULE$.Any()).iterator();
         List<String> expectedTables = new ArrayList<>();
         while (indices.hasNext()) {
             expectedTables.add(indices.next().getTableName(featureName, ds));

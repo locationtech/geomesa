@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark.hbase
+package org.locationtech.geomesa.hbase.jobs
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -19,7 +19,7 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory
+import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStoreFactory}
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -44,7 +44,7 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
     HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
-    HBaseDataStoreFactory.configureSecurity(conf)
+    HBaseConnectionPool.configureSecurity(conf)
     conf.set(TableInputFormat.INPUT_TABLE, GeoMesaConfigurator.getTable(conf))
   }
 

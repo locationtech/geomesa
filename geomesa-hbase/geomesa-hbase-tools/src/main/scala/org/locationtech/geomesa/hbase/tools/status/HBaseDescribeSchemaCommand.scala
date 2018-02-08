@@ -11,6 +11,8 @@ package org.locationtech.geomesa.hbase.tools.status
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.ToggleRemoteFilterParam
+import org.locationtech.geomesa.hbase.tools.status.HBaseDescribeSchemaCommand.HBaseDescribeSchemaParams
 import org.locationtech.geomesa.tools.status.DescribeSchemaCommand
 import org.locationtech.geomesa.tools.{CatalogParam, RequiredTypeNameParam}
 
@@ -18,5 +20,7 @@ class HBaseDescribeSchemaCommand extends DescribeSchemaCommand[HBaseDataStore] w
   override val params = new HBaseDescribeSchemaParams
 }
 
-@Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
-class HBaseDescribeSchemaParams extends CatalogParam with RequiredTypeNameParam
+object HBaseDescribeSchemaCommand {
+  @Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
+  class HBaseDescribeSchemaParams extends CatalogParam with RequiredTypeNameParam with ToggleRemoteFilterParam
+}

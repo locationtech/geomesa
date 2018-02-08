@@ -11,7 +11,7 @@ package org.locationtech.geomesa.hbase.tools
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.hbase.tools.data._
 import org.locationtech.geomesa.hbase.tools.export.HBaseExportCommand
-import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand
+import org.locationtech.geomesa.hbase.tools.ingest.{HBaseBulkIngestCommand, HBaseBulkLoadCommand, HBaseIngestCommand}
 import org.locationtech.geomesa.hbase.tools.stats._
 import org.locationtech.geomesa.hbase.tools.status._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
@@ -23,6 +23,8 @@ object HBaseRunner extends Runner {
   override val name: String = "geomesa-hbase"
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
+    new HBaseBulkIngestCommand,
+    new HBaseBulkLoadCommand,
     new HBaseCreateSchemaCommand,
     new HBaseDeleteCatalogCommand,
     new HBaseDeleteFeaturesCommand,

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.InputStream
+import java.io.{File, InputStream}
 
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
@@ -48,13 +48,21 @@ class AvroIngestConverter(ds: DataStore, typeName: String) extends LocalIngestCo
  *
  * @param typeName simple feature type name
  */
-class AvroIngestJob(typeName: String) extends AbstractIngestJob {
+class AvroIngestJob(dsParams: Map[String, String],
+                    typeName: String,
+                    paths: Seq[String],
+                    libjarsFile: String,
+                    libjarsPaths: Iterator[() => Seq[File]])
+    extends AbstractIngestJob(dsParams, typeName, paths, libjarsFile, libjarsPaths) {
 
   import AvroFileInputFormat.Counters._
 
   override val inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]] = classOf[AvroFileInputFormat]
 
-  override def configureJob(job: Job): Unit = AvroFileInputFormat.setTypeName(job, typeName)
+  override def configureJob(job: Job): Unit = {
+    super.configureJob(job)
+    AvroFileInputFormat.setTypeName(job, typeName)
+  }
 
   override def written(job: Job): Long = job.getCounters.findCounter(Group, Read).getValue
   override def failed(job: Job): Long = 0L
