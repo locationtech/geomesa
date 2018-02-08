@@ -11,6 +11,7 @@ package org.locationtech.geomesa.spark.jts
 import org.apache.spark.sql.SQLContext
 
 package object rules {
+  /** Registration delegation function. New rule sets should be added here. */
   def registerOptimizations(sqlContext: SQLContext): Unit = {
     GeometryLiteralRules.registerOptimizations(sqlContext)
   }

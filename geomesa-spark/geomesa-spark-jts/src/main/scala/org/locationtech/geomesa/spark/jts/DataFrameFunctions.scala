@@ -17,11 +17,15 @@ import java.{lang => jl}
 
 
 /**
- * DataFrame spatial relations DSL
+ * DataFrame DSL functions for working with JTS types
  */
 object DataFrameFunctions extends SpatialEncoders {
   import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders._
 
+  /**
+   * Group of DataFrame DSL functions associated with constructing and encoding
+   * JTS types in Spark SQL.
+   */
   trait SpatialConstructors {
     import org.locationtech.geomesa.spark.jts.udf.GeometricConstructorFunctions._
 
@@ -111,7 +115,11 @@ object DataFrameFunctions extends SpatialEncoders {
       udfToColumnLiterals(ST_PolygonFromText, constructorNames, wkt)
   }
 
-  trait SpatialCasters {
+  /**
+   * Group of DataFrame DSL functions associated with converting JTS types
+   * from one type to another.
+   */
+  trait SpatialConverters {
     import org.locationtech.geomesa.spark.jts.udf.GeometricCastFunctions._
 
     def st_castToPoint(geom: Column): TypedColumn[Any, Point] =
@@ -119,13 +127,11 @@ object DataFrameFunctions extends SpatialEncoders {
     def st_castToPoint(geom: Geometry): TypedColumn[Any, Point] =
       udfToColumnLiterals(ST_CastToPoint, castingNames, geom)
 
-  
     def st_castToPolygon(geom: Column): TypedColumn[Any, Polygon] =
       udfToColumn(ST_CastToPolygon, castingNames, geom)
     def st_castToPolygon(geom: Geometry): TypedColumn[Any, Polygon] =
       udfToColumnLiterals(ST_CastToPolygon, castingNames, geom)
 
-  
     def st_castToLineString(geom: Column): TypedColumn[Any, LineString] =
       udfToColumn(ST_CastToLineString, castingNames, geom)
     def st_castToLineString(geom: Geometry): TypedColumn[Any, LineString] =
@@ -137,6 +143,10 @@ object DataFrameFunctions extends SpatialEncoders {
       udfToColumnLiterals(ST_ByteArray, castingNames, str)
   }
 
+  /**
+   * Group of DataFrame DSL functions associated with fetching components
+   * of JTS values.
+   */
   trait SpatialAccessors {
     import org.locationtech.geomesa.spark.jts.udf.GeometricAccessorFunctions._
 
@@ -236,6 +246,10 @@ object DataFrameFunctions extends SpatialEncoders {
       udfToColumnLiterals(ST_Y, accessorNames, geom)
   }
 
+  /**
+   * Group of DataFrame DSL functions associated with converting JTS
+   * types into external formats.
+   */
   trait SpatialOutputs {
     import org.locationtech.geomesa.spark.jts.udf.GeometricOutputFunctions._
 
@@ -261,6 +275,10 @@ object DataFrameFunctions extends SpatialEncoders {
 
   }
 
+  /**
+   * Group of DataFrame DSL functions associated with determining the relationship
+   * between two JTS values.
+   */
   trait SpatialRelations {
     import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 
@@ -365,8 +383,9 @@ object DataFrameFunctions extends SpatialEncoders {
       udfToColumnLiterals(ST_LengthSpheroid, relationNames, line)
   }
 
+  /** Stack of all DataFrame DSL functions. */
   trait Library extends SpatialConstructors
-    with SpatialCasters
+    with SpatialConverters
     with SpatialAccessors
     with SpatialOutputs
     with SpatialRelations

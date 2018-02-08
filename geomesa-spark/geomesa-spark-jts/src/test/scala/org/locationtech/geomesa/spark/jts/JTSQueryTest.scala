@@ -63,7 +63,9 @@ class JTSQueryTest extends Specification with TestEnvironment {
 
     "udfs intergrate with dataframe api" >> {
       val countSQL = sc.sql("select * from example where st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), point)").count()
-      val countDF = newDF.where(st_contains(st_makeBBOX(lit(0.0), lit(0.0), lit(90.0), lit(90.0)), col("point"))).count()
+      val countDF = newDF
+        .where(st_contains(st_makeBBOX(lit(0.0), lit(0.0), lit(90.0), lit(90.0)), col("point")))
+        .count()
       countSQL mustEqual countDF
     }
 

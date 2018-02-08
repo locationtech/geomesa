@@ -42,11 +42,6 @@ object JTSTypes {
     classOf[MultiPolygon]        -> classOf[MultiPolygonUDT],
     classOf[GeometryCollection]  -> classOf[GeometryCollectionUDT]
   )
-
-  @deprecated("Use org.locationtech.geomesa.spark.jts.initJTS instead.", "1.4.0")
-  def init(sqlContext: SQLContext): Unit = {
-    org.locationtech.geomesa.spark.jts.initJTS(sqlContext)
-  }
 }
 
 private [spark] class PointUDT extends AbstractGeometryUDT[Point]("point")

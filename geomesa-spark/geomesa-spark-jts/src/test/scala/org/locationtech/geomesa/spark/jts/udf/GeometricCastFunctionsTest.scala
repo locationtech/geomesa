@@ -6,11 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark.jts
+package org.locationtech.geomesa.spark.jts.udf
 
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.functions.lit
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.jts._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
