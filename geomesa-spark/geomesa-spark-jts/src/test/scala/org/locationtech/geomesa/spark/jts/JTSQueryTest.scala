@@ -9,38 +9,24 @@
 package org.locationtech.geomesa.spark.jts
 
 import com.vividsolutions.jts.geom._
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.spark.jts.udf.SQLGeometricConstructorFunctions._
-import org.locationtech.geomesa.spark.jts.udf.SQLSpatialFunctions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLTest extends Specification {
+class JTSQueryTest extends Specification with TestEnvironment {
 
   "spark jts module" should {
     sequential
 
-    var spark: SparkSession = null
-    var sc: SQLContext = null
     var df: DataFrame = null
     var newDF: DataFrame = null
 
     // before
     step {
-
-      spark = SparkSession.builder()
-        .appName("testSpark")
-        .master("local[*]")
-        .getOrCreate()
-
-      sc = spark.sqlContext
-      JTSTypes.init(sc)
-
       val schema = StructType(Array(StructField("name",StringType, nullable=false),
                                     StructField("pointText", StringType, nullable=false),
                                     StructField("polygonText", StringType, nullable=false),
@@ -48,8 +34,10 @@ class SparkSQLTest extends Specification {
                                     StructField("longitude", DoubleType, nullable=false)))
 
       val dataFile = this.getClass.getClassLoader.getResource("jts-example.csv").getPath
-      df = spark.read.schema(schema).option("sep", "-").option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").csv(dataFile)
-
+      df = spark.read.schema(schema)
+        .option("sep", "-")
+        .option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
+        .csv(dataFile)
     }
 
     "have rows with user defined types" >> {

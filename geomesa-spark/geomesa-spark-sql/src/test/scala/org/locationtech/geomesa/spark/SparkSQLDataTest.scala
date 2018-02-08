@@ -167,7 +167,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
           |select st_translate(st_geomFromWKT('POINT(0 0)'), 5, 12)
         """.stripMargin)
 
-        r.collect().head.getAs[Point](0) mustEqual util.WKTUtils.read("POINT(5 12)")
+        r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 12)")
       }
     }
 

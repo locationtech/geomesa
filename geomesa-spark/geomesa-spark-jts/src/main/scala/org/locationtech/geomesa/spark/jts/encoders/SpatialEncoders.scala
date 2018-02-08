@@ -23,7 +23,3 @@ trait SpatialEncoders {
   implicit def jtsGeometryCollectionEncoder: Encoder[GeometryCollection] = ExpressionEncoder()
 }
 
-object SpatialEncoders extends SpatialEncoders  {
-
-}
-

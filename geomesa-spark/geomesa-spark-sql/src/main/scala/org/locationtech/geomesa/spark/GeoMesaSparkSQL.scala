@@ -35,7 +35,7 @@ import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleF
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.apache.spark.sql.jts.JTSTypes
-import org.locationtech.geomesa.spark.util.WKTUtils
+import org.locationtech.geomesa.spark.jts.util.WKTUtils
 
 import scala.collection.Iterator
 import scala.collection.JavaConversions._

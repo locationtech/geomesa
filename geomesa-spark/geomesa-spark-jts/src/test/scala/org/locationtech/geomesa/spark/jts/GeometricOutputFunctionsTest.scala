@@ -13,29 +13,21 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.jts.JTSTypes
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.jts.udf.SQLGeometricConstructorFunctions._
-import org.locationtech.geomesa.spark.jts.udf.SQLGeometricOutputFunctions._
+import org.locationtech.geomesa.spark.jts._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometricOutputsTest extends Specification with BlankDataFrame {
+class GeometricOutputFunctionsTest extends Specification with TestEnvironment {
 
   "sql geometry constructors" should {
     sequential
 
-    implicit var spark: SparkSession = null
-    var sc: SQLContext = null
-
     // before
     step {
-      spark = SparkSession.builder()
-        .appName("testSpark")
-        .master("local[*]")
-        .getOrCreate()
-      sc = spark.sqlContext
-      JTSTypes.init(sc)
+      // Trigger initialization of spark session
+      val _ = spark
     }
 
     "st_asBinary" >> {
@@ -159,7 +151,6 @@ class SparkSQLGeometricOutputsTest extends Specification with BlankDataFrame {
     "st_asLatLonText" >> {
       sc.sql("select st_asLatLonText(null)").collect.head(0) must beNull
       import org.apache.spark.sql.functions.col
-      import org.locationtech.geomesa.spark.jts.udf.SQLGeometricOutputFunctions.st_asLatLonText
       val gf = new GeometryFactory()
       val df = sc.createDataset(Seq(gf.createPoint(new Coordinate(-76.5, 38.5)))).toDF()
       val r = df.select(st_asLatLonText(col("value")))

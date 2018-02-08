@@ -8,16 +8,18 @@
 
 package org.apache.spark.sql
 
-import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper.nullableUDF
-import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.apache.spark.sql.types.UDTRegistration
 
-object SQLGeometricOutputFunctions {
-  val ST_GeoHash: (Geometry, Int) => String =
-    nullableUDF((geom, prec) => GeoHash(geom.getInteriorPoint, prec).hash)
+package object jts {
+  /**
+   * This must be called before any JTS types are used.
+   */
+  def registerTypes(): Unit = registration
 
-  def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register("st_geoHash", ST_GeoHash)
+  /** Trick to defer initialization until `registerUDTs` is called,
+   * and ensure its only called once per ClassLoader.
+   */
+  private[jts] lazy val registration: Unit = JTSTypes.typeMap.foreach {
+    case (l, r) => UDTRegistration.register(l.getCanonicalName, r.getCanonicalName)
   }
-
 }

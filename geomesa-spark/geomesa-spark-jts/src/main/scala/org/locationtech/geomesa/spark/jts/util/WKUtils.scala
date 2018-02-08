@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark.util
+package org.locationtech.geomesa.spark.jts.util
 
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io._

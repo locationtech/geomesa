@@ -15,7 +15,17 @@ import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 
 import scala.reflect.runtime.universe._
 
-private[geomesa] trait SparkDefaultEncoders {
+/**
+ * These encoders exist only for simplifying the construction of DataFrame/Dataset DSL
+ * functions. End users should get their default encoders via the Spark recommended
+ * pattern:
+ * {{{
+ *   val spark: SparkSession = ...
+ *   import spark.implicits._
+ * }}}
+ *
+ */
+private[jts] trait SparkDefaultEncoders {
   implicit def stringEncoder: Encoder[String] = Encoders.STRING
   implicit def jFloatEncoder: Encoder[lang.Float] = Encoders.FLOAT
   implicit def doubleEncoder: Encoder[Double] = Encoders.scalaDouble
@@ -25,5 +35,4 @@ private[geomesa] trait SparkDefaultEncoders {
   implicit def booleanEncoder: Encoder[Boolean] = Encoders.scalaBoolean
   implicit def arrayEncoder[T: TypeTag]: Encoder[Array[T]] = ExpressionEncoder()
 }
-
-private[geomesa] object SparkDefaultEncoders extends SparkDefaultEncoders
+private[jts] object SparkDefaultEncoders extends SparkDefaultEncoders

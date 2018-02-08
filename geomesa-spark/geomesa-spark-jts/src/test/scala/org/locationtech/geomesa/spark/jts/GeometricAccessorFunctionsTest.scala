@@ -10,33 +10,21 @@ package org.locationtech.geomesa.spark.jts
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.jts.JTSTypes
-import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.jts.udf.SQLGeometricConstructorFunctions._
-import org.locationtech.geomesa.spark.jts.udf.SQLSpatialAccessorFunctions._
-import org.locationtech.geomesa.spark.util.WKTUtils
+import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometryAccessorsTest extends Specification with BlankDataFrame {
+class GeometricAccessorFunctionsTest extends Specification with TestEnvironment  {
 
   "sql geometry accessors" should {
     sequential
 
-    implicit var spark: SparkSession = null
-    var sc: SQLContext = null
-
     // before
     step {
-
-      spark = SparkSession.builder()
-        .appName("testSpark")
-        .master("local[*]")
-        .getOrCreate()
-      sc = spark.sqlContext
-      JTSTypes.init(sc)
+      // Trigger initialization of spark session
+      val _ = spark
     }
 
     "st_boundary" >> {

@@ -12,13 +12,10 @@ import java.{lang => jl}
 
 import com.vividsolutions.jts.geom.Point
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders._
-import org.locationtech.geomesa.spark.jts.udf.SQLGeometricConstructorFunctions._
-import org.locationtech.geomesa.spark.jts.udf.SQLSpatialFunctions._
-import org.locationtech.geomesa.spark.util.{SQLFunctionHelper, WKTUtils}
+import org.locationtech.geomesa.spark.jts.util.{SQLFunctionHelper, WKTUtils}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -28,9 +25,6 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
   sequential
 
   "SQL spatial relationships" should {
-
-    implicit var spark: SparkSession = null
-    var sc: SQLContext = null
 
     var dfPoints: DataFrame = null
     var dfLines: DataFrame = null
@@ -60,17 +54,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
 
     // before
     step {
-      val session  = SparkSession.builder()
-        .appName("testSpark")
-        .master("local[*]")
-        .getOrCreate()
-
-      spark = session
-      sc = spark.sqlContext
-
-      JTSTypes.init(sc)
-
-      import session.implicits._
+      import spark.implicits._
 
       dfPoints = points.mapValues(WKTUtils.read).toSeq.toDF("name", "geom")
       dfPoints.createOrReplaceTempView("points")
@@ -91,7 +75,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
 
     def testDirect(relation: DFRelation, name: String, g1: String, g2: String, expected: Boolean) = {
       dfBlank.select(relation(st_geomFromWKT(g1), st_geomFromWKT(g2)).as[Boolean]).first mustEqual expected
-      // NB: Hack to pull SQL-land name from columnar function.
+      // NB: Hack to pull SQL-land name from columnar function expression.
       val relationName = SQLFunctionHelper.columnName(relation(lit(null), lit(null))).split('(').head
       val sql = s"select $relationName(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
       sc.sql(sql).as[Boolean].first mustEqual expected

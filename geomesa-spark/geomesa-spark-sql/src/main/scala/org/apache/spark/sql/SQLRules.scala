@@ -13,21 +13,24 @@ import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.apache.spark.sql.jts.JTSTypes._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
-import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, LeafExpression,  PredicateHelper, ScalaUDF}
+import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, LeafExpression, PredicateHelper, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.types.{DataType, StructType}
+import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils}
 import org.opengis.filter.expression.{Expression => GTExpression}
-import org.opengis.filter.{Filter => GTFilter}
+import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
+import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 
 object SQLRules extends LazyLogging {
-  import org.locationtech.geomesa.spark.jts.udf.SQLSpatialFunctions._
+  @transient
+  private val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
 
   def scalaUDFtoGTFilter(udf: Expression): Option[GTFilter] = {
     val ScalaUDF(func, _, expressions, _, _) = udf
@@ -136,7 +139,7 @@ object SQLRules extends LazyLogging {
                   condition) =>
           val isSpatialUDF = condition.get match {
             case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, children, _, _) =>
-              children(0).isInstanceOf[AttributeReference] && children(1).isInstanceOf[AttributeReference]
+              children.head.isInstanceOf[AttributeReference] && children(1).isInstanceOf[AttributeReference]
             case _ => false
           }
           if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
@@ -157,7 +160,7 @@ object SQLRules extends LazyLogging {
                   condition) =>
           val isSpatialUDF = condition.get match {
             case ScalaUDF(function: ((Geometry, Geometry) => java.lang.Boolean), _, children, _, _) =>
-              children(0).isInstanceOf[AttributeReference] && children(1).isInstanceOf[AttributeReference]
+              children.head.isInstanceOf[AttributeReference] && children(1).isInstanceOf[AttributeReference]
             case _ => false
           }
           if (isSpatialUDF && leftRel.spatiallyPartition && rightRel.spatiallyPartition) {
