@@ -6,23 +6,21 @@ GeoMesa Processes
 The following analytic processes are available and optimized on GeoMesa
 data stores, found in the ``geomesa-process`` module:
 
--  ``ArrowConversionProcess`` - encodes simple features in the `Apache Arrow <https://arrow.apache.org/>`_ format
--  ``BinConversionProcess`` - encodes simple features in a minimized 16-byte format
+-  :ref:`arrow_conversion_process` - encodes simple features in the `Apache Arrow <https://arrow.apache.org/>`_ format
+-  :ref:`bin_conversion_process` - encodes simple features in a minimized 16-byte format
 -  :ref:`density_process` - computes a density heatmap for a CQL query
--  ``DateOffsetProcess`` - modifies the specified date field in a feature collection by an input time period.
--  ``HashAttributeProcess``/``HashAttributeColorProcess`` - computes an
-   additional 'hash' attribute which is useful for styling.
--  ``JoinProcess`` - merges features from two different schemas using a common attribute field
--  ``KNearestNeighborSearchProcess`` - performs a KNN search
--  ``Point2PointProcess`` - aggregates a collection of points into a collection of line segments
--  ``ProximitySearchProcess`` - searches near a set input features
+-  :ref:`date_offset_process` - modifies the specified date field in a feature collection by an input time period.
+-  :ref:`hash_process`/:ref:`hash_color_process` - computes an additional 'hash' attribute which is useful for styling.
+-  :ref:`join_process` - merges features from two different schemas using a common attribute field
+-  :ref:`knn_process` - performs a KNN search
+-  :ref:`point2point_process` - aggregates a collection of points into a collection of line segments
+-  :ref:`proximity_process` - searches near a set input features
 -  :ref:`query_process` - performs a Geomesa query, useful as input for nested requests
--  ``RouteSearchProcess`` - matches features traveling along a given route
--  ``SamplingProcess`` - uses statistical sampling to reduces the features
-   returned by a query
+-  :ref:`routesearch_process` - matches features traveling along a given route
+-  :ref:`sampling_process` - uses statistical sampling to reduces the features returned by a query
 -  :ref:`statsiterator_process` - returns various stats for a CQL query
--  ``TrackLabelProcess`` - selects the last feature in a track based on a common attribute, useful for styling
--  ``TubeSelectProcess`` - performs a correlated search across time and space
+-  :ref:`tracklabel_process` - selects the last feature in a track based on a common attribute, useful for styling
+-  :ref:`tubeselect_process` - performs a correlated search across time and space
 -  :ref:`unique_process` - identifies unique values for an attribute
 
 Where possible, the calculations are pushed out to a distributed system for faster performance. Currently
@@ -61,6 +59,46 @@ results.
 Processors
 ----------
 
+.. _arrow_conversion_process:
+
+ArrowConversionProcess
+^^^^^^^^^^^^^^^^^^^^^^
+
+The ``ArrowConversionProcess`` converts an input feature collection to arrow format.
+
+=====================  ===========
+Parameters             Description
+=====================  ===========
+features               Input feature collection to encode.
+includeFids            Include feature IDs in arrow file.
+dictionaryFields       Attributes to dictionary encode.
+useCachedDictionaries  Use cached top-k stats (if available), or run a dynamic stats query to build dictionaries.
+sortField              Attribute to sort by.
+sortReverse            Reverse the default sort order.
+batchSize              Number of features to include in each record batch.
+doublePass             Build dictionaries first, then query results in a separate scan.
+=====================  ===========
+
+.. _bin_conversion_process:
+
+BinConversionProcess
+^^^^^^^^^^^^^^^^^^^^^^
+
+The ``BinConversionProcess`` converts an input feature collection to BIN format.
+
+==========  ===========
+Parameters  Description
+==========  ===========
+features    Input feature collection to query.
+track       Track field to use for BIN records.
+geom        Geometry field to use for BIN records.
+dtg         Use cached top-k stats (if available), or run a dynamic stats query to build dictionaries.
+label       Attribute to sort by.
+axisOrder   Reverse the default sort order.
+==========  ===========
+
+
+
 .. _density_process:
 
 DensityProcess
@@ -78,6 +116,285 @@ outputBBOX    Bounding box and CRS of the output raster.
 outputWidth   Width of the output raster in pixels.
 outputHeight  Height of the output raster in pixels.
 ============  ===========
+
+.. _date_offset_process:
+
+DateOffsetProcess
+^^^^^^^^^^^^^^
+
+The ``DateOffsetProcess`` modifies the specified date field in a feature collection by an input time period.
+
+============  ===========
+Parameters    Description
+============  ===========
+data          Input features.
+dateField     The date attribute to modify.
+timeOffset    Time offset (e.g. P1D).
+============  ===========
+
+
+
+.. _hash_process:
+
+HashAttributeProcess
+^^^^^^^^^^^^^^^^^^^^
+
+The ``HashAttributeProcess`` adds an attribute to each SimpleFeature that hashes the configured attribute modulo the configured param.
+
+============  ===========
+Parameters    Description
+============  ===========
+data          Input Simple Feature Collection to run the hash process over.
+attribute     The attribute to hash on.
+modulo        The divisor.
+============  ===========
+
+.. _hashExampleXML:
+
+Hash example (XML)
+"""""""""""""""""""
+
+:download:`HashAttributeProcess_wps.xml </user/_static/process/HashProcess_wps.xml>` is a geoserver WPS call to the GeoMesa HashAttributeProcess. It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@HashAttributeProcess_wps.xml localhost:8080/geoserver/wps
+
+.. _queryExampleResults:
+
+The query should generate results that look like :download:`this </user/_static/process/HashProcess_results.json>`:
+
+.. code-block:: json
+
+    {
+        "id" : "d0971735-f8fe-47ed-a7cd-2e12280e8ac1",
+        "geometry" : {
+            "coordinates" : [
+                151.1554,
+                18.2014
+            ],
+            "type" : "Point"
+        },
+        "type" : "Feature",
+        "properties" : {
+            "Vitesse" : 614,
+            "Heading" : 244,
+            "Date" : "2016-05-02T18:00:44.030+0000",
+            "hash" : 237,
+            "CabId" : 150002,
+         }
+     }
+
+
+.. _hash_color_process:
+
+HashAttributeColorProcess
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``HashAttributeColorProcess`` adds an attribute to each SimpleFeature that hashes the configured attribute modulo the configured param and emit a color.
+
+============  ===========
+Parameters    Description
+============  ===========
+data          Input Simple Feature Collection to run the hash process over.
+attribute     The attribute to hash on.
+modulo        The divisor.
+============  ===========
+
+.. _join_process:
+
+JoinProcess
+^^^^^^^^^^^
+
+The ``JoinProcess`` queries a feature type based on attributes from a second feature type.
+
+=============  ===========
+Parameters     Description
+=============  ===========
+primary        Primary feature collection being queried.
+secondary      Secondary feature collection to be joined.
+joinAttribute  Attribute field to join on.
+joinFilter     Additional filter to apply to joined features.
+attributes     Attributes to return. Attribute names should be qualified with the schema name, e.g. foo.bar.
+=============  ===========
+
+
+
+.. _knn_process:
+
+KNearestNeighborProcess
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``KNearestNeighborProcess`` performs a K Nearest Neighbor search on a Geomesa feature collection using another feature collection as input. Return k neighbors for each point in the input data set. If a point is the nearest neighbor of multiple points of the input data set, it is returned only once.
+
+=================  ===========
+Parameters         Description
+=================  ===========
+inputFeatures      Input feature collection that defines the KNN search.
+dataFeatures       The data set to query for matching features.
+numDesired         K : number of nearest neighbors to return.
+estimatedDistance  Estimate of Search Distance in meters for K neighbors---used to set the granularity of the search.
+maxSearchDistance  Maximum search distance in meters---used to prevent runaway queries of the entire table.
+=================  ===========
+
+.. _knnExampleXML:
+
+K-Nearest-Neighbor example (XML)
+""""""""""""""""""""""""""""""""
+
+:download:`KNNProcess_wps.xml </user/_static/process/KNNProcess_wps.xml>` is a geoserver WPS call to the GeoMesa KNearestNeighborProcess. It is here chained with a Query process (see :ref:`chaining_processes`) in order to avoid points related to the same Id to be matched by the request. It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@KNNProcess_wps.xml localhost:8080/geoserver/wps
+
+.. _point2point_process:
+
+Point2PointProcess
+^^^^^^^^^^^^^^^^^^
+
+The ``Point2PointProcess`` aggregates a collection of points into a collection of line segments.
+
+=====================  ===========
+Parameters             Description
+=====================  ===========
+data                   Input feature collection.
+groupingField          Field on which to group.
+sortField              Field on which to sort (must be Date type).
+minimumNumberOfPoints  Minimum number of points.
+breakOnDay             Break connections on day marks.
+filterSingularPoints   Filter out segments that fall on the same point.
+=====================  ===========
+
+.. _point2pointExampleXML:
+
+Point2Point example (XML)
+"""""""""""""""""""""""""
+
+:download:`Point2PointProcess_wps.xml </user/_static/process/Point2PointProcess_wps.xml>` is a geoserver WPS call to the GeoMesa Point2PointProcess. It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@Point2PointProcess_wps.xml localhost:8080/geoserver/wps
+
+.. _point2pointExampleResults:
+
+The query should generate results that look like :download:`this </user/_static/process/Point2PointProcess_results.json>`:
+
+.. code-block:: json
+
+    {
+        "id" : "367152240-4",
+        "geometry" : {
+            "coordinates" : [
+                [
+                    -13.4041,
+                    37.8067
+                ],
+                [
+                    -13.4041,
+                    37.8068
+                ]
+            ],
+            "type" : "LineString"
+        },
+        "type" : "Feature",
+        "properties" : {
+            "Date_end" : "2018-02-05T14:54:36.598+0000",
+            "CabId" : 367152240,
+            "Date_start" : "2018-02-05T14:53:58.078+0000"
+        }
+    }
+
+
+
+.. _proximity_process:
+
+ProximitySearchProcess
+^^^^^^^^^^^^^^^^^^^^^^
+
+The ``ProximitySearchProcess`` performs a proximity search on a Geomesa feature collection using another feature collection as input.
+
+=====================  ===========
+Parameters             Description
+=====================  ===========
+inputFeatures          Input feature collection that defines the proximity search.
+dataFeatures           The data set to query for matching features.
+bufferDistance         Buffer size in meters.
+=====================  ===========
+
+.. _proximityExampleXML:
+
+Proximity search example (XML)
+""""""""""""""""""""""""""""""
+
+:download:`ProximitySearchProcess_wps.xml </user/_static/process/ProximitySearchProcess_wps.xml>` is a geoserver WPS call to the GeoMesa ProximitySearchProcess. It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@ProximitySearchProcess_wps.xml localhost:8080/geoserver/wps
+
+
+.. _routesearch_process:
+
+RouteSearchProcess
+^^^^^^^^^^^^^^^^^^
+
+The ``RouteSearchProcess`` finds features around a route that are heading along the route and not just crossing over it.
+
+================  ===========
+Parameters        Description
+================  ===========
+features          Input feature collection to query.
+routes            Routes to search along. Features must have a geometry of LineString.
+bufferSize        Buffer size (in meters) to search around the route.
+headingThreshold  Threshold for comparing headings, in degrees.
+routeGeomField    Attribute that will be examined for routes to match. Must be a LineString.
+geomField         Attribute that will be examined for route matching.
+bidirectional     Consider the direction of the route or just the path of the route.
+headingField      Attribute that will be examined for heading in the input features. If not provided, input features geometries must be LineStrings.
+================  ===========
+
+.. _routeSearchExampleXML:
+
+Route search example (XML)
+""""""""""""""""""""""""""
+
+:download:`RouteSearchProcess_wps.xml </user/_static/process/RouteSearchProcess_wps.xml>` is a geoserver WPS call to the GeoMesa RouteSearchProcess. It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@RouteSearchProcess_wps.xml localhost:8080/geoserver/wps
+
+
+
+.. _sampling_process:
+
+SamplingProcess
+^^^^^^^^^^^^^^^
+
+The ``SamplingProcess`` uses statistical sampling to reduces the features returned by a query.
+
+=============  ===========
+Parameters     Description
+=============  ===========
+data           Input features.
+samplePercent  Percent of features to return, between 0 and 1.
+threadBy       Attribute field to link associated features for sampling.
+=============  ===========
+
+.. _samplingExampleXML:
+
+Sampling example (XML)
+""""""""""""""""""""""
+
+:download:`SamplingProcess_wps.xml </user/_static/process/SamplingProcess_wps.xml>` is a geoserver WPS call to the GeoMesa SamplingProcess. It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@SamplingProcess_wps.xml localhost:8080/geoserver/wps
+
+
 
 .. _statsiterator_process:
 
@@ -151,7 +468,7 @@ to collect. The available stat function are listed below:
 |                                                                   | * lower: Int         | the number of bins and lower and upper as the bounds    |
 |                                                                   | * upper: Int         | of the binned array.                                    |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
-| Freqency                                                                                                                                           |
+| Frequency                                                                                                                                          |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
 | ``Frequency(attribute,dtg,period,precision)``                     | * attribute*: String | Estimates frequency counts at scale.                    |
 |                                                                   | * dtg*: String       |                                                         |
@@ -178,6 +495,69 @@ to collect. The available stat function are listed below:
 |                                                                   |                      | Accumulo sets up an iterator stack as a result of a     |
 |                                                                   |                      | query.                                                  |
 +-------------------------------------------------------------------+----------------------+---------------------------------------------------------+
+
+.. _tracklabel_process:
+
+TrackLabelProcess
+^^^^^^^^^^^^^^^^^
+
+The ``TrackLabelProcess`` returns a single feature that is the head of a track of related simple features.
+
+==========  ===========
+Parameters  Description
+==========  ===========
+data        Input features.
+track       Track attribute to use for grouping features.
+dtg         Date attribute to use for ordering tracks.
+==========  ===========
+
+.. _trackLabelExampleXML:
+
+TrackLabel example (XML)
+""""""""""""""""""""""
+
+:download:`TrackLabelProcess_wps.xml </user/_static/process/TrackLabelProcess_wps.xml>` is a geoserver WPS call to the GeoMesa TrackLabelProcess. It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@TrackLabelProcess_wps.xml localhost:8080/geoserver/wps
+
+
+
+
+.. _tubeselect_process:
+
+TubeSelectProcess
+^^^^^^^^^^^^^^^^^
+
+The ``TubeSelectProcess`` performs a tube select on a Geomesa feature collection based on another feature collection. To get more informations on ``TubeSelectProcess`` and how to use it, you can read `this tutorial <http://www.geomesa.org/documentation/tutorials/geomesa-tubeselect.html>`__. 
+
+=================   ===========
+Parameters          Description
+=================   ===========
+tubeFeatures        Input feature collection (must have geometry and datetime).
+featureCollection   The data set to query for matching features.
+filter              The filter to apply to the featureCollection.
+maxSpeed            Max speed of the object in m/s for nofill & line gapfill methods.
+maxTime             Time as seconds for nofill & line gapfill methods.
+bufferSize          Buffer size in meters to use instead of maxSpeed/maxTime calculation.
+maxBins             Number of bins to use for breaking up query into individual queries.
+gapFill             Method of filling gap (nofill, line).
+=================   ===========
+
+.. _tubeSelectExampleXML:
+
+TubeSelect example (XML)
+""""""""""""""""""""""
+
+:download:`TubeSelectProcess_wps.xml </user/_static/process/TubeSelectProcess_wps.xml>` is a geoserver WPS call to the GeoMesa TubeSelectProcess. It can be run with the following curl call:
+
+.. code-block:: bash
+
+    curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@TubeSelectProcess_wps.xml localhost:8080/geoserver/wps
+
+
+
 
 .. _query_process:
 
