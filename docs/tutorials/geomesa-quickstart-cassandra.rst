@@ -132,7 +132,7 @@ Once run, you should see the following output:
     09 719024889=719024889|SENATE||UNITED STATES|USA|043|2|1|2|3|Washington, District of Columbia, United States|US|2017-12-31T00:00:00.000Z|POINT (-77.0364 38.8951)
     10 719024897=719024897|UNITED STATES|USA|SENATE||042|2|1|2|3|Washington, District of Columbia, United States|US|2017-12-31T00:00:00.000Z|POINT (-77.0364 38.8951)
 
-    Returned 745 total features
+    Returned 669 total features
 
     Running query BBOX(geom, -120.0,30.0,-75.0,55.0) AND dtg DURING 2017-12-31T00:00:00+00:00/2018-01-02T00:00:00+00:00
     Returning attributes [GLOBALEVENTID, dtg, geom]
@@ -147,7 +147,7 @@ Once run, you should see the following output:
     09 719024897=719024897|2017-12-31T00:00:00.000Z|POINT (-77.0364 38.8951)
     10 719024884=719024884|2017-12-31T00:00:00.000Z|POINT (-77.0364 38.8951)
 
-    Returned 745 total features
+    Returned 669 total features
 
     Running query EventCode = '051'
     01 719024909=719024909|||MELBOURNE|AUS|051|10|1|10|4|Melbourne, Victoria, Australia|AS|2018-01-01T00:00:00.000Z|POINT (144.967 -37.8167)
