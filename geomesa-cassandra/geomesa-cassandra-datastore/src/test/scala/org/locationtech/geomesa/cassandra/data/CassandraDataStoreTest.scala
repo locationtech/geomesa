@@ -136,7 +136,7 @@ class CassandraDataStoreTest extends Specification {
       }
 
       // test default loose bbox config
-      testLooseBbox(ds, loose = true)
+      testLooseBbox(ds, loose = false)
 
       forall(Seq(true, "true", java.lang.Boolean.TRUE)) { loose =>
         val ds = DataStoreFinder.getDataStore(CassandraDataStoreTest.params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
