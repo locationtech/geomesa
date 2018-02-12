@@ -27,7 +27,7 @@ package object jts extends DataFrameFunctions.Library with SpatialEncoders {
   }
 
   /** Enrichment over [[SQLContext]] to add `withJTS` "literate" method. */
-  implicit class SQLContextWithJTS(sqlContext: SQLContext) {
+  implicit class SQLContextWithJTS(val sqlContext: SQLContext) extends AnyVal {
     def withJTS: SQLContext = {
       initJTS(sqlContext)
       sqlContext
@@ -35,7 +35,7 @@ package object jts extends DataFrameFunctions.Library with SpatialEncoders {
   }
 
   /** Enrichment over [[SparkSession]] to add `withJTS` "literate" method. */
-  implicit class SparkSessionWithJTS(spark: SparkSession) {
+  implicit class SparkSessionWithJTS(val spark: SparkSession) extends AnyVal {
     def withJTS: SparkSession = {
       initJTS(spark.sqlContext)
       spark

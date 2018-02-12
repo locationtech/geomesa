@@ -63,8 +63,6 @@ object GeometricConstructorFunctions {
     ST_PolygonFromText  -> "st_polygonFromText"
   )
 
-
-
   private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_geomFromText", ST_GeomFromWKT)
     sqlContext.udf.register("st_geometryFromText", ST_GeomFromWKT)
