@@ -68,14 +68,13 @@ On the command line, run:
 The arguments above indicate:
 
 -  ``fs.path`` the FSDS storage path. Each simple feature type will produce a sub-directory here.
--  ``fs.encoding`` the file storage encoding. The quickstart comes pre-configured to use Apache's Parquet encoding.
+-  ``fs.encoding`` the file storage encoding. The quick start comes pre-configured to use Apache's Parquet encoding.
 
 Once run, you should see the following output:
 
 .. code-block:: none
 
     Loading datastore
-    Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
 
     Creating schema: GLOBALEVENTID:String,Actor1Name:String,Actor1CountryCode:String,Actor2Name:String,Actor2CountryCode:String,EventCode:String,NumMentions:Integer,NumSources:Integer,NumArticles:Integer,ActionGeo_Type:Integer,ActionGeo_FullName:String,ActionGeo_CountryCode:String,dtg:Date,geom:Point:srid=4326
 
@@ -157,9 +156,9 @@ which is datastore agnostic. Some relevant methods are:
 -  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
 -  ``writeFeatures`` use a ``FeatureWriter`` to write features to the datastore
 -  ``queryFeatures`` run several queries against the datastore
--  ``cleanup`` deletes data and disposes of the datastore instance. Note the FSDS is not able to automatically cleanup at this time.
+-  ``cleanup`` delete the datastore directory and dispose of the datastore instance.
 
-The quickstart uses a small subset of GDELT data. Code for parsing the data into GeoTools SimpleFeatures is
+The quick start uses a small subset of GDELT data. Code for parsing the data into GeoTools SimpleFeatures is
 contained in ``org.geomesa.example.quickstart.GDELTData``:
 
 -  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
@@ -189,8 +188,8 @@ Basic store info:
 Connection parameters:
 
 -  these are the same parameter values that you supplied on the
-   command-line when you ran the tutorial; they describe how to connect
-   to the FSDS instance where your data reside
+   command line when you ran the tutorial; they describe how to connect
+   to the FSDS location where your data reside
 
 Click "Save", and GeoServer will search your FSDS directory for any
 GeoMesa-managed feature types.
@@ -202,7 +201,7 @@ GeoServer should recognize the ``gdelt-quickstart`` feature type, and
 should present that as a layer that can be published. Click on the
 "Publish" link.
 
-You will be taken to the Edit Layer screen. You will need to enter values for the data bounding
+You will be taken to the "Edit Layer" screen. You will need to enter values for the data bounding
 boxes. In this case, you can click on the link to compute these values from the data.
 
 Click on the "Save" button when you are done.
@@ -240,17 +239,3 @@ Here are just a few simple ways you can play with the visualization:
    in various ways to query your data. You can find more information
    about CQL from `GeoServer's CQL
    tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.
-
-Generating Heatmaps
-~~~~~~~~~~~~~~~~~~~
-
--  To try out server-side processing, you can install the Heatmap SLD from
-   the :doc:`geomesa-examples-gdelt` tutorial.
--  After configuring the SLD, in the URL, change ``styles=`` to be
-   ``styles=heatmap&density=true``. Once you press ``<Enter>``, the display will
-   change to a density heat-map.
-
-.. note::
-
-    For this to work, you will have to first install the WPS module for GeoServer
-    as described in :doc:`/user/geoserver`.
