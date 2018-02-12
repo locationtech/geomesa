@@ -225,7 +225,7 @@ Some relevant methods are:
 -  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
 -  ``writeFeatures`` overridden in the ``KafkaQuickStart`` to simultaneously write and read features from Kafka
 -  ``queryFeatures`` not used in this tutorial
--  ``cleanup`` deletes data and disposes of the datastore instance
+-  ``cleanup`` delete the sample data and dispose of the datastore instance
 
 The quickstart uses a small subset of taxi data. Code for parsing the data into GeoTools SimpleFeatures is
 contained in ``org.geomesa.example.quickstart.TDriveData``:

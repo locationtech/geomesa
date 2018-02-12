@@ -34,7 +34,7 @@ this is with the ``cqlsh`` tool provided with Cassandra distributions. Start ``c
 
     cqlsh>  CREATE KEYSPACE geomesa WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor' : 3};
 
-This creates a key space called "gemesa". This is a top-level name
+This creates a key space called "geomesa". This is a top-level name
 space within Cassandra and it will provide a place for GeoMesa to put
 all of its data, including data for spatial features and associated
 metadata.
@@ -191,7 +191,7 @@ which is datastore agnostic. Some relevant methods are:
 -  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
 -  ``writeFeatures`` use a ``FeatureWriter`` to write features to the datastore
 -  ``queryFeatures`` run several queries against the datastore
--  ``cleanup`` deletes data and disposes of the datastore instance
+-  ``cleanup`` delete the sample data and dispose of the datastore instance
 
 The quickstart uses a small subset of GDELT data. Code for parsing the data into GeoTools SimpleFeatures is
 contained in ``org.geomesa.example.quickstart.GDELTData``:
