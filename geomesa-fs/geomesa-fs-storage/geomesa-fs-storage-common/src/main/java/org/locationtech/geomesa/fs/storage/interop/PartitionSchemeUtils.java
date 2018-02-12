@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.api;
+package org.locationtech.geomesa.fs.storage.interop;
 
 import com.typesafe.config.Config;
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme;
@@ -31,9 +31,6 @@ public class PartitionSchemeUtils {
     public static PartitionScheme apply(SimpleFeatureType sft, Map<String, Serializable> dsParams) {
         return org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(sft, dsParams);
     }
-
-    // TODO
-    //public static PartitionScheme apply(SimpleFeatureType sft, String pName, Map<String, String> opts)
 
     public static PartitionScheme apply(SimpleFeatureType sft, Config conf) {
         return org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(sft, conf);
