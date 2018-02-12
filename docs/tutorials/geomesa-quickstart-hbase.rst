@@ -20,7 +20,7 @@ Before you begin, you must have the following installed and configured:
 -  `Java <http://java.oracle.com/>`__ JDK 1.8
 -  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
--  an HBase 1.3.x instance
+-  an HBase |hbase_version| instance
 -  the GeoMesa HBase distributed runtime installed for your HBase instance (see below)
 
 If you do not have an existing HBase instance, you can easily set one up
@@ -29,7 +29,7 @@ as detailed next.
 Setting up HBase in standalone mode (optional)
 ----------------------------------------------
 
-(Skip this section if you have an existing HBase 1.3.x installation.)
+(Skip this section if you have an existing HBase |hbase_version| installation.)
 
 Download the HBase 1.3.1 binary distribution from
 http://www.apache.org/dyn/closer.cgi/hbase/
@@ -95,7 +95,7 @@ where you provide the following arguments:
    this will be ``localhost``. Note that for most use cases, it is preferable to put the
    ``hbase-site.xml`` from your cluster on the GeoMesa classpath instead of specifying Zookeepers.
 -  ``<table>`` the name of the destination table that will accept these
-   test records; this table should either not exist or should be empty
+   test records. This table should either not exist or should be empty
 
 Optionally, you can also specify that the quick start should delete its data upon completion. Use the
 ``--cleanup`` flag when you run to enable this behavior.
@@ -218,7 +218,7 @@ Basic store info:
 Connection parameters:
 
 -  these are the same parameter values that you supplied on the
-   command-line when you ran the tutorial; they describe how to connect
+   command line when you ran the tutorial; they describe how to connect
    to the HBase instance where your data reside
 
 Click "Save", and GeoServer will search your HBase table for any
@@ -231,7 +231,7 @@ GeoServer should recognize the ``gdelt-quickstart`` feature type, and
 should present that as a layer that can be published. Click on the
 "Publish" link.
 
-You will be taken to the Edit Layer screen. You will need to enter values for the data bounding
+You will be taken to the "Edit Layer" screen. You will need to enter values for the data bounding
 boxes. In this case, you can click on the link to compute these values from the data.
 
 Click on the "Save" button when you are done.

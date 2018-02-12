@@ -98,6 +98,7 @@ Running the Tutorial
 On the command line, run:
 
 .. code-block:: bash
+
     $ java -cp geomesa-quickstart-lambda/target/geomesa-quickstart-lambda-${geomesa.version}.jar \
         com.example.geomesa.lambda.LambdaQuickStart        \
         --lambda.accumulo.instance.id <instance>           \
@@ -116,7 +117,7 @@ where you provide the following arguments:
 - ``<user>`` the name of an Accumulo user that has permissions to create, read and write tables
 - ``<password>`` the password for the previously-mentioned Accumulo user
 - ``<table>`` the name of the destination table that will accept these
-  test records; this table should either not exist or should be empty
+  test records. This table should either not exist or should be empty
 - ``<brokers>`` your Kafka broker instances, comma separated. For a
   local install, this would be ``localhost:9092``
 - ``<kafka.zookeepers>`` your Kafka Zookeeper nodes, comma separated. For a local
@@ -181,7 +182,7 @@ Basic store info:
 Connection parameters:
 
 -  these are the same parameter values that you supplied on the
-   command-line when you ran the tutorial; they describe how to connect
+   command line when you ran the tutorial; they describe how to connect
    to the Kafka and Accumulo instances where your data reside
 
 Click "Save", and GeoServer will search Zookeeper for any GeoMesa-managed feature types.
@@ -233,7 +234,7 @@ Looking at the Code
 
 The source code is meant to be accessible for this tutorial. The logic is contained in
 the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-quickstart-common`` module,
-and the Kafka-specific ``org.geomesa.example.lambda.LambdaQuickStart`` in the ``geomesa-quickstart-lambda`` module.
+and the Kafka/Accumulo-specific ``org.geomesa.example.lambda.LambdaQuickStart`` in the ``geomesa-quickstart-lambda`` module.
 Some relevant methods are:
 
 -  ``createDataStore`` get a datastore instance from the input configuration

@@ -15,10 +15,6 @@ does a few small things:
 5. Queries for a given geographic rectangle, time range, and attribute
    filter, writing out the entries in the result set
 
-The only dynamic element in the tutorial is the Accumulo destination;
-that is a property that you provide on the command-line when running the
-code.
-
 Prerequisites
 -------------
 
@@ -71,7 +67,7 @@ demonstrate different types of queries possible via the GeoTools API.
 Run the Tutorial
 ----------------
 
-On the command-line, run:
+On the command line, run:
 
 .. code-block:: bash
 
@@ -92,7 +88,7 @@ where you provide the following arguments:
 -  ``<password>`` the password for the previously-mentioned Accumulo
    user
 -  ``<table>`` the name of the destination table that will accept these
-   test records; this table should either not exist or should be empty
+   test records. This table should either not exist or should be empty
 
 .. warning::
 
@@ -234,7 +230,7 @@ Basic store info:
 Connection parameters:
 
 -  these are the same parameter values that you supplied on the
-   command-line when you ran the tutorial; they describe how to connect
+   command line when you ran the tutorial; they describe how to connect
    to the Accumulo instance where your data reside
 
 Click "Save", and GeoServer will search your Accumulo table for any
@@ -247,7 +243,7 @@ GeoServer should recognize the ``gdelt-quickstart`` feature type, and
 should present that as a layer that can be published. Click on the
 "Publish" link.
 
-You will be taken to the Edit Layer screen. You will need to enter values for the data bounding
+You will be taken to the "Edit Layer" screen. You will need to enter values for the data bounding
 boxes. In this case, you can click on the link to compute these values from the data.
 
 Click on the "Save" button when you are done.

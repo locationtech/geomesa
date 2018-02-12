@@ -169,7 +169,7 @@ Basic store info:
 Connection parameters:
 
 -  these are the same parameter values that you supplied on the
-   command-line when you ran the tutorial; they describe how to connect
+   command line when you ran the tutorial; they describe how to connect
    to the Kafka instance where your data reside
 
 Click "Save", and GeoServer will search Zookeeper for any GeoMesa-managed feature types.

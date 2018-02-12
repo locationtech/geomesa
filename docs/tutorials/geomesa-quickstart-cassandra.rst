@@ -96,7 +96,7 @@ where you provide the following arguments:
   this will be ``geomesa``. More information on how to setup keyspaces is available
   `here <http://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__.
 - ``<table>`` the name of the destination table that will
-  accept these test records; this table should either not exist or
+  accept these test records. This table should either not exist or
   should be empty
 - ``<user>`` (optional) the name of a Cassandra user that has
   permissions to create, read and write tables
@@ -223,7 +223,7 @@ Basic store info:
 Connection parameters:
 
 -  these are the same parameter values that you supplied on the
-   command-line when you ran the tutorial; they describe how to connect
+   command line when you ran the tutorial; they describe how to connect
    to the Cassandra instance where your data reside
 
 Click "Save", and GeoServer will search your Cassandra table for any
@@ -236,7 +236,7 @@ GeoServer should recognize the ``gdelt-quickstart`` feature type, and
 should present that as a layer that can be published. Click on the
 "Publish" link.
 
-You will be taken to the Edit Layer screen. You will need to enter values for the data bounding
+You will be taken to the "Edit Layer" screen. You will need to enter values for the data bounding
 boxes. In this case, you can click on the link to compute these values from the data.
 
 Click on the "Save" button when you are done.
