@@ -33,10 +33,10 @@ trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
   override protected def initResult(sft: SimpleFeatureType,
                                     transform: Option[SimpleFeatureType],
                                     options: Map[String, String]): ByteBufferResult = {
-    val geom = options.get(GeomOpt).map(_.toInt)
-    val dtg = options.get(DateOpt).map(_.toInt)
+    val geom = options.get(GeomOpt).map(_.toInt).filter(_ != -1)
+    val dtg = options.get(DateOpt).map(_.toInt).filter(_ != -1)
     val track = options.get(TrackOpt).map(_.toInt).filter(_ != -1)
-    val label = options.get(LabelOpt).map(_.toInt)
+    val label = options.get(LabelOpt).map(_.toInt).filter(_ != -1)
 
     encoding = EncodingOptions(geom, dtg, track, label)
     encoder = BinaryOutputEncoder(sft, encoding)
