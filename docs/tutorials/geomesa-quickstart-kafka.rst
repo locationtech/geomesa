@@ -1,15 +1,31 @@
 GeoMesa Kafka Quick Start
 =========================
 
-This tutorial is the fastest and easiest way to get started with the
-Kafka support in GeoMesa. In the spirit of keeping things simple, the
-code in this tutorial only does a few things:
+This tutorial is the fastest and easiest way to get started with GeoMesa using Kafka for streaming data.
+It is a good stepping-stone on the path to the other tutorials, that present increasingly
+involved examples of how to use GeoMesa.
+
+About this Tutorial
+-------------------
+
+In the spirit of keeping things simple, the code in this tutorial only
+does a few small things:
 
 1. Establishes a new (static) SimpleFeatureType
 2. Prepares the Kafka topic to write this type of data
 3. Creates a few thousand example SimpleFeatures
 4. Writes these SimpleFeatures to the Kafka topic
-5. Visualize the changing data in GeoServer
+5. Visualize the changing data in GeoServer (optional)
+6. Creates event listeners for SimpleFeature updates (optional)
+
+The quick start operates by simultaneously querying and writing several thousand feature updates.
+The same feature identifier is used for each update, so there will only be a single "live" feature
+at any one time.
+
+The data used is from New York City taxi activity data published by the University
+of Illinois. More information about the dataset is available `here <https://publish.illinois.edu/dbwork/open-data/>`__.
+
+For this demo, only a single taxi is being tracked.
 
 Background
 ----------
@@ -67,19 +83,7 @@ dependencies in a single JAR. To build, run:
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-quickstart-kafka -am
-
-About this Tutorial
--------------------
-
-The quick start operates by simultaneously querying and writing several thousand feature updates.
-The same feature identifier is used for each update, so there will only be a single "live" feature
-at any one time.
-
-The data used is from New York City taxi activity data published by the University
-of Illinois. More information about the dataset is available `here <https://publish.illinois.edu/dbwork/open-data/>`__.
-
-For this demo, only a single taxi is being tracked.
+    $ mvn clean install -pl geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart -am
 
 Running the Tutorial
 --------------------
@@ -88,7 +92,7 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar \
+    $ java -cp geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart/target/geomesa-tutorials-kafka-quickstart-$VERSION.jar \
         org.geomesa.example.kafka.KafkaQuickStart \
         --kafka.brokers <brokers>                 \
         --kafka.zookeepers <zookeepers>
@@ -228,7 +232,7 @@ Some relevant methods are:
 -  ``cleanup`` delete the sample data and dispose of the datastore instance
 
 The quickstart uses a small subset of taxi data. Code for parsing the data into GeoTools SimpleFeatures is
-contained in ``org.geomesa.example.quickstart.TDriveData``:
+contained in ``org.geomesa.example.data.TDriveData``:
 
 -  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
 -  ``getTestData`` parses an embedded CSV file to create ``SimpleFeature`` objects
@@ -250,7 +254,7 @@ run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar \
+    $ java -cp geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart/target/geomesa-tutorials-kafka-quickstart-$VERSION.jar \
         org.geomesa.example.kafka.KafkaListener \
         --kafka.brokers <brokers>               \
         --kafka.zookeepers <zookeepers>

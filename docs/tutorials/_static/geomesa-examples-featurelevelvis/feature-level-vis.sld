@@ -14,7 +14,7 @@
           <Name>Red for Admin</Name>
           <ogc:Filter>
             <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>Visibility</ogc:PropertyName>
+              <ogc:PropertyName>visibility</ogc:PropertyName>
               <ogc:Literal>admin</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
@@ -34,7 +34,7 @@
           <Name>Black for Admin or User</Name>
           <ogc:Filter>
             <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>Visibility</ogc:PropertyName>
+              <ogc:PropertyName>visibility</ogc:PropertyName>
               <ogc:Literal>admin|user</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
@@ -54,7 +54,7 @@
         <Rule>
           <TextSymbolizer>
             <Label>
-              <ogc:PropertyName>Visibility</ogc:PropertyName>
+              <ogc:PropertyName>visibility</ogc:PropertyName>
             </Label>
             <Font>
               <CssParameter name="font-family">Arial</CssParameter>
@@ -83,4 +83,3 @@
     </UserStyle>
   </NamedLayer>
 </StyledLayerDescriptor>
-

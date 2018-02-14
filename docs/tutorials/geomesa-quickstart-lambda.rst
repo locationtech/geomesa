@@ -4,7 +4,11 @@ GeoMesa Lambda Quick Start
 This tutorial can get you started with the GeoMesa Lambda data store. Note that the Lambda data store
 is for advanced use-cases - see :ref:`lambda_overview` for details on when to use a Lambda store.
 
-In the spirit of keeping things simple, the code in this tutorial only does a few things:
+About this Tutorial
+-------------------
+
+In the spirit of keeping things simple, the code in this tutorial only
+does a few small things:
 
 1. Establishes a new (static) SimpleFeatureType
 2. Prepares the Accumulo table and Kafka topic to write this type of data
@@ -12,6 +16,7 @@ In the spirit of keeping things simple, the code in this tutorial only does a fe
 4. Repeatedly updates these SimpleFeatures in the Lambda store through Kafka
 5. Visualize the changing data in GeoServer
 6. Persists the final SimpleFeatures to Accumulo
+7. Uses GeoServer to visualize the data (optional)
 
 Background
 ----------
@@ -20,10 +25,10 @@ Background
 messaging rethought as a distributed commit log."
 
 In the context of GeoMesa, Kafka is a useful tool for working with
-streams of geospatial data. Interaction with Kafka in GeoMesa occurs
-through the KafkaDataStore which implements the GeoTools
-`DataStore <http://docs.geotools.org/latest/userguide/library/data/datastore.html>`__
-interface.
+streams of geospatial data. The Lambda data store leverages a transient in-memory
+cache of recent updates, powered by Kafka, combined with long-term persistence to
+Accumulo. This allows for rapid data updates, alleviating the burden on Accumulo
+from constant deletes and writes.
 
 Prerequisites
 -------------
@@ -78,7 +83,7 @@ dependencies in a single JAR. To build, run:
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-quickstart-lambda -am
+    $ mvn clean install -pl geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-lambda-quickstart -am
 
 About this Tutorial
 -------------------
@@ -99,7 +104,7 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-lambda/target/geomesa-quickstart-lambda-${geomesa.version}.jar \
+    $ java -cp geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-lambda-quickstart/target/geomesa-tutorials-accumulo-lambda-quickstart-${geomesa.version}.jar \
         com.example.geomesa.lambda.LambdaQuickStart        \
         --lambda.accumulo.instance.id <instance>           \
         --lambda.accumulo.zookeepers <accumulo.zookeepers> \
@@ -233,9 +238,9 @@ Looking at the Code
 -------------------
 
 The source code is meant to be accessible for this tutorial. The logic is contained in
-the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-quickstart-common`` module,
-and the Kafka/Accumulo-specific ``org.geomesa.example.lambda.LambdaQuickStart`` in the ``geomesa-quickstart-lambda`` module.
-Some relevant methods are:
+the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-tutorials-common`` module,
+and the Kafka/Accumulo-specific ``org.geomesa.example.lambda.LambdaQuickStart`` in the
+``geomesa-tutorials-accumulo-lambda-quickstart`` module. Some relevant methods are:
 
 -  ``createDataStore`` get a datastore instance from the input configuration
 -  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
@@ -247,7 +252,7 @@ Looking at the source code, you can see that normal GeoTools ``FeatureWriters`` 
 is managed transparently for you.
 
 The quickstart uses a small subset of taxi data. Code for parsing the data into GeoTools SimpleFeatures is
-contained in ``org.geomesa.example.quickstart.TDriveData``:
+contained in ``org.geomesa.example.data.TDriveData``:
 
 -  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
 -  ``getTestData`` parses an embedded CSV file to create ``SimpleFeature`` objects

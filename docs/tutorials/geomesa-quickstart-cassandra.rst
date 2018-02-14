@@ -1,16 +1,23 @@
 GeoMesa Cassandra Quick Start
 =============================
 
-This tutorial is the fastest and easiest way to get started with the
-Cassandra support in GeoMesa. In the spirit of keeping things simple, the
-code in this tutorial only does a few things:
+This tutorial is the fastest and easiest way to get started with GeoMesa using Cassandra.
+It is a good stepping-stone on the path to the other tutorials, that present increasingly
+involved examples of how to use GeoMesa.
+
+About this Tutorial
+-------------------
+
+In the spirit of keeping things simple, the code in this tutorial only
+does a few small things:
 
 1. Establishes a new (static) SimpleFeatureType
-2. Prepares the Cassandra table to store this type of data
+2. Prepares the Cassandra tables to store this type of data
 3. Creates a few thousand example SimpleFeatures
-4. Writes these SimpleFeatures to the Cassandra table
+4. Writes these SimpleFeatures to Cassandra
 5. Queries for a given geographic rectangle, time range, and attribute
    filter, writing out the entries in the result set
+6. Uses GeoServer to visualize the data (optional)
 
 Prerequisites
 -------------
@@ -62,14 +69,7 @@ dependencies in a single JAR. To build, run:
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-quickstart-cassandra -am
-
-About this Tutorial
--------------------
-
-The quick start operates by inserting and then querying several thousand features.
-After the insertions are complete, a sequence of queries are run to
-demonstrate different types of queries possible via the GeoTools API.
+    $ mvn clean install -pl geomesa-tutorials-cassandra/geomesa-tutorials-cassandra-quickstart -am
 
 Running the Tutorial
 --------------------
@@ -78,7 +78,7 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-cassandra/target/geomesa-quickstart-cassandra-$VERSION.jar \
+    $ java -cp geomesa-tutorials-cassandra/geomesa-tutorials-cassandra-quickstart/target/geomesa-tutorials-cassandra-quickstart-$VERSION.jar \
         org.geomesa.example.cassandra.CassandraQuickStart \
         --cassandra.contact.point <host:port>             \
         --cassandra.keyspace <keyspace>                   \
@@ -184,7 +184,7 @@ Looking at the Code
 -------------------
 
 The source code is meant to be accessible for this tutorial. The main logic is contained in
-the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-quickstart-common`` module,
+the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-tutorials-common`` module,
 which is datastore agnostic. Some relevant methods are:
 
 -  ``createDataStore`` get a datastore instance from the input configuration
@@ -194,7 +194,7 @@ which is datastore agnostic. Some relevant methods are:
 -  ``cleanup`` delete the sample data and dispose of the datastore instance
 
 The quickstart uses a small subset of GDELT data. Code for parsing the data into GeoTools SimpleFeatures is
-contained in ``org.geomesa.example.quickstart.GDELTData``:
+contained in ``org.geomesa.example.data.GDELTData``:
 
 -  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
 -  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects
