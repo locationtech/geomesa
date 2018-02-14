@@ -65,12 +65,12 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
     }
   }
 
-  protected def scanConfig(sft: SimpleFeatureType,
-                           ds: HBaseDataStore,
-                           filter: HBaseFilterStrategyType,
-                           ranges: Seq[Query],
-                           ecql: Option[Filter],
-                           hints: Hints): ScanConfig = {
+  override protected def scanConfig(sft: SimpleFeatureType,
+                                    ds: HBaseDataStore,
+                                    filter: HBaseFilterStrategyType,
+                                    ranges: Seq[Query],
+                                    ecql: Option[Filter],
+                                    hints: Hints): ScanConfig = {
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
