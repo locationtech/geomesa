@@ -55,7 +55,7 @@ function findJars() {
 # Download a list of urls to a destination - takes three args:
 #  - destination directory
 #  - list of urls passed as an array reference
-#  - --noPrompt [optional] bypass confirmation. Useful when
+#  - --no-prompt [optional] bypass confirmation. Useful when
 #    you'd like to provide your own confirmation
 #    messages/handling
 #
@@ -63,7 +63,7 @@ function findJars() {
 #   urls=("1" "2" "3")
 #   downloadURLS /tmp/foobar urls[@]
 # or
-#   downloadURLS /tmp/foobar urls[@] --noPrompt
+#   downloadURLS /tmp/foobar urls[@] --no-prompt
 #############################################################
 function downloadUrls() {
   local dest=$1
@@ -76,7 +76,7 @@ function downloadUrls() {
   for url in "${urls[@]}"; do
     echo "  $url"
   done
-  if [[ "${noPrompt}" != "--noPrompt" ]]; then
+  if [[ "${noPrompt}" != "--no-prompt" ]]; then
     read -r -p "Continue? (y/n) " confirm
     confirm=${confirm,,} # lower-casing
   else
@@ -317,7 +317,7 @@ function geomesaScalaConsole() {
         read -p "The wrong Scala version is installed, do you want to download the correct one? (This will not affect your current install) Y\n" -n 1 -r
         if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
           echo >&2 ""
-          downloadUrls ${outputDir} sourceURL[@] --noPrompt
+          downloadUrls ${outputDir} sourceURL[@] --no-prompt
           tar xf $outputFile -C "${%%gmtools.dist.name%%_HOME}/dist/"
           scalaCMD="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
         else
@@ -329,7 +329,7 @@ function geomesaScalaConsole() {
       read -p "Scala not installed, do you want to download it? (This will not install it) Y\n" -n 1 -r
       if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
         echo >&2 ""
-        downloadUrls ${outputDir} sourceURL[@] --noPrompt
+        downloadUrls ${outputDir} sourceURL[@] --no-prompt
         tar xf $outputFile -C "${%%gmtools.dist.name%%_HOME}/dist/"
         scalaCMD="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
       else
