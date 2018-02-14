@@ -16,7 +16,7 @@ import org.apache.spark.sql.jts.JTSTypes.GeometryTypeInstance
 import org.apache.spark.sql.types.DataType
 
 /**
- * Catalyst AST expression used during rule rewriting to capture extract geometry literal values
+ * Catalyst AST expression used during rule rewriting to extract geometry literal values
  * from Catalyst memory and keep a copy in JVM heap space for subsequent use in rule evaluation.
  */
 case class GeometryLiteral(repr: InternalRow, geom: Geometry) extends LeafExpression  with CodegenFallback {

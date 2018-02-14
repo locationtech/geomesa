@@ -12,6 +12,10 @@ import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.Encoder
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 
+/** Encoders are Spark SQL's mechanism for converting a JVM type into a Catalyst representation.
+ * They are fetched from implicit scope whenever types move beween RDDs and Datasets. Because each
+ * of the types supported below has a corresponding UDT, we are able to use a standard Spark Encoder
+ * to construct these implicits. */
 trait SpatialEncoders {
   implicit def jtsGeometryEncoder: Encoder[Geometry] = ExpressionEncoder()
   implicit def jtsPointEncoder: Encoder[Point] = ExpressionEncoder()

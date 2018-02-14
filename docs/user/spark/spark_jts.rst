@@ -66,10 +66,10 @@ It is also possible to construct a DataFrame from a list of geospatial objects:
 Configuration
 ^^^^^^^^^^^^^
 
-To enable this behavior, import `org.locationtech.geomesa.spark.jts._`, create a
-``SparkSession` and call `.withJTS` on it. This will register the UDFs and UDTs as
+To enable this behavior, import ``org.locationtech.geomesa.spark.jts._``, create a
+``SparkSession` and call ``.withJTS`` on it. This will register the UDFs and UDTs as
 well as some catalyst optimizations for these operations. Alternatively you can call
-`initJTS(SQLContext)`.
+``initJTS(SQLContext)``.
 
 .. code-block:: scala
 
