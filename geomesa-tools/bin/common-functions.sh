@@ -339,7 +339,7 @@ function geomesaScalaConsole() {
     fi
   fi
 
-  exec $scalaCMD -classpath ${classpath}
+  exec $scalaCMD -classpath ${classpath} -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
 }
 
 # Reconfigure %%gmtools.dist.name%%_HOME

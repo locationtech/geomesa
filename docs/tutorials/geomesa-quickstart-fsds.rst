@@ -1,3 +1,5 @@
+.. _fsds_quickstart:
+
 GeoMesa FSDS Quick Start
 ========================
 

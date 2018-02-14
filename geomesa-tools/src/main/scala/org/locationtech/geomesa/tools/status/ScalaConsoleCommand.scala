@@ -12,8 +12,8 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.tools.Command
 
 /**
- * Note: this class is a placeholder for the 'console' function implemented in the 'geomesa-*' script, to get it
- * to show up in the JCommander help
+ * Note: this class is a placeholder for the 'scala-console' function implemented in the 'common-functions'
+ * script, to get it to show up in the JCommander help
  */
 class ScalaConsoleCommand extends Command {
 
