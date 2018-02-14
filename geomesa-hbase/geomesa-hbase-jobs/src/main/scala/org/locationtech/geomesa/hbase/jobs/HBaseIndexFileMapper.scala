@@ -18,9 +18,6 @@ import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.SimpleFeatureSerializer
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
@@ -36,7 +33,7 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
   private var ds: HBaseDataStore = _
   private var sft: SimpleFeatureType = _
   private var writer: HBaseFeature => Seq[Mutation] = _
-  private var serializer: SimpleFeatureSerializer = _
+  private var wrapper: (SimpleFeature) => HBaseFeature = _
 
   private var features: Counter = _
   private var entries: Counter = _
@@ -56,7 +53,7 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
       case _ => throw new IllegalArgumentException("Could not find write index - check your configuration")
     }
     writer = index.writer(sft, ds)
-    serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    wrapper = HBaseFeature.wrapper(sft)
 
     features = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
     entries = context.getCounter(GeoMesaOutputFormat.Counters.Group, "entries")
@@ -67,7 +64,7 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
 
   override def map(key: Writable, value: SimpleFeature, context: HBaseIndexFileMapper.MapContext): Unit = {
     try {
-      val feature = new HBaseFeature(value, serializer)
+      val feature = wrapper(value)
       writer.apply(feature).asInstanceOf[Seq[Put]].foreach { put =>
         bytes.set(put.getRow)
         context.write(bytes, put)

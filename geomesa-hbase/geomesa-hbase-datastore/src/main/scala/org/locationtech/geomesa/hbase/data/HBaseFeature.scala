@@ -9,25 +9,40 @@
 package org.locationtech.geomesa.hbase.data
 
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.hbase.data.HBaseFeature.RowValue
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
-import org.locationtech.geomesa.index.api.WrappedFeature
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class HBaseFeature(val feature: SimpleFeature,
                    serializer: SimpleFeatureSerializer,
-                   defaultVisibility: Option[String] = None) extends WrappedFeature {
+                   idSerializer: (String) => Array[Byte]) extends WrappedFeature {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
   import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
   lazy val fullValue = new RowValue(DataColumnFamily, DataColumnQualifier, visibility, serializer.serialize(feature))
 
+  override lazy val idBytes: Array[Byte] = idSerializer.apply(feature.getID)
+
   private lazy val visibility =
-    feature.userData[String](FEATURE_VISIBILITY).orElse(defaultVisibility).map(new CellVisibility(_))
+    feature.userData[String](FEATURE_VISIBILITY).map(new CellVisibility(_))
 }
 
-class RowValue(val cf: Array[Byte], val cq: Array[Byte], val vis: Option[CellVisibility], toValue: => Array[Byte]) {
-  lazy val value: Array[Byte] = toValue
+object HBaseFeature {
+
+  def wrapper(sft: SimpleFeatureType): (SimpleFeature) => HBaseFeature = {
+    val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    val idSerializer = GeoMesaFeatureIndex.idToBytes(sft)
+    (feature) => new HBaseFeature(feature, serializer, idSerializer)
+  }
+
+  class RowValue(val cf: Array[Byte], val cq: Array[Byte], val vis: Option[CellVisibility], toValue: => Array[Byte]) {
+    lazy val value: Array[Byte] = toValue
+  }
 }
+

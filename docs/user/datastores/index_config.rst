@@ -147,6 +147,39 @@ you may instead call the ``withIndexes`` methods:
         .withIndexes(List("id", "z3", "attr"))
         .build("mySft")
 
+Configuring Feature ID Encoding
+-------------------------------
+
+While feature IDs can be any string, a common use case is to use UUIDs. A UUID is a globally unique, specially
+formatted string composed of hex characters in the format ``{8}-{4}-{4}-{4}-{12}``, for example
+``28a12c18-e5ae-4c04-ae7b-bf7cdbfaf234``. A UUID can also be considered as a 128 bit number, which can
+be serialized in a smaller size.
+
+You can indicate that feature IDs are UUIDs using the user data key ``geomesa.fid.uuid``. If set before
+calling ``createSchema``, then feature IDs will be serialized as 16 byte numbers instead of 36 byte strings,
+saving some overhead:
+
+.. code-block:: java
+
+    sft.getUserData().put("geomesa.fid.uuid", "true");
+    datastore.createSchema(sft);
+
+If the schema is already created, you may still retroactively indicate that feature IDs are UUIDs, but you
+**must also indicate** that they are not serialized that way using ``geomesa.fid.uuid-encoded``. This may still
+provide some benefit when exporting data in certain formats (e.g. Arrow):
+
+.. code-block:: java
+
+    SimpleFeatureType existing = datastore.getSchema("existing");
+    existing.getUserData().put("geomesa.fid.uuid", "true");
+    existing.getUserData().put("geomesa.fid.uuid-encoded", "false");
+    datastore.updateSchema("existing", existing);
+
+.. warning::
+
+    Ensure that you use valid UUIDs if you indicate that you are using them. Otherwise you will experience
+    exceptions writing and/or reading data.
+
 .. _configuring_z_shards:
 
 Configuring Z-Index Shards

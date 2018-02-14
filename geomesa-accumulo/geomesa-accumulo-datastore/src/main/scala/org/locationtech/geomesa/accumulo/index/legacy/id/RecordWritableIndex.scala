@@ -9,50 +9,47 @@
 package org.locationtech.geomesa.accumulo.index.legacy.id
 
 import java.nio.charset.StandardCharsets
+import java.util.Collections
 
-import com.google.common.collect.ImmutableSortedSet
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, RecordIndex}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.index.conf.TableSplitter
 import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.index.ByteArrays
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait RecordWritableIndex extends AccumuloFeatureIndex {
 
-  import RecordIndex.getRowKey
-
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
     if (sft.isTableSharing) {
-      (row, offset, length) => new String(row, offset + 1, length - 1, StandardCharsets.UTF_8)
+      (row, offset, length, feature) => new String(row, offset + 1, length - 1, StandardCharsets.UTF_8)
     } else {
-      (row, offset, length) => new String(row, offset, length, StandardCharsets.UTF_8)
+      (row, offset, length, feature) => new String(row, offset, length, StandardCharsets.UTF_8)
     }
   }
 
   override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     super.configure(sft, ds)
     val table = getTableName(sft.getTypeName, ds)
 
     AccumuloVersion.ensureTableExists(ds.connector, table)
 
-    val prefix = sft.getTableSharingPrefix
-    val prefixFn = getRowKey(prefix, _: String)
+    val prefix = sft.getTableSharingBytes
     val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
     val splits = splitter.getSplits(sft, name, sft.getTableSplitterOptions)
-    val sortedSplits = splits.map(new String(_, StandardCharsets.UTF_8)).map(prefixFn).map(new Text(_)).toSet
-    val splitsToAdd = sortedSplits -- ds.tableOps.listSplits(table).toSet
+    val sortedSplits = splits.map(s => new Text(ByteArrays.concat(prefix, s))).toSet
+    val splitsToAdd = sortedSplits -- ds.tableOps.listSplits(table).asScala.toSet
     if (splitsToAdd.nonEmpty) {
-      // noinspection RedundantCollectionConversion
-      ds.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
+      ds.tableOps.addSplits(table, Collections.unmodifiableSortedSet(new java.util.TreeSet(splitsToAdd.asJava)))
     }
 
     // enable the row functor as the feature ID is stored in the Row ID

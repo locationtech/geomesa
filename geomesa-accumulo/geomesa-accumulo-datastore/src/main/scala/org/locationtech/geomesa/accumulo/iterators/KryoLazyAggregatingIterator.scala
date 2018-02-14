@@ -42,7 +42,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   var index: AccumuloFeatureIndex = _
   var source: SortedKeyValueIterator[Key, Value] = _
 
-  private var validate: (SimpleFeature) => Boolean = _
+  private var validate: () => Boolean = _
 
   // our accumulated result
   private var result: T = _
@@ -53,7 +53,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
 
   private var reusableSf: KryoBufferSimpleFeature = _
   private var reusableTransformSf: TransformSimpleFeature = _
-  private var getId: (Text) => String = _
+  private var getId: (Text, SimpleFeature) => String = _
   var hasTransform: Boolean = _
 
   // server-side deduplication - not 100% effective, but we can't dedupe client side as we don't send ids
@@ -70,16 +70,17 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     sft = IteratorCache.sft(spec)
 
     index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
-      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
+      case NonFatal(_) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
 
+    // noinspection ScalaDeprecation
     if (index.serializedWithId) {
-      getId = (_) => reusableSf.getID
       reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
+      getId = (_, _) => reusableSf.getID
     } else {
       val getIdFromRow = index.getIdFromRow(sft)
-      getId = (row) => getIdFromRow(row.getBytes, 0, row.getLength)
       reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
+      getId = (row, sf) => getIdFromRow(row.getBytes, 0, row.getLength, sf)
     }
 
     import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator._
@@ -96,10 +97,10 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     maxIdsToTrack = options.get(MAX_DUPE_OPT).map(_.toInt).getOrElse(99999)
     idsSeen.clear()
     validate = (filt, dedupe) match {
-      case (null, false) => (_) => true
+      case (null, false) => () => true
       case (null, true)  => deduplicate
       case (_, false)    => filter(filt)
-      case (_, true)     => val f = filter(filt)(_); (sf) => f(sf) && deduplicate(sf)
+      case (_, true)     => () => filter(filt) && deduplicate
     }
     result = init(options.toMap)
   }
@@ -128,19 +129,18 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     result.clear()
 
     while (source.hasTop && !currentRange.afterEndKey(source.getTopKey) && notFull(result)) {
-      val sf = decode(source.getTopValue.get())
-      if (validate(sf)) {
+      reusableSf.setBuffer(source.getTopValue.get())
+      reusableSf.setId(getId(source.getTopKey.getRow, reusableSf))
+      if (validate()) {
         topKey = source.getTopKey
 
-        val sfToObserve =
-          if (hasTransform) {
-            reusableTransformSf.setFeature(sf)
-            reusableTransformSf
-          } else {
-            sf
-          }
-
-        aggregateResult(sfToObserve, result) // write the record to our aggregated results
+        // write the record to our aggregated results
+        if (hasTransform) {
+          reusableTransformSf.setFeature(reusableSf)
+          aggregateResult(reusableTransformSf, result)
+        } else {
+          aggregateResult(reusableSf, result)
+        }
       }
       source.next() // Advance the source iterator
     }
@@ -160,25 +160,18 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   // hook to allow result to be chunked up
   def notFull(result: T): Boolean = true
 
-  // hook to allow overrides in non-kryo subclasses
-  def decode(value: Array[Byte]): SimpleFeature = {
-    reusableSf.setBuffer(value)
-    reusableSf.setId(getId(source.getTopKey.getRow))
-    reusableSf
-  }
-
   def init(options: Map[String, String]): T
   def aggregateResult(sf: SimpleFeature, result: T): Unit
   def encodeResult(result: T): Array[Byte]
 
-  def deduplicate(sf: SimpleFeature): Boolean =
+  def deduplicate(): Boolean =
     if (idsSeen.size < maxIdsToTrack) {
-      idsSeen.add(getId(source.getTopKey.getRow))
+      idsSeen.add(reusableSf.getID)
     } else {
-      !idsSeen.contains(getId(source.getTopKey.getRow))
+      !idsSeen.contains(reusableSf.getID)
     }
 
-  def filter(filter: Filter)(sf: SimpleFeature): Boolean = filter.evaluate(sf)
+  def filter(filter: Filter)(): Boolean = filter.evaluate(reusableSf)
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
     throw new NotImplementedError()

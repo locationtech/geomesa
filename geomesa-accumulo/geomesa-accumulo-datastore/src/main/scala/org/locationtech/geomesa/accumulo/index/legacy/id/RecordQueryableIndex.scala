@@ -39,7 +39,7 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
                             filter: AccumuloFilterStrategyType,
                             hints: Hints,
                             explain: Explainer): AccumuloQueryPlan = {
-    val prefix = sft.getTableSharingPrefix
+    val prefix = sft.getTableSharingBytes
 
     val ranges = filter.primary match {
       case None =>
@@ -56,7 +56,8 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
         // intersect together all groups of ID Filters, producing a set of IDs
         val identifiers = IdFilterStrategy.intersectIdFilters(primary)
         explain(s"Extracted ID filter: ${identifiers.mkString(", ")}")
-        identifiers.toSeq.map(id => aRange.exact(RecordIndex.getRowKey(prefix, id)))
+        val getRowKey = RecordIndex.getRowKey(sft)
+        identifiers.toSeq.map(id => aRange.exact(new Text(getRowKey(prefix, id))))
     }
 
     if (ranges.isEmpty) { EmptyPlan(filter) } else {

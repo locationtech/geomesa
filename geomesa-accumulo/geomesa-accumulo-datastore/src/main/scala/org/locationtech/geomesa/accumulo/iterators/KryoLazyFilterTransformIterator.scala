@@ -87,7 +87,7 @@ class KryoLazyFilterTransformIterator extends
       val getFromRow = index.getIdFromRow(sft)
       () => {
         val row = source.getTopKey.getRow()
-        reusableSf.setId(getFromRow(row.getBytes, 0, row.getLength))
+        reusableSf.setId(getFromRow(row.getBytes, 0, row.getLength, reusableSf))
       }
     }
   }

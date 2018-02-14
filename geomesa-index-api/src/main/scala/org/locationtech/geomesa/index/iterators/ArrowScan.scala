@@ -50,14 +50,15 @@ trait ArrowScan extends AggregatingScan[ArrowAggregate] {
       case Some(tsft) => (tsft, options(TransformSchemaOpt))
       case None       => (sft, options(SftOpt))
     }
-    val includeFids = options(IncludeFidsKey)
+    val includeFids = options(IncludeFidsKey).toBoolean
+    val proxyFids = options.get(ProxyFidsKey).exists(_.toBoolean)
     val dictionary = options(DictionaryKey)
     val sort = options.get(SortKey).map(name => (name, options.get(SortReverseKey).exists(_.toBoolean)))
 
     val cacheKey = typ + arrowSftString + includeFids + dictionary + sort
 
     def create(): ArrowAggregate = {
-      val encoding = SimpleFeatureEncoding.min(includeFids.toBoolean)
+      val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
       if (typ == Types.DeltaType) {
         val dictionaries = dictionary.split(",").filter(_.length > 0)
         new DeltaAggregate(arrowSft, dictionaries, encoding, sort, batchSize)
@@ -97,6 +98,7 @@ object ArrowScan {
   object Configuration {
 
     val IncludeFidsKey = "fids"
+    val ProxyFidsKey   = "proxy"
     val DictionaryKey  = "dict"
     val TypeKey        = "type"
     val BatchSizeKey   = "batch"
@@ -164,14 +166,16 @@ object ArrowScan {
 
     val arrowSft = hints.getTransformSchema.getOrElse(sft)
     val includeFids = hints.isArrowIncludeFid
+    val proxyFids = hints.isArrowProxyFid
     val sort = hints.getArrowSort
     val batchSize = getBatchSize(hints)
-    val encoding = SimpleFeatureEncoding.min(includeFids)
+    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
 
     val baseConfig = {
       val base = AggregatingScan.configure(sft, index, ecql, hints.getTransform, hints.getSampling)
       base ++ AggregatingScan.optionalMap(
         IncludeFidsKey -> includeFids.toString,
+        ProxyFidsKey   -> proxyFids.toString,
         SortKey        -> sort.map(_._1),
         SortReverseKey -> sort.map(_._2.toString),
         BatchSizeKey   -> batchSize.toString
