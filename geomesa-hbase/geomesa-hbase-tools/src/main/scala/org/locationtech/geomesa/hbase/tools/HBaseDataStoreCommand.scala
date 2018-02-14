@@ -42,7 +42,7 @@ object HBaseDataStoreCommand {
     */
   trait ToggleRemoteFilterParam extends RemoteFilterParam {
     @Parameter(names = Array("--no-remote-filters"), description = "Disable remote filtering and coprocessors", arity = 0)
-    var noRemote: Boolean = true
+    var noRemote: Boolean = false
   }
 
   /**
