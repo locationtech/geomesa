@@ -19,7 +19,7 @@ class GeoJsonExporter(writer: Writer) extends FeatureExporter {
 
   private var first = true
 
-  override def start(sft: SimpleFeatureType): Unit = writer.write("""{type:"FeatureCollection",features:[""")
+  override def start(sft: SimpleFeatureType): Unit = writer.write("""{"type":"FeatureCollection","features":[""")
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
