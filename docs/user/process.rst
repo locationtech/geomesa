@@ -120,7 +120,7 @@ outputHeight  Height of the output raster in pixels.
 .. _date_offset_process:
 
 DateOffsetProcess
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 The ``DateOffsetProcess`` modifies the specified date field in a feature collection by an input time period.
 
@@ -160,7 +160,6 @@ Hash example (XML)
 
     curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@HashAttributeProcess_wps.xml localhost:8080/geoserver/wps
 
-.. _queryExampleResults:
 
 The query should generate results that look like :download:`this </user/_static/process/HashProcess_results.json>`:
 
@@ -514,7 +513,7 @@ dtg         Date attribute to use for ordering tracks.
 .. _trackLabelExampleXML:
 
 TrackLabel example (XML)
-""""""""""""""""""""""
+""""""""""""""""""""""""
 
 :download:`TrackLabelProcess_wps.xml </user/_static/process/TrackLabelProcess_wps.xml>` is a geoserver WPS call to the GeoMesa TrackLabelProcess. It can be run with the following curl call:
 
@@ -548,7 +547,7 @@ gapFill             Method of filling gap (nofill, line).
 .. _tubeSelectExampleXML:
 
 TubeSelect example (XML)
-""""""""""""""""""""""
+""""""""""""""""""""""""
 
 :download:`TubeSelectProcess_wps.xml </user/_static/process/TubeSelectProcess_wps.xml>` is a geoserver WPS call to the GeoMesa TubeSelectProcess. It can be run with the following curl call:
 
@@ -616,7 +615,6 @@ in the `Accumulo-quickstart <http://www.geomesa.org/documentation/tutorials/geom
 
     curl -v -u admin:geoserver -H "Content-Type: text/xml" -d@QueryProcess_wps.xml localhost:8080/geoserver/wps
 
-.. _queryExampleResults:
 
 The query should generate results that look like :download:`this </user/_static/process/QueryProcess_results.json>`:
 
