@@ -13,7 +13,7 @@ import org.locationtech.geomesa.kafka.tools.data.{KafkaCreateSchemaCommand, Kafk
 import org.locationtech.geomesa.kafka.tools.export.{KafkaExportCommand, KafkaListenCommand}
 import org.locationtech.geomesa.kafka.tools.ingest.KafkaIngestCommand
 import org.locationtech.geomesa.kafka.tools.status._
-import org.locationtech.geomesa.tools.status.{ClasspathCommand, ConfigureCommand, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 object KafkaRunner extends Runner {
@@ -32,6 +32,7 @@ object KafkaRunner extends Runner {
     new HelpCommand(this, jc),
     new ConfigureCommand,
     new ClasspathCommand,
+    new ScalaConsoleCommand,
     new VersionCommand
   )
 

@@ -1,0 +1,7 @@
+import org.geotools.data._
+import org.geotools.filter.text.ecql.ECQL
+import org.opengis.feature.simple._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import scala.collection.JavaConversions._

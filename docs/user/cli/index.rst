@@ -17,6 +17,7 @@ overview of the commands available for most back-ends.
     converters
     logging
     filesystems
+    console
 
 Specific back-end implementations are described in the following chapters:
 

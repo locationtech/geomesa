@@ -39,16 +39,19 @@ fi
 
 if  [[ $1 = configure ]]; then
   geomesaConfigure
-elif [[ $1 = classpath ]]; then
-  CLASSPATH="$GEOMESA_CP"
-  for element in ${CLASSPATH//:/ } ; do
-    echo ${element}
-  done
 else
   CLASSPATH="$GEOMESA_CP"
-  if [[ $1 = debug ]]; then
-    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
-    shift 1
+  if [[ $1 = scala-console ]]; then
+    geomesaScalaConsole ${CLASSPATH}
+  elif [[ $1 = classpath ]]; then
+    for element in ${CLASSPATH//:/ } ; do
+      echo ${element}
+    done
+  else
+    if [[ $1 = debug ]]; then
+      GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
+      shift 1
+    fi
+    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.kafka.tools.KafkaRunner "$@"
   fi
-  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.kafka.tools.KafkaRunner "$@"
 fi

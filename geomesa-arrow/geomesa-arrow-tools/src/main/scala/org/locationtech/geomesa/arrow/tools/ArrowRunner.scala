@@ -37,6 +37,7 @@ object ArrowRunner extends Runner {
     new ArrowStatsHistogramCommand,
     new ConvertCommand,
     new ConfigureCommand,
-    new ClasspathCommand
+    new ClasspathCommand,
+    new ScalaConsoleCommand
   )
 }
