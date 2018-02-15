@@ -19,12 +19,15 @@ import org.apache.commons.codec.binary.Base64
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.CRS
 import org.geotools.util.Converters
+import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.text.{DateParsing, EnhancedTokenParsers, WKTUtils}
+import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
 import org.opengis.referencing.operation.MathTransform
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.util.Try
+import scala.util.control.NonFatal
 import scala.util.matching.Regex
 
 object Transformers extends EnhancedTokenParsers with LazyLogging {
@@ -639,14 +642,34 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
   }
 }
 
-class IdFunctionFactory extends TransformerFunctionFactory {
-  override def functions = Seq(string2Bytes, md5, uuidFn, base64, murmur3_32, murmur3_64)
+class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
+  override def functions = Seq(string2Bytes, md5, uuidFn, uuidZ3, uuidZ3Centroid, base64, murmur3_32, murmur3_64)
 
-  val string2Bytes = TransformerFn("string2bytes", "stringToBytes") {
+  val string2Bytes: TransformerFn = TransformerFn("string2bytes", "stringToBytes") {
     args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
   }
-  val uuidFn = TransformerFn("uuid")   { args => UUID.randomUUID().toString }
-  val base64 = TransformerFn("base64") {
+  val uuidFn: TransformerFn = TransformerFn("uuid") { args => UUID.randomUUID().toString }
+  val uuidZ3: TransformerFn = TransformerFn("uuidZ3") { args =>
+    val geom = args(0).asInstanceOf[Point]
+    val date = args(1).asInstanceOf[Date]
+    val interval = TimePeriod.withName(args(2).asInstanceOf[String])
+    try { Z3UuidGenerator.createUuid(geom, date.getTime, interval).toString } catch {
+      case NonFatal(e) =>
+        logger.warn(s"Invalid z3 values for UUID: $geom $date $interval: $e")
+        UUID.randomUUID().toString
+    }
+  }
+  val uuidZ3Centroid: TransformerFn = TransformerFn("uuidZ3Centroid") { args =>
+    val geom = args(0).asInstanceOf[Geometry]
+    val date = args(1).asInstanceOf[Date]
+    val interval = TimePeriod.withName(args(2).asInstanceOf[String])
+    try { Z3UuidGenerator.createUuid(geom, date.getTime, interval).toString } catch {
+      case NonFatal(e) =>
+        logger.warn(s"Invalid z3 values for UUID: $geom $date $interval: $e")
+        UUID.randomUUID().toString
+    }
+  }
+  val base64: TransformerFn = TransformerFn("base64") {
     args => Base64.encodeBase64URLSafeString(args(0).asInstanceOf[Array[Byte]])
   }
   val md5 = new MD5

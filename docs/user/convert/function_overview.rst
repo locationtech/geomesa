@@ -50,6 +50,8 @@ ID Functions
 -  ``stringToBytes``
 -  ``md5``
 -  ``uuid``
+-  ``uuidZ3``
+-  ``uuidZ3Centroid``
 -  ``base64``
 
 Type Conversions
