@@ -1,18 +1,28 @@
 .. _fsds_quickstart:
 
-GeoMesa FSDS Quick Start
-========================
+GeoMesa FileSystem Quick Start
+==============================
 
-This tutorial is the fastest and easiest way to get started with the
-GeoMesa FileSystem Datastore (FSDS). In the spirit of keeping things simple, the
-code in this tutorial only does a few things:
+This tutorial is the fastest and easiest way to get started with GeoMesa using the
+FileSytem data store (FSDS). The FSDS lets you store and query data without any database
+instance, using flat files. These files can be stored in HDFS, AWS, or even your local disk.
+
+It is a good stepping-stone on the path to the other tutorials, that present increasingly
+involved examples of how to use GeoMesa.
+
+About this Tutorial
+-------------------
+
+In the spirit of keeping things simple, the code in this tutorial only
+does a few small things:
 
 1. Establishes a new (static) SimpleFeatureType
-2. Prepares the FSDS to store this type of data
+2. Prepares the file system to store this type of data
 3. Creates a few thousand example SimpleFeatures
-4. Writes these SimpleFeatures to the FSDS
+4. Writes these SimpleFeatures to the file system
 5. Queries for a given geographic rectangle, time range, and attribute
    filter, writing out the entries in the result set
+6. Uses GeoServer to visualize the data (optional)
 
 Prerequisites
 -------------
@@ -46,14 +56,7 @@ dependencies in a single JAR. To build, run:
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-quickstart-fsds -am
-
-About this Tutorial
--------------------
-
-The quick start operates by inserting and then querying several thousand features.
-After the insertions are complete, a sequence of queries are run to
-demonstrate different types of queries possible via the GeoTools API.
+    $ mvn clean install -pl geomesa-tutorials-fsds/geomesa-tutorials-fsds-quickstart -am
 
 Running the Tutorial
 --------------------
@@ -62,9 +65,9 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-fsds/target/geomesa-quickstart-fsds-$VERSION.jar \
-        org.geomesa.example.fsds.FSDSQuickStart \
-        --fs.path /tmp/fsds/                    \
+    $ java -cp geomesa-tutorials-fsds/geomesa-tutorials-fsds-quickstart/target/geomesa-tutorials-fsds-quickstart-$VERSION.jar \
+        org.geomesa.example.fsds.FileSystemQuickStart \
+        --fs.path /tmp/fsds/                          \
         --fs.encoding parquet
 
 The arguments above indicate:
@@ -152,7 +155,7 @@ Looking at the Code
 -------------------
 
 The source code is meant to be accessible for this tutorial. The main logic is contained in
-the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-quickstart-common`` module,
+the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-tutorials-common`` module,
 which is datastore agnostic. Some relevant methods are:
 
 -  ``createDataStore`` get a datastore instance from the input configuration
@@ -162,7 +165,7 @@ which is datastore agnostic. Some relevant methods are:
 -  ``cleanup`` delete the datastore directory and dispose of the datastore instance.
 
 The quick start uses a small subset of GDELT data. Code for parsing the data into GeoTools SimpleFeatures is
-contained in ``org.geomesa.example.quickstart.GDELTData``:
+contained in ``org.geomesa.example.data.GDELTData``:
 
 -  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
 -  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects

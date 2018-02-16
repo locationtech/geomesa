@@ -7,12 +7,12 @@ Getting Started
 .. toctree::
     :maxdepth: 1
 
+    geomesa-quickstart-hbase
     geomesa-quickstart-accumulo
     geomesa-quickstart-cassandra
-    geomesa-quickstart-fsds
-    geomesa-quickstart-hbase
     geomesa-quickstart-kafka
     geomesa-quickstart-lambda
+    geomesa-quickstart-fsds
     geomesa-quickstart-nifi
     geodocker-geomesa/index
     geomesa-hbase-s3-on-aws

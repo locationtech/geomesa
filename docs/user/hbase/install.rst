@@ -7,8 +7,6 @@ GeoMesa supports traditional HBase installations as well as HBase running on `Am
 on bootstrapping an EMR cluster, see :doc:`/tutorials/geomesa-hbase-s3-on-aws`. For details on deploying to
 Cloudera CDH, see :doc:`/tutorials/geomesa-hbase-on-cdh`.
 
-.. _setting_up_hbase_commandline:
-
 Installing the Binary Distribution
 ----------------------------------
 
@@ -28,6 +26,19 @@ Extract it somewhere convenient:
     $ cd geomesa-hbase-dist_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
+
+.. _hbase_install_source:
+
+Building from Source
+--------------------
+
+GeoMesa HBase may also be built from source. For more information refer to :ref:`building_from_source`
+in the developer manual, or to the ``README.md`` file in the the source distribution.
+The remainder of the instructions in this chapter assume the use of the binary GeoMesa HBase
+distribution. If you have built from source, the distribution is created in the ``target`` directory of
+``geomesa-hbase/geomesa-hbase-dist``.
+
+More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 Configuration and Classpaths
 ----------------------------
@@ -156,7 +167,7 @@ Do this with the following commands:
 
 .. _hbase_deploy_distributed_runtime:
 
-Deploying the GeoMesa HBase distributed runtime jar
+Deploying the GeoMesa HBase Distributed Runtime JAR
 ---------------------------------------------------
 
 GeoMesa uses an HBase custom filter to improve processing of CQL queries.  In order to use the custom filter, you must
@@ -177,27 +188,14 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
 to ``false``. Note that this may have an adverse effect on performance.
 
-.. _hbase_install_source:
-
-Building from Source
---------------------
-
-GeoMesa HBase may also be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution.
-The remainder of the instructions in this chapter assume the use of the binary GeoMesa HBase
-distribution. If you have built from source, the distribution is created in the ``target`` directory of
-``geomesa-hbase/geomesa-hbase-dist``.
-
-More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
-
 .. _registering_coprocessors:
 
 Register the Coprocessors
 -------------------------
 
-GeoMesa utilizes server side processing to accelerate some queries. Currently the only processing done server side is
-density (heatmap) calculations. In order to utilize this feature the GeoMesa coprocessor must be registered on all GeoMesa tables
-or registered site-wide and the ``geomesa-hbase-distributed-runtime`` code must be available on the classpath or at an
+GeoMesa utilizes server side processing to accelerate some queries. In order to utilize these features,
+the GeoMesa coprocessor must be registered on all GeoMesa tables or registered site-wide and
+the ``geomesa-hbase-distributed-runtime`` code must be available on the classpath or at an
 HDFS url, depending on the registration method used.
 
 There are a number of ways to register the coprocessors, which are detailed later.
@@ -367,6 +365,77 @@ There are two ways to get the coprocessor code on the classpath.
 
 For more information on managing coprocessors see
 `Coprocessor Introduction <https://blogs.apache.org/hbase/entry/coprocessor_introduction>`_ on Apache's Blog.
+
+.. _setting_up_hbase_commandline:
+
+Setting up the HBase Command Line Tools
+---------------------------------------
+
+.. warning::
+
+    To use HBase with the command line tools, you need to install the coprocessors first, as described above.
+
+GeoMesa comes with a set of command line tools for managing HBase features located in
+``geomesa-hbase_2.11-$VERSION/bin/`` of the binary distribution.
+
+.. note::
+
+    You can configure environment variables and classpath settings in geomesa-hbase_2.11-$VERSION/bin/geomesa-env.sh.
+
+If desired, you may use the included script ``bin/geomesa-hbase configure`` to help set up the environment variables
+used by the tools. Otherwise, you may invoke the ``geomesa-hbase`` script using the fully-qualified path, and
+use the default configuration.
+
+The tools will read the ``$HBASE_HOME`` and ``$HADOOP_HOME`` environment variables to load the
+appropriate JAR files for HBase and Hadoop. If installing on a system without HBase and/or Hadoop,
+the ``install-hbase.sh`` and ``install-hadoop.sh`` scripts in the ``bin`` directory may be used to download
+the required HBase and Hadoop JARs into the ``lib`` directory. You should edit this script to match the versions
+used by your installation.
+
+.. note::
+
+    See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
+
+.. note::
+
+    GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
+    ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
+    classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
+    files using a colon (``:``) as a delimiter. These entries will also be added the the mapreduce libjars variable.
+    Use the ``geomesa-hbase classpath`` command to print the final classpath that will be used when executing geomesa
+    commands.
+
+The tools also need access to the ``hbase-site.xml`` for your cluster. If ``$HBASE_HOME`` is defined, it will pick
+it up from there. However, it may not be available for map/reduce jobs. To ensure it's availability,
+add it at the root level of the ``geomesa-hbase-datastore`` JAR in the lib folder:
+
+.. code-block:: bash
+
+    $ zip -r lib/geomesa-hbase-datastore_2.11-$VERSION.jar hbase-site.xml
+
+.. warning::
+
+    Ensure that the ``hbase-site.xml`` is at the root (top) level of your JAR, otherwise it will not be picked up.
+
+Due to licensing restrictions, certain dependencies for shape file support and faster XML parsing must be separately
+installed. Do this with the following commands:
+
+.. code-block:: bash
+
+    $ bin/install-jai.sh
+    $ bin/install-jline.sh
+    $ bin/install-saxon.sh
+
+Test the command that invokes the GeoMesa Tools:
+
+.. code::
+
+    $ bin/geomesa-hbase
+    INFO  Usage: geomesa-hbase [command] [command options]
+      Commands:
+      ...
+
+For more details, see :ref:`hbase_tools`.
 
 .. _install_hbase_geoserver:
 

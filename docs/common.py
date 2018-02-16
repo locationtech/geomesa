@@ -120,6 +120,8 @@ rst_epilog = """
 
 .. |accumulo_version| replace:: 1.7 or 1.8
 
+.. |hbase_version| replace:: 1.3.x
+
 .. |hadoop_version| replace:: 2.2 or later
 
 .. |zookeeper_version| replace:: 3.4.5 or later

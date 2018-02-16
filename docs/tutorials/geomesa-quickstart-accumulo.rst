@@ -1,35 +1,40 @@
 GeoMesa Accumulo Quick Start
 ============================
 
-This tutorial is the fastest and easiest way to get started with
-GeoMesa. It is a good stepping-stone on the path to the other tutorials
-that present increasingly involved examples of how to use GeoMesa.
+This tutorial is the fastest and easiest way to get started with GeoMesa using Accumulo.
+It is a good stepping-stone on the path to the other tutorials, that present increasingly
+involved examples of how to use GeoMesa.
+
+About this Tutorial
+-------------------
 
 In the spirit of keeping things simple, the code in this tutorial only
 does a few small things:
 
-1. establishes a new (static) SimpleFeatureType
-2. prepares the Accumulo table to store this type of data
-3. creates a few hundred example SimpleFeatures
-4. writes these SimpleFeatures to the Accumulo table
-5. queries for a given geographic rectangle, time range, and attribute
+1. Establishes a new (static) SimpleFeatureType
+2. Prepares the Accumulo tables to store this type of data
+3. Creates a few thousand example SimpleFeatures
+4. Writes these SimpleFeatures to the Accumulo table
+5. Queries for a given geographic rectangle, time range, and attribute
    filter, writing out the entries in the result set
-
-The only dynamic element in the tutorial is the Accumulo destination;
-that is a property that you provide on the command-line when running the
-code.
+6. Uses GeoServer to visualize the data (optional)
 
 Prerequisites
 -------------
 
 Before you begin, you must have the following:
 
--  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|,
--  an Accumulo user that has both create-table and write permissions,
--  the GeoMesa Accumulo distributed runtime installed for your Accumulo instance (see :ref:`install_accumulo_runtime` ),
--  a local copy of `Java JDK 8`_,
--  Apache `Maven <http://maven.apache.org/>`__ installed, and
--  a GitHub client installed.
+-  `Java <http://java.oracle.com/>`__ JDK 1.8
+-  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  a GitHub client
+-  an Accumulo |accumulo_version| instance
+-  an Accumulo user that has both create-table and write permissions
+-  the GeoMesa distributed runtime installed for your instance (see below)
+
+Installing the GeoMesa Distributed Runtime
+------------------------------------------
+
+Follow the instructions under :ref:`install_accumulo_runtime` to install GeoMesa in your Accumulo instance.
 
 Download and Build the Tutorial
 -------------------------------
@@ -41,49 +46,35 @@ Pick a reasonable directory on your machine, and run:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
-.. note::
+.. warning::
 
-    You may need to download a particular release of the
-    tutorials project to target a particular GeoMesa release.
+    Make sure that you download or checkout the version of the tutorials project that corresponds to
+    your GeoMesa version. See :ref:`tutorial_versions` for more details.
 
-To build, run
+To ensure that the quick start works with your environment, modify the ``pom.xml``
+to set the appropriate versions for Accumulo, Hadoop, etc.
+
+For ease of use, the project builds a bundled artifact that contains all the required
+dependencies in a single JAR. To build, run:
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-quickstart-accumulo
-
-.. note::
-
-    Ensure that the version of Accumulo, Hadoop, etc in
-    the root ``pom.xml`` match your environment.
-
-.. note::
-
-    Depending on the version, you may also need to build
-    GeoMesa locally. Instructions can be found
-    `here <https://github.com/locationtech/geomesa/>`__.
-
-About this Tutorial
--------------------
-
-The QuickStart operates by inserting and then querying 1000 features.
-After the insertions are complete, a sequence of queries are run to
-demonstrate different types of queries possible via the GeoTools API.
+    $ mvn clean install -pl geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-quickstart -am
 
 Run the Tutorial
 ----------------
 
-On the command-line, run:
+On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-accumulo/target/geomesa-quickstart-accumulo-${geomesa.version}.jar \
-      com.example.geomesa.accumulo.AccumuloQuickStart \
-      -instanceId <instance>                          \
-      -zookeepers <zookeepers>                        \
-      -user <user>                                    \
-      -password <password>                            \
-      -tableName <table>
+    $ java -cp geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-quickstart/target/geomesa-tutorials-accumulo-quickstart-${geomesa.version}.jar \
+        org.geomesa.example.accumulo.AccumuloQuickStart \
+        --accumulo.instance.id <instance>               \
+        --accumulo.zookeepers <zookeepers>              \
+        --accumulo.user <user>                          \
+        --accumulo.password <password>                  \
+        --accumulo.catalog <table>
 
 where you provide the following arguments:
 
@@ -94,7 +85,7 @@ where you provide the following arguments:
 -  ``<password>`` the password for the previously-mentioned Accumulo
    user
 -  ``<table>`` the name of the destination table that will accept these
-   test records; this table should either not exist or should be empty
+   test records. This table should either not exist or should be empty
 
 .. warning::
 
@@ -103,128 +94,154 @@ where you provide the following arguments:
     :ref:`install_accumulo_runtime_namespace`) the value of ``<table>``
     should include the namespace (e.g. ``myNamespace.geomesa``).
 
-The Accumulo QuickStart allows you to delete the created tables upon
-successful completion of the QuickStart. Use the flag ``-deleteTables``
-without an argument to specify that the tables should be deleted.
+Optionally, you can also specify that the quick start should delete its data upon completion. Use the
+``--cleanup`` flag when you run to enable this behavior.
 
-You should see output similar to the following (not including some of
-Maven's output and log4j's warnings):
+Once run, you should see the following output:
 
-::
+.. code-block:: none
 
-    Creating feature-type (schema):  QuickStart
-    Creating new features
-    Inserting new features
-    Submitting query
-    1.  Bierce|640|Sun Sep 14 15:48:25 EDT 2014|POINT (-77.36222958792739 -37.13013846773835)|null
-    2.  Bierce|886|Tue Jul 22 14:12:36 EDT 2014|POINT (-76.59795732474399 -37.18420917493149)|null
-    3.  Bierce|925|Sun Aug 17 23:28:33 EDT 2014|POINT (-76.5621106573523 -37.34321201566148)|null
-    4.  Bierce|589|Sat Jul 05 02:02:15 EDT 2014|POINT (-76.88146600670152 -37.40156607152168)|null
-    5.  Bierce|394|Fri Aug 01 19:55:05 EDT 2014|POINT (-77.42555615743139 -37.26710898726304)|null
-    6.  Bierce|931|Fri Jul 04 18:25:38 EDT 2014|POINT (-76.51304097832912 -37.49406125975311)|null
-    7.  Bierce|322|Tue Jul 15 17:09:42 EDT 2014|POINT (-77.01760098223343 -37.30933767159561)|null
-    8.  Bierce|343|Wed Aug 06 04:59:22 EDT 2014|POINT (-76.66826220670282 -37.44503877750368)|null
-    9.  Bierce|259|Thu Aug 28 15:59:30 EDT 2014|POINT (-76.90122194030118 -37.148525741002466)|null
-    Submitting secondary index query
-    Feature ID Observation.859 | Who: Bierce
-    Feature ID Observation.355 | Who: Bierce
-    Feature ID Observation.940 | Who: Bierce
-    Feature ID Observation.631 | Who: Bierce
-    Feature ID Observation.817 | Who: Bierce
-    Submitting secondary index query with sorting (sorted by 'What' descending)
-    Feature ID Observation.999 | Who: Addams | What: 999
-    Feature ID Observation.996 | Who: Addams | What: 996
-    Feature ID Observation.993 | Who: Addams | What: 993
-    Feature ID Observation.990 | Who: Addams | What: 990
-    Feature ID Observation.987 | Who: Addams | What: 987
+    Loading datastore
+
+    Creating schema: GLOBALEVENTID:String,Actor1Name:String,Actor1CountryCode:String,Actor2Name:String,Actor2CountryCode:String,EventCode:String,NumMentions:Integer,NumSources:Integer,NumArticles:Integer,ActionGeo_Type:Integer,ActionGeo_FullName:String,ActionGeo_CountryCode:String,dtg:Date,geom:Point
+
+    Generating test data
+
+    Writing test data
+    Wrote 2356 features
+
+    Running test queries
+    Running query BBOX(geom, -120.0,30.0,-75.0,55.0) AND dtg DURING 2017-12-31T00:00:00+00:00/2018-01-02T00:00:00+00:00
+    01 719026369=719026369|MEXICO|MEX|AMERICAN|USA|193|6|1|6|4|Playas De Tijuana, Baja California, Mexico|MX|2018-01-01T00:00:00.000Z|POINT (-117.133 32.55)
+    02 719025074=719025074|||RUSSIA|RUS|042|2|1|2|3|Irvine, California, United States|US|2018-01-01T00:00:00.000Z|POINT (-117.823 33.6695)
+    03 719025082=719025082|||UNITED STATES|USA|014|2|1|2|2|Texas, United States|US|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    04 719025084=719025084|||UNITED STATES|USA|031|4|1|4|2|Texas, United States|US|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    05 719026868=719026868|UNITED STATES|USA|||010|5|1|4|2|Texas, United States|US|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    06 719026879=719026879|TEXAS|USA|||013|10|2|10|2|Texas, United States|US|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    07 719026987=719026987|UNITED STATES|USA|||110|4|1|4|2|Texas, United States|US|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    08 719027257=719027257|UNITED STATES|USA|||036|10|2|10|2|Texas, United States|US|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    09 719026878=719026878|UNITED STATES|USA|||013|4|2|4|3|Dallas, Texas, United States|US|2018-01-01T00:00:00.000Z|POINT (-96.8067 32.7831)
+    10 719027238=719027238|UNITED STATES|USA|INDUSTRY||081|1|1|1|3|Central Valley, California, United States|US|2018-01-01T00:00:00.000Z|POINT (-119.682 34.0186)
+
+    Returned 669 total features
+
+    Running query BBOX(geom, -120.0,30.0,-75.0,55.0) AND dtg DURING 2017-12-31T00:00:00+00:00/2018-01-02T00:00:00+00:00
+    Returning attributes [GLOBALEVENTID, dtg, geom]
+    01 719025742=719025742|2018-01-01T00:00:00.000Z|POINT (-117.157 32.7153)
+    02 719025915=719025915|2018-01-01T00:00:00.000Z|POINT (-117.157 32.7153)
+    03 719025400=719025400|2018-01-01T00:00:00.000Z|POINT (-117.393 33.2103)
+    04 719025135=719025135|2018-01-01T00:00:00.000Z|POINT (-117.823 33.6695)
+    05 719026216=719026216|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    06 719026312=719026312|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    07 719026320=719026320|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    08 719026992=719026992|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    09 719027120=719027120|2018-01-01T00:00:00.000Z|POINT (-97.6475 31.106)
+    10 719026984=719026984|2018-01-01T00:00:00.000Z|POINT (-91.8749 31.1801)
+
+    Returned 669 total features
+
+    Running query EventCode = '051'
+    01 719025634=719025634|FIJI|FJI|||051|2|1|2|1|Fiji|FJ|<null>|POINT (178 -18)
+    02 719027116=719027116|UNITED STATES|USA|KING||051|8|1|8|3|San Diego, California, United States|US|<null>|POINT (-117.157 32.7153)
+    03 719027117=719027117|LOS ANGELES|USA|KING||051|26|3|26|2|California, United States|US|<null>|POINT (-119.746 36.17)
+    04 719025036=719025036|||SENATE||051|5|1|5|2|Alabama, United States|US|<null>|POINT (-86.8073 32.799)
+    05 719026318=719026318|SENATE||UNITED STATES|USA|051|2|1|2|2|Alabama, United States|US|<null>|POINT (-86.8073 32.799)
+    06 719026296=719026296|CHAMBER||||051|20|1|20|3|Springfield, South Carolina, United States|US|<null>|POINT (-81.2793 33.4968)
+    07 719025744=719025744|CIVIL SERVANT||||051|20|1|10|3|White House, District of Columbia, United States|US|<null>|POINT (-77.0364 38.8951)
+    08 719026946=719026946|INDIANA|USA|||051|12|1|12|2|Indiana, United States|US|<null>|POINT (-86.2604 39.8647)
+    09 719025279=719025279|EDMONTON|CAN|||051|5|1|5|4|Dufferin County, Ontario, Canada|CA|<null>|POINT (-80.1667 44.0833)
+    10 719027252=719027252|AMERICAN CIVIL LIBERTIES UNION|USA|||051|2|1|2|2|Pennsylvania, United States|US|<null>|POINT (-77.264 40.5773)
+
+    Returned 276 total features
+
+    Running query EventCode = '051' AND dtg DURING 2017-12-31T00:00:00+00:00/2018-01-02T00:00:00+00:00
+    Returning attributes [GLOBALEVENTID, dtg, geom]
+    01 719025634=719025634|2018-01-01T00:00:00.000Z|POINT (178 -18)
+    02 719027116=719027116|2018-01-01T00:00:00.000Z|POINT (-117.157 32.7153)
+    03 719027117=719027117|2018-01-01T00:00:00.000Z|POINT (-119.746 36.17)
+    04 719025036=719025036|2018-01-01T00:00:00.000Z|POINT (-86.8073 32.799)
+    05 719026318=719026318|2018-01-01T00:00:00.000Z|POINT (-86.8073 32.799)
+    06 719026296=719026296|2018-01-01T00:00:00.000Z|POINT (-81.2793 33.4968)
+    07 719025744=719025744|2018-01-01T00:00:00.000Z|POINT (-77.0364 38.8951)
+    08 719026946=719026946|2018-01-01T00:00:00.000Z|POINT (-86.2604 39.8647)
+    09 719025279=719025279|2018-01-01T00:00:00.000Z|POINT (-80.1667 44.0833)
+    10 719027252=719027252|2018-01-01T00:00:00.000Z|POINT (-77.264 40.5773)
+
+    Returned 138 total features
 
 The quick start code may also be run via Maven using the ``live-test``
-profile:
+profile and specifying the connection parameters as system properties:
 
 .. code-block:: bash
 
-    $ mvn -Plive-test exec:exec -DinstanceId=<instance> -Dzookeepers=<zookeepers> -Duser=<user> -Dpassword=<password> -DtableName=<tableName>
+    $ mvn -Plive-test exec:exec            \
+        -Daccumulo.instance.id <instance>  \
+        -Daccumulo.zookeepers <zookeepers> \
+        -Daccumulo.user <user>             \
+        -Daccumulo.password <password>     \
+        -Daccumulo.catalog <table>
 
 Looking at the Code
 -------------------
 
-The source code is meant to be accessible for this tutorial, but here is
-a high-level breakdown of the methods in the ``AccumuloQuickStart``
-class that are relevant:
+The source code is meant to be accessible for this tutorial. The main logic is contained in
+the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-tutorials-common`` module,
+which is datastore agnostic. Some relevant methods are:
 
--  ``getCommonRequiredOptions`` helper code to establish the
-   command-line parser for Accumulo options
--  ``getAccumuloDataStoreConf`` create a ``HashMap`` of Accumulo
-   parameters that will be used to fetch a ``DataStore``
--  ``createSimpleFeatureType`` defines the custom ``FeatureType`` used
-   in the tutorial. There are five fields: Who, What, When, Where, and
-   Why.
--  ``createNewFeatures`` creates a collection of new features, each of
-   which is initialized to some randomized set of values
--  ``insertFeatures`` instructs the ``DataStore`` to write the
-   collection of new features to the GeoMesa-managed Accumulo table
--  ``createFilter`` given a set of geometric bounds, temporal bounds,
-   and an optional attribute-only expression, construct a common query
-   language (CQL) filter that embodies these constraints. This filter
-   will be used to query data.
--  ``queryFeatures`` query for records; for each, print out the five
-   field (attribute) values
--  ``secondaryIndexExample`` additional examples that build other CQL
-   queries
--  ``main`` this is the main entry point; it collects command-line
-   parameters, builds the ``DataStore``, creates and inserts new
-   records, and then kicks off a single query
+-  ``createDataStore`` get a datastore instance from the input configuration
+-  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
+-  ``writeFeatures`` use a ``FeatureWriter`` to write features to the datastore
+-  ``queryFeatures`` run several queries against the datastore
+-  ``cleanup`` delete the sample data and dispose of the datastore instance
 
-Visualize Data With GeoServer
------------------------------
+The quickstart uses a small subset of GDELT data. Code for parsing the data into GeoTools SimpleFeatures is
+contained in ``org.geomesa.example.data.GDELTData``:
 
-Register the GeoMesa store with GeoServer
+-  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
+-  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects
+-  ``getTestQueries`` illustrates several different query types, using CQL (GeoTools' Contextual Query Language)
+
+Visualize Data With GeoServer (optional)
+----------------------------------------
+
+You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
+download and install version |geoserver_version|. Then follow the instructions in :ref:`install_accumulo_geoserver`
+to enable GeoMesa.
+
+Register the GeoMesa Store with GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Log into GeoServer using your user and password credentials. Click
-"Stores" and "Add new Store". If you do not see the Accumulo Feature
-Data Store listed under Vector Data Sources, ensure the plugin is in the
-right directory and restart GeoServer.
-
-Select the ``Accumulo (GeoMesa)`` vector data source, and enter the
-following parameters:
+Log into GeoServer using your user and password credentials. Click "Stores" and "Add new Store".
+Select the ``Accumulo (GeoMesa)`` vector data source, and fill in the required parameters.
 
 Basic store info:
 
 -  ``workspace`` this is dependent upon your GeoServer installation
--  ``data source name`` pick a sensible name, such as,
-   ``geomesa_quick_start``
+-  ``data source name`` pick a sensible name, such as ``geomesa_quick_start``
 -  ``description`` this is strictly decorative; ``GeoMesa quick start``
 
 Connection parameters:
 
 -  these are the same parameter values that you supplied on the
-   command-line when you ran the tutorial; they describe how to connect
+   command line when you ran the tutorial; they describe how to connect
    to the Accumulo instance where your data reside
 
 Click "Save", and GeoServer will search your Accumulo table for any
 GeoMesa-managed feature types.
 
-Publish the layer
+Publish the Layer
 ~~~~~~~~~~~~~~~~~
 
-GeoServer should recognize the ``AccumuloQuickStart`` feature type, and
-should present that as a layer that could be published. Click on the
+GeoServer should recognize the ``gdelt-quickstart`` feature type, and
+should present that as a layer that can be published. Click on the
 "Publish" link.
 
-You will be taken to the Edit Layer screen. Two of the tabs need to be
-updated: Data and Dimensions.
-
-In the Data pane, enter values for the bounding boxes. In this case, you
-can click on the link to compute these values from the data.
-
-In the Dimensions tab, check the "Enabled" checkbox under Time. Then
-select "When" in the Attribute and End Attribute dropdowns, and
-"Continuous Interval" in the Presentation dropdown.
+You will be taken to the "Edit Layer" screen. You will need to enter values for the data bounding
+boxes. In this case, you can click on the link to compute these values from the data.
 
 Click on the "Save" button when you are done.
 
-Take a look
+Take a Look
 ~~~~~~~~~~~
 
 Click on the "Layer Preview" link in the left-hand gutter. If you don't
@@ -233,25 +250,12 @@ of the layer you just created into the search box, and press
 ``<Enter>``.
 
 Once you see your layer, click on the "OpenLayers" link, which will open
-a new tab. By default, the display that opens will not show all the
-data, because we have enabled the time dimension for this layer, but the
-preview does not specify a time. In the URL bar for the visualization,
-add the following to the end:
-
-``&TIME=2014-01-01T00:00:00.000Z/2014-01-31T23:59:59.999Z``
-
-That tells GeoServer to display the records for the entire month of
-January 2014. You can find more information about the TIME parameter
-from `GeoServer's
-documentation <http://docs.geoserver.org/2.9.1/user/services/wms/time.html>`__.
-
-Once you press ``<Enter>``, the display will update, and you should see
-a collection of red dots similar to the following image.
+a new tab. You should see a collection of red dots similar to the following image:
 
 .. figure:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png
-   :alt: Visualizing quick-start data
+    :alt: Visualizing quick-start data
 
-   Visualizing quick-start data
+    Visualizing quick-start data
 
 Tweaking the display
 ~~~~~~~~~~~~~~~~~~~~
@@ -262,25 +266,22 @@ Here are just a few simple ways you can play with the visualization:
    report the detail records underneath the map area.
 -  Shift-click to highlight a region within the map that you would like
    to zoom into.
--  Alter the ``TIME=`` parameter in the URL to a different date range,
-   and you can filter to see only the records that satisfy the temporal
-   constraint.
 -  Click on the "Toggle options toolbar" icon in the upper-left corner
    of the preview window. The right-hand side of the screen will include
-   a "Filter" text box. Enter ``Who = 'Bierce'``, and press on the
+   a "Filter" text box. Enter ``EventCode = '051'``, and press on the
    "play" icon. The display will now show only those points matching
    your filter criterion. This is a CQL filter, which can be constructed
-   in various ways to query our data. You can find more information
+   in various ways to query your data. You can find more information
    about CQL from `GeoServer's CQL
    tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.
 
 Generating Heatmaps
 ~~~~~~~~~~~~~~~~~~~
 
--  To try out the DensityIterator, you can install the Heatmap SLD from
+-  To try out server-side processing, you can install the Heatmap SLD from
    the :doc:`geomesa-examples-gdelt` tutorial.
 -  After configuring the SLD, in the URL, change ``styles=`` to be
-   ``styles=heatmap&density=true``. Once you press ``<Enter>``, the display will
+   ``styles=heatmap``. Once you press ``<Enter>``, the display will
    change to a density heat-map.
 
 .. note::
