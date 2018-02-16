@@ -145,4 +145,4 @@ background:
 
 -  `Z-order curve <http://en.wikipedia.org/wiki/Z-order_curve>`__
 -  `Hilbert curve <http://en.wikipedia.org/wiki/Hilbert_curve>`__
--  `GeoWave <https://github.com/ngageoint/geowave>`__
+
