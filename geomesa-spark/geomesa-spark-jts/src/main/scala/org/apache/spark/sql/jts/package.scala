@@ -8,15 +8,18 @@
 
 package org.apache.spark.sql
 
-import org.locationtech.geomesa.spark.jts._
+import org.apache.spark.sql.types.UDTRegistration
 
-object SQLTypes {
+package object jts {
+  /**
+   * This must be called before any JTS types are used.
+   */
+  def registerTypes(): Unit = registration
 
-  def init(sqlContext: SQLContext): Unit = {
-    initJTS(sqlContext)
-    SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
-    SQLGeometryProcessingFunctions.registerFunctions(sqlContext)
-    SQLGeometricOutputFunctions.registerFunctions(sqlContext)
-    SQLRules.registerOptimizations(sqlContext)
+  /** Trick to defer initialization until `registerUDTs` is called,
+   * and ensure its only called once per ClassLoader.
+   */
+  private[jts] lazy val registration: Unit = JTSTypes.typeMap.foreach {
+    case (l, r) => UDTRegistration.register(l.getCanonicalName, r.getCanonicalName)
   }
 }

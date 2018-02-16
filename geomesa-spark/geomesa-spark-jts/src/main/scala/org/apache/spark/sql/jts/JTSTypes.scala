@@ -10,22 +10,9 @@ package org.apache.spark.sql.jts
 
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql._
-import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions.GenericInternalRow
 import org.apache.spark.sql.types._
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.spark._
-import org.opengis.filter.FilterFactory2
-
-import scala.reflect.ClassTag
-
 
 object JTSTypes {
-
-  @transient val geomFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory
-  @transient val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
-
   val GeometryTypeInstance           = new GeometryUDT
   val PointTypeInstance              = new PointUDT
   val LineStringTypeInstance         = new LineStringUDT
@@ -45,7 +32,7 @@ object JTSTypes {
   val MultiPolygonType       = 6
   val GeometryCollectionType = 7
 
-  val typeMap = Map[Class[_], Class[_ <: UserDefinedType[_]]](
+  val typeMap: Map[Class[_], Class[_ <: UserDefinedType[_]]] = Map(
     classOf[Geometry]            -> classOf[GeometryUDT],
     classOf[Point]               -> classOf[PointUDT],
     classOf[LineString]          -> classOf[LineStringUDT],
@@ -55,37 +42,6 @@ object JTSTypes {
     classOf[MultiPolygon]        -> classOf[MultiPolygonUDT],
     classOf[GeometryCollection]  -> classOf[GeometryCollectionUDT]
   )
-
-  typeMap.foreach { case (l, r) => UDTRegistration.register(l.getCanonicalName, r.getCanonicalName) }
-
-  def init(sqlContext: SQLContext): Unit = {
-    SQLGeometricCastFunctions.registerFunctions(sqlContext)
-    SQLSpatialAccessorFunctions.registerFunctions(sqlContext)
-    SQLSpatialFunctions.registerFunctions(sqlContext)
-    SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
-    SQLGeometricOutputFunctions.registerFunctions(sqlContext)
-    SQLRules.registerOptimizations(sqlContext)
-  }
-
-}
-
-abstract class AbstractGeometryUDT[T >: Null <: Geometry](override val simpleString: String)(implicit cm: ClassTag[T])
-  extends UserDefinedType[T] {
-  override def serialize(obj: T): InternalRow = {
-    new GenericInternalRow(Array[Any](WKBUtils.write(obj)))
-  }
-  override def sqlType: DataType = StructType(
-    Seq(
-      StructField("wkb", DataTypes.BinaryType)
-    )
-  )
-
-  override def userClass: Class[T] = cm.runtimeClass.asInstanceOf[Class[T]]
-
-  override def deserialize(datum: Any): T = {
-    val ir = datum.asInstanceOf[InternalRow]
-    WKBUtils.read(ir.getBinary(0)).asInstanceOf[T]
-  }
 }
 
 private [spark] class PointUDT extends AbstractGeometryUDT[Point]("point")

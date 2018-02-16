@@ -6,17 +6,13 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark.jts
 
-import org.locationtech.geomesa.spark.jts._
+import org.apache.spark.sql.SQLContext
 
-object SQLTypes {
-
-  def init(sqlContext: SQLContext): Unit = {
-    initJTS(sqlContext)
-    SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
-    SQLGeometryProcessingFunctions.registerFunctions(sqlContext)
-    SQLGeometricOutputFunctions.registerFunctions(sqlContext)
-    SQLRules.registerOptimizations(sqlContext)
+package object rules {
+  /** Registration delegation function. New rule sets should be added here. */
+  def registerOptimizations(sqlContext: SQLContext): Unit = {
+    GeometryLiteralRules.registerOptimizations(sqlContext)
   }
 }

@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.spark
 
-import java.util
+import java.{util => ju}
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{GeometryFactory, Coordinate, Point}
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -21,6 +21,7 @@ import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.apache.spark.sql.SQLTypes
+
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
@@ -91,7 +92,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
 
       // Filter if features belonged to multiple partition envelopes
       // TODO: Better way
-      val hashSet = new util.HashSet[String]()
+      val hashSet = new ju.HashSet[String]()
       dfPartitioned.collect.foreach{ row =>
         hashSet.add(row.getAs[String]("__fid__"))
       }

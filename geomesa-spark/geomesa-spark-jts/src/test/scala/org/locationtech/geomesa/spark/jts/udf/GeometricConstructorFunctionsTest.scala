@@ -6,37 +6,27 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
-
+package org.locationtech.geomesa.spark.jts.udf
 
 import com.vividsolutions.jts.geom._
-import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.jts.JTSTypes
 import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.jts._
+import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import SQLGeometricConstructorFunctions._
-import SQLGeometricCastFunctions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometricConstructorsTest extends Specification with BlankDataFrame {
+class GeometricConstructorFunctionsTest extends Specification with TestEnvironment {
 
   "sql geometry constructors" should {
     sequential
 
-    implicit var spark: SparkSession = null
-    var sc: SQLContext = null
-
     // before
     step {
-      spark = SparkSession.builder()
-        .appName("testSpark")
-        .master("local[*]")
-        .getOrCreate()
-      sc = spark.sqlContext
-      JTSTypes.init(sc)
+      // Trigger initialization of spark session
+      val _ = spark
     }
 
     "st_geomFromWKT" >> {
@@ -55,7 +45,6 @@ class SparkSQLGeometricConstructorsTest extends Specification with BlankDataFram
       r.collect().head.getAs[Geometry](0) mustEqual expected
 
       dfBlank.select(st_geomFromWKT(point)).first mustEqual expected
-
     }
 
     "st_geometryFromText" >> {
