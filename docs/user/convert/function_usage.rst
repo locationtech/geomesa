@@ -359,6 +359,28 @@ Description: Generates a random UUID.
 
 Usage: ``uuid()``
 
+uuidZ3
+^^^^^^
+
+Description: Generates a Z3-based UUID for point geometries.
+
+Usage: ``uuidZ3($geom, $date, $interval)``
+
+Example: ``uuidZ3(point('POINT (3 2)'), dateTime('2015-01-01T00:00:00.000Z'), 'week')``
+
+See :ref:`customizing_z_index` for details on Z3 intervals.
+
+uuidZ3Centroid
+^^^^^^^^^^^^^^
+
+Description: Generates a Z3-based UUID for non-point geometries.
+
+Usage: ``uuidZ3Centroid($geom, $date, $interval)``
+
+Example: ``uuidZ3Centroid(linestring('LINESTRING(102 0, 103 1, 104 0, 105 1)', dateTime('2015-01-01T00:00:00.000Z'), 'week')``
+
+See :ref:`customizing_z_index` for details on Z3 intervals.
+
 base64
 ^^^^^^
 

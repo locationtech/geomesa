@@ -421,6 +421,18 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("uuid()")
           exp.eval(Array(null)) must anInstanceOf[String]
         }
+        "z3 uuid" >> {
+          val exp = Transformers.parseTransform("uuidZ3($0, $1, 'week')")
+          val geom = WKTUtils.read("POINT (103 1)")
+          val date = Converters.convert("2018-01-01T00:00:00.000Z", classOf[Date])
+          exp.eval(Array(geom, date)) must anInstanceOf[String]
+        }
+        "z3 centroid uuid" >> {
+          val exp = Transformers.parseTransform("uuidZ3Centroid($0, $1, 'week')")
+          val geom = WKTUtils.read("LINESTRING (102 0, 103 1, 104 0, 105 1)")
+          val date = Converters.convert("2018-01-01T00:00:00.000Z", classOf[Date])
+          exp.eval(Array(geom, date)) must anInstanceOf[String]
+        }
         "base64" >> {
           val exp = Transformers.parseTransform("base64($0)")
           exp.eval(Array(bytes)) must be equalTo Base64.encodeBase64URLSafeString(bytes)
