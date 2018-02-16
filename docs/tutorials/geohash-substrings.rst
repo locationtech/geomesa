@@ -143,6 +143,7 @@ If you remain interested, you might make a good contributor to GeoMesa.
 Please do! In the interim, here are some topics that provide additional
 background:
 
--  `Z-order curve <http://en.wikipedia.org/wiki/Z-order_curve>`__
--  `Hilbert curve <http://en.wikipedia.org/wiki/Hilbert_curve>`__
+-  `Z-order curves <http://en.wikipedia.org/wiki/Z-order_curve>`__
+-  `Hilbert curves <http://en.wikipedia.org/wiki/Hilbert_curve>`__
+-  The `SFCurve <https://github.com/locationtech/sfcurve>`__ project
 
