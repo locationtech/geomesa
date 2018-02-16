@@ -36,6 +36,7 @@ object FsRunner extends Runner {
     new UpdateMetadataCommand,
     new ClasspathCommand,
     new ConfigureCommand,
+    new ScalaConsoleCommand,
     new CompactCommand,
     new FsGetPartitionsCommand,
     new FSGetFilesCommand,

@@ -8,17 +8,15 @@
 
 package org.apache.spark.sql
 
-import org.apache.spark.sql.jts.JTSTypes
-
+import org.locationtech.geomesa.spark.jts._
 
 object SQLTypes {
 
   def init(sqlContext: SQLContext): Unit = {
-    JTSTypes.init(sqlContext)
+    initJTS(sqlContext)
     SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
     SQLGeometryProcessingFunctions.registerFunctions(sqlContext)
     SQLGeometricOutputFunctions.registerFunctions(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
-
   }
 }

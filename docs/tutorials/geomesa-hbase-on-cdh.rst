@@ -23,7 +23,7 @@ Deploying GeoMesa HBase on Cloudera CDH 5.X
 - Copy ``$GEOMESA_HBASE_HOME/dist/hbase/geomesa-hbase-distributed-runtime_2.11-$VERSION.jar`` to HDFS under ``hdfs:///hbase/lib``
 
 - Create ``geomesa-site.xml`` under ``$GEOMESA_HBASE_HOME/conf`` and add (change ``[name_node]`` to your HDFS name
-  node hostname, and set your GeoMesa version, e.g ``2.11-1.4.0``):
+  node hostname, and set your GeoMesa version, e.g ``2.11-2.0.0``):
 
 .. code-block:: xml
     
@@ -33,7 +33,7 @@ Deploying GeoMesa HBase on Cloudera CDH 5.X
     <configuration>
     <property>
         <name>geomesa.hbase.coprocessor.path</name>
-        <value>hdfs://[name_node]:8020/hbase/lib/geomesa-hbase-distributed-runtime_2.11-1.4.0.jar</value>
+        <value>hdfs://[name_node]:8020/hbase/lib/geomesa-hbase-distributed-runtime_2.11-2.0.0.jar</value>
         <description>HDFS or local path to GeoMesa-HBase Coprocessor JAR. If a local path is provided it must be
           the same for all region servers. A path provided through the DataStore parameters will always
           override this property.

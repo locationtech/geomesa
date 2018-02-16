@@ -11,9 +11,8 @@ package org.locationtech.geomesa.hbase.tools.data
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.RemoteFilterNotUsedParam
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.data.HBaseDeleteFeaturesCommand.HBaseDeleteFeaturesParams
-import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.data.{DeleteFeaturesCommand, DeleteFeaturesParams}
 
 class HBaseDeleteFeaturesCommand extends DeleteFeaturesCommand[HBaseDataStore] with HBaseDataStoreCommand {
@@ -22,5 +21,5 @@ class HBaseDeleteFeaturesCommand extends DeleteFeaturesCommand[HBaseDataStore] w
 
 object HBaseDeleteFeaturesCommand {
   @Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
-  class HBaseDeleteFeaturesParams extends DeleteFeaturesParams with CatalogParam with RemoteFilterNotUsedParam
+  class HBaseDeleteFeaturesParams extends DeleteFeaturesParams with HBaseParams with RemoteFilterNotUsedParam
 }

@@ -1,0 +1,93 @@
+{
+  "features" : [
+    {
+      "id" : "367152240-215",
+      "geometry" : {
+        "coordinates" : [
+          [
+            -13.4214,
+            37.8271
+          ],
+          [
+            -13.4214,
+            37.8271
+          ]
+        ],
+        "type" : "LineString"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Date_end" : "2018-02-05T15:47:27.336+0000",
+        "CabId" : 367152240,
+        "Date_start" : "2018-02-05T15:47:16.843+0000"
+      }
+    },
+    {
+      "id" : "367152240-216",
+      "geometry" : {
+        "coordinates" : [
+          [
+            -13.4214,
+            37.8271
+          ],
+          [
+            -13.4214,
+            37.8271
+          ]
+        ],
+        "type" : "LineString"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Date_end" : "2018-02-05T15:47:37.382+0000",
+        "CabId" : 367152240,
+        "Date_start" : "2018-02-05T15:47:27.336+0000"
+      }
+    },
+    {
+      "id" : "367152240-217",
+      "geometry" : {
+        "coordinates" : [
+          [
+            -13.4214,
+            37.8271
+          ],
+          [
+            -13.4214,
+            37.8271
+          ]
+        ],
+        "type" : "LineString"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Date_end" : "2018-02-05T15:48:16.753+0000",
+        "CabId" : 367152240,
+        "Date_start" : "2018-02-05T15:47:37.382+0000"
+      }
+    },
+    {
+      "id" : "367152240-218",
+      "geometry" : {
+        "coordinates" : [
+          [
+            -13.4214,
+            37.8271
+          ],
+          [
+            -13.4214,
+            37.8271
+          ]
+        ],
+        "type" : "LineString"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Date_end" : "2018-02-05T15:48:27.389+0000",
+        "CabId" : 367152240,
+        "Date_start" : "2018-02-05T15:48:16.753+0000"
+      }
+    }
+  ],
+  "type" : "FeatureCollection"
+}

@@ -6,31 +6,25 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts.udf
 
 import java.{lang => jl}
 
 import com.vividsolutions.jts.geom.Point
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.SQLGeometricConstructorFunctions._
-import org.locationtech.geomesa.spark.SQLSpatialFunctions._
-import org.locationtech.geomesa.spark.SparkDefaultEncoders._
-import org.locationtech.geomesa.spark.SpatialEncoders._
+import org.locationtech.geomesa.spark.jts._
+import org.locationtech.geomesa.spark.jts.util.{SQLFunctionHelper, WKTUtils}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame {
+class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
   type DFRelation = (Column, Column) => TypedColumn[Any, jl.Boolean]
   sequential
 
   "SQL spatial relationships" should {
-
-    implicit var spark: SparkSession = null
-    var sc: SQLContext = null
 
     var dfPoints: DataFrame = null
     var dfLines: DataFrame = null
@@ -60,17 +54,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
 
     // before
     step {
-      val session  = SparkSession.builder()
-        .appName("testSpark")
-        .master("local[*]")
-        .getOrCreate()
-
-      spark = session
-      sc = spark.sqlContext
-
-      JTSTypes.init(sc)
-
-      import session.implicits._
+      import spark.implicits._
 
       dfPoints = points.mapValues(WKTUtils.read).toSeq.toDF("name", "geom")
       dfPoints.createOrReplaceTempView("points")
@@ -90,8 +74,9 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
     }
 
     def testDirect(relation: DFRelation, name: String, g1: String, g2: String, expected: Boolean) = {
+      import spark.implicits._
       dfBlank.select(relation(st_geomFromWKT(g1), st_geomFromWKT(g2)).as[Boolean]).first mustEqual expected
-      // NB: Hack to pull SQL-land name from columnar function.
+      // NB: Hack to pull SQL-land name from columnar function expression.
       val relationName = SQLFunctionHelper.columnName(relation(lit(null), lit(null))).split('(').head
       val sql = s"select $relationName(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
       sc.sql(sql).as[Boolean].first mustEqual expected
@@ -388,6 +373,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
     }
 
     "st_relate" >> {
+      import spark.implicits._
       val ls1 = "LINESTRING(1 2, 3 4)"
       val ls2 = "LINESTRING(5 6, 7 8)"
       val l1 = s"st_geomFromWKT('$ls1')"
@@ -408,6 +394,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
 
     // other relationship functions
     "st_area" >> {
+      import spark.implicits._
       /* units of deg^2, which may not be that useful to anyone */
       val box1 = "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"
       val box2 = "POLYGON((0 50, 0 60, 10 60, 10 50, 0 50))"
@@ -464,6 +451,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
     }
 
     "st_distance" >> {
+      import spark.implicits._
       val pt1 = "POINT(0 0)"
       val pt2 = "POINT(10 0)"
 
@@ -484,6 +472,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with BlankDataFrame
     }
 
     "st_length" >> {
+      import spark.implicits._
       // length
       sc.sql(s"select st_length(st_geomFromWKT('LINESTRING(0 0, 10 0)'))").as[Double].first mustEqual 10.0
       dfBlank.select(st_length(st_geomFromWKT("LINESTRING(0 0, 10 0)"))).first mustEqual 10.0

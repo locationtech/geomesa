@@ -55,7 +55,7 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType with ClientSideFil
       val create = s"CREATE TABLE $tableName (${columns.map(c => s"${c.name} ${c.cType}").mkString(", ")}, sf blob, " +
           s"PRIMARY KEY (${partitions.map(_.name).mkString("(", ", ", ")")}" +
           s"${if (pks.nonEmpty) { pks.map(_.name).mkString(", ", ", ", "")} else { "" }}))"
-      logger.info(create)
+      logger.debug(create)
       ds.session.execute(create)
     }
   }
@@ -63,7 +63,7 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType with ClientSideFil
   override def removeAll(sft: SimpleFeatureType, ds: CassandraDataStore): Unit = {
     val tableName = getTableName(sft.getTypeName, ds)
     val truncate = s"TRUNCATE $tableName"
-    logger.info(truncate)
+    logger.debug(truncate)
     ds.session.execute(truncate)
   }
 
@@ -73,7 +73,7 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType with ClientSideFil
     } else {
       val tableName = getTableName(sft.getTypeName, ds)
       val delete = s"DROP TABLE IF EXISTS $tableName"
-      logger.info(delete)
+      logger.debug(delete)
       ds.session.execute(delete)
     }
   }

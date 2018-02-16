@@ -8,17 +8,17 @@ custom processors.
 Installation
 ------------
 
-Install the Processors
-~~~~~~~~~~~~~~~~~~~~~~
+Build and Install the Processors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Pick a reasonable directory on your machine, and run:
+Clone the project from GitHub. Pick a reasonable directory on your machine, and run:
 
 .. code-block:: bash
 
     $ git clone https://github.com/geomesa/geomesa-nifi.git
     $ cd geomesa-nifi
 
-To build, run
+To build the project, run
 
 .. code-block:: bash
 
@@ -32,7 +32,7 @@ into the ``lib/`` directory of your NiFi installation.
 Install the SFTs and Converters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The GeoMesa processors need access to the SFTs and converters in order
+The GeoMesa processors need access to ``SimpleFeatureTypes`` and converters in order
 to ingest data. There are two ways of providing these to the processors.
 We can enter the SFT specification string and converter specification
 string directly in a processor or we can provide these to the processors
@@ -59,68 +59,62 @@ be similar.
 Processors
 ----------
 
-This project contains four processors:
+GeoMesa NiFi contains several processors:
 
--  ``PutGeoMesa`` - Ingest data into GeoMesa Accumulo with a GeoMesa
-   converter or from geoavro
--  ``PutGeoMesaKafka`` - Ingest data into GeoMesa Kafka with a GeoMesa
-   converter or from geoavro
--  ``PutGeoTools`` - Ingest data into an arbitrary GeoTools Datastore
-   based on parameters using a GeoMesa converter or avro
--  ``ConvertToGeoAvro`` - Use a GeoMesa converter to create geoavro
++--------------------------+-------------------------------------------------------------------------------------------+
+| Processor                | Description                                                                               |
++==========================+===========================================================================================+
+| ``PutGeoMesaAccumulo``   | Ingest data into a GeoMesa Accumulo datastore with a GeoMesa converter or from geoavro    |
++--------------------------+-------------------------------------------------------------------------------------------+
+| ``PutGeoMesaHBase``      | Ingest data into a GeoMesa HBase datastore with a GeoMesa converter or from geoavro       |
++--------------------------+-------------------------------------------------------------------------------------------+
+| ``PutGeoMesaFileSystem`` | Ingest data into a GeoMesa File System datastore with a GeoMesa converter or from geoavro |
++--------------------------+-------------------------------------------------------------------------------------------+
+| ``PutGeoMesaKafka``      | Ingest data into a GeoMesa Kafka datastore with a GeoMesa converter or from geoavro       |
++--------------------------+-------------------------------------------------------------------------------------------+
+| ``PutGeoTools``          | Ingest data into an arbitrary GeoTools datastore using a GeoMesa converter or avro        |
++--------------------------+-------------------------------------------------------------------------------------------+
+| ``ConvertToGeoAvro``     | Use a GeoMesa converter to create geoavro                                                 |
++--------------------------+-------------------------------------------------------------------------------------------+
 
-PutGeoMesa
-~~~~~~~~~~
+Input Configuration
+~~~~~~~~~~~~~~~~~~~
 
-The ``PutGeoMesa`` processor is used for ingesting data into an Accumulo
-backed GeoMesa datastore. To use this processor first add it to the
-workspace and open the properties tab of its configuration. Descriptions
-of the properties are given below:
+Most of the processors accept similar configuration parameters for specifying the input source. Each
+datastore-specific processor also has additional parameters for connecting to the datastore, detailed in the
+following sections.
 
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| Property                        | Description                                                                                          |
-+=================================+======================================================================================================+
-| Mode                            | Converter or Avro file ingest mode switch.                                                           |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| SftName                         | Name of the SFT on the classpath to use. This property overrides SftSpec.                            |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| ConverterName                   | Name of converter on the classpath to use. This property overrides ConverterSpec.                    |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| FeatureNameOverride             | Override the feature name on ingest.                                                                 |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| SftSpec                         | SFT specification String. Overwritten by SftName if SftName is valid.                                |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| ConverterSpec                   | Converter specification string. Overwritten by ConverterName if ConverterName is valid.              |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| instanceId                      | Accumulo instance ID                                                                                 |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| zookeepers                      | Comma separated list of zookeeper IPs or hostnames                                                   |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| user                            | Accumulo username with create-table and write permissions                                            |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| password                        | Accumulo password for given username                                                                 |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| visibilities                    | Accumulo scan visibilities                                                                           |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| tableName                       | Name of the table to write to. If using namespaces be sure to include that in the name.              |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| writeThreads                    | Number of threads to use when writing data to GeoMesa, has a linear effect on CPU and memory usage   |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| generateStats                   | Enable stats table generation                                                                        |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| useMock                         | Use a mock instance of Accumulo                                                                      |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
-| GeoMesa Configuration Service   | Configuration service to use. More about this feature below.                                         |
-+---------------------------------+------------------------------------------------------------------------------------------------------+
++---------------------------------+-----------------------------------------------------------------------------------------+
+| Property                        | Description                                                                             |
++=================================+=========================================================================================+
+| Mode                            | Converter or Avro file ingest mode switch.                                              |
++---------------------------------+-----------------------------------------------------------------------------------------+
+| SftName                         | Name of the SFT on the classpath to use. This property overrides SftSpec.               |
++---------------------------------+-----------------------------------------------------------------------------------------+
+| ConverterName                   | Name of converter on the classpath to use. This property overrides ConverterSpec.       |
++---------------------------------+-----------------------------------------------------------------------------------------+
+| FeatureNameOverride             | Override the feature name on ingest.                                                    |
++---------------------------------+-----------------------------------------------------------------------------------------+
+| SftSpec                         | SFT specification String. Overwritten by SftName if SftName is valid.                   |
++---------------------------------+-----------------------------------------------------------------------------------------+
+| ConverterSpec                   | Converter specification string. Overwritten by ConverterName if ConverterName is valid. |
++---------------------------------+-----------------------------------------------------------------------------------------+
+
+PutGeoMesaAccumulo
+~~~~~~~~~~~~~~~~~~
+
+The ``PutGeoMesaAccumulo`` processor is used for ingesting data into an Accumulo-backed GeoMesa datastore. To use
+this processor, first add it to the workspace and open the properties tab of its configuration. For a description
+of the connection properties, see :ref:`accumulo_parameters`.
 
 GeoMesa Configuration Service
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``PutGeoMesa`` plugin supports `NiFi Controller
+The ``PutGeoMesaAccumulo`` plugin supports `NiFi Controller
 Services <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__
 to manage common configurations. This allows the user to specify a
 single location to store the Accumulo connection parameters. This allows
-you to add new PutGeoMesa processors without having to enter duplicate
+you to add new PutGeoMesaAccumulo processors without having to enter duplicate
 data.
 
 To add the ``GeomesaConfigControllerService`` access the
@@ -133,75 +127,42 @@ listed.
 To use this feature, after configuring the service, select the
 appropriate Geomesa Config Controller Service from the drop down of the
 ``GeoMesa Configuration Service`` property. When a controller service is
-selected the ``zookeepers``, ``instanceId``, ``user``, ``password`` and
-``tableName`` parameters are not required or used.
+selected, the standard connection parameters (i.e. zookeeper, instance ID, etc)
+are not required or used.
+
+PutGeoMesaHBase
+~~~~~~~~~~~~~~~
+
+The ``PutGeoMesaHBase`` processor is used for ingesting data into an HBase-backed GeoMesa datastore. To use
+this processor, first add it to the workspace and open the properties tab of its configuration. For a description
+of the connection properties, see :ref:`hbase_parameters`.
+
+PutGeoMesaFileSystem
+~~~~~~~~~~~~~~~~~~~~
+
+The ``PutGeoMesaFileSystem`` processor is used for ingesting data into a file system-backed GeoMesa datastore. To use
+this processor, first add it to the workspace and open the properties tab of its configuration. For a description
+of the connection properties, see :ref:`fsds_parameters`.
 
 PutGeoMesaKafka
 ~~~~~~~~~~~~~~~
 
 The ``PutGeoMesaKafka`` processor is used for ingesting data into a
-Kafka backed GeoMesa datastore. This processor only supports Kafka 0.9
+Kafka-backed GeoMesa datastore. This processor supports Kafka 0.9
 and newer. To use this processor first add it to the workspace and open
-the properties tab of its configuration. Descriptions of the properties
-are given below:
-
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Property              | Description                                                                                                                                                                                   |
-+=======================+===============================================================================================================================================================================================+
-| Mode                  | Converter or Avro file ingest mode switch.                                                                                                                                                    |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| SftName               | Name of the SFT on the classpath to use. This property overrides SftSpec.                                                                                                                     |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ConverterName         | Name of converter on the classpath to use. This property overrides ConverterSpec.                                                                                                             |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| FeatureNameOverride   | Override the feature name on ingest.                                                                                                                                                          |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| SftSpec               | SFT specification String. Overwritten by SftName if SftName is valid.                                                                                                                         |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ConverterSpec         | Converter specification string. Overwritten by ConverterName if ConverterName is valid.                                                                                                       |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| brokers               | List of Kafka brokers                                                                                                                                                                         |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| zookeepers            | Comma separated list of zookeeper IPs or hostnames                                                                                                                                            |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| zkpath                | Zookeeper path to Kafka instance                                                                                                                                                              |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| namespace             | Kafka namespace to use                                                                                                                                                                        |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| partitions            | Number of partitions to use in Kafka topics                                                                                                                                                   |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| replication           | Replication factor to use in Kafka topics                                                                                                                                                     |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| isProducer            | Flag to mark if this is a producer                                                                                                                                                            |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| expirationPeriod      | Feature will be auto-dropped (expired) after this delay in milliseconds. Leave blank or use -1 to not drop features.                                                                          |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| cleanUpCache          | Run a thread to clean up the live feature cache if set to true. False by default. Use 'cleanUpCachePeriod' to configure the length of time between cache cleanups. Every second by default.   |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+the properties tab of its configuration. For a description
+of the connection properties, see :ref:`kafka_parameters`.
 
 PutGeoTools
 ~~~~~~~~~~~
 
-The ``PutGeoTools`` processor is used for ingesting data into a GeoTools
+The ``PutGeoTools`` processor is used for ingesting data into any GeoTools
 compatible datastore. To use this processor first add it to the
-workspace and open the properties tab of its configuration. Descriptions
-of the properties are given below:
+workspace and open the properties tab of its configuration.
 
 +-----------------------+-------------------------------------------------------------------------------------------+
 | Property              | Description                                                                               |
 +=======================+===========================================================================================+
-| Mode                  | Converter or Avro file ingest mode switch.                                                |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| SftName               | Name of the SFT on the classpath to use. This property overrides SftSpec.                 |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| ConverterName         | Name of converter on the classpath to use. This property overrides ConverterSpec.         |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| FeatureNameOverride   | Override the feature name on ingest.                                                      |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| SftSpec               | SFT specification String. Overwritten by SftName if SftName is valid.                     |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| ConverterSpec         | Converter specification string. Overwritten by ConverterName if ConverterName is valid.   |
-+-----------------------+-------------------------------------------------------------------------------------------+
 | DataStoreName         | Name of the datastore to ingest data into.                                                |
 +-----------------------+-------------------------------------------------------------------------------------------+
 
@@ -215,23 +176,11 @@ The ``ConvertToGeoAvro`` processor leverages GeoMesa's internal
 converter framework to convert features into Avro and pass them along as
 a flow to be used by other processors in NiFi. To use this processor
 first add it to the workspace and open the properties tab of its
-configuration. Descriptions of the properties are given below:
+configuration.
 
 +-----------------------+-------------------------------------------------------------------------------------------+
 | Property              | Description                                                                               |
 +=======================+===========================================================================================+
-| Mode                  | Converter or Avro file ingest mode switch.                                                |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| SftName               | Name of the SFT on the classpath to use. This property override SftSpec.                  |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| ConverterName         | Name of converter on the classpath to use. This property overrides ConverterSpec.         |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| FeatureNameOverride   | Override the feature name on ingest.                                                      |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| SftSpec               | SFT specification String. Overwritten by SftName if SftName is valid.                     |
-+-----------------------+-------------------------------------------------------------------------------------------+
-| ConverterSpec         | Converter specification string. Overwritten by ConverterName if ConverterName is valid.   |
-+-----------------------+-------------------------------------------------------------------------------------------+
 | OutputFormat          | Only Avro is supported at this time.                                                      |
 +-----------------------+-------------------------------------------------------------------------------------------+
 
@@ -288,5 +237,4 @@ Reference
 ---------
 
 For more information on setting up or using NiFi see the `Apache NiFi
-User
-Guide <https://nifi.apache.org/docs/nifi-docs/html/user-guide.html>`__
+User Guide <https://nifi.apache.org/docs/nifi-docs/html/user-guide.html>`__

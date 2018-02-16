@@ -11,10 +11,10 @@ package org.locationtech.geomesa.hbase.tools.stats
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.ToggleRemoteFilterParam
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.stats.HBaseStatsBoundsCommand.HBaseStatsBoundsParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.{StatsBoundsCommand, StatsBoundsParams}
-import org.locationtech.geomesa.tools.{CatalogParam, RequiredTypeNameParam}
 
 class HBaseStatsBoundsCommand extends StatsBoundsCommand[HBaseDataStore] with HBaseDataStoreCommand {
   override val params = new HBaseStatsBoundsParams
@@ -22,5 +22,6 @@ class HBaseStatsBoundsCommand extends StatsBoundsCommand[HBaseDataStore] with HB
 
 object HBaseStatsBoundsCommand {
   @Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
-  class HBaseStatsBoundsParams extends StatsBoundsParams with CatalogParam with RequiredTypeNameParam with ToggleRemoteFilterParam
+  class HBaseStatsBoundsParams extends StatsBoundsParams with HBaseParams
+      with RequiredTypeNameParam with ToggleRemoteFilterParam
 }

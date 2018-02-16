@@ -5,13 +5,13 @@ Upgrade Guide
 
 This section describes code and configuration changes required when upgrading GeoMesa versions.
 
-Version 1.4
-+++++++++++
+Version 2.0.0
++++++++++++++
 
 GeoTools 18 and GeoServer 2.12
 ------------------------------
 
-GeoMesa 1.4 is compiled against GeoTools 18.0 and GeoServer 2.12. When upgrading GeoServer instances,
+GeoMesa 2.0.0 is compiled against GeoTools 18.0 and GeoServer 2.12. When upgrading GeoServer instances,
 it's usually best to start over with a new GeoServer data directory. If you upgrade GeoMesa in an existing
 GeoServer instance that has run GeoMesa 1.3.x or earlier, layers will still work but you will not be
 able to edit any existing GeoMesa stores. In order to edit stores, you will need to delete them and

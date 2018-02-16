@@ -82,8 +82,8 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     FileSystemStorageFactory.canProcess(params)
 
   override def getParametersInfo: Array[DataAccessFactory.Param] = {
-    import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory.{EncodingParam, PathParam}
-    Array(EncodingParam, PathParam, ReadThreadsParam, NamespaceParam)
+    import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory.{ConfParam, EncodingParam, PathParam}
+    Array(EncodingParam, PathParam, ReadThreadsParam, ConfParam, NamespaceParam)
   }
 
   override def getDisplayName: String = "File System (GeoMesa)"

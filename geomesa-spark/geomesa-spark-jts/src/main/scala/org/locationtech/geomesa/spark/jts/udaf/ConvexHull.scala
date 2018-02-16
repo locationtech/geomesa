@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql.udaf
+package org.locationtech.geomesa.spark.jts.udaf
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}

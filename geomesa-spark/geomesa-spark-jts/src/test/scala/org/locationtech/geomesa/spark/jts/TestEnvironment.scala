@@ -1,4 +1,3 @@
-
 /***********************************************************************
  * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
@@ -7,16 +6,29 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.jts
 
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql._
 
 /**
- * Mixin providing constructor for creating a DataFrame with a single row and no columns.
- * Useful for testing the invocation of data constructing UDFs.
+ * Common JTS test setup and utilities.
  */
-trait BlankDataFrame {
+trait TestEnvironment {
+  implicit lazy val spark: SparkSession = {
+    SparkSession.builder()
+      .appName("testSpark")
+      .master("local[*]")
+      .getOrCreate()
+      .withJTS
+  }
+
+  lazy val sc: SQLContext = spark.sqlContext
+
+  /**
+   * Constructor for creating a DataFrame with a single row and no columns.
+   * Useful for testing the invocation of data constructing UDFs.
+   */
   def dfBlank(implicit spark: SparkSession): DataFrame = {
     // This is to enable us to do a single row creation select operation in DataFrame
     // world. Probably a better/easier way of doing this.

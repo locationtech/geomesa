@@ -9,7 +9,7 @@
 package org.apache.spark.sql
 
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.spark.SQLFunctionHelper.nullableUDF
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper.nullableUDF
 import org.locationtech.geomesa.utils.geohash.GeoHash
 
 object SQLGeometricOutputFunctions {

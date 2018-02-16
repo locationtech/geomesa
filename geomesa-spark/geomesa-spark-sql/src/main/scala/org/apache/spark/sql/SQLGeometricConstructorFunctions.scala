@@ -11,7 +11,7 @@ package org.apache.spark.sql
 import com.vividsolutions.jts.geom._
 import org.geotools.geometry.jts.JTS
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
-import org.locationtech.geomesa.spark.SQLFunctionHelper.nullableUDF
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper.nullableUDF
 
 object SQLGeometricConstructorFunctions {
 

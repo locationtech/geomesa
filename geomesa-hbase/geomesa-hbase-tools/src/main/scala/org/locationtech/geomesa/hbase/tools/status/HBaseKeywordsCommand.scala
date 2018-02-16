@@ -11,9 +11,8 @@ package org.locationtech.geomesa.hbase.tools.status
 import com.beust.jcommander._
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.RemoteFilterNotUsedParam
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.status.HBaseKeywordsCommand.HBaseKeywordsParams
-import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.status.{KeywordsCommand, KeywordsParams}
 
 class HBaseKeywordsCommand extends KeywordsCommand[HBaseDataStore] with HBaseDataStoreCommand {
@@ -22,5 +21,5 @@ class HBaseKeywordsCommand extends KeywordsCommand[HBaseDataStore] with HBaseDat
 
 object HBaseKeywordsCommand {
   @Parameters(commandDescription = "Add/Remove/List keywords on an existing schema")
-  class HBaseKeywordsParams extends CatalogParam with KeywordsParams with RemoteFilterNotUsedParam
+  class HBaseKeywordsParams extends KeywordsParams with HBaseParams with RemoteFilterNotUsedParam
 }

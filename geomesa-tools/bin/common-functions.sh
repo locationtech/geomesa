@@ -52,26 +52,36 @@ function findJars() {
 }
 
 #############################################################
-# Download a list of urls to a destination - takes two args:
+# Download a list of urls to a destination - takes three args:
 #  - destination directory
 #  - list of urls passed as an array reference
-# 
+#  - --no-prompt [optional] bypass confirmation. Useful when
+#    you'd like to provide your own confirmation
+#    messages/handling
+#
 # for example:
 #   urls=("1" "2" "3")
 #   downloadURLS /tmp/foobar urls[@]
+# or
+#   downloadURLS /tmp/foobar urls[@] --no-prompt
 #############################################################
 function downloadUrls() {
   local dest=$1
   # requires that the urls be passed in with the syntax urls[@]
   # old fashioned bash before local -n (namerefs) which came in bash 4.3
   local urls=("${!2}")
+  local noPrompt=$3
 
   echo "Downloading the following ${#urls[@]} files to '${dest}':"
   for url in "${urls[@]}"; do
     echo "  $url"
   done
-  read -r -p "Continue? (y/n) " confirm
-  confirm=${confirm,,} # lower-casing
+  if [[ "${noPrompt}" != "--no-prompt" ]]; then
+    read -r -p "Continue? (y/n) " confirm
+    confirm=${confirm,,} # lower-casing
+  else
+    confirm="yes"
+  fi
 
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     mkdir -p "$dest"
@@ -288,6 +298,48 @@ function registerAutocomplete() {
       echo "Autocomplete Function appears to already be installed."
     fi
   fi
+}
+
+function geomesaScalaConsole() {
+  classpath=${1}
+  # Check if we already downloaded scala
+  if [[ -d "${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/" ]]; then
+    scalaCMD="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
+  else
+    sourceURL=("https://downloads.lightbend.com/scala/%%scala.version%%/scala-%%scala.version%%.tgz")
+    outputDir="${%%gmtools.dist.name%%_HOME}/dist/"
+    outputFile="${outputDir}/scala-%%scala.version%%.tgz"
+
+    if which scala > /dev/null; then
+      scalaCMD=$(which scala)
+      version=$(scala -version 2>&1 | grep %%scala.binary.version%%)
+      if [[ -z "${version}" ]]; then
+        read -p "The wrong Scala version is installed, do you want to download the correct one? (This will not affect your current install) Y\n" -n 1 -r
+        if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+          echo >&2 ""
+          downloadUrls ${outputDir} sourceURL[@] --no-prompt
+          tar xf $outputFile -C "${%%gmtools.dist.name%%_HOME}/dist/"
+          scalaCMD="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
+        else
+          echo "\nThe correct Scala version, Scala %%scala.binary.version%%, is required to continue."
+          exit 1
+        fi
+      fi
+    else
+      read -p "Scala not installed, do you want to download it? (This will not install it) Y\n" -n 1 -r
+      if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+        echo >&2 ""
+        downloadUrls ${outputDir} sourceURL[@] --no-prompt
+        tar xf $outputFile -C "${%%gmtools.dist.name%%_HOME}/dist/"
+        scalaCMD="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
+      else
+        echo "\nScala is required to run the console."
+        exit 1
+      fi
+    fi
+  fi
+
+  exec $scalaCMD -classpath ${classpath} -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
 }
 
 # Reconfigure %%gmtools.dist.name%%_HOME
