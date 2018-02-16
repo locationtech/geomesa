@@ -1,5 +1,5 @@
-GeoMesa FSDS Quick Start
-========================
+GeoMesa FileSystem Quick Start
+==============================
 
 This tutorial is the fastest and easiest way to get started with GeoMesa using the
 FileSytem data store (FSDS). The FSDS lets you store and query data without any database
