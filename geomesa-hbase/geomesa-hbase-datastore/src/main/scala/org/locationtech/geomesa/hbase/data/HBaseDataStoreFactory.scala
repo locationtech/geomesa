@@ -89,6 +89,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   override def getParametersInfo: Array[Param] =
     Array(
       HBaseCatalogParam,
+      ZookeeperParam,
       RemoteFilteringParam,
       CoprocessorUrlParam,
       ConfigPathsParam,
@@ -184,6 +185,7 @@ object HBaseDataStoreFactory extends LazyLogging {
 object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val HBaseCatalogParam             = new GeoMesaParam[String]("hbase.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
   val ConnectionParam               = new GeoMesaParam[Connection]("hbase.connection", "Connection", deprecatedKeys = Seq("connection"))
+  val ZookeeperParam                = new GeoMesaParam[String]("hbase.zookeepers", "List of HBase Zookeeper ensemble servers, comma-separated. Prefer including a valid 'hbase-site.xml' on the classpath over setting this parameter")
   val CoprocessorUrlParam           = new GeoMesaParam[Path]("hbase.coprocessor.url", "Coprocessor Url", deprecatedKeys = Seq("coprocessor.url"))
   val RemoteFilteringParam          = new GeoMesaParam[java.lang.Boolean]("hbase.remote.filtering", "Remote filtering", default = true, deprecatedKeys = Seq("remote.filtering"))
   val MaxRangesPerExtendedScanParam = new GeoMesaParam[java.lang.Integer]("hbase.ranges.max-per-extended-scan", "Max Ranges per Extended Scan", default = 100, deprecatedKeys = Seq("max.ranges.per.extended.scan"))

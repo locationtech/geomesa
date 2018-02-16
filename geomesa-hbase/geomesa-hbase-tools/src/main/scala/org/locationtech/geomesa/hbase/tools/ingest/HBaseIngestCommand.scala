@@ -14,9 +14,8 @@ import com.beust.jcommander.Parameters
 import org.apache.hadoop.hbase.client.Connection
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.ToggleRemoteFilterParam
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand.HBaseIngestParams
-import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
@@ -37,5 +36,5 @@ class HBaseIngestCommand extends IngestCommand[HBaseDataStore] with HBaseDataSto
 
 object HBaseIngestCommand {
   @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-  class HBaseIngestParams extends IngestParams with CatalogParam with ToggleRemoteFilterParam
+  class HBaseIngestParams extends IngestParams with HBaseParams with ToggleRemoteFilterParam
 }

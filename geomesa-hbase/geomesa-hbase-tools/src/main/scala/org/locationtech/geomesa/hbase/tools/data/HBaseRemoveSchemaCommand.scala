@@ -11,9 +11,8 @@ package org.locationtech.geomesa.hbase.tools.data
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.RemoteFilterNotUsedParam
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.data.HBaseRemoveSchemaCommand.HBaseRemoveSchemaParams
-import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.data.{RemoveSchemaCommand, RemoveSchemaParams}
 
 class HBaseRemoveSchemaCommand extends RemoveSchemaCommand[HBaseDataStore] with HBaseDataStoreCommand {
@@ -22,5 +21,5 @@ class HBaseRemoveSchemaCommand extends RemoveSchemaCommand[HBaseDataStore] with 
 
 object HBaseRemoveSchemaCommand {
   @Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
-  class HBaseRemoveSchemaParams extends RemoveSchemaParams with CatalogParam with RemoteFilterNotUsedParam
+  class HBaseRemoveSchemaParams extends RemoveSchemaParams with HBaseParams with RemoteFilterNotUsedParam
 }

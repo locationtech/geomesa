@@ -11,9 +11,8 @@ package org.locationtech.geomesa.hbase.tools.status
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.ToggleRemoteFilterParam
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.status.HBaseGetSftConfigCommand.HBaseGetSftConfigParameters
-import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.status.{GetSftConfigCommand, GetSftConfigParams}
 
 class HBaseGetSftConfigCommand extends GetSftConfigCommand[HBaseDataStore] with HBaseDataStoreCommand {
@@ -22,5 +21,5 @@ class HBaseGetSftConfigCommand extends GetSftConfigCommand[HBaseDataStore] with 
 
 object HBaseGetSftConfigCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
-  class HBaseGetSftConfigParameters extends CatalogParam with GetSftConfigParams with ToggleRemoteFilterParam
+  class HBaseGetSftConfigParameters extends GetSftConfigParams with HBaseParams with ToggleRemoteFilterParam
 }
