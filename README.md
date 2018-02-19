@@ -24,24 +24,27 @@ geospatial analytics.
 ## Documentation
 
 * [Main documentation](http://www.geomesa.org/documentation/)
-* Quick Starts: [Accumulo](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
+* Quick Starts:
+  [HBase](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
+  [Accumulo](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
+  [Cassandra](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
   [Kafka](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
-  [HBase](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html)
+  [FileSystem](http://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
+ 
 * [Tutorials](http://www.geomesa.org/tutorials/)
 
 ## Downloads
 
-**Current release: 1.3.4**
+**Current release: 2.0.0-m.1**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.4/geomesa-accumulo-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Kafka 0.8**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.4/geomesa-kafka-08-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Kafka 0.9**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.4/geomesa-kafka-09-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Kafka 0.10**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.4/geomesa-kafka-10-dist_2.11-1.3.4-bin.tar.gz) |
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.4/geomesa-hbase-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-1.3.4/geomesa-cassandra-dist_2.11-1.3.4-bin.tar.gz) |
-  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-1.3.4.tar.gz) |
-  [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-1.3.4)
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-hbase_2.11-2.0.0-m.1-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-accumulo_2.11-2.0.0-m.1-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-cassandra_2.11-2.0.0-m.1-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-kafka_2.11-2.0.0-m.1-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-fs_2.11-2.0.0-m.1-bin.tar.gz) |
+  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-2.0.0-m.1.tar.gz) |
+  [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-2.0.0-m.1)
 
 **Development version: 2.0.0-SNAPSHOT** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
@@ -53,6 +56,8 @@ To upgrade between minor releases of GeoMesa, the versions of all GeoMesa compon
 This means that the version of the `geomesa-accumulo-distributed-runtime` JAR installed on Accumulo
 tablet servers **must** match the version of the `geomesa-accumulo-gs-plugin` JAR installed in the `WEB-INF/lib`
 directory of GeoServer.
+
+See the [Upgrade Guide](http://www.geomesa.org/documentation/user/upgrade.html) for information on specific version updates.
 
 ## Maven Integration
 
@@ -82,7 +87,7 @@ and then include the desired `geomesa-*` dependencies:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-utils_2.11</artifactId>
-  <version>1.3.4</version>
+  <version>2.0.0-m.1</version>
 </dependency>
   ...
 ```
@@ -129,7 +134,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
-  "org.locationtech.geomesa" %% "geomesa-utils" % "1.3.4",
+  "org.locationtech.geomesa" %% "geomesa-utils" % "2.0.0-m.1",
   ...
 )
 ```
