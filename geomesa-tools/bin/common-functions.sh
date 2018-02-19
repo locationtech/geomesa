@@ -302,6 +302,7 @@ function registerAutocomplete() {
 
 function geomesaScalaConsole() {
   classpath=${1}
+  OPTS=${@}
   # Check if we already downloaded scala
   if [[ -d "${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/" ]]; then
     scalaCMD="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
@@ -339,7 +340,7 @@ function geomesaScalaConsole() {
     fi
   fi
 
-  exec $scalaCMD -classpath ${classpath} -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
+  exec $scalaCMD ${OPTS} -classpath ${classpath} -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
 }
 
 # Reconfigure %%gmtools.dist.name%%_HOME
