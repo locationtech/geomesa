@@ -74,7 +74,7 @@ fi
 if  [[ $1 = configure ]]; then
   geomesaConfigure
 elif [[ $1 = scala-console ]]; then
-    geomesaScalaConsole ${CLASSPATH}
+  geomesaScalaConsole ${CLASSPATH} ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS}
 elif [[ $1 = classpath ]]; then
   for element in ${CLASSPATH//:/ } ; do
     echo ${element}
