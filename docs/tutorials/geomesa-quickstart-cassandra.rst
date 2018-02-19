@@ -274,17 +274,3 @@ Here are just a few simple ways you can play with the visualization:
    in various ways to query your data. You can find more information
    about CQL from `GeoServer's CQL
    tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.
-
-Generating Heatmaps
-~~~~~~~~~~~~~~~~~~~
-
--  To try out server-side processing, you can install the Heatmap SLD from
-   the :doc:`geomesa-examples-gdelt` tutorial.
--  After configuring the SLD, in the URL, change ``styles=`` to be
-   ``styles=heatmap&density=true``. Once you press ``<Enter>``, the display will
-   change to a density heat-map.
-
-.. note::
-
-    For this to work, you will have to first install the WPS module for GeoServer
-    as described in :doc:`/user/geoserver`.
