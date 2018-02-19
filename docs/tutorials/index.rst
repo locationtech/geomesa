@@ -11,8 +11,8 @@ Getting Started
     geomesa-quickstart-accumulo
     geomesa-quickstart-cassandra
     geomesa-quickstart-kafka
-    geomesa-quickstart-lambda
     geomesa-quickstart-fsds
+    geomesa-quickstart-lambda
     geomesa-quickstart-nifi
     geodocker-geomesa/index
     geomesa-hbase-s3-on-aws
@@ -24,13 +24,13 @@ Data In/Out
 .. toctree::
     :maxdepth: 1
 
-    geomesa-quickstart-storm
     geomesa-examples-gdelt
-    geomesa-examples-avro
-    geomesa-raster
     geomesa-examples-transformations
+    geomesa-examples-avro
     geomesa-blobstore
     geomesa-blobstore-exif
+    geomesa-quickstart-storm
+    geomesa-raster
 
 Data Analysis
 -------------
