@@ -302,6 +302,7 @@ function registerAutocomplete() {
 
 function geomesaScalaConsole() {
   classpath=${1}
+  shift 1
   OPTS=${@}
   # Check if we already downloaded scala
   if [[ -d "${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/" ]]; then
