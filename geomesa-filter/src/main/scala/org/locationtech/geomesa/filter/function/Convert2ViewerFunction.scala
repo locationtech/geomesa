@@ -9,7 +9,8 @@
 
 package org.locationtech.geomesa.filter.function
 
-import java.time.temporal.ChronoField
+import java.time.temporal.{ChronoField, Temporal}
+import java.util.Date
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.Base64
@@ -18,31 +19,35 @@ import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl._
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteArrayCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.opengis.temporal.Instant
 
-class Convert2ViewerFunction
-  extends FunctionExpressionImpl(
-    new FunctionNameImpl(
-      "convert2viewer",
-      classOf[String],
-      parameter("id", classOf[String]),
-      parameter("geom", classOf[Geometry]),
-      parameter("dtg", classOf[Long])
-    )) {
+class Convert2ViewerFunction extends FunctionExpressionImpl(Convert2ViewerFunction.Name) {
 
-  override def evaluate(obj: Any): String = {
+  override def evaluate(obj: AnyRef): String = {
     val id    = getExpression(0).evaluate(obj).asInstanceOf[String]
     val track = BinaryOutputEncoder.convertToTrack(id)
     val label = BinaryOutputEncoder.convertToLabel(id)
     val geom  = getExpression(1).evaluate(obj).asInstanceOf[Point]
-    val dtg   = dtg2Long(getExpression(2).evaluate(obj))
+    val dtg   = Convert2ViewerFunction.dtg2Long(getExpression(2).evaluate(obj))
     ByteArrayCallback.apply(track, geom.getY.toFloat, geom.getX.toFloat, dtg, label)
     Base64.encodeBytes(ByteArrayCallback.result)
   }
+}
 
-  private def dtg2Long(d: Any): Long = d match {
-    case l:    Long                         => l
-    case jud:  java.util.Date               => jud.getTime
-    case tmp: java.time.temporal.Temporal   => tmp.getLong(ChronoField.INSTANT_SECONDS) + tmp.get(ChronoField.MILLI_OF_SECOND)
-    case inst: org.opengis.temporal.Instant => inst.getPosition.getDate.getTime
+object Convert2ViewerFunction {
+
+  val Name = new FunctionNameImpl(
+    "convert2viewer",
+    classOf[String],
+    parameter("id", classOf[String]),
+    parameter("geom", classOf[Geometry]),
+    parameter("dtg", classOf[Long])
+  )
+
+  private def dtg2Long(dtg: Any): Long = dtg match {
+    case d: Long     => d
+    case d: Date     => d.getTime
+    case d: Temporal => d.getLong(ChronoField.INSTANT_SECONDS) + d.get(ChronoField.MILLI_OF_SECOND)
+    case d: Instant  => d.getPosition.getDate.getTime
   }
 }

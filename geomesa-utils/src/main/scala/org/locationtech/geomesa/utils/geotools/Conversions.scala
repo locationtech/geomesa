@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.nio.charset.StandardCharsets
-import java.util.Date
+import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
@@ -22,16 +22,11 @@ import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
-import org.locationtech.geomesa.utils.text.{BasicParser, KVPairParser}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.parboiled.errors.{ErrorUtils, ParsingException}
-import org.parboiled.scala.Rule0
-import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
 
 import scala.reflect.ClassTag
 import scala.util.Try
-import scala.util.parsing.combinator.JavaTokenParsers
 
 object Conversions {
 
@@ -72,12 +67,34 @@ object Conversions {
       case _         => throw new Exception(s"Input $v is not a numeric type.")
     }
 
-    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] = {
-      Option(sf.getUserData.get(key)).flatMap {
-        case ct(x) => Some(x)
-        case _ => None
+    /**
+      * Gets the feature ID as a parsed UUID consisting of (msb, lsb). Caches the bits
+      * in the user data for retrieval.
+      *
+      * Note: this method assumes that the feature ID is a UUID - should first check this
+      * with `sft.isUuid`
+      *
+      * @return (most significant bits, least significant bits)
+      */
+    def getUuid: (Long, Long) = {
+      var bits: (Long, Long) = sf.getUserData.get("uuid").asInstanceOf[(Long, Long)]
+      if (bits == null) {
+        val uuid = UUID.fromString(sf.getID)
+        bits = (uuid.getMostSignificantBits, uuid.getLeastSignificantBits)
+        sf.getUserData.put("uuid", bits)
       }
+      bits
     }
+
+    /**
+      * Cache a parsed uuid for later lookup with `getUuid`
+      *
+      * @param uuid (most significant bits, least significant bits)
+      */
+    def cacheUuid(uuid: (Long, Long)): Unit = sf.getUserData.put("uuid", uuid)
+
+    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] =
+      Option(sf.getUserData.get(key)).collect { case ct(x) => x }
   }
 }
 
@@ -112,9 +129,9 @@ object RichAttributeDescriptors {
     } else {
       ad.getUserData.remove(OPT_STATS)
     }
-    def isKeepStats(): Boolean = Option(ad.getUserData.get(OPT_STATS)).exists(_ == "true")
+    def isKeepStats(): Boolean = Option(ad.getUserData.get(OPT_STATS)).contains("true")
 
-    def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).exists(_ == "true")
+    def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).contains("true")
 
     def setCardinality(cardinality: Cardinality): Unit =
       ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
@@ -123,11 +140,11 @@ object RichAttributeDescriptors {
       Option(ad.getUserData.get(OPT_CARDINALITY).asInstanceOf[String])
           .flatMap(c => Try(Cardinality.withName(c)).toOption).getOrElse(Cardinality.UNKNOWN)
 
-    def isJson(): Boolean = Option(ad.getUserData.get(OPT_JSON)).exists(_ == "true")
+    def isJson(): Boolean = Option(ad.getUserData.get(OPT_JSON)).contains("true")
 
     def setBinTrackId(opt: Boolean): Unit = ad.getUserData.put(OPT_BIN_TRACK_ID, opt.toString)
 
-    def isBinTrackId(): Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).exists(_ == "true")
+    def isBinTrackId(): Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).contains("true")
 
     def setListType(typ: Class[_]): Unit = ad.getUserData.put(USER_DATA_LIST_TYPE, typ.getName)
 
@@ -278,7 +295,8 @@ object RichSimpleFeatureType {
     def setAttributeShards(splits: Int): Unit = sft.getUserData.put(ATTR_SPLITS_KEY, splits.toString)
     def getAttributeShards: Int = userData[String](ATTR_SPLITS_KEY).map(_.toInt).getOrElse(4)
 
-    def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
+    def setUuid(uuid: Boolean): Unit = sft.getUserData.put(UUID_KEY, String.valueOf(uuid))
+    def isUuid: Boolean = userData[String](UUID_KEY).exists(java.lang.Boolean.parseBoolean)
 
     def getKeywords: Set[String] =
       userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).getOrElse(Set.empty)
@@ -290,5 +308,7 @@ object RichSimpleFeatureType {
       sft.getUserData.put(KEYWORDS_KEY, getKeywords.diff(keywords).mkString(KEYWORDS_DELIMITER))
 
     def removeAllKeywords(): Unit = sft.getUserData.remove(KEYWORDS_KEY)
+
+    def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
   }
 }
