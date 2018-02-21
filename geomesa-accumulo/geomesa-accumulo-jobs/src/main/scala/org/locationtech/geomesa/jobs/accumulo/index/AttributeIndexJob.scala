@@ -25,11 +25,11 @@ import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 object AttributeIndexJob {
   final val IndexAttributes = "--geomesa.index.attributes"
@@ -50,7 +50,7 @@ class AttributeIndexArgs(args: Array[String]) extends GeoMesaArgs(args) with Inp
   var attributes: java.util.List[String] = new java.util.ArrayList[String]()
 
   @Parameter(names = Array(AttributeIndexJob.IndexCoverage), description = "Type of index (join or full)")
-  var coverage: String = null
+  var coverage: String = _
 
   override def unparse(): Array[String] = {
     val attrs = if (attributes == null || attributes.isEmpty) {
@@ -84,66 +84,67 @@ class AttributeIndexJob extends Tool {
 
     val coverage = Option(parsedArgs.coverage).map { c =>
       try { IndexCoverage.withName(c) } catch {
-        case e: Exception => throw new IllegalArgumentException(s"Invalid coverage value $c")
+        case NonFatal(_) => throw new IllegalArgumentException(s"Invalid coverage value $c")
       }
     }.getOrElse(IndexCoverage.JOIN)
 
     // validation and initialization - ensure the types exist before launching distributed job
     val ds = DataStoreFinder.getDataStore(dsInParams).asInstanceOf[AccumuloDataStore]
     require(ds != null, "The specified input data store could not be created - check your job parameters")
-    val sft = ds.getSchema(typeName)
-    require(sft != null, s"The schema '$typeName' does not exist in the input data store")
-    val index = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Write)
-        .find(_.name == AttributeIndex.name).getOrElse {
-      AttributeIndex.configure(sft, ds)
-      AttributeIndex
+    try {
+      var sft = ds.getSchema(typeName)
+      require(sft != null, s"The schema '$typeName' does not exist in the input data store")
+
+      // validate attributes and set the index coverage
+      attributes.foreach { a =>
+        val descriptor = sft.getDescriptor(a)
+        require(descriptor != null, s"Attribute '$a' does not exist in schema '$typeName'")
+        descriptor.setIndexCoverage(coverage)
+      }
+
+      // update the schema - this will create the table if it doesn't exist, and add splits
+      ds.updateSchema(sft.getTypeName, sft)
+
+      // re-load the sft now that we've updated it
+      sft = ds.getSchema(sft.getTypeName)
+
+      val index = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Write)
+          .find(_.name == AttributeIndex.name)
+          .getOrElse(throw new IllegalStateException("Could not find expected attribute index for simple feature type"))
+
+      val tableName = index.getTableName(typeName, ds)
+
+      val job = Job.getInstance(conf,
+        s"GeoMesa Attribute Index Job '${sft.getTypeName}' - '${attributes.mkString(", ")}'")
+
+      AccumuloJobUtils.setLibJars(job.getConfiguration)
+
+      job.setJarByClass(SchemaCopyJob.getClass)
+      job.setMapperClass(classOf[AttributeMapper])
+      job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
+      job.setOutputFormatClass(classOf[AccumuloOutputFormat])
+      job.setMapOutputKeyClass(classOf[Text])
+      job.setMapOutputValueClass(classOf[Mutation])
+      job.setNumReduceTasks(0)
+
+      // TODO we could use GeoMesaOutputFormat with indices
+      val query = new Query(sft.getTypeName, Filter.INCLUDE)
+      GeoMesaAccumuloInputFormat.configure(job, dsInParams, query)
+      job.getConfiguration.set(AttributeIndexJob.AttributesKey, attributes.mkString(","))
+      job.getConfiguration.set(AttributeIndexJob.CoverageKey, coverage.toString)
+
+      AccumuloOutputFormat.setConnectorInfo(job, parsedArgs.inUser, new PasswordToken(parsedArgs.inPassword.getBytes))
+      // use deprecated method to work with both 1.5/1.6
+      AccumuloOutputFormat.setZooKeeperInstance(job, parsedArgs.inInstanceId, parsedArgs.inZookeepers)
+      AccumuloOutputFormat.setDefaultTableName(job, tableName)
+      AccumuloOutputFormat.setCreateTables(job, true)
+
+      val result = job.waitForCompletion(true)
+
+      if (result) { 0 } else { 1 }
+    } finally {
+      ds.dispose()
     }
-    val tableName = index.getTableName(typeName, ds)
-
-    val valid = sft.getAttributeDescriptors.map(_.getLocalName)
-    attributes.foreach(a => assert(valid.contains(a), s"Attribute '$a' does not exist in schema '$typeName'"))
-
-    val job = Job.getInstance(conf,
-      s"GeoMesa Attribute Index Job '${sft.getTypeName}' - '${attributes.mkString(", ")}'")
-
-    AccumuloJobUtils.setLibJars(job.getConfiguration)
-
-    job.setJarByClass(SchemaCopyJob.getClass)
-    job.setMapperClass(classOf[AttributeMapper])
-    job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
-    job.setOutputFormatClass(classOf[AccumuloOutputFormat])
-    job.setMapOutputKeyClass(classOf[Text])
-    job.setMapOutputValueClass(classOf[Mutation])
-    job.setNumReduceTasks(0)
-
-    // TODO we could use GeoMesaOutputFormat with indices
-    val query = new Query(sft.getTypeName, Filter.INCLUDE)
-    GeoMesaAccumuloInputFormat.configure(job, dsInParams, query)
-    job.getConfiguration.set(AttributeIndexJob.AttributesKey, attributes.mkString(","))
-    job.getConfiguration.set(AttributeIndexJob.CoverageKey, coverage.toString)
-
-    AccumuloOutputFormat.setConnectorInfo(job, parsedArgs.inUser, new PasswordToken(parsedArgs.inPassword.getBytes))
-    // use deprecated method to work with both 1.5/1.6
-    AccumuloOutputFormat.setZooKeeperInstance(job, parsedArgs.inInstanceId, parsedArgs.inZookeepers)
-    AccumuloOutputFormat.setDefaultTableName(job, tableName)
-    AccumuloOutputFormat.setCreateTables(job, true)
-
-    val result = job.waitForCompletion(true)
-
-    if (result) {
-      // update the metadata and splits
-      // reload the sft, as we nulled out the index flags earlier
-      val sft = ds.getSchema(typeName)
-      def wasIndexed(ad: AttributeDescriptor) = attributes.contains(ad.getLocalName)
-      sft.getAttributeDescriptors.filter(wasIndexed).foreach(_.setIndexCoverage(coverage))
-      ds.updateSchema(typeName, sft)
-      // schedule a table compaction to clean up the table
-      ds.connector.tableOperations().compact(tableName, null, null, true, false)
-    }
-
-    ds.dispose()
-
-    if (result) 0 else 1
   }
 
   override def getConf: Configuration = conf
@@ -155,10 +156,10 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
 
   type Context = Mapper[Text, SimpleFeature, Text, Mutation]#Context
 
-  private var counter: Counter = null
+  private var counter: Counter = _
 
-  private var writer: (AccumuloFeature) => Seq[Mutation] = null
-  private var toWritable: (SimpleFeature) => AccumuloFeature = null
+  private var writer: (AccumuloFeature) => Seq[Mutation] = _
+  private var toWritable: (SimpleFeature) => AccumuloFeature = _
 
   override protected def setup(context: Context): Unit = {
     counter = context.getCounter("org.locationtech.geomesa", "attributes-written")
