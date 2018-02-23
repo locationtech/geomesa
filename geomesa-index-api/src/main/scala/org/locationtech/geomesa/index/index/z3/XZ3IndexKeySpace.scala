@@ -129,7 +129,7 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues] {
 
     val XZ3IndexValues(sfc, _, xy, _, timesByBin) = indexValues
 
-    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+    val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
 
     def toZRanges(t: (Double, Double)): Seq[IndexRange] =
       sfc.ranges(xy.map { case (xmin, ymin, xmax, ymax) => (xmin, ymin, t._1, xmax, ymax, t._2) }, rangeTarget)

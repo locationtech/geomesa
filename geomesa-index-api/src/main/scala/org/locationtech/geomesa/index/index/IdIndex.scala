@@ -15,12 +15,13 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
-import org.locationtech.geomesa.index.conf.TableSplitter
+import org.locationtech.geomesa.index.conf.{QueryProperties, TableSplitter}
 import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] extends GeoMesaFeatureIndex[DS, F, W]
     with IndexAdapter[DS, F, W, R, C] with IdFilterStrategy[DS, F, W] with LazyLogging {
@@ -60,8 +61,6 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    import scala.collection.JavaConversions._
-
     val sharing = sft.getTableSharingBytes
 
     val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
@@ -86,18 +85,12 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
                             explain: Explainer): QueryPlan[DS, F, W] = {
-
-    if (filter.primary.isEmpty) {
-      filter.secondary.foreach { f =>
-        logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
-      }
-    }
-
     val prefix = sft.getTableSharingBytes
 
     filter.primary match {
       case None =>
-        // allow for full table scans
+        // check that full table scans are allowed
+        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }

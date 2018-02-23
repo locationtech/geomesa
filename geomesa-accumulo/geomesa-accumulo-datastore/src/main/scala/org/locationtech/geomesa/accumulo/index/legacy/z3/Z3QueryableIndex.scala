@@ -28,6 +28,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 trait Z3QueryableIndex extends AccumuloFeatureIndexType
     with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
@@ -54,6 +55,8 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
     }
 
     if (filter.primary.isEmpty) {
+      // check that full table scans are allowed
+      QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
       filter.secondary.foreach { f =>
         logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
       }
@@ -152,7 +155,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
         }
       }
 
-      val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+      val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
       def toZRanges(t: Seq[(Long, Long)]): Seq[(Array[Byte], Array[Byte])] = if (sft.isPoints) {
         sfc.ranges(xy, t, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
       } else {

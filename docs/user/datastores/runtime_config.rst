@@ -38,13 +38,6 @@ front, so estimates will cause problems. To force GeoMesa to calculate the exact
 set, you may set this property to ``true``. You may also override this behavior on a per-query basis
 by using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT``.
 
-geomesa.query.timeout
-+++++++++++++++++++++
-
-This property can be used to prevent long-running queries from overloading the system. When set,
-queries will be closed after the timeout, even if not all results have been returned yet. The
-timeout is specified as a duration, e.g. ``1 minute`` or ``30 seconds``.
-
 geomesa.scan.ranges.target
 ++++++++++++++++++++++++++
 
@@ -55,6 +48,25 @@ overwhelm clients, causing slowdowns. The optimal value depends on the environme
 queries against the Z3 or XZ3 index, the number of ranges will be multiplied by the number of time periods
 (e.g. weeks by default) being queried.
 
+geomesa.query.timeout
++++++++++++++++++++++
+
+This property can be used to prevent long-running queries from overloading the system. When set,
+queries will be closed after the timeout, even if not all results have been returned yet. The
+timeout is specified as a duration, e.g. ``1 minute`` or ``30 seconds``.
+
+geomesa.scan.block-full-table
++++++++++++++++++++++++++++++
+
+This property will prevent full-table scans from executing. A full-table scan is any query that can't be
+constrained down using a search index, and thus requires scanning the entire data set. With large data sets,
+such a scan can last a long time and be resource intensive. The property is specified as a Boolean, i.e.
+``true`` or ``false``.
+
+For more granularity, it is also possible to specify the full-table scan behavior for individual schemas
+(``SimpleFeatureTypes``). Use ``geomesa.scan.<type-name>.block-full-table``, where ``<type-name>`` is
+replaced with the schema name (e.g. "gdelt"). Properties set for an individual schema will take precedence
+over the globally-defined behavior.
 
 .. _stats_generate_config:
 
