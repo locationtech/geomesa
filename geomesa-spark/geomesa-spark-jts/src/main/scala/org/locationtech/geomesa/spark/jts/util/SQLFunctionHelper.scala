@@ -15,7 +15,10 @@ import org.apache.spark.sql.{Column, Encoder, TypedColumn}
 
 import scala.reflect.runtime.universe._
 
-private[geomesa] object SQLFunctionHelper {
+// This should be some level of package private, but there's a dependency on it
+// from org.apache.spark.sql.SQLGeometricConstructorFunctions, which could/should be moved
+// into a org.locationtech.geomesa package eventually, and this access restriction reenabled
+/*private[geomesa]*/ object SQLFunctionHelper {
   def nullableUDF[A1, RT](f: A1 => RT): A1 => RT = {
     case null => null.asInstanceOf[RT]
     case out1 => f(out1)
