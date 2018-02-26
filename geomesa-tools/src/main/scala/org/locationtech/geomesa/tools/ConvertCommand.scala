@@ -99,7 +99,7 @@ object ConvertCommand extends LazyLogging {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     lazy val outputStream: OutputStream = ExportCommand.createOutputStream(params.file, params.gzip)
-    lazy val writer: Writer = ExportCommand.getWriter(params)
+    lazy val writer: Writer = ExportCommand.getWriter(params.file, params.gzip)
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     lazy val hints = {
       val q = new Query("")
@@ -120,7 +120,7 @@ object ConvertCommand extends LazyLogging {
 
     params.outputFormat match {
       case Csv | Tsv      => new DelimitedExporter(writer, params.outputFormat, None, !params.noHeader)
-      case Shp            => new ShapefileExporter(ExportCommand.checkShpFile(params))
+      case Shp            => new ShapefileExporter(FileExportCommand.checkShpFile(params))
       case GeoJson | Json => new GeoJsonExporter(writer)
       case Gml            => new GmlExporter(outputStream)
       case Avro           => new AvroExporter(outputStream, avroCompression)
@@ -148,6 +148,6 @@ object ConvertCommand extends LazyLogging {
 
 object ConvertParameters {
   @Parameters(commandDescription = "Convert files using GeoMesa's internal converter framework")
-  class ConvertParameters extends FileExportParams with InputFilesParam with OptionalTypeNameParam
+  class ConvertParameters extends FilePropertyParams with InputFilesParam with OptionalTypeNameParam
     with RequiredFeatureSpecParam with RequiredConverterConfigParam
 }

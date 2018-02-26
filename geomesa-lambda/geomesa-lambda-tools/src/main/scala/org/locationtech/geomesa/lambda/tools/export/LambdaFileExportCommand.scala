@@ -12,12 +12,12 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
 import org.locationtech.geomesa.tools.{OptionalIndexParam, RequiredTypeNameParam}
-import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
+import org.locationtech.geomesa.tools.export.{FileExportCommand, FileExportParams}
 
-class LambdaExportCommand extends ExportCommand[LambdaDataStore] with LambdaDataStoreCommand {
-  override val params = new LambdaExportParams
+class LambdaFileExportCommand extends FileExportCommand[LambdaDataStore] with LambdaDataStoreCommand {
+  override val params = new LambdaFileExportParams
 }
 
 @Parameters(commandDescription = "Export features from a GeoMesa data store")
-class LambdaExportParams extends ExportParams with LambdaDataStoreParams
+class LambdaFileExportParams extends FileExportParams with LambdaDataStoreParams
     with RequiredTypeNameParam with OptionalIndexParam

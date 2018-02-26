@@ -16,7 +16,21 @@ import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DataFormatConverter
 import org.locationtech.geomesa.tools.{OptionalCqlFilterParam, QueryHintsParams}
 
-trait FileExportParams extends OptionalCqlFilterParam with QueryHintsParams {
+trait AttributeParam {
+  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export (comma-separated)...Comma-separated expressions with each in the format attribute[=filter_function_expression]|derived-attribute=filter_function_expression|'id'. 'id' will export the feature ID, filter_function_expression is an expression of filter function applied to attributes, literals and filter functions, i.e. can be nested")
+  var attributes: java.util.List[String] = _
+}
+
+// This provides evidence for ExportQueryParams that this variable will exist.
+// We override this in FileExportParams and in LeafletExportCommands so we can
+// provided different defaults and messages.
+trait MaxFeaturesParam {
+  def maxFeatures: Integer
+}
+
+trait ExportQueryParams extends MaxFeaturesParam with AttributeParam with OptionalCqlFilterParam with QueryHintsParams
+
+trait FilePropertyParams extends MaxFeaturesParam with OptionalCqlFilterParam with QueryHintsParams {
   @Parameter(names = Array("-o", "--output"), description = "Output to a file instead of std out")
   var file: File = _
 
@@ -33,7 +47,12 @@ trait FileExportParams extends OptionalCqlFilterParam with QueryHintsParams {
   var maxFeatures: Integer = _
 }
 
-trait ExportParams extends FileExportParams {
-  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export (comma-separated)...Comma-separated expressions with each in the format attribute[=filter_function_expression]|derived-attribute=filter_function_expression|'id'. 'id' will export the feature ID, filter_function_expression is an expression of filter function applied to attributes, literals and filter functions, i.e. can be nested")
-  var attributes: java.util.List[String] = _
+trait FileExportParams extends FilePropertyParams with ExportQueryParams
+
+trait LeafletExportParams extends ExportQueryParams {
+  @Parameter(names = Array("-o", "--output"), description = "(Optional) Output directory to store files.")
+  var file: File = _
+
+  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. A high limit will cause performance issues, use this parameter with caution. default: 10000")
+  var maxFeatures: Integer = 10000
 }

@@ -105,6 +105,12 @@ else
     fi
     # we have to include java.util.logging override file, slf4j can't handle it automatically
     LOGGING_OPT="-Djava.util.logging.config.file=${%%gmtools.dist.name%%_HOME}/conf/java-logging.properties"
-    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} ${LOGGING_OPT} -cp ${CLASSPATH} org.locationtech.geomesa.bigtable.tools.BigtableRunner "$@"
+    cmd="java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} ${LOGGING_OPT} -cp ${CLASSPATH} org.locationtech.geomesa.bigtable.tools.BigtableRunner ${@}"
+    if [[ $1 == export-leaflet ]]; then
+      res=$(eval $cmd)
+      [[ $? == 0 ]] && launchLeafletMap $res || echo "${res}"
+    else
+      eval $cmd
+    fi
   fi
 fi

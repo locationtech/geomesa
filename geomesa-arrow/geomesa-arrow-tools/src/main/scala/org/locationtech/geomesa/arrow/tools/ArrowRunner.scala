@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.arrow.tools
 
 import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.arrow.tools.export.ArrowExportCommand
+import org.locationtech.geomesa.arrow.tools.export.{ArrowFileExportCommand, ArrowLeafletExportCommand}
 import org.locationtech.geomesa.arrow.tools.ingest.ArrowIngestCommand
 import org.locationtech.geomesa.arrow.tools.stats._
 import org.locationtech.geomesa.arrow.tools.status._
@@ -24,7 +24,8 @@ object ArrowRunner extends Runner {
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
     new ArrowDescribeSchemaCommand,
     new EnvironmentCommand,
-    new ArrowExportCommand,
+    new ArrowFileExportCommand,
+    new ArrowLeafletExportCommand,
     new HelpCommand(this, jc),
     new ArrowIngestCommand,
     new ArrowGetTypeNamesCommand,

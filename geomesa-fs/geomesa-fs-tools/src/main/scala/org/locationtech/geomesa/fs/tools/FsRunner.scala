@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.fs.tools.compact.CompactCommand
-import org.locationtech.geomesa.fs.tools.export.FsExportCommand
+import org.locationtech.geomesa.fs.tools.export.{FsFileExportCommand, FsLeafletExportCommand}
 import org.locationtech.geomesa.fs.tools.ingest.{FsIngestCommand, UpdateMetadataCommand}
 import org.locationtech.geomesa.fs.tools.stats._
 import org.locationtech.geomesa.fs.tools.status._
@@ -25,7 +25,8 @@ object FsRunner extends Runner {
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
     new FsDescribeSchemaCommand,
     new EnvironmentCommand,
-    new FsExportCommand,
+    new FsFileExportCommand,
+    new FsLeafletExportCommand,
     new HelpCommand(this, jc),
     new FsIngestCommand,
     new FsGetTypeNamesCommand,

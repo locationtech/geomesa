@@ -344,6 +344,27 @@ function geomesaScalaConsole() {
   exec $scalaCMD ${OPTS} -classpath ${classpath} -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
 }
 
+function launchLeafletMap() {
+  # Attempt to launch the leaflet map after the command successfully runs.
+  res=($@)
+  url="${res[${#res[@]}-1]}" # get the last item in the array
+  if [[ -f $url ]]; then
+    echo "${res[@]}"
+    if [[ -x $BROWSER ]]; then
+      exec "${BROWSER}" "${url}"
+    elif which xdg-open > /dev/null; then
+      xdg-open "${url}"
+    elif which gnome-open > /dev/null; then
+      gnome-open "${url}"
+    else
+      echo "Unable to find a browser to open file. Please open ${url} with your browser to view the map."
+    fi
+  else
+    echo "Unable to save or locate Leaflet index.html"
+    echo $@
+  fi
+}
+
 # Reconfigure %%gmtools.dist.name%%_HOME
 if [[ $1 = configure ]]; then
   echo >&2 "Using %%gmtools.dist.name%%_HOME = $%%gmtools.dist.name%%_HOME"

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kafka.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.kafka.tools.data.{KafkaCreateSchemaCommand, KafkaRemoveSchemaCommand}
-import org.locationtech.geomesa.kafka.tools.export.{KafkaExportCommand, KafkaListenCommand}
+import org.locationtech.geomesa.kafka.tools.export.{KafkaFileExportCommand, KafkaListenCommand}
 import org.locationtech.geomesa.kafka.tools.ingest.KafkaIngestCommand
 import org.locationtech.geomesa.kafka.tools.status._
 import org.locationtech.geomesa.tools.status._
@@ -24,7 +24,7 @@ object KafkaRunner extends Runner {
     new KafkaCreateSchemaCommand,
     new KafkaRemoveSchemaCommand,
     new KafkaListenCommand,
-    new KafkaExportCommand,
+    new KafkaFileExportCommand,
     new KafkaIngestCommand,
     new KafkaDescribeSchemaCommand,
     new KafkaGetTypeNamesCommand,

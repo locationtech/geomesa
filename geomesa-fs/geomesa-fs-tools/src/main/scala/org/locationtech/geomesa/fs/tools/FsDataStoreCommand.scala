@@ -85,4 +85,9 @@ trait PartitionParam {
   var partitions: java.util.List[String] = new util.ArrayList[String]()
 }
 
+trait OptionalQueryThreads {
+  @Parameter(names = Array("--query-threads"), description = "threads (start with 1)", required = false)
+  var threads: java.lang.Integer = 1
+}
+
 trait FsParams extends PathParam with EncodingParam

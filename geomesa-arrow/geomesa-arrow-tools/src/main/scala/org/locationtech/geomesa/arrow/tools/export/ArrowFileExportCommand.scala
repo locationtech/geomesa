@@ -13,12 +13,12 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.{ArrowDataStoreCommand, UrlParam}
-import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
+import org.locationtech.geomesa.tools.export.{FileExportCommand, FileExportParams}
 import org.opengis.feature.simple.SimpleFeatureType
 
-class ArrowExportCommand extends ExportCommand[ArrowDataStore] with ArrowDataStoreCommand {
+class ArrowFileExportCommand extends FileExportCommand[ArrowDataStore] with ArrowDataStoreCommand {
 
-  override val params = new ArrowExportParams
+  override val params = new ArrowFileExportParams
 
   override protected def getSchema(ds: ArrowDataStore): SimpleFeatureType = ds.getSchema
   override protected def getFeatures(ds: ArrowDataStore, query: Query): SimpleFeatureCollection =
@@ -26,4 +26,4 @@ class ArrowExportCommand extends ExportCommand[ArrowDataStore] with ArrowDataSto
 }
 
 @Parameters(commandDescription = "Export features from a GeoMesa data store")
-class ArrowExportParams extends ExportParams with UrlParam
+class ArrowFileExportParams extends FileExportParams with UrlParam

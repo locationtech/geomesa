@@ -6,18 +6,18 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.tools.export
+package org.locationtech.geomesa.lambda.tools.export
 
 import com.beust.jcommander.Parameters
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
+import org.locationtech.geomesa.lambda.data.LambdaDataStore
+import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
+import org.locationtech.geomesa.tools.export.{LeafletExportCommand, LeafletExportParams}
 import org.locationtech.geomesa.tools.{OptionalIndexParam, RequiredTypeNameParam}
 
-class AccumuloExportCommand extends ExportCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
-  override val params = new AccumuloExportParams
+class LambdaLeafletExportCommand extends LeafletExportCommand[LambdaDataStore] with LambdaDataStoreCommand {
+  override val params = new LambdaLeafletExportParams
 }
 
 @Parameters(commandDescription = "Export features from a GeoMesa data store")
-class AccumuloExportParams extends ExportParams with AccumuloDataStoreParams
+class LambdaLeafletExportParams extends LeafletExportParams with LambdaDataStoreParams
     with RequiredTypeNameParam with OptionalIndexParam

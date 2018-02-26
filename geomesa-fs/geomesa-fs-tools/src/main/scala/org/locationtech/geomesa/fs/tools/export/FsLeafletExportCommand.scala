@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.fs.tools.export
 
-import com.beust.jcommander.{Parameter, Parameters}
-import org.locationtech.geomesa.fs.tools.export.FsExportCommand.FsExportParams
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
+import com.beust.jcommander.Parameters
+import org.locationtech.geomesa.fs.tools.export.FsLeafletExportCommand.FsExportParams
+import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams, OptionalQueryThreads}
 import org.locationtech.geomesa.fs.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
-import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
+import org.locationtech.geomesa.tools.export.{LeafletExportCommand, LeafletExportParams}
 
-class FsExportCommand extends ExportCommand[FileSystemDataStore] with FsDataStoreCommand {
+class FsLeafletExportCommand extends LeafletExportCommand[FileSystemDataStore] with FsDataStoreCommand {
 
   override val params = new FsExportParams
 
@@ -24,13 +24,8 @@ class FsExportCommand extends ExportCommand[FileSystemDataStore] with FsDataStor
   }
 }
 
-object FsExportCommand {
+object FsLeafletExportCommand {
 
-  @Parameters(commandDescription = "Export features from a GeoMesa data store")
-  class FsExportParams extends ExportParams with FsParams with RequiredTypeNameParam with OptionalQueryThreads
-
-  trait OptionalQueryThreads {
-    @Parameter(names = Array("--query-threads"), description = "threads (start with 1)", required = false)
-    var threads: java.lang.Integer = 1
-  }
+  @Parameters(commandDescription = "Export features from a GeoMesa data store and render them in Leaflet")
+  class FsExportParams extends LeafletExportParams with FsParams with RequiredTypeNameParam with OptionalQueryThreads
 }
