@@ -43,7 +43,7 @@ trait FilePropertyParams extends MaxFeaturesParam with OptionalCqlFilterParam wi
   @Parameter(names = Array("--no-header"), description = "Export as a delimited text format (csv|tsv) without a type header", required = false)
   var noHeader: Boolean = false
 
-  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
+  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. Default: Unlimited")
   var maxFeatures: Integer = _
 }
 
@@ -53,6 +53,6 @@ trait LeafletExportParams extends ExportQueryParams {
   @Parameter(names = Array("-o", "--output"), description = "(Optional) Output directory to store files.")
   var file: File = _
 
-  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. A high limit will cause performance issues, use this parameter with caution. default: 10000")
+  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. A high limit will cause performance issues, use this parameter with caution.")
   var maxFeatures: Integer = 10000
 }

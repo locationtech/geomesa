@@ -47,11 +47,12 @@ trait LeafletExportCommand[DS <: DataStore] extends ExportCommand[DS] {
     Option(params.maxFeatures) match {
       case Some(limit) =>
         if (limit > 10000) {
-          user.warn("A large number of features might be exported. This can cause performance " +
-            "issues. For large numbers of features it is recommended to use GeoServer to render " +
-            "the map.")
-          val response = readLine("Do you want to continue? [y/N]")
-          if (Option(response).getOrElse("n").substring(0, 1).matches("^[nN]")) {
+          // Note we have to ask if the user wants to continue like this or the output will be
+          // hidden since this command runs in a sub-shell
+          user.warn("A large number of features might be exported. This can cause performance issues when using the map. For large numbers of features it is recommended to use GeoServer to render a map.\nDo you want to continue? [y/N]")
+          // readLine() could be string, null or empty string, handle all
+          val response = Option(readLine()).getOrElse("").headOption.getOrElse("n").toString
+          if (response.matches("^[nN]")) {
             sys.exit(1)
           }
         }
