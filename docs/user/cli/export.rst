@@ -116,6 +116,9 @@ have all index types.
 The ``--gzip`` argument can be used to compress the output through **gzip** encoding. It can be specified
 as a number between 1-9. Higher numbers indicate more compression, lower numbers indicate faster compression.
 
+.. _cli_export_leaflet:
+
+
 ``export-leaflet``
 ------------------
 
