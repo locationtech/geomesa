@@ -10,7 +10,7 @@ package org.locationtech.geomesa.arrow.vector
 
 import java.util.Date
 
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
+import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -122,7 +122,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get null dictionary values" >> {
-      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01")))
+      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01", null)))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(true))) { vector =>
         val nulls = features.map(ScalaSimpleFeature.copy)
         (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))

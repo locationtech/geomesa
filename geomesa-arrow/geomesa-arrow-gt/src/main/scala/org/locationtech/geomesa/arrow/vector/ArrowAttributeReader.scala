@@ -174,6 +174,7 @@ object ArrowAttributeReader {
                                   val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
     private val accessor = vector.getAccessor
     private val holder = new NullableTinyIntHolder
+
     override def apply(i: Int): AnyRef = {
       accessor.get(i, holder)
       if (holder.isSet == 0) { null } else {
@@ -196,6 +197,7 @@ object ArrowAttributeReader {
                                    val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
     private val accessor = vector.getAccessor
     private val holder = new NullableSmallIntHolder
+
     override def apply(i: Int): AnyRef = {
       accessor.get(i, holder)
       if (holder.isSet == 0) { null } else {
@@ -218,6 +220,7 @@ object ArrowAttributeReader {
                                  val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
     private val accessor = vector.getAccessor
     private val holder = new NullableIntHolder
+
     override def apply(i: Int): AnyRef = {
       accessor.get(i, holder)
       if (holder.isSet == 0) { null } else {
