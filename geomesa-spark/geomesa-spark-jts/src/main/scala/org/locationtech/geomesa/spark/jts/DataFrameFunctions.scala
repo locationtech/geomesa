@@ -79,19 +79,18 @@ object DataFrameFunctions extends SpatialEncoders {
       st_makeBBOX(lit(lowerX), lit(upperX), lit(lowerY), lit(upperY))
 
     def st_makePolygon(lineString: Column): TypedColumn[Any, Polygon] =
-      st_polygon(lineString)
+      udfToColumn(ST_MakePolygon, constructorNames, lineString)
     def st_makePolygon(lineString: LineString): TypedColumn[Any, Polygon] =
-      st_polygon(lineString)
+      st_makePolygon(lineLit(lineString))
 
     def st_makePoint(x: Column, y: Column): TypedColumn[Any, Point] =
-      st_point(x, y)
+      udfToColumn(ST_MakePoint, constructorNames, x, y)
     def st_makePoint(x: Double, y: Double): TypedColumn[Any, Point] =
-      st_point(x, y)
+      st_makePoint(lit(x), lit(x))
 
     def st_makeLine(pointSeq: Column): TypedColumn[Any, LineString] =
       udfToColumn(ST_MakeLine, constructorNames, pointSeq)
     def st_makeLine(pointSeq: Seq[Point]): TypedColumn[Any, LineString] =
-      //udfToColumnLiterals(ST_MakeLine, constructorNames, pointSeq)
       st_makeLine(array(pointSeq.map(pointLit): _*))
 
     def st_makePointM(x: Column, y: Column, m: Column): TypedColumn[Any, Point] =
