@@ -174,36 +174,46 @@ contained in ``org.geomesa.example.data.GDELTData``:
 Visualize Data (optional)
 -------------------------
 
-There are two options to visual the data ingested by this quick start. The easiest option is to use the `export-leaflet` command of the GeoMesa FSDS tools distribution. For a more production ready example, you can alternatively stand up a GeoServer and connect it to your FSDS instance.
+There are two options to visual the data ingested by this quick start. The easiest option is to use the
+``export`` command of the GeoMesa FSDS tools distribution. For a more production ready example, you can
+alternatively stand up a GeoServer and connect it to your FSDS instance.
 
 Visualize Data With Leaflet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. warning::
 
-    In order to successfully run this command you must have a computer that is connected to the internet in order to access external leaflet resources.
+    In order to successfully run this command you must have a computer that is connected to the internet
+    in order to access external leaflet resources.
 
 
 .. note::
 
-    If you are running GeoMesa on a headless server (no GUI) you can still run this command to generate the leaflet map and then copy the ``index.html`` to another computer.
+    If you are running GeoMesa on a headless server (no GUI) you can still run this command to generate
+    the leaflet map and then copy the ``index.html`` to another computer.
 
 
-The ``export-leaflet`` command is a part of the GeoMesa FSDS command-line tools. In order to use the command, ensure you have the command-line tools installed as described in :ref:`setting_up_fsds_commandline`.
-
-The command behaves like a normal export command and accepts the same parameters. The only difference is rather than exporting the data to a file it writes it inside an HTML file in a way that leaflet can render it. To produce the map, run the following command from the GeoMesa FSDS tools distribution directory:
+The ``export`` command is a part of the GeoMesa FSDS command-line tools. In order to use the command,
+ensure you have the command-line tools installed as described in :ref:`setting_up_fsds_commandline`.
+The ``export`` command provides the ``leaflet`` format which will export the features to a leaflet map
+and attempt to open the resulting HTML in your default browser. To produce the map, run the following
+command from the GeoMesa FSDS tools distribution directory:
 
 .. code:: bash
 
-    bin/geomesa-fs export-leaflet \
-        --instance <instance>           \
-        --zookeepers <zookeepers>       \
-        --user <user>                   \
-        --password <password>           \
+    bin/geomesa-fs export         \
+        --output-format leaflet   \
+        --instance <instance>     \
+        --zookeepers <zookeepers> \
+        --user <user>             \
+        --password <password>     \
         --catalog <table>
 
 
-Where the connection parameters are the same you used above during the quickstart. If you ran the command on a computer with a default web browser you should see the map below automatically open in it. If you click the menu in the upper right of the map you can enable and disable the heatmap and feature layers as well as the two provided base layers.
+Where the connection parameters are the same you used above during the quickstart. If you ran the
+command on a computer with a default web browser you should see the map below automatically open in it.
+If you click the menu in the upper right of the map you can enable and disable the heatmap and feature
+layers as well as the two provided base layers.
 
 .. figure:: _static/geomesa-quickstart-gdelt-data/leaflet-layer-preview.png
     :alt: Visualizing quick-start data with Leaflet
@@ -215,8 +225,8 @@ Visualize Data With GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
-download and install version |geoserver_version|. Then follow the instructions in :ref:`install_fsds_geoserver`
-to enable GeoMesa.
+download and install version |geoserver_version|. Then follow the instructions in
+:ref:`install_fsds_geoserver` to enable GeoMesa.
 
 Register the GeoMesa Store with GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

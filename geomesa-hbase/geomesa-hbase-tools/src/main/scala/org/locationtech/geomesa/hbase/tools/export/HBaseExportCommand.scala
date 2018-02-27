@@ -12,16 +12,16 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
-import org.locationtech.geomesa.hbase.tools.export.HBaseFileExportCommand.HBaseFileExportParams
-import org.locationtech.geomesa.tools.export.{FileExportCommand, FileExportParams}
+import org.locationtech.geomesa.hbase.tools.export.HBaseExportCommand.HBaseExportParams
+import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
 import org.locationtech.geomesa.tools.{OptionalIndexParam, RequiredTypeNameParam}
 
-class HBaseFileExportCommand extends FileExportCommand[HBaseDataStore] with HBaseDataStoreCommand {
-  override val params = new HBaseFileExportParams
+class HBaseExportCommand extends ExportCommand[HBaseDataStore] with HBaseDataStoreCommand {
+  override val params = new HBaseExportParams
 }
 
-object HBaseFileExportCommand {
+object HBaseExportCommand {
   @Parameters(commandDescription = "Export features from a GeoMesa data store")
-  class HBaseFileExportParams extends FileExportParams with HBaseParams with RequiredTypeNameParam
-    with OptionalIndexParam with ToggleRemoteFilterParam
+  class HBaseExportParams extends ExportParams with HBaseParams with RequiredTypeNameParam
+      with OptionalIndexParam with ToggleRemoteFilterParam
 }

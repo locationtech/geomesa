@@ -13,20 +13,59 @@ import java.io._
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geojson.feature.FeatureJSON
-import org.locationtech.geomesa.tools.export.ExportCommand
+import org.locationtech.geomesa.tools.Command.user
+import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter.SimpleCoordinate
+import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.io.Source
+import scala.io.StdIn.readLine
 
-class LeafletMapExporter(indexFile: File) extends FeatureExporter with LazyLogging {
+class LeafletMapExporter(params: ExportParams) extends FeatureExporter with LazyLogging {
 
   private val json = new FeatureJSON()
   private val coordMap = mutable.Map[SimpleCoordinate[Double], Int]()
 
   private var first = true
   private var sft: SimpleFeatureType = _
+  private var totalCount: Long = 0L
+
+  Option(params.maxFeatures) match {
+    case Some(limit) =>
+      if (limit > 10000) {
+        // Note we have to ask if the user wants to continue like this or the output will be
+        // hidden since this command runs in a sub-shell
+        user.warn("A large number of features might be exported. This can cause performance issues when using the map. For large numbers of features it is recommended to use GeoServer to render a map.\nDo you want to continue? [y/N]")
+        // readLine() could be string, null or empty string, handle all
+        val response = Option(readLine()).getOrElse("").headOption.getOrElse("n").toString
+        if (response.matches("^[nN]")) {
+          sys.exit(1)
+        }
+      }
+    case None =>
+  }
+
+  Option(params.gzip) match {
+    case Some(_) => user.warn("GZip parameter cannot be used with leaflet format, ignoring.")
+    case None =>
+  }
+  Option(params.noHeader) match {
+    case Some(_) => user.warn("NoHeader parameter cannot be used with leaflet format, ignoring.")
+    case None =>
+  }
+
+  val GEOMESA_HOME = SystemProperty("geomesa.home", "/tmp")
+  val root = new File(GEOMESA_HOME.get)
+  val dest: File = Option(params.file) match {
+    case Some(file) => checkDestination(file)
+    case None       => checkDestination(new File(root, "leaflet"))
+  }
+  val indexFile: File = new File(dest, "index.html")
+  val indexWriter: Writer = ExportCommand.getWriter(indexFile, null)
 
   val (indexHead, indexTail): (String, String) = {
     val indexStream: InputStream = getClass.getClassLoader.getResourceAsStream("leaflet/index.html")
@@ -39,8 +78,6 @@ class LeafletMapExporter(indexFile: File) extends FeatureExporter with LazyLoggi
       indexStream.close()
     }
   }
-
-  val indexWriter: Writer = ExportCommand.getWriter(indexFile, null)
 
   override def start(sft: SimpleFeatureType): Unit = {
     this.sft = sft
@@ -57,17 +94,18 @@ class LeafletMapExporter(indexFile: File) extends FeatureExporter with LazyLoggi
         indexWriter.write(",")
       }
       json.writeFeature(feature, indexWriter)
-      storeFeature(feature)
+      storeFeature(feature, coordMap)
       count += 1L
     }
     indexWriter.flush()
+    totalCount += count
     Some(count)
   }
 
   override def close(): Unit  = {
     // Finish writing GeoJson
     indexWriter.write("]};\n\n")
-    indexWriter.write(getFeatureInfo)
+    indexWriter.write(getFeatureInfo(sft))
     // Write Heatmap Data
     val values = normalizeValues(coordMap)
     first = true
@@ -83,9 +121,28 @@ class LeafletMapExporter(indexFile: File) extends FeatureExporter with LazyLoggi
     indexWriter.write("\n    ], {radius: 25});\n\n")
     indexWriter.write(indexTail)
     indexWriter.close()
+
+    if (totalCount < 1) user.warn("No features were exported. " +
+      "This will cause the map to fail to render correctly.")
+    // Use println to ensure we write the destination to stdout so the bash wrapper can pick it up.
+    System.out.println("\nSuccessfully wrote Leaflet html to: " + indexFile.toString + "\n")
+  }
+}
+
+object LeafletMapExporter {
+  def checkDestination(file: File): File = {
+    try {
+      file.mkdir()
+      if (! file.isDirectory) {
+        throw new RuntimeException(s"Output destination ${file.toString} must not exist or must be a directory.")
+      }
+      file
+    } catch {
+      case e: SecurityException => throw new RuntimeException("Unable to create output destination, check permissions.", e)
+    }
   }
 
-  private def getFeatureInfo: String = {
+  def getFeatureInfo(sft: SimpleFeatureType): String = {
     val str: StringBuilder = new StringBuilder()
     str.append("    function onEachFeature(feature, layer) {\n")
     Option(sft) match {
@@ -102,7 +159,7 @@ class LeafletMapExporter(indexFile: File) extends FeatureExporter with LazyLoggi
     str.toString()
   }
 
-  def storeFeature(feature: SimpleFeature): Unit = {
+  def storeFeature(feature: SimpleFeature, coordMap: mutable.Map[SimpleCoordinate[Double], Int]): Unit = {
     val coords: Array[Coordinate] = feature.getDefaultGeometry match {
       case geom: Geometry => geom.getCoordinates
       case _ => Array[Coordinate]()

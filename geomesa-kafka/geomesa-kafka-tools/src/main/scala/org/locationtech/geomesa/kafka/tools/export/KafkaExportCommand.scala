@@ -17,19 +17,19 @@ import org.geotools.feature.collection.BaseSimpleFeatureCollection
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
-import org.locationtech.geomesa.kafka.tools.export.KafkaFileExportCommand._
+import org.locationtech.geomesa.kafka.tools.export.KafkaExportCommand._
 import org.locationtech.geomesa.kafka.tools.{ConsumerDataStoreParams, KafkaDataStoreCommand}
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter
-import org.locationtech.geomesa.tools.export.{FileExportCommand, FileExportParams}
+import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class KafkaFileExportCommand extends FileExportCommand[KafkaDataStore] with KafkaDataStoreCommand {
+class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDataStoreCommand {
 
-  override val params = new KafkaFileExportParameters()
+  override val params = new KafkaExportParameters()
 
   private var max: Option[Int] = None
   private val queue: BlockingQueue[SimpleFeature] = new LinkedBlockingQueue[SimpleFeature]
@@ -119,10 +119,10 @@ class KafkaFileExportCommand extends FileExportCommand[KafkaDataStore] with Kafk
   }
 }
 
-object KafkaFileExportCommand {
+object KafkaExportCommand {
 
   @Parameters(commandDescription = "Export features from a GeoMesa Kafka topic")
-  class KafkaFileExportParameters extends FileExportParams with RequiredTypeNameParam with ConsumerDataStoreParams
+  class KafkaExportParameters extends ConsumerDataStoreParams with RequiredTypeNameParam with ExportParams
 
   class ExportFeatureListener(sft: SimpleFeatureType,
                               filter: Option[Filter],

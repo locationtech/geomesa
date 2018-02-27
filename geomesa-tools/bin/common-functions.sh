@@ -344,10 +344,24 @@ function geomesaScalaConsole() {
   exec $scalaCMD ${OPTS} -classpath ${classpath} -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
 }
 
+function isExportLeaflet() {
+  params=($@)
+  for i in ${params[@]}; do
+    if [[ "${i}" == "leaflet" || "${i}" == *html ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 function launchLeafletMap() {
   # Attempt to launch the leaflet map after the command successfully runs.
   res=($@)
-  url="${res[${#res[@]}-1]}" # get the last item in the array
+  for i in ${res[@]}; do
+    if [[ $i == *html ]]; then
+      url=$i
+    fi
+  done
   if [[ -f $url ]]; then
     echo "${res[@]}"
     if [[ -x $BROWSER ]]; then
