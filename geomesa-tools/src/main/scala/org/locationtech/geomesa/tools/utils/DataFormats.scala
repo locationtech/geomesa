@@ -37,8 +37,8 @@ object DataFormats extends Enumeration {
     val extension = FilenameUtils.getExtension(filename).toLowerCase(Locale.US)
     values.find(_.toString.equalsIgnoreCase(extension)) match {
       case Some(f) => Right(f)
-      case None    => if (extension == "html") Right(Leaflet)
-                      else Left(extension)
+      case None    => if (extension == "html") { Right(Leaflet) }
+                      else { Left(extension) }
     }
   }
 }

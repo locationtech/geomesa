@@ -207,14 +207,8 @@ Visualize Data With Leaflet
 
 .. warning::
 
-    In order to successfully run this command you must have a computer that is connected to the internet
+    To successfully run this command you must have a computer that is connected to the internet
     in order to access external leaflet resources.
-
-
-.. note::
-
-    If you are running GeoMesa on a headless server (no GUI) you can still run this command to generate
-    the leaflet map and then copy the ``index.html`` to another computer.
 
 
 The ``export`` command is a part of the GeoMesa HBase command-line tools. In order to use the command,
@@ -233,9 +227,10 @@ command from the GeoMesa HBase tools distribution directory:
 
 
 Where the connection parameters are the same you used above during the quickstart. If you ran the
-command on a computer with a default web browser you should see the map below automatically open in it.
-If you click the menu in the upper right of the map you can enable and disable the heatmap and feature
-layers as well as the two provided base layers.
+command on a computer with a default web browser you should see the map below open automatically. If
+you are running on a headless server (no GUI), you can copy the ``index.html`` to another computer and
+open it there. If you click the menu in the upper right of the map you can enable and disable the
+heatmap and feature layers as well as the two provided base layers.
 
 .. figure:: _static/geomesa-quickstart-gdelt-data/leaflet-layer-preview.png
     :alt: Visualizing quick-start data with Leaflet

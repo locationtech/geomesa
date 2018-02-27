@@ -44,24 +44,19 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
         // readLine() could be string, null or empty string, handle all
         val response = Option(readLine()).getOrElse("").headOption.getOrElse("n").toString
         if (response.matches("^[nN]")) {
-          sys.exit(1)
+          throw new RuntimeException("User requested program termination.")
         }
       }
-    case None =>
+    case None => params.maxFeatures = 10000
   }
 
-  Option(params.gzip) match {
-    case Some(_) => user.warn("GZip parameter cannot be used with leaflet format, ignoring.")
-    case None =>
-  }
-  Option(params.noHeader) match {
-    case Some(_) => user.warn("NoHeader parameter cannot be used with leaflet format, ignoring.")
-    case None =>
-  }
+  if (params.noHeader) { user.warn("NoHeader parameter cannot be used with leaflet format, ignoring.") }
+  if (params.gzip != null) { user.warn("GZip parameter cannot be used with leaflet format, ignoring.") }
 
   val GEOMESA_HOME = SystemProperty("geomesa.home", "/tmp")
-  val root = new File(GEOMESA_HOME.get)
-  val indexFile: File = getDestination(Option(params.file).getOrElse(new File(root, "leaflet")))
+  val indexFile: File = getDestination(Option(params.file).getOrElse{
+    new File(new File(GEOMESA_HOME.get), "leaflet")
+  })
   val indexWriter: Writer = ExportCommand.getWriter(indexFile, null)
 
   val (indexHead, indexTail): (String, String) = {
@@ -128,25 +123,24 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
 
 object LeafletMapExporter {
   def getDestination(file: File): File = {
-    implicit def writable(file: File): WritableFile = WritableFile(file)
-    case class WritableFile(file: File) {
-      def writable: File = {
-        if (file.canWrite) file
-        else throw new SecurityException(s"Unable to create output destination ${file.toString}, check permissions.")
+    implicit class WritableFile(file: File) {
+      def ensureWritable: File = {
+        if (file.canWrite) { file }
+        else { throw new SecurityException(s"Unable to create output destination ${file.toString}, check permissions.") }
       }
     }
 
     // Handle both files and directories that could exist or not
     if (file.exists()) {
       if (file.isDirectory) {
-        new File(file, "index.html").writable
+        new File(file, "index.html").ensureWritable
       } else {
-        if (file.toString.endsWith(".html")) file.writable
-        else throw new RuntimeException(s"Destination file ${file.toString} must end with '.html'")
+        if (file.toString.endsWith(".html")) { file.ensureWritable }
+        else { throw new RuntimeException(s"Destination file ${file.toString} must end with '.html'") }
       }
     } else {
       file.mkdir()
-      new File(file, "index.html").writable
+      new File(file, "index.html").ensureWritable
     }
   }
 

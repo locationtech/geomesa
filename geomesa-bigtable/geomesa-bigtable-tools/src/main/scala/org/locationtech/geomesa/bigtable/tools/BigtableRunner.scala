@@ -10,7 +10,7 @@ package org.locationtech.geomesa.bigtable.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.hbase.tools.data._
-import org.locationtech.geomesa.hbase.tools.export.{HBaseFileExportCommand, HBaseLeafletExportCommand}
+import org.locationtech.geomesa.hbase.tools.export.HBaseExportCommand
 import org.locationtech.geomesa.hbase.tools.stats._
 import org.locationtech.geomesa.hbase.tools.status._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
@@ -28,8 +28,7 @@ object BigtableRunner extends Runner {
     new HBaseDescribeSchemaCommand,
     new EnvironmentCommand,
     new HBaseExplainCommand,
-    new HBaseFileExportCommand,
-    new HBaseLeafletExportCommand,
+    new HBaseExportCommand,
     new HelpCommand(this, jc),
     new BigtableIngestCommand,
     new HBaseKeywordsCommand,
