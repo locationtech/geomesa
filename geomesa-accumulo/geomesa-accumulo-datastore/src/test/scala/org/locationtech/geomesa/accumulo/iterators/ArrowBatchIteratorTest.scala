@@ -303,13 +303,13 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
         }
       }
     }
-    "return sorted, dictionary encoded projections for non-indexed attributes" in {
+    "return sorted, dictionary encoded projections for non-indexed attributes and nulls" in {
       foreach(sfts) { case (sft, features) =>
         foreach(filters) { filter =>
-          val transform = Array("team", "dtg", "geom")
+          val transform = Array("team", "weight", "dtg", "geom")
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
-          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team")
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team,weight")
           query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
           query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -318,7 +318,8 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
           def in() = new ByteArrayInputStream(out.toByteArray)
           WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
             compare(reader.features(), features, transform.toSeq)
-            reader.dictionaries.keySet mustEqual Set("team")
+            reader.dictionaries.keySet mustEqual Set("team", "weight")
+            reader.dictionaries.apply("weight").iterator.toSeq must contain(null: AnyRef)
           }
         }
       }
