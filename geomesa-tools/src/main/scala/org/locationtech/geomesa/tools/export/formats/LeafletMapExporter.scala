@@ -9,13 +9,14 @@
 package org.locationtech.geomesa.tools.export.formats
 
 import java.io._
+import java.security.Security
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geojson.feature.FeatureJSON
 import org.locationtech.geomesa.tools.Command.user
 import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter.SimpleCoordinate
-import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
+import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams, FileExportParams}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter._
@@ -25,7 +26,7 @@ import scala.collection.mutable
 import scala.io.Source
 import scala.io.StdIn.readLine
 
-class LeafletMapExporter(params: ExportParams) extends FeatureExporter with LazyLogging {
+class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with LazyLogging {
 
   private val json = new FeatureJSON()
   private val coordMap = mutable.Map[SimpleCoordinate[Double], Int]()
@@ -60,11 +61,7 @@ class LeafletMapExporter(params: ExportParams) extends FeatureExporter with Lazy
 
   val GEOMESA_HOME = SystemProperty("geomesa.home", "/tmp")
   val root = new File(GEOMESA_HOME.get)
-  val dest: File = Option(params.file) match {
-    case Some(file) => checkDestination(file)
-    case None       => checkDestination(new File(root, "leaflet"))
-  }
-  val indexFile: File = new File(dest, "index.html")
+  val indexFile: File = getDestination(Option(params.file).getOrElse(new File(root, "leaflet")))
   val indexWriter: Writer = ExportCommand.getWriter(indexFile, null)
 
   val (indexHead, indexTail): (String, String) = {
@@ -130,15 +127,26 @@ class LeafletMapExporter(params: ExportParams) extends FeatureExporter with Lazy
 }
 
 object LeafletMapExporter {
-  def checkDestination(file: File): File = {
-    try {
-      file.mkdir()
-      if (! file.isDirectory) {
-        throw new RuntimeException(s"Output destination ${file.toString} must not exist or must be a directory.")
+  def getDestination(file: File): File = {
+    implicit def writable(file: File): WritableFile = WritableFile(file)
+    case class WritableFile(file: File) {
+      def writable: File = {
+        if (file.canWrite) file
+        else throw new SecurityException(s"Unable to create output destination ${file.toString}, check permissions.")
       }
-      file
-    } catch {
-      case e: SecurityException => throw new RuntimeException("Unable to create output destination, check permissions.", e)
+    }
+
+    // Handle both files and directories that could exist or not
+    if (file.exists()) {
+      if (file.isDirectory) {
+        new File(file, "index.html").writable
+      } else {
+        if (file.toString.endsWith(".html")) file.writable
+        else throw new RuntimeException(s"Destination file ${file.toString} must end with '.html'")
+      }
+    } else {
+      file.mkdir()
+      new File(file, "index.html").writable
     }
   }
 
@@ -173,8 +181,10 @@ object LeafletMapExporter {
   }
 
   def normalizeValues(coordMap: mutable.Map[SimpleCoordinate[Double], Int]): Map[SimpleCoordinate[Double], Float] = {
-    val max: Float = coordMap.maxBy(_._2)._2
-    coordMap.map(c => (c._1, c._2 / max)).toMap
+    if (coordMap.nonEmpty) {
+      val max: Float = coordMap.maxBy(_._2)._2
+      coordMap.map(c => (c._1, c._2 / max)).toMap
+    } else Map[SimpleCoordinate[Double], Float]()
   }
 
   case class SimpleCoordinate[@specialized(Double) T](x: T, y: T) {
