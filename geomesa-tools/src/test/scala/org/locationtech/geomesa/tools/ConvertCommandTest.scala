@@ -42,7 +42,9 @@ class ConvertCommandTest extends Specification with LazyLogging {
   }
 
   val inFormats = Seq(DataFormats.Csv, DataFormats.Tsv, DataFormats.Json)
-  val outFormats = DataFormats.values.filter(_ != DataFormats.Null).toSeq
+  val outFormats = DataFormats.values.filter{ f =>
+    f != DataFormats.Null && f != DataFormats.Leaflet
+  }.toSeq
 
   for (in <- inFormats; out <- outFormats) {
     logger.debug(s"Testing $in to $out converter")
