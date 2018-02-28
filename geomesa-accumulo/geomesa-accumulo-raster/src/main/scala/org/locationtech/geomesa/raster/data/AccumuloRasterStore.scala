@@ -66,26 +66,19 @@ class AccumuloRasterStore(val connector: Connector,
    * @return Buffered
    */
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage = {
-    implicit val timings = if (collectStats) new TimingsImpl else NoOpTimings
-    val rasters = getRasters(query)
-    val (image, numRasters) = profile("mosaic") {
-      RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope)
-    }
-    image
+    RasterUtils.mosaicChunks(getRasters(query), params.width.toInt, params.height.toInt, params.envelope)._1
   }
 
-  def getRasters(rasterQuery: RasterQuery)(implicit timings: Timings): Iterator[Raster] = {
-    profile("scanning") {
-      val batchScanner = connector.createBatchScanner(tableName, getAuths, numQThreads)
-      val plan = AccumuloRasterQueryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
-      plan match {
-        case Some(qp) =>
-          qp.iterators.foreach(batchScanner.addScanIterator)
-          qp.columnFamilies.foreach(batchScanner.fetchColumnFamily)
-          batchScanner.setRanges(qp.ranges)
-          adaptIteratorToChunks(SelfClosingIterator(batchScanner.iterator, batchScanner.close))
-        case _        => Iterator.empty
-      }
+  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
+    val batchScanner = connector.createBatchScanner(tableName, getAuths, numQThreads)
+    val plan = AccumuloRasterQueryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
+    plan match {
+      case Some(qp) =>
+        qp.iterators.foreach(batchScanner.addScanIterator)
+        qp.columnFamilies.foreach(batchScanner.fetchColumnFamily)
+        batchScanner.setRanges(qp.ranges)
+        adaptIteratorToChunks(SelfClosingIterator(batchScanner.iterator, batchScanner.close))
+      case _        => Iterator.empty
     }
   }
 

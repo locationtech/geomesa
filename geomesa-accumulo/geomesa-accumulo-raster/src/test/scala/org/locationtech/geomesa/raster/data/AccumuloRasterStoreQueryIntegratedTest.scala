@@ -22,7 +22,6 @@ class AccumuloRasterStoreQueryIntegratedTest extends Specification {
   sequential
 
   var testIteration = 0
-  implicit val noTime: Timings = NoOpTimings
 
   def getNewIteration() = {
     testIteration += 1

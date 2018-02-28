@@ -10,13 +10,14 @@ package org.locationtech.geomesa.fs.storage.common.jobs
 
 import java.io.{DataInput, DataOutput}
 
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api.FileSystemReader
+import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.storage.common.jobs.PartitionInputFormat.PartitionInputSplit
-import org.locationtech.geomesa.fs.storage.common.{FileSystemStorageFactory, StorageUtils}
+import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -25,18 +26,24 @@ import org.opengis.filter.Filter
   */
 class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
 
+  import scala.collection.JavaConverters._
+
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
-    val typeName = StorageConfiguration.getSft(context.getConfiguration).getTypeName
-    val encoding = StorageConfiguration.getEncoding(context.getConfiguration)
-    val partitions = StorageConfiguration.getPartitions(context.getConfiguration)
+    val conf = context.getConfiguration
 
-    val rootPath = new Path(StorageConfiguration.getPath(context.getConfiguration))
-    val fs = rootPath.getFileSystem(context.getConfiguration)
+    val encoding = StorageConfiguration.getEncoding(conf)
+    val partitions = StorageConfiguration.getPartitions(conf)
 
-    val splits = partitions.map { p =>
-      val pp = StorageUtils.partitionPath(rootPath, typeName, p)
-      val size = StorageUtils.listFileStatuses(fs, pp, encoding).map(_.getLen).sum
-      new PartitionInputSplit(p, size)
+    val root = new Path(StorageConfiguration.getPath(conf))
+    val fc = FileContext.getFileContext(root.toUri, conf)
+
+    val storage = FileSystemStorageFactory.factory(encoding).load(fc, conf, root).get()
+
+    val splits = partitions.map { partition =>
+      val size = storage.getFilePaths(partition).asScala.collect {
+        case f if f.getName.endsWith(encoding) => PathCache.status(fc, f).getLen
+      }.sum
+      new PartitionInputSplit(partition, size)
     }
 
     java.util.Arrays.asList(splits: _*)
@@ -55,18 +62,17 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
       override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
         import scala.collection.JavaConversions._
 
-        sft = StorageConfiguration.getSft(context.getConfiguration)
+        val conf = context.getConfiguration
+        sft = StorageConfiguration.getSft(conf)
 
-        val path = StorageConfiguration.getPath(context.getConfiguration)
-        val encoding = StorageConfiguration.getEncoding(context.getConfiguration)
-        val params = Map(
-          FileSystemStorageFactory.PathParam.getName -> path,
-          FileSystemStorageFactory.EncodingParam.getName -> encoding
-        )
+        val fc = FileContext.getFileContext(conf)
+        val path = new Path(StorageConfiguration.getPath(conf))
+        val encoding = StorageConfiguration.getEncoding(conf)
+
+        val storage = FileSystemStorageFactory.factory(encoding).load(fc, conf, path).get
+
         val query = new Query(sft.getTypeName, Filter.INCLUDE)
-
-        val storage = FileSystemStorageFactory.getFileSystemStorage(params)
-        reader = storage.getReader(sft.getTypeName, Seq(partitionInputSplit.getName), query)
+        reader = storage.getReader(Seq(partitionInputSplit.getName), query)
       }
 
       // TODO look at how the ParquetInputFormat provides progress and utilize something similar

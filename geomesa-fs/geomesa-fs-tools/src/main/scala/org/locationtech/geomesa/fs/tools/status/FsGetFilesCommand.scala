@@ -9,19 +9,22 @@
 package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.{ParameterException, Parameters}
-import org.locationtech.geomesa.fs.tools.status.FSGetFilesCommand.FSGetFilesParams
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams, PartitionParam}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{PartitionParam, FsParams}
+import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
 import scala.collection.JavaConversions._
 
-class FSGetFilesCommand extends FsDataStoreCommand {
+class FsGetFilesCommand extends FsDataStoreCommand {
+
   override val params = new FSGetFilesParams
 
   override val name: String = "get-files"
 
   override def execute(): Unit = withDataStore { ds =>
-    val existingPartitions = ds.storage.getMetadata(params.featureName).getPartitions
+    val storage = ds.storage(params.featureName)
+    val existingPartitions = storage.getMetadata.getPartitions
     val toList = if (params.partitions.nonEmpty) {
       params.partitions.filterNot(existingPartitions.contains).headOption.foreach { p =>
         throw new ParameterException(s"Partition $p cannot be found in metadata")
@@ -32,15 +35,14 @@ class FSGetFilesCommand extends FsDataStoreCommand {
     }
 
     Command.user.info(s"Listing files for ${toList.size()} partitions")
-    toList.foreach { p =>
-      ds.storage.getMetadata(params.featureName).getFiles(p).foreach { f =>
-        Command.output.info(s"$p\t$f")
-      }
+    toList.sorted.foreach { p =>
+      Command.output.info(s"$p:")
+      storage.getMetadata.getFiles(p).foreach(f => Command.output.info(s"\t$f"))
     }
   }
 }
 
-object FSGetFilesCommand {
+object FsGetFilesCommand {
   @Parameters(commandDescription = "List files for partitions")
   class FSGetFilesParams extends FsParams with RequiredTypeNameParam with PartitionParam
 }

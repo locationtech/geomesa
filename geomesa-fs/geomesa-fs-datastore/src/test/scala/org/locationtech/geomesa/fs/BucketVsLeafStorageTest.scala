@@ -22,7 +22,8 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.{CompositeScheme, DateTimeScheme, PartitionScheme, Z2Scheme}
+import org.locationtech.geomesa.fs.storage.common.PartitionScheme
+import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -43,7 +44,7 @@ class BucketVsLeafStorageTest extends Specification {
     def ds = DataStoreFinder.getDataStore(Map(
         "fs.path" -> tempDir.toFile.getPath,
         "fs.encoding" -> "parquet",
-        "parquet.compression" -> "gzip"
+        "fs.config" -> "parquet.compression=gzip"
       )).asInstanceOf[FileSystemDataStore]
 
     def date(str: String) = Converters.convert(str, classOf[Date])
@@ -116,7 +117,7 @@ class BucketVsLeafStorageTest extends Specification {
 
       "in two schemes" >> {
         val sft = mkSft("leaf-two")
-        val scheme = CompositeScheme(Seq(
+        val scheme = new CompositeScheme(Seq(
           new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", true),
           new Z2Scheme(2, "geom", true))
         )
@@ -210,7 +211,7 @@ class BucketVsLeafStorageTest extends Specification {
       "with two schemes" >> {
         val typeName = "bucket-two"
         val sft = mkSft(typeName)
-        val scheme = CompositeScheme(Seq(
+        val scheme = new CompositeScheme(Seq(
           new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", false),
           new Z2Scheme(2, "geom", false))
         )

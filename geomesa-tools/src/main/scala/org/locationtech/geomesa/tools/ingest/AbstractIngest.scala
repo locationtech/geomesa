@@ -238,13 +238,13 @@ object AbstractIngest {
   /**
    * Gets status as a string
    */
-  def getStatInfo(successes: Long, failures: Long): String = {
+  def getStatInfo(successes: Long, failures: Long, action: String = "Ingested"): String = {
     val failureString = if (failures == 0) {
       "with no failures"
     } else {
       s"and failed to ingest ${TextTools.getPlural(failures, "feature")}"
     }
-    s"Ingested ${TextTools.getPlural(successes, "feature")} $failureString."
+    s"$action ${TextTools.getPlural(successes, "feature")} $failureString."
   }
 
   sealed trait StatusCallback {

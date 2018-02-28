@@ -7,50 +7,56 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.common
-
-import java.util.{Properties, ServiceLoader}
+import java.util.{Optional, ServiceLoader}
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.opengis.feature.simple.SimpleFeatureType
 
-abstract class FileSystemStorageFactory[T <: FileSystemStorage]
-    extends org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory {
+/**
+  * Abstract implementation that uses FileMetadata for configuration
+  */
+abstract class FileSystemStorageFactory extends org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory {
 
-  import FileSystemStorageFactory.{ConfParam, EncodingParam, PathParam}
+  override def load(fc: FileContext,
+                    conf: Configuration,
+                    root: Path): Optional[FileSystemStorage] = {
+    import org.locationtech.geomesa.utils.conversions.JavaConverters._
 
-  protected def build(path: Path,
-                      conf: Configuration,
-                      params: java.util.Map[String, java.io.Serializable]): T
-
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
-    PathParam.exists(params) && EncodingParam.exists(params) && encoding.equalsIgnoreCase(EncodingParam.lookup(params))
-
-  override def build(params: java.util.Map[String, java.io.Serializable]): T = {
-    import scala.collection.JavaConversions._
-    val root = new Path(PathParam.lookup(params))
-    val conf = new Configuration()
-    ConfParam.lookupOpt(params).foreach { props =>
-      props.foreach { case (k, v) => conf.set(k, v) }
-    }
-    build(root, conf, params)
+    FileMetadata.load(fc, root) // note: this is a cached operation
+        .filter(_.getEncoding == getEncoding)
+        .map(load(conf, _))
+        .asJava
   }
+
+  override def create(fc: FileContext,
+                      conf: Configuration,
+                      root: Path,
+                      sft: SimpleFeatureType): FileSystemStorage = {
+    val scheme = PartitionScheme.extractFromSft(sft).getOrElse {
+      throw new IllegalArgumentException("SimpleFeatureType does not have partition scheme specified")
+    }
+    Encodings.getEncoding(sft).filterNot(_.equalsIgnoreCase(getEncoding)).foreach { e =>
+      throw new IllegalArgumentException(s"This factory can't create storage with encoding '$e'")
+    }
+    load(conf, FileMetadata.create(fc, root, sft, getEncoding, scheme))
+  }
+
+  protected def load(conf: Configuration, metadata: FileMetadata): FileSystemStorage
 }
 
 object FileSystemStorageFactory {
 
-  val PathParam     = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", optional = false)
-  val EncodingParam = new GeoMesaParam[String]("fs.encoding", "Encoding of data", optional = false)
-  val ConfParam     = new GeoMesaParam[Properties]("fs.config", "Values to set in the root Configuration, in Java properties format", largeText = true)
+  import scala.collection.JavaConverters._
 
-  def getFileSystemStorage(params: java.util.Map[String, java.io.Serializable]): FileSystemStorage =
-    load().find(_.canProcess(params)).map(_.build(params)).orNull
+  def factories(): Iterator[org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory] =
+    ServiceLoader.load(classOf[org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory]).iterator().asScala
 
-  def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean = load().exists(_.canProcess(params))
+  def factory(encoding: String): org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory =
+    factories().find(_.getEncoding.equalsIgnoreCase(encoding)).getOrElse {
+      throw new IllegalArgumentException(s"Could not find a factory class for encoding '$encoding'. " +
+          s"Factories are available for: ${factories().map(_.getEncoding).mkString(", ")}")
+    }
 
-  private def load(): Iterator[org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory] = {
-    import scala.collection.JavaConversions._
-    ServiceLoader.load(classOf[org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory]).iterator()
-  }
 }

@@ -8,33 +8,35 @@
 
 package org.locationtech.geomesa.fs.storage.converter
 
-import java.io.{File, FileInputStream}
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.convert.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.FileSystemReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.control.NonFatal
 
-class ConverterPartitionReader(root: Path,
+class ConverterPartitionReader(storage: ConverterStorage,
                                partitions: Seq[String],
-                               sft: SimpleFeatureType,
                                converter: SimpleFeatureConverter[_],
                                gtFilter: org.opengis.filter.Filter)
     extends FileSystemReader with LazyLogging {
 
-  private val iter = CloseableIterator(partitions.iterator).flatMap { partition =>
-    val path = new Path(root, partition)
-    val fis = new FileInputStream(new File(path.toUri.toString))
-    val iter = try { converter.process(fis) } catch {
-      case NonFatal(e) => logger.error(s"Error processing uri ${path.toString}", e); Iterator.empty
+  import scala.collection.JavaConverters._
+
+  private val iter = {
+    val files = CloseableIterator(partitions.flatMap(storage.getFilePaths(_).asScala).iterator)
+    files.flatMap { file =>
+      logger.debug(s"Opening file $file")
+      val fis = storage.getMetadata.getFileContext.open(file)
+      val iter = try { converter.process(fis) } catch {
+        case NonFatal(e) => logger.error(s"Error processing uri ${file.toString}", e); Iterator.empty
+      }
+      CloseableIterator(iter.filter(gtFilter.evaluate), fis.close())
     }
-    CloseableIterator(iter.filter(gtFilter.evaluate), fis.close())
   }
 
   override def hasNext: Boolean = iter.hasNext

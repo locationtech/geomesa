@@ -23,11 +23,14 @@ FileSystem Data Store Parameters
 
 The FileSystem data store takes several parameters (required parameters are marked with ``*``):
 
-=================== ====== ===========================================================================================================
-Parameter           Type   Description
-=================== ====== ===========================================================================================================
-``fs.path *``       String The root path to write and read data from (e.g. s3a://mybucket/datastores/testds)
-``fs.encoding *``   String The encoding of the stored files. Provided implementations are "parquet" and "orc".
-``fs.read-threads`` Int    The number of threads used for queries
-``fs.config``       String Configuration values, formatted as a Java properties file, that will be passed to the underlying FileSystem
-=================== ====== ===========================================================================================================
+=============================== ====== ===================================================================================
+Parameter                       Type   Description
+=============================== ====== ===================================================================================
+``fs.path *``                   String The root path to write and read data from (e.g. s3a://mybucket/datastores/testds)
+``fs.encoding *``               String The encoding of the stored files. Provided implementations are "parquet" and "orc".
+``fs.read-threads``             Int    The number of threads used for queries
+``fs.writer.partition.timeout`` String Timeout for closing a partition file after write, e.g. '60 seconds'. This is to
+                                       prevent too many open files during large write operations.
+``fs.config``                   String Configuration values, formatted as a Java properties file, that will be passed to
+                                       the underlying FileSystem
+=============================== ====== ===================================================================================

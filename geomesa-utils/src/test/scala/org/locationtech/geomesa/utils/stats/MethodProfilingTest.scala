@@ -16,16 +16,15 @@ import org.specs2.runner.JUnitRunner
 class MethodProfilingTest extends Specification {
 
   "MethodProfiling" should {
-    "keep track of implicit timings" in {
-
+    "keep track of explicit timings" in {
       class Profiling extends MethodProfiling {
-        implicit val timings = new TimingsImpl
+        val timings = new TimingsImpl
         def slowMethod(): String = {
           Thread.sleep(10)
           "test"
         }
         def exec: String = {
-          profile("1")(slowMethod())
+          profile(timings, "1")(slowMethod())
         }
       }
 
@@ -54,7 +53,7 @@ class MethodProfilingTest extends Specification {
 
     "compute averages" in {
       val timing = new Timing
-      timing.average.toString mustEqual Double.NaN.toString
+      timing.average().toString mustEqual Double.NaN.toString
 
       timing.occurrence(100)
       timing.average mustEqual 100

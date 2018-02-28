@@ -11,22 +11,20 @@ package org.locationtech.geomesa.fs
 import java.util.concurrent._
 
 import org.geotools.data.Query
-import org.locationtech.geomesa.fs.storage.api.{FileSystemReader, FileSystemStorage, PartitionScheme}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemReader, FileSystemStorage}
+import org.opengis.feature.simple.SimpleFeature
 
-class FileSystemFeatureIterator(sft: SimpleFeatureType,
-                                storage: FileSystemStorage,
-                                partitionScheme: PartitionScheme,
-                                q: Query,
+class FileSystemFeatureIterator(storage: FileSystemStorage,
+                                query: Query,
                                 readThreads: Int) extends java.util.Iterator[SimpleFeature] with AutoCloseable {
 
-  private val partitions = storage.getPartitions(sft.getTypeName, q)
+  private val partitions = storage.getPartitions(query.getFilter)
 
   private val iter: FileSystemReader =
     if (partitions.isEmpty) {
       FileSystemFeatureIterator.EmptyReader
     } else {
-      storage.getReader(sft.getTypeName, partitions, q, readThreads)
+      storage.getReader(partitions, query, readThreads)
     }
 
   override def hasNext: Boolean = iter.hasNext

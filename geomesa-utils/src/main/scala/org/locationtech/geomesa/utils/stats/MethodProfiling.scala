@@ -21,7 +21,7 @@ trait MethodProfiling {
     result
   }
 
-  def profile[R](identifier: String)(code: => R)(implicit timings: Timings): R = {
+  def profile[R](timings: Timings, identifier: String)(code: => R): R = {
     val start = System.currentTimeMillis
     val result: R = code
     timings.occurrence(identifier, System.currentTimeMillis - start)
@@ -46,7 +46,6 @@ class Timing extends Serializable {
   def occurrence(time: Long): Unit = {
     total += time
     count += 1
-    this
   }
 
   /**
@@ -195,7 +194,7 @@ class ThreadSafeTimingsImpl extends Timings {
 /**
  * Useful for sharing timings between instances of a certain class
  *
- * @param moduloToLog
+ * @param moduloToLog how many events to skip between logging
  */
 class AutoLoggingTimings(moduloToLog: Int = 1000) extends ThreadSafeTimingsImpl with LazyLogging {
 

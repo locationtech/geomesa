@@ -19,7 +19,7 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.common.jobs.{PartitionInputFormat, StorageConfiguration}
-import org.locationtech.geomesa.fs.storage.common.{FileSystemStorageFactory, FileType, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.CompactionMapper
 import org.locationtech.geomesa.fs.tools.ingest.StorageJobUtils
@@ -44,8 +44,6 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
     try {
       val sft = ds.getSchema(typeName)
-      // Validate that there is a partition scheme
-      PartitionScheme.extractFromSft(sft)
 
       val job = Job.getInstance(new Configuration, "GeoMesa Storage Compaction")
 
@@ -64,13 +62,19 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
       job.setOutputKeyClass(classOf[Void])
       job.setOutputValueClass(classOf[SimpleFeature])
 
+      val storage = ds.storage(sft.getTypeName)
+      val metadata = storage.getMetadata
+      val root = metadata.getRoot
+
+      val qualifiedTempPath = tempPath.map(metadata.getFileContext.makeQualified)
+
       StorageConfiguration.setSft(job.getConfiguration, sft)
-      StorageConfiguration.setPath(job.getConfiguration, FileSystemStorageFactory.PathParam.lookup(dsParams))
-      StorageConfiguration.setEncoding(job.getConfiguration, FileSystemStorageFactory.EncodingParam.lookup(dsParams))
+      StorageConfiguration.setPath(job.getConfiguration, root.toUri.toString)
+      StorageConfiguration.setEncoding(job.getConfiguration, metadata.getEncoding)
       StorageConfiguration.setPartitions(job.getConfiguration, partitions.toArray)
       StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
 
-      FileOutputFormat.setOutputPath(job, tempPath.getOrElse(new Path(ds.storage.getRoot)))
+      FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(root))
 
       // MapReduce options
       job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
@@ -80,8 +84,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
       // Save the existing files so we can delete them afterwards
       // Be sure to filter this based on the input partitions
-      val existingDataFiles = ds.storage.getPartitions(typeName)
-          .intersect(partitions).flatMap(ds.storage.getPaths(typeName, _)).toList
+      val existingDataFiles = partitions.flatMap(storage.getFilePaths).toList
 
       Command.user.info("Submitting job - please wait...")
       job.submit()
@@ -89,7 +92,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
       def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
 
-      val stageCount = if (tempPath.isDefined) { 2 } else { 1 }
+      val stageCount = if (qualifiedTempPath.isDefined) { 2 } else { 1 }
 
       while (!job.isComplete) {
         Thread.sleep(1000)
@@ -108,20 +111,19 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
       if (!job.isSuccessful) {
         Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
       } else {
-        val copied = tempPath.forall { tp =>
-          val p = new Path(ds.storage.getRoot)
-          StorageJobUtils.distCopy(tp, p, sft, statusCallback, 2, stageCount)
+        val copied = qualifiedTempPath.forall { tp =>
+          StorageJobUtils.distCopy(tp, root,  statusCallback, 2, stageCount)
         }
         if (copied) {
           Command.user.info("Removing old files")
-          val fs = new Path(ds.storage.getRoot).getFileSystem(job.getConfiguration)
-          existingDataFiles.foreach(o => fs.delete(new Path(o), false))
+          val fc = metadata.getFileContext
+          existingDataFiles.foreach(fc.delete(_, false))
           Command.user.info(s"Removed ${existingDataFiles.size} files")
 
-          Command.user.info("Updating metadata")
+          Command.user.info("Updating metadata for compaction results")
           // TODO GEOMESA-2018 We sleep here to allow a chance for S3 to become "consistent" with its storage listings
           Thread.sleep(5000)
-          ds.storage.updateMetadata(typeName)
+          storage.updateMetadata()
           Command.user.info("Metadata Updated")
         }
       }

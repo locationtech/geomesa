@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.conversions
 
-import scala.collection.{Iterator, TraversableLike}
 import scala.collection.generic.CanBuildFrom
+import scala.collection.{Iterator, TraversableLike}
 import scala.reflect.ClassTag
 
 object ScalaImplicits {
