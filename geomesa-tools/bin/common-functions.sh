@@ -346,8 +346,10 @@ function geomesaScalaConsole() {
 
 function isExportLeaflet() {
   params=($@)
-  for i in ${params[@]}; do
-    if [[ "${i}" == "leaflet" || "${i}" == *html ]]; then
+  for i in ${#params[@]}; do
+    if [[ "${params[$i]}" == *html ]]; then
+      return 0
+    elif [[ "${params[$i]}" == "-F" || "${params[$i]}" == "--format" && "${params[$i+1]}" == "leaflet" ]]; then
       return 0
     fi
   done
