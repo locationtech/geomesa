@@ -130,7 +130,7 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     CachedLazyMetadata.encodeRow(typeName, key, typeNameSeparator)
 
   // checks that the table is already created, and creates it if not
-  private def ensureTableExists(): Unit = tableExists.set(true, false, createTable())
+  def ensureTableExists(): Unit = tableExists.set(true, false, createTable())
 }
 
 object CachedLazyMetadata {
