@@ -238,10 +238,10 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
         val dist = calc.getOrthodromicDistance
         //If the distance between points is greater than the buffer distance, segment the line
         //So that no segment is larger than the buffer. This ensures that each segment has an
-        //times and distance.
-        if (dist > bufferDistance) {
+        //times and distance. Also ensure that features do not share a time value.
+        val timeDiffMillis = t2.toInstant.toEpochMilli - t1.toInstant.toEpochMilli
+        if (dist > bufferDistance && timeDiffMillis > 0) {
           val heading = calc.getAzimuth
-          val timeDiffMillis = t2.toInstant.toEpochMilli - t1.toInstant.toEpochMilli
           val segCount = (dist / bufferDistance).toInt
           val segDuration = timeDiffMillis / segCount
           var segStep = new Coordinate(p1.getX, p1.getY, 0)
