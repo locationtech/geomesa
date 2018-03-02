@@ -54,7 +54,7 @@ and then include the desired ``geomesa-*`` dependencies:
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
       <artifactId>geomesa-utils_2.11</artifactId>
-      <version>1.3.4</version>
+      <version>2.0.0-m.1</version>
     </dependency>
 
 Snapshot artifacts are available in the LocationTech snapshots repository:
