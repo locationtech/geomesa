@@ -109,12 +109,12 @@ class FeatureExporterTest extends Specification {
       val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "id,*geom:Point:srid=4326,dtg:Date,derived:String"
-      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z,myname-test"
+      header mustEqual "id,derived:String,*geom:Point:srid=4326,dtg:Date"
+      data mustEqual "fid-1,myname-test,POINT (45 49),1970-01-01T00:00:00.000Z"
     }
 
     "should handle escapes" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("derived=strConcat(name, ',test')", "geom", "dtg"))
+      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "derived=strConcat(name, ',test')"))
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
@@ -136,7 +136,7 @@ class FeatureExporterTest extends Specification {
     val (ds, sft) = getDataStoreAndSft(sftName, 10)
 
     "should handle transforms" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("derived=strConcat(name, '-test')", "geom", "dtg"))
+      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "derived=strConcat(name, '-test')"))
       val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteArrayOutputStream()

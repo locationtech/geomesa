@@ -53,7 +53,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
     }
   addFeatures(features)
 
-  implicit val ff = CommonFactoryFinder.getFilterFactory2
+  val ff = CommonFactoryFinder.getFilterFactory2
   val strategy = Z2Index
   val queryPlanner = ds.queryPlanner
   val output = ExplainNull
@@ -126,8 +126,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter, Some(Array("name")))
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
-      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2) // geom always gets added
-      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 1)
       forall(features)((f: SimpleFeature) => f.getAttribute("name") must not(beNull))
     }
 
@@ -137,8 +136,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter, Some(Array("derived=strConcat('my', name)")))
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
-      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2) // geom always gets added
-      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 1)
       forall(features)((f: SimpleFeature) => f.getAttribute("derived").asInstanceOf[String] must beMatching("myname\\d"))
     }
 

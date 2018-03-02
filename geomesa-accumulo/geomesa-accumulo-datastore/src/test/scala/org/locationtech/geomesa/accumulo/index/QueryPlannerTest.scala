@@ -87,7 +87,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
       val result = planner.runQuery(sft, query).toList
 
       result.map(_.getID) mustEqual Seq("id", "id2")
-      forall(result)(r => r.getAttributeCount mustEqual 2) // geom always gets included
+      forall(result)(r => r.getAttributeCount mustEqual 1)
       result.map(_.getAttribute("s")) must containTheSameElementsAs(Seq("string", "astring"))
 
     }
