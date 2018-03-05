@@ -9,7 +9,7 @@ fi
 GMUSER=hadoop
 
 # todo bootstrap from the current running location and ask the user if they want to 
-# install to /opt/geomesa ? Maybe prompt with a default of /opt/geomesa similar to
+# install to /opt/geomesa ? Maybe propmpt with a default of /opt/geomesa similar to
 # how the maven release plugin works?
 GMDIR="/opt/%%gmtools.assembly.name%%"
 
