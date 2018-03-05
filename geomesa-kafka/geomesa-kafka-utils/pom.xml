@@ -15,6 +15,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_${scala.binary.version}</artifactId>
+        </dependency>
+
         <!-- provided dependencies -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
