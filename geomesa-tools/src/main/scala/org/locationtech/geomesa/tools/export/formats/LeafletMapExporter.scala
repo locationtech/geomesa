@@ -139,7 +139,7 @@ object LeafletMapExporter {
         else { throw new RuntimeException(s"Destination file ${file.toString} must end with '.html'") }
       }
     } else {
-      file.mkdir()
+      file.mkdirs()
       new File(file, "index.html").ensureWritable
     }
   }
