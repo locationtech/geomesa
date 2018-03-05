@@ -21,7 +21,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <gmtools.dist.name>GEOMESA_HBASE</gmtools.dist.name> <!-- used in tools filtering -->
+        <!-- used in tools filtering -->
+        <gmtools.dist.name>GEOMESA_HBASE</gmtools.dist.name>
+        <gmtools.assembly.name>geomesa-hbase_${scala.binary.version}-${project.version}</gmtools.assembly.name>
     </properties>
 
     <dependencies>
@@ -120,7 +122,7 @@
                         <phase>package</phase>
                         <configuration>
                             <attach>true</attach>
-                            <finalName>geomesa-hbase_${scala.binary.version}-${project.version}</finalName>
+                            <finalName>${gmtools.assembly.name}</finalName>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>

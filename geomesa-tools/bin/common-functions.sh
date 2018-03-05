@@ -344,6 +344,12 @@ function geomesaScalaConsole() {
   exec $scalaCMD ${OPTS} -classpath ${classpath} -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
 }
 
+function geomesaAWS() {
+  # Helper function to launch AWS bootstrap commands. This is only implemented on geomesa-hbase and geomesa-fs
+  ${%%gmtools.dist.name%%_HOME}/aws-utils/
+
+}
+
 # Reconfigure %%gmtools.dist.name%%_HOME
 if [[ $1 = configure ]]; then
   echo >&2 "Using %%gmtools.dist.name%%_HOME = $%%gmtools.dist.name%%_HOME"
