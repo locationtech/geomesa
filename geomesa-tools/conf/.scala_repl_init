@@ -13,5 +13,4 @@ System.out.println(
      |     / / __/ _ \\/ __ \\/ /|_/ / _ \\/ ___/ __ `/
      |    / /_/ /  __/ /_/ / /  / /  __(__  ) /_/ /
      |    \\____/\\___/\\____/_/  /_/\\___/____/\\__,_/ version ${org.locationtech.geomesa.utils.conf.GeoMesaProperties.ProjectVersion}
-     |
   """.stripMargin)
