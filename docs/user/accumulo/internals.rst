@@ -8,7 +8,7 @@ For details on how GeoMesa chooses and executes queries, see the `QueryPlanner`_
 `StrategyDecider`_ classes in the **geomesa-index-api** project. The generic query
 planning API is configured for the Accumulo data store in the `AccumuloQueryPlanner`_ class.
 
-.. _QueryPlanner: https://github.com/locationtech/geomesa/blob/master/geomesa-index-api/src/main/scala/org/locationtech/geomesa/index/api/QueryPlanner.scala
+.. _QueryPlanner: https://github.com/locationtech/geomesa/blob/master/geomesa-index-api/src/main/scala/org/locationtech/geomesa/index/planning/QueryPlanner.scala
 
 .. _StrategyDecider: https://github.com/locationtech/geomesa/blob/master/geomesa-index-api/src/main/scala/org/locationtech/geomesa/index/api/StrategyDecider.scala
 
