@@ -29,7 +29,7 @@ if [[ -z "${JUPYTER_PASSWORD}" ]]; then
   log "Using default password: geomesa"
 fi
 
-log "Installing Jupyter" >> /tmp/boostrap.log
+log "Installing Jupyter"
 sudo python3 -m pip install --upgrade pip
 sudo python3 -m pip install jupyter
 

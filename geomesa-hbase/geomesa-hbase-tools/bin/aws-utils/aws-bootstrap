@@ -152,7 +152,7 @@ popd
 # Upload resources
 error=0
 aws ${AWS_PROFILE} s3 cp "${tarball}" "${CONTAINER}" || error=1
-aws ${AWS_PROFILE} s3 cp "${%%gmtools.dist.name%%_HOME}/bin/aws-utils/aws-bootstrap-actions.sh" "${CONTAINER}" || error=1
+aws ${AWS_PROFILE} s3 cp "${%%gmtools.dist.name%%_HOME}/bin/aws-utils/.aws-bootstrap-actions.sh" "${CONTAINER}" || error=1
 if [[ error == 1 ]]; then
   echo "Failed to upload tools package" && exit 1
 fi
@@ -207,7 +207,7 @@ cmd="
       Name=Master,InstanceCount=1,InstanceGroupType=MASTER,InstanceType=m1.large    \
       Name=Workers,InstanceCount=1,InstanceGroupType=CORE,InstanceType=m1.large     \
     --configurations file://${hbase_conf}                                           \
-    --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
+    --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}.aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
 "
 
 echo "Ready to create cluster with command:"

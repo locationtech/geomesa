@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.tools
 
-import com.beust.jcommander.Parameters
+import java.io.File
+
+import com.beust.jcommander.{Parameter, Parameters}
 
 /**
  * Note: this class is a placeholder for the 'aws' functionality implemented in the 'geomesa-hbase' script, to get it

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #
+# Do not run this script manually. It is part of the automated bootstrap process and is not written for end user use.
+#
 # Core Bootstrap Script for GeoMesa on AWS EMR
 #
 # Note this script runs twice. It is initiated by AWS before the cluster is ready. During its lifetime it downloads a
@@ -30,7 +32,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     -j*|--jupyter*)
       JUPYTER=true
-      JUPYTER_PASSWORD="${i#*=}"
+      JUPYTER_PASSWORD="${1#*=}"
       if [[ -z "${JUPYTER_PASSWORD}" ]]; then
         JUPYTER_PASSWORD="geomesa"
       fi
@@ -38,7 +40,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -c=*|--container=*)
-      CONTAINER="${i#*=}"
+      CONTAINER="${1#*=}"
       log "Container: ${CONTAINER}"
       shift
       ;;
@@ -47,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      log "[Warning] Unknown parameter: ${i}"
+      log "[Warning] Unknown parameter: ${1}"
       shift
       ;;
   esac
@@ -86,7 +88,7 @@ if [[ "${CHILD}" != "true" ]]; then
     sudo chown -R ec2-user ${GM_TOOLS_HOME}
 
     log "Starting Child Script" 
-    sudo nohup ${GM_TOOLS_HOME}/aws-utils/aws-bootstrap-actions.sh --child ${ARGS[@]} &>/dev/null &
+    sudo nohup ${GM_TOOLS_HOME}/bin/aws-utils/.aws-bootstrap-actions.sh --child ${ARGS[@]} &>/dev/null &
 
     log "Parent Done"
     exit 0
@@ -124,14 +126,14 @@ else
   done
 
   log "Bootstrapping GeoMesa" 
-  sudo ${GM_TOOLS_HOME}/aws-utils/aws-bootstrap-geomesa-hbase.sh
+  sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-hbase.sh
 
   if [[ -n "${ZEPPELIN}" ]]; then
-    ( ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-zeppelin.sh )
+    ( sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-zeppelin.sh )
   fi
 
   if [[ -n "${JUPYTER}" ]]; then
-    ( ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-jupyter.sh "${JUPYTER_PASSWORD}" )
+    ( sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-jupyter.sh "${JUPYTER_PASSWORD}" )
   fi
 
   log "Bootstrap Complete"
