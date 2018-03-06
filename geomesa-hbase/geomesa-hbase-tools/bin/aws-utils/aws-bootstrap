@@ -41,6 +41,7 @@ function printHelp() {
 }
 
 ARGS=($@)
+attributes=()
 
 if [[ $# -eq 0 ]]; then
   printHelp
@@ -49,6 +50,7 @@ else
     case $1 in
       -z|--zeppelin)
         ZEPPELIN=true
+        ZEPPELIN_APP="Name=Zeppelin"
         shift
         ;;
       -j|--jupyter)
@@ -80,6 +82,26 @@ else
         fi
         shift
         ;;
+      -k|--key-name)
+        if [[ $2 != -* ]]; then
+          shift
+          KeyName="KeyName=${1}"
+          attributes=($attributes $KeyName)
+        else
+          echo "Invalid SSH key name"
+          exit 1
+        fi
+        ;;
+      --MasterSecurityGroups)
+        if [[ $2 != -* ]]; then
+          shift
+          MasterSecurityGroups="AdditionalMasterSecurityGroups=${1}"
+          attributes=($attributes $MasterSecurityGroups)
+        else
+          echo "Invalid Master Security Group"
+          exit 1
+        fi
+        ;;
       -h|--help)
         printHelp
         ;;
@@ -92,7 +114,7 @@ else
   done
 fi
 
-EC2_ATTRIBUTES="--ec2-attributes KeyName=CCRi,AdditionalMasterSecurityGroups=sg-507c2225"
+#EC2_ATTRIBUTES="--ec2-attributes KeyName=CCRi,AdditionalMasterSecurityGroups=sg-507c2225"
 
 # Detect if we're on an existing AWS Instance and the user is just wanting to install software
 if [[ -f /mnt/var/lib/info/extraInstanceData.json ]]; then
@@ -114,7 +136,7 @@ if [[ -f /mnt/var/lib/info/extraInstanceData.json ]]; then
   fi
 fi
 
-# Validate Parameters now since Container isn't needed if we're on an existing cluster
+# Validate Parameters now since most params aren't needed if we're on an existing cluster
 if [[ -z "${CONTAINER}" ]]; then
   echo "S3 container is required"
   exit 1
@@ -124,6 +146,11 @@ elif [[ "${CONTAINER}" != s3://* ]]; then
 elif [[ "${CONTAINER}" != */ ]]; then
   # We need a trailing '/' for consistency
   CONTAINER="${CONTAINER}/"
+fi
+
+if [[ ${#attributes[@]} -gt 1 ]]; then
+  attrs=$(join_by , ${attributes[@]})
+  EC2_ATTRIBUTES="--ec2-attributes ${attrs}"
 fi
 
 echo "Starting GeoMesa AWS EMR Bootstrap Process"
@@ -201,11 +228,11 @@ cmd="
     --release-label emr-5.10.0                                                      \
     --output text                                                                   \
     --use-default-roles                                                             \
-    --applications Name=Hadoop Name=Zookeeper Name=Spark Name=HBase                 \
+    --applications Name=Hadoop Name=Zookeeper Name=Spark Name=HBase ${ZEPPELIN_APP} \
     ${EC2_ATTRIBUTES}                                                               \
     --instance-groups                                                               \
       Name=Master,InstanceCount=1,InstanceGroupType=MASTER,InstanceType=m1.large    \
-      Name=Workers,InstanceCount=1,InstanceGroupType=CORE,InstanceType=m1.large     \
+      Name=Workers,InstanceCount=1,InstanceGroupType=CORE,InstanceType=m1.large,BidPrice=.06     \
     --configurations file://${hbase_conf}                                           \
     --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}.aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
 "

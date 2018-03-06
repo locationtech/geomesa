@@ -21,6 +21,14 @@ function setGeoLog() {
   fi
 }
 
+function join_by {
+  # Usage: join_by <delimiter> <array>
+  # e.g. join_by , ${my_array[@]}
+  local IFS="$1"
+  shift
+  echo "$*"
+}
+
 # findJars [path] [bool: remove slf4j jars] [bool: do not descend into sub directories]
 function findJars() {
   home="$1"
