@@ -36,10 +36,13 @@ log "Installing Jupyter"
 sudo python36 -m pip install --upgrade pip
 sudo python36 -m pip install jupyter
 
+
 log "Generating Jupyter Notebook Config"
+# This IP is the EC2 instance metadata service and is the recommended way to retrieve this information
+publicIP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 notebookConf=~/.jupyter/jupyter_notebook_config.py
 jupyter notebook --generate-config -y
-password=$((python "from notebook.auth import passwd; exit(passwd(\"${JUPYTER_PASSWORD}\"))") 2>&1)
+password=$((python -c "from notebook.auth import passwd; exit(passwd(\"${JUPYTER_PASSWORD}\"))") 2>&1)
 rm -f ${notebookConf}
 cat > ${notebookConf} <<EOF
 # Configuration file for jupyter-notebook.
@@ -185,7 +188,7 @@ cat > ${notebookConf} <<EOF
 #c.NotebookApp.iopub_msg_rate_limit = 0
 
 ## The IP address the notebook server will listen on.
-c.NotebookApp.ip = 'localhost'
+c.NotebookApp.ip = '${publicIP}'
 
 ## Supply extra arguments that will be passed to Jinja environment.
 #c.NotebookApp.jinja_environment_options = {}
