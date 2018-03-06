@@ -8,9 +8,12 @@ import scala.collection.JavaConversions._
 
 System.out.println(
   s"""
-     |       ______           __  ___
-     |      / ____/__  ____  /  |/  /__  _________ _
-     |     / / __/ _ \\/ __ \\/ /|_/ / _ \\/ ___/ __ `/
-     |    / /_/ /  __/ /_/ / /  / /  __(__  ) /_/ /
-     |    \\____/\\___/\\____/_/  /_/\\___/____/\\__,_/ version ${org.locationtech.geomesa.utils.conf.GeoMesaProperties.ProjectVersion}
-  """.stripMargin)
+     |x       ______            y__  ___                 z
+     |x      / ____/__  ____   y/  |/  /__  _________ _  z
+     |x     / / __/ _ \\/ __ \\ y/ /|_/ / _ \\/ ___/ __ `/  z
+     |x    / /_/ /  __/ /_/ /y/ /  / /  __(__  ) /_/ /   z
+     |x    \\____/\\___/\\____/y/_/  /_/\\___/____/\\__,_/z version ${org.locationtech.geomesa.utils.conf.GeoMesaProperties.ProjectVersion}
+  """.stripMargin
+     .replaceAll("x", Console.RED + Console.BOLD)
+     .replaceAll("y", Console.RESET + Console.RED)
+     .replaceAll("z", Console.RESET))
