@@ -23,6 +23,14 @@ if [[ "${1}" == "-h" || "${2}" == "--help" ]]; then
   echo "Usage: ./aws-bootstrap-geomesa-jupyter.sh <jupyter_password>"
 fi
 
+# Verify that we are running in sudo mode
+if [[ "$EUID" -ne 0 ]]; then
+  log "ERROR: Please run in sudo mode"
+  exit
+fi
+
+user="ec2-user"
+
 JUPYTER_PASSWORD=$1
 if [[ -z "${JUPYTER_PASSWORD}" ]]; then
   JUPYTER_PASSWORD="geomesa"
@@ -37,11 +45,10 @@ sudo python36 -m pip install --upgrade pip
 sudo python36 -m pip install jupyter
 
 log "Generating Jupyter Notebook Config"
-user="ec2-user"
 # This IP is the EC2 instance metadata service and is the recommended way to retrieve this information
 publicDNS=$(curl http://169.254.169.254/latest/meta-data/public-hostname)
 password=$((python36 -c "from notebook.auth import passwd; exit(passwd(\"${JUPYTER_PASSWORD}\"))") 2>&1)
-notebookRes=($(sudo -u ${user} jupyter notebook --generate-config -y))
+notebookRes=($(sudo -H -u ${user} /usr/bin/python36 /usr/local/bin/jupyter-notebook --generate-config -y))
 notebookConf="${notebookRes[-1]}"
 rm -f ${notebookConf}
 cat > ${notebookConf} <<EOF
@@ -52,5 +59,5 @@ c.NotebookApp.password = u'${password}'
 c.NotebookApp.port = 8888
 EOF
 
-sudo -u ${user} nohup /usr/bin/python36 /usr/local/bin/jupyter-notebook &>/tmp/jupyter.log &
+sudo -H -u ${user} nohup /usr/bin/python36 /usr/local/bin/jupyter-notebook &>/tmp/jupyter.log &
 log "Jupyter ready"

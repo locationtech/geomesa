@@ -1,29 +1,35 @@
 #!/bin/bash
 
+logFile=/tmp/bootstrap.log
+function log() {
+  timeStamp=$(date +"%T")
+  echo "${timeStamp}| ${@}" | tee -a $logFile
+}
+
 # Verify that we are running in sudo mode
 if [[ "$EUID" -ne 0 ]]; then
-  echo "ERROR: Please run in sudo mode"
+  log "ERROR: Please run in sudo mode"
   exit
 fi
 
 GMUSER=hadoop
 
 # todo bootstrap from the current running location and ask the user if they want to 
-# install to /opt/geomesa ? Maybe propmpt with a default of /opt/geomesa similar to
+# install to /opt/geomesa ? Maybe prompt with a default of /opt/geomesa similar to
 # how the maven release plugin works?
 GMDIR="/opt/%%gmtools.assembly.name%%"
 
 if [[ ! -d "${GMDIR}" ]]; then
-  echo "Unable to find geomesa directory at ${GMDIR}"
+  log "Unable to find geomesa directory at ${GMDIR}"
   exit 1
 fi
 
-echo "Bootstrapping GeoMesa HBase with version %%project.version%% installed at ${GMDIR}"
+log "Bootstrapping GeoMesa-HBase with version %%project.version%% installed at ${GMDIR}"
 
 pip install --upgrade awscli
 
 if [[ ! -d "/opt" ]]; then
-  echo "Unable to find /opt"
+  log "Unable to find /opt"
   exit 1
 fi
 chmod a+rwx /opt
@@ -43,7 +49,7 @@ ROOTDIR=`cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed
 while [[ -z "$ROOTDIR" ]]
 do
       sleep 2
-      echo Waiting for HBase to be configured.
+      log "Waiting for HBase to be configured."
       ROOTDIR=`cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//'`
 done
 
@@ -53,19 +59,19 @@ chown -R $GMUSER:$GMUSER ${GMDIR}
 DISTRIBUTED_JAR_NAME=geomesa-hbase-distributed-runtime_2.11-%%project.version%%.jar
 
 NL=$'\n'
-echo The HBase Root dir is ${ROOTDIR}.
+log "The HBase Root dir is ${ROOTDIR}."
 echo "# Auto-registration for geomesa coprocessors ${NL}export CUSTOM_JAVA_OPTS=\"${JAVA_OPTS} ${CUSTOM_JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=${ROOTDIR}/lib/${DISTRIBUTED_JAR_NAME}\" ${NL}" >> /opt/geomesa/conf/geomesa-env.sh
 
 # Deploy the GeoMesa HBase distributed runtime to the HBase root directory
 if [[ "$ROOTDIR" = s3* ]]; then
   aws s3 cp /opt/geomesa/dist/hbase/$DISTRIBUTED_JAR_NAME $ROOTDIR/lib/ && \
-  echo "Installed GeoMesa distributed runtime to $ROOTDIR/lib/"
+  log "Installed GeoMesa distributed runtime to $ROOTDIR/lib/"
 elif [[ "$ROOTDIR" = hdfs* ]]; then
   local libdir="${ROOTDIR}/lib"
   (sudo -u $GMUSER hadoop fs -test -d $libdir || sudo -u $GMUSER hadoop fs -mkdir $libdir) && \
   sudo -u $GMUSER hadoop fs -put -f ${GEOMESA_HBASE_HOME}/dist/hbase/$DISTRIBUTED_JAR_NAME $libdir/$DISTRIBUTED_JAR_NAME && \
   sudo -u $GMUSER hadoop fs -chown -R hbase:hbase $ROOTDIR/lib && \
-  echo "Installed GeoMesa distributed runtime to $ROOTDIR/lib/"
+  log "Installed GeoMesa distributed runtime to $ROOTDIR/lib/"
 fi
 
 # Create an HDFS directory for Spark jobs
@@ -83,4 +89,4 @@ export GEOMESA_HBASE_CLASSPATH=$(hbase classpath)
 
 EOF
 
-echo "Bootstrap complete...log out and relogin to complete process"
+log "GeoMesa-HBase Bootstrap complete...log out and relogin to complete process"
