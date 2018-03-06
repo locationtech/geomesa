@@ -37,10 +37,12 @@ sudo python36 -m pip install --upgrade pip
 sudo python36 -m pip install jupyter
 
 log "Generating Jupyter Notebook Config"
+user="ec2-user"
 # This IP is the EC2 instance metadata service and is the recommended way to retrieve this information
 publicDNS=$(curl http://169.254.169.254/latest/meta-data/public-hostname)
 password=$((python36 -c "from notebook.auth import passwd; exit(passwd(\"${JUPYTER_PASSWORD}\"))") 2>&1)
-notebookConf=($(jupyter notebook --generate-config -y))[-1]
+notebookRes=($(sudo -u ${user} jupyter notebook --generate-config -y))
+notebookConf="${notebookRes[-1]}"
 rm -f ${notebookConf}
 cat > ${notebookConf} <<EOF
 c.NotebookApp.ip = '${publicDNS}'
@@ -50,5 +52,5 @@ c.NotebookApp.password = u'${password}'
 c.NotebookApp.port = 8888
 EOF
 
-sudo -u ec2-user nohup /usr/local/bin/jupyter notebook &>/tmp/jupyter.log &
+sudo -u ${user} nohup /usr/bin/python36 /usr/local/bin/jupyter-notebook &>/tmp/jupyter.log &
 log "Jupyter ready"

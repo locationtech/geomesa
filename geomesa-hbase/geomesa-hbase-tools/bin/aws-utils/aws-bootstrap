@@ -30,12 +30,23 @@ function printHelp() {
   echo "  -c,--container       S3 Bucket URL to use as the HBase root and bootstrap working directory"
   echo ""
   echo "Options:"
-  echo "  -j,--jupyter         Specifying this parameter will install and configure a Jupyter notebook on the cluster"
-  echo "                       master. Additionally, you can specify a password to use for the Jupyter server by"
-  echo "                       providing a value to this parameter. e.g. -j=password or --jupyter=password"
-  echo "                       Default password: geomesa"
-  echo "  -z,--zeppelin        Specifying this parameter will install and configure a Zeppelin notebook on the cluster"
-  echo "                       master."
+  echo "  -j,--jupyter          Specifying this parameter will install and configure a Jupyter notebook on the cluster"
+  echo "                        master. Additionally, you can specify a password to use for the Jupyter server by"
+  echo "                        providing a value to this parameter. e.g. -j=password or --jupyter=password"
+  echo "                        Default password: geomesa"
+  echo "  -z,--zeppelin         Specifying this parameter will install and configure a Zeppelin notebook on the cluster"
+  echo "                        master."
+  echo "  -p,--profile          AWS command line tools profile to use. Passed to 'aws' commands as"
+  echo "                        'aws --profile <value>'"
+  echo "  -k,--key-name         SSH key name that identifies an existing SSH key in EC2. Used for setting the SSH key"
+  echo "                        for the cluster."
+  echo "  --MasterSecurityGroup Comma separated list of existing EC2 security groups to assign to the Master node."
+  echo "  --InstanceType        EC2 Instance type designation for the cluster."
+  echo "                        Default: 'm1.large'"
+  echo "  --MasterInstanceType  EC2 Instance type designation for the Master node."
+  echo "                        Default: Value of '--InstanceType'"
+  echo "  --BidPrice            Optional Spot BidPrice for worker nodes. Note master must be a Reserved Instance"
+  echo "                        Default: None. Worker are reserved nodes."
   echo ""
   exit 0
 }
@@ -49,6 +60,15 @@ if [[ $# -eq 0 ]]; then
 else
   while [[ $# -gt 0 ]]; do
     case $1 in
+      # Mandatory Params
+      -c|--container)
+        if [[ $2 != -* ]]; then
+          shift
+          CONTAINER="${1}"
+        fi
+        shift
+        ;;
+      # Optional Params
       -z|--zeppelin)
         ZEPPELIN=true
         ZEPPELIN_APP="Name=Zeppelin"
@@ -63,13 +83,6 @@ else
         if [[ -z "${JUPYTER_PASSWORD}" ]]; then
           echo "Using default Jupyter password: geomesa"
           JUPYTER_PASSWORD="geomesa"
-        fi
-        shift
-        ;;
-      -c|--container)
-        if [[ $2 != -* ]]; then
-          shift
-          CONTAINER="${1}"
         fi
         shift
         ;;
@@ -121,6 +134,16 @@ else
           MasterInstanceType="InstanceType=${1}"
         else
           echo "Invalid Master Instance Type"
+          exit 1
+        fi
+        shift
+        ;;
+      --BidPrice)
+        if [[ $2 =~ ^[0-9.]+ ]]; then
+          shift
+          BidPrice=",BidPrice=${1}"
+        else
+          echo "Invalid BidPrice"
           exit 1
         fi
         shift
@@ -260,7 +283,7 @@ cmd="
     ${EC2_ATTRIBUTES}                                                               \
     --instance-groups                                                               \
       Name=Master,InstanceCount=1,InstanceGroupType=MASTER,${MasterInstanceType}    \
-      Name=Workers,InstanceCount=1,InstanceGroupType=CORE,${InstanceType},BidPrice=.06     \
+      Name=Workers,InstanceCount=1,InstanceGroupType=CORE,${InstanceType}${BidPrice}\
     --configurations file://${hbase_conf}                                           \
     --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}.aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
 "
