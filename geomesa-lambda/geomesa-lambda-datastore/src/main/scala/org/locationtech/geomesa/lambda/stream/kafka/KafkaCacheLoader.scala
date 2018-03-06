@@ -13,7 +13,6 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.WritableFeatureCache
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 /**
   * Consumes from kakfa and populates the local cache
@@ -23,16 +22,17 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
   *
   * @param consumers consumers
   * @param topic kafka topic
+  * @param frequency kafka poll delay, in milliseconds
   * @param serializer feature serializer
   * @param cache shared state
   */
 class KafkaCacheLoader(override protected val consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
                        override protected val topic: String,
+                       override protected val frequency: Long,
                        serializer: KryoFeatureSerializer,
                        cache: WritableFeatureCache) extends ThreadedConsumer {
 
-  override protected val frequency: Long =
-    SystemProperty("geomesa.lambda.load.interval").toDuration.map(_.toMillis).getOrElse(100L)
+  startConsumers()
 
   override protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
     val (time, action) = KafkaStore.deserializeKey(record.key)
