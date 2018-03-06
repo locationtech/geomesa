@@ -29,9 +29,12 @@ if [[ -z "${JUPYTER_PASSWORD}" ]]; then
   log "Using default password: geomesa"
 fi
 
+log "Installing Python 3.6"
+sudo yum install -q -y python36 gcc python-devel
+
 log "Installing Jupyter"
-sudo python3 -m pip install --upgrade pip
-sudo python3 -m pip install jupyter
+sudo python36 -m pip install --upgrade pip
+sudo python36 -m pip install jupyter
 
 log "Generating Jupyter Notebook Config"
 notebookConf=~/.jupyter/jupyter_notebook_config.py
@@ -599,5 +602,5 @@ c.NotebookApp.port = 8888
 #c.KernelSpecManager.whitelist = set([])
 EOF
 
-sudo nohup jupyter notebook &>/dev/null &
+sudo nohup jupyter notebook &>/tmp/jupyter.log &
 log "Jupyter ready"
