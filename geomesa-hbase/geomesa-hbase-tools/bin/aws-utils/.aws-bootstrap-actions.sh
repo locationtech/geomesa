@@ -58,7 +58,7 @@ done
 # Validate Parameters
 if [[ -z "${CONTAINER}" ]]; then
   log "S3 container is required"
-  exit 2
+  exit 1
 elif [[ "${CONTAINER}" != */ ]]; then
   # We need a trailing '/' for consistency
   CONTAINER="${CONTAINER}/"
@@ -75,7 +75,6 @@ if [[ "${CHILD}" != "true" ]]; then
   log "Main" 
   if [[ "${isMaster}" == "true" ]]; then
     log "Copying Resources Locally" 
-    #sudo curl -sSfo 'https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${VERSION}/${GM_TOOLS_DIST}-bin.tar.gz' '/opt/${GM_TOOLS_DIST}-bin.tar.gz'
     sudo aws s3 cp ${CONTAINER}${GM_TOOLS_DIST}-bin.tar.gz /opt/${GM_TOOLS_DIST}-bin.tar.gz
 
     log "Moving to /opt/" 
@@ -114,13 +113,11 @@ else
   log "Setting up HBase status script" 
   echo "status" >> /tmp/status
   echo "exit" >> /tmp/status
-  timeout=0
-  log "Waiting for HBase to start" 
+  log "Waiting for HBase to start"
   status=$(/usr/bin/hbase shell < /tmp/status | grep "active master")
   log "${status}" 
   while [[ -z "${status}" ]]; do
-    let "timeout=timeout+1"
-    log "Sleeping" 
+    log "Sleeping"
     sleep 1
     status=$(/usr/bin/hbase shell < /tmp/status | grep "active master")
   done

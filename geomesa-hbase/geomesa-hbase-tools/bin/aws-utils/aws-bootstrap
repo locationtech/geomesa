@@ -17,9 +17,7 @@ fi
 
 . "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
-NL=$'\n'
-TAB=$'\t'
-usage="usage: ./aws-bootstrap [s3_container_path <options>] | [-h|--help]"
+usage="usage: ./aws-bootstrap [-c s3_container_path <options>] | [-h|--help]"
 
 function printHelp() {
   echo ""
@@ -46,7 +44,7 @@ function printHelp() {
   echo "  --MasterInstanceType  EC2 Instance type designation for the Master node."
   echo "                        Default: Value of '--InstanceType'"
   echo "  --BidPrice            Optional Spot BidPrice for worker nodes. Note master must be a Reserved Instance"
-  echo "                        Default: None. Worker are reserved nodes."
+  echo "                        Default: None. Workers are reserved nodes."
   echo ""
   exit 0
 }
@@ -160,8 +158,6 @@ else
   done
 fi
 
-#EC2_ATTRIBUTES="--ec2-attributes KeyName=CCRi,AdditionalMasterSecurityGroups=sg-507c2225"
-
 # Detect if we're on an existing AWS Instance and the user is just wanting to install software
 if [[ -f /mnt/var/lib/info/extraInstanceData.json ]]; then
   label=$(jq '.releaseLabel' /mnt/var/lib/info/extraInstanceData.json)
@@ -199,8 +195,8 @@ if [[ ${#attributes[@]} -gt 1 ]]; then
   EC2_ATTRIBUTES="--ec2-attributes ${attrs}"
 fi
 
-# If master type is not given use the same as the workers
 if [[ -z "${MasterInstanceType}" ]]; then
+  # If master type is not given use the same as the workers
   MasterInstanceType=$InstanceType
 fi
 

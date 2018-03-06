@@ -89,4 +89,4 @@ export GEOMESA_HBASE_CLASSPATH=$(hbase classpath)
 
 EOF
 
-log "GeoMesa-HBase Bootstrap complete...log out and relogin to complete process"
+log "GeoMesa-HBase Bootstrap complete...log out and re-login to complete process"
