@@ -24,6 +24,9 @@ function printHelp() {
   echo "Easily start up an Amazon EMR cluster preconfigured with GeoMesa, Spark, Hbase and optionally a Zeppelin"
   echo "or Jupyter notebook server pre-loaded with GeoMesa and examples."
   echo ""
+  echo "Note: Depending on your AWS region some defaults may not work out of the box because the resources are not"
+  echo "      available in that AWS region."
+  echo ""
   echo "Required:"
   echo "  -c,--container       S3 Bucket URL to use as the HBase root and bootstrap working directory"
   echo ""
@@ -38,20 +41,35 @@ function printHelp() {
   echo "                        'aws --profile <value>'"
   echo "  -k,--key-name         SSH key name that identifies an existing SSH key in EC2. Used for setting the SSH key"
   echo "                        for the cluster."
+  echo "  --MasterType          EC2 Instance type designation for the Master node."
+  echo "                        Default: Value of '--WorkerType'"
   echo "  --MasterSecurityGroup Comma separated list of existing EC2 security groups to assign to the Master node."
-  echo "  --InstanceType        EC2 Instance type designation for the cluster."
+  echo "  --WorkerType          EC2 Instance type designation for the cluster."
   echo "                        Default: 'm1.large'"
-  echo "  --MasterInstanceType  EC2 Instance type designation for the Master node."
-  echo "                        Default: Value of '--InstanceType'"
-  echo "  --BidPrice            Optional Spot BidPrice for worker nodes. Note master must be a Reserved Instance"
+  echo "  --WorkerCount         Number of workers to provision."
+  echo "                        Default: 1"
+  echo "  --WorkerBid           Optional Spot BidPrice for worker nodes. Note master must be a Reserved Instance"
   echo "                        Default: None. Workers are reserved nodes."
+  echo ""
+  echo "Note: Task instances do not perform the roll of an HBase worker and are useful for providing extra resources"
+  echo "      to spark at lower prices."
+  echo ""
+  echo "  --TaskType            EC2 Instance type designation for the cluster."
+  echo "                        Default: 'r3.xlarge'"
+  echo "  --TaskCount           Number of workers to provision."
+  echo "                        Default: 0"
+  echo "  --TaskBid             Optional Spot BidPrice for task nodes."
+  echo "                        Default: None. Task workers are reserved nodes."
   echo ""
   exit 0
 }
 
 ARGS=($@)
 attributes=()
-InstanceType="InstanceType=m1.large"
+WorkerType="InstanceType=m1.large"
+WorkerCount="InstanceCount=1"
+TaskType="InstanceType=m1.large"
+TaskCount="InstanceCount=1"
 
 if [[ $# -eq 0 ]]; then
   printHelp
@@ -105,6 +123,17 @@ else
         fi
         shift
         ;;
+      # Master Parameters
+      --MasterType)
+        if [[ $2 != -* ]]; then
+          shift
+          MasterType="InstanceType=${1}"
+        else
+          echo "Invalid Master Instance Type"
+          exit 1
+        fi
+        shift
+        ;;
       --MasterSecurityGroup*) # Group or Groups should be fine
         if [[ $2 != -* ]]; then
           shift
@@ -116,30 +145,62 @@ else
         fi
         shift
         ;;
-      --InstanceType)
+      # Worker Parameters
+      --WorkerType)
         if [[ $2 != -* ]]; then
           shift
-          InstanceType="InstanceType=${1}"
+          WorkerType="InstanceType=${1}"
         else
           echo "Invalid Instance Type"
           exit 1
         fi
         shift
         ;;
-      --MasterInstanceType)
-        if [[ $2 != -* ]]; then
+      --WorkerCount)
+        if [[ $2 =~ ^[0-9]+ && $2 -gt 0 ]]; then
           shift
-          MasterInstanceType="InstanceType=${1}"
+          WorkerCount="InstanceCount=${1}"
         else
-          echo "Invalid Master Instance Type"
+          echo "Invalid WorkerCount"
           exit 1
         fi
         shift
         ;;
-      --BidPrice)
-        if [[ $2 =~ ^[0-9.]+ ]]; then
+      --WorkerBid)
+        if [[ $2 =~ ^[0-9.]+ && $(echo "$2 > 0" | bc) ]]; then
           shift
-          BidPrice=",BidPrice=${1}"
+          WorkerBid=",BidPrice=${1}"
+        else
+          echo "Invalid BidPrice"
+          exit 1
+        fi
+        shift
+        ;;
+      # Task Parameters
+      --TaskType)
+        if [[ $2 != -* ]]; then
+          shift
+          TaskType="InstanceType=${1}"
+        else
+          echo "Invalid Instance Type"
+          exit 1
+        fi
+        shift
+        ;;
+      --TaskCount)
+        if [[ $2 =~ ^[0-9]+ ]]; then
+          shift
+          TaskCount="InstanceCount=${1}"
+        else
+          echo "Invalid WorkerCount"
+          exit 1
+        fi
+        shift
+        ;;
+      --TaskBid)
+        if [[ $2 =~ ^[0-9.]+ && $(echo "$2 > 0" | bc) ]]; then
+          shift
+          TaskBid=",BidPrice=${1}"
         else
           echo "Invalid BidPrice"
           exit 1
@@ -195,9 +256,13 @@ if [[ ${#attributes[@]} -gt 1 ]]; then
   EC2_ATTRIBUTES="--ec2-attributes ${attrs}"
 fi
 
-if [[ -z "${MasterInstanceType}" ]]; then
+if [[ -z "${MasterType}" ]]; then
   # If master type is not given use the same as the workers
-  MasterInstanceType=$InstanceType
+  MasterType=$WorkerType
+fi
+
+if [[ $(echo "${TaskCount#*=} > 0" | bc) ]]; then
+  TaskGroup="Name=Task,${TaskCount},InstanceGroupType=TASK,${TaskType}${TaskBid}"
 fi
 
 echo "Starting GeoMesa AWS EMR Bootstrap Process"
@@ -278,8 +343,9 @@ cmd="
     --applications Name=Hadoop Name=Zookeeper Name=Spark Name=HBase ${ZEPPELIN_APP} \
     ${EC2_ATTRIBUTES}                                                               \
     --instance-groups                                                               \
-      Name=Master,InstanceCount=1,InstanceGroupType=MASTER,${MasterInstanceType}    \
-      Name=Workers,InstanceCount=1,InstanceGroupType=CORE,${InstanceType}${BidPrice}\
+      Name=Master,InstanceCount=1,InstanceGroupType=MASTER,${MasterType}    \
+      Name=Workers,${WorkerCount},InstanceGroupType=CORE,${WorkerType}${WorkerBid}\
+      ${TaskGroup}
     --configurations file://${hbase_conf}                                           \
     --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}.aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
 "
@@ -322,14 +388,20 @@ done
 
 failure=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep BOOTSTRAP_FAILURE | cut -d "\"" -f 4`
 if [[ -n "${failure}" ]]; then
-  echo -ne "Cluster setup failed"
+  echo -ne "Cluster setup failed\n"
 else
   address=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep MasterPublicDnsName | cut -d "\"" -f 4`
-  echo -ne "Cluster has been provisioned and is bootstrapping\n"
+  echo -ne "\n"
   echo "Master public DNS name: ${address}"
+  echo "Resource Manager; ${address}:8088"
+  echo "Spark History Server: ${address}:18080"
+  echo "HBase Master: ${address}:16010/master-status"
+  echo "HDFS Name Node: ${address}50070"
   if [[ -n "${JUPYTER}" ]]; then
     echo "Jupyter will be available at: ${address}:8888"
   fi
+  echo ""
+  echo "Cluster has been provisioned and is bootstrapping."
 fi
 
 rm -r "${WORKING_DIR}"
