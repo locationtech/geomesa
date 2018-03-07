@@ -96,9 +96,7 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
 
       var i = 0
       w.dictionary.foreach { value =>
-        if (value != null) {
-          writer.apply(i, value)
-        }
+        writer.apply(i, value)
         i += 1
       }
       writer.setValueCount(w.size)
