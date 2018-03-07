@@ -239,12 +239,8 @@ object ArrowAttributeWriter {
 
     private val mutator = vector.getMutator
 
-    override def apply(i: Int, value: AnyRef): Unit =
-      if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
-      } else {
-        mutator.setSafe(i, dictionary.index(value).toByte)
-      }
+    // note: nulls get encoded in the dictionary
+    override def apply(i: Int, value: AnyRef): Unit = mutator.setSafe(i, dictionary.index(value).toByte)
   }
 
   /**
@@ -256,12 +252,8 @@ object ArrowAttributeWriter {
 
     private val mutator = vector.getMutator
 
-    override def apply(i: Int, value: AnyRef): Unit =
-      if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
-      } else {
-        mutator.setSafe(i, dictionary.index(value).toShort)
-      }
+    // note: nulls get encoded in the dictionary
+    override def apply(i: Int, value: AnyRef): Unit = mutator.setSafe(i, dictionary.index(value).toShort)
   }
 
   /**
@@ -273,12 +265,8 @@ object ArrowAttributeWriter {
 
     private val mutator = vector.getMutator
 
-    override def apply(i: Int, value: AnyRef): Unit =
-      if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
-      } else {
-        mutator.setSafe(i, dictionary.index(value))
-      }
+    // note: nulls get encoded in the dictionary
+    override def apply(i: Int, value: AnyRef): Unit = mutator.setSafe(i, dictionary.index(value))
   }
 
   /**
