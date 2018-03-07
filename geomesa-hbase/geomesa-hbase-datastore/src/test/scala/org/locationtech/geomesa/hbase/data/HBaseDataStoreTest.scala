@@ -93,7 +93,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
           val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
           val features = SelfClosingIterator(fr).toList
           features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
-            beSome("*geom:Point:srid=4326,derived:String")
+            beSome("derived:String,*geom:Point:srid=4326")
           features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
           forall(features) { feature =>
             feature.getAttribute("derived") mustEqual s"helloname${feature.getID}"
