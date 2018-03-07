@@ -196,6 +196,22 @@
     </property>
 
     <property>
+        <name>geomesa.scan.block-full-table</name>
+        <value></value>
+        <description>
+          This property will prevent full-table scans from executing. A full-table scan is any query that can't be
+          constrained down using a search index, and thus requires scanning the entire data set. With large data sets,
+          such a scan can last a long time and be resource intensive. The property is specified as a Boolean, i.e.
+          "true" or "false".
+          It is also possible to specify the full-table scan behavior for individual schemas. Use
+          "geomesa.scan.&lt;type-name&gt;.block-full-table", where "&lt;type-name&gt;" is replaced with the schema name
+          (e.g. "gdelt"). Properties set for an individual schema will take precedence over the globally-defined
+          behavior.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
         <name>geomesa.scan.ranges.target</name>
         <value>2000</value>
         <description>This property provides a rough upper-limit for the

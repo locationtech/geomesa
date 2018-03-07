@@ -17,12 +17,14 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatur
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 trait RecordQueryableIndex extends AccumuloFeatureIndex
     with IdFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
@@ -41,7 +43,8 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
 
     val ranges = filter.primary match {
       case None =>
-        // allow for full table scans
+        // check that full table scans are allowed
+        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }

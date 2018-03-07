@@ -168,7 +168,7 @@ object GeoMesaParam {
   }
 
   case class SystemPropertyBooleanParam(prop: SystemProperty) extends SystemPropertyParam[java.lang.Boolean] {
-    override def option: Option[java.lang.Boolean] = prop.toBoolean
+    override def option: Option[java.lang.Boolean] = prop.toBoolean.map(Boolean.box)
   }
 
   case class SystemPropertyIntegerParam(prop: SystemProperty) extends SystemPropertyParam[Integer] {

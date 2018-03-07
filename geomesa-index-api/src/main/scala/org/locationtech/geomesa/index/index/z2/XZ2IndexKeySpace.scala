@@ -68,7 +68,7 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues] {
 
   override def getRanges(sft: SimpleFeatureType, indexValues: XZ2IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
     val XZ2IndexValues(sfc, _, xy) = indexValues
-    val zs = sfc.ranges(xy, QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt))
+    val zs = sfc.ranges(xy, QueryProperties.ScanRangesTarget.option.map(_.toInt))
     zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
   }
 }
