@@ -28,6 +28,7 @@ import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 trait Z2QueryableIndex extends AccumuloFeatureIndex
     with SpatialFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
@@ -48,6 +49,8 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     if (filter.primary.isEmpty) {
+      // check that full table scans are allowed
+      QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
       filter.secondary.foreach { f =>
         logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
       }
@@ -121,7 +124,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
       // setup Z2 iterator
       import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1.GEOM_Z_NUM_BYTES
       val xy = geometries.values.map(GeometryUtils.bounds)
-      val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+      val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
       val zRanges = if (sft.isPoints) {
         LegacyZ2SFC.ranges(xy, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
       } else {

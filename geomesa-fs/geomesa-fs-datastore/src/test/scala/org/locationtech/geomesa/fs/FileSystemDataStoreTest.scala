@@ -119,7 +119,7 @@ class FileSystemDataStoreTest extends Specification {
         "dtg > '2017-06-05T04:03:00.0000Z' AND dtg < '2017-06-05T04:04:00.0000Z'",
         "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-05T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
       ).map(ECQL.toFilter)
-      val transforms = Seq(null, Array("name"), Array("dtg", "geom")) // note: geom is always returned
+      val transforms = Seq(null, Array("name"), Array("dtg", "geom"))
 
       foreach(filters) { filter =>
         foreach(transforms) { transform =>
@@ -130,13 +130,9 @@ class FileSystemDataStoreTest extends Specification {
           if (transform == null) {
             feature.getAttributeCount mustEqual 4
             feature.getAttributes mustEqual sf.getAttributes
-          } else if (transform.contains("geom")) {
+          } else {
             feature.getAttributeCount mustEqual transform.length
             foreach(transform)(t => feature.getAttribute(t) mustEqual sf.getAttribute(t))
-          } else {
-            feature.getAttributeCount mustEqual transform.length + 1
-            foreach(transform)(t => feature.getAttribute(t) mustEqual sf.getAttribute(t))
-            feature.getAttribute("geom") mustEqual sf.getAttribute("geom")
           }
         }
       }

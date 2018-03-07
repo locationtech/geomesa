@@ -47,7 +47,6 @@ declare -a urls=(
   "${base_url}org/xerial/snappy/snappy-java/${snappy_version}/snappy-java-${snappy_version}.jar"
   "${base_url}commons-configuration/commons-configuration/${commons_config_version}/commons-configuration-${commons_config_version}.jar"
   "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
-  "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
   "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
   "${base_url}com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar"
   "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
@@ -55,5 +54,10 @@ declare -a urls=(
   "${base_url}org/apache/httpcomponents/httpcore/4.3.3/httpcore-4.3.3.jar"
   "${base_url}commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar"
 )
+
+# if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
+if [ -z "$(find $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
+  urls+=("${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar")
+fi
 
 downloadUrls "$install_dir" urls[@]

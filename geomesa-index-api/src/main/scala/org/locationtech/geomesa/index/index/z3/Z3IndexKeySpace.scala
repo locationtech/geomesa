@@ -122,7 +122,7 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues] {
 
     val Z3IndexValues(z3, _, xy, _, timesByBin) = values
 
-    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+    val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
 
     def toZRanges(t: Seq[(Long, Long)]): Seq[IndexRange] = z3.ranges(xy, t, 64, rangeTarget)
 
