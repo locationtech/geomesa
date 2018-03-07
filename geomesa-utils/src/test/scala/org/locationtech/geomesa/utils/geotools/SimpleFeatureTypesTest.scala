@@ -75,6 +75,19 @@ class SimpleFeatureTypesTest extends Specification {
       }
     }
 
+    "create an empty type" >> {
+      val sft = SimpleFeatureTypes.createType("test", "")
+      sft.getTypeName mustEqual "test"
+      sft.getAttributeDescriptors must beEmpty
+    }
+
+    "create an empty type with user data" >> {
+      val sft = SimpleFeatureTypes.createType("test", ";geomesa.table.sharing='true'")
+      sft.getTypeName mustEqual "test"
+      sft.getAttributeDescriptors must beEmpty
+      sft.getUserData.get("geomesa.table.sharing") mustEqual "true"
+    }
+
     "handle namespaces" >> {
       "simple ones" >> {
         val sft = SimpleFeatureTypes.createType("ns:testing", "dtg:Date,*geom:Point:srid=4326")
@@ -321,7 +334,6 @@ class SimpleFeatureTypesTest extends Specification {
       Try(SimpleFeatureTypes.createType("test", null)) must
           beAFailedTry.withThrowable[IllegalArgumentException](Pattern.quote("Invalid spec string: null"))
       val failures = Seq(
-        ("", "0. Expected one of: attribute name, '*'"),
         ("foo:Strong", "7. Expected attribute type binding"),
         ("foo:String,*bar:String", "16. Expected geometry type binding"),
         ("foo:String,bar:String;;", "22. Expected one of: feature type option, end of spec"),
