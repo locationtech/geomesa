@@ -53,7 +53,6 @@ function printHelp() {
   echo ""
   echo "Note: Task instances do not perform the roll of an HBase worker and are useful for providing extra resources"
   echo "      to spark at lower prices."
-  echo ""
   echo "  --TaskType            EC2 Instance type designation for the cluster."
   echo "                        Default: 'r3.xlarge'"
   echo "  --TaskCount           Number of workers to provision."
@@ -366,32 +365,35 @@ fi
 
 echo "Cluster ID: ${CID}"
 
+# Cluster bootstrapping status monitor
+# Load an initial value so later code works
+echo "Provisioning" > ${WORKING_DIR}/bootstrap.log
+aws ${AWS_PROFILE} s3 cp ${WORKING_DIR}/bootstrap.log ${CONTAINER}bootstrap.log
 status=""
+failed=""
 count=0
-while [[ -z "${status}" ]]; do
-  let count=$count%3+1
+while [[ "${status}" != "Bootstrap Complete" && -z "${failed}" ]]; do
+  let count=$count%5+1
   case $count in
-    1)
-      icon="\\"
-      ;;
-    2)
-      icon="/"
-      ;;
-    3)
-      icon="-"
-      ;;
+    1) icon=">  " ;;
+    2) icon=">> " ;;
+    3) icon=">>>" ;;
+    4) icon=" >>" ;;
+    5) icon="  >" ;;
   esac
-  echo -ne "Waiting for cluster provisioning ${icon} \r"
+  failed=$(aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep "BOOTSTRAP_FAILURE")
+  status=$(aws ${AWS_PROFILE} s3 cp ${CONTAINER}bootstrap.log - | tail -n 1)
+  echo -ne "Bootstrap Status ${icon} ${status} \r"
   sleep 1
-  status=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep MasterPublic | cut -d "\"" -f 4`
 done
 
-failure=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep BOOTSTRAP_FAILURE | cut -d "\"" -f 4`
-if [[ -n "${failure}" ]]; then
-  echo -ne "Cluster setup failed\n"
+if [[ -n "${failed}" ]]; then
+  echo -ne "Cluster setup failed\nCheck the AWS console for more information"
 else
+  echo -ne "Cluster is ready\n"
+  # Write out useful addresses
   address=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep MasterPublicDnsName | cut -d "\"" -f 4`
-  echo -ne "\n"
+  echo ""
   echo "Master public DNS name: ${address}"
   echo "Resource Manager; ${address}:8088"
   echo "Spark History Server: ${address}:18080"
@@ -401,7 +403,7 @@ else
     echo "Jupyter will be available at: ${address}:8888"
   fi
   echo ""
-  echo "Cluster has been provisioned and is bootstrapping."
 fi
 
+# Cleanup
 rm -r "${WORKING_DIR}"

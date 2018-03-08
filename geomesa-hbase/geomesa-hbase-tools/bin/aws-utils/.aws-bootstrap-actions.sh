@@ -12,9 +12,8 @@ logFile=/tmp/bootstrap.log
 function log() {
   timeStamp=$(date +"%T")
   echo "${timeStamp}| ${@}" | tee -a $logFile
+  sudo -H -u ec2-user aws s3 cp $logFile ${CONTAINER}/bootstrap.log
 }
-
-log "Bootstrap Actions Spawned"
 
 ARGS=($@) # Save the input args so we can pass them to the child.
 VERSION=%%project.version%%
@@ -22,12 +21,12 @@ GM_TOOLS_DIST="%%gmtools.assembly.name%%"
 GM_TOOLS_HOME="/opt/${GM_TOOLS_DIST}"
 log "GM TOOLS DIST: ${GM_TOOLS_DIST}"
 CHILD=false
+CID=$(cat /mnt/var/lib/info/job-flow.json | jq .jobFlowId)
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     -z|--zeppelin)
       ZEPPELIN=true
-      log "Zeppelin Enabled"
       shift
       ;;
     -j*|--jupyter*)
@@ -36,12 +35,10 @@ while [[ $# -gt 0 ]]; do
       if [[ -z "${JUPYTER_PASSWORD}" ]]; then
         JUPYTER_PASSWORD="geomesa"
       fi
-      log "Jupyter Enabled. Password: ${JUPYTER_PASSWORD}"
       shift
       ;;
     -c=*|--container=*)
       CONTAINER="${1#*=}"
-      log "Container: ${CONTAINER}"
       shift
       ;;
     --child)
@@ -49,11 +46,13 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      log "[Warning] Unknown parameter: ${1}"
+      echo "[Warning] Unknown parameter: ${1}"
       shift
       ;;
   esac
 done
+
+log "Bootstrap Actions Spawned"
 
 # Validate Parameters
 if [[ -z "${CONTAINER}" ]]; then
@@ -127,10 +126,12 @@ else
 
   if [[ -n "${ZEPPELIN}" ]]; then
     ( sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-zeppelin.sh )
+    log "Zeppelin Installed"
   fi
 
   if [[ -n "${JUPYTER}" ]]; then
     ( sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-jupyter.sh "${JUPYTER_PASSWORD}" )
+    log "Jupyter Installed"
   fi
 
   log "Bootstrap Complete"
