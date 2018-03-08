@@ -168,7 +168,7 @@ else
       --WorkerBid)
         if [[ $2 =~ ^[0-9.]+ && $(echo "$2 > 0" | bc) ]]; then
           shift
-          WorkerBid=",BidPrice=${1}"
+          WorkerBid="BidPrice=${1}"
         else
           echo "Invalid BidPrice"
           exit 1
@@ -199,7 +199,7 @@ else
       --TaskBid)
         if [[ $2 =~ ^[0-9.]+ && $(echo "$2 > 0" | bc) ]]; then
           shift
-          TaskBid=",BidPrice=${1}"
+          TaskBid="BidPrice=${1}"
         else
           echo "Invalid BidPrice"
           exit 1
@@ -261,7 +261,8 @@ if [[ -z "${MasterType}" ]]; then
 fi
 
 if [[ $(echo "${TaskCount#*=} > 0" | bc) ]]; then
-  TaskGroup="Name=Task,${TaskCount},InstanceGroupType=TASK,${TaskType}${TaskBid}"
+  typebids=$(join_by , $((${TaskType} ${TaskBid})))
+  TaskGroup="Name=Task,${TaskCount},InstanceGroupType=TASK,${typebids}"
 fi
 
 echo "Starting GeoMesa AWS EMR Bootstrap Process"
@@ -333,6 +334,9 @@ if [[ -n "${JUPYTER}" ]]; then
   BootstrapArgs="${BootstrapArgs},\"--jupyter=${JUPYTER_PASSWORD}\""
 fi
 
+typebids=$(join_by , $((${WorkerType} ${WorkerBid})))
+WorkerGroup="Name=Workers,${WorkerCount},InstanceGroupType=CORE,${typebids}"
+
 cmd="
   aws ${AWS_PROFILE} emr create-cluster                                             \
     --name \"${name}\"                                                              \
@@ -343,7 +347,7 @@ cmd="
     ${EC2_ATTRIBUTES}                                                               \
     --instance-groups                                                               \
       Name=Master,InstanceCount=1,InstanceGroupType=MASTER,${MasterType}    \
-      Name=Workers,${WorkerCount},InstanceGroupType=CORE,${WorkerType}${WorkerBid}\
+      ${WorkerGroup} \
       ${TaskGroup}
     --configurations file://${hbase_conf}                                           \
     --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}.aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
@@ -372,7 +376,7 @@ aws ${AWS_PROFILE} s3 cp ${WORKING_DIR}/bootstrap.log ${CONTAINER}bootstrap.log
 status=""
 failed=""
 count=0
-while [[ "${status}" != "Bootstrap Complete" && -z "${failed}" ]]; do
+while [[ "${status}" == *Complete && -z "${failed}" ]]; do
   let count=$count%5+1
   case $count in
     1) icon=">  " ;;
@@ -384,7 +388,6 @@ while [[ "${status}" != "Bootstrap Complete" && -z "${failed}" ]]; do
   failed=$(aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep "BOOTSTRAP_FAILURE")
   status=$(aws ${AWS_PROFILE} s3 cp ${CONTAINER}bootstrap.log - | tail -n 1)
   echo -ne "Bootstrap Status ${icon} ${status} \r"
-  sleep 1
 done
 
 if [[ -n "${failed}" ]]; then

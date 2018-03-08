@@ -19,7 +19,6 @@ ARGS=($@) # Save the input args so we can pass them to the child.
 VERSION=%%project.version%%
 GM_TOOLS_DIST="%%gmtools.assembly.name%%"
 GM_TOOLS_HOME="/opt/${GM_TOOLS_DIST}"
-log "GM TOOLS DIST: ${GM_TOOLS_DIST}"
 CHILD=false
 CID=$(cat /mnt/var/lib/info/job-flow.json | jq .jobFlowId)
 
