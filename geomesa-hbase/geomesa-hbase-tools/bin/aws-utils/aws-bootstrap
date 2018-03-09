@@ -386,7 +386,7 @@ while [[ "${status}" != "Done" && "${status}" != Fail* && -z "${failed}" ]]; do
     5) icon="  >" ;;
     6) icon="   " ;;
   esac
-  failed=$(aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep "BOOTSTRAP_FAILURE")
+  failed=$(aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep -E "BOOTSTRAP_FAILURE|TERMINATING")
   status=$(aws ${AWS_PROFILE} s3 cp ${CONTAINER}status.log - | tail -n 1)
   echo -ne "Bootstrap Status ${icon} ${status}                            \r" # Make sure we overwrite the longer messages
 done
