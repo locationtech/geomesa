@@ -30,8 +30,8 @@ object AccumuloVersion extends Enumeration {
     }
   }
 
-  lazy val AccumuloMetadataTableName = getMetadataTable
-  lazy val AccumuloMetadataCF = getMetadataColumnFamily
+  lazy val AccumuloMetadataTableName: String = getMetadataTable
+  lazy val AccumuloMetadataCF: Text = getMetadataColumnFamily
   lazy val EmptyAuths: Authorizations = getEmptyAuths
 
   def getMetadataTable: String = {
@@ -71,7 +71,10 @@ object AccumuloVersion extends Enumeration {
     val tableOps = connector.tableOperations()
     if (!tableOps.exists(table)) {
       try {
-        ensureNamespaceExists(connector, table)
+        val dot = table.indexOf('.')
+        if (dot > 0) {
+          ensureNamespaceExists(connector, table.substring(0, dot))
+        }
         tableOps.create(table, true, if (logical) TimeType.LOGICAL else TimeType.MILLIS)
       } catch {
         // this can happen with multiple threads but shouldn't cause any issues
@@ -81,27 +84,23 @@ object AccumuloVersion extends Enumeration {
     }
   }
 
-  def nameSpaceExists(nsOps: AnyRef, nsOpsClass: Class[_], ns: String) = {
-    val existsMethod = nsOpsClass.getMethod("exists", classOf[String])
-    existsMethod.setAccessible(true)
-    existsMethod.invoke(nsOps, ns).asInstanceOf[Boolean]
-  }
-
   /**
    * Check for namespaces and create if needed.
    */
-  private def ensureNamespaceExists(connector: Connector, table: String): Unit = {
-    val dot = table.indexOf('.')
-    if (dot > 0) {
-      require(accumuloVersion != V15, s"Table namespaces are not supported in Accumulo 1.5 - for table '$table'")
-      val ns = table.substring(0, dot)
-      val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(connector)
-      if (!nameSpaceExists(nsOps, nsOps.getClass, ns)) {
-        val createMethod = nsOps.getClass.getMethod("create", classOf[String])
-        createMethod.setAccessible(true)
-        createMethod.invoke(nsOps, ns)
-      }
+  def ensureNamespaceExists(connector: Connector, namespace: String): Unit = {
+    require(accumuloVersion != V15, s"Table namespaces are not supported in Accumulo 1.5 - for namespace '$namespace'")
+    val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(connector)
+    if (!nameSpaceExists(nsOps, nsOps.getClass, namespace)) {
+      val createMethod = nsOps.getClass.getMethod("create", classOf[String])
+      createMethod.setAccessible(true)
+      createMethod.invoke(nsOps, namespace)
     }
+  }
+
+  private def nameSpaceExists(nsOps: AnyRef, nsOpsClass: Class[_], ns: String): Boolean = {
+    val existsMethod = nsOpsClass.getMethod("exists", classOf[String])
+    existsMethod.setAccessible(true)
+    existsMethod.invoke(nsOps, ns).asInstanceOf[Boolean]
   }
 
   private def getTypeFromClass[T: ClassTag](className: String, field: String): T = {
