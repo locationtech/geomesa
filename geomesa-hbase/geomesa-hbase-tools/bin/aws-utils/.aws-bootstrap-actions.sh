@@ -12,7 +12,13 @@ logFile=/tmp/bootstrap.log
 function log() {
   timeStamp=$(date +"%T")
   echo "${timeStamp}| ${@}" | tee -a $logFile
-  sudo -H -u ec2-user aws s3 cp $logFile ${CONTAINER}/bootstrap.log
+}
+
+statusFile=/tmp/status.log
+function updateStatus() {
+  timeStamp=$(date +"%T")
+  echo "${@}" > $statusFile
+  sudo -H -u ec2-user aws s3 cp $statusFile ${CONTAINER}status.log
 }
 
 ARGS=($@) # Save the input args so we can pass them to the child.
@@ -72,7 +78,8 @@ if [[ "${CHILD}" != "true" ]]; then
   ### MAIN ####
   log "Main" 
   if [[ "${isMaster}" == "true" ]]; then
-    log "Copying Resources Locally" 
+    updateStatus "Bootstrap Started"
+    log "Copying Resources Locally"
     sudo aws s3 cp ${CONTAINER}${GM_TOOLS_DIST}-bin.tar.gz /opt/${GM_TOOLS_DIST}-bin.tar.gz
 
     log "Moving to /opt/" 
@@ -99,7 +106,8 @@ else
   log "Child Process"
 
   # Wait until hbase is installed
-  log "Waiting for HBase to be installed" 
+  log "Waiting for HBase to be installed"
+  updateStatus "Waiting for HBase installation"
   hbaseInstalled=$(ls /usr/bin/ | grep hbase)
   while [[ -z "${hbaseInstalled}" ]]; do
     sleep 3
@@ -112,6 +120,7 @@ else
   echo "status" >> /tmp/status
   echo "exit" >> /tmp/status
   log "Waiting for HBase to start"
+  updateStatus "Waiting for HBase to start"
   status=$(/usr/bin/hbase shell < /tmp/status | grep "active master")
   log "${status}" 
   while [[ -z "${status}" ]]; do
@@ -120,19 +129,22 @@ else
     status=$(/usr/bin/hbase shell < /tmp/status | grep "active master")
   done
 
-  log "Bootstrapping GeoMesa" 
+  log "Bootstrapping GeoMesa"
+  updateStatus "Bootstrapping GeoMesa"
   sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-hbase.sh
 
   if [[ -n "${ZEPPELIN}" ]]; then
+    updateStatus "Installing Zeppelin"
     ( sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-zeppelin.sh )
     log "Zeppelin Installed"
   fi
 
   if [[ -n "${JUPYTER}" ]]; then
+    updateStatus "Installing Jupyter"
     ( sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-jupyter.sh "${JUPYTER_PASSWORD}" )
     log "Jupyter Installed"
   fi
 
   log "Bootstrap Complete"
-
+  updateStatus "Done"
 fi

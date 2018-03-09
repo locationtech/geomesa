@@ -29,7 +29,7 @@ if [[ "$EUID" -ne 0 ]]; then
   exit
 fi
 
-user="ec2-user"
+user="hadoop"
 
 JUPYTER_PASSWORD=$1
 if [[ -z "${JUPYTER_PASSWORD}" ]]; then
