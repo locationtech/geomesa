@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
@@ -49,9 +49,9 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
     val start = getIdRowOffset(sft)
-    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
+    (row, offset, length, feature) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
   }
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)

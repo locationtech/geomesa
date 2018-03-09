@@ -11,6 +11,7 @@ package org.locationtech.geomesa.accumulo.index.legacy.attribute
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => AccRange}
+import org.apache.hadoop.io.Text
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
@@ -258,11 +259,12 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
 
     // function to join the attribute index scan results to the record table
     // have to pull the feature id from the row
-    val prefix = sft.getTableSharingPrefix
+    val prefix = sft.getTableSharingBytes
     val getId = getIdFromRow(sft)
+    val getRowKey = RecordIndex.getRowKey(sft)
     val joinFunction: JoinFunction = (kv) => {
       val row = kv.getKey.getRow
-      new AccRange(RecordIndex.getRowKey(prefix, getId(row.getBytes, 0, row.getLength)))
+      new AccRange(new Text(getRowKey(prefix, getId(row.getBytes, 0, row.getLength, null))))
     }
 
     val recordTable = recordIndex.getTableName(sft.getTypeName, ds)

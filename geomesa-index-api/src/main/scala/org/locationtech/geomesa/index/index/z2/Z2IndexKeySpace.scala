@@ -14,8 +14,9 @@ import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.IndexKeySpace
-import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 

@@ -45,7 +45,7 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
 
   private val arrowWriter = underlying.getWriter
 
-  private val idWriter = ArrowAttributeWriter.id(Some(underlying), encoding)
+  private val idWriter = ArrowAttributeWriter.id(sft, Some(underlying), encoding)
   private val attributeWriters =
     DictionaryBuildingWriter.attribute(sft, underlying, dictionaries, encoding, maxSize).toArray
 
@@ -56,7 +56,7 @@ class DictionaryBuildingWriter private (val sft: SimpleFeatureType,
   def add(feature: SimpleFeature): Unit = {
     arrowWriter.setPosition(index)
     arrowWriter.start()
-    idWriter.apply(index, feature.getID)
+    idWriter.apply(index, feature)
     var i = 0
     while (i < attributeWriters.length) {
       attributeWriters(i).apply(index, feature.getAttribute(i))
@@ -133,7 +133,7 @@ object DictionaryBuildingWriter {
     */
   def create(sft: SimpleFeatureType,
              dictionaries: Seq[String],
-             encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.min(false),
+             encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
              maxSize: Int = Short.MaxValue)
             (implicit allocator: BufferAllocator): DictionaryBuildingWriter = {
     val underlying = NullableMapVector.empty(sft.getTypeName, allocator)

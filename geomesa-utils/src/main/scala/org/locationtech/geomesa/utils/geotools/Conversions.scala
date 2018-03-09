@@ -295,8 +295,9 @@ object RichSimpleFeatureType {
     def setAttributeShards(splits: Int): Unit = sft.getUserData.put(ATTR_SPLITS_KEY, splits.toString)
     def getAttributeShards: Int = userData[String](ATTR_SPLITS_KEY).map(_.toInt).getOrElse(4)
 
-    def setUuid(uuid: Boolean): Unit = sft.getUserData.put(UUID_KEY, String.valueOf(uuid))
-    def isUuid: Boolean = userData[String](UUID_KEY).exists(java.lang.Boolean.parseBoolean)
+    def setUuid(uuid: Boolean): Unit = sft.getUserData.put(FID_UUID_KEY, String.valueOf(uuid))
+    def isUuid: Boolean = userData[String](FID_UUID_KEY).exists(java.lang.Boolean.parseBoolean)
+    def isUuidEncoded: Boolean = isUuid && userData[String](FID_UUID_ENCODED_KEY).forall(java.lang.Boolean.parseBoolean)
 
     def getKeywords: Set[String] =
       userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).getOrElse(Set.empty)

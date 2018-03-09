@@ -33,7 +33,7 @@ class DictionaryBuildingWriterTest extends Specification {
   "SimpleFeatureVector" should {
     "dynamically encode dictionary values" >> {
       val out = new ByteArrayOutputStream()
-      WithClose(DictionaryBuildingWriter.create(sft, Seq("name"), SimpleFeatureEncoding.max(true))) { writer =>
+      WithClose(DictionaryBuildingWriter.create(sft, Seq("name"), SimpleFeatureEncoding.Max)) { writer =>
         features.foreach(writer.add)
         writer.encode(out)
       }

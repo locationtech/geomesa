@@ -19,14 +19,16 @@ import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding, FieldType}
 import org.locationtech.geomesa.arrow.TypeBindings
 import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryWriter
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.EncodingPrecision.EncodingPrecision
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{EncodingPrecision, SimpleFeatureEncoding}
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
 import org.locationtech.geomesa.arrow.vector.impl._
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * Writes a simple feature attribute to an arrow vector
@@ -60,21 +62,41 @@ object ArrowAttributeWriter {
   import scala.collection.JavaConversions._
 
   /**
-    * Writer for feature ID
+    * Writer for feature ID. The return FeatureWriter expects to be passed the entire SimpleFeature, not
+    * just the feature ID string (this is to support cached UUIDs).
     *
     * @param vector simple feature vector
     * @param encoding actually write the feature ids, or omit them, in which case the writer is a no-op
     * @param allocator buffer allocator
     * @return feature ID writer
     */
-  def id(vector: Option[NullableMapVector],
+  def id(sft: SimpleFeatureType,
+         vector: Option[NullableMapVector],
          encoding: SimpleFeatureEncoding)
         (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
-    if (encoding.fids) {
-      val name = SimpleFeatureVector.FeatureIdField
-      ArrowAttributeWriter(name, Seq(ObjectType.STRING), vector, None, Map.empty, null)
-    } else {
-      ArrowAttributeWriter.ArrowNoopWriter
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    val name = SimpleFeatureVector.FeatureIdField
+    val toVector = vector.map(new ToMapChildVector(name, _)).getOrElse(new ToNewVector(name))
+
+    encoding.fids match {
+      case None => ArrowNoopWriter
+
+      case Some(Encoding.Min) =>
+        val child = toVector[NullableIntVector](FieldType.nullable(MinorType.INT.getType))
+        if (sft.isUuid) {
+          new ArrowFeatureIdMinimalUuidWriter(child)
+        } else {
+          new ArrowFeatureIdMinimalStringWriter(child)
+        }
+
+      case Some(Encoding.Max) if sft.isUuid =>
+        val child = toVector[FixedSizeListVector](FieldType.nullable(new ArrowType.FixedSizeList(2)))
+        new ArrowFeatureIdUuidWriter(child)
+
+      case Some(Encoding.Max) =>
+        val child = toVector[NullableVarCharVector](FieldType.nullable(MinorType.VARCHAR.getType))
+        new ArrowFeatureIdStringWriter(child)
     }
   }
 
@@ -92,7 +114,7 @@ object ArrowAttributeWriter {
   def apply(sft: SimpleFeatureType,
             vector: Option[NullableMapVector],
             dictionaries: Map[String, ArrowDictionary],
-            encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.min(false))
+            encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min)
            (implicit allocator: BufferAllocator): Seq[ArrowAttributeWriter] = {
     sft.getAttributeDescriptors.map { descriptor =>
       val dictionary = dictionaries.get(descriptor.getLocalName)
@@ -170,46 +192,43 @@ object ArrowAttributeWriter {
             new ArrowGeometryWriter(toVector, bindings(1), metadata, encoding.geometry)
 
           case ObjectType.DATE =>
-            if (encoding.date == EncodingPrecision.Min) {
-              new ArrowDateSecondsWriter(toVector[NullableIntVector](MinorType.INT.getType, null, metadata))
-            } else {
-              new ArrowDateMillisWriter(toVector[NullableBigIntVector](MinorType.BIGINT.getType, null, metadata))
+            encoding.date match {
+              case Encoding.Min => new ArrowDateSecondsWriter(toVector(MinorType.INT.getType, null, metadata))
+              case Encoding.Max => new ArrowDateMillisWriter(toVector(MinorType.BIGINT.getType, null, metadata))
             }
 
           case ObjectType.STRING =>
-            new ArrowStringWriter(toVector[NullableVarCharVector](MinorType.VARCHAR.getType, null, metadata))
+            new ArrowStringWriter(toVector(MinorType.VARCHAR.getType, null, metadata))
 
           case ObjectType.INT =>
-            new ArrowIntWriter(toVector[NullableIntVector](MinorType.INT.getType, null, metadata))
+            new ArrowIntWriter(toVector(MinorType.INT.getType, null, metadata))
 
           case ObjectType.LONG =>
-            new ArrowLongWriter(toVector[NullableBigIntVector](MinorType.BIGINT.getType, null, metadata))
+            new ArrowLongWriter(toVector(MinorType.BIGINT.getType, null, metadata))
 
           case ObjectType.FLOAT =>
-            new ArrowFloatWriter(toVector[NullableFloat4Vector](MinorType.FLOAT4.getType, null, metadata))
+            new ArrowFloatWriter(toVector(MinorType.FLOAT4.getType, null, metadata))
 
           case ObjectType.DOUBLE =>
-            new ArrowDoubleWriter(toVector[NullableFloat8Vector](MinorType.FLOAT8.getType, null, metadata))
+            new ArrowDoubleWriter(toVector(MinorType.FLOAT8.getType, null, metadata))
 
           case ObjectType.BOOLEAN =>
-            new ArrowBooleanWriter(toVector[NullableBitVector](MinorType.BIT.getType, null, metadata))
+            new ArrowBooleanWriter(toVector(MinorType.BIT.getType, null, metadata))
 
           case ObjectType.LIST =>
-            val vector = toVector[ListVector](MinorType.LIST.getType, null, metadata)
-            new ArrowListWriter(vector, bindings(1), encoding)
+            new ArrowListWriter(toVector(MinorType.LIST.getType, null, metadata), bindings(1), encoding)
 
           case ObjectType.MAP =>
-            val vector = toVector[NullableMapVector](MinorType.MAP.getType, null, metadata)
-            new ArrowMapWriter(vector, bindings(1), bindings(2), encoding)
+            new ArrowMapWriter(toVector(MinorType.MAP.getType, null, metadata), bindings(1), bindings(2), encoding)
 
           case ObjectType.BYTES =>
-            new ArrowBytesWriter(toVector[NullableVarBinaryVector](MinorType.VARBINARY.getType, null, metadata))
+            new ArrowBytesWriter(toVector(MinorType.VARBINARY.getType, null, metadata))
 
           case ObjectType.JSON =>
-            new ArrowStringWriter(toVector[NullableVarCharVector](MinorType.VARCHAR.getType, null, metadata))
+            new ArrowStringWriter(toVector(MinorType.VARCHAR.getType, null, metadata))
 
           case ObjectType.UUID =>
-            new ArrowStringWriter(toVector[NullableVarCharVector](MinorType.VARCHAR.getType, null, metadata))
+            new ArrowStringWriter(toVector(MinorType.VARCHAR.getType, null, metadata))
 
           case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
         }
@@ -275,48 +294,48 @@ object ArrowAttributeWriter {
   class ArrowGeometryWriter(toVector: ToVector,
                             binding: ObjectType,
                             metadata: Map[String, String],
-                            precision: EncodingPrecision) extends ArrowAttributeWriter {
+                            encoding: Encoding) extends ArrowAttributeWriter {
     private val (_vector: FieldVector, delegate: GeometryWriter[Geometry]) = {
       if (binding == ObjectType.POINT) {
         val vector = toVector.apply[FixedSizeListVector](AbstractPointVector.createFieldType(metadata))
-        val delegate = precision match {
-          case EncodingPrecision.Min => new PointFloatVector(vector).getWriter
-          case EncodingPrecision.Max => new PointVector(vector).getWriter
+        val delegate = encoding match {
+          case Encoding.Min => new PointFloatVector(vector).getWriter
+          case Encoding.Max => new PointVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.LINESTRING) {
         val vector = toVector.apply[ListVector](AbstractLineStringVector.createFieldType(metadata))
-        val delegate = precision match {
-          case EncodingPrecision.Min => new LineStringFloatVector(vector).getWriter
-          case EncodingPrecision.Max => new LineStringVector(vector).getWriter
+        val delegate = encoding match {
+          case Encoding.Min => new LineStringFloatVector(vector).getWriter
+          case Encoding.Max => new LineStringVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.POLYGON) {
         val vector = toVector.apply[ListVector](AbstractPolygonVector.createFieldType(metadata))
-        val delegate = precision match {
-          case EncodingPrecision.Min => new PolygonFloatVector(vector).getWriter
-          case EncodingPrecision.Max => new PolygonVector(vector).getWriter
+        val delegate = encoding match {
+          case Encoding.Min => new PolygonFloatVector(vector).getWriter
+          case Encoding.Max => new PolygonVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.MULTILINESTRING) {
         val vector = toVector.apply[ListVector](AbstractMultiLineStringVector.createFieldType(metadata))
-        val delegate = precision match {
-          case EncodingPrecision.Min => new MultiLineStringFloatVector(vector).getWriter
-          case EncodingPrecision.Max => new MultiLineStringVector(vector).getWriter
+        val delegate = encoding match {
+          case Encoding.Min => new MultiLineStringFloatVector(vector).getWriter
+          case Encoding.Max => new MultiLineStringVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.MULTIPOLYGON) {
         val vector = toVector.apply[ListVector](AbstractMultiPolygonVector.createFieldType(metadata))
-        val delegate = precision match {
-          case EncodingPrecision.Min => new MultiPolygonFloatVector(vector).getWriter
-          case EncodingPrecision.Max => new MultiPolygonVector(vector).getWriter
+        val delegate = encoding match {
+          case Encoding.Min => new MultiPolygonFloatVector(vector).getWriter
+          case Encoding.Max => new MultiPolygonVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.MULTIPOINT) {
         val vector = toVector.apply[ListVector](AbstractMultiPointVector.createFieldType(metadata))
-        val delegate = precision match {
-          case EncodingPrecision.Min => new MultiPointFloatVector(vector).getWriter
-          case EncodingPrecision.Max => new MultiPointVector(vector).getWriter
+        val delegate = encoding match {
+          case Encoding.Min => new MultiPointFloatVector(vector).getWriter
+          case Encoding.Max => new MultiPointVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.GEOMETRY_COLLECTION) {
@@ -339,6 +358,44 @@ object ArrowAttributeWriter {
   object ArrowNoopWriter extends ArrowAttributeWriter {
     override def vector: FieldVector = null
     override def apply(i: Int, value: AnyRef): Unit = {}
+  }
+
+  class ArrowFeatureIdMinimalUuidWriter(override val vector: NullableIntVector) extends ArrowAttributeWriter {
+    private val mutator = vector.getMutator
+    override def apply(i: Int, value: AnyRef): Unit = {
+      import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+      val (msb, lsb) = value.asInstanceOf[SimpleFeature].getUuid
+      mutator.setSafe(i, ProxyIdFunction.proxyId(msb, lsb))
+    }
+  }
+
+  class ArrowFeatureIdMinimalStringWriter(override val vector: NullableIntVector) extends ArrowAttributeWriter {
+    private val mutator = vector.getMutator
+    override def apply(i: Int, value: AnyRef): Unit =
+      mutator.setSafe(i, ProxyIdFunction.proxyId(value.asInstanceOf[SimpleFeature].getID))
+  }
+
+  class ArrowFeatureIdUuidWriter(override val vector: FixedSizeListVector) extends ArrowAttributeWriter {
+    private val mutator = vector.getMutator
+    private val bitsMutator =
+      vector.addOrGetVector(FieldType.nullable(new ArrowType.Int(64, true)))
+        .getVector.asInstanceOf[NullableBigIntVector].getMutator
+
+    override def apply(i: Int, value: AnyRef): Unit = {
+      import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+      val (msb, lsb) = value.asInstanceOf[SimpleFeature].getUuid
+      mutator.setNotNull(i)
+      bitsMutator.setSafe(i * 2, msb)
+      bitsMutator.setSafe(i * 2 + 1, lsb)
+    }
+  }
+
+  class ArrowFeatureIdStringWriter(override val vector: NullableVarCharVector) extends ArrowAttributeWriter {
+    private val mutator = vector.getMutator
+    override def apply(i: Int, value: AnyRef): Unit = {
+      val bytes = value.asInstanceOf[SimpleFeature].getID.getBytes(StandardCharsets.UTF_8)
+      mutator.setSafe(i, bytes, 0, bytes.length)
+    }
   }
 
   class ArrowStringWriter(override val vector: NullableVarCharVector) extends ArrowAttributeWriter {

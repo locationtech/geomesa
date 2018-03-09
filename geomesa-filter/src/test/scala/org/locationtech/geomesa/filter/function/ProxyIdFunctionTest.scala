@@ -33,7 +33,7 @@ class ProxyIdFunctionTest extends Specification {
       fn.evaluate(sf2) must not(beEqualTo(result))
     }
     "consistently and uniquely evaluate uuids" >> {
-      val sft = SimpleFeatureTypes.createType("foo", s"name:String,dtg:Date,*geom:Point:srid=4326;${Configs.UUID_KEY}=true")
+      val sft = SimpleFeatureTypes.createType("foo", s"name:String,dtg:Date,*geom:Point:srid=4326;${Configs.FID_UUID_KEY}=true")
       val sf1 = ScalaSimpleFeature.create(sft, "28a12c18-e5ae-4c04-ae7b-bf7cdbfaf234", "foo", "2017-01-01T00:00:00.000Z", "POINT (45 50)")
       val sf2 = ScalaSimpleFeature.create(sft, "28a12c18-e5ae-4c04-ae7b-bf7cdbfaf235", "foo", "2017-01-01T00:00:00.000Z", "POINT (45 50)")
       val fn = new ProxyIdFunction()
@@ -43,7 +43,7 @@ class ProxyIdFunctionTest extends Specification {
       fn.evaluate(sf2) must not(beEqualTo(result))
     }
     "fail for invalid uuids" >> {
-      val sft = SimpleFeatureTypes.createType("foo", s"name:String,dtg:Date,*geom:Point:srid=4326;${Configs.UUID_KEY}=true")
+      val sft = SimpleFeatureTypes.createType("foo", s"name:String,dtg:Date,*geom:Point:srid=4326;${Configs.FID_UUID_KEY}=true")
       val sf1 = ScalaSimpleFeature.create(sft, "not a uuid", "foo", "2017-01-01T00:00:00.000Z", "POINT (45 50)")
       val fn = new ProxyIdFunction()
       fn.setParameters(Collections.emptyList())
