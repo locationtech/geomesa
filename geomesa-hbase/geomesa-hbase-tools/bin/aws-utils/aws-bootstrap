@@ -391,8 +391,8 @@ while [[ "${status}" != "Done" && "${status}" != Fail* && -z "${failed}" ]]; do
   echo -ne "Bootstrap Status ${icon} ${status}                            \r" # Make sure we overwrite the longer messages
 done
 
-if [[ "${status}" != Fail* || -n "${failed}" ]]; then
-  echo -ne "Last Status: ${status}"
+if [[ "${status}" == Fail* || -n "${failed}" ]]; then
+  echo -ne "Last Status: ${status}                            \n"
   echo "Cluster setup failed. Check the AWS console for more information"
 else
   echo -ne "Cluster is ready\n"

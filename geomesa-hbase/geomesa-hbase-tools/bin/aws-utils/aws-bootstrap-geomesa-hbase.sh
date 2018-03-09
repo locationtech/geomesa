@@ -67,18 +67,18 @@ DISTRIBUTED_JAR_NAME=geomesa-hbase-distributed-runtime_2.11-%%project.version%%.
 
 NL=$'\n'
 log "The HBase Root dir is ${ROOTDIR}."
-echo "# Auto-registration for geomesa coprocessors ${NL}export CUSTOM_JAVA_OPTS=\"${JAVA_OPTS} ${CUSTOM_JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=${ROOTDIR}/lib/${DISTRIBUTED_JAR_NAME}\" ${NL}" >> /opt/geomesa/conf/geomesa-env.sh
+echo "# Auto-registration for geomesa coprocessors ${NL}export CUSTOM_JAVA_OPTS=\"${JAVA_OPTS} ${CUSTOM_JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=${ROOTDIR}lib/${DISTRIBUTED_JAR_NAME}\" ${NL}" >> /opt/geomesa/conf/geomesa-env.sh
 
 # Deploy the GeoMesa HBase distributed runtime to the HBase root directory
 if [[ "$ROOTDIR" = s3* ]]; then
-  aws s3 cp /opt/geomesa/dist/hbase/$DISTRIBUTED_JAR_NAME $ROOTDIR/lib/ && \
-  log "Installed GeoMesa distributed runtime to $ROOTDIR/lib/"
+  aws s3 cp /opt/geomesa/dist/hbase/$DISTRIBUTED_JAR_NAME ${ROOTDIR}lib/ && \
+  log "Installed GeoMesa distributed runtime to ${ROOTDIR}lib/"
 elif [[ "$ROOTDIR" = hdfs* ]]; then
-  local libdir="${ROOTDIR}/lib"
+  local libdir="${ROOTDIR}lib"
   (sudo -u $GMUSER hadoop fs -test -d $libdir || sudo -u $GMUSER hadoop fs -mkdir $libdir) && \
   sudo -u $GMUSER hadoop fs -put -f ${GEOMESA_HBASE_HOME}/dist/hbase/$DISTRIBUTED_JAR_NAME $libdir/$DISTRIBUTED_JAR_NAME && \
-  sudo -u $GMUSER hadoop fs -chown -R hbase:hbase $ROOTDIR/lib && \
-  log "Installed GeoMesa distributed runtime to $ROOTDIR/lib/"
+  sudo -u $GMUSER hadoop fs -chown -R hbase:hbase ${ROOTDIR}lib && \
+  log "Installed GeoMesa distributed runtime to ${ROOTDIR}lib/"
 fi
 
 # Create an HDFS directory for Spark jobs

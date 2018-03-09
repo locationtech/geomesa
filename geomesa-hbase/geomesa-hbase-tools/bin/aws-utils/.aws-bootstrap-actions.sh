@@ -27,6 +27,12 @@ function updateStatus() {
   sudo -H -u ec2-user aws s3 cp $statusFile ${CONTAINER}status.log
 }
 
+function failWithStatus() {
+  msg="Fail: ${1}"
+  updateStatus $msg
+  exit 1
+}
+
 ARGS=($@) # Save the input args so we can pass them to the child.
 VERSION=%%project.version%%
 GM_TOOLS_DIST="%%gmtools.assembly.name%%"
@@ -68,6 +74,7 @@ log "Bootstrap Actions Spawned"
 # Validate Parameters
 if [[ -z "${CONTAINER}" ]]; then
   log "S3 container is required"
+  failWithStatus "Failed to retrieve "
   exit 1
 elif [[ "${CONTAINER}" != */ ]]; then
   # We need a trailing '/' for consistency
@@ -86,20 +93,18 @@ if [[ "${CHILD}" != "true" ]]; then
   if [[ "${isMaster}" == "true" ]]; then
     updateStatus "Bootstrap Started"
     log "Copying Resources Locally"
-    sudo aws s3 cp ${CONTAINER}${GM_TOOLS_DIST}-bin.tar.gz /opt/${GM_TOOLS_DIST}-bin.tar.gz \
-      || updateStatus "Failed to copy GeoMesa tools distribution to Master"
+    sudo aws s3 cp ${CONTAINER}${GM_TOOLS_DIST}-bin.tar.gz /opt/${GM_TOOLS_DIST}-bin.tar.gz
+    [[ $? ]] || failWithStatus "Failed to copy GeoMesa tools distribution to Master"
 
-    log "Moving to /opt/" 
-    pushd /opt/
-
-    log "Extracting resources" 
-    sudo tar xf ${GM_TOOLS_DIST}-bin.tar.gz
-
-    log "Setting Permissions"
-    sudo chown -R ec2-user ${GM_TOOLS_HOME}
+    log "Setting Up Tools"
+    pushd /opt/ \
+      && sudo tar xf ${GM_TOOLS_DIST}-bin.tar.gz \
+      && sudo chown -R ec2-user ${GM_TOOLS_HOME} \
+      || failWithStatus "Failed to setup GeoMesa tools distribution"
 
     log "Starting Child Script" 
     sudo nohup ${GM_TOOLS_HOME}/bin/aws-utils/.aws-bootstrap-actions.sh --child ${ARGS[@]} &>/dev/null &
+    [[ $? ]] || failWithStatus "Failed to start child setup script"
 
     log "Parent Done"
     exit 0
@@ -138,17 +143,20 @@ else
 
   log "Bootstrapping GeoMesa"
   updateStatus "Bootstrapping GeoMesa"
-  sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-hbase.sh
+  sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-hbase.sh \
+    || failWithStatus "Failed to bootstrap GeoMesa"
 
   if [[ -n "${ZEPPELIN}" ]]; then
     updateStatus "Installing Zeppelin"
-    ( sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-zeppelin.sh )
+    sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-zeppelin.sh \
+      || failWithStatus "Failed to bootstrap Zeppelin"
     log "Zeppelin Installed"
   fi
 
   if [[ -n "${JUPYTER}" ]]; then
     updateStatus "Installing Jupyter"
-    ( sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-jupyter.sh "${JUPYTER_PASSWORD}" )
+    sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-jupyter.sh "${JUPYTER_PASSWORD}" \
+      || failWithStatus "Failed to bootstrap Jupyter"
     log "Jupyter Installed"
   fi
 
