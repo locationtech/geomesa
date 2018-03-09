@@ -6,22 +6,20 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
 
-import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, Coordinate, Point, Polygon}
+package org.locationtech.geomesa.spark.jts.udf
+
+import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.util.GeometricShapeFactory
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper.nullableUDF
+import org.apache.spark.sql.SQLContext
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.utils.geohash.GeohashUtils
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import org.locationtech.spatial4j.distance.DistanceUtils
 import org.locationtech.spatial4j.shape.Circle
 import org.locationtech.spatial4j.shape.jts.JtsPoint
 
-import scala.util.{Failure, Success}
-
-object SQLGeometryProcessingFunctions extends LazyLogging {
+object GeometricProcessingFunctions {
 
   @transient private lazy val spatialContext = JtsSpatialContext.GEO
   @transient private lazy val shapeFactory   = spatialContext.getShapeFactory
@@ -42,12 +40,20 @@ object SQLGeometryProcessingFunctions extends LazyLogging {
   }
 
   val ST_antimeridianSafeGeom: Geometry => Geometry = nullableUDF(geom => {
-    GeohashUtils.getInternationalDateLineSafeGeometry(geom) match {
-      case Success(g) => g
-      case Failure(e) =>
-        logger.warn(s"Error splitting geometry on anti-meridian for $geom", e)
-        geom
+    def degreesToTranslate(x: Double): Double = (((x + 180) / 360.0).floor * -360).toInt
+    if (geom.getEnvelopeInternal.getMinX < -180 || geom.getEnvelopeInternal.getMaxX > 180) {
+
+      geom.apply(new CoordinateSequenceFilter() {
+        override def filter(seq: CoordinateSequence, i: Int): Unit = {
+          seq.setOrdinate(i, CoordinateSequence.X, seq.getX(i) + degreesToTranslate(seq.getX(i)))
+        }
+        override def isDone: Boolean = false
+        override def isGeometryChanged: Boolean = true
+      })
+
     }
+    val datelineSafeShape = shapeFactory.makeShapeFromGeometry(geom)
+    shapeFactory.getGeometryFrom(datelineSafeShape)
   })
 
   val ST_BufferPoint: (Point, Double) => Geometry = (p, d) => {
@@ -55,10 +61,16 @@ object SQLGeometryProcessingFunctions extends LazyLogging {
     fastCircleToGeom(new JtsPoint(p, spatialContext).getBuffered(degrees, spatialContext))
   }
 
-  def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register("st_antimeridianSafeGeom", ST_antimeridianSafeGeom)
-    sqlContext.udf.register("st_bufferPoint"         , ST_BufferPoint)
-    sqlContext.udf.register("st_idlSafeGeom"         , ST_antimeridianSafeGeom)
+  private[geomesa] val processingNames = Map(
+    ST_antimeridianSafeGeom -> "st_antimeridianSafeGeom",
+    ST_BufferPoint -> "st_bufferPoint"
+  )
+
+
+  private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
+    sqlContext.udf.register(processingNames(ST_antimeridianSafeGeom), ST_antimeridianSafeGeom)
+    sqlContext.udf.register("st_idlSafeGeom", ST_antimeridianSafeGeom)
+    sqlContext.udf.register(processingNames(ST_BufferPoint), ST_BufferPoint)
   }
 
 }

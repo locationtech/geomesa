@@ -14,9 +14,6 @@ object SQLTypes {
 
   def init(sqlContext: SQLContext): Unit = {
     initJTS(sqlContext)
-    SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
-    SQLGeometryProcessingFunctions.registerFunctions(sqlContext)
-    SQLGeometricOutputFunctions.registerFunctions(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
   }
 }
