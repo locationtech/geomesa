@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -348,7 +349,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
       iteratorVersions.foreach { version =>
         // use lenient parsing to account for versions like 1.3.5.1
         val serverMajorVersion = SemanticVersion(version, lenient = true).major
-        if (serverMajorVersion != clientMajorVersion) {
+        if (serverMajorVersion != clientMajorVersion &&
+            SystemProperty("geomesa.distributed.version.check", "true").toBoolean.get) {
           // if there's a major version mismatch, throw an exception
           throw new RuntimeException(message)
         } else if (version != clientVersion) {

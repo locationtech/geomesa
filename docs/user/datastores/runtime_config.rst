@@ -138,3 +138,12 @@ geomesa.sft.config.urls
 
 This property allows for adding GeoMesa simple feature type configurations to the environment. It can be set to
 a comma-separated list of arbitrary URLs. For more information on defining types, see :ref:`cli_sft_conf`.
+
+geomesa.distributed.version.check
++++++++++++++++++++++++++++++++++
+
+This property can be used to suppress checking for version mismatches in the distributed classpath. By default,
+GeoMesa will throw an exception if it detects a major version discrepancy between the local classpath and
+the distributed classpath (e.g. HBase region servers or Accumulo tablet servers), as this will generally cause
+queries to fail. The version check may be suppressed by setting ths property to ``false``, although this is not
+recommended.
