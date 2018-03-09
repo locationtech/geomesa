@@ -9,7 +9,7 @@
 
 saxon_version="9.7.0-14"
 # Load common functions and setup
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
   export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
 . $%%gmtools.dist.name%%_HOME/bin/common-functions.sh

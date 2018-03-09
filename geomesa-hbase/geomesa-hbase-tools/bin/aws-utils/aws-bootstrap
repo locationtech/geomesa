@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
@@ -11,7 +11,7 @@
 #
 
 # Load common functions and setup
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
   export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/../..; pwd)"
 fi
 
@@ -68,7 +68,7 @@ attributes=()
 WorkerType="InstanceType=m1.large"
 WorkerCount="InstanceCount=1"
 TaskType="InstanceType=m1.large"
-TaskCount="InstanceCount=1"
+TaskCount="InstanceCount=0"
 
 if [[ $# -eq 0 ]]; then
   printHelp
@@ -166,7 +166,7 @@ else
         shift
         ;;
       --WorkerBid)
-        if [[ $2 =~ ^[0-9.]+ && $(echo "$2 > 0" | bc) ]]; then
+        if [[ $2 =~ ^[0-9.]+ && 1 -eq $(echo "$2 > 0" | bc) ]]; then
           shift
           WorkerBid="BidPrice=${1}"
         else
@@ -197,7 +197,7 @@ else
         shift
         ;;
       --TaskBid)
-        if [[ $2 =~ ^[0-9.]+ && $(echo "$2 > 0" | bc) ]]; then
+        if [[ $2 =~ ^[0-9.]+ && 1 -eq $(echo "$2 > 0" | bc) ]]; then
           shift
           TaskBid="BidPrice=${1}"
         else
@@ -260,7 +260,7 @@ if [[ -z "${MasterType}" ]]; then
   MasterType=$WorkerType
 fi
 
-if [[ $(echo "${TaskCount#*=} > 0" | bc) ]]; then
+if [[ 1 -eq $(echo "${TaskCount#*=} > 0" | bc) ]]; then
   arr=("Name=Task" ${TaskCount} "InstanceGroupType=TASK" ${TaskType} ${TaskBid})
   TaskGroup=$(join_by , ${arr[@]})
 fi
@@ -376,7 +376,7 @@ aws ${AWS_PROFILE} s3 cp ${WORKING_DIR}/status.log ${CONTAINER}status.log
 status=""
 failed=""
 count=0
-while [[ "${status}" != "Done" && -z "${failed}" ]]; do
+while [[ "${status}" != "Done" && "${status}" != Fail* && -z "${failed}" ]]; do
   let count=$count%6+1
   case $count in
     1) icon=">  " ;;
@@ -391,8 +391,9 @@ while [[ "${status}" != "Done" && -z "${failed}" ]]; do
   echo -ne "Bootstrap Status ${icon} ${status} \r"
 done
 
-if [[ -n "${failed}" ]]; then
-  echo -ne "Cluster setup failed\nCheck the AWS console for more information"
+if [[ "${status}" != Fail* || -n "${failed}" ]]; then
+  echo -ne "Last Status: ${status}"
+  echo "Cluster setup failed. Check the AWS console for more information"
 else
   echo -ne "Cluster is ready\n"
   # Write out useful addresses
@@ -404,7 +405,7 @@ else
   echo "HBase Master: ${address}:16010/master-status"
   echo "HDFS Name Node: ${address}50070"
   if [[ -n "${JUPYTER}" ]]; then
-    echo "Jupyter will be available at: ${address}:8888"
+    echo "Jupyter Server: ${address}:8888"
   fi
   echo ""
 fi
