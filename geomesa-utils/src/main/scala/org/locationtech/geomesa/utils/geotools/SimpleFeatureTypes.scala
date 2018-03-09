@@ -47,6 +47,7 @@ object SimpleFeatureTypes {
     val LOGICAL_TIME_KEY    = "geomesa.logical.time"
     val COMPRESSION_ENABLED = "geomesa.table.compression.enabled"
     val COMPRESSION_TYPE    = "geomesa.table.compression.type"  // valid: snappy, lzo, gz(default), bzip2, lz4, zstd
+    val UUID_KEY            = "geomesa.fid.uuid"
   }
 
   private [geomesa] object InternalConfigs {
@@ -156,21 +157,24 @@ object SimpleFeatureTypes {
     * @return a string representing a serialization of the sft
     */
   def encodeType(sft: SimpleFeatureType, includeUserData: Boolean = false): String = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    lazy val userData = {
-      val prefixes = sft.getUserDataPrefixes
-      sft.getUserData.filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
-    }
-    val suffix = if (!includeUserData || userData.isEmpty) { "" } else {
-      userData.map { case (k, v) => s"$k='${StringEscapeUtils.escapeJava(v.toString)}'" }.mkString(";", ",", "")
-    }
-
-    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", suffix)
+    val userData = if (includeUserData) { encodeUserData(sft) } else { "" }
+    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", userData)
   }
 
   def encodeDescriptor(sft: SimpleFeatureType, descriptor: AttributeDescriptor): String =
     AttributeSpec(sft, descriptor).toSpec
+
+  def encodeUserData(sft: SimpleFeatureType): String = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    val prefixes = sft.getUserDataPrefixes
+    val userData = sft.getUserData.filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
+    if (userData.isEmpty) { "" } else {
+      userData.map { case (k, v) => encodeUserData(k, v) }.mkString(";", ",", "")
+    }
+  }
+
+  def encodeUserData(key: AnyRef, value: AnyRef): String = s"$key='${StringEscapeUtils.escapeJava(value.toString)}'"
 
   def toConfig(sft: SimpleFeatureType,
                includeUserData: Boolean = true,
