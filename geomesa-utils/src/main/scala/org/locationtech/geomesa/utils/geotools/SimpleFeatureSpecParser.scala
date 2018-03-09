@@ -49,7 +49,7 @@ object SimpleFeatureSpecParser {
         if (matchers.isEmpty) {
           s"Invalid spec string at index ${e.getStartIndex}."
         } else {
-          val expected = if (matchers.length > 1) { s"one of: ${matchers.mkString(", ")}" } else { matchers.head }
+          val expected = if (matchers.lengthCompare(1) > 0) { s"one of: ${matchers.mkString(", ")}" } else { matchers.head }
           s"Invalid spec string at index ${e.getStartIndex}. Expected $expected."
         }
       }.getOrElse(fallback)
@@ -98,7 +98,7 @@ private class SimpleFeatureSpecParser extends BasicParser {
 
   // full simple feature spec
   def spec: Rule1[SimpleFeatureSpec] = rule("Specification") {
-    (oneOrMore(attribute, ",") ~ sftOptions) ~ EOI ~~> {
+    (zeroOrMore(attribute, ",") ~ sftOptions) ~ EOI ~~> {
       (attributes, sftOpts) => SimpleFeatureSpec(attributes, sftOpts)
     }
   }

@@ -32,7 +32,7 @@ import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttr
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
@@ -65,15 +65,16 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     (wf) => getRows(wf).map { case (_, r) => createDelete(r, wf) }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
+    val idFromBytes = GeoMesaFeatureIndex.idFromBytes(sft)
     // drop the encoded value and the date field (12 bytes) if it's present - the rest of the row is the ID
     val shard = getShards(sft).head.length
     // exclude feature byte and 2 index bytes and shard bytes
     val from = if (sft.isTableSharing) { 3 + shard } else { 2 + shard }
     val secondary = getSecondaryIndexKeyLength(sft)
-    (row, offset, length) => {
+    (row, offset, length, feature) => {
       val start = row.indexOf(NullByte, from + offset) + secondary + 1
-      new String(row, start, length + offset - start, StandardCharsets.UTF_8)
+      idFromBytes(row, start, length + offset - start, feature)
     }
   }
 

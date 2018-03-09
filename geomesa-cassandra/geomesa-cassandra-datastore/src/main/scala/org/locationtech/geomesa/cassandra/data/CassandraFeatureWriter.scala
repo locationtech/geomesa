@@ -11,8 +11,6 @@ package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core.querybuilder._
 import org.locationtech.geomesa.cassandra._
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -28,7 +26,8 @@ class CassandraModifyFeatureWriter(sft: SimpleFeatureType,
     extends CassandraFeatureWriterType(sft, ds, indices) with CassandraModifyFeatureWriterType with CassandraFeatureWriter
 
 trait CassandraFeatureWriter extends CassandraFeatureWriterType {
-  private val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+
+  private val wrapper = CassandraFeature.wrapper(sft)
 
   override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[String] = tables
 
@@ -52,5 +51,5 @@ trait CassandraFeatureWriter extends CassandraFeatureWriterType {
     }
   }
 
-  override def wrapFeature(feature: SimpleFeature): CassandraFeature = new CassandraFeature(feature, serializer)
+  override def wrapFeature(feature: SimpleFeature): CassandraFeature = wrapper(feature)
 }

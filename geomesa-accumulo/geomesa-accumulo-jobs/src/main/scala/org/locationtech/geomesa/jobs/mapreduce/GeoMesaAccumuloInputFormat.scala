@@ -326,16 +326,16 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
                           decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer)
     extends RecordReader[Text, SimpleFeature] {
 
-  var currentFeature: SimpleFeature = null
+  var currentFeature: SimpleFeature = _
 
-  val getId = table.getIdFromRow(sft)
+  private val getId = table.getIdFromRow(sft)
 
-  override def initialize(split: InputSplit, context: TaskAttemptContext) = {
+  override def initialize(split: InputSplit, context: TaskAttemptContext): Unit =
     reader.initialize(split, context)
-  }
-  override def getProgress = reader.getProgress
 
-  override def nextKeyValue() = nextKeyValueInternal()
+  override def getProgress: Float = reader.getProgress
+
+  override def nextKeyValue(): Boolean = nextKeyValueInternal()
 
   /**
     * Get the next key value from the underlying reader, incrementing the reader when required
@@ -345,7 +345,8 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
       currentFeature = decoder.deserialize(reader.getCurrentValue.get())
       if (!hasId) {
         val row = reader.getCurrentKey.getRow
-        currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
+        val id = getId(row.getBytes, 0, row.getLength, currentFeature)
+        currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
       }
       true
     } else {
@@ -353,11 +354,11 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
     }
   }
 
-  override def getCurrentValue = currentFeature
+  override def getCurrentValue: SimpleFeature = currentFeature
 
-  override def getCurrentKey = new Text(currentFeature.getID)
+  override def getCurrentKey: Text = new Text(currentFeature.getID)
 
-  override def close() = { reader.close() }
+  override def close(): Unit = reader.close()
 }
 
 /**

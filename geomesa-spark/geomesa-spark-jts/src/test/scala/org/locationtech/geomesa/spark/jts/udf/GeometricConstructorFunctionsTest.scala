@@ -13,7 +13,7 @@ import org.apache.spark.sql.functions._
 import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
-import org.locationtech.geomesa.spark.jts.util.WKTUtils
+import org.locationtech.geomesa.spark.jts.util.{WKBUtils, WKTUtils}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -79,7 +79,8 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val expected = WKTUtils.read("POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))")
       r.collect().head.getAs[Geometry](0) mustEqual expected
 
-      dfBlank.select(st_geomFromWKB(st_byteArray(new String(geomArr)))).first mustEqual expected
+      dfBlank.select(st_geomFromWKB(st_byteArray(lit(new String(geomArr))))).first mustEqual expected
+      dfBlank.select(st_geomFromWKB(geomArr)).first mustEqual expected
     }
 
     "st_lineFromText" >> {
@@ -129,6 +130,11 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
         st_castToPoint(st_geomFromWKT("POINT(0 0)")),
         st_castToPoint(st_geomFromWKT("POINT(2 2)"))
       )).first mustEqual expected
+
+      val p1 = GeometricConstructorFunctions.ST_MakePoint(0, 0)
+      val p2 = GeometricConstructorFunctions.ST_MakePoint(2, 2)
+
+      dfBlank.select(st_makeBox2D(p1, p2)).first mustEqual expected
     }
 
     "st_makePolygon" >> {
@@ -144,8 +150,10 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       )
       val expected = WKTUtils.read("POLYGON((0 0, 2 2, 5 4, 7 2, 5 2, 3 0, 0 0))")
       r.collect().head.getAs[Polygon](0) mustEqual expected
-
       dfBlank.select(st_makePolygon(st_castToLineString(st_geomFromWKT(line)))).first mustEqual expected
+
+      val lineInst = WKTUtils.read(line).asInstanceOf[LineString]
+      dfBlank.select(st_makePolygon(lineInst)).first mustEqual expected
     }
 
     "st_makePoint" >> {
@@ -174,6 +182,20 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val expected = WKTUtils.read("POINT(0 0 1)")
       r.collect().head.getAs[Point](0) mustEqual expected
       dfBlank.select(st_makePointM(0, 0, 1)).first mustEqual expected
+    }
+
+    "st_makeLine" >> {
+      sc.sql("select st_makeLine(null)").collect.head(0) must beNull
+      dfBlank.select(st_makeLine(lit(null))).first must beNull
+
+      val p1 = GeometricConstructorFunctions.ST_MakePoint(0, 0)
+      val p2 = GeometricConstructorFunctions.ST_MakePoint(2, 2)
+      val p3 = GeometricConstructorFunctions.ST_MakePoint(5, 2)
+      val expected = WKTUtils.read("LINESTRING(0 0, 2 2, 5 2)")
+
+      dfBlank.select(st_makeLine(Seq(p1, p2, p3))).first mustEqual expected
+
+      dfBlank.select(st_makeLine(array(pointLit(p1), pointLit(p2), pointLit(p3)))).first mustEqual expected
     }
 
     "st_mLineFromText" >> {
@@ -265,7 +287,7 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       )
       val expected = WKTUtils.read("POINT(0 0)")
       r.collect().head.getAs[Point](0) mustEqual expected
-      dfBlank.select(st_pointFromWKB(st_byteArray(new String(pointArr)))).first mustEqual expected
+      dfBlank.select(st_pointFromWKB(pointArr)).first mustEqual expected
     }
 
     "st_polygon" >> {
@@ -282,6 +304,9 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val expected = WKTUtils.read("POLYGON((0 0, 2 2, 5 2, 3 0, 0 0))")
       r.collect().head.getAs[Polygon](0) mustEqual expected
       dfBlank.select(st_polygon(st_castToLineString(st_geomFromWKT(line)))).first mustEqual expected
+
+      val lineInst = WKTUtils.read(line).asInstanceOf[LineString]
+      dfBlank.select(st_makePolygon(lineInst)).first mustEqual expected
     }
 
     "st_polygonFromText" >> {
@@ -298,6 +323,29 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val expected =  WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, 2.0 2.0, 0.0 2.0, 0.0 0.0))")
       r.collect().head.getAs[Polygon](0) mustEqual expected
       dfBlank.select(st_polygonFromText(poly)).first mustEqual expected
+    }
+
+    "geometry literals" >> {
+      val fact = new GeometryFactory()
+      val c1 = new Coordinate(1, 2)
+      val c2 = new Coordinate(3, 4)
+      val c3 = new Coordinate(5, 6)
+      val point = fact.createPoint(c1)
+      val line = fact.createLineString(Array(c1, c2))
+      val poly = fact.createPolygon(Array(c1, c2, c3, c1))
+      val mpoint = fact.createMultiPoint(Array(point, point, point))
+      val mline = fact.createMultiLineString(Array(line, line, line))
+      val mpoly = fact.createMultiPolygon(Array(poly, poly, poly))
+      val coll = fact.createGeometryCollection(Array(point, line, poly, mpoint, mline, mpoly))
+
+      dfBlank.select(pointLit(point)).first mustEqual point
+      dfBlank.select(lineLit(line)).first mustEqual line
+      dfBlank.select(polygonLit(poly)).first mustEqual poly
+      dfBlank.select(mPointLit(mpoint)).first mustEqual mpoint
+      dfBlank.select(mLineLit(mline)).first mustEqual mline
+      dfBlank.select(mPolygonLit(mpoly)).first mustEqual mpoly
+      dfBlank.select(geomCollLit(coll)).first mustEqual coll
+      dfBlank.select(geomLit(coll)).first mustEqual coll
     }
 
     // after

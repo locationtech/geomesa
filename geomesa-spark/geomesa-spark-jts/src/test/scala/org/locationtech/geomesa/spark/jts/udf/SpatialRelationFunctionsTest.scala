@@ -389,7 +389,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       sc.sql("select st_relate(null, null)").collect.head(0) must beNull
       dfBlank.select(st_relate(lit(null), lit(null))).first must beNull
       sc.sql("select st_relateBool(null, null, null)").collect.head(0) must beNull
-      dfBlank.select(st_relateBool(lit(null), lit(null), lit(null))).first must beFalse
+      dfBlank.select(st_relateBool(lit(null), lit(null), lit(null))).first must beNull
     }
 
     // other relationship functions
@@ -483,6 +483,23 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
 
       sc.sql("select st_length(null)").collect.head(0) must beNull
       dfBlank.select(st_length(lit(null))).first must beNull
+    }
+
+    "st_translate" >> {
+      val expected = WKTUtils.read("LINESTRING(1 2, 11 2)")
+      val trans = dfBlank.select(st_translate(st_geomFromWKT("LINESTRING(0 0, 10 0)"), 1, 2)).first
+      trans mustEqual expected
+    }
+
+    "st_aggregateDistanceSpheroid" >> {
+      val p1 = points("int")
+      val p2 = points("edge")
+      dfBlank.select(st_aggregateDistanceSpheroid(array(st_geomFromWKT(p1), st_geomFromWKT(p2)))).first must not(throwAn[Exception])
+    }
+
+    "st_lengthSpheroid" >> {
+      val line = "LINESTRING(1 2, 11 2)"
+      dfBlank.select(st_lengthSpheroid(st_castToLineString(st_geomFromWKT(line)))).first must not(throwAn[Exception])
     }
 
     // after

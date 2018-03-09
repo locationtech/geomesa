@@ -45,7 +45,7 @@ class GeometricCastFunctionsTest extends Specification with TestEnvironment {
     "st_castToPolygon" >> {
       "null" >> {
         sc.sql("select st_castToPolygon(null)").collect.head(0) must beNull
-        dfBlank.select(st_castToPolygon(null: Geometry)).first must beNull
+        dfBlank.select(st_castToPolygon(lit(null))).first must beNull
       }
 
       "polygon" >> {
@@ -60,7 +60,7 @@ class GeometricCastFunctionsTest extends Specification with TestEnvironment {
     "st_castToLineString" >> {
       "null" >> {
         sc.sql("select st_castToLineString(null)").collect.head(0) must beNull
-        dfBlank.select(st_castToLineString(null: Geometry)).first must beNull
+        dfBlank.select(st_castToLineString(lit(null))).first must beNull
       }
 
       "linestring" >> {
@@ -75,14 +75,14 @@ class GeometricCastFunctionsTest extends Specification with TestEnvironment {
     "st_bytearray" >> {
       "null" >> {
         sc.sql("select st_byteArray(null)").collect.head(0) must beNull
-        dfBlank.select(st_byteArray(null: String)).first must beNull
+        dfBlank.select(st_byteArray(lit(null))).first must beNull
       }
 
       "bytearray" >> {
         val df = sc.sql(s"select st_byteArray('foo')")
         val expected = "foo".toArray.map(_.toByte)
         df.collect.head(0) mustEqual expected
-        dfBlank.select(st_byteArray("foo")).first mustEqual expected
+        dfBlank.select(st_byteArray(lit("foo"))).first mustEqual expected
       }
     }
 
