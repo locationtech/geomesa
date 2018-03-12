@@ -20,6 +20,5 @@ geomesa-*.*.*-*
 **/src/main/resources/git.properties
 **/*.db
 .ipynb_checkpoints
-*.ipynb
 *.sc
 .sphinx
