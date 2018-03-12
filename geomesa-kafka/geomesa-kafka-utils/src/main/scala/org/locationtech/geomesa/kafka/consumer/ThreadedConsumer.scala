@@ -49,7 +49,10 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
   def startConsumers(): Unit = {
     val format = if (consumers.lengthCompare(10) > 0) { "%02d" } else { "%d" }
     var i = 0
-    consumers.foreach { c => executor.execute(new ConsumerRunnable(c, frequency, String.format(format, i))); i += 1 }
+    consumers.foreach { c =>
+      executor.execute(new ConsumerRunnable(c, frequency, String.format(format, Int.box(i))))
+      i += 1
+    }
     logger.debug(s"Started $i consumer(s) on topic $topic")
   }
 
