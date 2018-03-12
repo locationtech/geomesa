@@ -41,18 +41,19 @@ object GeometricProcessingFunctions {
 
   val ST_antimeridianSafeGeom: Geometry => Geometry = nullableUDF(geom => {
     def degreesToTranslate(x: Double): Double = (((x + 180) / 360.0).floor * -360).toInt
-    if (geom.getEnvelopeInternal.getMinX < -180 || geom.getEnvelopeInternal.getMaxX > 180) {
 
-      geom.apply(new CoordinateSequenceFilter() {
+    val geomCopy = geometryFactory.createGeometry(geom)
+    if (geomCopy.getEnvelopeInternal.getMinX < -180 || geomCopy.getEnvelopeInternal.getMaxX > 180) {
+      geomCopy.apply(new CoordinateSequenceFilter() {
         override def filter(seq: CoordinateSequence, i: Int): Unit = {
           seq.setOrdinate(i, CoordinateSequence.X, seq.getX(i) + degreesToTranslate(seq.getX(i)))
         }
         override def isDone: Boolean = false
         override def isGeometryChanged: Boolean = true
       })
-
     }
-    val datelineSafeShape = shapeFactory.makeShapeFromGeometry(geom)
+
+    val datelineSafeShape = shapeFactory.makeShapeFromGeometry(geomCopy)
     shapeFactory.getGeometryFrom(datelineSafeShape)
   })
 

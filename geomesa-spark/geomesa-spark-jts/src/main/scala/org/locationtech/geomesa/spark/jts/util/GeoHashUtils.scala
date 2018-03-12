@@ -11,11 +11,24 @@ package org.locationtech.geomesa.spark.jts.util
 import com.vividsolutions.jts.geom.{Envelope, Geometry, GeometryFactory, PrecisionModel}
 import scala.collection.BitSet
 import scala.collection.immutable.{BitSet => IBitSet}
+import java.{lang => jl}
 
+/**
+  * Exposes the two methods needed by ST_GeoHash and ST_GeomFromGeoHash
+  * to convert between geometries and Geohashes.
+  * This is different from GeoHashUtils in geomesa-utils which provides operations
+  * on geohashes not required by these UDFs
+  */
 object GeoHashUtils {
 
   def encode(geom: Geometry, precision: Int): String = {
-    GeoHash.encode(geom.getCentroid.getX, geom.getCentroid.getY, precision)
+    val centroid = geom.getCentroid
+    val safeCentroid = if (jl.Double.isNaN(centroid.getCoordinate.x) || jl.Double.isNaN(centroid.getCoordinate.y)) {
+      geom.getEnvelope.getCentroid
+    } else {
+      centroid
+    }
+    GeoHash.encode(safeCentroid.getX, safeCentroid.getY, precision)
   }
 
   def decode(geohash: String, precision: Int): Geometry = {
@@ -28,7 +41,9 @@ case class Bounds(low: Double,
   lazy val mid = (low+high)/2.0
 }
 
-object GeoHash {
+// This object is composed of minimal pieces from org.locationtech.geomesa.utils.geohash.GeoHash
+// to support geohash UDFs while avoiding depending on that module.
+private[util] object GeoHash {
 
   val MAX_PRECISION = 63 // our bitset operations assume all bits fit in one Long
 
