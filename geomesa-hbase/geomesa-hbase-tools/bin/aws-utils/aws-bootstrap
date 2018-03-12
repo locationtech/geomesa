@@ -389,11 +389,16 @@ while [[ "${status}" != "Done" && "${status}" != Fail* && -z "${failed}" ]]; do
   failed=$(aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep -E "BOOTSTRAP_FAILURE|TERMINATING")
   status=$(aws ${AWS_PROFILE} s3 cp ${CONTAINER}status.log - | tail -n 1)
   echo -ne "Bootstrap Status ${icon} ${status}                            \r" # Make sure we overwrite the longer messages
+  sleep 1
 done
 
 if [[ "${status}" == Fail* || -n "${failed}" ]]; then
   echo -ne "Last Status: ${status}                            \n"
   echo "Cluster setup failed. Check the AWS console for more information"
+
+  # Cleanup
+  rm -r "${WORKING_DIR}"
+  exit 1
 else
   echo -ne "Cluster is ready\n"
   # Write out useful addresses
@@ -408,7 +413,7 @@ else
     echo "Jupyter Server: ${address}:8888"
   fi
   echo ""
-fi
 
-# Cleanup
-rm -r "${WORKING_DIR}"
+  # Cleanup
+  rm -r "${WORKING_DIR}"
+fi
