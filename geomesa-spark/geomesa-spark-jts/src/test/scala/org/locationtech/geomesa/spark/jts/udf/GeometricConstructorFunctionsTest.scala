@@ -29,6 +29,82 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val _ = spark
     }
 
+    "st_box2DFromGeoHash" >> {
+      sc.sql("select st_box2DFromGeoHash(null, null)").collect.head(0) must beNull
+
+      val r = sc.sql(
+        s"""
+           |select st_box2DFromGeoHash('ezs42', 25)
+          """.stripMargin
+      )
+
+      val boxCoords = r.collect().head.getAs[Geometry](0).getCoordinates
+      val ll = boxCoords(0)
+      val ur = boxCoords(2)
+      boxCoords.length mustEqual 5
+      ll.x must beCloseTo(-5.625, .022) // lon
+      ll.y must beCloseTo(42.583, .022) // lat
+      ur.x must beCloseTo(-5.581, .022) // lon
+      ur.y must beCloseTo(42.627, .022) // lat
+    }
+
+    "st_geomFromGeoHash" >> {
+      sc.sql("select st_geomFromGeoHash(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_geomFromGeoHash(lit(null), lit(null))).first must beNull
+
+      val geohash = "ezs42"
+      val precision = 25
+      val r = sc.sql(
+        s"""
+           |select st_geomFromGeoHash('$geohash', $precision)
+          """.stripMargin
+      )
+
+      val (minLon, minLat, maxLon, maxLat) = (-5.625, 42.583, -5.581, 42.627)
+      val delta = .022
+
+      val dfBoxCoords = dfBlank.select(st_geomFromGeoHash(lit(geohash), lit(precision))).first.getCoordinates
+      val dfLowerLeft = dfBoxCoords(0)
+      val dfUpperRight = dfBoxCoords(2)
+      dfLowerLeft.x must beCloseTo(minLon, delta)
+      dfLowerLeft.y must beCloseTo(minLat, delta)
+      dfUpperRight .x must beCloseTo(maxLon, delta)
+      dfUpperRight .y must beCloseTo(maxLat, delta)
+
+      val geomboxCoords = r.collect().head.getAs[Geometry](0).getCoordinates
+      val ll = geomboxCoords(0)
+      val ur = geomboxCoords(2)
+      geomboxCoords.length mustEqual 5
+      ll.x must beCloseTo(minLon, delta)
+      ll.y must beCloseTo(minLat, delta)
+      ur.x must beCloseTo(maxLon, delta)
+      ur.y must beCloseTo(maxLat, delta)
+    }
+
+    "st_pointFromGeoHash" >> {
+      sc.sql("select st_pointFromGeoHash(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_pointFromGeoHash(lit(null), lit(null))).first must beNull
+
+      val geohash = "ezs42"
+      val precision = 25
+      val r = sc.sql(
+        s"""
+           |select st_pointFromGeoHash('$geohash', $precision)
+        """.stripMargin
+      )
+
+      val (x, y) = (-5.603, 42.605)
+      val delta = .022
+
+      val dfPoint = dfBlank.select(st_pointFromGeoHash(lit(geohash), lit(precision))).first
+      dfPoint.getX must beCloseTo(x, delta)
+      dfPoint.getY must beCloseTo(y, delta)
+
+      val point = r.collect().head.getAs[Point](0)
+      point.getX must beCloseTo(x, delta)
+      point.getY must beCloseTo(y, delta)
+    }
+
     "st_geomFromWKT" >> {
       sc.sql("select st_geomFromWKT(null)").collect.head(0) must beNull
       dfBlank.select(st_geomFromWKT(lit(null))).first must beNull
