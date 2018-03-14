@@ -53,7 +53,7 @@ notebookConf="${notebookRes[-1]}"
 rm -f ${notebookConf}
 cat > ${notebookConf} <<EOF
 c.NotebookApp.ip = '${publicDNS}'
-c.NotebookApp.notebook_dir = u'${%%gmtools.dist.name%%_HOME}/examples/jupyter/'
+c.NotebookApp.notebook_dir = u'${%%gmtools.dist.name%%_HOME}/examples/'
 c.NotebookApp.open_browser = False
 c.NotebookApp.password = u'${password}'
 c.NotebookApp.port = 8888
