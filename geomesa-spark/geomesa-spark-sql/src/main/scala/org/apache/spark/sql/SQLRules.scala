@@ -86,7 +86,7 @@ object SQLRules extends LazyLogging {
   }
 
   // new optimizations rules
-  object STContainsRule extends Rule[LogicalPlan] with PredicateHelper {
+  object SpatialOptimizationsRule extends Rule[LogicalPlan] with PredicateHelper {
 
 
     // JNH: NB: Unused.
@@ -263,9 +263,9 @@ object SQLRules extends LazyLogging {
 
   def registerOptimizations(sqlContext: SQLContext): Unit = {
 
-    Seq(STContainsRule).foreach { r =>
+    Seq(SpatialOptimizationsRule).foreach { r =>
       if(!sqlContext.experimental.extraOptimizations.contains(r))
-      sqlContext.experimental.extraOptimizations ++= Seq(r)
+        sqlContext.experimental.extraOptimizations ++= Seq(r)
     }
 
     Seq(SpatialJoinStrategy).foreach { s =>

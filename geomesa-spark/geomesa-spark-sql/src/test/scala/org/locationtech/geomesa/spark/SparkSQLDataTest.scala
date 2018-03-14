@@ -21,6 +21,8 @@ import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.apache.spark.sql.SQLTypes
+import org.apache.spark.sql.catalyst.plans.logical.Filter
+import org.apache.spark.sql.execution.datasources.LogicalRelation
 
 import scala.collection.JavaConversions._
 
@@ -154,6 +156,17 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val d = r.collect
 
       d.length mustEqual 1
+    }
+
+    "pushdown spatial predicates" >> {
+      val pushdown = sc.sql("select geom from chicago where st_intersects(st_makeBox2d(st_point(-77, 38), st_point(-76, 39)), geom)")
+      val noPushdown = sc.sql("select geom from chicago where case_number = 1")
+
+      val pushdownPlan = pushdown.queryExecution.optimizedPlan
+      val normalPlan = noPushdown.queryExecution.optimizedPlan
+
+      pushdownPlan.children.head.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
+      normalPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains
     }
 
     "st_translate" >> {
