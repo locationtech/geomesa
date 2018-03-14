@@ -276,6 +276,11 @@ object SQLRules extends LazyLogging {
 
   def registerOptimizations(sqlContext: SQLContext): Unit = {
 
+    Seq(STContainsRule).foreach { r =>
+      if(!sqlContext.experimental.extraOptimizations.contains(r))
+      sqlContext.experimental.extraOptimizations ++= Seq(r)
+    }
+
     Seq(SpatialJoinStrategy).foreach { s =>
       if(!sqlContext.experimental.extraStrategies.contains(s))
         sqlContext.experimental.extraStrategies ++= Seq(s)
