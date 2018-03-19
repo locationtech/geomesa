@@ -11,12 +11,12 @@ package org.apache.spark.sql
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.apache.spark.sql.jts.JTSTypes._
-import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, PredicateHelper, ScalaUDF}
+import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.types.{DataType, StructType}
+import org.apache.spark.sql.types.StructType
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils}
@@ -24,7 +24,6 @@ import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 
 object SQLRules extends LazyLogging {
@@ -73,12 +72,51 @@ object SQLRules extends LazyLogging {
     }
   }
 
-  def sparkExprToGTExpr(expr: org.apache.spark.sql.catalyst.expressions.Expression): Option[org.opengis.filter.expression.Expression] = {
+  def sparkFilterToGTFilter(expr: Expression): Option[GTFilter] = {
+    expr match {
+      case udf: ScalaUDF => scalaUDFtoGTFilter(udf)
+      case binaryComp@BinaryComparison(left, right) =>
+        val leftExpr = sparkExprToGTExpr(left)
+        val rightExpr = sparkExprToGTExpr(right)
+        if (leftExpr.isEmpty || rightExpr.isEmpty) {
+          None
+        } else {
+          binaryComp match {
+            case eq:  EqualTo => Some(ff.equals(leftExpr.get, rightExpr.get))
+            case lt:  LessThan => Some(ff.less(leftExpr.get, rightExpr.get))
+            case lte: LessThanOrEqual => Some(ff.lessOrEqual(leftExpr.get, rightExpr.get))
+            case gt:  GreaterThan => Some(ff.greater(leftExpr.get, rightExpr.get))
+            case gte: GreaterThanOrEqual => Some(ff.greaterOrEqual(leftExpr.get, rightExpr.get))
+            case _ => None
+          }
+        }
+      case unary: UnaryExpression =>
+        val sparkExpr = unary.child
+        val gtExpr = sparkExprToGTExpr(sparkExpr)
+        if (gtExpr.isEmpty)
+          None
+        else {
+          unary match {
+            case _: IsNotNull => Some(ff.not(ff.isNull(gtExpr.get)))
+            case _: IsNull => Some(ff.isNull(gtExpr.get))
+            case _ => None
+          }
+        }
+      case _ =>
+        logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
+        None
+    }
+
+  }
+
+  def sparkExprToGTExpr(expr: Expression): Option[GTExpression] = {
     expr match {
       case GeometryLiteral(_, geom) =>
         Some(ff.literal(geom))
-      case AttributeReference(name, _, _, _) =>
+      case AttributeReference(name, _, _, _) if !name.equals("__fid__") =>
         Some(ff.property(name))
+      case Literal(value, _) =>
+        Some(ff.literal(value))
       case _ =>
         logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
         None
@@ -196,10 +234,11 @@ object SQLRules extends LazyLogging {
 
           // split up conjunctive predicates and extract the st_contains variable
           val (scalaUDFs: Seq[Expression], otherFilters: Seq[Expression]) = extractScalaUDFs(f)
+          val sparkFilters: Seq[Expression] = otherFilters ++ scalaUDFs
 
-          val (gtFilters: Seq[GTFilter], sFilters: Seq[Expression]) = scalaUDFs.foldLeft((Seq[GTFilter](), otherFilters)) {
+          val (gtFilters: Seq[GTFilter], sFilters: Seq[Expression]) = sparkFilters.foldLeft((Seq[GTFilter](), Seq[Expression]())) {
             case ((gts: Seq[GTFilter], sfilters), expression: Expression) =>
-              val cqlFilter = scalaUDFtoGTFilter(expression)
+              val cqlFilter = sparkFilterToGTFilter(expression)
 
               cqlFilter match {
                 case Some(gtf) => (gts.+:(gtf), sfilters)
@@ -222,9 +261,10 @@ object SQLRules extends LazyLogging {
             val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt), partitionHints = partitionHints)
             val newrel = lr.copy(output = lr.output, relation = relation)
             if (sFilters.nonEmpty) {
+              // Keep filters that couldn't be transformed at the top level
               Filter(sFilters.reduce(And), newrel)
             } else {
-              // if st_contains was the only filter, just return the new relation
+              // if all filters could be transformed to GeoTools filters, just return the new relation
               newrel
             }
           } else {

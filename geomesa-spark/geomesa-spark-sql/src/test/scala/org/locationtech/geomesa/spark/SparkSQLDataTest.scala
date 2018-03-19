@@ -160,13 +160,33 @@ class SparkSQLDataTest extends Specification with LazyLogging {
 
     "pushdown spatial predicates" >> {
       val pushdown = sc.sql("select geom from chicago where st_intersects(st_makeBox2d(st_point(-77, 38), st_point(-76, 39)), geom)")
-      val noPushdown = sc.sql("select geom from chicago where case_number = 1")
-
       val pushdownPlan = pushdown.queryExecution.optimizedPlan
-      val normalPlan = noPushdown.queryExecution.optimizedPlan
+
+      val pushdownDF = df.where("st_intersects(st_makeBox2D(st_point(-77, 38), st_point(-76, 39)), geom)")
+      val pushdownDFPlan = pushdownDF.queryExecution.optimizedPlan
+
+      val noPushdown = sc.sql("select geom from chicago where __fid__ = 1")
+      val noPushdownPlan = noPushdown.queryExecution.optimizedPlan
 
       pushdownPlan.children.head.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
-      normalPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains
+      pushdownDFPlan.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
+      noPushdownPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains at top level
+
+    }
+
+    "pushdown attribute filters" >> {
+      val pushdown = sc.sql("select geom from chicago where case_number = 1")
+      val pushdownPlan = pushdown.queryExecution.optimizedPlan
+
+      val pushdownDF = df.where("case_number = 1")
+      val pushdownDFPlan = pushdownDF.queryExecution.optimizedPlan
+
+      val noPushdown = sc.sql("select geom from chicago where __fid__ = 1")
+      val noPushdownPlan = noPushdown.queryExecution.optimizedPlan
+
+      pushdownPlan.children.head.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
+      pushdownDFPlan.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
+      noPushdownPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains at top level
     }
 
     "st_translate" >> {
