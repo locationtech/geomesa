@@ -356,7 +356,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 
   private def buildFeature(t: Array[Any], sfValues: Array[AnyRef], ec: EvaluationContext): SimpleFeature = {
     val sf = idBuilder match {
-      case LitNull => new ScalaSimpleFeature(targetSFT, null, sfValues)
+      case LitNull => new ScalaSimpleFeature(targetSFT, "", sfValues) // empty feature id will be replaced with an auto-gen one
       case _       =>
         val id = idBuilder.eval(t)(ec).asInstanceOf[String]
         val res = new ScalaSimpleFeature(targetSFT, id, sfValues)
