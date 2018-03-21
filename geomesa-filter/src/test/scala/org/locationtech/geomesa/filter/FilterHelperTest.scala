@@ -8,14 +8,17 @@
 
 package org.locationtech.geomesa.filter
 
-import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.{Period, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.expression.AddImpl
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.Bounds.Bound
+import org.locationtech.geomesa.filter.function.CurrentDateFunction
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.opengis.filter._
 import org.specs2.mutable.Specification
@@ -35,6 +38,32 @@ class FilterHelperTest extends Specification {
   }
 
   "FilterHelper" should {
+
+    "evaluate functions with 0 arguments" >> {
+      val filter = ECQL.toFilter("dtg < currentDate()")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsLessThenImpl].getExpression2.isInstanceOf[CurrentDateFunction] mustEqual false
+    }
+
+    "evaluate functions with 1 argument" >> {
+      val filter = ECQL.toFilter("dtg > currentDate('P2D')")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsGreaterThanImpl].getExpression2.isInstanceOf[CurrentDateFunction] mustEqual false
+    }
+
+    "evaluate functions representing the last day" >> {
+      val filter = ECQL.toFilter("dtg > currentDate('P1D') AND dtg < currentDate()")
+      val updated = updateFilter(filter)
+      val intervals = FilterHelper.extractIntervals(updated, "dtg", handleExclusiveBounds = true)
+      // JNH: I wonder if this is stable enough for a unit test?:)
+      Period.between(intervals.values(0).lower.value.get.toLocalDate, intervals.values(0).upper.value.get.toLocalDate).toString mustEqual "P1D"
+    }
+
+    "evaluate functions with math" >> {
+      val filter = ECQL.toFilter("number < 1+2")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsLessThenImpl].getExpression2.isInstanceOf[AddImpl] mustEqual false
+    }
 
     "fix out of bounds bbox" >> {
       val filter = ff.bbox(ff.property("geom"), -181, -91, 181, 91, "4326")

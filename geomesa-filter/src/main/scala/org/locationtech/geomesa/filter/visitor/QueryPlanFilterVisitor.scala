@@ -8,14 +8,16 @@
 
 package org.locationtech.geomesa.filter.visitor
 
-import org.geotools.filter.visitor.DuplicatingFilterVisitor
+import org.geotools.filter.LiteralExpressionImpl
+import org.geotools.filter.visitor.{DuplicatingFilterVisitor, IsStaticExpressionVisitor}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.{And, Filter, Or}
 
 import scala.collection.JavaConversions._
+import scala.util.{Success, Try}
 
 /**
   * Updates filters to handle namespaces, default property names, IDL, dwithin units,
@@ -112,6 +114,28 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
   }
 
   private def includeEquivalent(f: Filter): Boolean = f == Filter.INCLUDE || isFilterWholeWorld(f)
+
+  override def visit(expression: Expression, extraData: scala.Any): Expression = {
+    val visitedExpression = super.visit(expression, extraData)
+
+    visitedExpression match {
+            case exp: Expression =>
+        if (exp.accept(IsStaticExpressionVisitor.VISITOR, null).asInstanceOf[Boolean]) {
+          val eval = Try(exp.evaluate(null))
+
+          val ret = eval match {
+            case Success(value) if value != null =>
+              new LiteralExpressionImpl(value)
+            case _ =>
+              visitedExpression
+          }
+          ret
+        } else {
+          visitedExpression
+        }
+      case _ => visitedExpression
+    }
+  }
 }
 
 object QueryPlanFilterVisitor {
