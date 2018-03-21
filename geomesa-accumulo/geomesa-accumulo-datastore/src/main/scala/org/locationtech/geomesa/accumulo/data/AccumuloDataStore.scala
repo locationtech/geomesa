@@ -131,6 +131,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     getTypeNames.toSet.flatMap(getAllTableNames).filter(ops.exists).flatMap(getVersions)
   }
 
+  override protected val getVersionCheckKey: AnyRef =
+    (connector.getInstance.getZooKeepers, connector.getInstance.getInstanceName, catalog)
+
   @throws(classOf[IllegalArgumentException])
   override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.index.conf.SchemaProperties.ValidateDistributedClasspath
