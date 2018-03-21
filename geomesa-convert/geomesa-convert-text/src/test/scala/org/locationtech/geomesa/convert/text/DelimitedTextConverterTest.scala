@@ -15,6 +15,7 @@ import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 import org.apache.commons.csv.CSVFormat
+import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverters}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -609,7 +610,10 @@ class DelimitedTextConverterTest extends Specification {
       converted.head.getID mustEqual "myfid"
       converted.head.getAttributes.toSeq mustEqual Seq("hello myfid", WKTUtils.read("POINT(45 55)"))
       converted.head.getUserData.toMap mustEqual
-          Map("my.first.key" -> "myfid", "my.second.key" -> "foo", "my.third.key" -> "myfidhello myfid")
+          Map("my.first.key"              -> "myfid"
+            , "my.second.key"             -> "foo"
+            , Hints.USE_PROVIDED_FID      -> true
+            , "my.third.key"              -> "myfidhello myfid")
     }
 
     "detect circular dependencies" >> {

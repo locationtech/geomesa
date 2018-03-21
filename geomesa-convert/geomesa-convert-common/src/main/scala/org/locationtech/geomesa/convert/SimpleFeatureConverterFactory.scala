@@ -15,6 +15,7 @@ import java.util.NoSuchElementException
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.convert.ParseMode.ParseMode
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.convert.ValidationMode.ValidationMode
@@ -348,11 +349,22 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
       i += 1
     }
 
-    val id = idBuilder.eval(t)(ec).asInstanceOf[String]
-    val sf = new ScalaSimpleFeature(targetSFT, id, sfValues)
-    userDataBuilder.foreach { case (k, v) => sf.getUserData.put(k, v.eval(t)(ec).asInstanceOf[AnyRef]) }
+    val sf = buildFeature(t, sfValues, ec)
 
     validate(sf, ec)
+  }
+
+  private def buildFeature(t: Array[Any], sfValues: Array[AnyRef], ec: EvaluationContext): SimpleFeature = {
+    val sf = idBuilder match {
+      case LitNull => new ScalaSimpleFeature(targetSFT, "", sfValues) // empty feature id will be replaced with an auto-gen one
+      case _       =>
+        val id = idBuilder.eval(t)(ec).asInstanceOf[String]
+        val res = new ScalaSimpleFeature(targetSFT, id, sfValues)
+        res.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        res
+    }
+    userDataBuilder.foreach { case (k, v) => sf.getUserData.put(k, v.eval(t)(ec).asInstanceOf[AnyRef]) }
+    sf
   }
 
   /**
