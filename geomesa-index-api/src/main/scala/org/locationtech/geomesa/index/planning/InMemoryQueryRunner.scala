@@ -36,7 +36,7 @@ import org.opengis.filter.Filter
 abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[AuthorizationsProvider])
     extends QueryRunner {
 
-  import InMemoryQueryRunner.{authVisibilityCheck, noAuthVisibilityCheck}
+  import InMemoryQueryRunner.{authVisibilityCheck, noAuthVisibilityCheck, transform}
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   private val isVisible: (SimpleFeature, Seq[Array[Byte]]) => Boolean =
@@ -71,7 +71,7 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
     val iter = features(sft, filter).filter(isVisible(_, auths))
 
-    CloseableIterator(transform(iter, sft, query.getHints, filter))
+    CloseableIterator(transform(iter, sft, stats, query.getHints, filter))
   }
 
   override protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter =
@@ -90,18 +90,24 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
       super.getReturnSft(sft, hints)
     }
   }
+}
 
-  private def transform(features: Iterator[SimpleFeature],
-                        sft: SimpleFeatureType,
-                        hints: Hints,
-                        filter: Option[Filter]): Iterator[SimpleFeature] = {
+object InMemoryQueryRunner {
+
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+  def transform(features: Iterator[SimpleFeature],
+                sft: SimpleFeatureType,
+                stats: GeoMesaStats,
+                hints: Hints,
+                filter: Option[Filter]): Iterator[SimpleFeature] = {
     if (hints.isBinQuery) {
       val trackId = Option(hints.getBinTrackIdField).map(sft.indexOf)
       val geom = hints.getBinGeomField.map(sft.indexOf)
       val dtg = hints.getBinDtgField.map(sft.indexOf)
       binTransform(features, sft, trackId, geom, dtg, hints.getBinLabelField.map(sft.indexOf), hints.isBinSorting)
     } else if (hints.isArrowQuery) {
-      arrowTransform(features, sft, hints, filter)
+      arrowTransform(features, sft, stats, hints, filter)
     } else if (hints.isDensityQuery) {
       val Some(envelope) = hints.getDensityEnvelope
       val Some((width, height)) = hints.getDensityBounds
@@ -143,6 +149,7 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
 
   private def arrowTransform(original: Iterator[SimpleFeature],
                              sft: SimpleFeatureType,
+                             stats: GeoMesaStats,
                              hints: Hints,
                              filter: Option[Filter]): Iterator[SimpleFeature] = {
 
@@ -313,9 +320,6 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
       case Some(o) => features.toList.sorted(o).iterator
     }
   }
-}
-
-object InMemoryQueryRunner {
 
   /**
     * Used when we don't have an auth provider - any visibilities in the feature will

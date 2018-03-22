@@ -25,7 +25,7 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.AttributeSplittable
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex.{NullByteArray, decode}
-import org.locationtech.geomesa.index.index.AttributeIndex.AttributeRowDecoder
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex.AttributeRowDecoder
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

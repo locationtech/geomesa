@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.Params
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
-import org.locationtech.geomesa.index.utils.ExplainString
+import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
@@ -100,7 +100,7 @@ class CassandraDataStoreTest extends Specification {
           testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.dropRight(2))
           testQuery(ds, typeName, "bbox(geom,42,48,52,62)", transforms, toAdd.drop(2))
           testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
-          testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
+          testQuery(ds, typeName, "name = 'name5' OR name = 'name7'", transforms, Seq(toAdd(5), toAdd(7)))
           testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5), toAdd(6)))
         }
       }
@@ -251,8 +251,15 @@ class CassandraDataStoreTest extends Specification {
       ds.getSchema(typeName) must beNull
     }
 
-    def testQuery(ds: CassandraDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
-      val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+    def testQuery(ds: CassandraDataStore,
+                  typeName: String,
+                  filter: String,
+                  transforms: Array[String],
+                  results: Seq[SimpleFeature],
+                  explain: Option[Explainer] = None) = {
+      val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+      explain.foreach(e => ds.getQueryPlan(query, explainer = e))
+      val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       val features = SelfClosingIterator(fr).toList
       val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
       features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))

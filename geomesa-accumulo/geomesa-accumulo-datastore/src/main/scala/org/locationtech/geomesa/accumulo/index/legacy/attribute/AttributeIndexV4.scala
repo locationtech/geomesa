@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.index.legacy.attribute
 
 import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex
-import org.locationtech.geomesa.index.utils.SplitArrays
+import org.locationtech.geomesa.index.index.ShardStrategy
 import org.opengis.feature.simple.SimpleFeatureType
 
 // no shards
@@ -17,5 +17,5 @@ case object AttributeIndexV4 extends AccumuloAttributeIndex {
 
   override val version: Int = 4
 
-  override protected def getShards(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = SplitArrays.EmptySplits
+  override protected def shardStrategy(sft: SimpleFeatureType): ShardStrategy = ShardStrategy.NoShardStrategy
 }

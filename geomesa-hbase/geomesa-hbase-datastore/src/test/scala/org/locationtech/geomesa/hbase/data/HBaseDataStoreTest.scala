@@ -17,6 +17,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
+import org.locationtech.geomesa.hbase.index.{HBaseAttributeIndex, HBaseIdIndex, HBaseZ3Index}
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -187,9 +188,9 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
         ds.connection.getRegionLocator(table).getStartKeys
       }
 
-      splits("attr:4") must haveLength((6 + 10 + 10) * 4) // a-f for name, 0-9 + [8]0-9 for age * 4 shards
-      splits("z3:2") must haveLength(16) // 2 bits * 4 shards
-      splits("id:1") must haveLength(4) // default 4 splits
+      splits(HBaseAttributeIndex.identifier) must haveLength((6 + 10 + 10) * 4) // a-f for name, 0-9 + [8]0-9 for age * 4 shards
+      splits(HBaseZ3Index.identifier) must haveLength(16) // 2 bits * 4 shards
+      splits(HBaseIdIndex.identifier) must haveLength(4) // default 4 splits
     }
   }
 

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
@@ -17,9 +18,12 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestQueryPlan, TestRange}
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.index.IndexKeySpace.ByteRange
+import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -28,7 +32,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexTest extends Specification {
+class AttributeIndexTest extends Specification with LazyLogging {
 
   val typeName = "attr-idx-test"
   val spec = "name:String:index=true,age:Int:index=true,height:Float:index=true,dtg:Date,*geom:Point:srid=4326"
@@ -55,19 +59,19 @@ class AttributeIndexTest extends Specification {
   }
 
   def overlaps(r1: TestRange, r2: TestRange): Boolean = {
-    TestGeoMesaDataStore.ByteComparator.compare(r1.start, r2.start) match {
+    ByteRange.ByteOrdering.compare(r1.start, r2.start) match {
       case 0 => true
-      case i if i < 0 => TestGeoMesaDataStore.ByteComparator.compare(r1.end, r2.start) > 0
-      case i if i > 0 => TestGeoMesaDataStore.ByteComparator.compare(r2.end, r1.start) > 0
+      case i if i < 0 => ByteRange.ByteOrdering.compare(r1.end, r2.start) > 0
+      case i if i > 0 => ByteRange.ByteOrdering.compare(r2.end, r1.start) > 0
     }
   }
 
   "AttributeIndex" should {
     "convert shorts to bytes and back" in {
       forall(Seq(0, 32, 127, 128, 129, 255, 256, 257)) { i =>
-        val bytes = AttributeIndex.indexToBytes(i)
+        val bytes = AttributeIndexKey.indexToBytes(i)
         bytes must haveLength(2)
-        val recovered = AttributeIndex.bytesToIndex(bytes(0), bytes(1))
+        val recovered = ByteArrays.readShort(bytes)
         recovered mustEqual i
       }
     }
@@ -87,8 +91,7 @@ class AttributeIndexTest extends Specification {
         val q = new Query(typeName, ECQL.toFilter(filter))
         // validate that ranges do not overlap
         foreach(ds.getQueryPlan(q, explainer = explain)) { qp =>
-          val ordering = Ordering.comparatorToOrdering(TestGeoMesaDataStore.ByteComparator)
-          val ranges = qp.asInstanceOf[TestQueryPlan].ranges.sortBy(_.start)(ordering)
+          val ranges = qp.asInstanceOf[TestQueryPlan].ranges.sortBy(_.start)(ByteRange.ByteOrdering)
           forall(ranges.sliding(2)) { case Seq(left, right) => overlaps(left, right) must beFalse }
         }
         SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
@@ -201,7 +204,7 @@ class AttributeIndexTest extends Specification {
 
       // set the check fairly high so that we don't get random test failures, but log a warning
       if (time > 500L) {
-        System.err.println(s"WARNING: attribute query processing took ${time}ms for large query")
+        logger.warn(s"Attribute query processing took ${time}ms for large OR query")
       }
       time must beLessThan(10000L)
     }

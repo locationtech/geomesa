@@ -19,9 +19,9 @@ import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.filterToString
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
-import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeature
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
@@ -121,7 +121,7 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     val rowRanges = Lists.newArrayList[RowRange]()
     ranges.foreach {
       case g: Get =>
-        rowRanges.add(new RowRange(g.getRow, true, IndexAdapter.rowFollowingRow(g.getRow), false))
+        rowRanges.add(new RowRange(g.getRow, true, ByteArrays.rowFollowingRow(g.getRow), false))
       case s: Scan =>
         rowRanges.add(new RowRange(s.getStartRow, true, s.getStopRow, false))
     }

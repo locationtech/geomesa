@@ -22,10 +22,10 @@ import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore}
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.hbase.jobs.HBaseGeoMesaRecordReader
-import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.geomesa.spark.hbase.HBaseSpatialRDDProvider
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
@@ -69,7 +69,7 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
 
         case get: org.apache.hadoop.hbase.client.Get =>
           val bes = new BigtableExtendedScan()
-          bes.addRange(get.getRow, IndexAdapter.rowFollowingRow(get.getRow))
+          bes.addRange(get.getRow, ByteArrays.rowFollowingRow(get.getRow))
           bes.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
           BigtableInputFormatBase.scanToString(bes)
 

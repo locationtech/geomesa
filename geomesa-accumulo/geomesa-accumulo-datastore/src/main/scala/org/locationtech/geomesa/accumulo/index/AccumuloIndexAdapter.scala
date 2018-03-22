@@ -53,7 +53,7 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
     mutation
   }
 
-  override protected def range(start: Array[Byte], end: Array[Byte]): Range = {
+  override protected def createRange(start: Array[Byte], end: Array[Byte]): Range = {
     // index api defines empty start/end for open-ended range - in accumulo, it's indicated with null
     val startKey = if (start.length == 0) { null } else { new Key(new Text(start)) }
     val endKey = if (end.length == 0) { null } else { new Key(new Text(end)) }
@@ -61,7 +61,7 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
     new Range(startKey, true, endKey, false)
   }
 
-  override protected def rangeExact(row: Array[Byte]): Range = Range.exact(new Text(row))
+  override protected def createRange(row: Array[Byte]): Range = Range.exact(new Text(row))
 
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: AccumuloDataStore,
