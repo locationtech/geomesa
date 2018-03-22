@@ -16,6 +16,17 @@ Example: ``try("1"::int, 0) = 1``
 
 Example: ``try("abcd"::int, 0) = 0``
 
+withDefault
+^^^^^^^^^^^
+
+Description: Replace a value with a default, if the value is null
+
+Usage: ``withDefault($1, $2)``
+
+Example: ``withDefault('foo', 'bar') = foo``
+
+Example: ``withDefault(null, 'bar') = bar``
+
 String Functions
 ~~~~~~~~~~~~~~~~
 

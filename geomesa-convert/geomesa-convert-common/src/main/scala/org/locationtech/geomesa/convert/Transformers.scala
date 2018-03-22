@@ -384,6 +384,15 @@ trait TransformerFunctionFactory {
   def functions: Seq[TransformerFn]
 }
 
+class DefaultsFunctionFactory extends TransformerFunctionFactory {
+
+  override def functions: Seq[TransformerFn] = Seq(withDefault)
+
+  private val withDefault = TransformerFn("withDefault") { args =>
+    if (args(0) == null) { args(1) } else { args(0) }
+  }
+}
+
 class StringFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFn] =
