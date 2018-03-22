@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.filter
 
-import java.time.{Period, ZoneOffset, ZonedDateTime}
+import java.time.temporal.ChronoUnit
+import java.time.{Duration, Period, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import org.geotools.factory.CommonFactoryFinder
@@ -56,8 +57,8 @@ class FilterHelperTest extends Specification {
       val updated = updateFilter(filter)
       val intervals = FilterHelper.extractIntervals(updated, "dtg", handleExclusiveBounds = true)
       // JNH: I wonder if this is stable enough for a unit test?:)
-      Period.between(intervals.values(0).lower.value.get.toLocalDate,
-                     intervals.values(0).upper.value.get.toLocalDate).toString mustEqual "P1D"
+      intervals.values(0).lower.value.get.until(
+        intervals.values(0).upper.value.get, ChronoUnit.HOURS) >= 23 mustEqual true
     }
 
     "evaluate functions with math" >> {
