@@ -19,6 +19,7 @@ import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
@@ -50,6 +51,8 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               features: SimpleFeatureCollection,
               @DescribeParameter(name = "includeFids", description = "Include feature IDs in arrow file", min = 0)
               includeFids: java.lang.Boolean,
+              @DescribeParameter(name = "proxyFids", description = "Proxy feature IDs to ints instead of strings", min = 0)
+              proxyFids: java.lang.Boolean,
               @DescribeParameter(name = "dictionaryFields", description = "Attributes to dictionary encode", min = 0, max = 128, collectionType = classOf[String])
               dictionaryFields: java.util.List[String],
               @DescribeParameter(name = "useCachedDictionaries", description = "Use cached top-k stats (if available), or run a dynamic stats query to build dictionaries", min = 0)
@@ -78,7 +81,8 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
       }
     }
     val cacheDictionaries = Option(useCachedDictionaries).map(_.booleanValue())
-    val encoding = SimpleFeatureEncoding.min(Option(includeFids).forall(_.booleanValue))
+
+    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids)
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)
     val double = Option(doublePass).exists(_.booleanValue())
@@ -139,7 +143,8 @@ object ArrowConversionProcess {
 
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaryFields.mkString(","))
-      query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids)
+      query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids.isDefined)
+      query.getHints.put(QueryHints.ARROW_PROXY_FID, encoding.fids.contains(Encoding.Min))
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
       query.getHints.put(QueryHints.ARROW_DOUBLE_PASS, doublePass)
       cacheDictionaries.foreach(query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, _))

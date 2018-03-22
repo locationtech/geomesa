@@ -18,6 +18,7 @@ package object udf {
     GeometricCastFunctions.registerFunctions(sqlContext)
     GeometricConstructorFunctions.registerFunctions(sqlContext)
     GeometricOutputFunctions.registerFunctions(sqlContext)
+    GeometricProcessingFunctions.registerFunctions(sqlContext)
     SpatialRelationFunctions.registerFunctions(sqlContext)
   }
 }

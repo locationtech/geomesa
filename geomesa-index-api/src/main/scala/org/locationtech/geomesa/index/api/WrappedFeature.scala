@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.index.api
 
 import java.nio.charset.StandardCharsets
+import java.util.UUID
 
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.hashing.MurmurHash3
@@ -28,12 +30,14 @@ trait WrappedFeature {
   def feature: SimpleFeature
 
   /**
-    * Hash of the simple feature ID - can be used for sharding
-    */
-  lazy val idHash: Int = Math.abs(MurmurHash3.stringHash(feature.getID))
-
-  /**
     * Feature ID bytes
     */
-  lazy val idBytes: Array[Byte] = feature.getID.getBytes(StandardCharsets.UTF_8)
+  def idBytes: Array[Byte]
+
+  /**
+    * Hash of the simple feature ID - can be used for sharding.
+    *
+    * Note: we could use the idBytes here, but for back compatibility of deletes we don't want to change it
+    */
+  lazy val idHash: Int = Math.abs(MurmurHash3.stringHash(feature.getID))
 }

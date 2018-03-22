@@ -75,8 +75,11 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         } else {
           new FeatureCacheGuava(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
         }
-        val consumers = KafkaDataStore.consumers(config, KafkaDataStore.topic(sft))
-        new KafkaCacheLoader.KafkaCacheLoaderImpl(sft, cache, consumers)
+        val topic = KafkaDataStore.topic(sft)
+        val consumers = KafkaDataStore.consumers(config, topic)
+        val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
+        val doInitialLoad = config.consumeFromBeginning
+        new KafkaCacheLoader.KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, doInitialLoad)
       }
     }
   })
@@ -215,6 +218,8 @@ object KafkaDataStore extends LazyLogging {
   val TopicKey = "geomesa.kafka.topic"
 
   val MetadataPath = "metadata"
+
+  val LoadIntervalProperty = SystemProperty("geomesa.kafka.load.interval", "100ms")
 
   def topic(sft: SimpleFeatureType): String = sft.getUserData.get(TopicKey).asInstanceOf[String]
 

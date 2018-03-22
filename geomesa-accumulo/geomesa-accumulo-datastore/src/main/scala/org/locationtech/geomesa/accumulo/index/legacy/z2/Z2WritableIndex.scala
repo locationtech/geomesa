@@ -18,23 +18,19 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.curve.NormalizedDimension.SemiNormalizedDimension
-import org.locationtech.geomesa.curve.{LegacyZ2SFC, NormalizedDimension}
+import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.sfcurve.zorder.Z2
-import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.util.control.NonFatal
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait Z2WritableIndex extends AccumuloFeatureIndex {
 
   import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
   import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1._
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
     val start = getIdRowOffset(sft)
-    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
+    (row, offset, length, feature) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
   }
 
   // split(1 byte), z value (8 bytes), id (n bytes)

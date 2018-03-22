@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.index.index
 
-import java.nio.charset.StandardCharsets
-
-import com.google.common.primitives.Bytes
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
-import org.locationtech.geomesa.index.conf.{QueryProperties, TableSplitter}
 import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
+import org.locationtech.geomesa.index.conf.{QueryProperties, TableSplitter}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.index.ByteArrays
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] extends GeoMesaFeatureIndex[DS, F, W]
@@ -35,7 +33,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     (wf) => {
-      val row = Bytes.concat(sharing, wf.idBytes)
+      val row = ByteArrays.concat(sharing, wf.idBytes)
       Seq(createInsert(row, wf))
     }
   }
@@ -43,16 +41,17 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     (wf) => {
-      val row = Bytes.concat(sharing, wf.idBytes)
+      val row = ByteArrays.concat(sharing, wf.idBytes)
       Seq(createDelete(row, wf))
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
+    val idFromBytes = GeoMesaFeatureIndex.idFromBytes(sft)
     if (sft.isTableSharing) {
-      (row, offset, length) => new String(row, offset + 1, length - 1, StandardCharsets.UTF_8)
+      (row, offset, length, feature) => idFromBytes(row, offset + 1, length - 1, feature)
     } else {
-      (row, offset, length) => new String(row, offset, length, StandardCharsets.UTF_8)
+      (row, offset, length, feature) => idFromBytes(row, offset, length, feature)
     }
   }
 
@@ -68,7 +67,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
 
     val result = if (sharing.isEmpty) { splits } else {
       for (split <- splits) yield {
-        Bytes.concat(sharing, split)
+        ByteArrays.concat(sharing, split)
       }
     }
 
@@ -101,8 +100,9 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C] ex
         // intersect together all groups of ID Filters, producing a set of IDs
         val identifiers = IdFilterStrategy.intersectIdFilters(primary)
         explain(s"Extracted ID filter: ${identifiers.mkString(", ")}")
+        val idToBytes = GeoMesaFeatureIndex.idToBytes(sft)
         val ranges = identifiers.toSeq.map { id =>
-          rangeExact(Bytes.concat(prefix, id.getBytes(StandardCharsets.UTF_8)))
+          rangeExact(ByteArrays.concat(prefix, idToBytes(id)))
         }
         scanPlan(sft, ds, filter, scanConfig(sft, ds, filter, ranges, filter.secondary, hints))
     }

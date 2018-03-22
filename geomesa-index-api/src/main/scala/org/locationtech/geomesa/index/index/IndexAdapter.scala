@@ -17,7 +17,7 @@ import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.utils.ByteArrays
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 

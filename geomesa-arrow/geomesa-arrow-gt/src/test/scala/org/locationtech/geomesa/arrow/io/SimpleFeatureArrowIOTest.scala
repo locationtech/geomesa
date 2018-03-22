@@ -15,7 +15,7 @@ import org.apache.arrow.vector.DirtyRootAllocator
 import org.apache.arrow.vector.complex.NullableMapVector
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{EncodingPrecision, SimpleFeatureEncoding}
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -42,7 +42,7 @@ class SimpleFeatureArrowIOTest extends Specification {
 
   "SimpleFeatureArrowIO" should {
     "merge sort arrow batches" >> {
-      val encoding = SimpleFeatureEncoding(fids = true, EncodingPrecision.Min, EncodingPrecision.Min)
+      val encoding = SimpleFeatureEncoding.min(includeFids = true)
       val dictionaries = Map.empty[String, ArrowDictionary]
       val (field, batches) = WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding)) { vector =>
         val unloader = new RecordBatchUnloader(vector)

@@ -13,15 +13,11 @@ import java.util.Date
 
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
-import org.opengis.feature.simple.SimpleFeature
 
-class CurrentDateFunction
-  extends FunctionExpressionImpl(
-    new FunctionNameImpl("currentDate", classOf[java.util.Date])
-  ) {
+class CurrentDateFunction extends FunctionExpressionImpl(CurrentDateFunction.Name) {
+  override def evaluate(o: AnyRef): AnyRef = Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant)
+}
 
-  def evaluate(feature: SimpleFeature): AnyRef = super.evaluate(feature)
-
-  override def evaluate(o: java.lang.Object): AnyRef =
-    Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant)
+object CurrentDateFunction {
+  val Name = new FunctionNameImpl("currentDate", classOf[java.util.Date])
 }

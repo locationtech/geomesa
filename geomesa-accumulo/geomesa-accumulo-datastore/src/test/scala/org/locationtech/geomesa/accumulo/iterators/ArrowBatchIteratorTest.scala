@@ -11,7 +11,8 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable}
 
 import com.vividsolutions.jts.geom.LineString
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
+import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
@@ -38,7 +39,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
   lazy val pointSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326")
   lazy val lineSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
 
-  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
+  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
   val pointFeatures = (0 until 10).map { i =>
     val name = s"name${i % 2}"

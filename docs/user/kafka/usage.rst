@@ -37,7 +37,9 @@ Parameter                            Type    Description
                                              format. See `Producer Configs <http://kafka.apache.org/documentation.html#producerconfigs>`_
 ``kafka.consumer.config``            String  Configuration options for kafka consumer, in Java properties
                                              format. See `New Consumer Configs <http://kafka.apache.org/documentation.html#newconsumerconfigs>`_
-``kafka.consumer.from-beginning``    Boolean Start reading from the beginning of the topic (vs ignore old messages)
+``kafka.consumer.from-beginning``    Boolean Start reading from the beginning of the topic (vs ignore existing messages). If enabled, features
+                                             will not be available for query until all existing messages are processed. However, feature
+                                             listeners will still be invoked as normal.
 ``kafka.consumer.count``             Integer Number of kafka consumers used per feature type. Set to 0
                                              to disable consuming (i.e. producer only)
 ``kafka.topic.partitions``           Integer Number of partitions to use in kafka topics

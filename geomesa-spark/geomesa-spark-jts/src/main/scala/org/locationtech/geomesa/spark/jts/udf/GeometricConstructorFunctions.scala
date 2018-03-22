@@ -13,12 +13,14 @@ import org.apache.spark.sql.SQLContext
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.geomesa.spark.jts.util.{WKBUtils, WKTUtils}
+import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
 
 object GeometricConstructorFunctions {
 
   @transient
   private val geomFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory
 
+  val ST_GeomFromGeoHash: (String, Int) => Geometry = nullableUDF((hash, prec) => decode(hash, prec))
   val ST_GeomFromWKT: String => Geometry = nullableUDF(text => WKTUtils.read(text))
   val ST_GeomFromWKB: Array[Byte] => Geometry = nullableUDF(array => WKBUtils.read(array))
   val ST_LineFromText: String => LineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[LineString])
@@ -38,12 +40,14 @@ object GeometricConstructorFunctions {
   val ST_MPointFromText: String => MultiPoint = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiPoint])
   val ST_MPolyFromText: String => MultiPolygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiPolygon])
   val ST_Point: (Double, Double) => Point = (x, y) => ST_MakePoint(x, y)
+  val ST_PointFromGeoHash: (String, Int) => Point = nullableUDF((hash, prec) => decode(hash, prec).getInteriorPoint)
   val ST_PointFromText: String => Point = nullableUDF(text => WKTUtils.read(text).asInstanceOf[Point])
   val ST_PointFromWKB: Array[Byte] => Point = array => ST_GeomFromWKB(array).asInstanceOf[Point]
   val ST_Polygon: LineString => Polygon = shell => ST_MakePolygon(shell)
   val ST_PolygonFromText: String => Polygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[Polygon])
 
   private[geomesa] val constructorNames = Map(
+    ST_GeomFromGeoHash -> "st_geomFromGeoHash",
     ST_GeomFromWKT -> "st_geomFromWKT",
     ST_GeomFromWKB -> "st_geomFromWKB",
     ST_LineFromText -> "st_lineFromText",
@@ -57,6 +61,7 @@ object GeometricConstructorFunctions {
     ST_MPointFromText -> "st_mPointFromText",
     ST_MPolyFromText -> "st_mPolyFromText",
     ST_Point -> "st_point",
+    ST_PointFromGeoHash -> "st_pointFromGeoHash",
     ST_PointFromText -> "st_pointFromText",
     ST_PointFromWKB -> "st_pointFromWKB",
     ST_Polygon -> "st_polygon",
@@ -64,6 +69,8 @@ object GeometricConstructorFunctions {
   )
 
   private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
+    sqlContext.udf.register("st_box2DFromGeoHash", ST_GeomFromGeoHash)
+    sqlContext.udf.register(constructorNames(ST_GeomFromGeoHash), ST_GeomFromGeoHash)
     sqlContext.udf.register("st_geomFromText", ST_GeomFromWKT)
     sqlContext.udf.register("st_geometryFromText", ST_GeomFromWKT)
     sqlContext.udf.register(constructorNames(ST_GeomFromWKT), ST_GeomFromWKT)
@@ -79,6 +86,7 @@ object GeometricConstructorFunctions {
     sqlContext.udf.register(constructorNames(ST_MakePointM), ST_MakePointM)
     sqlContext.udf.register(constructorNames(ST_MakePolygon), ST_MakePolygon)
     sqlContext.udf.register(constructorNames(ST_Point), ST_Point)
+    sqlContext.udf.register(constructorNames(ST_PointFromGeoHash), ST_PointFromGeoHash)
     sqlContext.udf.register(constructorNames(ST_PointFromText), ST_PointFromText)
     sqlContext.udf.register(constructorNames(ST_PointFromWKB), ST_PointFromWKB)
     sqlContext.udf.register(constructorNames(ST_Polygon), ST_Polygon)

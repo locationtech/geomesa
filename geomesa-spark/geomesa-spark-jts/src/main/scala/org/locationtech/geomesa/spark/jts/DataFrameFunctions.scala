@@ -53,6 +53,11 @@ object DataFrameFunctions extends SpatialEncoders {
     /** create a geometry collection literal, encoded as a GeometryCollectionUDT. */
     def geomCollLit(g: GeometryCollection): TypedColumn[Any, GeometryCollection] = udtlit(g, GeometryCollectionUDT)
 
+    def st_geomFromGeoHash(geohash: Column, precision: Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_GeomFromGeoHash, constructorNames, geohash, precision)
+    def st_geomFromGeoHash(geohash: Column, precision: Int): TypedColumn[Any, Geometry] =
+      st_geomFromGeoHash(geohash, lit(precision))
+
     def st_geomFromWKT(wkt: Column): TypedColumn[Any, Geometry] =
       udfToColumn(ST_GeomFromWKT, constructorNames, wkt)
     def st_geomFromWKT(wkt: String): TypedColumn[Any, Geometry] =
@@ -117,6 +122,11 @@ object DataFrameFunctions extends SpatialEncoders {
       udfToColumn(ST_Point, constructorNames, x, y)
     def st_point(x: Double, y: Double): TypedColumn[Any, Point] =
       st_point(lit(x), lit(y))
+
+    def st_pointFromGeoHash(geohash: Column, precision: Column): TypedColumn[Any, Point] =
+      udfToColumn(ST_PointFromGeoHash, constructorNames, geohash, precision)
+    def st_pointFromGeoHash(geohash: Column, precision: Int): TypedColumn[Any, Point] =
+      st_pointFromGeoHash(geohash, lit(precision))
 
     def st_pointFromText(wkt: Column): TypedColumn[Any, Point] =
       udfToColumn(ST_PointFromText, constructorNames, wkt)
@@ -242,6 +252,27 @@ object DataFrameFunctions extends SpatialEncoders {
 
     def st_asText(geom: Column): TypedColumn[Any, String] =
       udfToColumn(ST_AsText, outputNames, geom)
+
+    def st_geoHash(geom: Column, precision: Column): TypedColumn[Any, String] =
+      udfToColumn(ST_GeoHash, outputNames, geom, precision)
+    def st_geoHash(geom: Column, precision: Int): TypedColumn[Any, String] =
+      st_geoHash(geom, lit(precision))
+  }
+
+  /**
+    * Group of DataFrame DSL functions associated with processing
+    * and manipulating JTS Types
+    */
+  trait SpatialProcessors {
+    import org.locationtech.geomesa.spark.jts.udf.GeometricProcessingFunctions._
+
+    def st_antimeridianSafeGeom(geom: Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_antimeridianSafeGeom, processingNames, geom)
+
+    def st_bufferPoint(geom: Column, buffer: Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_BufferPoint, processingNames, geom, buffer)
+    def st_bufferPoint(geom: Column, buffer: Double): TypedColumn[Any, Geometry] =
+      st_bufferPoint(geom, lit(buffer))
   }
 
   /**
@@ -319,5 +350,6 @@ object DataFrameFunctions extends SpatialEncoders {
     with SpatialConverters
     with SpatialAccessors
     with SpatialOutputs
+    with SpatialProcessors
     with SpatialRelations
 }

@@ -31,7 +31,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -56,11 +56,11 @@ trait AttributeWritableIndex extends AccumuloFeatureIndex
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
     // drop the encoded value and the date field (12 bytes) if it's present - the rest of the row is the ID
     val from = if (sft.isTableSharing) 3 else 2  // exclude feature byte and index bytes
     val prefix = if (sft.getDtgField.isDefined) 13 else 1
-    (row, offset, length) => {
+    (row, offset, length, feature) => {
       val start = row.indexOf(AttributeWritableIndex.NullByteArray.head, from + offset) + prefix
       new String(row, start, length + offset - start, StandardCharsets.UTF_8)
     }

@@ -69,7 +69,7 @@ class DeltaWriter(val sft: SimpleFeatureType,
     if (reverse) { o.reverse } else { o }
   }
 
-  private val idWriter = ArrowAttributeWriter.id(Some(vector), encoding)
+  private val idWriter = ArrowAttributeWriter.id(sft, Some(vector), encoding)
   private val writers = sft.getAttributeDescriptors.map { descriptor =>
     val name = descriptor.getLocalName
     val isDictionary = dictionaryFields.contains(name)
@@ -161,10 +161,10 @@ class DeltaWriter(val sft: SimpleFeatureType,
     }
 
     // set feature ids in the vector
-    if (encoding.fids) {
+    if (encoding.fids.isDefined) {
       var i = 0
       while (i < count) {
-        idWriter.apply(i, features(i).getID)
+        idWriter.apply(i, features(i))
         i += 1
       }
       idWriter.setValueCount(count)

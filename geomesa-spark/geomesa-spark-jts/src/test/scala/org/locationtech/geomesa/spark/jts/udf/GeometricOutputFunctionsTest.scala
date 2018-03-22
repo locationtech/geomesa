@@ -172,6 +172,27 @@ class GeometricOutputFunctionsTest extends Specification with TestEnvironment {
       dfBlank.select(st_asText(st_geomFromWKT(point))).first mustEqual expected
     }
 
+    "st_geoHash" >> {
+      sc.sql("select st_geoHash(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_geoHash(lit(null), lit(null))).first must beNull
+
+
+      val point = "POINT (-76.5 38.5)"
+      val precision = 25
+      val r = sc.sql(
+        s"""
+          |select st_geoHash(st_geomFromWKT('$point'), $precision)
+        """.stripMargin
+      )
+
+      val expected = "dqce5"
+
+
+      r.collect().head.getAs[String](0) mustEqual expected
+      dfBlank.select(st_geoHash(st_geomFromWKT(lit(point)), lit(precision))).first mustEqual expected
+
+    }
+
     //after
     step {
       spark.stop()

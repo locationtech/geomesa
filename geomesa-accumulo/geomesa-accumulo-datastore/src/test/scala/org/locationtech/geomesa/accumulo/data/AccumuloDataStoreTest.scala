@@ -780,13 +780,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> table)
       val dsWithNs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326")
-      if (AccumuloVersion.accumuloVersion == AccumuloVersion.V15) {
-        dsWithNs.createSchema(sft) must throwAn[IllegalArgumentException]
-      } else {
-        dsWithNs.createSchema(sft)
-        val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(dsWithNs.connector)
-        AccumuloVersion.nameSpaceExists(nsOps, nsOps.getClass, "test") must beTrue
-      }
+      dsWithNs.createSchema(sft)
+      dsWithNs.connector.namespaceOperations().exists("test") must beTrue
     }
 
     "only create catalog table when necessary" >> {

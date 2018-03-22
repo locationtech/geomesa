@@ -34,7 +34,7 @@ trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   protected def createSchema(ds: DS, sft: SimpleFeatureType): Unit = {
     lazy val sftString = SimpleFeatureTypes.encodeType(sft)
-    Command.user.info(s"Creating '${params.featureName}' with spec '$sftString'. Just a few moments...")
+    Command.user.info(s"Creating '${sft.getTypeName}' with spec '$sftString'. Just a few moments...")
 
     if (try { ds.getSchema(sft.getTypeName) == null } catch { case _: IOException => true }) {
       ds.createSchema(sft)

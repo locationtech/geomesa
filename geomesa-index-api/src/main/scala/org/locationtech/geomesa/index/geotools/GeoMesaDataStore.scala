@@ -10,21 +10,22 @@ package org.locationtech.geomesa.index.geotools
 
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
+import java.util.function.LongUnaryOperator
 
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.geotools.data._
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.FlushableFeatureWriter
 import org.locationtech.geomesa.index.index.AttributeIndex
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.index.utils.ExplainLogging
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.locationtech.geomesa.utils.io.CloseWithLogging
-// noinspection ScalaDeprecation
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
-import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties
+import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -41,9 +42,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
   this: DS =>
 
-  private val projectVersionCheck = new AtomicLong(0)
-
   lazy val queryPlanner: QueryPlanner[DS, F, W] = createQueryPlanner()
+
+  private val suppressVersionCheck = new ThreadLocal[Boolean]() { override def initialValue(): Boolean = false }
 
   // abstract methods to be implemented by subclasses
 
@@ -113,6 +114,13 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     */
   protected def getIteratorVersion: Set[String] = Set.empty
 
+  /**
+    * Gets the key used to track iterator version checks. If `getIteratorVersion` is implemented,
+    * should be overridden with connection parameters to uniquely identify an environment
+    *
+    * @return
+    */
+  protected def getVersionCheckKey: AnyRef = catalog
 
   // set the enabled indices
   @throws(classOf[IllegalArgumentException])
@@ -161,6 +169,15 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
   }
 
   // methods from org.geotools.data.DataStore
+
+  override def createSchema(sft: SimpleFeatureType): Unit = {
+    // disable the version check for the call to getSchema part-way through createSchema,
+    // as the tables haven't actually been created at that point
+    suppressVersionCheck.set(true)
+    try { super.createSchema(sft) } finally {
+      suppressVersionCheck.remove()
+    }
+  }
 
   /**
    * @see org.geotools.data.DataStore#getSchema(java.lang.String)
@@ -314,16 +331,53 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
   /**
     * Checks that the distributed runtime jar matches the project version of this client. We cache
-    * successful checks for 10 minutes.
+    * successful checks for 24 hours.
     */
   private def checkProjectVersion(): Unit = {
-    if (projectVersionCheck.get() > System.currentTimeMillis()) {
-      projectVersionCheck.set(System.currentTimeMillis() + 3600000) // 1 hour
+    import GeoMesaDataStore.{projectVersionChecks, updateVersionCheck}
+
+    if (!suppressVersionCheck.get() &&
+        projectVersionChecks.get(getVersionCheckKey).getAndUpdate(updateVersionCheck) < System.currentTimeMillis()) {
       val (clientVersion, iteratorVersions) = getVersion
-      if (iteratorVersions.exists(_ != clientVersion)) {
-        val versionMsg = "Configured server-side iterators do not match client version - " +
-            s"client version: $clientVersion, server versions: ${iteratorVersions.mkString(", ")}"
-        logger.warn(versionMsg)
+
+      def message = "Configured server-side iterators do not match client version - " +
+          s"client version: $clientVersion, server versions: ${iteratorVersions.mkString(", ")}"
+
+      val clientMajorVersion = SemanticVersion(clientVersion).major
+      var mismatch = false
+
+      iteratorVersions.foreach { version =>
+        // use lenient parsing to account for versions like 1.3.5.1
+        val serverMajorVersion = SemanticVersion(version, lenient = true).major
+        if (serverMajorVersion != clientMajorVersion &&
+            SystemProperty("geomesa.distributed.version.check", "true").toBoolean.get) {
+          // if there's a major version mismatch, throw an exception
+          throw new RuntimeException(message)
+        } else if (version != clientVersion) {
+          // if it's a minor/patch/pre-release version mismatch, it should be back-compatible
+          // (although new functionality might not work), so just log it
+          mismatch = true
+        }
+      }
+      if (mismatch) {
+        logger.warn(message)
+      }
+    }
+  }
+}
+
+object GeoMesaDataStore {
+
+  private val projectVersionChecks = Caffeine.newBuilder().build(
+    new CacheLoader[AnyRef, AtomicLong] {
+      override def load(key: AnyRef): AtomicLong = new AtomicLong(0)
+    }
+  )
+
+  private val updateVersionCheck = new LongUnaryOperator {
+    override def applyAsLong(operand: Long): Long = {
+      if (operand >= System.currentTimeMillis()) { operand } else {
+        System.currentTimeMillis() + 24 * 3600000 // 24 hours
       }
     }
   }

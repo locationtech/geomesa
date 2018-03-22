@@ -242,6 +242,8 @@ following query hints:
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_INCLUDE_FID        | Boolean (optional) |                      |
 +-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_PROXY_FID          | Boolean (optional) |                      |
++-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_SORT_FIELD         | String (optional)  |                      |
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_SORT_REVERSE       | Boolean (optional) |                      |
@@ -277,6 +279,12 @@ ARROW_INCLUDE_FID
 ^^^^^^^^^^^^^^^^^
 
 This hint controls whether to include the feature ID as an Arrow vector or not. The default is to include it.
+
+ARROW_PROXY_FID
+^^^^^^^^^^^^^^^
+
+This hint controls whether to return the full feature ID, or a 4-byte proxy ID. Proxy IDs can be used
+for callbacks by using the ``proxyID()`` CQL filter function.
 
 ARROW_SORT_FIELD
 ^^^^^^^^^^^^^^^^

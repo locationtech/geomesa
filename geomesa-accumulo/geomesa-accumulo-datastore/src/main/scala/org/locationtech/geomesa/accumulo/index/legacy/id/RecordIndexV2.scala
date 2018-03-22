@@ -20,8 +20,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 case object RecordIndexV2 extends AccumuloFeatureIndex with AccumuloIndexAdapter
     with IdIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] {
 
-  def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id
-
   override val name: String = "records"
 
   override val version: Int = 2
