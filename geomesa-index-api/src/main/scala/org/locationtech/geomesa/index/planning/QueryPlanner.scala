@@ -182,8 +182,7 @@ object QueryPlanner extends LazyLogging {
   def setQueryTransforms(query: Query, sft: SimpleFeatureType): Unit = {
     val properties = query.getPropertyNames
     query.setProperties(Query.ALL_PROPERTIES)
-    if (properties != null && properties.nonEmpty &&
-        properties.toSeq != sft.getAttributeDescriptors.map(_.getLocalName)) {
+    if (properties != null && properties.toSeq != sft.getAttributeDescriptors.map(_.getLocalName)) {
       val (transforms, derivedSchema) = buildTransformSFT(sft, properties)
       query.getHints.put(QueryHints.Internal.TRANSFORMS, transforms)
       query.getHints.put(QueryHints.Internal.TRANSFORM_SCHEMA, derivedSchema)
@@ -191,24 +190,7 @@ object QueryPlanner extends LazyLogging {
   }
 
   def buildTransformSFT(sft: SimpleFeatureType, properties: Seq[String]): (String, SimpleFeatureType) = {
-    val (transformProps, regularProps) = properties.partition(_.contains('='))
-    val convertedRegularProps = regularProps.map { p => s"$p=$p" }
-    val allTransforms = convertedRegularProps ++ transformProps
-    // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
-    val geomTransform = {
-      val allGeoms = sft.getAttributeDescriptors.collect {
-        case d if classOf[Geometry].isAssignableFrom(d.getType.getBinding) => d.getLocalName
-      }
-      val geomMatches = for (t <- allTransforms.iterator; g <- allGeoms) yield {
-        t.matches(s"$g\\s*=.*")
-      }
-      if (geomMatches.contains(true)) {
-        Nil
-      } else {
-        Option(sft.getGeometryDescriptor).map(_.getLocalName).map(geom => s"$geom=$geom").toSeq
-      }
-    }
-    val transforms = (allTransforms ++ geomTransform).mkString(";")
+    val transforms = properties.map(p => if (p.contains('=')) { p } else { s"$p=$p" }).mkString(";")
     val transformDefs = TransformProcess.toDefinition(transforms)
     val derivedSchema = computeSchema(sft, transformDefs.asScala)
     (transforms, derivedSchema)
@@ -288,7 +270,7 @@ object QueryPlanner extends LazyLogging {
       sftBuilder.setDefaultGeometry(defaultGeom)
     }
     val schema = sftBuilder.buildFeatureType()
-    schema.getUserData.putAll(origSFT.getUserData)
+    schema.getUserData.putAll(origSFT.getUserData) // TODO reconsider default field user data?
     schema
   }
 }

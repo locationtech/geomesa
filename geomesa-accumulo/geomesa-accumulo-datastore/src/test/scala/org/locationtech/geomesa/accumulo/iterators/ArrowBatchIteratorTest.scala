@@ -11,7 +11,8 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable}
 
 import com.vividsolutions.jts.geom.LineString
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
+import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
@@ -38,7 +39,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
   lazy val pointSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326")
   lazy val lineSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
 
-  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
+  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
   val pointFeatures = (0 until 10).map { i =>
     val name = s"name${i % 2}"
@@ -321,13 +322,13 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
         }
       }
     }
-    "return sorted, dictionary encoded projections for non-indexed attributes" in {
+    "return sorted, dictionary encoded projections for non-indexed attributes and nulls" in {
       foreach(sfts) { case (sft, features) =>
         foreach(filters) { filter =>
-          val transform = Array("team", "dtg", "geom")
+          val transform = Array("team", "weight", "dtg", "geom")
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
-          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team")
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team,weight")
           query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
           query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -336,7 +337,8 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
           def in() = new ByteArrayInputStream(out.toByteArray)
           WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
             compare(reader.features(), features, transform.toSeq)
-            reader.dictionaries.keySet mustEqual Set("team")
+            reader.dictionaries.keySet mustEqual Set("team", "weight")
+            reader.dictionaries.apply("weight").iterator.toSeq must contain(null: AnyRef)
           }
         }
       }

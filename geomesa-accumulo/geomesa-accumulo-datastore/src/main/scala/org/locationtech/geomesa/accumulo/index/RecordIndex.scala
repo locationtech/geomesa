@@ -13,13 +13,18 @@ import org.apache.accumulo.core.data.{Mutation, Range}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.index.IdIndex
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
 case object RecordIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
     with IdIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] {
 
-  def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id
+  def getRowKey(sft: SimpleFeatureType): (Array[Byte], String) => Array[Byte] = {
+    val idToBytes = GeoMesaFeatureIndex.idToBytes(sft)
+    (prefix, id) => ByteArrays.concat(prefix, idToBytes(id))
+  }
 
   override val version: Int = 3
 

@@ -24,6 +24,7 @@ trait TestEnvironment {
   }
 
   lazy val sc: SQLContext = spark.sqlContext
+    .withJTS // <-- this should be a noop given the above, but is here to test that code path
 
   /**
    * Constructor for creating a DataFrame with a single row and no columns.

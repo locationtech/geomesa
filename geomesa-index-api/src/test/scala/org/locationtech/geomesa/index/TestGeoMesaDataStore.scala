@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index
 
+import java.nio.charset.StandardCharsets
 import java.util.Comparator
 
 import org.geotools.data.{Query, Transaction}
@@ -77,7 +78,9 @@ object TestGeoMesaDataStore {
     }
   }
 
-  case class TestWrappedFeature(feature: SimpleFeature) extends WrappedFeature
+  case class TestWrappedFeature(feature: SimpleFeature) extends WrappedFeature {
+    override lazy val idBytes: Array[Byte] = feature.getID.getBytes(StandardCharsets.UTF_8)
+  }
 
   case class TestWrite(row: Array[Byte], feature: SimpleFeature, delete: Boolean = false)
 

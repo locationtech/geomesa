@@ -13,7 +13,7 @@ import org.apache.spark.sql.functions._
 import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
-import org.locationtech.geomesa.spark.jts.util.WKTUtils
+import org.locationtech.geomesa.spark.jts.util.{WKBUtils, WKTUtils}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -27,6 +27,82 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
     step {
       // Trigger initialization of spark session
       val _ = spark
+    }
+
+    "st_box2DFromGeoHash" >> {
+      sc.sql("select st_box2DFromGeoHash(null, null)").collect.head(0) must beNull
+
+      val r = sc.sql(
+        s"""
+           |select st_box2DFromGeoHash('ezs42', 25)
+          """.stripMargin
+      )
+
+      val boxCoords = r.collect().head.getAs[Geometry](0).getCoordinates
+      val ll = boxCoords(0)
+      val ur = boxCoords(2)
+      boxCoords.length mustEqual 5
+      ll.x must beCloseTo(-5.625, .022) // lon
+      ll.y must beCloseTo(42.583, .022) // lat
+      ur.x must beCloseTo(-5.581, .022) // lon
+      ur.y must beCloseTo(42.627, .022) // lat
+    }
+
+    "st_geomFromGeoHash" >> {
+      sc.sql("select st_geomFromGeoHash(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_geomFromGeoHash(lit(null), lit(null))).first must beNull
+
+      val geohash = "ezs42"
+      val precision = 25
+      val r = sc.sql(
+        s"""
+           |select st_geomFromGeoHash('$geohash', $precision)
+          """.stripMargin
+      )
+
+      val (minLon, minLat, maxLon, maxLat) = (-5.625, 42.583, -5.581, 42.627)
+      val delta = .022
+
+      val dfBoxCoords = dfBlank.select(st_geomFromGeoHash(lit(geohash), lit(precision))).first.getCoordinates
+      val dfLowerLeft = dfBoxCoords(0)
+      val dfUpperRight = dfBoxCoords(2)
+      dfLowerLeft.x must beCloseTo(minLon, delta)
+      dfLowerLeft.y must beCloseTo(minLat, delta)
+      dfUpperRight .x must beCloseTo(maxLon, delta)
+      dfUpperRight .y must beCloseTo(maxLat, delta)
+
+      val geomboxCoords = r.collect().head.getAs[Geometry](0).getCoordinates
+      val ll = geomboxCoords(0)
+      val ur = geomboxCoords(2)
+      geomboxCoords.length mustEqual 5
+      ll.x must beCloseTo(minLon, delta)
+      ll.y must beCloseTo(minLat, delta)
+      ur.x must beCloseTo(maxLon, delta)
+      ur.y must beCloseTo(maxLat, delta)
+    }
+
+    "st_pointFromGeoHash" >> {
+      sc.sql("select st_pointFromGeoHash(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_pointFromGeoHash(lit(null), lit(null))).first must beNull
+
+      val geohash = "ezs42"
+      val precision = 25
+      val r = sc.sql(
+        s"""
+           |select st_pointFromGeoHash('$geohash', $precision)
+        """.stripMargin
+      )
+
+      val (x, y) = (-5.603, 42.605)
+      val delta = .022
+
+      val dfPoint = dfBlank.select(st_pointFromGeoHash(lit(geohash), lit(precision))).first
+      dfPoint.getX must beCloseTo(x, delta)
+      dfPoint.getY must beCloseTo(y, delta)
+
+      val point = r.collect().head.getAs[Point](0)
+      point.getX must beCloseTo(x, delta)
+      point.getY must beCloseTo(y, delta)
     }
 
     "st_geomFromWKT" >> {
@@ -79,7 +155,8 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val expected = WKTUtils.read("POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))")
       r.collect().head.getAs[Geometry](0) mustEqual expected
 
-      dfBlank.select(st_geomFromWKB(st_byteArray(new String(geomArr)))).first mustEqual expected
+      dfBlank.select(st_geomFromWKB(st_byteArray(lit(new String(geomArr))))).first mustEqual expected
+      dfBlank.select(st_geomFromWKB(geomArr)).first mustEqual expected
     }
 
     "st_lineFromText" >> {
@@ -129,6 +206,11 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
         st_castToPoint(st_geomFromWKT("POINT(0 0)")),
         st_castToPoint(st_geomFromWKT("POINT(2 2)"))
       )).first mustEqual expected
+
+      val p1 = GeometricConstructorFunctions.ST_MakePoint(0, 0)
+      val p2 = GeometricConstructorFunctions.ST_MakePoint(2, 2)
+
+      dfBlank.select(st_makeBox2D(p1, p2)).first mustEqual expected
     }
 
     "st_makePolygon" >> {
@@ -144,8 +226,10 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       )
       val expected = WKTUtils.read("POLYGON((0 0, 2 2, 5 4, 7 2, 5 2, 3 0, 0 0))")
       r.collect().head.getAs[Polygon](0) mustEqual expected
-
       dfBlank.select(st_makePolygon(st_castToLineString(st_geomFromWKT(line)))).first mustEqual expected
+
+      val lineInst = WKTUtils.read(line).asInstanceOf[LineString]
+      dfBlank.select(st_makePolygon(lineInst)).first mustEqual expected
     }
 
     "st_makePoint" >> {
@@ -174,6 +258,20 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val expected = WKTUtils.read("POINT(0 0 1)")
       r.collect().head.getAs[Point](0) mustEqual expected
       dfBlank.select(st_makePointM(0, 0, 1)).first mustEqual expected
+    }
+
+    "st_makeLine" >> {
+      sc.sql("select st_makeLine(null)").collect.head(0) must beNull
+      dfBlank.select(st_makeLine(lit(null))).first must beNull
+
+      val p1 = GeometricConstructorFunctions.ST_MakePoint(0, 0)
+      val p2 = GeometricConstructorFunctions.ST_MakePoint(2, 2)
+      val p3 = GeometricConstructorFunctions.ST_MakePoint(5, 2)
+      val expected = WKTUtils.read("LINESTRING(0 0, 2 2, 5 2)")
+
+      dfBlank.select(st_makeLine(Seq(p1, p2, p3))).first mustEqual expected
+
+      dfBlank.select(st_makeLine(array(pointLit(p1), pointLit(p2), pointLit(p3)))).first mustEqual expected
     }
 
     "st_mLineFromText" >> {
@@ -265,7 +363,7 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       )
       val expected = WKTUtils.read("POINT(0 0)")
       r.collect().head.getAs[Point](0) mustEqual expected
-      dfBlank.select(st_pointFromWKB(st_byteArray(new String(pointArr)))).first mustEqual expected
+      dfBlank.select(st_pointFromWKB(pointArr)).first mustEqual expected
     }
 
     "st_polygon" >> {
@@ -282,6 +380,9 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val expected = WKTUtils.read("POLYGON((0 0, 2 2, 5 2, 3 0, 0 0))")
       r.collect().head.getAs[Polygon](0) mustEqual expected
       dfBlank.select(st_polygon(st_castToLineString(st_geomFromWKT(line)))).first mustEqual expected
+
+      val lineInst = WKTUtils.read(line).asInstanceOf[LineString]
+      dfBlank.select(st_makePolygon(lineInst)).first mustEqual expected
     }
 
     "st_polygonFromText" >> {
@@ -298,6 +399,29 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       val expected =  WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, 2.0 2.0, 0.0 2.0, 0.0 0.0))")
       r.collect().head.getAs[Polygon](0) mustEqual expected
       dfBlank.select(st_polygonFromText(poly)).first mustEqual expected
+    }
+
+    "geometry literals" >> {
+      val fact = new GeometryFactory()
+      val c1 = new Coordinate(1, 2)
+      val c2 = new Coordinate(3, 4)
+      val c3 = new Coordinate(5, 6)
+      val point = fact.createPoint(c1)
+      val line = fact.createLineString(Array(c1, c2))
+      val poly = fact.createPolygon(Array(c1, c2, c3, c1))
+      val mpoint = fact.createMultiPoint(Array(point, point, point))
+      val mline = fact.createMultiLineString(Array(line, line, line))
+      val mpoly = fact.createMultiPolygon(Array(poly, poly, poly))
+      val coll = fact.createGeometryCollection(Array(point, line, poly, mpoint, mline, mpoly))
+
+      dfBlank.select(pointLit(point)).first mustEqual point
+      dfBlank.select(lineLit(line)).first mustEqual line
+      dfBlank.select(polygonLit(poly)).first mustEqual poly
+      dfBlank.select(mPointLit(mpoint)).first mustEqual mpoint
+      dfBlank.select(mLineLit(mline)).first mustEqual mline
+      dfBlank.select(mPolygonLit(mpoly)).first mustEqual mpoly
+      dfBlank.select(geomCollLit(coll)).first mustEqual coll
+      dfBlank.select(geomLit(coll)).first mustEqual coll
     }
 
     // after

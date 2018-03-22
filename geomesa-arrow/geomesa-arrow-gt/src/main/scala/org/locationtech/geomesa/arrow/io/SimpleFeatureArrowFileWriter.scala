@@ -104,7 +104,7 @@ object SimpleFeatureArrowFileWriter {
   def apply(sft: SimpleFeatureType,
             os: OutputStream,
             dictionaries: Map[String, ArrowDictionary] = Map.empty,
-            encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.min(false),
+            encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
             sort: Option[(String, Boolean)] = None)
            (implicit allocator: BufferAllocator): SimpleFeatureArrowFileWriter = {
     apply(SimpleFeatureVector.create(sft, dictionaries, encoding), os, sort)

@@ -14,6 +14,7 @@ import org.apache.spark.sql.SQLContext
 import org.geotools.geojson.geom.GeometryJSON
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.geomesa.spark.jts.util.WKBUtils
+import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
 
 object GeometricOutputFunctions {
   // use ThreadLocal to ensure thread safety
@@ -24,12 +25,14 @@ object GeometricOutputFunctions {
   val ST_AsGeoJSON: Geometry => String = nullableUDF(geom => geomJSON.get().toString(geom))
   val ST_AsLatLonText: Point => String = nullableUDF(point => toLatLonString(point))
   val ST_AsText: Geometry => String = nullableUDF(geom => geom.toText)
+  val ST_GeoHash: (Geometry, Int) => String = nullableUDF((geom, prec) => encode(geom, prec))
 
   private[geomesa] val outputNames = Map(
     ST_AsBinary -> "st_asBinary",
     ST_AsGeoJSON -> "st_asGeoJSON",
     ST_AsLatLonText -> "st_asLatLonText",
-    ST_AsText -> "st_asText"
+    ST_AsText -> "st_asText",
+    ST_GeoHash -> "st_geoHash"
   )
 
   private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
@@ -37,6 +40,7 @@ object GeometricOutputFunctions {
     sqlContext.udf.register(outputNames(ST_AsGeoJSON), ST_AsGeoJSON)
     sqlContext.udf.register(outputNames(ST_AsLatLonText), ST_AsLatLonText)
     sqlContext.udf.register(outputNames(ST_AsText), ST_AsText)
+    sqlContext.udf.register(outputNames(ST_GeoHash), ST_GeoHash)
   }
 
   private def toLatLonString(point: Point): String = {

@@ -97,7 +97,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
       }
       (_) => {
         val row = source.getTopKey.getRow
-        sf.setId(getId(row.getBytes, 0, row.getLength))
+        sf.setId(getId(row.getBytes, 0, row.getLength, sf))
         BinaryOutputEncoder.decode(source.getTopValue.get, callback)
         sf
       }
@@ -113,7 +113,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
       if (dedupe) {
         (_) => {
           val row = source.getTopKey.getRow
-          sf.setId(getId(row.getBytes, 0, row.getLength))
+          sf.setId(getId(row.getBytes, 0, row.getLength, sf))
           BinaryOutputEncoder.decode(source.getTopValue.get, callback)
           sf
         }
@@ -126,7 +126,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
     } else if (dedupe) {
       (_) => {
         val row = source.getTopKey.getRow
-        sf.setId(getId(row.getBytes, 0, row.getLength))
+        sf.setId(getId(row.getBytes, 0, row.getLength, sf))
         sf
       }
     } else {
@@ -279,7 +279,7 @@ object BinAggregatingIterator extends LazyLogging {
       (e: Entry[Key, Value]) => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         val row = e.getKey.getRow
-        deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
+        deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength, deserialized))
         val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
         new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, deserialized.getID, values)
       }

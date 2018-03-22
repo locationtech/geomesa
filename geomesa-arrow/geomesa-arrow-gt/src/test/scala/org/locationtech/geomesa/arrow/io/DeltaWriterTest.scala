@@ -47,7 +47,7 @@ class DeltaWriterTest extends Specification {
   "DeltaWriter" should {
     "dynamically encode dictionary values without sorting" >> {
       val dictionaries = Seq("name", "age")
-      val encoding = SimpleFeatureEncoding.min(true)
+      val encoding = SimpleFeatureEncoding.min(includeFids = true)
       val result = ArrayBuffer.empty[Array[Byte]]
 
       WithClose(new DeltaWriter(sft, dictionaries, encoding, None, 10)) { writer =>
@@ -76,7 +76,7 @@ class DeltaWriterTest extends Specification {
     }
     "dynamically encode dictionary values with sorting" >> {
       val dictionaries = Seq("name", "age")
-      val encoding = SimpleFeatureEncoding.min(true)
+      val encoding = SimpleFeatureEncoding.min(includeFids = true)
       val sort = Some(("dtg", false))
       val result = ArrayBuffer.empty[Array[Byte]]
 
@@ -105,7 +105,7 @@ class DeltaWriterTest extends Specification {
       }
     }
     "work with line strings" >> {
-      val encoding = SimpleFeatureEncoding.min(true)
+      val encoding = SimpleFeatureEncoding.min(includeFids = true)
       val result = ArrayBuffer.empty[Array[Byte]]
 
       WithClose(new DeltaWriter(lineSft, Seq.empty, encoding, None, 10)) { writer =>
@@ -124,7 +124,7 @@ class DeltaWriterTest extends Specification {
       }
     }
     "work with sorted line strings" >> {
-      val encoding = SimpleFeatureEncoding.min(true)
+      val encoding = SimpleFeatureEncoding.min(includeFids = true)
       val result = ArrayBuffer.empty[Array[Byte]]
       val sort = Some(("dtg", false))
 

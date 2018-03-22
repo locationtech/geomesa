@@ -17,8 +17,9 @@ import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.IndexKeySpace
-import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -122,7 +123,7 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues] {
 
     val Z3IndexValues(z3, _, xy, _, timesByBin) = values
 
-    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+    val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
 
     def toZRanges(t: Seq[(Long, Long)]): Seq[IndexRange] = z3.ranges(xy, t, 64, rangeTarget)
 

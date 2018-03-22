@@ -13,6 +13,7 @@ import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TableOperations
+import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
@@ -121,7 +122,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       try {
         ProjectVersionIterator.scanProjectVersion(scanner)
       } catch {
-        case NonFatal(e) => Set("unavailable")
+        case NonFatal(_) => Set("unavailable")
       } finally {
         scanner.close()
       }
@@ -130,8 +131,33 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     getTypeNames.toSet.flatMap(getAllTableNames).filter(ops.exists).flatMap(getVersions)
   }
 
+  override protected val getVersionCheckKey: AnyRef =
+    (connector.getInstance.getZooKeepers, connector.getInstance.getInstanceName, catalog)
+
   @throws(classOf[IllegalArgumentException])
   override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.index.conf.SchemaProperties.ValidateDistributedClasspath
+    // validate that the accumulo runtime is available
+    val namespace = catalog.indexOf('.') match {
+      case -1 => ""
+      case i  => catalog.substring(0, i)
+    }
+    AccumuloVersion.ensureNamespaceExists(connector, namespace)
+    val canLoad = connector.namespaceOperations().testClassLoad(namespace,
+          classOf[ProjectVersionIterator].getName, classOf[SortedKeyValueIterator[_, _]].getName)
+
+    if (!canLoad) {
+      val msg = s"Could not load GeoMesa distributed code from the Accumulo classpath for table '$catalog'"
+      logger.error(msg)
+      if (ValidateDistributedClasspath.toBoolean.contains(true)) {
+        val nsMsg = if (namespace.isEmpty) { "" } else { s" for the namespace '$namespace'" }
+        throw new RuntimeException(s"$msg. You may override this check by setting the system property " +
+            s"'${ValidateDistributedClasspath.property}=false'. Otherwise, please verify that the appropriate " +
+            s"JARs are installed$nsMsg - see http://www.geomesa.org/documentation/user/accumulo/install.html" +
+            "#installing-the-accumulo-distributed-runtime-library")
+      }
+    }
+
     // check for old enabled indices and re-map them
     SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.drop(1).find(sft.getUserData.containsKey).foreach { key =>
       sft.getUserData.put(SimpleFeatureTypes.Configs.ENABLED_INDICES, sft.getUserData.remove(key))

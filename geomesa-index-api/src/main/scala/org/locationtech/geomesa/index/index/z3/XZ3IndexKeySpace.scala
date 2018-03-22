@@ -16,8 +16,9 @@ import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.IndexKeySpace
-import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -129,7 +130,7 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues] {
 
     val XZ3IndexValues(sfc, _, xy, _, timesByBin) = indexValues
 
-    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+    val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
 
     def toZRanges(t: (Double, Double)): Seq[IndexRange] =
       sfc.ranges(xy.map { case (xmin, ymin, xmax, ymax) => (xmin, ymin, t._1, xmax, ymax, t._2) }, rangeTarget)

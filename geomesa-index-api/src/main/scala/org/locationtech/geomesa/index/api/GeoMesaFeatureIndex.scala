@@ -9,14 +9,15 @@
 package org.locationtech.geomesa.index.api
 
 import java.nio.charset.StandardCharsets
-import java.util.Locale
+import java.util.{Locale, UUID}
 
 import org.apache.commons.codec.binary.Hex
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.index.ByteArrays
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 /**
@@ -108,12 +109,15 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: Wrapp
 
   /**
     *
-    * Retrieve an ID from a row. All indices are assumed to encode the feature ID into the row key
+    * Retrieve an ID from a row. All indices are assumed to encode the feature ID into the row key.
+    *
+    * The simple feature in the returned function signature is optional (null ok) - if provided the
+    * parsed UUID will be cached in the feature user data, if the sft is marked as using UUIDs
     *
     * @param sft simple feature type
-    * @return a function to retrieve an ID from a row - (row: Array[Byte], offset: Int, length: Int)
+    * @return a function to retrieve an ID from a row - (row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature)
     */
-  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String
+  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String
 
   /**
     * Gets the initial splits for a table
@@ -239,4 +243,46 @@ object GeoMesaFeatureIndex {
       sb.toString()
     }
   }
+
+  /**
+    * Converts a feature id to bytes, for indexing or querying
+    *
+    * @param sft simple feature type
+    * @return
+    */
+  def idToBytes(sft: SimpleFeatureType): (String) => Array[Byte] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    if (sft.isUuidEncoded) { uuidToBytes } else { stringToBytes }
+  }
+
+  /**
+    * Converts a byte array to a feature id. Return method takes an optional (null accepted) simple feature,
+    * which will be used to cache the parsed feature ID if it is a UUID.
+    *
+    * @param sft simple feature type
+    * @return (bytes, offset, length, SimpleFeature) => id
+    */
+  def idFromBytes(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    if (sft.isUuidEncoded) { uuidFromBytes } else { stringFromBytes }
+  }
+
+  private def uuidToBytes(id: String): Array[Byte] = {
+    val uuid = UUID.fromString(id)
+    ByteArrays.uuidToBytes(uuid.getMostSignificantBits, uuid.getLeastSignificantBits)
+  }
+
+  private def uuidFromBytes(bytes: Array[Byte], offset: Int, ignored: Int, sf: SimpleFeature): String = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+    val uuid = ByteArrays.uuidFromBytes(bytes, offset)
+    if (sf != null) {
+      sf.cacheUuid(uuid)
+    }
+    new UUID(uuid._1, uuid._2).toString
+  }
+
+  private def stringToBytes(id: String): Array[Byte] = id.getBytes(StandardCharsets.UTF_8)
+
+  private def stringFromBytes(bytes: Array[Byte], offset: Int, length: Int, ignored: SimpleFeature): String =
+    new String(bytes, offset, length, StandardCharsets.UTF_8)
 }

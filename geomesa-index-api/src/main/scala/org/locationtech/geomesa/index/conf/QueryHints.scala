@@ -47,6 +47,7 @@ object QueryHints {
 
   val ARROW_ENCODE             = new ClassKey(classOf[java.lang.Boolean])
   val ARROW_INCLUDE_FID        = new ClassKey(classOf[java.lang.Boolean])
+  val ARROW_PROXY_FID          = new ClassKey(classOf[java.lang.Boolean])
   val ARROW_BATCH_SIZE         = new ClassKey(classOf[java.lang.Integer])
   val ARROW_SORT_FIELD         = new ClassKey(classOf[java.lang.String])
   val ARROW_SORT_REVERSE       = new ClassKey(classOf[java.lang.Boolean])
@@ -96,7 +97,7 @@ object QueryHints {
     def getRequestedIndex: Option[String] = Option(hints.get(QUERY_INDEX).asInstanceOf[String])
     def getCostEvaluation: CostEvaluation = {
       Option(hints.get(COST_EVALUATION).asInstanceOf[CostEvaluation])
-          .orElse(QueryProperties.QUERY_COST_TYPE.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
+          .orElse(QueryProperties.QueryCostType.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
           .getOrElse(CostEvaluation.Stats)
     }
     def isSkipReduce: Boolean = Option(hints.get(Internal.SKIP_REDUCE).asInstanceOf[java.lang.Boolean]).exists(_.booleanValue())
@@ -122,6 +123,7 @@ object QueryHints {
     def isArrowMultiFile: Boolean = Option(hints.get(ARROW_MULTI_FILE).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
     def isArrowDoublePass: Boolean = Option(hints.get(ARROW_DOUBLE_PASS).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
     def isArrowIncludeFid: Boolean = Option(hints.get(ARROW_INCLUDE_FID).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
+    def isArrowProxyFid: Boolean = Option(hints.get(ARROW_PROXY_FID).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
     def getArrowDictionaryFields: Seq[String] =
       Option(hints.get(ARROW_DICTIONARY_FIELDS).asInstanceOf[String]).toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
     def isArrowCachedDictionaries: Boolean =

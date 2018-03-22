@@ -10,13 +10,16 @@ package org.locationtech.geomesa.arrow.vector
 
 import java.util.Date
 
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
-import org.apache.arrow.vector.DirtyRootAllocator
+import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.{DirtyRootAllocator, NullableBigIntVector, NullableIntVector}
+import org.apache.arrow.vector.complex.FixedSizeListVector
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -28,12 +31,16 @@ class SimpleFeatureVectorTest extends Specification {
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
   val features = (0 until 10).map { i =>
-    ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", s"${i % 5}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
+    ScalaSimpleFeature.create(sft, s"28a12c18-e5ae-4c04-ae7b-bf7cdbfaf23$i", s"name0${i % 2}",
+      s"${i % 5}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
   }
+
+  val uuidSft = SimpleFeatureTypes.createType(sft.getTypeName,
+    SimpleFeatureTypes.encodeType(sft) + s";${Configs.FID_UUID_KEY}=true")
 
   "SimpleFeatureVector" should {
     "set and get values" >> {
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.max(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
@@ -47,7 +54,7 @@ class SimpleFeatureVectorTest extends Specification {
     }
     "expand capacity" >> {
       val total = 128
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.max(true), capacity = total / 2)) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.Max, capacity = total / 2)) { vector =>
         var i = 0
         while (i < total) {
           vector.writer.set(i, features(i % features.length))
@@ -59,7 +66,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get float precision values" >> {
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
@@ -71,8 +78,55 @@ class SimpleFeatureVectorTest extends Specification {
         }
       }
     }
+    "set and get feature uuids" >> {
+      WithClose(SimpleFeatureVector.create(uuidSft, Map.empty, SimpleFeatureEncoding.Max)) { vector =>
+        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+        // verify that id is encoded as 2 longs
+        val idVector = vector.underlying.getChild(SimpleFeatureVector.FeatureIdField)
+        idVector must beAnInstanceOf[FixedSizeListVector]
+        idVector.asInstanceOf[FixedSizeListVector].getDataVector must beAnInstanceOf[NullableBigIntVector]
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
+        }
+      }
+    }
+    "proxy feature ids" >> {
+      val encoding = SimpleFeatureEncoding.min(includeFids = true, proxyFids = true)
+      val proxy = new ProxyIdFunction()
+      foreach(Seq(sft, uuidSft)) { sft =>
+        WithClose(SimpleFeatureVector.create(sft, Map.empty, encoding)) { vector =>
+          features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+          vector.writer.setValueCount(features.length)
+          vector.reader.getValueCount mustEqual features.length
+          forall(0 until 10) { i =>
+            val read = vector.reader.get(i)
+            read.getAttributes mustEqual features(i).getAttributes
+            // note: copy the test feature so that the uuid hint is in the feature sft
+            read.getID.toInt mustEqual proxy.evaluate(ScalaSimpleFeature.copy(sft, features(i)))
+          }
+          // verify that id is encoded as an int
+          val idVector = vector.underlying.getChild(SimpleFeatureVector.FeatureIdField)
+          idVector must beAnInstanceOf[NullableIntVector]
+          // check wrapping
+          WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
+            wrapped.reader.getValueCount mustEqual features.length
+            forall(0 until 10) { i =>
+              val read = vector.reader.get(i)
+              read.getAttributes mustEqual features(i).getAttributes
+              // note: copy the test feature so that the uuid hint is in the feature sft
+              read.getID.toInt mustEqual proxy.evaluate(ScalaSimpleFeature.copy(sft, features(i)))
+            }
+          }
+        }
+      }
+    }
     "set and get null values" >> {
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
         val nulls = features.map(ScalaSimpleFeature.copy)
         (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
         nulls.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
@@ -87,7 +141,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "exclude feature ids" >> {
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(false))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(includeFids = false))) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
@@ -109,7 +163,7 @@ class SimpleFeatureVectorTest extends Specification {
     }
     "set and get dictionary encoded values" >> {
       val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01")))
-      WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.max(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
@@ -122,8 +176,8 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get null dictionary values" >> {
-      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01")))
-      WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(true))) { vector =>
+      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01", null)))
+      WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
         val nulls = features.map(ScalaSimpleFeature.copy)
         (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
         nulls.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
@@ -139,7 +193,7 @@ class SimpleFeatureVectorTest extends Specification {
     }
     "set and get dictionary encoded ints" >> {
       val dictionary = Map("age" -> ArrowDictionary.create(0, Array(0, 1, 2, 3, 4, 5).map(Int.box)))
-      WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.max(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
@@ -161,7 +215,7 @@ class SimpleFeatureVectorTest extends Specification {
         val tags = Map(s"a$i" -> s"av$i", s"b$i" -> s"bv$i").asJava
         ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", tags, dates, s"POINT (4$i 5$i)")
       }
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.max(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
@@ -180,7 +234,7 @@ class SimpleFeatureVectorTest extends Specification {
         ScalaSimpleFeature.create(sft, s"$i", s"LINESTRING (30 10, 1$i 30, 40 40)",
           s"POLYGON ((30 10, 4$i 40, 20 40, 10 20, 30 10))", s"POINT (4$i 5$i)")
       }
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.max(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
@@ -197,7 +251,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "clear" >> {
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length

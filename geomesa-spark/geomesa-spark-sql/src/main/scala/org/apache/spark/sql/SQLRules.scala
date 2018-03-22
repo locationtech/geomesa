@@ -11,15 +11,14 @@ package org.apache.spark.sql
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.apache.spark.sql.jts.JTSTypes._
-import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
-import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, LeafExpression, PredicateHelper, ScalaUDF}
+import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, PredicateHelper, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.types.{DataType, StructType}
 import org.geotools.factory.CommonFactoryFinder
+import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils}
 import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
@@ -86,20 +85,8 @@ object SQLRules extends LazyLogging {
     }
   }
 
-  // new AST expressions
-  case class GeometryLiteral(repr: InternalRow, geom: Geometry) extends LeafExpression  with CodegenFallback {
-
-    override def foldable: Boolean = true
-
-    override def nullable: Boolean = true
-
-    override def eval(input: InternalRow): Any = repr
-
-    override def dataType: DataType = GeometryTypeInstance
-  }
-
   // new optimizations rules
-  object STContainsRule extends Rule[LogicalPlan] with PredicateHelper {
+  object SpatialOptimizationsRule extends Rule[LogicalPlan] with PredicateHelper {
 
 
     // JNH: NB: Unused.
@@ -275,6 +262,11 @@ object SQLRules extends LazyLogging {
   }
 
   def registerOptimizations(sqlContext: SQLContext): Unit = {
+
+    Seq(SpatialOptimizationsRule).foreach { r =>
+      if(!sqlContext.experimental.extraOptimizations.contains(r))
+        sqlContext.experimental.extraOptimizations ++= Seq(r)
+    }
 
     Seq(SpatialJoinStrategy).foreach { s =>
       if(!sqlContext.experimental.extraStrategies.contains(s))

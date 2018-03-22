@@ -9,16 +9,18 @@
 package org.locationtech.geomesa.arrow.vector
 
 import java.io.Closeable
-import java.util.Date
+import java.util.{Collections, Date}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.{ListVector, MapVector, NullableMapVector}
 import org.apache.arrow.vector.types.FloatingPointPrecision
+import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
 import org.apache.arrow.vector.{FieldVector, NullableBigIntVector}
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.EncodingPrecision.EncodingPrecision
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -57,13 +59,13 @@ class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
 
   class Writer(vector: SimpleFeatureVector) {
     private [SimpleFeatureVector] val arrowWriter = vector.underlying.getWriter
-    private val idWriter = ArrowAttributeWriter.id(Some(vector.underlying), vector.encoding)
+    private val idWriter = ArrowAttributeWriter.id(sft, Some(vector.underlying), vector.encoding)
     private [arrow] val attributeWriters = ArrowAttributeWriter(sft, Some(vector.underlying), dictionaries, encoding).toArray
 
     def set(index: Int, feature: SimpleFeature): Unit = {
       arrowWriter.setPosition(index)
       arrowWriter.start()
-      idWriter.apply(index, feature.getID)
+      idWriter.apply(index, feature)
       var i = 0
       while (i < attributeWriters.length) {
         attributeWriters(i).apply(index, feature.getAttribute(i))
@@ -81,7 +83,7 @@ class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
   }
 
   class Reader(vector: SimpleFeatureVector) {
-    val idReader: ArrowAttributeReader = ArrowAttributeReader.id(vector.underlying, vector.encoding.fids)
+    val idReader: ArrowAttributeReader = ArrowAttributeReader.id(sft, vector.underlying, vector.encoding)
     val readers: Array[ArrowAttributeReader] =
       ArrowAttributeReader(sft, vector.underlying, dictionaries, encoding).toArray
 
@@ -101,22 +103,24 @@ object SimpleFeatureVector {
   val DefaultCapacity = 8096
   val FeatureIdField  = "id"
   val DescriptorKey   = "descriptor"
+  val OptionsKey      = "options"
 
-  object EncodingPrecision extends Enumeration {
-    type EncodingPrecision = Value
-    val Min, Max = Value
-  }
-
-  case class SimpleFeatureEncoding(fids: Boolean, geometry: EncodingPrecision, date: EncodingPrecision)
+  case class SimpleFeatureEncoding(fids: Option[Encoding], geometry: Encoding, date: Encoding)
 
   object SimpleFeatureEncoding {
-    private val Min = SimpleFeatureEncoding(fids = false, EncodingPrecision.Min, EncodingPrecision.Min)
-    private val Max = SimpleFeatureEncoding(fids = false, EncodingPrecision.Max, EncodingPrecision.Max)
-    private val MinWithFids = SimpleFeatureEncoding(fids = true, EncodingPrecision.Min, EncodingPrecision.Min)
-    private val MaxWithFids = SimpleFeatureEncoding(fids = true, EncodingPrecision.Max, EncodingPrecision.Max)
 
-    def min(fids: Boolean): SimpleFeatureEncoding = if (fids) { MinWithFids } else { Min }
-    def max(fids: Boolean): SimpleFeatureEncoding = if (fids) { MaxWithFids } else { Max }
+    val Min = SimpleFeatureEncoding(Some(Encoding.Min), Encoding.Min, Encoding.Min)
+    val Max = SimpleFeatureEncoding(Some(Encoding.Max), Encoding.Max, Encoding.Max)
+
+    def min(includeFids: Boolean, proxyFids: Boolean = false): SimpleFeatureEncoding = {
+      val fids = if (includeFids) { Some(if (proxyFids) { Encoding.Min } else { Encoding.Max }) } else { None }
+      SimpleFeatureEncoding(fids, Encoding.Min, Encoding.Min)
+    }
+
+    object Encoding extends Enumeration {
+      type Encoding = Value
+      val Min, Max = Value
+    }
   }
 
   /**
@@ -132,10 +136,12 @@ object SimpleFeatureVector {
     */
   def create(sft: SimpleFeatureType,
              dictionaries: Map[String, ArrowDictionary],
-             encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.min(false),
+             encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
              capacity: Int = DefaultCapacity)
             (implicit allocator: BufferAllocator): SimpleFeatureVector = {
-    val underlying = NullableMapVector.empty(sft.getTypeName, allocator)
+    val metadata = Collections.singletonMap(OptionsKey, SimpleFeatureTypes.encodeUserData(sft))
+    val fieldType = new FieldType(true, ArrowType.Struct.INSTANCE, null, metadata)
+    val underlying = new NullableMapVector(sft.getTypeName, allocator, fieldType, null)
     val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding)
     // set capacity after all child vectors have been created by the writers, then allocate
     underlying.setInitialCapacity(capacity)
@@ -182,30 +188,38 @@ object SimpleFeatureVector {
 
     import scala.collection.JavaConversions._
 
-    var includeFids = false
     val attributes = ArrayBuffer.empty[String]
+    var fidEncoding: Option[Encoding] = None
+
     vector.getField.getChildren.foreach { field =>
       if (field.getName == FeatureIdField) {
-        includeFids = true
+        field.getType match {
+          case _: ArrowType.Int           => fidEncoding = Some(Encoding.Min) // proxy id encoded fids
+          case _: ArrowType.FixedSizeList => fidEncoding = Some(Encoding.Max) // uuid encoded fids
+          case _: ArrowType.Utf8          => fidEncoding = Some(Encoding.Max) // normal string fids
+          case _ => throw new IllegalArgumentException(s"Found feature ID vector field of unexpected type: $field")
+        }
       } else {
         attributes.append(field.getMetadata.get(DescriptorKey))
       }
     }
-    val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(","))
+    // add sft-level metadata
+    val options = Option(vector.getField.getMetadata.get(OptionsKey)).getOrElse("")
+
+    val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(",") + options)
     val geomPrecision = {
       val geomVector: Option[FieldVector] =
         Option(sft.getGeomField).flatMap(d => Option(vector.getChild(d))).orElse(getNestedVector[Geometry](sft, vector))
       val isDouble = geomVector.exists(v => GeometryFields.precisionFromField(v.getField) == FloatingPointPrecision.DOUBLE)
-      if (isDouble) { EncodingPrecision.Max } else { EncodingPrecision.Min }
+      if (isDouble) { Encoding.Max } else { Encoding.Min }
     }
     val datePrecision = {
-
       val dateVector: Option[FieldVector] =
         sft.getDtgField.flatMap(d => Option(vector.getChild(d))).orElse(getNestedVector[Date](sft, vector))
       val isLong = dateVector.exists(_.isInstanceOf[NullableBigIntVector])
-      if (isLong) { EncodingPrecision.Max } else { EncodingPrecision.Min }
+      if (isLong) { Encoding.Max } else { Encoding.Min }
     }
-    val encoding = SimpleFeatureEncoding(includeFids, geomPrecision, datePrecision)
+    val encoding = SimpleFeatureEncoding(fidEncoding, geomPrecision, datePrecision)
 
     (sft, encoding)
   }
