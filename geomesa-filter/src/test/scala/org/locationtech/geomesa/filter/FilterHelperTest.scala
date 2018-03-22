@@ -9,17 +9,15 @@
 package org.locationtech.geomesa.filter
 
 import java.time.temporal.ChronoUnit
-import java.time.{Duration, Period, ZoneOffset, ZonedDateTime}
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.expression.AddImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.Bounds.Bound
-import org.locationtech.geomesa.filter.function.CurrentDateFunction
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.opengis.filter._
 import org.specs2.mutable.Specification
