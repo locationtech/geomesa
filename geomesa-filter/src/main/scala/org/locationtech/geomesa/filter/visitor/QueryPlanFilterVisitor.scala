@@ -116,16 +116,12 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
   private def includeEquivalent(f: Filter): Boolean = f == Filter.INCLUDE || isFilterWholeWorld(f)
 
   override def visit(expression: Expression, extraData: scala.Any): Expression = {
-    val visitedExpression = super.visit(expression, extraData)
+    val exp = super.visit(expression, extraData)
 
-    visitedExpression match {
-            case exp: Expression =>
-        if (exp.accept(IsStaticExpressionVisitor.VISITOR, null).asInstanceOf[Boolean]) {
-          Try(exp.evaluate(null)).filter(_ != null).map(new LiteralExpressionImpl(_)).getOrElse(exp)
-        } else {
-          visitedExpression
-        }
-      case _ => visitedExpression
+    if (exp.accept(IsStaticExpressionVisitor.VISITOR, null).asInstanceOf[Boolean]) {
+      Try(exp.evaluate(null)).filter(_ != null).map(new LiteralExpressionImpl(_)).getOrElse(exp)
+    } else {
+      exp
     }
   }
 }

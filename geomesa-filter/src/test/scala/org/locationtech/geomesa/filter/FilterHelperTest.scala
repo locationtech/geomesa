@@ -56,7 +56,8 @@ class FilterHelperTest extends Specification {
       val updated = updateFilter(filter)
       val intervals = FilterHelper.extractIntervals(updated, "dtg", handleExclusiveBounds = true)
       // JNH: I wonder if this is stable enough for a unit test?:)
-      Period.between(intervals.values(0).lower.value.get.toLocalDate, intervals.values(0).upper.value.get.toLocalDate).toString mustEqual "P1D"
+      Period.between(intervals.values(0).lower.value.get.toLocalDate,
+                     intervals.values(0).upper.value.get.toLocalDate).toString mustEqual "P1D"
     }
 
     "evaluate functions with math" >> {
