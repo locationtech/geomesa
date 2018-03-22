@@ -14,7 +14,7 @@ import java.util.Date
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.expression.AddImpl
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl}
+import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.Bounds.Bound
@@ -42,13 +42,13 @@ class FilterHelperTest extends Specification {
     "evaluate functions with 0 arguments" >> {
       val filter = ECQL.toFilter("dtg < currentDate()")
       val updated = updateFilter(filter)
-      updated.asInstanceOf[IsLessThenImpl].getExpression2.isInstanceOf[CurrentDateFunction] mustEqual false
+      updated.asInstanceOf[IsLessThenImpl].getExpression2.isInstanceOf[LiteralExpressionImpl] mustEqual true
     }
 
     "evaluate functions with 1 argument" >> {
       val filter = ECQL.toFilter("dtg > currentDate('P2D')")
       val updated = updateFilter(filter)
-      updated.asInstanceOf[IsGreaterThanImpl].getExpression2.isInstanceOf[CurrentDateFunction] mustEqual false
+      updated.asInstanceOf[IsGreaterThanImpl].getExpression2.isInstanceOf[LiteralExpressionImpl] mustEqual true
     }
 
     "evaluate functions representing the last day" >> {
@@ -62,7 +62,7 @@ class FilterHelperTest extends Specification {
     "evaluate functions with math" >> {
       val filter = ECQL.toFilter("number < 1+2")
       val updated = updateFilter(filter)
-      updated.asInstanceOf[IsLessThenImpl].getExpression2.isInstanceOf[AddImpl] mustEqual false
+      updated.asInstanceOf[IsLessThenImpl].getExpression2.evaluate(null) mustEqual 3
     }
 
     "fix out of bounds bbox" >> {

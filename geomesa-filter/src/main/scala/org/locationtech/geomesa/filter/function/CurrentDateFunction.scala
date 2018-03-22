@@ -20,7 +20,6 @@ class CurrentDateFunction extends FunctionExpressionImpl(CurrentDateFunction.Nam
 
   override def evaluate(o: AnyRef): AnyRef = {
     if (offset.isEmpty && getParameters.size > 0) {
-
       offset = getExpression(0).evaluate(null).asInstanceOf[String]
     }
 

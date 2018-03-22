@@ -121,15 +121,7 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
     visitedExpression match {
             case exp: Expression =>
         if (exp.accept(IsStaticExpressionVisitor.VISITOR, null).asInstanceOf[Boolean]) {
-          val eval = Try(exp.evaluate(null))
-
-          val ret = eval match {
-            case Success(value) if value != null =>
-              new LiteralExpressionImpl(value)
-            case _ =>
-              visitedExpression
-          }
-          ret
+          Try(exp.evaluate(null)).filter(_ != null).map(new LiteralExpressionImpl(_)).getOrElse(exp)
         } else {
           visitedExpression
         }
