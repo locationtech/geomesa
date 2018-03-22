@@ -134,16 +134,7 @@ object SQLRules extends LazyLogging {
       case _ => None
     }
 
-    private def extractScalaUDFs(f: Expression) = {
-      splitConjunctivePredicates(f).partition {
-        // TODO: Add guard which checks to see if the function can be pushed down
-        case ScalaUDF(_, _, _, _, _) => true
-        case _ => false
-      }
-    }
-
     private def extractGridId(envelopes: List[Envelope], e: org.apache.spark.sql.catalyst.expressions.Expression): Option[List[Int]] = e match {
-      case And(l, r) => Some(extractGridId(envelopes, l).getOrElse(List()) ++  extractGridId(envelopes, r).getOrElse(List()))
       case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _, _) => Some(RelationUtils.gridIdMapper(geom, envelopes))
       case GeometryLiteral(_,geom) => Some(RelationUtils.gridIdMapper(geom, envelopes))
       case _ => None
@@ -233,8 +224,7 @@ object SQLRules extends LazyLogging {
           // TODO: deal with `or`
 
           // split up conjunctive predicates and extract the st_contains variable
-          val (scalaUDFs: Seq[Expression], otherFilters: Seq[Expression]) = extractScalaUDFs(f)
-          val sparkFilters: Seq[Expression] = otherFilters ++ scalaUDFs
+          val sparkFilters: Seq[Expression] =  splitConjunctivePredicates(f)
 
           val (gtFilters: Seq[GTFilter], sFilters: Seq[Expression]) = sparkFilters.foldLeft((Seq[GTFilter](), Seq[Expression]())) {
             case ((gts: Seq[GTFilter], sfilters), expression: Expression) =>
@@ -247,7 +237,7 @@ object SQLRules extends LazyLogging {
           }
 
           val partitionHints = if (gmRel.spatiallyPartition) {
-            val hints = scalaUDFs.flatMap{e => extractGridId(gmRel.partitionEnvelopes, e) }.flatten
+            val hints = sparkFilters.flatMap{e => extractGridId(gmRel.partitionEnvelopes, e) }.flatten
             if (hints.nonEmpty) {
               hints
             } else {
