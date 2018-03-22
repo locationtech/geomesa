@@ -56,7 +56,7 @@ class FilterHelperTest extends Specification {
       val intervals = FilterHelper.extractIntervals(updated, "dtg", handleExclusiveBounds = true)
       // JNH: I wonder if this is stable enough for a unit test?:)
       intervals.values(0).lower.value.get.until(
-        intervals.values(0).upper.value.get, ChronoUnit.HOURS) >= 23 mustEqual true
+        intervals.values(0).upper.value.get, ChronoUnit.HOURS) must beCloseTo(24l, 2)
     }
 
     "evaluate functions with math" >> {
