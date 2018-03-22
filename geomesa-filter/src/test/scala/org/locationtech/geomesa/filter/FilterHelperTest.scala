@@ -51,10 +51,9 @@ class FilterHelperTest extends Specification {
     }
 
     "evaluate functions representing the last day" >> {
-      val filter = ECQL.toFilter("dtg > currentDate('P1D') AND dtg < currentDate()")
+      val filter = ECQL.toFilter("dtg > currentDate('-P1D') AND dtg < currentDate()")
       val updated = updateFilter(filter)
       val intervals = FilterHelper.extractIntervals(updated, "dtg", handleExclusiveBounds = true)
-      // JNH: I wonder if this is stable enough for a unit test?:)
       intervals.values(0).lower.value.get.until(
         intervals.values(0).upper.value.get, ChronoUnit.HOURS) must beCloseTo(24l, 2)
     }

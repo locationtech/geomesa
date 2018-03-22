@@ -28,7 +28,7 @@ class CurrentDateFunction extends FunctionExpressionImpl(CurrentDateFunction.Nam
     if (offset.isEmpty) {
       Date.from(now)
     } else {
-      Date.from(now.minus(Duration.parse(offset)))
+      Date.from(now.plus(Duration.parse(offset)))
     }
   }
 }
