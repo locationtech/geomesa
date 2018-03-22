@@ -41,9 +41,10 @@ function printHelp() {
   echo "                        'aws --profile <value>'"
   echo "  -k,--key-name         SSH key name that identifies an existing SSH key in EC2. Used for setting the SSH key"
   echo "                        for the cluster."
+  echo "  --ec2-attributes      Additional EC2 attributes to pass to the 'ec2-attributes' parameter. Comma separated"
+  echo "                        list or can be provided multiple times."
   echo "  --MasterType          EC2 Instance type designation for the Master node."
   echo "                        Default: Value of '--WorkerType'"
-  echo "  --MasterSecurityGroup Comma separated list of existing EC2 security groups to assign to the Master node."
   echo "  --WorkerType          EC2 Instance type designation for the cluster."
   echo "                        Default: 'm1.large'"
   echo "  --WorkerCount         Number of workers to provision."
@@ -122,6 +123,17 @@ else
         fi
         shift
         ;;
+      --ec2-attributes*)
+        if [[ $2 != -* ]]; then
+          shift
+          attributes=($attributes $1)
+        else
+          echo "Invalid EC2 Attribute"
+          exit 1
+        fi
+        shift
+#        subnet-0fb41f23
+        ;;
       # Master Parameters
       --MasterType)
         if [[ $2 != -* ]]; then
@@ -129,17 +141,6 @@ else
           MasterType="InstanceType=${1}"
         else
           echo "Invalid Master Instance Type"
-          exit 1
-        fi
-        shift
-        ;;
-      --MasterSecurityGroup*) # Group or Groups should be fine
-        if [[ $2 != -* ]]; then
-          shift
-          MasterSecurityGroups="AdditionalMasterSecurityGroups=${1}"
-          attributes=($attributes $MasterSecurityGroups)
-        else
-          echo "Invalid Master Security Group"
           exit 1
         fi
         shift
@@ -362,6 +363,8 @@ confirm=${confirm,,} # lower-casing
 if [[ $confirm =~ ^(yes|y) ]]; then
   # Create the cluster
   CID=$( eval ${cmd} )
+  # If there is no CID then the command errored
+  [[ -z "${CID}" ]] && exit 1
 else
   echo "Canceling"
   exit 1
@@ -400,7 +403,7 @@ if [[ "${status}" == Fail* || -n "${failed}" ]]; then
   rm -r "${WORKING_DIR}"
   exit 1
 else
-  echo -ne "Cluster is ready\n"
+  echo -ne "Cluster is ready                                  \n"
   # Write out useful addresses
   address=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep MasterPublicDnsName | cut -d "\"" -f 4`
   echo ""

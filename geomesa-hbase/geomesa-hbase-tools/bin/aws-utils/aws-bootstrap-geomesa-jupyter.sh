@@ -44,6 +44,23 @@ log "Installing Jupyter"
 sudo python36 -m pip install --upgrade pip
 sudo python36 -m pip install jupyter
 
+#log "Installing s3fs-fuse"
+#export PKG_CONFIG_PATH=/usr/lib/pkgconfig
+#sudo yum install -y automake fuse fuse-devel gcc-c++ git libcurl-devel libxml2-devel make openssl-devel
+#
+#pushd /mnt
+#s3fsVersion=1.83
+#wget https://github.com/s3fs-fuse/s3fs-fuse/archive/v${s3fsVersion}.zip
+#unzip v${s3fsVersion}.zip
+#cd s3fs-fuse-${s3fsVersion}
+#./autogen.sh
+#./configure
+#make
+#sudo make install
+#mkdir -p /mnt/s3fs-cache
+#mkdir -p /mnt/$BUCKET
+#popd
+
 log "Generating Jupyter Notebook Config"
 # This IP is the EC2 instance metadata service and is the recommended way to retrieve this information
 publicDNS=$(curl http://169.254.169.254/latest/meta-data/public-hostname)

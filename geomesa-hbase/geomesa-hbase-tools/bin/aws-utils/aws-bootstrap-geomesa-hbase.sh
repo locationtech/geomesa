@@ -96,4 +96,11 @@ export GEOMESA_HBASE_CLASSPATH=$(hbase classpath)
 
 EOF
 
+# Add the hbase-site.xml to the spark runtimes
+pushd ${GEOMESA_HBASE_HOME}/dist/spark/
+sudo -u $GMUSER cp /etc/hbase/conf/hbase-site.xml .
+sudo -u $GMUSER jar uf geomesa-hbase-spark-runtime_2.11-%%project.version%%.jar hbase-site.xml
+sudo -u $GMUSER rm hbase-site.xml
+popd
+
 log "GeoMesa-HBase Bootstrap complete...log out and re-login to complete process"
