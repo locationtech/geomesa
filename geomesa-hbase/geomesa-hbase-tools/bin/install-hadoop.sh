@@ -42,7 +42,6 @@ declare -a urls=(
   "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
   "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar"
-  "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
   "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
   "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
   "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
@@ -51,5 +50,10 @@ declare -a urls=(
   "${base_url}io/netty/netty/${netty3_version}/netty-${netty3_version}.jar"
   "${base_url}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
 )
+
+# if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
+if [ -z "$(find $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
+  urls+=("${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar")
+fi
 
 downloadUrls "$install_dir" urls[@]

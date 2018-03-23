@@ -381,11 +381,12 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
 
     // function to join the attribute index scan results to the record table
     // have to pull the feature id from the row
-    val prefix = sft.getTableSharingPrefix
+    val prefix = sft.getTableSharingBytes
     val getId = getIdFromRow(sft)
+    val getRowKey = RecordIndex.getRowKey(sft)
     val joinFunction: JoinFunction = (kv) => {
       val row = kv.getKey.getRow
-      new Range(RecordIndex.getRowKey(prefix, getId(row.getBytes, 0, row.getLength)))
+      new Range(new Text(getRowKey(prefix, getId(row.getBytes, 0, row.getLength, null))))
     }
 
     val recordRanges = Seq.empty // this will get overwritten in the join method

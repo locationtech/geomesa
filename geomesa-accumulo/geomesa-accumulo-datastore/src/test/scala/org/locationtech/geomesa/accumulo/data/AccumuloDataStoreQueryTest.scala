@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -110,7 +110,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       // add the 50 included points
       TestData.includedDwithinPoints.zipWithIndex.foreach{ case (p, i) =>
-        addFeature(sftPoints, ScalaSimpleFeature.create(sftPoints, "infid$i", p, "2014-06-07T12:00:00.000Z"))
+        addFeature(sftPoints, ScalaSimpleFeature.create(sftPoints, s"infid$i", p, "2014-06-07T12:00:00.000Z"))
       }
 
       // compose the query
@@ -482,6 +482,54 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
       reader.isClosed must beFalse
       reader.isClosed must eventually(10, new Duration(1000))(beTrue) // reaper thread runs every 5 seconds
+    }
+
+    "block full table scans" in {
+      val sft = createNewSchema("name:String:index=join,age:Int,geom:Point:srid=4326,dtg:Date")
+      val feature = ScalaSimpleFeature.create(sft, "fid-1", "name1", "23", "POINT(45 49)", "2010-05-07T12:30:00.000Z")
+      addFeature(sft, feature)
+
+      val filters = Seq(
+        "IN ('fid-1')",
+        "name = 'name1'",
+        "name IN ('name1', 'name2')",
+        "bbox(geom,44,48,46,50)",
+        "bbox(geom,44,48,46,50) AND age < 25",
+        "dtg during 2010-05-07T12:25:00.000Z/2010-05-07T12:35:00.000Z",
+        "bbox(geom,44,48,46,50) AND dtg during 2010-05-07T12:25:00.000Z/2010-05-07T12:35:00.000Z  AND age = 23"
+      )
+      val fullScans = Seq("INCLUDE", "age = 23")
+
+      // test that blocking full table scans doesn't interfere with regular queries
+      QueryProperties.BlockFullTableScans.threadLocalValue.set("true")
+      try {
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          features mustEqual List(feature)
+        }
+        foreach(fullScans) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+          ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
+        }
+        // verify that we can override individually
+        System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "false")
+        foreach(fullScans) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          features mustEqual List(feature)
+        }
+        // verify that we can also block individually
+        QueryProperties.BlockFullTableScans.threadLocalValue.remove()
+        System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "true")
+        foreach(fullScans) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+          ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
+        }
+      } finally {
+        QueryProperties.BlockFullTableScans.threadLocalValue.remove()
+        System.clearProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table")
+      }
     }
 
     "allow query strategy to be specified via view params" in {

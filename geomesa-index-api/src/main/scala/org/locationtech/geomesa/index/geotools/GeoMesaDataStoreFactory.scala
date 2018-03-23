@@ -19,8 +19,8 @@ import scala.concurrent.duration.Duration
 
 object GeoMesaDataStoreFactory {
 
-  private val GenerateStatsSysParam = SystemPropertyBooleanParam(StatsProperties.GENERATE_STATS)
-  private val TimeoutSysParam = SystemPropertyDurationParam(QueryProperties.QUERY_TIMEOUT)
+  private val GenerateStatsSysParam = SystemPropertyBooleanParam(StatsProperties.GenerateStats)
+  private val TimeoutSysParam = SystemPropertyDurationParam(QueryProperties.QueryTimeout)
 
   private val DeprecatedTimeout = ConvertedParam[Duration, java.lang.Long]("queryTimeout", (v) => Duration(v, TimeUnit.SECONDS))
   private val DeprecatedAccumuloTimeout = ConvertedParam[Duration, java.lang.Long]("accumulo.queryTimeout", (v) => Duration(v, TimeUnit.SECONDS))

@@ -177,8 +177,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         val results = query(filter, Array("dtg"))
 
         results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(2).foreach // geom gets added back in
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+        results.map(_.getAttributeCount) must contain(1).foreach
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
 
@@ -196,9 +195,8 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         val results = query(filter, Array("name"))
 
         results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(2).foreach // geom gets added back in
+        results.map(_.getAttributeCount) must contain(1).foreach
         results.map(_.getAttribute("name").toString) must contain("b").foreach
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
       }
 
       "with additional filter applied" >> {

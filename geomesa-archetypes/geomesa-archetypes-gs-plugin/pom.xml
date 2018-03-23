@@ -154,7 +154,7 @@
             </dependency>
             <dependency>
                 <groupId>com.vividsolutions</groupId>
-                <artifactId>jts</artifactId>
+                <artifactId>jts-core</artifactId>
                 <version>${jts.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -183,16 +183,27 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>4.3.7.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-core</artifactId>
                 <version>4.0.4.RELEASE</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>4.0.4.RELEASE</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
                 <scope>provided</scope>
             </dependency>
         </dependencies>

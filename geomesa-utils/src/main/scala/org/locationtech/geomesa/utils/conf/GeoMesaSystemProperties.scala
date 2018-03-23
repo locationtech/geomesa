@@ -31,7 +31,7 @@ object GeoMesaSystemProperties extends LazyLogging {
     def toDuration: Option[Duration] = option.flatMap { value =>
       Try(Duration.apply(value)) match {
         case Success(v) => Some(v)
-        case Failure(e) =>
+        case Failure(_) =>
           logger.warn(s"Invalid duration for property $property: $value")
           Option(default).map(Duration.apply)
       }
@@ -45,12 +45,12 @@ object GeoMesaSystemProperties extends LazyLogging {
       }
     }
 
-    def toBoolean: Option[java.lang.Boolean] = option.flatMap { value =>
-      Try(Boolean.box(value.toBoolean)) match {
+    def toBoolean: Option[Boolean] = option.flatMap { value =>
+      Try(value.toBoolean) match {
         case Success(v) => Some(v)
-        case Failure(e) =>
+        case Failure(_) =>
           logger.warn(s"Invalid Boolean for property $property: $value")
-          Option(default).map(java.lang.Boolean.valueOf)
+          Option(default).map(java.lang.Boolean.parseBoolean)
       }
     }
 

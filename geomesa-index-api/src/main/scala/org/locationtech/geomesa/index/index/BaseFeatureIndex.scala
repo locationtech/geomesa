@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.index.index
 
-import java.nio.charset.StandardCharsets
-
-import com.google.common.primitives.Bytes
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
-import org.locationtech.geomesa.index.conf.TableSplitter
 import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
+import org.locationtech.geomesa.index.conf.{QueryProperties, TableSplitter}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 /**
   * Base feature index that consists of an optional table sharing, a configurable shard, an index key,
@@ -54,18 +53,17 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
                         wrapper: F): Array[Byte] = {
     val split = shards(wrapper.idHash % shards.length)
     val indexKey = toIndexKey(wrapper.feature)
-    Bytes.concat(sharing, split, indexKey, wrapper.idBytes)
+    ByteArrays.concat(sharing, split, indexKey, wrapper.idBytes)
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
+    val idFromBytes = GeoMesaFeatureIndex.idFromBytes(sft)
     val start = keySpace.indexKeyLength + (if (sft.isTableSharing) { 2 } else { 1 }) // key + table sharing + shard
-    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
+    (row, offset, length, feature) => idFromBytes(row, offset + start, length - start, feature)
   }
 
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    import scala.collection.JavaConversions._
 
     def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
 
@@ -76,7 +74,7 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
     val splits = nonEmpty(splitter.getSplits(sft, name, sft.getTableSplitterOptions))
 
     val result = for (shard <- shards; split <- splits) yield {
-      Bytes.concat(sharing, shard, split)
+      ByteArrays.concat(sharing, shard, split)
     }
 
     // if not sharing, or the first feature in the table, drop the first split, which will otherwise be empty
@@ -98,6 +96,8 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
 
     val ranges = indexValues match {
       case None =>
+        // check that full table scans are allowed
+        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }
@@ -105,9 +105,9 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
 
       case Some(values) =>
         val splits = SplitArrays(sft)
-        val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
+        val prefixes = if (sharing.length == 0) { splits } else { splits.map(ByteArrays.concat(sharing, _)) }
         keySpace.getRanges(sft, values).flatMap { case (s, e) =>
-          prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
+          prefixes.map(p => range(ByteArrays.concat(p, s), ByteArrays.concat(p, e)))
         }.toSeq
     }
 

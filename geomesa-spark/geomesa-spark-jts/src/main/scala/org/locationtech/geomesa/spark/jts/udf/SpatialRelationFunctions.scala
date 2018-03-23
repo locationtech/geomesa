@@ -39,8 +39,7 @@ object SpatialRelationFunctions {
   val ST_Touches:    (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.touches(geom2))
   val ST_Within:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.within(geom2))
   val ST_Relate:     (Geometry, Geometry) => String = nullableUDF((geom1, geom2) => geom1.relate(geom2).toString)
-  val ST_RelateBool: (Geometry, Geometry, String) => Boolean =
-    nullableUDF((geom1, geom2, pattern) => geom1.relate(geom2, pattern))
+  val ST_RelateBool: (Geometry, Geometry, String) => jl.Boolean = nullableUDF((geom1, geom2, pattern) => geom1.relate(geom2, pattern))
 
   val ST_Area: Geometry => jl.Double = nullableUDF(g => g.getArea)
   val ST_Centroid: Geometry => Point = nullableUDF(g => g.getCentroid)

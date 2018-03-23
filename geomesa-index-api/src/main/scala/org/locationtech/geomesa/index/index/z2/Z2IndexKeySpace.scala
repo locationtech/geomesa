@@ -14,8 +14,9 @@ import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.IndexKeySpace
-import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -73,7 +74,7 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues] {
     val Z2IndexValues(_, _, xy) = indexValues
 
     if (xy.isEmpty) { Iterator.empty } else {
-      val zs = sfc.ranges(xy, 64, QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt))
+      val zs = sfc.ranges(xy, 64, QueryProperties.ScanRangesTarget.option.map(_.toInt))
       zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
     }
   }

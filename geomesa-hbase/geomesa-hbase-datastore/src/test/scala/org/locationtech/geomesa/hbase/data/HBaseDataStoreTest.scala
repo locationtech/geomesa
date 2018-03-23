@@ -17,6 +17,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -74,7 +75,8 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
           val settings = Map(LooseBBoxParam.getName -> loose, RemoteFilteringParam.getName -> remote)
           val ds = DataStoreFinder.getDataStore(params ++ settings).asInstanceOf[HBaseDataStore]
           foreach(transformsList) { transforms =>
-            testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
+            // test that blocking full table scans doesn't interfere with regular queries
+            QueryProperties.BlockFullTableScans.threadLocalValue.set("true")
             testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
             testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.dropRight(2))
             testQuery(ds, typeName, "bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, toAdd.drop(2))
@@ -83,6 +85,12 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
             testQuery(ds, typeName, "attr = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5)))
             testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
             testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
+
+            // this query should be blocked
+            testQuery(ds, typeName, "INCLUDE", transforms, toAdd) must throwA[RuntimeException]
+            QueryProperties.BlockFullTableScans.threadLocalValue.remove()
+            // now it should go through
+            testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
           }
         }
       }
@@ -93,7 +101,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
           val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
           val features = SelfClosingIterator(fr).toList
           features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
-            beSome("*geom:Point:srid=4326,derived:String")
+            beSome("derived:String,*geom:Point:srid=4326")
           features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
           forall(features) { feature =>
             feature.getAttribute("derived") mustEqual s"helloname${feature.getID}"

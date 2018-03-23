@@ -88,7 +88,7 @@ class AttributeIndexValueIterator extends SortedKeyValueIterator[Key, Value] wit
     // noinspection ScalaDeprecation
     setId = if (index.serializedWithId || cql.isEmpty) { (_) => {} } else {
       val getFromRow = index.getIdFromRow(sft)
-      (row) => original.setId(getFromRow(row.getBytes, 0, row.getLength))
+      (row) => original.setId(getFromRow(row.getBytes, 0, row.getLength, original))
     }
   }
 

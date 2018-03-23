@@ -64,7 +64,7 @@ class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReade
     val sft = delegate.getSchema
     val os = entry.getDataStore.asInstanceOf[ArrowDataStore].createOutputStream(true)
 
-    val writer = SimpleFeatureArrowFileWriter(sft, os, encoding = SimpleFeatureEncoding.max(true))
+    val writer = SimpleFeatureArrowFileWriter(sft, os, encoding = SimpleFeatureEncoding.Max)
     val flushCount = ArrowProperties.BatchSize.get.toLong
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {

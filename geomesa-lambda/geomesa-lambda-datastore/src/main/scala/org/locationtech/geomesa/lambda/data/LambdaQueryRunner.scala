@@ -78,7 +78,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
 
       val sort = hints.getArrowSort
       val batchSize = ArrowScan.getBatchSize(hints)
-      val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid)
+      val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid)
 
       val dictionaryFields = hints.getArrowDictionaryFields
       val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)

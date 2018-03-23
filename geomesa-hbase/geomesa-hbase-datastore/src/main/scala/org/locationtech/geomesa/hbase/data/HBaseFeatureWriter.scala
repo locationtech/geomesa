@@ -10,8 +10,6 @@ package org.locationtech.geomesa.hbase.data
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.WriteBatchSize
 import org.locationtech.geomesa.hbase.{HBaseAppendFeatureWriterType, HBaseFeatureIndexType, HBaseFeatureWriterType, HBaseModifyFeatureWriterType}
 import org.locationtech.geomesa.utils.io.FlushQuietly
@@ -29,7 +27,7 @@ class HBaseModifyFeatureWriter(sft: SimpleFeatureType,
 
 trait HBaseFeatureWriter extends HBaseFeatureWriterType {
 
-  private val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+  private val wrapper = HBaseFeature.wrapper(sft)
 
   override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[BufferedMutator] = {
     val batchSize = WriteBatchSize.option.map(_.toLong)
@@ -46,7 +44,7 @@ trait HBaseFeatureWriter extends HBaseFeatureWriterType {
   override protected def executeRemove(mutator: BufferedMutator, removes: Seq[Mutation]): Unit =
     removes.foreach(mutator.mutate)
 
-  override protected def wrapFeature(feature: SimpleFeature): HBaseFeature = new HBaseFeature(feature, serializer)
+  override protected def wrapFeature(feature: SimpleFeature): HBaseFeature = wrapper(feature)
 
   override def flush(): Unit = {
     // note: BufferedMutator doesn't implement Flushable, so super class won't call it

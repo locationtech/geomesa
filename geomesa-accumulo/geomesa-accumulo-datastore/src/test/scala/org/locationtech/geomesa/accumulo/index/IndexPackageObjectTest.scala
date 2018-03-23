@@ -33,7 +33,7 @@ class IndexPackageObjectTest extends Specification {
 
       val transform = query.getHints.getTransformSchema
       transform must beSome
-      SimpleFeatureTypes.encodeType(transform.get) mustEqual "name:String,*geom:Point:srid=4326,helloName:String"
+      SimpleFeatureTypes.encodeType(transform.get) mustEqual "name:String,helloName:String,*geom:Point:srid=4326"
     }
   }
 }

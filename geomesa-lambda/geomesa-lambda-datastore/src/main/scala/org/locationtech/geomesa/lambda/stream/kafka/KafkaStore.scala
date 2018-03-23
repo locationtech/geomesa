@@ -64,7 +64,11 @@ class KafkaStore(ds: DataStore,
 
   private val queryRunner = new KafkaQueryRunner(cache, stats, authProvider)
 
-  private val loader = new KafkaCacheLoader(offsetManager, serializer, cache, consumerConfig, topic, config.consumers)
+  private val loader = {
+    val consumers = KafkaStore.consumers(consumerConfig, topic, offsetManager, config.consumers, cache.partitionAssigned)
+    val frequency = KafkaStore.LoadIntervalProperty.toDuration.get.toMillis
+    new KafkaCacheLoader(consumers, topic, frequency, serializer, cache)
+  }
 
   private val persistence = if (config.expiry == Duration.Inf) { None } else {
     Some(new DataStorePersistence(ds, sft, offsetManager, cache, topic, config.expiry.toMillis, config.persist))
@@ -160,6 +164,8 @@ class KafkaStore(ds: DataStore,
 }
 
 object KafkaStore {
+
+  val LoadIntervalProperty = SystemProperty("geomesa.lambda.load.interval", "100ms")
 
   object MessageTypes {
     val Write:  Byte = 0
@@ -267,7 +273,7 @@ object KafkaStore {
           try { consumer.seek(tp, lastRead + 1); lastRead } catch {
             case NonFatal(e) =>
               logger.warn(s"Error seeking to initial offset: [${tp.topic}:${tp.partition}:$lastRead]" +
-                  ", seeking to beginning")
+                  s", seeking to beginning: $e")
               seekToBeginning()
           }
         }

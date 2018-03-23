@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.tools
 
 import com.beust.jcommander.Parameter
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreParams}
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterParam}
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseParams
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalZookeepersParam}
 
 /**
@@ -25,7 +25,7 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
       HBaseDataStoreParams.HBaseCatalogParam.getName    -> params.catalog,
       HBaseDataStoreParams.ZookeeperParam.getName       -> params.zookeepers,
       HBaseDataStoreParams.RemoteFilteringParam.getName -> (!params.noRemote).toString
-    )
+    ).filter(_._2 != null)
   }
 }
 

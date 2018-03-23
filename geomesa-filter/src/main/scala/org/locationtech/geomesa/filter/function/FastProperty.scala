@@ -13,22 +13,27 @@ import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl._
 import org.opengis.feature.simple.SimpleFeature
 
-class FastProperty extends FunctionExpressionImpl(
-  new FunctionNameImpl("fastproperty",
-    parameter("propertyValue", classOf[Object]),
-    parameter("propertyIndex", classOf[Integer]))) {
+class FastProperty extends FunctionExpressionImpl(FastProperty.Name) {
 
-  var idx = -1
+  private var idx: Int = -1
 
   def this(i: Int) = {
     this()
     idx = i
   }
 
-  override def evaluate(o: java.lang.Object): AnyRef = {
+  override def evaluate(o: AnyRef): AnyRef = {
     if (idx == -1) {
       idx = getExpression(0).evaluate(null).asInstanceOf[Long].toInt
     }
     o.asInstanceOf[SimpleFeature].getAttribute(idx)
   }
+}
+
+object FastProperty {
+  val Name = new FunctionNameImpl(
+    "fastproperty",
+    parameter("propertyValue", classOf[Object]),
+    parameter("propertyIndex", classOf[Integer])
+  )
 }

@@ -246,7 +246,7 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
       (kv: Entry[Key, Value]) => {
         val sf = deserializer.deserialize(kv.getValue.get)
         val row = kv.getKey.getRow
-        sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
+        sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength, sf))
         AccumuloFeatureIndex.applyVisibility(sf, kv.getKey)
         sf
       }

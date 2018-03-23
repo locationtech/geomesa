@@ -31,6 +31,38 @@ object KafkaConsumerVersions {
   def subscribe(consumer: Consumer[_, _], topic: String, listener: ConsumerRebalanceListener): Unit =
     _subscribeWithListener(consumer, topic, listener)
 
+  def beginningOffsets(consumer: Consumer[_, _], topic: String, partitions: Seq[Int]): Map[Int, Long] = {
+    import scala.collection.JavaConverters._
+    val topicAndPartitions = new java.util.ArrayList[TopicPartition](partitions.length)
+    partitions.foreach(p => topicAndPartitions.add(new TopicPartition(topic, p)))
+    // note: this method doesn't exist in 0.9, so evaluate it every time instead of caching it,
+    // which would break this class
+    val method = methods.find(_.getName == "beginningOffsets").getOrElse {
+      throw new NoSuchMethodException(s"Couldn't find Consumer.beginningOffsets method")
+    }
+    val offsets = method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]]
+    val result = Map.newBuilder[Int, Long]
+    result.sizeHint(offsets.size())
+    offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
+    result.result()
+  }
+
+  def endOffsets(consumer: Consumer[_, _], topic: String, partitions: Seq[Int]): Map[Int, Long] = {
+    import scala.collection.JavaConverters._
+    val topicAndPartitions = new java.util.ArrayList[TopicPartition](partitions.length)
+    partitions.foreach(p => topicAndPartitions.add(new TopicPartition(topic, p)))
+    // note: this method doesn't exist in 0.9, so evaluate it every time instead of caching it,
+    // which would break this class
+    val method = methods.find(_.getName == "endOffsets").getOrElse {
+      throw new NoSuchMethodException(s"Couldn't find Consumer.endOffsets method")
+    }
+    val offsets = method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]]
+    val result = Map.newBuilder[Int, Long]
+    result.sizeHint(offsets.size())
+    offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
+    result.result()
+  }
+
   private val _seekToBeginning: (Consumer[_, _], TopicPartition) => Unit = consumerTopicInvocation("seekToBeginning")
 
   private val _pause: (Consumer[_, _], TopicPartition) => Unit = consumerTopicInvocation("pause")
