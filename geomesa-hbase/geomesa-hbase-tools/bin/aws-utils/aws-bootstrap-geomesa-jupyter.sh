@@ -42,7 +42,7 @@ sudo yum install -q -y python36 gcc python-devel
 
 log "Installing Jupyter"
 sudo python36 -m pip install --upgrade pip
-sudo python36 -m pip install jupyter
+sudo python36 -m pip install jupyter pandas
 
 #log "Installing s3fs-fuse"
 #export PKG_CONFIG_PATH=/usr/lib/pkgconfig
