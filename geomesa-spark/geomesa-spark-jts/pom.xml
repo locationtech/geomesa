@@ -31,15 +31,13 @@
         </dependency>
         <dependency>
             <groupId>com.vividsolutions</groupId>
+            <artifactId>jts-io</artifactId>
+            <version>${jts.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vividsolutions</groupId>
             <artifactId>jts-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-data</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-geojson</artifactId>
+            <version>${jts.version}</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.spatial4j</groupId>

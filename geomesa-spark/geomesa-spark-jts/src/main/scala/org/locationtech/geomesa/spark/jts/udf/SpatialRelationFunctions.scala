@@ -8,15 +8,12 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import java.awt.geom.AffineTransform
-
 import com.vividsolutions.jts.geom._
+import com.vividsolutions.jts.geom.util.AffineTransformation
 import com.vividsolutions.jts.operation.distance.DistanceOp
 import org.apache.spark.sql.SQLContext
-import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
-import org.geotools.referencing.GeodeticCalculator
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.geotools.referencing.operation.transform.AffineTransform2D
+import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 
@@ -116,10 +113,12 @@ object SpatialRelationFunctions {
     sqlContext.udf.register("st_convexhull", ch)
   }
 
-  @transient private val geoCalcs = new ThreadLocal[GeodeticCalculator] {
-    override def initialValue(): GeodeticCalculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
+  @transient private lazy val spatialContext = JtsSpatialContext.GEO
+
+  @transient private val geoCalcs = new ThreadLocal[DistanceCalculator] {
+    override def initialValue(): DistanceCalculator = spatialContext.getDistCalc
   }
-  @transient private[geomesa] val geomFactory = JTSFactoryFinder.getGeometryFactory
+  @transient private[geomesa] val geomFactory = new GeometryFactory()
 
   def closestPoint(g1: Geometry, g2: Geometry): Point = {
     val op = new DistanceOp(g1, g2)
@@ -129,14 +128,13 @@ object SpatialRelationFunctions {
 
   def fastDistance(c1: Coordinate, c2: Coordinate): Double = {
     val calc = geoCalcs.get()
-    calc.setStartingGeographicPoint(c1.x, c1.y)
-    calc.setDestinationGeographicPoint(c2.x, c2.y)
-    calc.getOrthodromicDistance
+    val startPoint = spatialContext.getShapeFactory.pointXY(c1.x, c2.y)
+    DistanceUtils.degrees2Dist(calc.distance(startPoint, c2.x, c2.y), DistanceUtils.EARTH_EQUATORIAL_RADIUS_KM) * 1000
   }
 
   def translate(g: Geometry, deltax: Double, deltay: Double): Geometry = {
-    val affineTransform = AffineTransform.getTranslateInstance(deltax, deltay)
-    val transform = new AffineTransform2D(affineTransform)
-    JTS.transform(g, transform)
+    val affineTransform = new AffineTransformation()
+    affineTransform.setToTranslation(deltax, deltay)
+    affineTransform.transform(g)
   }
 }
