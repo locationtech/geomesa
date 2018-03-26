@@ -12,10 +12,9 @@ By default, the XML converter will treat each line of input as a single XML docu
 can be used to parse the entire input as a single document instead of line-by-line. Note that multi-line parsing
 will read the entire input into memory, so should not be used with large files.
 
-The XML converter will attempt to use the Saxon XPath factory if it is available. In GeoMesa tools, a script is
-provided to download saxon - ``bin/install-saxon.sh``. To specify an alternate XPath factory, use the ``xpath-factory``
-option. If the factory can not be loaded, the default Java factory will be used - note that this can be
-significantly slower.
+The XML converter will attempt to use the Saxon XPath factory by default. You may specify the XPath
+factory implementation with the ``xpath-factory`` option. If the factory can not be loaded, the default Java
+factory will be used - note that this can be significantly slower.
 
 Example XML:
 
@@ -71,10 +70,12 @@ Config:
     }
 
 
+.. _xml_converter_namespaces:
+
 Handling Namespaces with Saxon
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Using the default XPath factory, XML namespaces can generally be ignored. However, the Saxon factory
+Using the default Java XPath factory, XML namespaces can generally be ignored. However, the Saxon factory
 requires namespaces to be declared. You can accomplish this through the ``xml-namespaces`` configuration.
 
 Example XML:

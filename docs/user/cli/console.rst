@@ -41,7 +41,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
 
         We see it import commonly used libraries and present us with the REPL prompt.
 
-        .. code-block:: scala
+        .. code-block:: none
 
             Loading /tmp/geomesa-fs_2.11-2.0.0-SNAPSHOT/conf/.scala_repl_init...
             import org.geotools.data._
@@ -60,7 +60,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
 
         Next we get a connection to the FileSystem Datastore.
 
-        .. code-block:: scala
+        .. code-block:: none
 
             scala> val dsParams = Map("fs.path" -> "file:///tmp/fsds/", "fs.encoding" -> "parquet")
             dsParams: scala.collection.immutable.Map[String,String] = Map(fs.path -> file:///tmp/fsds/, fs.encoding -> parquet)
@@ -72,7 +72,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
         Now we do some example discovery to see what feature types and schemas are stored
         in the database.
 
-        .. code-block:: scala
+        .. code-block:: none
 
             scala> ds.getTypeNames()
             res0: Array[String] = Array(gdelt-quickstart)
@@ -84,7 +84,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
         In order to sample the data we create a ``Query`` and a ``FeatureReader`` and
         then run the query.
 
-        .. code-block:: scala
+        .. code-block:: none
 
             scala> val query = new Query(sft.getName.toString())
             query: org.geotools.data.Query =
@@ -99,7 +99,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
 
         Next, we consume the ``FeatureReader``, printing out the results.
 
-        .. code-block:: scala
+        .. code-block:: none
 
             scala> while (reader.hasNext()) { println(reader.next().toString()) }
             ScalaSimpleFeature:719024956:719024956|||GANG||120|6|1|6|1|Brazil|BR|Sun Dec 31 19:00:00 EST 2017|POINT (-55 -10)
@@ -112,7 +112,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
 
         Finally, we cleanup our connections.
 
-        .. code-block:: scala
+        .. code-block:: none
 
             scala> reader.close()
 
