@@ -67,13 +67,13 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
         "with the correct schema" >> {
           val schema = SimpleFeatureTypes.encodeType(results.getSchema)
-          schema mustEqual "name:String,*geom:Point:srid=4326,derived:String"
+          schema mustEqual "name:String,derived:String,*geom:Point:srid=4326"
         }
         "with the correct results" >> {
           val features = results.features
           features.hasNext must beTrue
           val f = features.next()
-          DataUtilities.encodeFeature(f) mustEqual "fid-1=myname|POINT (45 49)|hellomyname"
+          DataUtilities.encodeFeature(f) mustEqual "fid-1=myname|hellomyname|POINT (45 49)"
         }
       }
 
@@ -133,13 +133,13 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val results = ds.getFeatureSource(sftName).getFeatures(query)
 
         "with the correct schema" >> {
-          SimpleFeatureTypes.encodeType(results.getSchema) mustEqual "name:String,*geom:Point:srid=4326,derived:String"
+          SimpleFeatureTypes.encodeType(results.getSchema) mustEqual "name:String,derived:String,*geom:Point:srid=4326"
         }
         "with the correct results" >> {
           val features = results.features
           features.hasNext must beTrue
           val f = features.next()
-          DataUtilities.encodeFeature(f) mustEqual "fid-1=myname|POINT (45 49)|v1myname"
+          DataUtilities.encodeFeature(f) mustEqual "fid-1=myname|v1myname|POINT (45 49)"
         }
       }
 
@@ -174,6 +174,28 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
           val f = features.next()
           DataUtilities.encodeFeature(f) mustEqual "fid-1=POINT (45 49)"
         }
+      }
+    }
+
+    "return no properties" in {
+      import scala.collection.JavaConverters._
+
+      val sft = createNewSchema("name:String:index=join,age:Int:index=full,dtg:Date,*geom:Point:srid=4326")
+      addFeature(sft, ScalaSimpleFeature.create(sft, "fid-1", "name1", "20", "2010-05-07T12:30:00.000Z", "POINT(45 49)"))
+      val filters = Seq(
+        "bbox(geom,40,40,60,60) AND dtg BETWEEN '2010-05-07T12:00:00.000Z' AND '2010-05-07T13:00:00.000Z'",
+        "bbox(geom,40,40,60,60)",
+        "name = 'name1'",
+        "age = 20",
+        "IN ('fid-1')"
+      )
+      foreach(filters) { filter =>
+        val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array.empty[String])
+        val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+        features must haveLength(1)
+        features.head.getID mustEqual "fid-1"
+        features.head.getAttributes.asScala must beEmpty
+        features.head.getType.getAttributeDescriptors.asScala must beEmpty
       }
     }
 
@@ -243,57 +265,6 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         }
         success
       }
-    }
-
-    "always return a geometry if available" >> {
-      val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326,geom2:Point:srid=4326")
-      val sftName = sft.getTypeName
-
-      val reference = (0 until 3).map { i =>
-        val sf = new ScalaSimpleFeature(sft, s"f$i")
-        sf.setAttribute(0, s"name$i")
-        sf.setAttribute(1, s"2014-01-01T0$i:00:00.000Z")
-        sf.setAttribute(2, s"POINT(5$i 50)")
-        sf.setAttribute(3, s"POINT(6$i 50)")
-        sf
-      }
-      addFeatures(sft, reference)
-
-      "if no geometry is specified" >> {
-        val query = new Query(sftName, Filter.INCLUDE, Array("name"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toSeq
-        features must haveSize(3)
-        forall(features)(_.getAttributeCount mustEqual 2)
-        features.map(_.getAttribute("geom")) must containTheSameElementsAs(reference.map(_.getAttribute("geom")))
-        features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
-      }
-
-      "if default geometry is specified" >> {
-        val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toSeq
-        features must haveSize(3)
-        forall(features)(_.getAttributeCount mustEqual 2)
-        features.map(_.getAttribute("geom")) must containTheSameElementsAs(reference.map(_.getAttribute("geom")))
-        features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
-      }
-
-      "if alternate geometry is specified" >> {
-        val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom2"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toSeq
-        features must haveSize(3)
-        forall(features)(_.getAttributeCount mustEqual 2)
-        features.map(_.getAttribute("geom2")) must containTheSameElementsAs(reference.map(_.getAttribute("geom2")))
-        features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
-      }
-
-      "if geometry is renamed" >> {
-        val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom3=geom"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toSeq
-        features must haveSize(3)
-        forall(features)(_.getAttributeCount mustEqual 2)
-        features.map(_.getAttribute("geom3")) must containTheSameElementsAs(reference.map(_.getAttribute("geom")))
-        features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
-      }.pendingUntilFixed("Can't detect transform types")
     }
 
     "do basic arithmetic" >> {

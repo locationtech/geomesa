@@ -66,7 +66,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
     }
   addFeatures(features)
 
-  implicit val ff = CommonFactoryFinder.getFilterFactory2
+  val ff = CommonFactoryFinder.getFilterFactory2
 
   def runQuery(filter: String, transforms: Array[String] = null): Iterator[SimpleFeature] =
     runQuery(new Query(sftName, ECQL.toFilter(filter), transforms))
@@ -195,8 +195,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
       forall(features) { f =>
-        f.getAttributeCount mustEqual 2 // geom always gets added
-        f.getAttribute("geom") must not(beNull)
+        f.getAttributeCount mustEqual 1
         f.getAttribute("name") must not(beNull)
       }
     }
@@ -208,8 +207,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
       forall(features) { f =>
-        f.getAttributeCount mustEqual 2 // geom always gets added
-        f.getAttribute("geom") must not(beNull)
+        f.getAttributeCount mustEqual 1
         f.getAttribute("derived").asInstanceOf[String] must beMatching("myname\\d")
       }
     }

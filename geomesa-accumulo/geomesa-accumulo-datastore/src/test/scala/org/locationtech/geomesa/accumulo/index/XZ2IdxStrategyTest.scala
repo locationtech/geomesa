@@ -124,8 +124,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter, Some(Array("name"))).toList
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
-      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2) // geom always gets added
-      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 1)
       forall(features)((f: SimpleFeature) => f.getAttribute("name") must not(beNull))
     }
 
@@ -134,8 +133,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter, Some(Array("name"))).toList
       features must haveSize(5)
       features.map(_.getID.toInt) must containTheSameElementsAs(10 to 14)
-      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2) // geom always gets added
-      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 1)
       forall(features)((f: SimpleFeature) => f.getAttribute("name") must not(beNull))
     }
 
@@ -144,8 +142,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter, Some(Array("derived=strConcat('my', name)"))).toList
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
-      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2) // geom always gets added
-      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 1)
       forall(features)((f: SimpleFeature) => f.getAttribute("derived").asInstanceOf[String] must beMatching("myname\\d"))
     }
 
