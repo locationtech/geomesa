@@ -411,9 +411,12 @@ else
   echo "Resource Manager; ${address}:8088"
   echo "Spark History Server: ${address}:18080"
   echo "HBase Master: ${address}:16010/master-status"
-  echo "HDFS Name Node: ${address}50070"
+  echo "HDFS Name Node: ${address}:50070"
   if [[ -n "${JUPYTER}" ]]; then
     echo "Jupyter Server: ${address}:8888"
+  fi
+  if [[ -n "${ZEPPELIN}" ]]; then
+    echo "Zeppelin Server: ${address}:8890"
   fi
   echo ""
 
