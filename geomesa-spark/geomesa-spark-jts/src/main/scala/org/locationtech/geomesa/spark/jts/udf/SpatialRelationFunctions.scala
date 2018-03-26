@@ -44,14 +44,14 @@ object SpatialRelationFunctions {
     nullableUDF((g1, g2) => closestPoint(g1, g2))
   val ST_Distance: (Geometry, Geometry) => jl.Double =
     nullableUDF((g1, g2) => g1.distance(g2))
-  val ST_DistanceSpheroid: (Geometry, Geometry) => jl.Double =
+  val ST_DistanceSphere: (Geometry, Geometry) => jl.Double =
     nullableUDF((s, e) => fastDistance(s.getCoordinate, e.getCoordinate))
   val ST_Length: Geometry => jl.Double = nullableUDF(g => g.getLength)
 
   // Assumes input is two points, for use with collect_list and window functions
-  val ST_AggregateDistanceSpheroid: Seq[Geometry] => jl.Double = a => ST_DistanceSpheroid(a(0), a(1))
+  val ST_AggregateDistanceSphere: Seq[Geometry] => jl.Double = a => ST_DistanceSphere(a(0), a(1))
 
-  val ST_LengthSpheroid: LineString => jl.Double =
+  val ST_LengthSphere: LineString => jl.Double =
     nullableUDF(line => line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum)
 
   private[geomesa] val relationNames = Map(
@@ -71,10 +71,10 @@ object SpatialRelationFunctions {
     ST_Centroid -> "st_centroid",
     ST_ClosestPoint -> "st_closestPoint",
     ST_Distance -> "st_distance",
-    ST_DistanceSpheroid -> "st_distanceSpheroid",
+    ST_DistanceSphere -> "st_distanceSphere",
     ST_Length -> "st_length",
-    ST_AggregateDistanceSpheroid -> "st_aggregateDistanceSpheroid",
-    ST_LengthSpheroid -> "st_lengthSpheroid"
+    ST_AggregateDistanceSphere -> "st_aggregateDistanceSphere",
+    ST_LengthSphere -> "st_lengthSphere"
   )
 
   // Geometry Processing
@@ -105,9 +105,9 @@ object SpatialRelationFunctions {
     sqlContext.udf.register(relationNames(ST_Distance), ST_Distance)
     sqlContext.udf.register(relationNames(ST_Length), ST_Length)
 
-    sqlContext.udf.register(relationNames(ST_DistanceSpheroid), ST_DistanceSpheroid)
-    sqlContext.udf.register(relationNames(ST_AggregateDistanceSpheroid), ST_AggregateDistanceSpheroid)
-    sqlContext.udf.register(relationNames(ST_LengthSpheroid), ST_LengthSpheroid)
+    sqlContext.udf.register(relationNames(ST_DistanceSphere), ST_DistanceSphere)
+    sqlContext.udf.register(relationNames(ST_AggregateDistanceSphere), ST_AggregateDistanceSphere)
+    sqlContext.udf.register(relationNames(ST_LengthSphere), ST_LengthSphere)
 
     // Register geometry Processing
     sqlContext.udf.register("st_convexhull", ch)
@@ -128,8 +128,8 @@ object SpatialRelationFunctions {
 
   def fastDistance(c1: Coordinate, c2: Coordinate): Double = {
     val calc = geoCalcs.get()
-    val startPoint = spatialContext.getShapeFactory.pointXY(c1.x, c2.y)
-    DistanceUtils.degrees2Dist(calc.distance(startPoint, c2.x, c2.y), DistanceUtils.EARTH_EQUATORIAL_RADIUS_KM) * 1000
+    val startPoint = spatialContext.getShapeFactory.pointXY(c1.x, c1.y)
+    DistanceUtils.DEG_TO_KM * calc.distance(startPoint, c2.x, c2.y) * 1000
   }
 
   def translate(g: Geometry, deltax: Double, deltay: Double): Geometry = {
