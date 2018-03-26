@@ -19,7 +19,10 @@ function log() {
   echo "${timeStamp}| ${@}" | tee -a /tmp/bootstrap.log
 }
 
-log "Zeppelin not impl"
+
+rm -r /var/lib/zeppelin/notebook/
+sudo ln -s /opt/geomesa/examples/zeppelin /var/lib/zeppelin/notebook
+sudo chmod zeppelin:zeppelin /opt/geomesa/examples/zeppelin
 
 rm -f ${notebookConf}
 cat > ${notebookConf} <<EOF
