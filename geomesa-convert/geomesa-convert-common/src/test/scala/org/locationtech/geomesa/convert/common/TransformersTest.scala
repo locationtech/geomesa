@@ -781,5 +781,12 @@ class TransformersTest extends Specification {
         trans.eval(Array("1%2%a")).asInstanceOf[java.util.List[Int]] must throwAn[IllegalArgumentException]
       }
     }
+
+    "handle default values" >> {
+      val trans = Transformers.parseTransform("withDefault($0, 'foo')")
+      trans.eval(Array(null)) mustEqual "foo"
+      trans.eval(Array("bar")) mustEqual "bar"
+      trans.eval(Array("")) mustEqual ""
+    }
   }
 }

@@ -7,6 +7,7 @@ Control Functions
 ~~~~~~~~~~~~~~~~~
 
 -  ``try``
+-  ``withDefault``
 
 String Functions
 ~~~~~~~~~~~~~~~~
