@@ -189,6 +189,24 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       noPushdownPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains at top level
     }
 
+    "pushdown attribute comparison filters" >> {
+      val pushdownLt = sc.sql("select case_number from chicago where case_number < 2")
+      val pushdownLte = sc.sql("select case_number from chicago where case_number <= 2")
+      val pushdownGt = sc.sql("select case_number from chicago where case_number > 2")
+      val pushdownGte = sc.sql("select case_number from chicago where case_number >= 2")
+
+      // ensure all 4 were pushed down
+      val queries = Seq(pushdownLt, pushdownLte, pushdownGt, pushdownGte)
+      val plans = queries.map{ q => q.queryExecution.optimizedPlan.children.head.getClass }.toArray
+      plans mustEqual Array.fill(4)(classOf[LogicalRelation])
+
+      // ensure correct results
+      pushdownLt.first().get(0) mustEqual 1
+      pushdownLte.collect().map{ r=> r.get(0) } mustEqual Array(1, 2)
+      pushdownGt.first().get(0) mustEqual 3
+      pushdownGte.collect().map{ r=> r.get(0) } mustEqual Array(2, 3)
+    }
+
     "st_translate" >> {
       "null" >> {
         sc.sql("select st_translate(null, null, null)").collect.head(0) must beNull
