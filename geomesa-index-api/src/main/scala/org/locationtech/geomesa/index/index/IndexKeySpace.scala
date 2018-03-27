@@ -139,18 +139,6 @@ object IndexKeySpace {
     val UnboundedLowerRange: Array[Byte] = Array.empty
     val UnboundedUpperRange: Array[Byte] = Array.fill(3)(ByteArrays.MaxByte)
 
-    def ranges(prefixes: Seq[Array[Byte]], row: Array[Byte]): Iterator[ByteRange] = {
-      if (prefixes.isEmpty) { Iterator.single(SingleRowByteRange(row)) } else {
-        prefixes.iterator.map(p => SingleRowByteRange(ByteArrays.concat(p, row)))
-      }
-    }
-
-    def ranges(prefixes: Seq[Array[Byte]], lo: Array[Byte], hi: Array[Byte]): Iterator[ByteRange] = {
-      if (prefixes.isEmpty) { Iterator.single(BoundedByteRange(lo, hi)) } else {
-        prefixes.iterator.map(p => BoundedByteRange(ByteArrays.concat(p, lo), ByteArrays.concat(p, hi)))
-      }
-    }
-
     def min(ranges: Seq[ByteRange]): Array[Byte] = {
       ranges.collect {
         case BoundedByteRange(lo, _) => lo

@@ -181,7 +181,6 @@ trait AttributeIndexKeySpace extends IndexKeySpace[AttributeIndexValues[Any], At
           case Some(up) => TieredByteRange(lower(AttributeIndexKey(hi.i, null)), up, upperTierable = true)
         }
 
-
       case UnboundedRange(empty) =>
         TieredByteRange(lower(empty), upper(empty))
     }
