@@ -15,9 +15,10 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 
 class HBaseBatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)
-    extends AbstractBatchScan[Scan, Result](ranges, threads, buffer) {
-
-  private lazy val table = connection.getTable(tableName)
+    extends {
+      // use early initialization to ensure table is open before scans kick off
+      private val table = connection.getTable(tableName)
+    } with AbstractBatchScan[Scan, Result](ranges, threads, buffer) {
 
   override def close(): Unit = {
     super.close()
@@ -31,7 +32,7 @@ class HBaseBatchScan(connection: Connection, tableName: TableName, ranges: Seq[S
 
     val scan = table.getScanner(range)
     try {
-      scan.iterator.foreach(out.put)
+      scan.iterator.foreach(out.put(_))
     } finally {
       scan.close()
     }

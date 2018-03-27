@@ -10,33 +10,66 @@
 package org.locationtech.geomesa.cassandra.index
 
 
+import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.locationtech.geomesa.cassandra._
 import org.locationtech.geomesa.cassandra.data._
-import org.locationtech.geomesa.cassandra.index.CassandraIndexAdapter.ScanConfig
-import org.locationtech.geomesa.index.index.IdIndex
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.index.IndexKeySpace._
+import org.locationtech.geomesa.index.index.ShardStrategy
+import org.locationtech.geomesa.index.index.ShardStrategy.NoShardStrategy
+import org.locationtech.geomesa.index.index.id.{IdIndex, IdIndexKeySpace}
+import org.locationtech.geomesa.index.strategies.IdFilterStrategy
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-case object CassandraIdIndex
-    extends IdIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange], ScanConfig]
-    with CassandraFeatureIndex with CassandraIndexAdapter {
+case object CassandraIdIndex extends CassandraFeatureIndex[Set[Array[Byte]], Array[Byte]]
+    with IdFilterStrategy[CassandraDataStore, CassandraFeature, Seq[RowValue]] {
+
+  private val FeatureId = CassandraFeatureIndex.featureIdColumn(0).copy(partition = true)
+  private val Feature = CassandraFeatureIndex.featureColumn(1)
+
+  override val name: String = IdIndex.Name
 
   override val version: Int = 1
 
-  private val FeatureId = NamedColumn("fid", 0, "text", classOf[String], partition = true)
+  override protected val columns: Seq[NamedColumn] = Seq(FeatureId, Feature)
 
-  override protected val columns: Seq[NamedColumn] = Seq(FeatureId)
+  override protected def keySpace: IdIndexKeySpace = IdIndexKeySpace
 
-  override protected def rowToColumns(sft: SimpleFeatureType, row: Array[Byte]): Seq[RowValue] = {
-    val featureId = if (row.length > 0) {
-      new String(row, 0, row.length, StandardCharsets.UTF_8)
-    } else {
-      null
+  override protected def shardStrategy(sft: SimpleFeatureType): ShardStrategy = NoShardStrategy
+
+  override protected def createValues(shards: ShardStrategy,
+                                      toIndexKey: SimpleFeature => Seq[Array[Byte]],
+                                      includeFeature: Boolean)
+                                     (cf: CassandraFeature): Seq[Seq[RowValue]] = {
+    toIndexKey(cf.feature).map { id =>
+      // note: this may be an encoded UUID
+      val fid = RowValue(FeatureId, new String(id, StandardCharsets.UTF_8))
+      if (includeFeature) {
+        Seq(fid, RowValue(Feature, ByteBuffer.wrap(cf.fullValue)))
+      } else {
+        Seq(fid)
+      }
     }
-    Seq(RowValue(FeatureId, featureId))
   }
 
-  override protected def columnsToRow(columns: Seq[RowValue]): Array[Byte] =
-    columns.head.value.asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
+  override protected def toRowRanges(sft: SimpleFeatureType, range: ScanRange[Array[Byte]]): Seq[RowRange] = {
+    val idFromBytes = GeoMesaFeatureIndex.idFromBytes(sft)
+    def toId(bytes: Array[Byte]): String = idFromBytes(bytes, 0, bytes.length, null)
+
+    range match {
+      case SingleRowRange(row)   => val id = toId(row); Seq(RowRange(FeatureId, id, id))
+      case UnboundedRange(_)     => Seq.empty
+      case BoundedRange(lo, hi)  => Seq(RowRange(FeatureId, toId(lo), toId(hi)))
+      case LowerBoundedRange(lo) => Seq(RowRange(FeatureId, toId(lo), null))
+      case UpperBoundedRange(hi) => Seq(RowRange(FeatureId, null, toId(hi)))
+      case PrefixRange(_)        => Seq.empty // not supported
+      case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
+    }
+  }
+
+  // unlike our other indices, the id column may be encoded as a UUID
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String =
+    GeoMesaFeatureIndex.idFromBytes(sft)
 }

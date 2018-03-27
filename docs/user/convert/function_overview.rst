@@ -107,9 +107,9 @@ to be a colon-separated list of script files and/or directories containing scrip
 This system property can be set when using the command line tools by setting the
 ``CUSTOM_JAVA_OPTS`` environmental variable:
 
-.. code-block:: javascript
+.. code-block:: bash
 
-    CUSTOM_JAVA_OPTS="/path/to/script.js:/path/to/script-dir/"
+    CUSTOM_JAVA_OPTS="-Dgeomesa.convert.scripts.path=/path/to/script.js:/path/to/script-dir/"
 
 A more resilient method of including custom scripts is to package them as a JAR or ZIP
 file and add it to the ``GEOMESA_EXTRA_CLASSPATHS`` environmental variable. If using

@@ -26,12 +26,13 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
-import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.index.ShardStrategy
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
+import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -40,12 +41,14 @@ import org.opengis.filter.Filter
 import scala.util.Try
 
 case object AttributeIndex extends AccumuloAttributeIndex {
-  override val version: Int = 6
+  override val version: Int = 7
 }
 
 // secondary z-index
 trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapter
     with AttributeIndex[AccumuloDataStore, AccumuloFeature, Mutation, Range, ScanConfig] with AttributeSplittable {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConversions._
 
@@ -70,35 +73,94 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   }
 
   override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
-    val getRows = getRowKeys(sft, lenient = false)
+    val sharing = sft.getTableSharingBytes
+    val shards = shardStrategy(sft)
     val coverages = sft.getAttributeDescriptors.map(_.getIndexCoverage()).toArray
-    (wf) => getRows(wf).map { case (i, r) => createInsert(r, wf, coverages(i)) }
+    val toIndexKey = keySpace.toIndexKeyBytes(sft)
+    tieredKeySpace(sft) match {
+      case None       => mutator(sharing, shards, toIndexKey, coverages, createValuesInsert)
+      case Some(tier) => mutator(sharing, shards, toIndexKey, tier.toIndexKeyBytes(sft), coverages, createValuesInsert)
+    }
   }
 
   override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
-    val getRows = getRowKeys(sft, lenient = true)
+    val sharing = sft.getTableSharingBytes
+    val shards = shardStrategy(sft)
     val coverages = sft.getAttributeDescriptors.map(_.getIndexCoverage()).toArray
-    (wf) => getRows(wf).map { case (i, r) => createDelete(r, wf, coverages(i)) }
+    val toIndexKey = keySpace.toIndexKeyBytes(sft, lenient = true)
+    tieredKeySpace(sft) match {
+      case None       => mutator(sharing, shards, toIndexKey, coverages, createValuesDelete)
+      case Some(tier) => mutator(sharing, shards, toIndexKey, tier.toIndexKeyBytes(sft, lenient = true), coverages, createValuesDelete)
+    }
   }
 
-  protected def createInsert(row: Array[Byte], feature: AccumuloFeature, coverage: IndexCoverage): Mutation = {
+  private def createValuesInsert(row: Array[Byte], values: Seq[AccumuloFeature.RowValue]): Mutation = {
     val mutation = new Mutation(row)
-    val values = coverage match {
-      case IndexCoverage.FULL => feature.fullValues
-      case IndexCoverage.JOIN => feature.indexValues
-    }
     values.foreach(v => mutation.put(v.cf, v.cq, v.vis, v.value))
     mutation
   }
 
-  protected def createDelete(row: Array[Byte], feature: AccumuloFeature, coverage: IndexCoverage): Mutation = {
+  private def createValuesDelete(row: Array[Byte], values: Seq[AccumuloFeature.RowValue]): Mutation = {
     val mutation = new Mutation(row)
-    val values = coverage match {
-      case IndexCoverage.FULL => feature.fullValues
-      case IndexCoverage.JOIN => feature.indexValues
-    }
     values.foreach(v => mutation.putDelete(v.cf, v.cq, v.vis))
     mutation
+  }
+
+  /**
+    * Mutator for a single key space
+    *
+    * @param sharing table sharing bytes
+    * @param shards sharding
+    * @param toIndexKey function to create the primary index key
+    * @param operation operation (create or delete)
+    * @param feature feature to operate on
+    * @return
+    */
+  private def mutator(sharing: Array[Byte],
+                      shards: ShardStrategy,
+                      toIndexKey: (Seq[Array[Byte]], SimpleFeature, Array[Byte]) => Seq[Array[Byte]],
+                      coverages: Array[IndexCoverage],
+                      operation: (Array[Byte], Seq[AccumuloFeature.RowValue]) => Mutation)
+                     (feature: AccumuloFeature): Seq[Mutation] = {
+    val shard = shards(feature)
+    val iOffset = sharing.length + shard.length
+    toIndexKey(Seq(sharing, shard), feature.feature, feature.idBytes).map { row =>
+      val values = coverages(ByteArrays.readShort(row, iOffset)) match {
+        case IndexCoverage.FULL => feature.fullValues
+        case IndexCoverage.JOIN => feature.indexValues
+      }
+      operation.apply(row, values)
+    }
+  }
+
+  /**
+    * Mutator function for two key spaces
+    *
+    * @param sharing table sharing bytes
+    * @param shards sharding
+    * @param toIndexKey function to create the primary index key
+    * @param toTieredKey function to create a secondary, tiered index key
+    * @param operation operation (create or delete)
+    * @param feature feature to operate on
+    * @return
+    */
+  private def mutator(sharing: Array[Byte],
+                      shards: ShardStrategy,
+                      toIndexKey: (Seq[Array[Byte]], SimpleFeature, Array[Byte]) => Seq[Array[Byte]],
+                      toTieredKey: (Seq[Array[Byte]], SimpleFeature, Array[Byte]) => Seq[Array[Byte]],
+                      coverages: Array[IndexCoverage],
+                      operation: (Array[Byte], Seq[AccumuloFeature.RowValue]) => Mutation)
+                     (feature: AccumuloFeature): Seq[Mutation] = {
+    val shard = shards(feature)
+    val iOffset = sharing.length + shard.length
+    for (tier1 <- toIndexKey(Seq(sharing, shard), feature.feature, Array.empty);
+         row   <- toTieredKey(Seq(tier1), feature.feature, feature.idBytes)) yield {
+      val values = coverages(ByteArrays.readShort(row, iOffset)) match {
+        case IndexCoverage.FULL => feature.fullValues
+        case IndexCoverage.JOIN => feature.indexValues
+      }
+      operation.apply(row, values)
+    }
   }
 
   // we've overridden createInsert so this shouldn't be called, but it's still
@@ -157,7 +219,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     }
     val attributes = FilterHelper.propertyNames(primary, sft)
     // ensure we only have 1 prop we're working on
-    if (attributes.length != 1) {
+    if (attributes.lengthCompare(1) != 0) {
       throw new IllegalStateException(s"Expected one attribute in filter, got: ${attributes.mkString(", ")}")
     }
 

@@ -48,18 +48,18 @@ case class EmptyPlan(filter: CassandraFilterStrategyType) extends CassandraQuery
   override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
-case class QueryPlan(filter: CassandraFilterStrategyType,
-                    table: String,
-                    ranges: Seq[Statement],
-                    numThreads: Int,
-                     // note: filter is applied in entriesToFeatures, this is just for explain logging
-                    clientSideFilter: Option[Filter],
-                    entriesToFeatures: Iterator[Row] => Iterator[SimpleFeature]) extends CassandraQueryPlan {
+case class StatementPlan(filter: CassandraFilterStrategyType,
+                         table: String,
+                         ranges: Seq[Statement],
+                         numThreads: Int,
+                          // note: filter is applied in entriesToFeatures, this is just for explain logging
+                         clientSideFilter: Option[Filter],
+                         entriesToFeatures: Iterator[Row] => Iterator[SimpleFeature]) extends CassandraQueryPlan {
 
   override val hasDuplicates: Boolean = false
 
   override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = {
     val results = new CassandraBatchScan(ds.session, ranges, numThreads, 100000)
-    SelfClosingIterator(entriesToFeatures(results), results.close)
+    SelfClosingIterator(entriesToFeatures(results), results.close())
   }
 }

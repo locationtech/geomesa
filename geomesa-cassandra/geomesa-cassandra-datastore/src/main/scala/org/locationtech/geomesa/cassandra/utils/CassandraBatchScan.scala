@@ -22,7 +22,7 @@ class CassandraBatchScan(session: Session, ranges: Seq[Statement], threads: Int,
 
   override protected def scan(range: Statement, out: BlockingQueue[Row]): Unit = {
     import scala.collection.JavaConversions._
-    session.execute(range).foreach(out.put)
+    session.execute(range).foreach(out.put(_))
   }
 }
 

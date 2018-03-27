@@ -17,6 +17,7 @@ import com.google.common.primitives.Bytes
 import org.locationtech.geomesa.index.index.IndexAdapter
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.index.ByteArrays
 
 import scala.collection.JavaConversions._
 
@@ -78,7 +79,7 @@ trait CassandraMetadataAdapter extends MetadataAdapter {
       val (sft, key) = split(p)
       query.where(QueryBuilder.eq("sft", sft))
       if (key != null && key.length > 0) {
-        val end = new String(IndexAdapter.rowFollowingPrefix(key.getBytes(UTF_8)), UTF_8)
+        val end = new String(ByteArrays.rowFollowingPrefix(key.getBytes(UTF_8)), UTF_8)
         query.where(QueryBuilder.gte("key", key)).and(QueryBuilder.lt("key", end))
       }
     }

@@ -289,7 +289,7 @@ package object filter {
   def isIndexedAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean =
     getAttributeProperty(f).exists(attrIndexed(_, sft))
 
-  private def getAttributeProperty(f: Filter): Option[String] = {
+  def getAttributeProperty(f: Filter): Option[String] = {
     f match {
       // equals checks
       case f: PropertyIsEqualTo => checkOrder(f.getExpression1, f.getExpression2).map(_.name)
@@ -374,17 +374,17 @@ package object filter {
       case f: Filter => Seq(f)
     }
 
-  def orFilters(filters: Seq[Filter])(implicit ff: FilterFactory): Filter =
-    if (filters.size == 1) { filters.head } else { ff.or(filters) }
+  def orFilters(filters: Seq[Filter])(implicit ff: FilterFactory = ff): Filter =
+    if (filters.lengthCompare(1) == 0) { filters.head } else { ff.or(filters) }
 
-  def andFilters(filters: Seq[Filter])(implicit ff: FilterFactory): Filter =
-    if (filters.size == 1) { filters.head } else { ff.and(filters) }
+  def andFilters(filters: Seq[Filter])(implicit ff: FilterFactory = ff): Filter =
+    if (filters.lengthCompare(1) == 0) { filters.head } else { ff.and(filters) }
 
-  def orOption(filters: Seq[Filter])(implicit ff: FilterFactory): Option[Filter] =
-    if (filters.size < 2) { filters.headOption } else { Some(ff.or(filters)) }
+  def orOption(filters: Seq[Filter])(implicit ff: FilterFactory = ff): Option[Filter] =
+    if (filters.lengthCompare(2) < 0) { filters.headOption } else { Some(ff.or(filters)) }
 
-  def andOption(filters: Seq[Filter])(implicit ff: FilterFactory): Option[Filter] =
-    if (filters.size < 2) { filters.headOption } else { Some(ff.and(filters)) }
+  def andOption(filters: Seq[Filter])(implicit ff: FilterFactory = ff): Option[Filter] =
+    if (filters.lengthCompare(2) < 0) { filters.headOption } else { Some(ff.and(filters)) }
 
   def mergeFilters(f1: Filter, f2: Filter): Filter = {
     if (f1 == Filter.INCLUDE) {
@@ -444,5 +444,5 @@ package object filter {
   }
 
   private def attribute(f: Function): Option[String] =
-    f.getParameters.collect { case p: PropertyName => p.getPropertyName }.headOption
+    f.getParameters.collectFirst { case p: PropertyName => p.getPropertyName }
 }
