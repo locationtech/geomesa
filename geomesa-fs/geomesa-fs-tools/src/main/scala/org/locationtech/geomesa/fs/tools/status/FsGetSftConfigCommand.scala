@@ -10,8 +10,9 @@ package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.status.FsGetSftConfigCommand.FsGetSftConfigParameters
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.status.{GetSftConfigCommand, GetSftConfigParams}
 
 class FsGetSftConfigCommand extends GetSftConfigCommand[FileSystemDataStore] with FsDataStoreCommand {

@@ -10,8 +10,9 @@ package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.status.FsDescribeSchemaCommand.FsDescribeSchemaParams
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.status.DescribeSchemaCommand
 

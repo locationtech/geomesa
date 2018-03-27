@@ -10,8 +10,9 @@ package org.locationtech.geomesa.fs.tools.stats
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.stats.FsStatsCountCommand.FsStatsCountParams
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.stats.{StatsCountCommand, StatsCountParams}
 
 class FsStatsCountCommand extends StatsCountCommand[FileSystemDataStore] with FsDataStoreCommand {

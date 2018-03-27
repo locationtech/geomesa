@@ -11,9 +11,10 @@ package org.locationtech.geomesa.fs.storage.interop;
 import com.typesafe.config.Config;
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme;
 import org.opengis.feature.simple.SimpleFeatureType;
+import scala.Option;
 
-import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
 
 /*
     Helper Methods to convert between Java and Scala and to provide static access to
@@ -24,12 +25,17 @@ public class PartitionSchemeUtils {
         org.locationtech.geomesa.fs.storage.common.PartitionScheme.addToSft(sft, scheme);
     }
 
-    public static PartitionScheme extractFromSft(SimpleFeatureType sft) {
-        return org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft);
+    public static Optional<PartitionScheme> extractFromSft(SimpleFeatureType sft) {
+        Option<PartitionScheme> opt = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft);
+        if (opt.isDefined()) {
+            return Optional.of(opt.get());
+        } else {
+            return Optional.empty();
+        }
     }
 
-    public static PartitionScheme apply(SimpleFeatureType sft, Map<String, Serializable> dsParams) {
-        return org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(sft, dsParams);
+    public static PartitionScheme apply(SimpleFeatureType sft, String name, Map<String, String> opts) {
+        return org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(sft, name, opts);
     }
 
     public static PartitionScheme apply(SimpleFeatureType sft, Config conf) {
@@ -38,13 +44,5 @@ public class PartitionSchemeUtils {
 
     public static Config toConfig(PartitionScheme scheme) {
         return org.locationtech.geomesa.fs.storage.common.PartitionScheme.toConfig(scheme);
-    }
-
-    public static String stringify(String schemeName, Map<String, String> opts) {
-        return org.locationtech.geomesa.fs.storage.common.PartitionScheme.stringify(schemeName, opts);
-    }
-
-    public static PartitionScheme apply(SimpleFeatureType sft, String conf) {
-        return org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(sft, conf);
     }
 }
