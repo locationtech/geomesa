@@ -54,7 +54,7 @@ abstract class IndexKeySpace[T, U](implicit val ordering: Ordering[U]) {
     *
     * @param sft simple feature type
     * @param lenient if input values should be strictly checked, or normalized instead
-    * @return
+    * @return (sequential prefixes, simple feature, suffix) => Seq(key bytes)
     */
   def toIndexKeyBytes(sft: SimpleFeatureType, lenient: Boolean = false): ToIndexKeyBytes
 
@@ -103,6 +103,13 @@ abstract class IndexKeySpace[T, U](implicit val ordering: Ordering[U]) {
 
 object IndexKeySpace {
 
+  /**
+    * (sequential prefixes, simple feature, suffix) => Seq(key bytes)
+    *
+    * Creates one or more input keys, based on pre-computed values and a dynamic feature.
+    * The prefixes and suffix are passed in to save creating and then copying an extra byte array.
+    * The prefixes are meant to be sequentially joined into a single prefix for each key.
+    */
   type ToIndexKeyBytes = (Seq[Array[Byte]], SimpleFeature, Array[Byte]) => Seq[Array[Byte]]
 
   sealed trait ByteRange
