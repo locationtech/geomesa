@@ -13,7 +13,6 @@ import java.io.Serializable
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.{InputFormat, Job}
 import org.apache.parquet.hadoop.ParquetInputFormat
@@ -49,22 +48,24 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
       val storage = ds.storage(query.getTypeName)
       val inputPaths = storage.getPartitions(query.getFilter).flatMap(storage.getFilePaths)
 
-      // note: file input format requires a job object, but conf gets copied in job object creation,
-      // so we have to copy the file paths back out
-      val job = Job.getInstance(conf)
+      val rdd = if (inputPaths.isEmpty) { sc.emptyRDD[SimpleFeature] } else {
+        // note: file input format requires a job object, but conf gets copied in job object creation,
+        // so we have to copy the file paths back out
+        val job = Job.getInstance(conf)
 
-      // Note we have to copy all the conf twice?
-      FileInputFormat.setInputPaths(job, inputPaths: _*)
-      conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
+        // Note we have to copy all the conf twice?
+        FileInputFormat.setInputPaths(job, inputPaths: _*)
+        conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
 
-      val inputFormat = storage.getMetadata.getEncoding match {
-        case OrcFileSystemStorage.OrcEncoding => configureOrc(conf, sft, query)
-        case ParquetFileSystemStorage.ParquetEncoding => configureParquet(conf, sft, query)
-        case e => throw new RuntimeException(s"Not implemented for encoding '$e'")
+        val inputFormat = storage.getMetadata.getEncoding match {
+          case OrcFileSystemStorage.OrcEncoding => configureOrc(conf, sft, query)
+          case ParquetFileSystemStorage.ParquetEncoding => configureParquet(conf, sft, query)
+          case e => throw new RuntimeException(s"Not implemented for encoding '$e'")
+        }
+
+        sc.newAPIHadoopRDD(conf, inputFormat, classOf[Void], classOf[SimpleFeature]).map(_._2)
       }
-
-      val rdd = sc.newAPIHadoopRDD(conf, inputFormat, classOf[Void], classOf[SimpleFeature])
-      SpatialRDD(rdd.map(_._2), sft)
+      SpatialRDD(rdd, sft)
     } finally {
       ds.dispose()
     }
