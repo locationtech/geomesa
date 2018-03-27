@@ -112,10 +112,18 @@ object IndexKeySpace {
     */
   type ToIndexKeyBytes = (Seq[Array[Byte]], SimpleFeature, Array[Byte]) => Seq[Array[Byte]]
 
+  /**
+    * Trait for ranges of keys that have been converted into bytes
+    */
   sealed trait ByteRange
 
+  // normal range with two endpoints
   case class BoundedByteRange(lower: Array[Byte], upper: Array[Byte]) extends ByteRange
+  // special case where a range matches a single row - needs to be handled differently sometimes
   case class SingleRowByteRange(row: Array[Byte]) extends ByteRange
+  // only returned from `getRangeBytes` if 'tier = true' - indicates that one or both ends of the range can't
+  // be tiered with additional values
+  // if both ends can be tiered, prefer to use a normal BoundedByteRange
   case class TieredByteRange(lower: Array[Byte],
                              upper: Array[Byte],
                              lowerTierable: Boolean = false,
@@ -160,6 +168,11 @@ object IndexKeySpace {
     }
   }
 
+  /**
+    * Ranges of native key objects, that haven't been converted to bytes yet
+    *
+    * @tparam T key type
+    */
   sealed trait ScanRange[T]
 
   // specialize long to avoid boxing for z2/xz2 index
