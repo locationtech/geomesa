@@ -18,7 +18,11 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 /**
-  * Conversions to/from index keys, without any shards, table sharing, etc.
+  * Conversions to/from index keys, without any shards, table sharing, etc
+  *
+  * @param ordering implicit ordering for the key space values
+  * @tparam T values extracted from a filter and used for creating ranges - extracted geometries, z-ranges, etc
+  * @tparam U a single key space index value, e.g. Long for a z-value, etc
   */
 abstract class IndexKeySpace[T, U](implicit val ordering: Ordering[U]) {
 
