@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
+import java.lang
+import java.util.Date
+
 import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.query.simple.{Between, GreaterThan, LessThan, SimpleQuery}
 import org.opengis.feature.simple.SimpleFeature
@@ -63,125 +66,148 @@ trait BetweenQueryBuilder extends CompQueryBuilder {
 
 object BuildIntGTQuery extends GTQueryBuilder {
   type VALUE = java.lang.Integer
-  override val valueClass = classOf[java.lang.Integer]
+  override val valueClass: Class[Integer] = classOf[java.lang.Integer]
   val orEqual = false
 }
 object BuildLongGTQuery extends GTQueryBuilder {
   type VALUE = java.lang.Long
-  override val valueClass = classOf[java.lang.Long]
+  override val valueClass: Class[lang.Long] = classOf[java.lang.Long]
   val orEqual = false
 }
 object BuildFloatGTQuery extends GTQueryBuilder {
   type VALUE = java.lang.Float
-  override val valueClass = classOf[java.lang.Float]
+  override val valueClass: Class[lang.Float] = classOf[java.lang.Float]
   val orEqual = false
 }
 object BuildDoubleGTQuery extends GTQueryBuilder {
   type VALUE = java.lang.Double
-  override val valueClass = classOf[java.lang.Double]
+  override val valueClass: Class[lang.Double] = classOf[java.lang.Double]
   val orEqual = false
 }
 object BuildDateGTQuery extends GTQueryBuilder {
   type VALUE = java.util.Date
-  override val valueClass = classOf[java.util.Date]
+  override val valueClass: Class[Date] = classOf[java.util.Date]
   val orEqual = false
 }
-
+object BuildStringGTQuery extends GTQueryBuilder {
+  type VALUE = java.lang.String
+  override val orEqual: Boolean = false
+  override val valueClass: Class[String] = classOf[VALUE]
+}
 object BuildIntGTEQuery extends GTQueryBuilder {
   type VALUE = java.lang.Integer
-  override val valueClass = classOf[java.lang.Integer]
+  override val valueClass: Class[Integer] = classOf[java.lang.Integer]
   val orEqual = true
 }
 object BuildLongGTEQuery extends GTQueryBuilder {
   type VALUE = java.lang.Long
-  override val valueClass = classOf[java.lang.Long]
+  override val valueClass: Class[lang.Long] = classOf[java.lang.Long]
   val orEqual = true
 }
 object BuildFloatGTEQuery extends GTQueryBuilder {
   type VALUE = java.lang.Float
-  override val valueClass = classOf[java.lang.Float]
+  override val valueClass: Class[lang.Float] = classOf[java.lang.Float]
   val orEqual = true
 }
 object BuildDoubleGTEQuery extends GTQueryBuilder {
   type VALUE = java.lang.Double
-  override val valueClass = classOf[java.lang.Double]
+  override val valueClass: Class[lang.Double] = classOf[java.lang.Double]
   val orEqual = true
 }
 object BuildDateGTEQuery extends GTQueryBuilder {
   type VALUE = java.util.Date
-  override val valueClass = classOf[java.util.Date]
+  override val valueClass: Class[Date] = classOf[java.util.Date]
+  val orEqual = true
+}
+object BuildStringGTEQuery extends GTQueryBuilder {
+  type VALUE = java.lang.String
+  override val valueClass: Class[String] = classOf[java.lang.String]
   val orEqual = true
 }
 
 object BuildIntLTQuery extends LTQueryBuilder {
   type VALUE = java.lang.Integer
-  override val valueClass = classOf[java.lang.Integer]
+  override val valueClass: Class[Integer] = classOf[java.lang.Integer]
   val orEqual = false
 }
 object BuildLongLTQuery extends LTQueryBuilder {
   type VALUE = java.lang.Long
-  override val valueClass = classOf[java.lang.Long]
+  override val valueClass: Class[lang.Long] = classOf[java.lang.Long]
   val orEqual = false
 }
 object BuildFloatLTQuery extends LTQueryBuilder {
   type VALUE = java.lang.Float
-  override val valueClass = classOf[java.lang.Float]
+  override val valueClass: Class[lang.Float] = classOf[java.lang.Float]
   val orEqual = false
 }
 object BuildDoubleLTQuery extends LTQueryBuilder {
   type VALUE = java.lang.Double
-  override val valueClass = classOf[java.lang.Double]
+  override val valueClass: Class[lang.Double] = classOf[java.lang.Double]
   val orEqual = false
 }
 object BuildDateLTQuery extends LTQueryBuilder {
   type VALUE = java.util.Date
-  override val valueClass = classOf[java.util.Date]
+  override val valueClass: Class[Date] = classOf[java.util.Date]
+  val orEqual = false
+}
+object BuildStringLTQuery extends LTQueryBuilder {
+  type VALUE = java.lang.String
+  override val valueClass: Class[String] = classOf[java.lang.String]
   val orEqual = false
 }
 
 object BuildIntLTEQuery extends LTQueryBuilder {
   type VALUE = java.lang.Integer
-  override val valueClass = classOf[java.lang.Integer]
+  override val valueClass: Class[Integer] = classOf[java.lang.Integer]
   val orEqual = true
 }
 object BuildLongLTEQuery extends LTQueryBuilder {
   type VALUE = java.lang.Long
-  override val valueClass = classOf[java.lang.Long]
+  override val valueClass: Class[lang.Long] = classOf[java.lang.Long]
   val orEqual = true
 }
 object BuildFloatLTEQuery extends LTQueryBuilder {
   type VALUE = java.lang.Float
-  override val valueClass = classOf[java.lang.Float]
+  override val valueClass: Class[lang.Float] = classOf[java.lang.Float]
   val orEqual = true
 }
 object BuildDoubleLTEQuery extends LTQueryBuilder {
   type VALUE = java.lang.Double
-  override val valueClass = classOf[java.lang.Double]
+  override val valueClass: Class[lang.Double] = classOf[java.lang.Double]
   val orEqual = true
 }
 object BuildDateLTEQuery extends LTQueryBuilder {
   type VALUE = java.util.Date
-  override val valueClass = classOf[java.util.Date]
+  override val valueClass: Class[Date] = classOf[java.util.Date]
+  val orEqual = true
+}
+object BuildStringLTEQuery extends LTQueryBuilder {
+  type VALUE = java.lang.String
+  override val valueClass: Class[String] = classOf[java.lang.String]
   val orEqual = true
 }
 
 object BuildIntBetweenQuery extends BetweenQueryBuilder {
   type VALUE = java.lang.Integer
-  override val valueClass = classOf[java.lang.Integer]
+  override val valueClass: Class[Integer] = classOf[java.lang.Integer]
 }
 object BuildLongBetweenQuery extends BetweenQueryBuilder {
   type VALUE = java.lang.Long
-  override val valueClass = classOf[java.lang.Long]
+  override val valueClass: Class[lang.Long] = classOf[java.lang.Long]
 }
 object BuildFloatBetweenQuery extends BetweenQueryBuilder {
   type VALUE = java.lang.Float
-  override val valueClass = classOf[java.lang.Float]
+  override val valueClass: Class[lang.Float] = classOf[java.lang.Float]
 }
 object BuildDoubleBetweenQuery extends BetweenQueryBuilder {
   type VALUE = java.lang.Double
-  override val valueClass = classOf[java.lang.Double]
+  override val valueClass: Class[lang.Double] = classOf[java.lang.Double]
 }
 object BuildDateBetweenQuery   extends BetweenQueryBuilder {
   type VALUE = java.util.Date
-  override val valueClass = classOf[java.util.Date]
+  override val valueClass: Class[Date] = classOf[java.util.Date]
+}
+object BuildStringBetweenQuery   extends BetweenQueryBuilder {
+  type VALUE = java.lang.String
+  override val valueClass: Class[String] = classOf[java.lang.String]
 }
