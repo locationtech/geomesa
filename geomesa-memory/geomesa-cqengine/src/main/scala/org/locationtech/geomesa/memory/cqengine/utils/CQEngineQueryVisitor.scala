@@ -247,6 +247,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongGTEQuery(name, lo.asInstanceOf[java.lang.Long])
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTEQuery(name, lo.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTEQuery(name, lo.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTEQuery(name, lo.asInstanceOf[java.util.Date])
           case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringGTEQuery(name, lo.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsLessThanOrEqualTo: $c not supported")
         }
