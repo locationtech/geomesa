@@ -16,34 +16,18 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.types._
 
-class RowGeoJSON(structType: StructType, var geomOrdinal: Option[Int] = None) {
+class RowGeoJSON(structType: StructType, geomOrdinal: Int) {
 
   val geomJson = new GeoJsonWriter()
   geomJson.setEncodeCRS(false)
-
-  if (geomOrdinal.isEmpty) {
-    setGeometryOrdinal()
-  }
-
-  def setGeometryOrdinal() : Unit = {
-    val foundOrdinal = structType.fields.indexWhere(sf => {
-      JTSTypes.typeMap.values.exists(_.equals(sf.dataType.getClass))
-    })
-
-    if (foundOrdinal == -1) {
-      throw new IllegalArgumentException("Provided schema does not have a geometry type")
-    } else {
-      geomOrdinal = Some(foundOrdinal)
-    }
-  }
 
   def toString(row: Row): String = {
     val sb = new jl.StringBuilder()
 
     sb.append(""" {"type": "Feature", "geometry": """) // start feature
-    val geometry = row.getAs[Geometry](geomOrdinal.get)
+    val geometry = row.getAs[Geometry](geomOrdinal)
     if (geometry != null) {
-      sb.append(geomJson.write(row.getAs[Geometry](geomOrdinal.get))) // write geometry
+      sb.append(geomJson.write(row.getAs[Geometry](geomOrdinal))) // write geometry
     } else {
       sb.append(""" "null" """)
     }
@@ -53,7 +37,7 @@ class RowGeoJSON(structType: StructType, var geomOrdinal: Option[Int] = None) {
     var i = 0 //1 // start at 1 to skip fid
     var written = false
     structType.fields.foreach { sf =>
-      if (i != geomOrdinal.get) {
+      if (i != geomOrdinal) {
         written = true
         sb.append(s"""  "${sf.name}": "${row.get(i)}",""")
       }
@@ -65,11 +49,27 @@ class RowGeoJSON(structType: StructType, var geomOrdinal: Option[Int] = None) {
       sb.setLength(sb.length() - 1)
     }
 
-    sb.append("},") // close properties
-    sb.append(s""" "id": "${row.get(0)}" """) // add fid
+    sb.append("}") // close properties
     sb.append("}") // close feature
 
     sb.toString
   }
+}
+object RowGeoJSON {
 
+  def apply(structType: StructType, geomOrdinal: Int): RowGeoJSON = {
+    new RowGeoJSON(structType, geomOrdinal)
+  }
+
+  def apply(structType: StructType): RowGeoJSON = {
+    val foundOrdinal = structType.fields.indexWhere(sf => {
+      JTSTypes.typeMap.values.exists(_.equals(sf.dataType.getClass))
+    })
+
+    if (foundOrdinal == -1) {
+      throw new IllegalArgumentException("Provided schema does not have a geometry type")
+    } else {
+      new RowGeoJSON(structType, foundOrdinal)
+    }
+  }
 }

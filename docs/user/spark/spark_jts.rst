@@ -139,7 +139,7 @@ The Spark JTS module also provides a means of exporting a ``DataFrame`` to a `Ge
 This allows for quick visualization of the data in many front-end mapping libraries that support GeoJSON input such as
 Leaflet or Open Layers.
 
-To convert a DataFrame, each partition can be map its rows to GeoJSON by instantiating a ``RowGeoJSON`` converter.
+To convert a DataFrame, each partition can map its rows to GeoJSON by instantiating a ``RowGeoJSON`` converter.
 
 .. code-block:: scala
 
@@ -147,14 +147,19 @@ To convert a DataFrame, each partition can be map its rows to GeoJSON by instant
     val df : DataFrame = // Some data frame
     val schema = df.schema
     val geojsonDf = df.mapPartitions { iter =>
-        val row2GeoJSON = new RowGeoJSON(schema)
+        val row2GeoJSON = RowGeoJSON(schema)
         iter.map { r => rowJSON.toString(r) }
     }
+
+Given only the schema, the converter can infer which of the fields holds the geometry, but in the event of multiple
+geometric fields, it defaults to the first such field. This behavior can be overridden by providing the index (starting
+from 0) of the desired geometry in the schema. For example, ``RowGeoJSON(schema, 2)`` if the desired geometry is the third field
+of the schema.
 
 If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
 write to a distributed file system like HDFS.
 
-.. code::
+.. code:: scala
 
     val geoJsonString = geojsonDF.collect.mkString("[",",","]")
 
