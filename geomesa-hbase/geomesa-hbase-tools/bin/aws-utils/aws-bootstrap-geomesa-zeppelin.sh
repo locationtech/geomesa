@@ -24,6 +24,8 @@ rm -r /var/lib/zeppelin/notebook/
 sudo ln -s /opt/geomesa/examples/zeppelin /var/lib/zeppelin/notebook
 sudo chmod zeppelin:zeppelin /opt/geomesa/examples/zeppelin
 
+notebookConf="/etc/zeppelin/conf/interpreter.json"
+
 rm -f ${notebookConf}
 cat > ${notebookConf} <<EOF
 {
@@ -270,3 +272,4 @@ cat > ${notebookConf} <<EOF
 }
 EOF
 
+sudo stop zeppelin && sudo start zeppelin

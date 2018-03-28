@@ -44,6 +44,17 @@ log "Installing Jupyter"
 sudo python36 -m pip install --upgrade pip
 sudo python36 -m pip install jupyter pandas
 
+log "Installing GeoPySpark"
+gpsversion="0.3.0.gm.1"
+pushd /opt/
+wget https://github.com/aheyne/geopyspark/archive/v${gpsversion}.tar.gz
+tar xf v${gpsversion}.tar.gz
+cd geopyspark-${gpsversion}
+sudo python36 -m pip install .
+cd geopyspark/jars/
+wget https://github.com/aheyne/geopyspark/releases/download/v${gpsversion}/geopyspark-assembly-${gpsversion}.jar
+popd
+
 #log "Installing s3fs-fuse"
 #export PKG_CONFIG_PATH=/usr/lib/pkgconfig
 #sudo yum install -y automake fuse fuse-devel gcc-c++ git libcurl-devel libxml2-devel make openssl-devel
