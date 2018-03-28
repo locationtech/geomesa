@@ -127,10 +127,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
   override def visit(filter: PropertyIsEqualTo, data: scala.Any): AnyRef = {
     val name = getAttribute(filter)
     val attribute: Attribute[SimpleFeature, Any] = lookup.lookup[Any](name)
-    val value = FilterHelper.extractAttributeBounds(filter, name, attribute.getAttributeType).values.headOption.getOrElse {
+    val bounds = FilterHelper.extractAttributeBounds(filter, name, attribute.getAttributeType).values.headOption.getOrElse {
       throw new RuntimeException(s"Can't parse equals values ${filterToString(filter)}")
-    }.lower.value.get
-    new cqquery.simple.Equal(attribute, value)
+    }
+    if(!bounds.isBounded) new cqquery.simple.All(classOf[SimpleFeature])
+    else new cqquery.simple.Equal(attribute, bounds.lower.value.get)
   }
 
   /**

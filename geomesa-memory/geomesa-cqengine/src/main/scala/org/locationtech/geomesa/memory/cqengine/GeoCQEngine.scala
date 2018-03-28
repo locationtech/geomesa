@@ -89,13 +89,15 @@ class GeoCQEngine(val sft: SimpleFeatureType,
       case q: Query[SimpleFeature] => q
       case _ => throw new Exception(s"Filter visitor didn't recognize filter: $f.")
     }
-    if (dedup) {
+    val iter = if (dedup) {
       val dedupOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)
       val queryOptions = QueryFactory.queryOptions(dedupOpt)
       cqcache.retrieve(query, queryOptions).iterator()
     } else {
       cqcache.retrieve(query).iterator()
     }
+    if (query.isInstanceOf[All[_]]) iter.filter(f.evaluate(_))
+    else iter
   }
 
   def include(i: IncludeFilter): Iterator[SimpleFeature] =
