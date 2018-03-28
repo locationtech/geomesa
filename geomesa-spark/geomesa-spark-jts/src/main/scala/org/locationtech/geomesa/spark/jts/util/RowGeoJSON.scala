@@ -34,7 +34,7 @@ class RowGeoJSON(structType: StructType, geomOrdinal: Int) {
 
     sb.append(""", "properties":{ """) // start properties
 
-    var i = 0 //1 // start at 1 to skip fid
+    var i = 0 
     var written = false
     structType.fields.foreach { sf =>
       if (i != geomOrdinal) {
