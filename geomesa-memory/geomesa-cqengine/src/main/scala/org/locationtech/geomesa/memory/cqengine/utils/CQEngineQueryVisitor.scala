@@ -149,6 +149,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTQuery(name, lo.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTQuery(name, lo.asInstanceOf[java.lang.Double])
           case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTQuery(name, lo.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String ].isAssignableFrom(c) => BuildStringGTQuery(name, lo.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsGreaterThan: $c not supported")
         }
       case (None, Some(hi)) =>
@@ -158,6 +159,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTQuery(name, hi.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTQuery(name, hi.asInstanceOf[java.lang.Double])
           case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTQuery(name, hi.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTQuery(name, hi.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsGreaterThan: $c not supported")
         }
       case _ => throw new RuntimeException(s"Can't parse greater than values ${filterToString(filter)}")
@@ -180,6 +182,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTEQuery(name, lo.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTEQuery(name, lo.asInstanceOf[java.lang.Double])
           case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTEQuery(name, lo.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringGTEQuery(name, lo.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsGreaterThanOrEqualTo: $c not supported")
         }
       case (None, Some(hi)) =>
@@ -189,6 +192,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTEQuery(name, hi.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTEQuery(name, hi.asInstanceOf[java.lang.Double])
           case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTEQuery(name, hi.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTEQuery(name, hi.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsGreaterThanOrEqualTo: $c not supported")
         }
       case _ => throw new RuntimeException(s"Can't parse greater than or equal to values ${filterToString(filter)}")
@@ -211,6 +215,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTQuery(name, lo.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTQuery(name, lo.asInstanceOf[java.lang.Double])
           case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTQuery(name, lo.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringGTQuery(name, lo.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsLessThan: $c not supported")
         }
       case (None, Some(hi)) =>
@@ -220,6 +225,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTQuery(name, hi.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTQuery(name, hi.asInstanceOf[java.lang.Double])
           case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTQuery(name, hi.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTQuery(name, hi.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsLessThan: $c not supported")
         }
       case _ => throw new RuntimeException(s"Can't parse less than values ${filterToString(filter)}")
@@ -242,6 +248,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTEQuery(name, lo.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTEQuery(name, lo.asInstanceOf[java.lang.Double])
           case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTEQuery(name, lo.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringGTEQuery(name, lo.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsLessThanOrEqualTo: $c not supported")
         }
       case (None, Some(hi)) =>
@@ -251,6 +258,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTEQuery(name, hi.asInstanceOf[java.lang.Float])
           case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTEQuery(name, hi.asInstanceOf[java.lang.Double])
           case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTEQuery(name, hi.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTEQuery(name, hi.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsLessThanOrEqualTo: $c not supported")
         }
       case _ => throw new RuntimeException(s"Can't parse less than or equal to values ${filterToString(filter)}")
@@ -294,6 +302,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
       case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatBetweenQuery(name, between.asInstanceOf[(java.lang.Float, java.lang.Float)])
       case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleBetweenQuery(name, between.asInstanceOf[(java.lang.Double, java.lang.Double)])
       case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateBetweenQuery(name, between.asInstanceOf[(java.util.Date, java.util.Date)])
+      case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringBetweenQuery(name, between.asInstanceOf[(java.lang.String, java.lang.String)])
       case c => throw new RuntimeException(s"PropertyIsBetween: $c not supported")
     }
   }
