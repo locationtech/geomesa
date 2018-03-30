@@ -13,6 +13,8 @@
 
 package org.locationtech.geomesa.utils.index
 
+import com.google.common.primitives.UnsignedBytes
+
 object ByteArrays {
 
   val ZeroByte: Byte = 0x00.toByte
@@ -21,6 +23,9 @@ object ByteArrays {
 
   val ZeroByteArray = Array(ByteArrays.ZeroByte)
   val OneByteArray = Array(ByteArrays.OneByte)
+
+  implicit val ByteOrdering: Ordering[Array[Byte]] =
+    Ordering.comparatorToOrdering(UnsignedBytes.lexicographicalComparator)
 
   /**
     * Writes the short as 2 bytes in the provided array, starting at offset
