@@ -30,6 +30,8 @@ class KuduDataStoreTest extends Specification {
 
   import scala.collection.JavaConverters._
 
+  skipped("integration")
+
   sequential
 
   var ds: KuduDataStore = _
