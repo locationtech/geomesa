@@ -28,9 +28,11 @@ function printHelp() {
   echo "      available in that AWS region."
   echo ""
   echo "Required:"
-  echo "  -c,--container       S3 Bucket URL to use as the HBase root and bootstrap working directory"
+  echo "  -c,--container        S3 Bucket URL to use as the HBase root and bootstrap working directory"
   echo ""
   echo "Options:"
+  echo "  -r, --read-only       Start HBase in read only mode. This will not permit ingest of data but"
+  echo "                        allows multiple HBase clusters to read from the same S3 root directory."
   echo "  -j,--jupyter          Specifying this parameter will install and configure a Jupyter notebook on the cluster"
   echo "                        master. Additionally, you can specify a password to use for the Jupyter server by"
   echo "                        providing a value to this parameter. e.g. -j=password or --jupyter=password"
@@ -85,6 +87,10 @@ else
         shift
         ;;
       # Optional Params
+      -r|--read-only)
+        HBASE_READ_ONLY=',"hbase.emr.readreplica.enabled":"true"'
+        shift
+        ;;
       -z|--zeppelin)
         ZEPPELIN=true
         ZEPPELIN_APP="Name=Zeppelin"
@@ -312,8 +318,7 @@ cat > ${hbase_conf} <<EOF
    {
      "Classification": "hbase",
      "Properties": {
-       "hbase.emr.storageMode":"s3",
-       "hbase.emr.readreplica.enabled":"true"
+       "hbase.emr.storageMode":"s3"${HBASE_READ_ONLY}
      }
    }
 ]

@@ -147,10 +147,10 @@ else
     || failWithStatus "Failed to bootstrap GeoMesa"
 
   if [[ -n "${ZEPPELIN}" ]]; then
-    updateStatus "Installing Zeppelin"
+    updateStatus "Configuring Zeppelin"
     sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-zeppelin.sh \
       || failWithStatus "Failed to bootstrap Zeppelin"
-    log "Zeppelin Installed"
+    log "Zeppelin Configured"
   fi
 
   if [[ -n "${JUPYTER}" ]]; then
