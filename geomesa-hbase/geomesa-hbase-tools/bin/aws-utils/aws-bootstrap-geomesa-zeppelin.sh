@@ -19,15 +19,33 @@ function log() {
   echo "${timeStamp}| ${@}" | tee -a /tmp/bootstrap.log
 }
 
+log "Installing GeoPySpark"
+sudo yum install -q -y python36 gcc python-devel
+sudo python36 -m pip install --upgrade pip
+sudo python36 -m pip install pandas
 
-rm -r /var/lib/zeppelin/notebook/
-sudo ln -s /opt/geomesa/examples/zeppelin /var/lib/zeppelin/notebook
-sudo chmod zeppelin:zeppelin /opt/geomesa/examples/zeppelin
+gpsversion="0.3.0.gm.1"
+pushd /opt/
+wget https://github.com/aheyne/geopyspark/archive/v${gpsversion}.tar.gz
+tar xf v${gpsversion}.tar.gz
+cd geopyspark-${gpsversion}
+sudo python36 -m pip install .
+cd /opt/geomesa
+sudo mkdir -p geopyspark/jars/
+cd geopyspark/jars/
+sudo wget https://github.com/aheyne/geopyspark/releases/download/v${gpsversion}/geopyspark-assembly-${gpsversion}.jar
+popd
+
+sudo stop zeppelin
+
+#rm -r /var/lib/zeppelin/notebook/
+#sudo ln -s /opt/geomesa/examples/zeppelin /var/lib/zeppelin/notebook
+#sudo chmod zeppelin:zeppelin /opt/geomesa/examples/zeppelin
 
 notebookConf="/etc/zeppelin/conf/interpreter.json"
 
-rm -f ${notebookConf}
-cat > ${notebookConf} <<EOF
+sudo rm -f ${notebookConf}
+sudo cat > ${notebookConf} <<EOF
 {
   "interpreterSettings": {
     "2ANGGHHMQ": {
@@ -272,4 +290,5 @@ cat > ${notebookConf} <<EOF
 }
 EOF
 
-sudo stop zeppelin && sudo start zeppelin
+sudo chown -R zeppelin:zeppelin /etc/zeppelin/conf/*
+sudo start zeppelin

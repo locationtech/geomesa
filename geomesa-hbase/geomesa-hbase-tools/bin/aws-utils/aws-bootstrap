@@ -305,13 +305,16 @@ cat > ${hbase_conf} <<EOF
    {
      "Classification": "hbase-site",
      "Properties": {
-          "hbase.rootdir": "${CONTAINER}",
-          "hbase.bucketcache.size": "16384"
+        "hbase.rootdir": "${CONTAINER}",
+        "hbase.bucketcache.size": "16384"
      }
    },
    {
      "Classification": "hbase",
-     "Properties": { "hbase.emr.storageMode":"s3" }
+     "Properties": {
+       "hbase.emr.storageMode":"s3",
+       "hbase.emr.readreplica.enabled":"true"
+     }
    }
 ]
 EOF

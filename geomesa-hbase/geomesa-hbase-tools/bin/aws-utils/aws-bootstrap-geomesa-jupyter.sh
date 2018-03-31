@@ -51,8 +51,10 @@ wget https://github.com/aheyne/geopyspark/archive/v${gpsversion}.tar.gz
 tar xf v${gpsversion}.tar.gz
 cd geopyspark-${gpsversion}
 sudo python36 -m pip install .
+cd /opt/geomesa
+sudo mkdir -p geopyspark/jars/
 cd geopyspark/jars/
-wget https://github.com/aheyne/geopyspark/releases/download/v${gpsversion}/geopyspark-assembly-${gpsversion}.jar
+sudo wget https://github.com/aheyne/geopyspark/releases/download/v${gpsversion}/geopyspark-assembly-${gpsversion}.jar
 popd
 
 #log "Installing s3fs-fuse"
