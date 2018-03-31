@@ -66,7 +66,7 @@ sudo cat > ${notebookConf} <<EOF
         "args": "",
         "spark.home": "/usr/lib/spark",
         "zeppelin.spark.concurrentSQL": "false",
-        "zeppelin.pyspark.python": "python"
+        "zeppelin.pyspark.python": "python36"
       },
       "status": "DOWNLOADING_DEPENDENCIES",
       "interpreterGroup": [
@@ -157,7 +157,7 @@ sudo cat > ${notebookConf} <<EOF
       "name": "python",
       "group": "python",
       "properties": {
-        "zeppelin.python": "python",
+        "zeppelin.python": "python36",
         "zeppelin.python.maxResult": "1000"
       },
       "status": "READY",
@@ -291,4 +291,5 @@ sudo cat > ${notebookConf} <<EOF
 EOF
 
 sudo chown -R zeppelin:zeppelin /etc/zeppelin/conf/*
+sudo chmod -R 777 /opt/geomesa/logs/
 sudo start zeppelin
