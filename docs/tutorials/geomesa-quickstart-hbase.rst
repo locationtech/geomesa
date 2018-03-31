@@ -226,11 +226,9 @@ command from the GeoMesa HBase tools distribution directory:
         --catalog <table>
 
 
-Where the connection parameters are the same you used above during the quickstart. If you ran the
-command on a computer with a default web browser you should see the map below open automatically. If
-you are running on a headless server (no GUI), you can copy the ``index.html`` to another computer and
-open it there. If you click the menu in the upper right of the map you can enable and disable the
-heatmap and feature layers as well as the two provided base layers.
+Where the connection parameters are the same you used above during the quickstart. To view the map simply
+open the url provided by the command in your web browser. If you click the menu in the upper right of the
+map you can enable and disable the heatmap and feature layers as well as the two provided base layers.
 
 .. figure:: _static/geomesa-quickstart-gdelt-data/leaflet-layer-preview.png
     :alt: Visualizing quick-start data with Leaflet

@@ -127,14 +127,6 @@ else
       GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
       shift 1
     fi
-    cmd="java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.lambda.tools.LambdaRunner ${@}"
-    if isExportLeaflet $@; then
-      exec 3>&1 # Create a new output file to redirect sub-shell's output here
-      res=$(eval $cmd 2>&1 | tee >(cat - >&3); exit ${PIPESTATUS[0]})
-      [[ $? == 0 ]] && launchLeafletMap $res
-      exec 3>&- # Close the file
-    else
-      eval $cmd
-    fi
+    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.lambda.tools.LambdaRunner ${@}
   fi
 fi

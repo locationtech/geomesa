@@ -103,7 +103,9 @@ The ``--output-format`` argument defines the encoding used for export. Currently
 
 .. note::
 
-    The leaflet format is intended for testing and small scale data exploration and visualization only. For production map generation it is highly recommended to use GeoServer. Additionally, this command requires the use of a browser in order to access online resources.
+    The leaflet format is intended for testing and small scale data exploration and visualization only. For production
+    map generation it is highly recommended to use GeoServer. Additionally, the resulting file from this command
+    requires the use of an online browser to open in order to access online resources.
 
 The ``--output`` argument can be used to export to a file. By default, export data is written to the standard
 output stream.
