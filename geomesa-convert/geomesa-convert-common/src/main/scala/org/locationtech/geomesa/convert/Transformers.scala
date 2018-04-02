@@ -416,7 +416,7 @@ class StringFunctionFactory extends TransformerFunctionFactory {
   val strLen = TransformerFn("strlen", "stringLength", "length") {
     args => args(0).asInstanceOf[String].length
   }
-  val printf = TransformerFn("printf", "format") { args => String.format(args(0).toString, args.drop(1).asInstanceOf[Array[AnyRef]]: _*) }
+  val printf = TransformerFn("printf") { args => String.format(args(0).toString, args.drop(1).asInstanceOf[Array[AnyRef]]: _*) }
 
 }
 

@@ -130,10 +130,10 @@ Usage: ``emptyToNull($0)``
 
 Example: ``emptyToNull('') = null``
 
-printf/format
+printf
 ^^^^^^^^^^^
 
-Description: Leverage printf formatting to construct custom formatted strings.  As an implementation detail,
+Description: Format custom strings.  As an implementation detail,
 this function delegates to Java's String `formatting classes`__.
 
 .. __: https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html

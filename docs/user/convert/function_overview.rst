@@ -23,7 +23,6 @@ String Functions
 -  ``toString``
 -  ``emptyToNull``
 -  ``printf``
--  ``format``
 
 Date Functions
 ~~~~~~~~~~~~~~
