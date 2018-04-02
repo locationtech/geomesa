@@ -39,7 +39,8 @@ Data Analysis
     :maxdepth: 1
 
     spark
-    shallow-join
+    broadcast-join
+    dwithin-join
     geomesa-tubeselect
 
 .. _accumulo_tutorials_security:
