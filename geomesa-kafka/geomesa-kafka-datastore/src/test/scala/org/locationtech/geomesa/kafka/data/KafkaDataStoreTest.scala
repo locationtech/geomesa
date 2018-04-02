@@ -29,6 +29,7 @@ import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
 import org.locationtech.geomesa.kafka.{EmbeddedKafka, MockTicker}
+import org.locationtech.geomesa.memory.cqengine.utils.{CQIndexType, CQIndexingOptions}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -74,6 +75,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
   def createStorePair(params: Map[String, AnyRef] = Map.empty): (KafkaDataStore, KafkaDataStore, SimpleFeatureType) = {
     // note: the topic gets set in the user data, so don't re-use the same sft instance
     val sft = SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+    CQIndexingOptions.setCQIndexType(sft.getDescriptor("name"), CQIndexType.UNIQUE)
     val path = newPath
     (getStore(path, 0, params), getStore(path, 1, params), sft)
   }
@@ -185,6 +187,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
 
           // query
           val queries = Seq(
+            "strToUpperCase(name) = 'JONES'",
             "name = 'jones'",
             "age < 25",
             "bbox(geom, -15, -15, -5, -5) AND age < 25",
