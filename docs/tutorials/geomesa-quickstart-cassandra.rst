@@ -219,9 +219,8 @@ Visualize Data With Leaflet
 The ``export`` command is a part of the GeoMesa Cassandra command-line tools. In order to use the
 command, ensure you have the command-line tools installed as described in
 :ref:`setting_up_cassandra_commandline`. The ``export`` command provides the ``leaflet`` format which
-will export the features to a leaflet map and attempt to open the resulting HTML in your default
-browser. To produce the map, run the following command from the GeoMesa Cassandra tools distribution
-directory:
+will export the features to a leaflet map that you can open in your web browser. To produce the map,
+run the following command from the GeoMesa Cassandra tools distribution directory:
 
 .. code:: bash
 
