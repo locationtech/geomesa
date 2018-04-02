@@ -429,6 +429,7 @@ NL=$'\n'
 GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"
 GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.awt.headless=true"
 GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties"
+GEOMESA_OPTS="-Dgeomesa.home=${%%gmtools.dist.name%%_HOME}"
 GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
 GEOMESA_CP=""
 

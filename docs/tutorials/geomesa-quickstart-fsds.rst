@@ -171,12 +171,52 @@ contained in ``org.geomesa.example.data.GDELTData``:
 -  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects
 -  ``getTestQueries`` illustrates several different query types, using CQL (GeoTools' Contextual Query Language)
 
-Visualize Data With GeoServer (optional)
-----------------------------------------
+Visualize Data (optional)
+-------------------------
+
+There are two options to visual the data ingested by this quick start. The easiest option is to use the
+``export`` command of the GeoMesa FSDS tools distribution. For a more production ready example, you can
+alternatively stand up a GeoServer and connect it to your FSDS instance.
+
+Visualize Data With Leaflet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+    To successfully run this command you must have a computer that is connected to the internet
+    in order to access external leaflet resources.
+
+
+The ``export`` command is a part of the GeoMesa FSDS command-line tools. In order to use the command,
+ensure you have the command-line tools installed as described in :ref:`setting_up_fsds_commandline`.
+The ``export`` command provides the ``leaflet`` format which will export the features to a leaflet map
+that you can open in your web browser. To produce the map, run the following command from the GeoMesa
+FSDS tools distribution directory:
+
+.. code:: bash
+
+    bin/geomesa-fs export         \
+        --output-format leaflet   \
+        --path /tmp/fsds/         \
+        --encoding parquet
+
+
+Where the connection parameters are the same you used above during the quickstart. To view the map simply
+open the url provided by the command in your web browser. If you click the menu in the upper right of the
+map you can enable and disable the heatmap and feature layers as well as the two provided base layers.
+
+.. figure:: _static/geomesa-quickstart-gdelt-data/leaflet-layer-preview.png
+    :alt: Visualizing quick-start data with Leaflet
+
+    Visualizing quick-start data with Leaflet
+
+
+Visualize Data With GeoServer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
-download and install version |geoserver_version|. Then follow the instructions in :ref:`install_fsds_geoserver`
-to enable GeoMesa.
+download and install version |geoserver_version|. Then follow the instructions in
+:ref:`install_fsds_geoserver` to enable GeoMesa.
 
 Register the GeoMesa Store with GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -223,10 +263,10 @@ of the layer you just created into the search box, and press
 Once you see your layer, click on the "OpenLayers" link, which will open
 a new tab. You should see a collection of red dots similar to the following image:
 
-.. figure:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png
-    :alt: Visualizing quick-start data
+.. figure:: _static/geomesa-quickstart-gdelt-data/geoserver-layer-preview.png
+    :alt: Visualizing quick-start data with GeoServer
 
-    Visualizing quick-start data
+    Visualizing quick-start data with GeoServer
 
 Tweaking the display
 ~~~~~~~~~~~~~~~~~~~~

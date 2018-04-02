@@ -47,6 +47,6 @@ else
       GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
       shift 1
     fi
-    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.arrow.tools.ArrowRunner "$@"
+    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.arrow.tools.ArrowRunner ${@}
   fi
 fi

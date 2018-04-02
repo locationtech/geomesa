@@ -121,12 +121,9 @@ where you provide the following arguments:
 - ``<accumulo.zookeepers>`` your Accumulo Zookeeper nodes, separated by commas
 - ``<user>`` the name of an Accumulo user that has permissions to create, read and write tables
 - ``<password>`` the password for the previously-mentioned Accumulo user
-- ``<table>`` the name of the destination table that will accept these
-  test records. This table should either not exist or should be empty
-- ``<brokers>`` your Kafka broker instances, comma separated. For a
-  local install, this would be ``localhost:9092``
-- ``<kafka.zookeepers>`` your Kafka Zookeeper nodes, comma separated. For a local
-  install, this would be ``localhost:2181``
+- ``<table>`` the name of the destination table that will accept these test records. This table should either not exist or should be empty
+- ``<brokers>`` your Kafka broker instances, comma separated. For a local install, this would be ``localhost:9092``
+- ``<kafka.zookeepers>`` your Kafka Zookeeper nodes, comma separated. For a local install, this would be ``localhost:2181``
 
 .. warning::
 
