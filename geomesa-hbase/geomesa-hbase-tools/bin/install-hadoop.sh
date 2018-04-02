@@ -17,7 +17,7 @@ zookeeper_version="%%zookeeper.version.recommended%%"
 
 # These are needed for Hadoop and to work
 # These will depend on the specific hadoop  versions
-guava_version="11.0.2"
+guava_version="%%hbase.guava.version%%"
 com_log_version="1.1.3"
 htrace_version="3.1.0-incubating"
 netty3_version="3.6.2.Final"
