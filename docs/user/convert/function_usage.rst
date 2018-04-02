@@ -131,7 +131,7 @@ Usage: ``emptyToNull($0)``
 Example: ``emptyToNull('') = null``
 
 printf
-^^^^^^^^^^^
+^^^^^^
 
 Description: Format custom strings.  As an implementation detail,
 this function delegates to Java's String `formatting classes`__.
