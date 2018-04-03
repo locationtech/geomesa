@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.conf.splitter
 
+import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
@@ -15,9 +16,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.Converters
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.index.conf.TableSplitter
+import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
+import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
-import org.locationtech.geomesa.index.index.{AttributeIndex, IdIndex}
 import org.locationtech.geomesa.utils.text.KVPairParser
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -212,7 +214,7 @@ object DefaultSplitter {
       (Integer.parseInt(range._1(i).toString), Integer.parseInt(range._2(i).toString))
     }
     val splits = add(Seq.empty, "", remaining)
-    splits.map(AttributeIndex.encodeForQuery(_, binding)).toArray
+    splits.map(AttributeIndexKey.encodeForQuery(_, binding).getBytes(StandardCharsets.UTF_8)).toArray
   }
 
   /**

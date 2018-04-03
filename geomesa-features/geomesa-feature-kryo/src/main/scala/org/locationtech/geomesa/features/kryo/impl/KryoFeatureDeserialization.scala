@@ -68,7 +68,7 @@ object KryoFeatureDeserialization {
 
   def getInput(bytes: Array[Byte], offset: Int, count: Int): Input = {
     val in = inputs.getOrElseUpdate(new Input)
-    in.setBuffer(bytes, offset, offset + count)
+    in.setBuffer(bytes, offset, count)
     in
   }
 

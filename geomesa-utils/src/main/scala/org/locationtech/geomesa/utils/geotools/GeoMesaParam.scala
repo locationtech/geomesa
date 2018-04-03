@@ -72,7 +72,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
   }
 
   // ensure that sys property default is the same as param default, otherwise param default will not be used
-  assert(systemProperty.forall(p => p.prop.default == null || parse(p.prop.default) == default))
+  assert(systemProperty.forall(p => p.prop.default == null || toTypedValue(parse(p.prop.default)) == default))
 
   /**
     * Checks that the parameter is contained in the map, but does not do type conversion
@@ -113,7 +113,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
       throw new IOException(s"Parameter $key is required: $description")
     } else {
       systemProperty.flatMap(_.option) match {
-        case Some(v) => v
+        case Some(v) => fromTypedValue(v)
         case None    => null
       }
     }

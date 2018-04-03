@@ -15,7 +15,8 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
 import org.locationtech.geomesa.fs.storage.common.jobs.PartitionOutputFormat.SingleFileOutputFormat
-import org.locationtech.geomesa.fs.storage.common.{PartitionScheme, StorageUtils}
+import org.locationtech.geomesa.fs.storage.common.PartitionScheme
+import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
 import org.opengis.feature.simple.SimpleFeature
 
 /**
@@ -48,7 +49,7 @@ abstract class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends O
     import StorageConfiguration.Counters.{Features, Group}
 
     private val sft = StorageConfiguration.getSft(context.getConfiguration)
-    private val scheme = PartitionScheme.extractFromSft(sft)
+    private val scheme = PartitionScheme.extractFromSft(sft).get
     private val encoding = StorageConfiguration.getEncoding(context.getConfiguration)
     private val fileType = StorageConfiguration.getFileType(context.getConfiguration)
 
@@ -56,7 +57,7 @@ abstract class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends O
     private val cache = scala.collection.mutable.Map.empty[String, RecordWriter[Void, SimpleFeature]]
 
     override def write(key: Void, value: SimpleFeature): Unit = {
-      val partition = scheme.getPartitionName(value)
+      val partition = scheme.getPartition(value)
       cache.getOrElseUpdate(partition, createWriter(partition)).write(key, value)
       counter.increment(1)
     }
@@ -73,10 +74,9 @@ abstract class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends O
 
     private def createWriter(partition: String): RecordWriter[Void, SimpleFeature] = {
       val root = getRootPath(context)
-      val fs = root.getFileSystem(context.getConfiguration)
       // TODO combine this with the same code in ParquetFileSystemStorage
-      val file = StorageUtils.nextFile(fs, root, sft.getTypeName, partition, scheme.isLeafStorage, encoding, fileType)
-      logger.info(s"Creating ${scheme.name()} scheme record writer at path $file")
+      val file = StorageUtils.nextFile(root, partition, scheme.isLeafStorage, encoding, fileType)
+      logger.info(s"Creating ${scheme.getName} scheme record writer at path $file")
       // noinspection LanguageFeature
       delegate.getRecordWriter(context, file)
     }

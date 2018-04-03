@@ -8,26 +8,21 @@
 
 package org.locationtech.geomesa.index.index.z3
 
-import org.geotools.factory.Hints
-import org.locationtech.geomesa.index.api.{FilterStrategy, WrappedFeature}
+import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.BaseFeatureIndex
+import org.locationtech.geomesa.index.index.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.index.{BaseFeatureIndex, ShardStrategy}
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
-    extends BaseFeatureIndex[DS, F, W, R, C, XZ3IndexValues] with SpatioTemporalFilterStrategy[DS, F, W] {
+    extends BaseFeatureIndex[DS, F, W, R, C, XZ3IndexValues, Z3IndexKey] with SpatioTemporalFilterStrategy[DS, F, W] {
 
   override val name: String = XZ3Index.Name
 
   override protected val keySpace: XZ3IndexKeySpace = XZ3IndexKeySpace
 
-  // always apply the full filter to xz queries
-  override protected def useFullFilter(sft: SimpleFeatureType,
-                                       ds: DS,
-                                       filter: FilterStrategy[DS, F, W],
-                                       indexValues: Option[XZ3IndexValues],
-                                       hints: Hints): Boolean = true
+  override protected def shardStrategy(sft: SimpleFeatureType): ShardStrategy = ZShardStrategy(sft)
 }
 
 object XZ3Index {

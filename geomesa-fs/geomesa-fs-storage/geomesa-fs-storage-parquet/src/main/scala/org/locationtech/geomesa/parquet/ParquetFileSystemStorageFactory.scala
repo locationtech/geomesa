@@ -8,27 +8,21 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.io
-
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
+import org.locationtech.geomesa.fs.storage.common.{FileMetadata, FileSystemStorageFactory}
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage.{ParquetCompressionOpt, ParquetEncoding}
 
-class ParquetFileSystemStorageFactory extends FileSystemStorageFactory[ParquetFileSystemStorage] {
+class ParquetFileSystemStorageFactory extends FileSystemStorageFactory {
 
-  override val encoding: String = ParquetEncoding
+  override def getEncoding: String = ParquetEncoding
 
-  override protected def build(path: Path,
-                               conf: Configuration,
-                               params: java.util.Map[String, io.Serializable]): ParquetFileSystemStorage = {
-    if (params.containsKey(ParquetCompressionOpt)) {
-      conf.set(ParquetCompressionOpt, params.get(ParquetCompressionOpt).asInstanceOf[String])
-    } else if (System.getProperty(ParquetCompressionOpt) != null) {
-      conf.set(ParquetCompressionOpt, System.getProperty(ParquetCompressionOpt))
+  override protected def load(conf: Configuration, metadata: FileMetadata): FileSystemStorage = {
+    if (conf.get(ParquetCompressionOpt) == null) {
+      Option(System.getProperty(ParquetCompressionOpt)).foreach(conf.set(ParquetCompressionOpt, _))
     }
     conf.set("parquet.filter.dictionary.enabled", "true")
 
-    new ParquetFileSystemStorage(path, path.getFileSystem(conf), conf, params)
+    new ParquetFileSystemStorage(conf, metadata)
   }
 }

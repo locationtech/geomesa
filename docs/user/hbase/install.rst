@@ -417,14 +417,13 @@ add it at the root level of the ``geomesa-hbase-datastore`` JAR in the lib folde
 
     Ensure that the ``hbase-site.xml`` is at the root (top) level of your JAR, otherwise it will not be picked up.
 
-Due to licensing restrictions, certain dependencies for shape file support and faster XML parsing must be separately
+Due to licensing restrictions, certain dependencies for shape file support must be separately
 installed. Do this with the following commands:
 
 .. code-block:: bash
 
     $ bin/install-jai.sh
     $ bin/install-jline.sh
-    $ bin/install-saxon.sh
 
 Test the command that invokes the GeoMesa Tools:
 

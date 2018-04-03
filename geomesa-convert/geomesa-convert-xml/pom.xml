@@ -36,6 +36,11 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
+        <dependency>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>9.7.0-20</version>
+        </dependency>
 
         <dependency>
             <groupId>org.specs2</groupId>

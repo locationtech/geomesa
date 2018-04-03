@@ -24,6 +24,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.parquet.ParquetFileSystemStorage.ParquetCompressionOpt
 import org.locationtech.geomesa.parquet.jobs.SimpleFeatureReadSupport
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -53,14 +54,15 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
     val sftConf = {
       val c = new Configuration()
       StorageConfiguration.setSft(c, sft)
+      // Use GZIP in tests but snappy in prod due to license issues
+      c.set(ParquetCompressionOpt, CompressionCodecName.GZIP.toString)
       c
     }
 
     "write parquet files" >> {
 
-      // Use GZIP in tests but snappy in prod due to license issues
-      val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf)
-        .withCompressionCodec(CompressionCodecName.GZIP).build()
+
+      val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()
 
       val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
       val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))

@@ -70,7 +70,6 @@ have ingested GDELT data into S3 you can query it with SQL in the spark shell::
 
     val dataFrame = spark.read
       .format("geomesa")
-      .option("fs.encoding","parquet")
       .option("fs.path","s3a://mybucket/geomesa/datastore")
       .option("geomesa.feature", "gdelt")
       .load()

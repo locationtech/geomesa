@@ -19,8 +19,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class GmlExporter(os: OutputStream) extends FeatureExporter {
 
-  private val encode = new GML(Version.WFS1_0)
-  encode.setNamespace("geomesa", "http://geomesa.org")
+  private val encoder = new GML(Version.WFS1_0)
+  encoder.setNamespace("geomesa", "http://geomesa.org")
 
   private var sft: SimpleFeatureType = _
   private var retyped: Option[SimpleFeatureType] = _
@@ -41,7 +41,21 @@ class GmlExporter(os: OutputStream) extends FeatureExporter {
       val list = new ListFeatureCollection(sft, array)
       retyped.map(r => new ReTypingFeatureCollection(list, r)).getOrElse(list)
     }
-    encode.encode(os, collection)
+
+    def encode(): Unit = encoder.encode(os, collection)
+
+    val transformerProperty = classOf[javax.xml.transform.TransformerFactory].getName
+
+    if (System.getProperty(transformerProperty) != null) { encode() } else {
+      // explicitly set the default java transformer, to avoid picking up saxon (which causes errors)
+      // the default class is hard-coded in javax.xml.transform.TransformerFactory.newInstance() ...
+      System.setProperty(transformerProperty,
+        classOf[com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl].getName)
+      try { encode() } finally {
+        System.clearProperty(transformerProperty)
+      }
+    }
+
     os.flush()
     Some(array.length.toLong)
   }

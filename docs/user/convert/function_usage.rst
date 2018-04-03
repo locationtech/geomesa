@@ -16,6 +16,17 @@ Example: ``try("1"::int, 0) = 1``
 
 Example: ``try("abcd"::int, 0) = 0``
 
+withDefault
+^^^^^^^^^^^
+
+Description: Replace a value with a default, if the value is null
+
+Usage: ``withDefault($1, $2)``
+
+Example: ``withDefault('foo', 'bar') = foo``
+
+Example: ``withDefault(null, 'bar') = bar``
+
 String Functions
 ~~~~~~~~~~~~~~~~
 
@@ -118,6 +129,19 @@ text files, where inputs will never be ``null``.
 Usage: ``emptyToNull($0)``
 
 Example: ``emptyToNull('') = null``
+
+printf
+^^^^^^
+
+Description: Format custom strings.  As an implementation detail,
+this function delegates to Java's String `formatting classes`__.
+
+.. __: https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html
+
+Usage: ``printf('patterns', $arg1, $arg2, ...)'``
+
+Examples: ``printf('%s-%s-%sT00:00:00.000Z', '2015', '01', '01') = '2015-01-01T00:00:00.000Z'``
+          ``printf('%2f', divide(-1, 2, 3)) = '-0.17'``
 
 Date Functions
 ~~~~~~~~~~~~~~

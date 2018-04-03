@@ -9,16 +9,14 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.{io, util}
-
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common._
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.common.{FileSystemPathReader, MetadataFileSystemStorage}
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage._
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -26,16 +24,11 @@ import org.opengis.filter.Filter
 
 /**
   *
-  * @param root the root of this file system for a specifid SimpleFeatureType
-  * @param fs filesystem
+  * @param conf conf
+  * @param metadata metadata
   */
-class ParquetFileSystemStorage(root: Path,
-                               fs: FileSystem,
-                               conf: Configuration,
-                               dsParams: util.Map[String, io.Serializable])
-    extends MetadataFileSystemStorage(fs, root, conf) {
-
-  override protected val encoding: String = ParquetEncoding
+class ParquetFileSystemStorage(conf: Configuration, metadata: FileMetadata)
+    extends MetadataFileSystemStorage(conf, metadata) {
 
   override protected val extension: String = FileExtension
 

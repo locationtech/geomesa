@@ -48,6 +48,18 @@ __ https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.
   In particular, "year of era" has changed from ``Y`` to ``y``. ``Y`` now means "week-based year", and will
   give different results.
 
+Saxon XML Parser
+----------------
+
+The GeoMesa converter XML module now ships with Saxon-HE by default. Saxon-HE is generally much faster
+at parsing XML than the default Java implementation. Previously, Saxon was available as an additional download.
+
+.. warning::
+
+  Saxon parsing has some differences from the default Java implementation, which may cause existing
+  converter definitions to fail. In particular, Saxon is much stricter with XML namespaces. See
+  :ref:`xml_converter_namespaces` for more information.
+
 Kafka Data Store
 ----------------
 

@@ -12,35 +12,54 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 
+import java.util.List;
+import java.util.Map;
+
 public interface PartitionScheme {
 
     /**
-     * Return the partition in which a SimpleFeature should be stored
-     * @param sf
-     * @return
+     * Name of this partition scheme
+     *
+     * @return name
      */
-    String getPartitionName(SimpleFeature sf);
+    String getName();
+
+    /**
+     * Return the partition in which a SimpleFeature should be stored
+     *
+     * @param feature simple feature
+     * @return partition name
+     */
+    String getPartition(SimpleFeature feature);
 
     /**
      * Return a list of partitions that the system needs to query
      * in order to satisfy a filter predicate
-     * @param f
-     * @return
+     *
+     * @param filter filter
+     * @return list of partitions that may have results from the filter
      */
-    java.util.List<String> getCoveringPartitions(Filter f);
+    List<String> getPartitions(Filter filter);
 
     /**
      *
      * @return the max depth this partition scheme goes to
      */
-    int maxDepth();
+    int getMaxDepth();
 
+    /**
+     * Are partitions stored as leaves (multiple partitions in a single folder), or does each
+     * partition have a unique folder. Using leaf storage can reduce the level of nesting and make
+     * file system operations faster in some cases.
+     *
+     * @return leaf
+     */
     boolean isLeafStorage();
 
-    String toString();
-
-    PartitionScheme fromString(SimpleFeatureType sft, String s);
-
-    String name();
-    java.util.Map<String, String> getOptions();
+    /**
+     * Options used to configure this scheme - @see PartitionSchemeFactory
+     *
+     * @return options
+     */
+    Map<String, String> getOptions();
 }

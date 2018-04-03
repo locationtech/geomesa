@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.hbase.index
 
+import java.util.Locale
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase._
@@ -19,6 +21,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.AllCoprocessors
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.{DataColumnFamily, log}
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.index.ClientSideFiltering
@@ -35,8 +38,8 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
   private val log = LoggerFactory.getLogger(classOf[HBaseFeatureIndex])
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
-    Seq(HBaseZ3Index, HBaseZ3IndexV1, HBaseXZ3Index, HBaseZ2Index, HBaseZ2IndexV1, HBaseXZ2Index,
-      HBaseIdIndex, HBaseAttributeIndex, HBaseAttributeIndexV3, HBaseAttributeIndexV2, HBaseAttributeIndexV1)
+    Seq(HBaseZ3Index, HBaseZ3IndexV1, HBaseXZ3Index, HBaseZ2Index, HBaseZ2IndexV1, HBaseXZ2Index, HBaseIdIndex,
+      HBaseAttributeIndex, HBaseAttributeIndexV4, HBaseAttributeIndexV3, HBaseAttributeIndexV2, HBaseAttributeIndexV1)
 
   override val CurrentIndices: Seq[HBaseFeatureIndex] =
     Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex)
@@ -50,17 +53,6 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
     super.index(identifier).asInstanceOf[HBaseFeatureIndex]
 
   val DataColumnFamily: Array[Byte] = Bytes.toBytes("d")
-  def buildDataColumnFamilyDescriptor(sft: SimpleFeatureType): HColumnDescriptor = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-    val dcfd = new HColumnDescriptor(DataColumnFamily)
-    if(sft.userData(Configs.COMPRESSION_ENABLED).isDefined) {
-      val compressionType =
-        sft.userData[String](Configs.COMPRESSION_TYPE).getOrElse("gz")
-      log.debug(s"Setting compression on index table for feature ${sft.getTypeName}")
-      dcfd.setCompressionType(Compression.getCompressionAlgorithmByName(compressionType))
-    }
-    dcfd
-  }
 
   val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
@@ -92,7 +84,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
       if (!admin.tableExists(name)) {
         logger.debug(s"Creating table $name")
         val descriptor = new HTableDescriptor(name)
-        val dcfd = HBaseFeatureIndex.buildDataColumnFamilyDescriptor(sft)
+        val dcfd = buildDataColumnFamilyDescriptor(sft)
         HBaseVersions.addFamily(descriptor, dcfd)
         configureColumnFamilyDescriptor(dcfd)
         if (ds.config.remoteFilter) {
@@ -143,5 +135,17 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
         }
       }
     }
+  }
+
+  protected def buildDataColumnFamilyDescriptor(sft: SimpleFeatureType): HColumnDescriptor = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+    val dcfd = new HColumnDescriptor(DataColumnFamily)
+    if (sft.userData(Configs.COMPRESSION_ENABLED).isDefined) {
+      // note: all compression types in HBase are case-sensitive and lower-cased
+      val compressionType = sft.userData[String](Configs.COMPRESSION_TYPE).getOrElse("gz").toLowerCase(Locale.US)
+      log.debug(s"Setting compression '$compressionType' on $name table for feature ${sft.getTypeName}")
+      dcfd.setCompressionType(Compression.getCompressionAlgorithmByName(compressionType))
+    }
+    dcfd
   }
 }

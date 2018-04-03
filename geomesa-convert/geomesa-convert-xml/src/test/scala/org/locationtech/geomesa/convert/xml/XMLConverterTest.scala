@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.convert.xml
 
 import java.io.{ByteArrayInputStream, File, FileInputStream}
-import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Point
@@ -317,15 +316,18 @@ class XMLConverterTest extends Specification {
           | {
           |   type         = "xml"
           |   id-field     = "uuid()"
-          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   feature-path = "ns:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
-          |     { name = "number", path = "number",           transform = "$0::integer" }
-          |     { name = "color",  path = "color",            transform = "trim($0)" }
-          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
-          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "number", path = "ns:number",           transform = "$0::integer" }
+          |     { name = "color",  path = "ns:color",            transform = "trim($0)" }
+          |     { name = "weight", path = "ns:physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/ns:doc/ns:DataSource/ns:name/text()" }
           |   ]
+          |   xml-namespaces = {
+          |     ns = "http://geomesa.org/test-feature"
+          |   }
           | }
         """.stripMargin)
 
@@ -370,18 +372,21 @@ class XMLConverterTest extends Specification {
           | {
           |   type         = "xml"
           |   id-field     = "uuid()"
-          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   feature-path = "ns:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
           |   options {
           |     line-mode  = "multi"
           |   }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
-          |     { name = "number", path = "number",           transform = "$0::integer" }
-          |     { name = "color",  path = "color",            transform = "trim($0)" }
-          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
-          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "number", path = "ns:number",           transform = "$0::integer" }
+          |     { name = "color",  path = "ns:color",            transform = "trim($0)" }
+          |     { name = "weight", path = "ns:physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/ns:doc/ns:DataSource/ns:name/text()" }
           |   ]
+          |   xml-namespaces = {
+          |     ns = "http://geomesa.org/test-feature"
+          |   }
           | }
         """.stripMargin)
 
@@ -417,18 +422,21 @@ class XMLConverterTest extends Specification {
           | {
           |   type         = "xml"
           |   id-field     = "uuid()"
-          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   feature-path = "ns:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
           |   options {
           |     line-mode  = "single"
           |   }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
-          |     { name = "number", path = "number",           transform = "$0::integer" }
-          |     { name = "color",  path = "color",            transform = "trim($0)" }
-          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
-          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "number", path = "ns:number",           transform = "$0::integer" }
+          |     { name = "color",  path = "ns:color",            transform = "trim($0)" }
+          |     { name = "weight", path = "ns:physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/ns:doc/ns:DataSource/ns:name/text()" }
           |   ]
+          |   xml-namespaces = {
+          |     ns = "http://geomesa.org/test-feature"
+          |   }
           | }
         """.stripMargin)
 
@@ -467,15 +475,18 @@ class XMLConverterTest extends Specification {
           | {
           |   type         = "xml"
           |   id-field     = "uuid()"
-          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   feature-path = "ns:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
-          |     { name = "number", path = "number",           transform = "$0::integer" }
-          |     { name = "color",  path = "color",            transform = "trim($0)" }
-          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
-          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "number", path = "ns:number",           transform = "$0::integer" }
+          |     { name = "color",  path = "ns:color",            transform = "trim($0)" }
+          |     { name = "weight", path = "ns:physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/ns:doc/ns:DataSource/ns:name/text()" }
           |   ]
+          |   xml-namespaces = {
+          |     ns = "http://geomesa.org/test-feature"
+          |   }
           | }
         """.stripMargin)
 
@@ -565,9 +576,6 @@ class XMLConverterTest extends Specification {
     }
 
     "support namespaces with saxon" >> {
-
-      skipped("requires saxon on the classpath")
-
       val xml =
         """<ns:doc xmlns:ns="http://geomesa.example.com/foo" xmlns:ns2="http://geomesa.example.com/foo2">
           |  <ns:DataSource>

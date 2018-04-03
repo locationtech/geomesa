@@ -166,6 +166,39 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
       }
     }
 
+    // turns out Geotools supports querying on string attributes with numeric greaterThan etc
+    "string queries" >> {
+      val ticker = new MockTicker
+
+      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
+      try {
+        val stringFilter = ECQL.toFilter("trackId > 0")
+
+        cache.put(track0v0)
+
+        cache.size() mustEqual 1
+        cache.query(stringFilter).size must be greaterThan 0
+      } finally {
+        cache.close()
+      }
+    }
+
+    "like queries" >> {
+      val ticker = new MockTicker
+
+      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
+      try {
+        val stringFilter = ECQL.toFilter("trackId ILIKE 'T%'")
+
+        cache.put(track0v0)
+
+        cache.size() mustEqual 1
+        cache.query(stringFilter).size must be greaterThan 0
+      } finally {
+        cache.close()
+      }
+    }
+
     "check consistency" >> {
       skipped("intermittent travis failures")
 

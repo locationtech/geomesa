@@ -13,16 +13,14 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
-import org.locationtech.geomesa.index.index.AttributeIndex
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 
 case object HBaseAttributeIndex extends HBaseLikeAttributeIndex with HBasePlatform
 
 trait HBaseLikeAttributeIndex extends HBaseFeatureIndex with HBaseIndexAdapter
     with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
-  override val version: Int = 4
+  override val version: Int = 5
 
-  override def configureColumnFamilyDescriptor(desc: HColumnDescriptor): Unit = {
+  override def configureColumnFamilyDescriptor(desc: HColumnDescriptor): Unit =
     desc.setDataBlockEncoding(DataBlockEncoding.FAST_DIFF)
-  }
-
 }

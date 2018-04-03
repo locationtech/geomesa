@@ -11,7 +11,7 @@ package org.locationtech.geomesa.hbase.index
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
-import org.locationtech.geomesa.index.index.IdIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
 
 case object HBaseIdIndex extends HBaseIdLikeIndex with HBasePlatform
 

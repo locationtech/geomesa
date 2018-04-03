@@ -48,10 +48,10 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
     del
   }
 
-  override protected def range(start: Array[Byte], end: Array[Byte]): Query =
+  override protected def createRange(start: Array[Byte], end: Array[Byte]): Query =
     new Scan(start, end).addColumn(DataColumnFamily, DataColumnQualifier)
 
-  override protected def rangeExact(row: Array[Byte]): Query =
+  override protected def createRange(row: Array[Byte]): Query =
     new Get(row).addColumn(DataColumnFamily, DataColumnQualifier)
 
   override protected def scanPlan(sft: SimpleFeatureType,

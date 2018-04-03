@@ -8,93 +8,74 @@
 
 package org.locationtech.geomesa.fs
 
-import java.awt.RenderingHints
-import java.{io, util}
-
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileContext, Path}
+import org.geotools.data.Query
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
-import org.geotools.data.{DataAccessFactory, DataStore, DataStoreFactorySpi, Query}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.{FileSystemStorageFactory, PartitionScheme}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
+import org.locationtech.geomesa.fs.storage.common.{Encodings, FileSystemStorageFactory}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.JavaConverters._
+import scala.concurrent.duration.Duration
 
-class FileSystemDataStore(val storage: FileSystemStorage, readThreads: Int)
-    extends ContentDataStore with HasGeoMesaStats with HasGeoMesaMetadata[String] {
+class FileSystemDataStore(fc: FileContext,
+                          conf: Configuration,
+                          root: Path,
+                          readThreads: Int,
+                          writeTimeout: Duration,
+                          defaultEncoding: Option[String])
+    extends ContentDataStore with HasGeoMesaStats with HasGeoMesaMetadata[String] with LazyLogging {
 
-  import scala.collection.JavaConversions._
+  private val manager = FileSystemStorageManager(fc, conf, root)
 
   override val metadata: GeoMesaMetadata[String] = new NoOpMetadata[String]
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
-  override def createTypeNames(): util.List[Name] = {
-    storage.getFeatureTypes.map(name => new NameImpl(getNamespaceURI, name.getTypeName) : Name).asJava
-  }
-
-  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
-    storage.getFeatureTypes.find(_.getTypeName == entry.getTypeName)
-      .getOrElse(throw new RuntimeException(s"Could not find feature type ${entry.getTypeName}"))
-    new FileSystemFeatureStore(storage, entry, Query.ALL, readThreads)
+  override def createTypeNames(): java.util.List[Name] = {
+    val names = new java.util.ArrayList[Name]()
+    manager.storages().foreach { storage =>
+      names.add(new NameImpl(getNamespaceURI, storage.getMetadata.getSchema.getTypeName))
+    }
+    names
   }
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
-    storage.createNewFeatureType(sft, PartitionScheme.extractFromSft(sft))
-  }
-}
+    manager.storage(sft.getTypeName) match {
+      case Some(s) =>
+        logger.warn("Schema already exists: " +
+          SimpleFeatureTypes.encodeType(s.getMetadata.getSchema, includeUserData = true))
 
-class FileSystemDataStoreFactory extends DataStoreFactorySpi {
-
-  import FileSystemDataStoreParams._
-
-  override def createDataStore(params: java.util.Map[String, io.Serializable]): DataStore = {
-    val storage = Option(FileSystemStorageFactory.getFileSystemStorage(params)).getOrElse {
-      throw new IllegalArgumentException("Can't create storage factory with the provided params")
+      case None =>
+        val encoding = Encodings.getEncoding(sft).getOrElse {
+          val enc = this.defaultEncoding.getOrElse {
+            throw new IllegalArgumentException("Encoding type must be specified in either " +
+                "the SimpleFeatureType user data or the data store parameters")
+          }
+          Encodings.setEncoding(sft, enc)
+          enc
+        }
+        val path = manager.defaultPath(sft.getTypeName)
+        val storage = FileSystemStorageFactory.factory(encoding).create(fc, conf, path, sft)
+        manager.register(path, storage)
     }
-
-    // Need to do more tuning here. On a local system 1 thread (so basic producer/consumer) was best
-    // because Parquet is also threading the reads underneath I think. using prod/cons pattern was
-    // about 30% faster but increasing beyond 1 thread slowed things down. This could be due to the
-    // cost of serializing simple features though. need to investigate more.
-    //
-    // However, if you are doing lots of filtering it appears that bumping the threads up high
-    // can be very useful. Seems possibly numcores/2 might is a good setting (which is a standard idea)
-
-    val readThreads = ReadThreadsParam.lookup(params)
-
-    val ds = new FileSystemDataStore(storage, readThreads)
-    NamespaceParam.lookupOpt(params).foreach(ds.setNamespaceURI)
-    ds
   }
 
-  override def createNewDataStore(params: java.util.Map[String, io.Serializable]): DataStore =
-    createDataStore(params)
+  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource =
+    new FileSystemFeatureStore(storage(entry.getTypeName), entry, Query.ALL, readThreads, writeTimeout)
 
-  override def isAvailable: Boolean = true
-
-  override def canProcess(params: java.util.Map[String, io.Serializable]): Boolean =
-    FileSystemStorageFactory.canProcess(params)
-
-  override def getParametersInfo: Array[DataAccessFactory.Param] = {
-    import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory.{ConfParam, EncodingParam, PathParam}
-    Array(EncodingParam, PathParam, ReadThreadsParam, ConfParam, NamespaceParam)
+  /**
+    * Get a handle on the underlying storage instance for a given simple feature type
+    *
+    * @param typeName simple feature type name
+    * @return
+    */
+  def storage(typeName: String): FileSystemStorage = manager.storage(typeName).getOrElse {
+    throw new IllegalArgumentException(s"Schema '$typeName' doesn't exist or could not be loaded")
   }
-
-  override def getDisplayName: String = "File System (GeoMesa)"
-
-  override def getDescription: String = "File System Based Data Store"
-
-  override def getImplementationHints: util.Map[RenderingHints.Key, _] =
-    new util.HashMap[RenderingHints.Key, Serializable]()
-}
-
-object FileSystemDataStoreParams extends NamespaceParams {
-  val WriterFileTimeout = SystemProperty("geomesa.fs.writer.partition.timeout", "60s")
-  val ReadThreadsParam  = new GeoMesaParam[Integer]("fs.read-threads", "Read Threads", default = 4)
 }

@@ -16,7 +16,6 @@ import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.EmptyFeatureCollection
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
@@ -106,9 +105,9 @@ class TubeSelectProcess extends GeoMesaProcess with LazyLogging {
 
 object GapFill extends Enumeration{
   type GapFill = Value
-  val NOFILL = Value("nofill")
-  val LINE = Value("line")
-  val INTERPOLATED = Value("interpolated")
+  val NOFILL: Value       = Value("nofill")
+  val LINE: Value         = Value("line")
+  val INTERPOLATED: Value = Value("interpolated")
 }
 
 class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
@@ -127,11 +126,11 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
 
   override def getResult: CalcResult = resultCalc
 
-  val ff  = CommonFactoryFinder.getFilterFactory2
-
-  val bufferDistance =  if(bufferSize > 0) bufferSize else maxSpeed * maxTime
+  private val bufferDistance = if (bufferSize > 0) { bufferSize } else { maxSpeed * maxTime }
 
   override def execute(source: SimpleFeatureSource, query: Query): Unit = {
+
+    import org.locationtech.geomesa.filter.ff
 
     logger.debug("Visiting source type: "+source.getClass.getName)
 

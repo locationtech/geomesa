@@ -64,6 +64,7 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
       case Avro           => new AvroExporter(createOutputStream(params.file, null), avroCompression)
       case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params.file, params.gzip), ArrowExporter.queryDictionaries(ds, query))
       case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, params.gzip))
+      case Leaflet        => new LeafletMapExporter(params)
       case Null           => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format ${params.outputFormat} can't be exported")
@@ -151,6 +152,8 @@ object ExportCommand extends LazyLogging {
   }
 
   def getWriter(params: FileExportParams): Writer = new OutputStreamWriter(createOutputStream(params.file, params.gzip))
+
+  def getWriter(file: File, compress: Integer): Writer = new OutputStreamWriter(createOutputStream(file, compress))
 
   def checkShpFile(params: FileExportParams): File = {
     if (params.file != null) { params.file } else {

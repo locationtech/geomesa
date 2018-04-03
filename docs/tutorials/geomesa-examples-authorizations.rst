@@ -678,7 +678,7 @@ When prompted, select the 'rod' certificate.
 You should see the normal data come back, with many red points
 indicating the data:
 
-.. figure:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png
+.. figure:: _static/geomesa-quickstart-gdelt-data/geoserver-layer-preview.png
    :alt: Authorized Results
 
    Authorized Results

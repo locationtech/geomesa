@@ -21,7 +21,7 @@ import org.locationtech.geomesa.hbase.index._
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
 import org.locationtech.geomesa.index.index.IndexAdapter
-import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -31,8 +31,8 @@ object BigtableFeatureIndex extends HBaseIndexManagerType {
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
     Seq(BigtableZ3Index, BigtableZ3IndexV1, BigtableXZ3Index, BigtableZ2Index, BigtableZ2IndexV1,
-      BigtableXZ2Index, BigtableIdIndex, BigtableAttributeIndex, BigtableAttributeIndexV3, BigtableAttributeIndexV2,
-      BigtableAttributeIndexV1)
+      BigtableXZ2Index, BigtableIdIndex, BigtableAttributeIndex, BigtableAttributeIndexV4, BigtableAttributeIndexV3,
+      BigtableAttributeIndexV2, BigtableAttributeIndexV1)
 
   override val CurrentIndices: Seq[HBaseFeatureIndex] =
     Seq(BigtableZ3Index, BigtableXZ3Index, BigtableZ2Index, BigtableXZ2Index, BigtableIdIndex, BigtableAttributeIndex)
@@ -75,7 +75,7 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
     originalRanges.map { r =>
       val g = r.asInstanceOf[Get]
       val start = g.getRow
-      val end = IndexAdapter.rowFollowingRow(start)
+      val end = ByteArrays.rowFollowingRow(start)
       new Scan(g).setStartRow(start).setStopRow(end).setSmall(true)
     }
   }
@@ -118,6 +118,7 @@ case object BigtableXZ2Index extends HBaseLikeXZ2Index with BigtablePlatform
 case object BigtableXZ3Index extends HBaseLikeXZ3Index with BigtablePlatform
 
 case object BigtableAttributeIndex extends HBaseLikeAttributeIndex with BigtablePlatform
+case object BigtableAttributeIndexV4 extends HBaseLikeAttributeIndexV4 with BigtablePlatform
 case object BigtableAttributeIndexV3 extends HBaseLikeAttributeIndexV3 with BigtablePlatform
 case object BigtableAttributeIndexV2 extends HBaseLikeAttributeIndexV2 with BigtablePlatform
 case object BigtableAttributeIndexV1 extends HBaseLikeAttributeIndexV1 with BigtablePlatform

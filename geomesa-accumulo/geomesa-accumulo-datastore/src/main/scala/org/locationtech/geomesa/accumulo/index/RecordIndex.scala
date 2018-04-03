@@ -14,7 +14,7 @@ import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloIndexAdapter.ScanConfig
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.index.IdIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 

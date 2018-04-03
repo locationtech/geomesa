@@ -55,6 +55,10 @@ class CQEngineQueryVisitorTest extends Specification {
             QF.or(
               QF.equal[SimpleFeature, String](whoAttr, "Addams"),
               QF.equal[SimpleFeature, String](whoAttr, "Bierce")))
+        ),
+        QueryTest(
+          ECQL.toFilter("strToUpperCase(Who) = 'ADDAMS'"),
+          QF.all(classOf[SimpleFeature])
         )
       )
       examplesBlock {

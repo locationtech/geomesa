@@ -10,12 +10,15 @@ package org.locationtech.geomesa.index.index.z3
 
 import java.util.Date
 
-import com.google.common.primitives.Shorts
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.factory.Hints
+import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.IndexKeySpace
+import org.locationtech.geomesa.index.index.IndexKeySpace._
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -27,37 +30,28 @@ import scala.util.control.NonFatal
 
 object XZ3IndexKeySpace extends XZ3IndexKeySpace
 
-trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues] {
+trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues, Z3IndexKey] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  override val indexKeyLength: Int = 10
+  override val indexKeyByteLength: Int = 10
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.nonPoints
 
-  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): (SimpleFeature) => Array[Byte] = {
+  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): SimpleFeature => Seq[Z3IndexKey] = {
     val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("XZ3 index requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+    getZValue(sfc, geomIndex, dtgIndex, timeToIndex, lenient)
+  }
 
-    (feature) => {
-      val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
-      if (geom == null) {
-        throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
-      }
-      val envelope = geom.getEnvelopeInternal
-      // TODO support date intervals (remember to remove disjoint data check in getRanges)
-      val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
-      val time = if (dtg == null) { 0L } else { dtg.getTime }
-      val BinnedTime(b, t) = timeToIndex(time)
-      val xz = try {
-        sfc.index(envelope.getMinX, envelope.getMinY, t, envelope.getMaxX, envelope.getMaxY, t, lenient)
-      } catch {
-        case NonFatal(e) => throw new IllegalArgumentException(s"Invalid xz value from geometry/time: $geom,$dtg", e)
-      }
-      ByteArrays.toBytes(b, xz)
-    }
+  override def toIndexKeyBytes(sft: SimpleFeatureType, lenient: Boolean): ToIndexKeyBytes = {
+    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
+    val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
+    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("XZ3 index requires a valid date"))
+    val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+    getZValueBytes(sfc, geomIndex, dtgIndex, timeToIndex, lenient)
   }
 
   override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): XZ3IndexValues = {
@@ -126,9 +120,8 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues] {
     XZ3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap)
   }
 
-  override def getRanges(sft: SimpleFeatureType, indexValues: XZ3IndexValues): Iterator[(Array[Byte], Array[Byte])] = {
-
-    val XZ3IndexValues(sfc, _, xy, _, timesByBin) = indexValues
+  override def getRanges(values: XZ3IndexValues): Iterator[ScanRange[Z3IndexKey]] = {
+    val XZ3IndexValues(sfc, _, xy, _, timesByBin) = values
 
     val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
 
@@ -138,9 +131,94 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues] {
     lazy val wholePeriodRanges = toZRanges(sfc.zBounds)
 
     timesByBin.iterator.flatMap { case (bin, times) =>
-      val b = Shorts.toByteArray(bin)
       val zs = if (times.eq(sfc.zBounds)) { wholePeriodRanges } else { toZRanges(times) }
-      zs.map(r => (ByteArrays.toBytes(b, r.lower), ByteArrays.toBytesFollowingPrefix(b, r.upper)))
+      zs.map(r => BoundedRange(Z3IndexKey(bin, r.lower), Z3IndexKey(bin, r.upper)))
     }
+  }
+
+  override def getRangeBytes(ranges: Iterator[ScanRange[Z3IndexKey]],
+                             prefixes: Seq[Array[Byte]],
+                             tier: Boolean): Iterator[ByteRange] = {
+    if (prefixes.isEmpty) {
+      ranges.map {
+        case BoundedRange(lo, hi) =>
+          BoundedByteRange(ByteArrays.toBytes(lo.bin, lo.z), ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z))
+
+        case r =>
+          throw new IllegalArgumentException(s"Unexpected range type $r")
+      }
+    } else {
+      ranges.flatMap {
+        case BoundedRange(lo, hi) =>
+          val lower = ByteArrays.toBytes(lo.bin, lo.z)
+          val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z)
+          prefixes.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
+
+        case r =>
+          throw new IllegalArgumentException(s"Unexpected range type $r")
+      }
+    }
+  }
+
+  // always apply the full filter to xz queries
+  override def useFullFilter(values: Option[XZ3IndexValues],
+                             config: Option[GeoMesaDataStoreConfig],
+                             hints: Hints): Boolean = true
+
+  private def getZValue(sfc: XZ3SFC,
+                        geomIndex: Int,
+                        dtgIndex: Int,
+                        timeToIndex: TimeToBinnedTime,
+                        lenient: Boolean)
+                       (feature: SimpleFeature): Seq[Z3IndexKey] = {
+    val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
+    }
+    val envelope = geom.getEnvelopeInternal
+    // TODO support date intervals (remember to remove disjoint data check in getRanges)
+    val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
+    val time = if (dtg == null) { 0L } else { dtg.getTime }
+    val BinnedTime(b, t) = timeToIndex(time)
+    val xz = try {
+      sfc.index(envelope.getMinX, envelope.getMinY, t, envelope.getMaxX, envelope.getMaxY, t, lenient)
+    } catch {
+      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid xz value from geometry/time: $geom,$dtg", e)
+    }
+    Seq(Z3IndexKey(b, xz))
+  }
+
+  // note: duplicated code to avoid having to create an index key instance
+  private def getZValueBytes(sfc: XZ3SFC,
+                             geomIndex: Int,
+                             dtgIndex: Int,
+                             timeToIndex: TimeToBinnedTime,
+                             lenient: Boolean)
+                            (prefix: Seq[Array[Byte]],
+                             feature: SimpleFeature,
+                             suffix: Array[Byte]): Seq[Array[Byte]] = {
+    val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
+    }
+    val envelope = geom.getEnvelopeInternal
+    // TODO support date intervals (remember to remove disjoint data check in getRanges)
+    val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
+    val time = if (dtg == null) { 0L } else { dtg.getTime }
+    val BinnedTime(b, t) = timeToIndex(time)
+    val xz = try {
+      sfc.index(envelope.getMinX, envelope.getMinY, t, envelope.getMaxX, envelope.getMaxY, t, lenient)
+    } catch {
+      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid xz value from geometry/time: $geom,$dtg", e)
+    }
+
+    // create the byte array - allocate a single array up front to contain everything
+    val bytes = Array.ofDim[Byte](prefix.map(_.length).sum + 10 + suffix.length)
+    var i = 0
+    prefix.foreach { p => System.arraycopy(p, 0, bytes, i, p.length); i += p.length }
+    ByteArrays.writeShort(b, bytes, i)
+    ByteArrays.writeLong(xz, bytes, i + 2)
+    System.arraycopy(suffix, 0, bytes, i + 10, suffix.length)
+    Seq(bytes)
   }
 }

@@ -160,13 +160,51 @@ class SparkSQLDataTest extends Specification with LazyLogging {
 
     "pushdown spatial predicates" >> {
       val pushdown = sc.sql("select geom from chicago where st_intersects(st_makeBox2d(st_point(-77, 38), st_point(-76, 39)), geom)")
-      val noPushdown = sc.sql("select geom from chicago where case_number = 1")
-
       val pushdownPlan = pushdown.queryExecution.optimizedPlan
-      val normalPlan = noPushdown.queryExecution.optimizedPlan
+
+      val pushdownDF = df.where("st_intersects(st_makeBox2D(st_point(-77, 38), st_point(-76, 39)), geom)")
+      val pushdownDFPlan = pushdownDF.queryExecution.optimizedPlan
+
+      val noPushdown = sc.sql("select geom from chicago where __fid__ = 1")
+      val noPushdownPlan = noPushdown.queryExecution.optimizedPlan
 
       pushdownPlan.children.head.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
-      normalPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains
+      pushdownDFPlan.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
+      noPushdownPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains at top level
+
+    }
+
+    "pushdown attribute filters" >> {
+      val pushdown = sc.sql("select geom from chicago where case_number = 1")
+      val pushdownPlan = pushdown.queryExecution.optimizedPlan
+
+      val pushdownDF = df.where("case_number = 1")
+      val pushdownDFPlan = pushdownDF.queryExecution.optimizedPlan
+
+      val noPushdown = sc.sql("select geom from chicago where __fid__ = 1")
+      val noPushdownPlan = noPushdown.queryExecution.optimizedPlan
+
+      pushdownPlan.children.head.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
+      pushdownDFPlan.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
+      noPushdownPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains at top level
+    }
+
+    "pushdown attribute comparison filters" >> {
+      val pushdownLt = sc.sql("select case_number from chicago where case_number < 2")
+      val pushdownLte = sc.sql("select case_number from chicago where case_number <= 2")
+      val pushdownGt = sc.sql("select case_number from chicago where case_number > 2")
+      val pushdownGte = sc.sql("select case_number from chicago where case_number >= 2")
+
+      // ensure all 4 were pushed down
+      val queries = Seq(pushdownLt, pushdownLte, pushdownGt, pushdownGte)
+      val plans = queries.map{ q => q.queryExecution.optimizedPlan.children.head.getClass }.toArray
+      plans mustEqual Array.fill(4)(classOf[LogicalRelation])
+
+      // ensure correct results
+      pushdownLt.first().get(0) mustEqual 1
+      pushdownLte.collect().map{ r=> r.get(0) } mustEqual Array(1, 2)
+      pushdownGt.first().get(0) mustEqual 3
+      pushdownGte.collect().map{ r=> r.get(0) } mustEqual Array(2, 3)
     }
 
     "st_translate" >> {

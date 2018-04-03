@@ -29,10 +29,6 @@ trait ClientSideFiltering[R] {
 
   this: GeoMesaFeatureIndex[_, _, _] =>
 
-  type EVALFEATURE = R => SimpleFeature
-  type EVALFEATUREOPTION = R => Option[SimpleFeature]
-
-
   /**
     * Get row and value bytes from a scan result
     *
@@ -88,7 +84,7 @@ trait ClientSideFiltering[R] {
     * @param sft simple feature type
     * @return
     */
-  def toFeaturesDirect(sft: SimpleFeatureType): EVALFEATURE = {
+  def toFeaturesDirect(sft: SimpleFeatureType): (R) => SimpleFeature = {
     val getId = getIdFromRow(sft)
     val deserializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
     (result) => {
@@ -106,7 +102,7 @@ trait ClientSideFiltering[R] {
     * @param ecql filter
     * @return
     */
-  def toFeaturesWithFilter(sft: SimpleFeatureType, ecql: Filter): EVALFEATUREOPTION = {
+  def toFeaturesWithFilter(sft: SimpleFeatureType, ecql: Filter): (R) => Option[SimpleFeature] = {
     val getId = getIdFromRow(sft)
     val deserializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
     (result) => {
@@ -129,7 +125,7 @@ trait ClientSideFiltering[R] {
   def toFeaturesWithTransform(sft: SimpleFeatureType,
                               transforms: Array[Definition],
                               indices: Array[Int],
-                              transformSft: SimpleFeatureType): EVALFEATURE = {
+                              transformSft: SimpleFeatureType): (R) => SimpleFeature = {
     val getId = getIdFromRow(sft)
     if (indices.contains(-1)) {
       // need to evaluate the expressions against the original feature
@@ -168,7 +164,7 @@ trait ClientSideFiltering[R] {
                                     ecql: Filter,
                                     transforms: Array[Definition],
                                     indices: Array[Int],
-                                    transformSft: SimpleFeatureType): EVALFEATUREOPTION = {
+                                    transformSft: SimpleFeatureType): (R) => Option[SimpleFeature] = {
     val getId = getIdFromRow(sft)
     if (indices.contains(-1)) {
       // need to evaluate the expressions against the original feature

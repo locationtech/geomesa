@@ -9,21 +9,19 @@
 package org.locationtech.geomesa.fs.storage.orc
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
 import org.apache.orc.OrcConf
-import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
+import org.locationtech.geomesa.fs.storage.common.{FileMetadata, FileSystemStorageFactory}
 
-class OrcFileSystemStorageFactory extends FileSystemStorageFactory[OrcFileSystemStorage] {
+class OrcFileSystemStorageFactory extends FileSystemStorageFactory {
 
-  override val encoding: String = OrcFileSystemStorage.OrcEncoding
+  override def getEncoding: String = OrcFileSystemStorage.OrcEncoding
 
-  override protected def build(path: Path,
-                               conf: Configuration,
-                               params: java.util.Map[String, java.io.Serializable]): OrcFileSystemStorage = {
+  override protected def load(conf: Configuration, metadata: FileMetadata): FileSystemStorage = {
     if (conf.get(OrcConf.USE_ZEROCOPY.getAttribute) == null &&
           conf.get(OrcConf.USE_ZEROCOPY.getHiveConfName) == null) {
       OrcConf.USE_ZEROCOPY.setBoolean(conf, true)
     }
-    new OrcFileSystemStorage(path.getFileSystem(conf), path, conf)
+    new OrcFileSystemStorage(conf, metadata)
   }
 }
