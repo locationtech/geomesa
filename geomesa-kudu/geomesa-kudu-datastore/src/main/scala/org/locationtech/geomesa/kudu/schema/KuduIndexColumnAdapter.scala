@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kudu.schema
 
-import java.util.Date
-
 import org.apache.kudu.ColumnSchema.{ColumnSchemaBuilder, CompressionAlgorithm, Encoding}
 import org.apache.kudu.client.{PartialRow, RowResult}
 import org.apache.kudu.{ColumnSchema, Type}
@@ -31,10 +29,11 @@ import org.opengis.filter.Filter
 abstract class KuduIndexColumnAdapter[T](val name: String,
                                          typed: Type,
                                          encoding: Encoding,
-                                         compression: CompressionAlgorithm) extends KuduColumnAdapter[T] {
+                                         compression: CompressionAlgorithm,
+                                         key: Boolean = true) extends KuduColumnAdapter[T] {
 
   val column: ColumnSchema = {
-    val builder = new ColumnSchemaBuilder(name, typed).key(true)
+    val builder = new ColumnSchemaBuilder(name, typed).key(key)
     builder.encoding(encoding)
     builder.compressionAlgorithm(compression)
     KuduSystemProperties.BlockSize.option.map(_.toInt).foreach(builder.desiredBlockSize)
@@ -48,7 +47,7 @@ abstract class KuduIndexColumnAdapter[T](val name: String,
 object KuduIndexColumnAdapter {
 
   import CompressionAlgorithm.NO_COMPRESSION
-  import Encoding.{BIT_SHUFFLE, PLAIN_ENCODING, PREFIX_ENCODING, RLE}
+  import Encoding._
   import Type._
   import org.locationtech.geomesa.kudu.utils.ColumnConfiguration.compression
 
@@ -98,5 +97,15 @@ object KuduIndexColumnAdapter {
       extends KuduIndexColumnAdapter[Array[Byte]]("secondary", BINARY, PREFIX_ENCODING, compression()) {
     override def readFromRow(row: RowResult): Array[Byte] = row.getBinaryCopy(name)
     override def writeToRow(row: PartialRow, value: Array[Byte]): Unit = row.addBinary(name, value)
+  }
+
+  object VisibilityAdapter
+      extends KuduIndexColumnAdapter[String]("vis", STRING, DICT_ENCODING, compression(), false) {
+    override def readFromRow(row: RowResult): String = {
+      val vis = row.getString(name)
+      if (vis.isEmpty) { null } else { vis }
+    }
+    override def writeToRow(row: PartialRow, value: String): Unit =
+      row.addString(name, if (value == null) { "" } else { value })
   }
 }

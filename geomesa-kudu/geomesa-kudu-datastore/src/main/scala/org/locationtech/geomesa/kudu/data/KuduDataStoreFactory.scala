@@ -19,6 +19,8 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.kudu.data.KuduDataStoreFactory.KuduDataStoreConfig
+import org.locationtech.geomesa.security
+import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
@@ -53,11 +55,15 @@ class KuduDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     }
 
     val generateStats = GenerateStatsParam.lookup(params)
-    val audit = if (AuditQueriesParam.lookup(params)) {
+    val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
       Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "kudu")
-    } else {
-      None
     }
+    val authProvider = {
+      // get the auth params passed in as a comma-delimited string
+      val auths = AuthsParam.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty)).getOrElse(Array.empty)
+      security.getAuthorizationsProvider(params, auths)
+    }
+
     val caching = CachingParam.lookup(params)
 
     val catalog = CatalogParam.lookup(params)
@@ -70,7 +76,8 @@ class KuduDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    val cfg = KuduDataStoreConfig(catalog, generateStats, audit, caching, queryThreads, queryTimeout, looseBBox, ns)
+    val cfg = KuduDataStoreConfig(catalog, generateStats, authProvider, audit, caching,
+      queryThreads, queryTimeout, looseBBox, ns)
 
     new KuduDataStore(client, cfg)
   }
@@ -87,6 +94,7 @@ class KuduDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       BossThreadsParam,
       GenerateStatsParam,
       AuditQueriesParam,
+      AuthsParam,
       LooseBBoxParam,
       CachingParam,
       QueryThreadsParam,
@@ -105,6 +113,7 @@ object KuduDataStoreFactory {
   val DisplayName = "Kudu (GeoMesa)"
   val Description = "Apache Kudu\u2122 columnar store"
 
+  // noinspection TypeAnnotation
   object Params extends GeoMesaDataStoreParams {
 
     override protected def looseBBoxDefault = false
@@ -115,10 +124,12 @@ object KuduDataStoreFactory {
     val WorkerThreadsParam = new GeoMesaParam[Integer]("kudu.worker.threads", "Number of worker threads")
     val BossThreadsParam   = new GeoMesaParam[Integer]("kudu.boss.threads", "Number of boss threads")
     val StatisticsParam    = new GeoMesaParam[java.lang.Boolean]("kudu.client.stats", "Enable Kudu client statistics")
+    val AuthsParam         = org.locationtech.geomesa.security.AuthsParam
   }
 
   case class KuduDataStoreConfig(catalog: String,
                                  generateStats: Boolean,
+                                 authProvider: AuthorizationsProvider,
                                  audit: Option[(AuditWriter, AuditProvider, String)],
                                  caching: Boolean,
                                  queryThreads: Int,

@@ -49,6 +49,7 @@ object ColumnConfiguration extends LazyLogging {
     override def apply(builder: ColumnSchemaBuilder): ColumnSchemaBuilder = {
       encoding.foreach(builder.encoding)
       compression.foreach(builder.compressionAlgorithm)
+      KuduSystemProperties.BlockSize.option.map(_.toInt).foreach(builder.desiredBlockSize)
       builder
     }
   }

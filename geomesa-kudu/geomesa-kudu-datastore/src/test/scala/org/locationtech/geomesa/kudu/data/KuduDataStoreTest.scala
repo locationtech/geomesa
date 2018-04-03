@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -38,18 +39,19 @@ class KuduDataStoreTest extends Specification {
 
   lazy val params = Map(
     "kudu.master" -> "localhost",
-    "kudu.catalog" -> "geomesa"
+    "kudu.catalog" -> "geomesa",
+    "geomesa.security.auths" -> "admin"
   )
 
   step {
     ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[KuduDataStore]
   }
 
-  val write = {
-//    true
-    false
-  }
   val query = {
+    true
+//    false
+  }
+  val write = {
 //    true
     false
   }
@@ -116,6 +118,12 @@ class KuduDataStoreTest extends Specification {
         sf.setAttribute(1, Int.box(i))
         sf.setAttribute(2, f"2014-01-${i + 1}%02dT00:00:01.000Z")
         sf.setAttribute(3, s"POINT(4$i 5$i)")
+        val vis = i % 3 match {
+          case 0 => null
+          case 1 => "user|admin"
+          case 2 => "admin"
+        }
+        SecurityUtils.setFeatureVisibility(sf, vis)
         sf
       }
 

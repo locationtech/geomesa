@@ -20,7 +20,7 @@ import org.locationtech.geomesa.kudu.index.KuduFeatureIndex
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class KuduDataStore(val client: KuduClient, config: KuduDataStoreConfig)
+class KuduDataStore(val client: KuduClient, override val config: KuduDataStoreConfig)
     extends KuduDataStoreType(config) with LocalLocking {
 
   override val metadata: GeoMesaMetadata[String] =

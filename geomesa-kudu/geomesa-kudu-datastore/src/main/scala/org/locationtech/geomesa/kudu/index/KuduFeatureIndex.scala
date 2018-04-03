@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.kudu.index
 
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.kudu.Schema
 import org.apache.kudu.client.SessionConfiguration.FlushMode
 import org.apache.kudu.client._
+import org.apache.kudu.{ColumnSchema, Schema}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -25,10 +26,12 @@ import org.locationtech.geomesa.kudu.data.KuduQueryPlan.{EmptyPlan, ScanPlan}
 import org.locationtech.geomesa.kudu.data._
 import org.locationtech.geomesa.kudu.index.z2.{KuduXZ2Index, KuduZ2Index}
 import org.locationtech.geomesa.kudu.index.z3.{KuduXZ3Index, KuduZ3Index}
+import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter.VisibilityAdapter
 import org.locationtech.geomesa.kudu.schema.KuduResultAdapter.ResultAdapter
 import org.locationtech.geomesa.kudu.schema.KuduSimpleFeatureSchema.KuduFilter
 import org.locationtech.geomesa.kudu.schema.{KuduColumnAdapter, KuduResultAdapter, KuduSimpleFeatureSchema}
 import org.locationtech.geomesa.kudu.utils.RichKuduClient.SessionHolder
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.KVPairParser
@@ -238,9 +241,13 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
       val fullFilter =
         if (keySpace.useFullFilter(indexValues, Some(ds.config), hints)) { filter.filter } else { filter.secondary }
 
+      val auths = ds.config.authProvider.getAuthorizations.asScala.map(_.getBytes(StandardCharsets.UTF_8))
+
       // create push-down predicates and remove from the ecql where possible
       val KuduFilter(predicates, ecql) = fullFilter.map(schema.predicate).getOrElse(KuduFilter(Seq.empty, None))
-      val ResultAdapter(cols, toFeatures) = KuduResultAdapter.resultsToFeatures(sft, schema, ecql, hints.getTransform)
+
+      val ResultAdapter(cols, toFeatures) =
+        KuduResultAdapter.resultsToFeatures(sft, schema, ecql, hints.getTransform, auths)
 
       ScanPlan(filter, table, cols, ranges.toSeq, predicates, ecql, ds.config.queryThreads, toFeatures)
     }
@@ -257,7 +264,11 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
     val key = CacheKeyGenerator.cacheKey(sft)
     var schema = tableSchemas.get(key)
     if (schema == null) {
-      schema = new Schema((keyColumns.flatMap(_.columns) ++ KuduFeatureIndex.schema(sft).schema).asJava)
+      val cols = new java.util.ArrayList[ColumnSchema]()
+      keyColumns.flatMap(_.columns).foreach(cols.add)
+      cols.add(VisibilityAdapter.column)
+      KuduFeatureIndex.schema(sft).schema.foreach(cols.add)
+      schema = new Schema(cols)
       tableSchemas.put(key, schema)
     }
     schema
@@ -270,12 +281,14 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
                            toIndexKey: SimpleFeature => Seq[U])
                           (kf: KuduFeature): Seq[WriteOperation] = {
     val featureValues = schema.serialize(kf.feature)
+    val vis = SecurityUtils.getVisibility(kf.feature)
     val partitioning = () => createPartition(sft, table, splitters, kf.bin)
     createKeyValues(toIndexKey)(kf).map { key =>
       val upsert = table.newUpsert()
       val row = upsert.getRow
       key.foreach(_.writeToRow(row))
       featureValues.foreach(_.writeToRow(row))
+      VisibilityAdapter.writeToRow(row, vis)
       WriteOperation(upsert, s"$identifier.${kf.bin}", partitioning)
     }
   }

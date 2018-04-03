@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.kudu.index
 
+import java.nio.charset.StandardCharsets
+
 import org.apache.kudu.Schema
 import org.apache.kudu.client.{KuduTable, PartialRow}
 import org.geotools.factory.Hints
@@ -16,13 +18,17 @@ import org.locationtech.geomesa.index.index.IndexKeySpace._
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.kudu.data.KuduQueryPlan.{EmptyPlan, ScanPlan}
 import org.locationtech.geomesa.kudu.data.{KuduDataStore, KuduFeature}
+import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter.VisibilityAdapter
 import org.locationtech.geomesa.kudu.schema.KuduResultAdapter.ResultAdapter
 import org.locationtech.geomesa.kudu.schema.KuduSimpleFeatureSchema.KuduFilter
 import org.locationtech.geomesa.kudu.schema.{KuduResultAdapter, KuduSimpleFeatureSchema}
 import org.locationtech.geomesa.kudu.{KuduFilterStrategyType, KuduQueryPlanType, KuduValue, WriteOperation}
+import org.locationtech.geomesa.security.SecurityUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait KuduTieredFeatureIndex[T, U] extends KuduFeatureIndex[T, U] {
+
+  import scala.collection.JavaConverters._
 
   /**
     * Tiered key space beyond the primary one, if any
@@ -92,9 +98,12 @@ trait KuduTieredFeatureIndex[T, U] extends KuduFeatureIndex[T, U] {
         val fullFilter =
           if (keySpace.useFullFilter(Some(values), Some(ds.config), hints)) { filter.filter } else { filter.secondary }
 
+        val auths = ds.config.authProvider.getAuthorizations.asScala.map(_.getBytes(StandardCharsets.UTF_8))
+
         val KuduFilter(predicates, ecql) = fullFilter.map(schema.predicate).getOrElse(KuduFilter(Seq.empty, None))
 
-        val ResultAdapter(cols, toFeatures) = KuduResultAdapter.resultsToFeatures(sft, schema, ecql, hints.getTransform)
+        val ResultAdapter(cols, toFeatures) =
+          KuduResultAdapter.resultsToFeatures(sft, schema, ecql, hints.getTransform, auths)
 
         val table = getTableName(sft.getTypeName, ds)
 
@@ -111,12 +120,14 @@ trait KuduTieredFeatureIndex[T, U] extends KuduFeatureIndex[T, U] {
                            toTieredIndexKey: SimpleFeature => Seq[Array[Byte]])
                           (kf: KuduFeature): Seq[WriteOperation] = {
     val featureValues = schema.serialize(kf.feature)
+    val vis = SecurityUtils.getVisibility(kf.feature)
     val partitioning = () => createPartition(sft, table, splitters, kf.bin)
     createKeyValues(toIndexKey, toTieredIndexKey)(kf).map { key =>
       val upsert = table.newUpsert()
       val row = upsert.getRow
       key.foreach(_.writeToRow(row))
       featureValues.foreach(_.writeToRow(row))
+      VisibilityAdapter.writeToRow(row, vis)
       WriteOperation(upsert, s"$identifier.${kf.bin}", partitioning)
     }
   }

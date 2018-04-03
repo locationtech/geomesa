@@ -51,6 +51,7 @@ trait KuduColumnAdapter[T] {
 object KuduColumnAdapter {
 
   import KuduPredicate.newComparisonPredicate
+
   import scala.collection.JavaConverters._
 
   private val gf = JTSFactoryFinder.getGeometryFactory
