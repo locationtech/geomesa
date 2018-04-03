@@ -27,7 +27,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
   sequential
 
-  val wholeWorldFilter = ECQL.toFilter("INTERSECTS(geom, POLYGON((null80 -90, null80 90, 0 90, 180 90, 180 -90, 0 -90, null80 -90)))")
+  val wholeWorldFilter = ECQL.toFilter("INTERSECTS(geom, POLYGON((-180 -90, -180 90, 0 90, 180 90, 180 -90, 0 -90, -180 -90)))")
 
   val sft = SimpleFeatureTypes.createType("track", "trackId:String,*geom:Point:srid=4326")
 
