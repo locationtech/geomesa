@@ -29,7 +29,7 @@ class RowGeoJSON(structType: StructType, geomOrdinal: Int) {
     if (geometry != null) {
       sb.append(geomJson.write(row.getAs[Geometry](geomOrdinal))) // write geometry
     } else {
-      sb.append(""" "null" """)
+      sb.append("null")
     }
 
     sb.append(""", "properties":{ """) // start properties

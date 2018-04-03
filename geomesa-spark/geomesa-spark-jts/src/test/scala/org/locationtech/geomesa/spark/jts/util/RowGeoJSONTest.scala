@@ -155,7 +155,7 @@ class RowGeoJSONTest extends Specification with TestEnvironment {
 
       val geoms = res.map(geojson => jsonParser.parse(geojson).asInstanceOf[JSONObject].get("geometry"))
       geoms(0) mustEqual jsonParser.parse("""{"type": "Point", "coordinates": [1, 1] }""")
-      geoms(1) mustEqual jsonParser.parse(""""null"""")
+      geoms(1) mustEqual jsonParser.parse("null")
       geoms(2) mustEqual jsonParser.parse("""{"type": "Point", "coordinates": [3, 3] }""")
     }
   }
