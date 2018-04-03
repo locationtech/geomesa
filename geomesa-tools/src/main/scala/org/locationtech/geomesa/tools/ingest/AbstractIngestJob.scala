@@ -31,7 +31,8 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
                                  typeName: String,
                                  paths: Seq[String],
                                  libjarsFile: String,
-                                 libjarsPaths: Iterator[() => Seq[File]]) extends JobWithLibJars {
+                                 libjarsPaths: Iterator[() => Seq[File]],
+                                 configuration: Option[Configuration] = None) extends JobWithLibJars {
 
   def inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]]
   def written(job: Job): Long
@@ -39,7 +40,7 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
 
   def run(statusCallback: StatusCallback): (Long, Long) = {
 
-    val job = Job.getInstance(new Configuration, "GeoMesa Tools Ingest")
+    val job = Job.getInstance(configuration.getOrElse(new Configuration), "GeoMesa Tools Ingest")
 
     setLibJars(job, libjarsFile, libjarsPaths)
 

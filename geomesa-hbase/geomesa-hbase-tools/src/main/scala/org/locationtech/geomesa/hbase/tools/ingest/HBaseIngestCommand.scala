@@ -11,13 +11,17 @@ package org.locationtech.geomesa.hbase.tools.ingest
 import java.io.File
 
 import com.beust.jcommander.Parameters
+import com.typesafe.config.Config
 import org.apache.hadoop.hbase.client.Connection
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand.HBaseIngestParams
-import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
+import org.locationtech.geomesa.tools.ingest.{ConverterIngest, IngestCommand, IngestParams}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+import org.opengis.feature.simple.SimpleFeatureType
+
+import collection.JavaConversions._
 
 class HBaseIngestCommand extends IngestCommand[HBaseDataStore] with HBaseDataStoreCommand {
 
@@ -32,6 +36,12 @@ class HBaseIngestCommand extends IngestCommand[HBaseDataStore] with HBaseDataSto
     () => ClassPathUtils.getJarsFromClasspath(classOf[HBaseDataStore]),
     () => ClassPathUtils.getJarsFromClasspath(classOf[Connection])
   )
+
+  override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
+    val conf = withDataStore(hds => hds.connection.getConfiguration)
+    new ConverterIngest(sft, connection, converterConfig, params.files, Option(params.mode),
+    libjarsFile, libjarsPaths, params.threads, Some(conf))
+  }
 }
 
 object HBaseIngestCommand {
