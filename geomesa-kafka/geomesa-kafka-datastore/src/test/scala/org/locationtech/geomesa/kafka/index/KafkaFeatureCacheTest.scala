@@ -27,7 +27,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
   sequential
 
-  val wholeWorldFilter = ECQL.toFilter("INTERSECTS(geom, POLYGON((-180 -90, -180 90, 0 90, 180 90, 180 -90, 0 -90, -180 -90)))")
+  val wholeWorldFilter = ECQL.toFilter("INTERSECTS(geom, POLYGON((null80 -90, null80 90, 0 90, 180 90, 180 -90, 0 -90, null80 -90)))")
 
   val sft = SimpleFeatureTypes.createType("track", "trackId:String,*geom:Point:srid=4326")
 
@@ -46,8 +46,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
              cleanUp: Duration = Duration.Inf,
              consistency: Duration = Duration.Inf)
             (implicit ticker: Ticker = Ticker.systemTicker()) =
-    Iterator(new FeatureCacheCqEngine(sft, expiry, false, -1, cleanUp, consistency),
-      new FeatureCacheGuava(sft, expiry, false, -1, cleanUp, consistency))
+    Iterator(new FeatureCacheCqEngine(sft, expiry, false, null, cleanUp, consistency),
+      new FeatureCacheGuava(sft, expiry, false, null, cleanUp, consistency))
 
   "KafkaFeatureCache" should {
 
@@ -170,7 +170,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
     "string queries" >> {
       val ticker = new MockTicker
 
-      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, false, -1, Duration.Inf, Duration("10ms"))(ticker)
+      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, false, null, Duration.Inf, Duration("10ms"))(ticker)
       try {
         val stringFilter = ECQL.toFilter("trackId > 0")
 
@@ -186,7 +186,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
     "like queries" >> {
       val ticker = new MockTicker
 
-      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, false, -1, Duration.Inf, Duration("10ms"))(ticker)
+      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, false, null, Duration.Inf, Duration("10ms"))(ticker)
       try {
         val stringFilter = ECQL.toFilter("trackId ILIKE 'T%'")
 
@@ -204,7 +204,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
       val ticker = new MockTicker
 
-      val cache = new FeatureCacheGuava(sft, Duration.Inf, false, -1, Duration.Inf, Duration("10ms"))(ticker)
+      val cache = new FeatureCacheGuava(sft, Duration.Inf, false, null, Duration.Inf, Duration("10ms"))(ticker)
       try {
         cache.put(track0v0)
 

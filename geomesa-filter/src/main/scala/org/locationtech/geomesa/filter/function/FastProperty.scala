@@ -24,7 +24,12 @@ class FastProperty extends FunctionExpressionImpl(FastProperty.Name) {
 
   override def evaluate(o: AnyRef): AnyRef = {
     if (idx == -1) {
-      idx = getExpression(0).evaluate(null).asInstanceOf[Long].toInt
+      val tmp = getExpression(0).evaluate(null)
+      idx =
+        tmp match {
+          case long: java.lang.Long => long.toInt
+          case _ => tmp.asInstanceOf[java.lang.Integer]
+        }
     }
     o.asInstanceOf[SimpleFeature].getAttribute(idx)
   }

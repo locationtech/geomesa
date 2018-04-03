@@ -12,6 +12,7 @@ import java.time.Instant
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Coordinate
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -27,11 +28,15 @@ class FeatureCacheEventTimeOrderingTest extends Specification {
 
   private val sft = SimpleFeatureTypes.createType("track", "trackId:String,dtg:Date:default=true,*geom:Point:srid=4326")
   private val gf = JTSFactoryFinder.getGeometryFactory
+  private val ff = CommonFactoryFinder.getFilterFactory2
+  private val expr = ff.function("fastProperty", ff.literal(sft.indexOf("dtg")))
+
   "FeatureCacheEventTimeOrdering" should {
     "respect event time when used with guava" >> {
       implicit val ticker = new MockTicker
-      val delegate = new FeatureCacheGuava(sft, Duration.Inf, false, -1)
-      val cache = new FeatureCacheEventTimeOrdering(delegate, sft.indexOf("dtg"))
+      val delegate = new FeatureCacheGuava(sft, Duration.Inf, false, null)
+
+      val cache = new FeatureCacheEventTimeOrdering(delegate, expr)
 
       val now = Instant.now()
 
@@ -57,8 +62,8 @@ class FeatureCacheEventTimeOrderingTest extends Specification {
 
     "respect event time when used with cqengine" >> {
       implicit val ticker = new MockTicker
-      val delegate = new FeatureCacheCqEngine(sft, Duration.Inf, false, -1)
-      val cache = new FeatureCacheEventTimeOrdering(delegate, sft.indexOf("dtg"))
+      val delegate = new FeatureCacheCqEngine(sft, Duration.Inf, false, null)
+      val cache = new FeatureCacheEventTimeOrdering(delegate, expr)
 
       val now = Instant.now()
 

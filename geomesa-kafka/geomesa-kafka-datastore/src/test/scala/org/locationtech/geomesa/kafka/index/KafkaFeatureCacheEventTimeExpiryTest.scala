@@ -12,6 +12,7 @@ import java.time.Instant
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Coordinate
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -26,13 +27,15 @@ import scala.concurrent.duration.Duration
 class KafkaFeatureCacheEventTimeExpiryTest extends Specification {
   private val sft = SimpleFeatureTypes.createType("track", "trackId:String,dtg:Date:default=true,*geom:Point:srid=4326")
   private val gf = JTSFactoryFinder.getGeometryFactory
+  private val ff = CommonFactoryFinder.getFilterFactory2
+  private val expr = ff.function("fastProperty", ff.literal(sft.indexOf("dtg")))
 
   sequential
 
   "KafkaFeatureCache" should {
     val ticker = new MockTicker
 
-    val cache = new FeatureCacheGuava(sft, Duration("100s"), true, sft.indexOf("dtg"), Duration.Inf, Duration.Inf)(ticker)
+    val cache = new FeatureCacheGuava(sft, Duration("100s"), true, expr, Duration.Inf, Duration.Inf)(ticker)
 
     "Respect event-time expiry" in {
       sequential
@@ -132,6 +135,27 @@ class KafkaFeatureCacheEventTimeExpiryTest extends Specification {
       "alreadyExpired" >> { alreadyExpired must beFalse }
       "update1" >> { update1 must beTrue }
       "update2" >> { update2 must beFalse }
+    }
+
+    "deal with sft's without a dtg" in {
+      val sft = SimpleFeatureTypes.createType("track", "trackId:String,dtg:String:default=true,*geom:Point:srid=4326")
+      val expr = ff.function("longToDate", ff.function("parseLong", ff.function("fastProperty", ff.literal(sft.indexOf("dtg")))))
+
+      implicit val ticker = new MockTicker
+      ticker.millis = Instant.now().toEpochMilli
+      val cache = new FeatureCacheGuava(sft, Duration("100s"), true, expr, Duration.Inf, Duration.Inf)(ticker)
+
+      val sf = ScalaSimpleFeature.create(sft, "1", "first", Instant.now().getEpochSecond.toString, gf.createPoint(new Coordinate(0, 0)))
+
+      cache.put(sf)
+      val check1 = cache.query("1").isDefined
+
+      // advance ticker
+      ticker.millis += 100*1000
+      cache.cleanUp()
+      val check2 = cache.query("1").isDefined
+      "feature must be there" >> {  check1 must beTrue }
+      "feature must not be there" >> {  check2 must beFalse }
     }
   }
 }

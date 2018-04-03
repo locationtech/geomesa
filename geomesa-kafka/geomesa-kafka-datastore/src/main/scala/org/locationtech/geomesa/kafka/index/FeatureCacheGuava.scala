@@ -19,6 +19,7 @@ import org.locationtech.geomesa.kafka.index.KafkaFeatureCache.AbstractKafkaFeatu
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.index.{BucketIndex, SpatialIndex}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.expression.Expression
 import org.opengis.filter.{Filter, Id}
 
 import scala.concurrent.duration.Duration
@@ -26,7 +27,7 @@ import scala.concurrent.duration.Duration
 class FeatureCacheGuava(val sft: SimpleFeatureType,
                         expiry: Duration,
                         eventTimeExpiry: Boolean,
-                        eventTimeAttribute: Int,
+                        eventTimeAttribute: Expression,
                         cleanup: Duration = Duration.Inf,
                         consistency: Duration = Duration.Inf)
                        (implicit ticker: Ticker)
@@ -38,7 +39,7 @@ class FeatureCacheGuava(val sft: SimpleFeatureType,
   private val map = cache.asMap().asScala
   private var index = newSpatialIndex()
 
-  override def getEventTime(f: FeatureHolder): Date = f.sf.get[Date](eventTimeAttribute)
+  override def getEventTime(f: FeatureHolder): Date = eventTimeAttribute.evaluate(f.sf).asInstanceOf[Date]
 
   override def spatialIndex: SpatialIndex[SimpleFeature] = index
 

@@ -12,20 +12,19 @@ import java.util.Date
 
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+import org.opengis.filter.expression.Expression
 import org.slf4j.LoggerFactory
 
-class FeatureCacheEventTimeOrdering(baseCache: KafkaFeatureCache, attr: Int) extends KafkaFeatureCache {
+class FeatureCacheEventTimeOrdering(baseCache: KafkaFeatureCache, attr: Expression) extends KafkaFeatureCache {
   private val log = LoggerFactory.getLogger(classOf[FeatureCacheEventTimeOrdering])
-
-  import org.locationtech.geomesa.utils.geotools.Conversions._
 
   override def put(feature: SimpleFeature): Unit = {
     baseCache.query(feature.getID) match {
       case None => baseCache.put(feature)
 
       case Some(cur) =>
-        val dtg = feature.get[Date](attr)
-        val curDate = cur.get[Date](attr)
+        val dtg = attr.evaluate(feature).asInstanceOf[Date]
+        val curDate = attr.evaluate(cur).asInstanceOf[Date]
         if(curDate.before(dtg)) {
           baseCache.put(feature)
         } else {
