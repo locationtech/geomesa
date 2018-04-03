@@ -15,4 +15,10 @@
       </bean>
     </property>
   </bean>
+
+  <bean name="analyticsDataPersistence" class="org.locationtech.geomesa.utils.cache.FilePersistence">
+    <constructor-arg index="0" ref="geomesaConfigDir"/>
+    <constructor-arg index="1" value="geomesa-analytics"/>
+  </bean>
+
 </beans>
