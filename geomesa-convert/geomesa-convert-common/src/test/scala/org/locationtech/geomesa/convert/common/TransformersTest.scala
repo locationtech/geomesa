@@ -146,6 +146,10 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "  ")) must beNull
           exp.eval(Array("", null)) must beNull
         }
+        "printf" >> {
+          val exp = Transformers.parseTransform("printf('%s-%s-%sT00:00:00.000Z', '2015', '01', '01')")
+          exp.eval(Array()) mustEqual "2015-01-01T00:00:00.000Z"
+        }
       }
 
       "handle non-string literals" >> {
@@ -274,6 +278,10 @@ class TransformersTest extends Specification {
           val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
           val exp = Transformers.parseTransform("dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
           exp.eval(Array("", Date.from(d.toInstant(ZoneOffset.UTC)))).asInstanceOf[String] must be equalTo fmt.format(d)
+        }
+        "work with the printf functions" >> {
+          val exp = Transformers.parseTransform("datetime(printf('%s-%s-%sT00:00:00.000Z', $1, $2, $3))")
+          exp.eval(Array("", "2015", "01", "01")) must be equalTo testDate
         }
       }
 
@@ -537,7 +545,14 @@ class TransformersTest extends Specification {
         val exp1 = Transformers.parseTransform("max($1,$2,$3,$4)::int")
         exp1.eval(Array("","1","2","3","4")) mustEqual 4
       }
-
+      "allow for number formatting using printf" >> {
+        val exp = Transformers.parseTransform("printf('%.2f', divide($1,$2,$3))")
+        exp.eval(Array("","-1","2","3.0")) mustEqual "-0.17"
+      }
+      "allow for number formatting using printf" >> {
+        val exp = Transformers.parseTransform("printf('%.2f', divide(-1, 2, 3))")
+        exp.eval(Array()) mustEqual "-0.17"
+      }
     }
 
     "handle predicates" >> {
