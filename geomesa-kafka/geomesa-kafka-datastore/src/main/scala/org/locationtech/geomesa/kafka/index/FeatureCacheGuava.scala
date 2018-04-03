@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.kafka.index
 
+import java.util.Date
+
 import com.github.benmanes.caffeine.cache._
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
@@ -23,16 +25,20 @@ import scala.concurrent.duration.Duration
 
 class FeatureCacheGuava(val sft: SimpleFeatureType,
                         expiry: Duration,
+                        eventTimeExpiry: Boolean,
+                        eventTimeAttribute: Int,
                         cleanup: Duration = Duration.Inf,
                         consistency: Duration = Duration.Inf)
                        (implicit ticker: Ticker)
-    extends AbstractKafkaFeatureCache[FeatureHolder](expiry, cleanup, consistency)(ticker)
+    extends AbstractKafkaFeatureCache[FeatureHolder](expiry, cleanup, consistency, eventTimeExpiry)(ticker)
       with SpatialIndexSupport with LazyLogging {
 
   import scala.collection.JavaConverters._
 
   private val map = cache.asMap().asScala
   private var index = newSpatialIndex()
+
+  override def getEventTime(f: FeatureHolder): Date = f.sf.get[Date](eventTimeAttribute)
 
   override def spatialIndex: SpatialIndex[SimpleFeature] = index
 

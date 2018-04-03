@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.kafka.index
 
+import java.util.Date
+
 import com.github.benmanes.caffeine.cache._
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache.AbstractKafkaFeatureCache
@@ -20,14 +22,18 @@ import scala.concurrent.duration.Duration
 
 class FeatureCacheCqEngine(sft: SimpleFeatureType,
                            expiry: Duration,
+                           eventTimeExpiry: Boolean,
+                           eventTimeAttribute: Int,
                            cleanup: Duration = Duration.Inf,
                            consistency: Duration = Duration.Inf)
                           (implicit ticker: Ticker)
-    extends AbstractKafkaFeatureCache[SimpleFeature](expiry, cleanup, consistency) with LazyLogging {
+    extends AbstractKafkaFeatureCache[SimpleFeature](expiry, cleanup, consistency, eventTimeExpiry) with LazyLogging {
 
   // TODO docs on cq indices
 
   private val cqEngine = new GeoCQEngine(sft)
+
+  override def getEventTime(f: SimpleFeature): Date = f.get[Date](eventTimeAttribute)
 
   override def query(id: String): Option[SimpleFeature] = Option(cache.getIfPresent(id))
 

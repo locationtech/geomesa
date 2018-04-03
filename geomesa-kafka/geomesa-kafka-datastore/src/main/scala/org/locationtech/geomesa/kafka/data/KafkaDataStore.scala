@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringS
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
-import org.locationtech.geomesa.kafka.index.{FeatureCacheCqEngine, FeatureCacheGuava, KafkaQueryRunner}
+import org.locationtech.geomesa.kafka.index.{FeatureCacheCqEngine, FeatureCacheEventTimeOrdering, FeatureCacheGuava, KafkaQueryRunner}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -70,10 +70,18 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         KafkaCacheLoader.NoOpLoader
       } else {
         val sft = getSchema(key)
-        val cache = if (config.cqEngine) {
-          new FeatureCacheCqEngine(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
+        import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+        val attr = config.eventTimeAttribute.getOrElse(sft.getDtgField.getOrElse(""))
+        val attrIdx = sft.indexOf(attr) // will be -1 if attr does not exist
+        val baseCache = if (config.cqEngine) {
+          new FeatureCacheCqEngine(sft, config.cacheExpiry, config.eventTimeExpiry, attrIdx, config.cacheCleanup, config.cacheConsistency)(config.ticker)
         } else {
-          new FeatureCacheGuava(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
+          new FeatureCacheGuava(sft, config.cacheExpiry, config.eventTimeExpiry, attrIdx, config.cacheCleanup, config.cacheConsistency)(config.ticker)
+        }
+        val cache = if(config.eventTime && config.eventTimeOrdering) {
+          new FeatureCacheEventTimeOrdering(baseCache, attrIdx)
+        } else {
+          baseCache
         }
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config, topic)
@@ -291,6 +299,10 @@ object KafkaDataStore extends LazyLogging {
                                   cacheConsistency: Duration,
                                   ticker: Ticker,
                                   cqEngine: Boolean,
+                                  eventTime: Boolean,
+                                  eventTimeAttribute: Option[String],
+                                  eventTimeOrdering: Boolean,
+                                  eventTimeExpiry: Boolean,
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,
                                   audit: Option[(AuditWriter, AuditProvider, String)],
