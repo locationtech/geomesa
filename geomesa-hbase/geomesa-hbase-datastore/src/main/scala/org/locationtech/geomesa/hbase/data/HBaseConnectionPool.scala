@@ -14,34 +14,35 @@ import java.security.PrivilegedExceptionAction
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, HBaseAdmin}
 import org.apache.hadoop.hbase.security.User
+import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConnectionParam, ZookeeperParam}
+import org.locationtech.geomesa.utils.conf.ConfigManager.GeoMesaConfig
+import org.locationtech.geomesa.utils.conf.ConfigManager
 
 object HBaseConnectionPool extends LazyLogging {
 
   private var userCheck: Option[User] = _
 
   // add common resources from system property
-  private val configuration = withPaths(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option)
+  ConfigManager.augment(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option)
 
   private val configCache = Caffeine.newBuilder().build(
     new CacheLoader[(Option[String], Option[String]), Configuration] {
       override def load(key: (Option[String], Option[String])): Configuration = {
         val (zookeepers, paths) = key
-        val conf = withPaths(configuration, paths)
-        zookeepers.foreach(zk => conf.set(HConstants.ZOOKEEPER_QUORUM, zk))
-        if (zookeepers.isEmpty && conf.get(HConstants.ZOOKEEPER_QUORUM) == "localhost") {
+        ConfigManager.augment(paths)
+        zookeepers.foreach(zk => GeoMesaConfig.set(HConstants.ZOOKEEPER_QUORUM, zk))
+        if (zookeepers.isEmpty && GeoMesaConfig.get(HConstants.ZOOKEEPER_QUORUM) == "localhost") {
           logger.warn("HBase connection is set to localhost - " +
               "this may indicate that 'hbase-site.xml' is not on the classpath")
         }
-        configureSecurity(conf)
-        conf
+        configureSecurity(GeoMesaConfig)
+        GeoMesaConfig
       }
     }
   )
@@ -118,19 +119,19 @@ object HBaseConnectionPool extends LazyLogging {
     }
   }
 
-  /**
-    * Creates a new configuration with the paths added. If no paths, will share the existing configuration.
-    *
-    * @param base original configuration
-    * @param paths resources to add, comma-delimited
-    * @return a new configuration, or the existing one
-    */
-  private def withPaths(base: Configuration, paths: Option[String]): Configuration = {
-    val sanitized = paths.filterNot(_.trim.isEmpty).toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty)
-    if (sanitized.isEmpty) { base } else {
-      val conf = new Configuration(base)
-      sanitized.foreach(p => conf.addResource(new Path(p)))
-      conf
-    }
-  }
+//  /**
+//    * Creates a new configuration with the paths added. If no paths, will share the existing configuration.
+//    *
+//    * @param base original configuration
+//    * @param paths resources to add, comma-delimited
+//    * @return a new configuration, or the existing one
+//    */
+//  private def withPaths(base: Configuration, paths: Option[String]): Configuration = {
+//    val sanitized = paths.filterNot(_.trim.isEmpty).toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty)
+//    if (sanitized.isEmpty) { base } else {
+//      val conf = new Configuration(base)
+//      sanitized.foreach(p => conf.addResource(new Path(p)))
+//      conf
+//    }
+//  }
 }

@@ -20,7 +20,7 @@ object GeoMesaSystemProperties extends LazyLogging {
 
     val threadLocalValue = new ThreadLocal[String]()
 
-    def get: String = ConfigLoader.Config.get(property) match {
+    def get: String = Option(ConfigManager.getProperty(property)) match {
       case Some((value, true))  => value // final value - can't be overridden
       case Some((value, false)) => fromSysProps.getOrElse(value)
       case None => fromSysProps.getOrElse(default)
