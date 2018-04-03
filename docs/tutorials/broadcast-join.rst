@@ -41,15 +41,27 @@ Prerequisites
 -------------
 
 For this tutorial, we will assume that your have already ingested the two data sets into the data store of your choosing.
-If you haven't, you can follow one of the ingest tutorials :doc:`/tutorials/geomesa-examples-gdelt`. The converters for
-these two data sets are also provided with GeoMesa.
+Following this tutorial without having created the necessary tables will lead to errors.
+
+If you have not ingested any data, you can follow one of the ingest tutorials :doc:`/tutorials/geomesa-examples-gdelt`.
+The converter for the GDELT data set, :doc:`/user/convert/premade/gdelt`, is provided with GeoMesa, and the FIPS data can
+be ingested without a converter as a shapefile.
 
 Initializing Spark
 ------------------
 
-To start working with Spark, we will need a Spark Context initialized, and to apply GeoMesa's geospatial User Defined
+To start working with Spark, we will need a Spark Session initialized, and to apply GeoMesa's geospatial User Defined
 Types (UDTs) and User Defined Functions (UDFs) to our data in Spark, we will need to initialize our SparkSQL extensions.
-This can be done with the following:
+This functionality requires having the appropriate GeoMesa Spark runtime jar on the classpath when running your Spark job.
+GeoMesa provides spark runtime jars for Accumulo, HBase, and FileSystem data stores. For example, the following would start an
+interactive Spark REPL with all dependencies needed for running Spark with GeoMesa version 2.0.0 on an Accumulo data store.
+
+.. code-block:: bash
+
+    $ bin/spark-shell --jars geomesa-accumulo-spark-runtime_2.11-2.0.0.jar
+
+To configure the Spark Session such that we can serialize Simple Features and work with geometric UDTs and UDFs, we must
+alter the Spark Session as follows.
 
 .. code-block:: scala
 
@@ -65,13 +77,14 @@ This can be done with the following:
         .getOrCreate()
         .withJTS
 
-Note the ``withJTS`` function, which registers our UDTs and UDFs, and the two ``config`` options which tell Spark to use our
-custom Kryo serializer and registrator to handle serializing Simple Features.
+Note the ``withJTS``, which registers GeoMesa's UDTs and UDFs, and the two ``config`` options which tell Spark to
+use GeoMesa's custom Kryo serializer and registrator to handle serialization of Simple Features. These configuration options can
+also be set in the ``conf/spark-defaults.conf`` configuration file.
 
 Creating DataFrames
 -------------------
 
-With our Spark Session created, we can move on to loading our data from the data store into a Spark DataFrame.
+With our Spark Session created and configured, we can move on to loading our data from the data store into a Spark DataFrame.
 
 First we'll set up the parameters for connecting to the data store. For example, if our data is in two Accumulo
 catalogs, we would set up the following parameter maps:
@@ -81,15 +94,15 @@ catalogs, we would set up the following parameter maps:
   val fipsParams = Map(
     "accumulo.instance.id" -> "instance",
     "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "root",
-    "accumulo.password"    -> "secret",
+    "accumulo.user"        -> "user",
+    "accumulo.password"    -> "password",
     "accumulo.catalog"     -> "fips")
 
   val gdeltParams = Map(
     "accumulo.instance.id" -> "instance",
     "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "root",
-    "accumulo.password"    -> "secret",
+    "accumulo.user"        -> "user",
+    "accumulo.password"    -> "password",
     "accumulo.catalog"     -> "gdelt")
 
 .. note::
@@ -130,7 +143,7 @@ Broadcast Join
 
 Now we're ready to join the two data sets. This is where we will make use of our geospatial UDFs. ``st_contains`` takes
 two geometries as input, and it outputs whether the second geometry lies within the first one. For more documentation
-and a full list of the UDFs we provide see :doc:`/user/spark/sparksql_functions`.
+and a full list of the UDFs provided by GeoMesa see :doc:`/user/spark/sparksql_functions`.
 
 Using these two UDFs, we can build the following join query.
 
@@ -171,14 +184,21 @@ GeoJSON. To do this, we make use of GeoMesa's Row to GeoJSON converter.
 
 .. code-block:: scala
 
-    import org.locationtech.geomesa.spark.jts.RowGeoJSON
+    import org.locationtech.geomesa.spark.jts.util.RowGeoJSON
     val schema = aggregateDF.schema
     aggregateDF.mapPartitions { iter =>
         val rowGeojson = RowGeoJSON(schema)
         iter.map { row => rowGeojson.toString(row) }
     }
 
-Once we have our data exported as GeoJSON, we can create a `Leaflet <http://leafletjs.com/>`__, which is an interactive
+If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
+write to a distributed file system like HDFS.
+
+.. code:: scala
+
+    val geoJsonString = geojsonDF.collect.mkString("[",",","]")
+
+Once we have our data exported as GeoJSON, we can create a `Leaflet <http://leafletjs.com/>`__ map, which is an interactive
 map in JavaScript that can be embedded into a web page.
 
 Loading and parsing the JSON is simple. In this case we are wrapping the file load in an ``XMLHttpRequest`` callback function
@@ -272,3 +292,7 @@ Afterwards, this simple HTML will load a leaflet with the data.
 		<div id="map" style="height: 100%"></div>
 	</body>
     </html>
+
+The end result will look something like this:
+
+.. figure:: _static/img/tutorials/2018-04-03-broadcast-join/aggregate-GDELT.png

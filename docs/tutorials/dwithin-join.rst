@@ -31,15 +31,27 @@ Prerequisites
 -------------
 
 For this tutorial, we will assume that your have already ingested the two data sets into the data store of your choosing.
-If you haven't, you can follow one of these tutorials :doc:`/tutorials/geomesa-examples-gdelt`. The converters for these
-two data sets are also provided with GeoMesa.
+Following this tutorial without having created the necessary tables will lead to errors.
+
+If you have not ingested any data, you can follow one of the ingest tutorials :doc:`/tutorials/geomesa-examples-gdelt`.
+The converters for the GeoNames data set, :doc:`/user/convert/premade/geonames`, and the NYCTaxi data set,
+:doc:`/user/convert/premade/nyctaxi`, are provided with GeoMesa.
 
 Initializing Spark
 ------------------
 
-To start working with Spark, we will need a Spark Context initialized, and to apply GeoMesa's geospatial User Defined
+To start working with Spark, we will need a Spark Session initialized, and to apply GeoMesa's geospatial User Defined
 Types (UDTs) and User Defined Functions (UDFs) to our data in Spark, we will need to initialize our SparkSQL extensions.
-This can be done with the following:
+This functionality requires having the appropriate GeoMesa Spark runtime jar on the classpath when running your Spark job.
+GeoMesa provides spark runtime jars for Accumulo, HBase, and FileSystem data stores. For example, the following would start an
+interactive Spark REPL with all dependencies needed for running Spark with GeoMesa version 2.0.0 on an Accumulo data store.
+
+.. code-block:: bash
+
+    $ bin/spark-shell --jars geomesa-accumulo-spark-runtime_2.11-2.0.0.jar
+
+To configure the Spark Session such that we can serialize Simple Features and work with geometric UDTs and UDFs, we must
+alter the Spark Session as follows.
 
 .. code-block:: scala
 
@@ -55,13 +67,14 @@ This can be done with the following:
         .getOrCreate()
         .withJTS
 
-Note the ``withJTS``, which registers our UDTs and UDFs, and the two `config` options which tell Spark to use our
-custom Kryo serializer and registrator to handle serialize Simple Features.
+Note the ``withJTS``, which registers GeoMesa's UDTs and UDFs, and the two ``config`` options which tell Spark to
+use GeoMesa's custom Kryo serializer and registrator to handle serialization of Simple Features. These configuration options can
+also be set in the ``conf/spark-defaults.conf`` configuration file.
 
 Creating DataFrames
 -------------------
 
-With our Spark Session created, we can move on to loading our data from the data store into a Spark DataFrame.
+With our Spark Session created and configured, we can move on to loading our data from the data store into a Spark DataFrame.
 
 First we'll set up the parameters for connecting to the data store. For example, if our data is in two Accumulo
 catalogs, we would set up the following parameter maps:
@@ -71,15 +84,15 @@ catalogs, we would set up the following parameter maps:
   val taxiParams = Map(
     "accumulo.instance.id" -> "instance",
     "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "root",
-    "accumulo.password"    -> "secret",
+    "accumulo.user"        -> "user",
+    "accumulo.password"    -> "password",
     "accumulo.catalog"     -> "nyctaxi")
 
   val geonamesParams = Map(
     "accumulo.instance.id" -> "instance",
     "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "root",
-    "accumulo.password"    -> "secret",
+    "accumulo.user"        -> "user",
+    "accumulo.password"    -> "password",
     "accumulo.catalog"     -> "geonames")
 
 .. note::
@@ -115,19 +128,19 @@ D-within Join
 
 Now we're ready to join the two data sets. This is where we will make use of two of our geospatial UDFs.
 ``st_contains`` takes two geometries as input, and it outputs whether the second geometry lies within the first one.
-``st_bufferPoint`` takes a point and a distance in degrees as input, and it outputs a circle around the point with radius
+``st_bufferPoint`` takes a point and a distance in meters as input, and it outputs a circle around the point with radius
 equal to the provided distance.
-For more documentation and a full list of the UDFs we provide see :doc:`/user/spark/sparksql_functions`.
+For more documentation and a full list of the UDFs provided by GeoMesa see :doc:`/user/spark/sparksql_functions`.
 
 Using these two UDFs, we can build the following join query.
 
 .. code-block:: scala
 
     val joinedDF = geonamesNY
-      .select(st_bufferPoint($"geom", lit(0.5)).as("buffer"), $"name", $"geonameId")
+      .select(st_bufferPoint($"geom", lit(50)).as("buffer"), $"name", $"geonameId")
       .join(taxiDF, st_contains($"buffer", $"pickup_point"))
 
-The above query transforms the geometry of each GeoName point into a circle with radius 0.5 degrees, and joins the result
+The above query transforms the geometry of each GeoName point into a circle with a radius of 50 meters, and joins the result
 with the taxi records that had pickups anywhere in that circle.
 
 Aggregating
