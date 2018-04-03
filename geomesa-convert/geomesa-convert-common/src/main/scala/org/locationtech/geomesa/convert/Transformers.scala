@@ -396,7 +396,7 @@ class DefaultsFunctionFactory extends TransformerFunctionFactory {
 class StringFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFn] =
-    Seq(stripQuotes, strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat, substr, string, mkstring, emptyToNull)
+    Seq(stripQuotes, strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat, substr, string, mkstring, emptyToNull, printf)
 
   val string       = TransformerFn("toString")     { args => args(0).toString }
   val stripQuotes  = TransformerFn("stripQuotes")  { args => args(0).asInstanceOf[String].replaceAll("\"", "") }
@@ -416,6 +416,7 @@ class StringFunctionFactory extends TransformerFunctionFactory {
   val strLen = TransformerFn("strlen", "stringLength", "length") {
     args => args(0).asInstanceOf[String].length
   }
+  val printf = TransformerFn("printf") { args => String.format(args(0).toString, args.drop(1).asInstanceOf[Array[AnyRef]]: _*) }
 
 }
 

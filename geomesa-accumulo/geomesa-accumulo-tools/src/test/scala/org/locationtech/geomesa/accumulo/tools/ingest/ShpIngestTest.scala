@@ -9,19 +9,18 @@
 package org.locationtech.geomesa.accumulo.tools.ingest
 
 import java.io.File
-import java.text.SimpleDateFormat
+import java.nio.file.Files
 import java.util.Date
 
-import com.google.common.io.Files
-import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data.Transaction
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.factory.Hints
-import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -32,81 +31,92 @@ class ShpIngestTest extends Specification {
 
   sequential
 
-  "ShpIngest" >> {
+  // note: shpfile always puts geom first
+  val schema = SimpleFeatureTypes.createType("shpingest", "*geom:Point:srid=4326,age:Integer,dtg:Date")
 
-    val geomBuilder = JTSFactoryFinder.getGeometryFactory
+  val features = Seq(
+    ScalaSimpleFeature.create(schema, "1", "POINT(10.0 30.0)", 1, "2011-01-01T00:00:00.000Z"),
+    ScalaSimpleFeature.create(schema, "2", "POINT(20.0 40.0)", 2, "2012-01-01T00:00:00.000Z")
+  )
 
-    val shpStoreFactory = new ShapefileDataStoreFactory
-    val shpFile = new File(Files.createTempDir(), "shpingest.shp")
-    val shpUrl = shpFile.toURI.toURL
-    val params = Map("url" -> shpUrl)
-    val shpStore = shpStoreFactory.createNewDataStore(params)
-    val schema = SimpleFeatureTypes.createType("shpingest", "age:Integer,dtg:Date,*geom:Point:srid=4326")
-    shpStore.createSchema(schema)
-    val df = new SimpleDateFormat("dd-MM-yyyy")
-    val (minDate, maxDate) = (df.parse("01-01-2011"), df.parse("01-01-2012"))
-    val (minX, maxX, minY, maxY) = (10.0, 20.0, 30.0, 40.0)
-    val data =
-      List(
-        ("1", 1, minDate, (minX, minY)),
-        ("1", 2, maxDate, (maxX, maxY))
-      )
-    val writer = shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)
-    data.foreach { case (id, age, dtg, (lat, lon)) =>
-      val f = writer.next()
-      f.setAttribute("age", age)
-      f.setAttribute("dtg", dtg)
-      val pt = geomBuilder.createPoint(new Coordinate(lat, lon))
-      f.setDefaultGeometry(pt)
-      f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      f.getUserData.put(Hints.PROVIDED_FID, id)
-      writer.write()
-    }
-    writer.flush()
-    writer.close()
+  val baseArgs = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
+    "--password", "mypassword", "--catalog", "testshpingestcatalog")
 
-    val args = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
-      "--password", "mypassword", "--catalog", "testshpingestcatalog", shpFile.getAbsolutePath)
+  "ShpIngest" should {
 
-    "should properly ingest a shapefile" >> {
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
-      command.execute()
+    "should properly ingest a shapefile" in {
+      withShapeFile { file =>
+        val args = baseArgs :+ file.getAbsolutePath
 
-      val fs = command.withDataStore(_.getFeatureSource("shpingest"))
+        val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+        command.execute()
 
-      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+        val fs = command.withDataStore(_.getFeatureSource("shpingest"))
 
-      val bounds = fs.getBounds
-      bounds.getMinX mustEqual minX
-      bounds.getMaxX mustEqual maxX
-      bounds.getMinY mustEqual minY
-      bounds.getMaxY mustEqual maxY
+        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
-      command.withDataStore { (ds) =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema("shpingest"), "dtg").map(_.tuple) must
-            beSome((minDate, maxDate, 2L))
+        val bounds = fs.getBounds
+        bounds.getMinX mustEqual 10.0
+        bounds.getMaxX mustEqual 20.0
+        bounds.getMinY mustEqual 30.0
+        bounds.getMaxY mustEqual 40.0
+
+        command.withDataStore { (ds) =>
+          ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
+              beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
+        }
       }
     }
 
-    "should support renaming the feature type" >> {
-      val newArgs = Array(args.head) ++ Array("--feature-name", "changed") ++ args.tail
-      val command = AccumuloRunner.parseCommand(newArgs).asInstanceOf[AccumuloDataStoreCommand]
-      command.execute()
+    "should support renaming the feature type" in {
+      withShapeFile { file =>
+        val args = baseArgs ++ Array("--feature-name", "changed", file.getAbsolutePath)
 
-      val fs = command.withDataStore(_.getFeatureSource("changed"))
+        val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+        command.execute()
 
-      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+        val fs = command.withDataStore(_.getFeatureSource("changed"))
 
-      val bounds = fs.getBounds
-      bounds.getMinX mustEqual minX
-      bounds.getMaxX mustEqual maxX
-      bounds.getMinY mustEqual minY
-      bounds.getMaxY mustEqual maxY
+        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
-      command.withDataStore { (ds) =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
-            beSome((minDate, maxDate, 2L))
+        val bounds = fs.getBounds
+        bounds.getMinX mustEqual 10.0
+        bounds.getMaxX mustEqual 20.0
+        bounds.getMinY mustEqual 30.0
+        bounds.getMaxY mustEqual 40.0
+
+        command.withDataStore { (ds) =>
+          ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
+              beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
+        }
       }
+    }
+  }
+
+  def withShapeFile[T](fn: (File) => T): T = {
+    val dir = Files.createTempDirectory("gm-shp-ingest-test")
+    val shpFile = new File(dir.toFile, "shpingest.shp")
+    try {
+      val shpStoreFactory = new ShapefileDataStoreFactory
+      val shpStore = shpStoreFactory.createNewDataStore(Map("url" -> shpFile.toURI.toURL))
+      try {
+        shpStore.createSchema(schema)
+        WithClose(shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach { feature =>
+            val toWrite = writer.next()
+            toWrite.setAttributes(feature.getAttributes)
+            toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+            writer.write()
+          }
+        }
+      } finally {
+        shpStore.dispose()
+      }
+
+      fn(shpFile)
+    } finally {
+      PathUtils.deleteRecursively(dir)
     }
   }
 }
