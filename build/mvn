@@ -126,3 +126,9 @@ export MAVEN_OPTS=${MAVEN_OPTS:-"$_COMPILE_JVM_OPTS"}
 # Last, call the `mvn` command as usual, but with the 'zinc' port and profile
 ${MVN_BIN} -DzincPort=${ZINC_PORT} -Pzinc "$@"
 
+RET_STATUS=$?
+
+# shut down zinc again
+"${ZINC_BIN}" -shutdown -port ${ZINC_PORT}
+
+exit $RET_STATUS
