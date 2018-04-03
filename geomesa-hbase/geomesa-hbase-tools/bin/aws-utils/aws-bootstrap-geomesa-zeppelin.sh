@@ -22,7 +22,8 @@ function log() {
 log "Installing GeoPySpark"
 sudo yum install -q -y python36 gcc python-devel
 sudo python36 -m pip install --upgrade pip
-sudo python36 -m pip install pandas
+# We need to install jupyter get ipython in zeppelin through the %python.ipython magic
+sudo python36 -m pip install pandas jupyter grpcio
 
 gpsversion="0.3.0.gm.1"
 pushd /opt/
@@ -38,9 +39,9 @@ popd
 
 sudo stop zeppelin
 
-#rm -r /var/lib/zeppelin/notebook/
-#sudo ln -s /opt/geomesa/examples/zeppelin /var/lib/zeppelin/notebook
-#sudo chmod zeppelin:zeppelin /opt/geomesa/examples/zeppelin
+sudo rm -r /var/lib/zeppelin/notebook/*
+sudo cp -r /opt/geomesa/examples/zeppelin/notebook/* /var/lib/zeppelin/notebook/
+sudo chown-R zeppelin:zeppelin /var/lib/zeppelin/notebook/
 
 notebookConf="/etc/zeppelin/conf/interpreter.json"
 

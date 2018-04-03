@@ -1,0 +1,151 @@
+{
+  "paragraphs": [
+    {
+      "text": "%md\n\n# Example Queries of GDELT Data\n\nThis notebook shows how to get a DataFrame from GeoMesa Spark so you can query your GeoMesa-HBase datastore. Additionally it shows two simple queries using the dataframe object and plain SQL.",
+      "user": "anonymous",
+      "dateUpdated": "Apr 2, 2018 7:50:33 PM",
+      "config": {
+        "colWidth": 12.0,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003ch1\u003eExample Queries of GDELT Data\u003c/h1\u003e\n\u003cp\u003eThis notebook shows how to get a DataFrame from GeoMesa Spark so you can query your GeoMesa-HBase datastore. Additionally it shows two simple queries using the dataframe object and plain SQL.\u003c/p\u003e\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1522698494148_-1586483125",
+      "id": "20180402-194814_703783190",
+      "dateCreated": "Apr 2, 2018 7:48:14 PM",
+      "dateStarted": "Apr 2, 2018 7:50:28 PM",
+      "dateFinished": "Apr 2, 2018 7:50:28 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Setup",
+      "text": "import org.locationtech.geomesa.spark._\n\n// Use the GeoMesa-Spark relation to get a dataframe backed by our GeoMesa-HBase datastore\nval df \u003d spark.read.\n  format(\"geomesa\").\n  option(\"bigtable.table.name\", \"catalog\").\n  option(\"geomesa.feature\", \"gdelt\").\n  load()\n  \n// Create a TempView for the dataframe so we can run SQL queries against it.\ndf.createOrReplaceTempView(\"gdelt\")",
+      "user": "anonymous",
+      "dateUpdated": "Apr 2, 2018 7:43:58 PM",
+      "config": {
+        "colWidth": 12.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false
+        },
+        "editorMode": "ace/mode/scala",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import org.locationtech.geomesa.spark._\ndf: org.apache.spark.sql.DataFrame \u003d [__fid__: string, globalEventId: string ... 26 more fields]\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1522695465957_-199035311",
+      "id": "20180402-185745_1271027866",
+      "dateCreated": "Apr 2, 2018 6:57:45 PM",
+      "dateStarted": "Apr 2, 2018 7:42:18 PM",
+      "dateFinished": "Apr 2, 2018 7:42:54 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "DataFrame Query",
+      "text": "df.groupBy(\"actor1Code\").count().show()",
+      "user": "anonymous",
+      "dateUpdated": "Apr 2, 2018 7:47:48 PM",
+      "config": {
+        "colWidth": 12.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false
+        },
+        "editorMode": "ace/mode/scala",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1522698381617_-1628606290",
+      "id": "20180402-194621_2073013524",
+      "dateCreated": "Apr 2, 2018 7:46:21 PM",
+      "dateStarted": "Apr 2, 2018 7:47:08 PM",
+      "dateFinished": "Apr 2, 2018 7:47:27 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "SQL Query",
+      "text": "%sql\nselect * from gdelt limit 10",
+      "user": "anonymous",
+      "dateUpdated": "Apr 2, 2018 7:44:23 PM",
+      "config": {
+        "colWidth": 12.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "editorMode": "ace/mode/sql",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1522697591522_-117434083",
+      "id": "20180402-193311_1367889875",
+      "dateCreated": "Apr 2, 2018 7:33:11 PM",
+      "dateStarted": "Apr 2, 2018 7:42:58 PM",
+      "dateFinished": "Apr 2, 2018 7:43:12 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "GeoMesa/Query/Scala+GDELT",
+  "id": "2DBJMH3DA",
+  "angularObjects": {
+    "2BRWU4WXC:shared_process": [],
+    "2ANGGHHMQ::2DBJMH3DA": [],
+    "2AM1YV5CU:shared_process": [],
+    "2AJXGMUUJ:shared_process": [],
+    "2AKK3QQXU:shared_process": []
+  },
+  "config": {},
+  "info": {}
+}

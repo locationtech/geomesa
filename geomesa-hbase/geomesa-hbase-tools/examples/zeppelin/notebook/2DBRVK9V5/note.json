@@ -1,0 +1,137 @@
+{
+  "paragraphs": [
+    {
+      "text": "%md\n# JSON Ingest Example\n\nThis notebook contains two example commands that can be used to ingest data in JSON format. Running the commands below will ingest sample data that comes bundled with the tools distributions.\n\nPlease note the ingest commands can take a few seconds to start producing output while the JVM spins up.",
+      "user": "anonymous",
+      "dateUpdated": "Apr 2, 2018 6:54:18 PM",
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003ch1\u003eJSON Ingest Example\u003c/h1\u003e\n\u003cp\u003eThis notebook contains two example commands that can be used to ingest data in JSON format. Running the commands below will ingest sample data that comes bundled with the tools distributions.\u003c/p\u003e\n\u003cp\u003ePlease note the ingest commands can take a few seconds to start producing output while the JVM spins up.\u003c/p\u003e\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1522695239683_-1586560793",
+      "id": "20180330-184620_181124641",
+      "dateCreated": "Apr 2, 2018 6:53:59 PM",
+      "dateStarted": "Apr 2, 2018 6:54:14 PM",
+      "dateFinished": "Apr 2, 2018 6:54:14 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Command Help",
+      "text": "%python\nimport subprocess, shlex\n\ncmd \u003d \"/opt/geomesa/bin/geomesa-hbase help ingest\"\nprocess \u003d subprocess.Popen(shlex.split(cmd), stdout\u003dsubprocess.PIPE)\nout, err \u003d process.communicate()\nfor line in out.splitlines(): \n    print(line.decode(\"utf-8\"))",
+      "dateUpdated": "Apr 2, 2018 6:53:59 PM",
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false
+        },
+        "colWidth": 4.0,
+        "editorMode": "ace/mode/python",
+        "editorHide": true,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 444.0,
+              "optionOpen": false
+            }
+          }
+        },
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "Usage: ingest [options] \u003cfile\u003e...\n  Options:\n  * -c, --catalog\n       Catalog table for GeoMesa datastore\n    -C, --converter\n       GeoMesa converter specification as a config string, file name, or name of\n       an available converter\n    -f, --feature-name\n       Simple Feature Type name on which to operate\n    --input-format\n       File format of input files (shp, csv, tsv, avro, etc). Optional,\n       autodetection will be attempted.\n    --no-remote-filters\n       Disable remote filtering and coprocessors\n       Default: false\n    --run-mode\n       Run locally or on a cluster\n    -s, --spec\n       SimpleFeatureType specification as a GeoTools spec string, SFT config, or\n       file with either\n    -t, --threads\n       Number of threads if using local ingest\n       Default: 1\n    -z, --zookeepers\n       Zookeepers (host[:port], comma separated)\n\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1522695239684_-1588484538",
+      "id": "20180402-182924_449957980",
+      "dateCreated": "Apr 2, 2018 6:53:59 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Run JSON ingest",
+      "text": "%python\nimport subprocess, shlex\n\ncmd \u003d \"/opt/geomesa/bin/geomesa-hbase ingest -c catalog -s example-json -C example-json /opt/geomesa/examples/ingest/json/example.json\"\nprocess \u003d subprocess.Popen(shlex.split(cmd), stdout\u003dsubprocess.PIPE)\nprocess.communicate()",
+      "user": "anonymous",
+      "dateUpdated": "Apr 2, 2018 6:54:34 PM",
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false
+        },
+        "colWidth": 8.0,
+        "editorMode": "ace/mode/python",
+        "editorHide": false,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "INFO  Creating schema \u0027example-json\u0027\nINFO  Running ingestion in local mode\nINFO  Ingesting 1 file with 1 thread\n\r[                                ]   0% complete 0 ingested 0 failed in 00:00:00\r[\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d] 100% complete 3 ingested 0 failed in 00:00:01\r[\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d] 100% complete 3 ingested 0 failed in 00:00:01\nINFO  Local ingestion complete in 00:00:01\nINFO  Ingested 3 features with no failures.\n(b\u0027\u0027, None)\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1522695239684_-1588484538",
+      "id": "20180330-185909_308706573",
+      "dateCreated": "Apr 2, 2018 6:53:59 PM",
+      "dateStarted": "Apr 2, 2018 6:54:34 PM",
+      "dateFinished": "Apr 2, 2018 6:54:57 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "GeoMesa/Ingest/JSON",
+  "id": "2DBRVK9V5",
+  "angularObjects": {
+    "2BRWU4WXC:shared_process": [],
+    "2AM1YV5CU:shared_process": [],
+    "2AJXGMUUJ:shared_process": [],
+    "2ANGGHHMQ::2DBRVK9V5": [],
+    "2AKK3QQXU:shared_process": []
+  },
+  "config": {},
+  "info": {}
+}
