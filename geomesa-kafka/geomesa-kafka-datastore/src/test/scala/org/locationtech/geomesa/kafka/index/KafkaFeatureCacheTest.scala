@@ -46,8 +46,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
              cleanUp: Duration = Duration.Inf,
              consistency: Duration = Duration.Inf)
             (implicit ticker: Ticker = Ticker.systemTicker()) =
-    Iterator(new FeatureCacheCqEngine(sft, expiry, cleanUp, consistency),
-      new FeatureCacheGuava(sft, expiry, cleanUp, consistency))
+    Iterator(new FeatureCacheCqEngine(sft, expiry, false, null, cleanUp, consistency),
+      new FeatureCacheGuava(sft, expiry, false, null, cleanUp, consistency))
 
   "KafkaFeatureCache" should {
 
@@ -170,7 +170,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
     "string queries" >> {
       val ticker = new MockTicker
 
-      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
+      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, false, null, Duration.Inf, Duration("10ms"))(ticker)
       try {
         val stringFilter = ECQL.toFilter("trackId > 0")
 
@@ -186,7 +186,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
     "like queries" >> {
       val ticker = new MockTicker
 
-      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
+      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, false, null, Duration.Inf, Duration("10ms"))(ticker)
       try {
         val stringFilter = ECQL.toFilter("trackId ILIKE 'T%'")
 
@@ -204,7 +204,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
       val ticker = new MockTicker
 
-      val cache = new FeatureCacheGuava(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
+      val cache = new FeatureCacheGuava(sft, Duration.Inf, false, null, Duration.Inf, Duration("10ms"))(ticker)
       try {
         cache.put(track0v0)
 

@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.kafka.index
 
 import java.io.Closeable
+import java.time.Instant
+import java.util.Date
 import java.util.concurrent.{Executors, TimeUnit}
 
 import com.github.benmanes.caffeine.cache._
@@ -35,9 +37,12 @@ object KafkaFeatureCache {
 
   abstract class AbstractKafkaFeatureCache[T <: AnyRef](expiry: Duration,
                                                         cleanup: Duration,
-                                                        consistency: Duration)
+                                                        consistency: Duration,
+                                                        eventTimeExpiry: Boolean)
                                                        (implicit ticker: Ticker)
       extends KafkaFeatureCache with LazyLogging {
+
+    def getEventTime(f: T): Date
 
     protected val cache: Cache[String, T] = {
       val builder = Caffeine.newBuilder().ticker(ticker)
@@ -50,7 +55,35 @@ object KafkaFeatureCache {
             }
           }
         }
-        builder.expireAfterWrite(expiry.toMillis, TimeUnit.MILLISECONDS).removalListener(listener)
+        if(eventTimeExpiry) {
+          builder.expireAfter(new Expiry[String, T] {
+            private def getExpirationTime(value: T, curTimeNanos: Long) = {
+              val eventTime = getEventTime(value)
+              if (eventTime == null) {
+                logger.warn("Unexpected null event time, expiring immediately")
+                0L
+              } else {
+                val dtg = Instant.ofEpochMilli(eventTime.getTime)
+                val now = Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(curTimeNanos))
+                if (dtg.isBefore(now)) {
+                  val duration = java.time.Duration.between(dtg, now) // amount of time elapsed
+                  val newExpiry = expiry.toMillis - duration.toMillis
+                  if (newExpiry >= 0) TimeUnit.MILLISECONDS.toNanos(newExpiry) else 0L
+                } else {
+                  // if data is from the future
+                  val duration = java.time.Duration.between(now, dtg) // amount of time elapsed
+                  val newExpiry = expiry.toMillis + duration.toMillis
+                  TimeUnit.MILLISECONDS.toNanos(newExpiry)
+                }
+              }
+            }
+            override def expireAfterUpdate(key: String, value: T, currentTime: Long, currentDuration: Long): Long = getExpirationTime(value, currentTime)
+            override def expireAfterRead(key: String, value: T, currentTime: Long, currentDuration: Long): Long = currentDuration
+            override def expireAfterCreate(key: String, value: T, currentTime: Long): Long = getExpirationTime(value, currentTime)
+          })
+        } else {
+          builder.expireAfterWrite(expiry.toMillis, TimeUnit.MILLISECONDS).removalListener(listener)
+        }
       }
       builder.build[String, T]()
     }

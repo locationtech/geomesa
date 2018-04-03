@@ -20,13 +20,15 @@ import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore, SimpleFeatureWriter}
 import org.geotools.data.{Query, Transaction}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.text.cql2.CQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
-import org.locationtech.geomesa.kafka.index.{FeatureCacheCqEngine, FeatureCacheGuava, KafkaQueryRunner}
+import org.locationtech.geomesa.kafka.index.{FeatureCacheCqEngine, FeatureCacheEventTimeOrdering, FeatureCacheGuava, KafkaQueryRunner}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -39,6 +41,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
 class KafkaDataStore(val config: KafkaDataStoreConfig)
     extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
@@ -70,10 +73,19 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         KafkaCacheLoader.NoOpLoader
       } else {
         val sft = getSchema(key)
-        val cache = if (config.cqEngine) {
-          new FeatureCacheCqEngine(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
+        import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+        val ff = CommonFactoryFinder.getFilterFactory2
+        val eventTimeExpression =
+          config.eventTimeAttribute.flatMap(s => Try { CQL.toExpression(s) }.toOption).getOrElse(ff.function("fastProperty", ff.literal(sft.indexOf(sft.getDtgField.getOrElse("")))))
+        val baseCache = if (config.cqEngine) {
+          new FeatureCacheCqEngine(sft, config.cacheExpiry, config.eventTimeExpiry, eventTimeExpression, config.cacheCleanup, config.cacheConsistency)(config.ticker)
         } else {
-          new FeatureCacheGuava(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
+          new FeatureCacheGuava(sft, config.cacheExpiry, config.eventTimeExpiry, eventTimeExpression, config.cacheCleanup, config.cacheConsistency)(config.ticker)
+        }
+        val cache = if(config.eventTime && config.eventTimeOrdering) {
+          new FeatureCacheEventTimeOrdering(baseCache, eventTimeExpression)
+        } else {
+          baseCache
         }
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config, topic)
@@ -291,6 +303,10 @@ object KafkaDataStore extends LazyLogging {
                                   cacheConsistency: Duration,
                                   ticker: Ticker,
                                   cqEngine: Boolean,
+                                  eventTime: Boolean,
+                                  eventTimeAttribute: Option[String],
+                                  eventTimeOrdering: Boolean,
+                                  eventTimeExpiry: Boolean,
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,
                                   audit: Option[(AuditWriter, AuditProvider, String)],
