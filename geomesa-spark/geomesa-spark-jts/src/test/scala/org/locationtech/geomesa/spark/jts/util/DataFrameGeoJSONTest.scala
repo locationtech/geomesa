@@ -17,7 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RowGeoJSONTest extends Specification with TestEnvironment {
+class DataFrameGeoJSONTest extends Specification with TestEnvironment {
 
   "Row to GeoJSON converter" should {
     val geomFactory = new GeometryFactory()
@@ -28,18 +28,15 @@ class RowGeoJSONTest extends Specification with TestEnvironment {
 
       val point = geomFactory.createPoint(new Coordinate(1, 2))
 
-      val df = spark.sparkContext.parallelize(Seq((1, point))).toDF
+      val df = spark.sparkContext.parallelize(Seq((1, point))).toDF("name", "geom")
 
-      val schema = df.schema
-      val res = df.mapPartitions { iter =>
-        val rowJson = RowGeoJSON(schema)
-        iter.map {rowJson.toString}
-      }.head()
+      import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+      val res = df.toGeoJSON.head()
 
       val expectedString =
         """ {"type": "Feature",
           | "geometry": {"type": "Point", "coordinates": [1, 2] },
-          | "properties": { "_1": "1" }
+          | "properties": { "name": "1" }
           | }
         """.stripMargin.replaceAll("\\s+", "")
       val expectedJson = jsonParser.parse(expectedString)
@@ -54,18 +51,15 @@ class RowGeoJSONTest extends Specification with TestEnvironment {
 
       val env = new Envelope(1, 2, 1, 2)
       val polygon = geomFactory.toGeometry(env)
-      val df = spark.sparkContext.parallelize(Seq((1, polygon))).toDF
+      val df = spark.sparkContext.parallelize(Seq((1, polygon))).toDF("name", "geom")
 
-      val schema = df.schema
-      val res = df.mapPartitions { iter =>
-        val rowJson = RowGeoJSON(schema)
-        iter.map {rowJson.toString}
-      }.head().replaceAll("\\s+", "")
+      import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+      val res = df.toGeoJSON.head().replaceAll("\\s+", "")
 
       val expectedString =
         """ {"type": "Feature",
           | "geometry": {"type": "Polygon", "coordinates": [[[1,1],[1,2],[2,2],[2,1],[1,1]]] },
-          | "properties": { "_1": "1" }
+          | "properties": { "name": "1" }
           | }
         """.stripMargin.replaceAll("\\s+", "")
       val expectedJSON = jsonParser.parse(expectedString)
@@ -84,13 +78,10 @@ class RowGeoJSONTest extends Specification with TestEnvironment {
       val polygonB = geomFactory.toGeometry(envB).asInstanceOf[Polygon]
       val multipoly = geomFactory.createMultiPolygon(Array(polygonA, polygonB))
 
-      val df = spark.sparkContext.parallelize(Seq((1, multipoly))).toDF
+      val df = spark.sparkContext.parallelize(Seq((1, multipoly))).toDF("name", "geom")
 
-      val schema = df.schema
-      val res = df.mapPartitions { iter =>
-        val rowJson = RowGeoJSON(schema)
-        iter.map {rowJson.toString}
-      }.head()
+      import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+      val res = df.toGeoJSON.head()
 
       val geom = jsonParser.parse(res).asInstanceOf[JSONObject].get("geometry")
       geom mustEqual jsonParser.parse("""{"type":"MultiPolygon","coordinates":[[[[1,1],[1,2],[2,2],[2,1],[1,1]]],[[[2,2],[2,3],[3,3],[3,2],[2,2]]]]}""")
@@ -105,12 +96,10 @@ class RowGeoJSONTest extends Specification with TestEnvironment {
       val polygon = geomFactory.toGeometry(env)
       val point = geomFactory.createPoint(new Coordinate(1, 2))
 
-      val df = spark.sparkContext.parallelize(Seq((1, polygon, point))).toDF
-      val schema = df.schema
-      val res = df.mapPartitions { iter =>
-        val rowJson = RowGeoJSON(schema, 2)
-        iter.map {rowJson.toString}
-      }.head()
+      val df = spark.sparkContext.parallelize(Seq((1, polygon, point))).toDF("name", "poly", "point")
+
+      import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+      val res = df.toGeoJSON(2).head()
 
       val geom = jsonParser.parse(res.replaceAll("\\s+", "")).asInstanceOf[JSONObject].get("geometry")
       geom mustEqual jsonParser.parse("""{"type": "Point", "coordinates": [1, 2] }""")
@@ -124,13 +113,10 @@ class RowGeoJSONTest extends Specification with TestEnvironment {
       val pointB = geomFactory.createPoint(new Coordinate(2, 2))
       val pointC = geomFactory.createPoint(new Coordinate(3, 3))
 
-      val df = spark.sparkContext.parallelize(Seq((1, pointA), (2, pointB), (3, pointC))).toDF
+      val df = spark.sparkContext.parallelize(Seq((1, pointA), (2, pointB), (3, pointC))).toDF("name", "geom")
 
-      val schema = df.schema
-      val res = df.mapPartitions { iter =>
-        val rowJson = RowGeoJSON(schema)
-        iter.map {rowJson.toString}
-      }.collect
+      import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+      val res = df.toGeoJSON.collect
 
       val geoms = res.map(geojson => jsonParser.parse(geojson).asInstanceOf[JSONObject].get("geometry"))
       geoms(0) mustEqual jsonParser.parse("""{"type": "Point", "coordinates": [1, 1] }""")
@@ -145,13 +131,10 @@ class RowGeoJSONTest extends Specification with TestEnvironment {
       val pointA = geomFactory.createPoint(new Coordinate(1, 1))
       val pointC = geomFactory.createPoint(new Coordinate(3, 3))
 
-      val df = spark.sparkContext.parallelize(Seq((1, pointA), (2, null), (3, pointC))).toDF
+      val df = spark.sparkContext.parallelize(Seq((1, pointA), (2, null), (3, pointC))).toDF("name", "geom")
 
-      val schema = df.schema
-      val res = df.mapPartitions { iter =>
-        val rowJson = RowGeoJSON(schema)
-        iter.map {rowJson.toString}
-      }.collect
+      import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+      val res = df.toGeoJSON.collect
 
       val geoms = res.map(geojson => jsonParser.parse(geojson).asInstanceOf[JSONObject].get("geometry"))
       geoms(0) mustEqual jsonParser.parse("""{"type": "Point", "coordinates": [1, 1] }""")
