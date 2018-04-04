@@ -199,4 +199,7 @@ the points of interest in New York, optionally written back to the data store. I
 comparing this result against the distribution of taxi drop-offs, the above code could easily be adapted to use
 the drop-off points instead.
 
-Further steps to visualize this result can be taken by following the example in  :doc:`/tutorials/broadcast-join`
+Further steps to visualize this result can be taken by following the example in  :doc:`/tutorials/broadcast-join`.
+This will lead to something like the following:
+
+.. figure:: _static/img/tutorials/2018-04-04-dwithin-join/aggregate-NYCTaxi.png

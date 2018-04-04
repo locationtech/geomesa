@@ -180,17 +180,13 @@ of the event density in each county, which we will see in the next section.
 Visualization
 -------------
 
-To visualize this result, we first need to map our data to a format that most geospatial visualization tools prefer,
-GeoJSON. To do this, we make use of GeoMesa's Row to GeoJSON converter.
+To visualize this result, we first need to map our data into the `GeoJSON <http://geojson.org/>`__ format. To do this,
+we make use of GeoMesa's DataFrame to GeoJSON converter.
 
 .. code-block:: scala
 
-    import org.locationtech.geomesa.spark.jts.util.RowGeoJSON
-    val schema = aggregateDF.schema
-    aggregateDF.mapPartitions { iter =>
-        val rowGeojson = RowGeoJSON(schema)
-        iter.map { row => rowGeojson.toString(row) }
-    }
+    import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+    val geojsonDF = aggregateDF.toGeoJSON
 
 If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
 write to a distributed file system like HDFS.
