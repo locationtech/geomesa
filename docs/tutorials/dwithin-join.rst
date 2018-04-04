@@ -33,9 +33,10 @@ Prerequisites
 For this tutorial, we will assume that your have already ingested the two data sets into the data store of your choosing.
 Following this tutorial without having created the necessary tables will lead to errors.
 
-If you have not ingested any data, you can follow one of the ingest tutorials :doc:`/tutorials/geomesa-examples-gdelt`.
 The converters for the GeoNames data set, :doc:`/user/convert/premade/geonames`, and the NYCTaxi data set,
-:doc:`/user/convert/premade/nyctaxi`, are provided with GeoMesa.
+:doc:`/user/convert/premade/nyctaxi`, are provided with GeoMesa. For further guidance, you can follow one of the ingest
+tutorials :doc:`/tutorials/geomesa-examples-gdelt`.
+Once you have the data ingested in GeoMesa, you may proceed with the rest of the tutorial.
 
 Initializing Spark
 ------------------

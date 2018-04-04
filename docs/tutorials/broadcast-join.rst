@@ -7,7 +7,7 @@ This tutorial will show you how to:
 2. Create and use DataFrames with our geospatial User Defined Functions.
 3. Calculate aggregate statistics using a covering set of polygons.
 4. Create a new simple feature type to represent this aggregation.
-5. Visualize the result as a choropleth.
+5. Visualize the result as a choropleth map.
 
 Background
 ----------
@@ -29,7 +29,7 @@ In this case, the number of counties is particularly small, approximately 3000 r
 more efficient by "broadcasting" the counties. "Broadcast" here meaning a
 `Spark Broadcast <https://spark.apache.org/docs/2.2.0/api/java/org/apache/spark/sql/functions.html#broadcast-org.apache.spark.sql.Dataset->`__.
 In a traditional Spark SQL join, data will be shuffled around the executors based on the partitioners of the RDDs,
-and since in our case the join key is a geometric field, there is no Spark partitioner that can map data effectively.
+and since in our case the join key is a geometric field, there is no built-in Spark partitioner that can map data effectively.
 The resulting movement of data across nodes is expensive, so we can attain a performance boost by sending (broadcasting)
 our entire small data set to each of the nodes once. This ensures that the executors have all the data needed to compute
 the join, and no additional shuffling is needed.
@@ -43,9 +43,10 @@ Prerequisites
 For this tutorial, we will assume that your have already ingested the two data sets into the data store of your choosing.
 Following this tutorial without having created the necessary tables will lead to errors.
 
-If you have not ingested any data, you can follow one of the ingest tutorials :doc:`/tutorials/geomesa-examples-gdelt`.
 The converter for the GDELT data set, :doc:`/user/convert/premade/gdelt`, is provided with GeoMesa, and the FIPS data can
-be ingested without a converter as a shapefile.
+be ingested without a converter as a shapefile. For further guidance, you can follow one of the ingest tutorials
+:doc:`/tutorials/geomesa-examples-gdelt`.
+Once you have the data ingested in GeoMesa, you may proceed with the rest of the tutorial.
 
 Initializing Spark
 ------------------
@@ -53,7 +54,7 @@ Initializing Spark
 To start working with Spark, we will need a Spark Session initialized, and to apply GeoMesa's geospatial User Defined
 Types (UDTs) and User Defined Functions (UDFs) to our data in Spark, we will need to initialize our SparkSQL extensions.
 This functionality requires having the appropriate GeoMesa Spark runtime jar on the classpath when running your Spark job.
-GeoMesa provides spark runtime jars for Accumulo, HBase, and FileSystem data stores. For example, the following would start an
+GeoMesa provides Spark runtime jars for Accumulo, HBase, and FileSystem data stores. For example, the following would start an
 interactive Spark REPL with all dependencies needed for running Spark with GeoMesa version 2.0.0 on an Accumulo data store.
 
 .. code-block:: bash
