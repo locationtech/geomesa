@@ -61,6 +61,9 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       val results = ArrayBuffer.empty[Array[Byte]]
       scanList.foreach { scan =>
         scan.setFilter(filterList)
+        // Enable Visibilities by delegating to the Region Server configured Coprocessors
+        env.getRegion.getCoprocessorHost.preScannerOpen(scan)
+
         // TODO: Explore use of MultiRangeFilter
         val scanner = env.getRegion.getScanner(scan)
         aggregator.setScanner(scanner)
