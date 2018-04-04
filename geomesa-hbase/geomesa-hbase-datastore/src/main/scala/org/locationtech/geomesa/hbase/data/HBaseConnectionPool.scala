@@ -27,21 +27,30 @@ object HBaseConnectionPool extends LazyLogging {
 
   private var userCheck: Option[User] = _
 
-  // add common resources from system property
-  private val configuration = withPaths(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option)
-
-  private val configCache = Caffeine.newBuilder().build(
+  private val zkConfigCache = Caffeine.newBuilder().build(
     new CacheLoader[(Option[String], Option[String]), Configuration] {
       override def load(key: (Option[String], Option[String])): Configuration = {
         val (zookeepers, paths) = key
+        val configuration = withPaths(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option)
         val conf = withPaths(configuration, paths)
         zookeepers.foreach(zk => conf.set(HConstants.ZOOKEEPER_QUORUM, zk))
         if (zookeepers.isEmpty && conf.get(HConstants.ZOOKEEPER_QUORUM) == "localhost") {
           logger.warn("HBase connection is set to localhost - " +
-              "this may indicate that 'hbase-site.xml' is not on the classpath")
+            "this may indicate that 'hbase-site.xml' is not on the classpath")
         }
         configureSecurity(conf)
         conf
+      }
+    }
+  )
+  private val confConfigCache = Caffeine.newBuilder().build(
+    new CacheLoader[(Configuration, Option[String]), Configuration] {
+      override def load(key: (Configuration, Option[String])): Configuration = {
+        val (configuration, paths) = key
+        val config = withPaths(HBaseConfiguration.create(configuration), HBaseDataStoreFactory.ConfigPathProperty.option)
+        withPaths(config, paths)
+        configureSecurity(config)
+        config
       }
     }
   )
@@ -76,10 +85,14 @@ object HBaseConnectionPool extends LazyLogging {
   def getConnection(params: java.util.Map[String, Serializable], validate: Boolean): Connection = {
     if (ConnectionParam.exists(params)) {
       ConnectionParam.lookup(params)
+    } else if (params.containsKey("hadoop.configuration")) {
+      val conf = params.get("hadoop.configuration").asInstanceOf[Configuration]
+      val paths = ConfigPathsParam.lookupOpt(params)
+      connectionCache.get((confConfigCache.get((conf, paths)), validate))
     } else {
       val zk = ZookeeperParam.lookupOpt(params)
       val paths = ConfigPathsParam.lookupOpt(params)
-      connectionCache.get((configCache.get((zk, paths)), validate))
+      connectionCache.get((zkConfigCache.get((zk, paths)), validate))
     }
   }
 
