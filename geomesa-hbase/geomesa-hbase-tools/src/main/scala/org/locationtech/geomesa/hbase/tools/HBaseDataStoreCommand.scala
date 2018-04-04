@@ -24,14 +24,22 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
     Map(
       HBaseDataStoreParams.HBaseCatalogParam.getName    -> params.catalog,
       HBaseDataStoreParams.ZookeeperParam.getName       -> params.zookeepers,
-      HBaseDataStoreParams.RemoteFilteringParam.getName -> (!params.noRemote).toString
+      HBaseDataStoreParams.RemoteFilteringParam.getName -> (!params.noRemote).toString,
+      HBaseDataStoreParams.EnableSecurityParam.getName  -> params.secure.toString,
+      HBaseDataStoreParams.AuthsParam.getName           -> params.auths
     ).filter(_._2 != null)
   }
 }
 
 object HBaseDataStoreCommand {
 
-  trait HBaseParams extends CatalogParam with OptionalZookeepersParam with RemoteFilterParam
+  trait HBaseParams extends CatalogParam with OptionalZookeepersParam with RemoteFilterParam {
+    @Parameter(names = Array("--secure"), description = "Enable HBase security (visibilities)")
+    var secure: Boolean = false
+
+    @Parameter(names = Array("--authorizations"), description = "Authorizations used for querying, comma-delimited")
+    var auths: String = _
+  }
 
   /**
     * Disables remote filtering/coprocessors
