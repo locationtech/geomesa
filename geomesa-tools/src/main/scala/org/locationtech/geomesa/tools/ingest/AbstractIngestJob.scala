@@ -40,7 +40,7 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
 
   def run(statusCallback: StatusCallback): (Long, Long) = {
 
-    val job = Job.getInstance(configuration.getOrElse(new Configuration), "GeoMesa Tools Ingest")
+    val job = Job.getInstance(configuration.getOrElse(new Configuration()), "GeoMesa Tools Ingest")
 
     setLibJars(job, libjarsFile, libjarsPaths)
 

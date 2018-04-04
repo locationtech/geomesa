@@ -15,9 +15,12 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
+<<<<<<< Updated upstream
+=======
+import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
+>>>>>>> Stashed changes
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, HBaseAdmin}
 import org.apache.hadoop.hbase.security.User
-import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
@@ -63,11 +66,7 @@ object HBaseConnectionPool extends LazyLogging {
           override def run(): Connection = {
             if (validate) {
               logger.debug("Checking configuration availability")
-              try {
-                HBaseAdmin.checkHBaseAvailable(conf)
-              } catch {
-                case e: Throwable => print(e + conf.toString)
-              }
+              HBaseAdmin.checkHBaseAvailable(conf)
             }
             ConnectionFactory.createConnection(conf)
           }
@@ -90,6 +89,7 @@ object HBaseConnectionPool extends LazyLogging {
     if (ConnectionParam.exists(params)) {
       ConnectionParam.lookup(params)
     } else if (params.containsKey("hadoop.configuration")) {
+<<<<<<< Updated upstream
       val conf = params.get("hadoop.configuration").asInstanceOf[Configuration]
       val paths = ConfigPathsParam.lookupOpt(params)
       connectionCache.get((confConfigCache.get((conf, paths)), validate))
@@ -97,6 +97,15 @@ object HBaseConnectionPool extends LazyLogging {
       val zk = ZookeeperParam.lookupOpt(params)
       val paths = ConfigPathsParam.lookupOpt(params)
       connectionCache.get((zkConfigCache.get((zk, paths)), validate))
+=======
+      val conf = Some(params.get("hadoop.configuration").asInstanceOf[Configuration])
+      val paths = ConfigPathsParam.lookupOpt(params)
+      connectionCache.get((configCache.get((Right(conf), paths)), validate))
+    } else {
+      val zk = ZookeeperParam.lookupOpt(params)
+      val paths = ConfigPathsParam.lookupOpt(params)
+      connectionCache.get((configCache.get((Left(zk), paths)), validate))
+>>>>>>> Stashed changes
     }
   }
 
