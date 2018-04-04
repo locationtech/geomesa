@@ -8,10 +8,14 @@
 
 package org.locationtech.geomesa.hbase.tools
 
+import java.net.URL
+
 import com.beust.jcommander.Parameter
+import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreParams}
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseParams
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalZookeepersParam}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 /**
  * Abstract class for commands that have a pre-existing catalog
@@ -21,9 +25,26 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
   override def params: HBaseParams
 
   override def connection: Map[String, String] = {
+
+    val HBASE_SITE_FILE_NAME = "hbase-site.xml"
+    val HBASE_ZOOKEEPER_QUORUM = "hbase.zookeeper.quorum"
+
+    val zkParam: String = if (params.zookeepers != null) {
+      // Command line takes precedence
+      params.zookeepers
+    } else {
+      val conf = new Configuration()
+      // Pull from System Properties first then look for the hbase-site on the classpath
+      SystemProperty("geomesa.hbase.site.xml.path").option match {
+        case Some(path) => conf.addResource(new URL(path))
+        case None => conf.addResource(HBASE_SITE_FILE_NAME)
+      }
+      conf.get(HBASE_ZOOKEEPER_QUORUM)
+    }
+
     Map(
       HBaseDataStoreParams.HBaseCatalogParam.getName    -> params.catalog,
-      HBaseDataStoreParams.ZookeeperParam.getName       -> params.zookeepers,
+      HBaseDataStoreParams.ZookeeperParam.getName       -> zkParam,
       HBaseDataStoreParams.RemoteFilteringParam.getName -> (!params.noRemote).toString
     ).filter(_._2 != null)
   }
