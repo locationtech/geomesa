@@ -81,7 +81,9 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
     (params: Map[String, String], indices: Option[Seq[String]], context: TaskAttemptContext)
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  val ds: GeoMesaDataStore[DS, F, W] = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
+  val paramsWithConf = params ++ Map("hadoop.configuration" -> context.getConfiguration)
+
+  val ds: GeoMesaDataStore[DS, F, W] = DataStoreFinder.getDataStore(paramsWithConf).asInstanceOf[GeoMesaDataStore[DS, F, W]]
 
   val sftCache    = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
   val writerCache = scala.collection.mutable.Map.empty[String, SimpleFeatureWriter]

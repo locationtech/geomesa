@@ -21,7 +21,7 @@ import org.locationtech.geomesa.tools.ingest.{ConverterIngest, IngestCommand, In
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
-import collection.JavaConversions._
+import scala.collection.JavaConversions._
 
 class HBaseIngestCommand extends IngestCommand[HBaseDataStore] with HBaseDataStoreCommand {
 
@@ -38,9 +38,9 @@ class HBaseIngestCommand extends IngestCommand[HBaseDataStore] with HBaseDataSto
   )
 
   override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
-    val conf = withDataStore(hds => hds.connection.getConfiguration)
+    val configuration = withDataStore(hds => hds.connection.getConfiguration)
     new ConverterIngest(sft, connection, converterConfig, params.files, Option(params.mode),
-    libjarsFile, libjarsPaths, params.threads, Some(conf))
+      libjarsFile, libjarsPaths, params.threads, Some(configuration))
   }
 }
 
