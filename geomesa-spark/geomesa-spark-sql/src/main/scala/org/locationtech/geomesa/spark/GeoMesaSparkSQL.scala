@@ -612,7 +612,7 @@ object RelationUtils extends LazyLogging {
     val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l, r) }
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val rdd = GeoMesaSpark(params).rdd(
-      new Configuration(), ctx, params,
+      ctx.hadoopConfiguration, ctx, params,
       new Query(params(GEOMESA_SQL_FEATURE), compiledCQL, requiredAttributes))
 
     val extractors = SparkUtils.getExtractors(requiredColumns, schema)
