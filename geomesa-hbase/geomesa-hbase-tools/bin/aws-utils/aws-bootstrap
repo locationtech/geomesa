@@ -416,7 +416,7 @@ else
   address=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep MasterPublicDnsName | cut -d "\"" -f 4`
   echo ""
   echo "Master public DNS name: ${address}"
-  echo "Resource Manager; ${address}:8088"
+  echo "Resource Manager: ${address}:8088"
   echo "Spark History Server: ${address}:18080"
   echo "HBase Master: ${address}:16010/master-status"
   echo "HDFS Name Node: ${address}:50070"
