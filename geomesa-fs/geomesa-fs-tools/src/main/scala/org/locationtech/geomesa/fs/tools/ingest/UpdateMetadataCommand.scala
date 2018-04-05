@@ -10,8 +10,9 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.UpdateMetadataCommand.UpdateMetadataParams
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
 
@@ -24,9 +25,10 @@ class UpdateMetadataCommand extends FsDataStoreCommand {
   }
 
   def addMetadata(ds: FileSystemDataStore): Unit = {
-    ds.storage.updateMetadata(params.featureName)
-    val m = ds.storage.getMetadata(params.featureName)
-    Command.user.info(s"Updated metadata. Found ${m.getNumPartitions} partitions and ${m.getNumStorageFiles} files")
+    val storage = ds.storage(params.featureName)
+    storage.updateMetadata()
+    val m = storage.getMetadata
+    Command.user.info(s"Updated metadata. Found ${m.getPartitionCount} partitions and ${m.getFileCount} files")
   }
 }
 

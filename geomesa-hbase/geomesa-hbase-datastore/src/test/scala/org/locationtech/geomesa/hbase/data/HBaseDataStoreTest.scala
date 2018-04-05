@@ -17,10 +17,14 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
+import org.locationtech.geomesa.hbase.index.{HBaseAttributeIndex, HBaseIdIndex, HBaseZ3Index}
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.process.query.ProximitySearchProcess
+import org.locationtech.geomesa.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
+import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 
 import scala.collection.JavaConversions._
@@ -112,6 +116,21 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
       testTransforms(ds)
 
+      def testProcesses(ds: HBaseDataStore) = {
+        val source = ds.getFeatureSource(typeName)
+        val input = new ListFeatureCollection(sft, Array[SimpleFeature](toAdd(4)))
+
+        val proximity = new ProximitySearchProcess()
+        val proximityResults = proximity.execute(input, source.getFeatures(), 10.0)
+        SelfClosingIterator(proximityResults.features()).toList mustEqual Seq(toAdd(4))
+
+        val tube = new TubeSelectProcess()
+        val tubeResults = tube.execute(input, source.getFeatures(), Filter.INCLUDE, null, null, 100.0, 10, null)
+        SelfClosingIterator(proximityResults.features()).toList mustEqual Seq(toAdd(4))
+      }
+
+      testProcesses(ds)
+
       ds.getFeatureSource(typeName).removeFeatures(ECQL.toFilter("INCLUDE"))
 
       forall(Seq("INCLUDE",
@@ -187,9 +206,9 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
         ds.connection.getRegionLocator(table).getStartKeys
       }
 
-      splits("attr:4") must haveLength((6 + 10 + 10) * 4) // a-f for name, 0-9 + [8]0-9 for age * 4 shards
-      splits("z3:2") must haveLength(16) // 2 bits * 4 shards
-      splits("id:1") must haveLength(4) // default 4 splits
+      splits(HBaseAttributeIndex.identifier) must haveLength((6 + 10 + 10) * 4) // a-f for name, 0-9 + [8]0-9 for age * 4 shards
+      splits(HBaseZ3Index.identifier) must haveLength(16) // 2 bits * 4 shards
+      splits(HBaseIdIndex.identifier) must haveLength(4) // default 4 splits
     }
   }
 

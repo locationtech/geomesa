@@ -32,10 +32,12 @@ trait CassandraFeatureWriter extends CassandraFeatureWriterType {
   override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[String] = tables
 
   override protected def executeWrite(table: String, writes: Seq[Seq[RowValue]]): Unit = {
-    writes.foreach { values =>
-      val insert = s"INSERT INTO $table (${values.map(_.column.name).mkString(", ")}) " +
-          s"values (${values.map(_ => "?").mkString(", ")})"
-      ds.session.execute(insert, values.map(_.value): _*)
+    writes.foreach { row =>
+      val insert = s"INSERT INTO $table (${row.map(_.column.name).mkString(", ")}) " +
+          s"values (${Seq.fill(row.length)("?").mkString(", ")})"
+      val values = row.map(_.value)
+      logger.trace(s"$insert : ${values.mkString(",")}")
+      ds.session.execute(insert, values: _*)
     }
   }
 
@@ -47,6 +49,7 @@ trait CassandraFeatureWriter extends CassandraFeatureWriterType {
           delete.where(QueryBuilder.eq(value.column.name, value.value))
         }
       }
+      logger.trace(delete.toString)
       ds.session.execute(delete)
     }
   }

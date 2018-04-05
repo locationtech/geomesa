@@ -10,7 +10,6 @@ package org.locationtech.geomesa.spark.jts.udf
 
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.SQLContext
-import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.geomesa.spark.jts.util.{WKBUtils, WKTUtils}
 import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
@@ -18,16 +17,16 @@ import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
 object GeometricConstructorFunctions {
 
   @transient
-  private val geomFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory
+  private val geomFactory: GeometryFactory = new GeometryFactory()
 
   val ST_GeomFromGeoHash: (String, Int) => Geometry = nullableUDF((hash, prec) => decode(hash, prec))
   val ST_GeomFromWKT: String => Geometry = nullableUDF(text => WKTUtils.read(text))
   val ST_GeomFromWKB: Array[Byte] => Geometry = nullableUDF(array => WKBUtils.read(array))
   val ST_LineFromText: String => LineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[LineString])
   val ST_MakeBox2D: (Point, Point) => Geometry = nullableUDF((lowerLeft, upperRight) =>
-    JTS.toGeometry(new Envelope(lowerLeft.getX, upperRight.getX, lowerLeft.getY, upperRight.getY)))
+    geomFactory.toGeometry(new Envelope(lowerLeft.getX, upperRight.getX, lowerLeft.getY, upperRight.getY)))
   val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = nullableUDF((lowerX, lowerY, upperX, upperY) =>
-    JTS.toGeometry(new Envelope(lowerX, upperX, lowerY, upperY)))
+    geomFactory.toGeometry(new Envelope(lowerX, upperX, lowerY, upperY)))
   val ST_MakePolygon: LineString => Polygon = nullableUDF(shell => {
     val ring = geomFactory.createLinearRing(shell.getCoordinateSequence)
     geomFactory.createPolygon(ring)

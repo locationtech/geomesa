@@ -12,7 +12,6 @@ package org.locationtech.geomesa.spark.jts.udf
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.util.GeometricShapeFactory
 import org.apache.spark.sql.SQLContext
-import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import org.locationtech.spatial4j.distance.DistanceUtils
@@ -23,7 +22,7 @@ object GeometricProcessingFunctions {
 
   @transient private lazy val spatialContext = JtsSpatialContext.GEO
   @transient private lazy val shapeFactory   = spatialContext.getShapeFactory
-  @transient private lazy val geometryFactory = JTSFactoryFinder.getGeometryFactory
+  @transient private lazy val geometryFactory = new GeometryFactory()
   @transient private val geometricShapeFactory =
     new ThreadLocal[GeometricShapeFactory] {
       override def initialValue(): GeometricShapeFactory = {

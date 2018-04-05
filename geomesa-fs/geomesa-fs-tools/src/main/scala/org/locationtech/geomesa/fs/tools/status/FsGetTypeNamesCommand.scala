@@ -10,8 +10,9 @@ package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.status.FsGetTypeNamesCommand.FsGetTypeNamesParams
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.status.GetTypeNamesCommand
 
 class FsGetTypeNamesCommand extends GetTypeNamesCommand[FileSystemDataStore] with FsDataStoreCommand {

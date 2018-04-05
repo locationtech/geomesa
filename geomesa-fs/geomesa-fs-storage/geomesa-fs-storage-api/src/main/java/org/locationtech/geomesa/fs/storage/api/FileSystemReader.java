@@ -14,5 +14,5 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 public interface FileSystemReader extends Iterator<SimpleFeature>, AutoCloseable {
-  public boolean close(long wait, TimeUnit unit);
+  boolean close(long wait, TimeUnit unit);
 }

@@ -49,7 +49,7 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, 
     * @param end end of the range, exclusive. Empty byte array indicates open-ended
     * @return
     */
-  protected def range(start: Array[Byte], end: Array[Byte]): R
+  protected def createRange(start: Array[Byte], end: Array[Byte]): R
 
   /**
     * Creates a range for scanning a single exact row
@@ -57,15 +57,7 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, 
     * @param row row to scan
     * @return
     */
-  protected def rangeExact(row: Array[Byte]): R
-
-  /**
-    * Creates a range for scanning all rows starting with a prefix
-    *
-    * @param prefix row prefix to scan
-    * @return
-    */
-  protected def rangePrefix(prefix: Array[Byte]): R = range(prefix, IndexAdapter.rowFollowingPrefix(prefix))
+  protected def createRange(row: Array[Byte]): R
 
   /**
     * Create a config as an intermediate step for creating the query plan
@@ -114,42 +106,6 @@ object IndexAdapter {
   }
 
   /**
-    * Returns a row that sorts just after all rows beginning with a prefix. Copied from Accumulo Range
-    *
-    * @param prefix to follow
-    * @return prefix that immediately follows the given prefix when sorted, or an empty array if no prefix can follow
-    *         (i.e., the string is all 0xff bytes)
-    */
-  def rowFollowingPrefix(prefix: Array[Byte]): Array[Byte] = {
-    // find the last byte in the array that is not 0xff
-    var changeIndex = prefix.length - 1
-    while (changeIndex >= 0 && prefix(changeIndex) == MaxByte) {
-      changeIndex -= 1
-    }
-    if (changeIndex < 0) { Array.empty } else {
-      // copy prefix bytes into new array
-      val following = Array.ofDim[Byte](changeIndex + 1)
-      System.arraycopy(prefix, 0, following, 0, changeIndex + 1)
-      // increment the selected byte
-      following(changeIndex) = (following(changeIndex) + 1).toByte
-      following
-    }
-  }
-
-  /**
-    * Returns a row that immediately follows the row. Useful for inclusive endpoints.
-    *
-    * @param row row
-    * @return
-    */
-  def rowFollowingRow(row: Array[Byte]): Array[Byte] = {
-    val following = Array.ofDim[Byte](row.length + 1)
-    System.arraycopy(row, 0, following, 0, row.length)
-    following(row.length) = ZeroByte
-    following
-  }
-
-  /**
     * Splits a range up into equal parts.
     *
     * Note: currently only handles prefix ranges, which should mainly the the ones we want to expand.
@@ -163,7 +119,7 @@ object IndexAdapter {
     require(splits > 0 && splits < 256, "Splits must be greater than 0 and less than 256")
     if (splits == 1) {
       Seq((start, stop))
-    } else if ((start.length == 0 && stop.length == 0) || java.util.Arrays.equals(rowFollowingPrefix(start), stop)) {
+    } else if ((start.length == 0 && stop.length == 0) || java.util.Arrays.equals(ByteArrays.rowFollowingPrefix(start), stop)) {
       val increment = 256 / splits
       val bytes = (1 until splits).map(i => start :+ ((i * increment) & MaxByte).toByte)
       val first = (start, bytes.head)

@@ -13,14 +13,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureReader
 import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.ThreadManagement
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long], val maxFeatures: Long)
@@ -92,11 +92,11 @@ class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
                                     maxFeatures: Long = 0L)
     extends GeoMesaFeatureReader(query, timeout, maxFeatures) with MethodProfiling {
 
-  implicit val timings: Timings = new TimingsImpl
-  private val iter = profile("planning")(qp.runQuery(sft, query))
+  private val timings = new TimingsImpl
+  private val iter = profile(timings, "planning")(qp.runQuery(sft, query))
 
-  override def next(): SimpleFeature = profile("next")(iter.next())
-  override def hasNext: Boolean = profile("hasNext")(iter.hasNext)
+  override def next(): SimpleFeature = profile(timings, "next")(iter.next())
+  override def hasNext: Boolean = profile(timings, "hasNext")(iter.hasNext)
 
   override protected def closeOnce(): Unit = {
     iter.close()

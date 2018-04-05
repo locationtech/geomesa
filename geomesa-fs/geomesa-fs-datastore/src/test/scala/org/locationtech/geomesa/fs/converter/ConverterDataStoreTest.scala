@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.converter
 
+import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
@@ -22,26 +23,31 @@ import scala.collection.mutable
   */
 @RunWith(classOf[JUnitRunner])
 class ConverterDataStoreTest extends Specification {
+
   sequential
 
   "ConverterDataStore" should {
     "work with one datastore" >> {
       val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> this.getClass.getClassLoader.getResource("example/datastore1").getFile,
+        "fs.path"     -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding" -> "converter",
-        "fs.options.sft.name" -> "fs-test",   //need to make one
-        "fs.options.converter.name" -> "fs-test",
-        "fs.partition-scheme.name" -> "datetime",
-        "fs.partition-scheme.opts.datetime-format" -> "yyyy/DDD/HH/mm",
-        "fs.partition-scheme.opts.step-unit" -> "MINUTES",
-        "fs.partition-scheme.opts.step" -> "15",
-        "fs.partition-scheme.opts.dtg-attribute" -> "dtg",
-        "fs.partition-scheme.opts.leaf-storage" -> "true"
+        "fs.config"   ->
+          """
+            |fs.options.sft.name=fs-test
+            |fs.options.converter.name=fs-test
+            |fs.options.converter.path=datastore1
+            |fs.partition-scheme.name=datetime
+            |fs.partition-scheme.opts.datetime-format=yyyy/DDD/HH/mm
+            |fs.partition-scheme.opts.step-unit=MINUTES
+            |fs.partition-scheme.opts.step=15
+            |fs.partition-scheme.opts.dtg-attribute=dtg
+            |fs.partition-scheme.opts.leaf-storage=true
+          """.stripMargin
       ))
-      ds must not beNull
+      ds must not(beNull)
 
       val types = ds.getTypeNames
-      types.size mustEqual 1
+      types must haveSize(1)
       types.head mustEqual "fs-test"
 
       val q = new Query("fs-test", Filter.INCLUDE)
@@ -55,21 +61,25 @@ class ConverterDataStoreTest extends Specification {
 
     "work with something else" >> {
       val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> this.getClass.getClassLoader.getResource("example/datastore2").getFile,
+        "fs.path"     -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding" -> "converter",
-        "fs.options.sft.name" -> "fs-test",   //need to make one
-        "fs.options.converter.name" -> "fs-test",
-        "fs.partition-scheme.name" -> "datetime",
-        "fs.partition-scheme.opts.datetime-format" -> "yyyy/DDD/HH/mm",
-        "fs.partition-scheme.opts.step-unit" -> "MINUTES",
-        "fs.partition-scheme.opts.step" -> "15",
-        "fs.partition-scheme.opts.dtg-attribute" -> "dtg",
-        "fs.partition-scheme.opts.leaf-storage" -> "true"
+        "fs.config"   ->
+            """
+              |fs.options.sft.name=fs-test
+              |fs.options.converter.name=fs-test
+              |fs.options.converter.path=datastore2
+              |fs.partition-scheme.name=datetime
+              |fs.partition-scheme.opts.datetime-format=yyyy/DDD/HH/mm
+              |fs.partition-scheme.opts.step-unit=MINUTES
+              |fs.partition-scheme.opts.step=15
+              |fs.partition-scheme.opts.dtg-attribute=dtg
+              |fs.partition-scheme.opts.leaf-storage=true
+            """.stripMargin
       ))
-      ds must not beNull
+      ds must not(beNull)
 
       val types = ds.getTypeNames
-      types.size mustEqual 1
+      types must haveSize(1)
       types.head mustEqual "fs-test"
 
       val q = new Query("fs-test", Filter.INCLUDE)
@@ -83,15 +93,15 @@ class ConverterDataStoreTest extends Specification {
 
     "load sft as a string" >> {
 
-      val conf =
+      val conf = ConfigFactory.parseString(
         """
           |geomesa {
           |  sfts {
           |    "fs-test" = {
           |      attributes = [
-          |        { name = "name",     type = "String",          index = true                              }
-          |        { name = "dtg",      type = "Date",            index = false                             }
-          |        { name = "geom",     type = "Point",           index = true, srid = 4326, default = true }
+          |        { name = "name", type = "String", index = true                              }
+          |        { name = "dtg",  type = "Date",   index = false                             }
+          |        { name = "geom", type = "Point",  index = true, srid = 4326, default = true }
           |      ]
           |    }
           |  }
@@ -105,33 +115,38 @@ class ConverterDataStoreTest extends Specification {
           |      },
           |      id-field = "toString($name)",
           |      fields = [
-          |        { name = "name",     transform = "$1::string"                  }
-          |        { name = "dtg",      transform = "dateTime($2)"           }
-          |        { name = "geom",     transform = "point($3)"                   }
+          |        { name = "name", transform = "$1::string"   }
+          |        { name = "dtg",  transform = "dateTime($2)" }
+          |        { name = "geom", transform = "point($3)"    }
           |      ]
           |    }
           |
           |  }
           |}
-          |
         """.stripMargin
+      ).root().render(ConfigRenderOptions.concise)
 
       val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> this.getClass.getClassLoader.getResource("example/datastore1").getFile,
+        "fs.path"     -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding" -> "converter",
-        "fs.options.sft.conf" -> conf,
-        "fs.options.converter.conf" -> conf,
-        "fs.partition-scheme.name" -> "datetime",
-        "fs.partition-scheme.opts.datetime-format" -> "yyyy/DDD/HH/mm",
-        "fs.partition-scheme.opts.step-unit" -> "MINUTES",
-        "fs.partition-scheme.opts.step" -> "15",
-        "fs.partition-scheme.opts.dtg-attribute" -> "dtg",
-        "fs.partition-scheme.opts.leaf-storage" -> "true"
+        "fs.config"   ->
+            s"""
+              |fs.options.sft.conf=$conf
+              |fs.options.converter.conf=$conf
+              |fs.options.converter.path=datastore1
+              |fs.partition-scheme.name=datetime
+              |fs.partition-scheme.opts.datetime-format=yyyy/DDD/HH/mm
+              |fs.partition-scheme.opts.step-unit=MINUTES
+              |fs.partition-scheme.opts.step=15
+              |fs.partition-scheme.opts.dtg-attribute=dtg
+              |fs.partition-scheme.opts.leaf-storage=true
+            """.stripMargin
       ))
-      ds must not beNull
+
+      ds must not(beNull)
 
       val types = ds.getTypeNames
-      types.size mustEqual 1
+      types must haveSize(1)
       types.head mustEqual "fs-test"
 
       val q = new Query("fs-test", Filter.INCLUDE)

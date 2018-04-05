@@ -98,7 +98,14 @@ The ``--output-format`` argument defines the encoding used for export. Currently
 * ``geojson``, ``json``
 * ``gml`` `Geography Markup Language <http://www.opengeospatial.org/standards/gml>`_
 * ``shp`` ESRI Shapefile
+* ``leaflet`` Export data to a leaflet map and open in the default browser, if possible
 * ``null`` suppress output entirely
+
+.. note::
+
+    The leaflet format is intended for testing and small scale data exploration and visualization only. For production
+    map generation it is highly recommended to use GeoServer. Additionally, the resulting file from this command
+    requires the use of an online browser to open in order to access online resources.
 
 The ``--output`` argument can be used to export to a file. By default, export data is written to the standard
 output stream.

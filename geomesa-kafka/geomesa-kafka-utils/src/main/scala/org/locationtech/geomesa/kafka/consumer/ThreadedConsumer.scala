@@ -69,7 +69,8 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
 
     override def run(): Unit = {
       try {
-        while (!closed.get()) {
+        var interrupted = false
+        while (!closed.get() && !interrupted) {
           try {
             val result = consumer.poll(frequency)
             lazy val topics = result.partitions.asScala.map(tp => s"[${tp.topic}:${tp.partition}]").mkString(",")
@@ -85,8 +86,7 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
               errorCount = 0 // reset error count
             }
           } catch {
-            case e: WakeupException => throw e
-            case e: InterruptedException => throw e
+            case _: WakeupException | _: InterruptedException => interrupted = true
             case NonFatal(e) =>
               if (errorCount < 300) {
                 errorCount += 1
@@ -98,8 +98,6 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
               }
           }
         }
-      } catch {
-        case _: WakeupException | _: InterruptedException => // return
       } finally {
         if (closeConsumers) {
           consumer.close()

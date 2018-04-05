@@ -667,6 +667,17 @@ st_distance
 
 Returns the 2D Cartesian distance between the two geometries in units of the coordinate reference system (e.g. degrees for EPSG:4236).
 
+.. _st_distanceSphere:
+
+st_distanceSphere
+^^^^^^^^^^^^^^^^^
+
+::
+
+    Double st_distanceSphere(Geometry a, Geometry b)
+
+Approximates the minimum distance between two longitude/latitude geometries assuming a spherical earth.
+
 .. _st_distanceSpheroid:
 
 st_distanceSpheroid
@@ -711,6 +722,18 @@ st_length
 
 Returns the 2D path length of linear geometries, or perimeter of areal geometries, in units of the the coordinate reference system (e.g. degrees for EPSG:4236). Returns 0.0 for other geometry types (e.g. Point).
 
+.. _st_lengthSphere:
+
+st_lengthSphere
+^^^^^^^^^^^^^^^
+
+::
+
+    Double st_lengthSphere(LineString line)
+
+Approximates the 2D path length of a ``LineString`` geometry using a spherical earth model. The returned length is in units of meters.
+The approximation is within 0.3% of st_lengthSpheroid and is computationally more efficient.
+
 .. _st_lengthSpheroid:
 
 st_lengthSpheroid
@@ -720,7 +743,7 @@ st_lengthSpheroid
 
     Double st_lengthSpheroid(LineString line)
 
-Calculates the 2D path length of a ``LineString`` geometry defined with longitude/latittude coordinates on the WGS84 spheroid. The returned length is in units of meters.
+Calculates the 2D path length of a ``LineString`` geometry defined with longitude/latitude coordinates on the WGS84 spheroid. The returned length is in units of meters.
 
 .. _st_overlaps:
 

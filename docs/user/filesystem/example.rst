@@ -69,7 +69,7 @@ We can verify our ingest by running an export:
 
 .. code-block:: bash
 
-    $ bin/geomesa-fs  export -p file:///tmp/dstest -e parquet -f example-csv
+    $ bin/geomesa-fs export -p file:///tmp/dstest -f example-csv
 
     id,fid:Integer:index=false,name:String:index=true,age:Integer:index=false,lastseen:Date:default=true:index=false,*geom:Point:srid=4326
     26236,26236,Hermione,25,2015-06-07T00:00:00.000Z,POINT (40.232 -53.2356)

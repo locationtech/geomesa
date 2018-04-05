@@ -19,7 +19,7 @@ jdk:
   - oraclejdk8
 
 script:
-  - export MAVEN_OPTS="-Xmx4g -Djava.net.preferIPv4Stack=true"
+  - export MAVEN_OPTS="-Xmx1g -Djava.net.preferIPv4Stack=true"
   - ./.travisbuild.sh
 
 notifications:

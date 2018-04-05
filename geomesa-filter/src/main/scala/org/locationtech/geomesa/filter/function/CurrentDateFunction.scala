@@ -8,16 +8,33 @@
 
 package org.locationtech.geomesa.filter.function
 
-import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.{Duration, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
+import org.geotools.data.Parameter
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 
 class CurrentDateFunction extends FunctionExpressionImpl(CurrentDateFunction.Name) {
-  override def evaluate(o: AnyRef): AnyRef = Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant)
+  private var offset = ""
+
+  override def evaluate(o: AnyRef): AnyRef = {
+    if (offset.isEmpty && getParameters.size > 0) {
+      offset = getExpression(0).evaluate(null).asInstanceOf[String]
+    }
+
+    val now = ZonedDateTime.now(ZoneOffset.UTC).toInstant
+
+    if (offset.isEmpty) {
+      Date.from(now)
+    } else {
+      Date.from(now.plus(Duration.parse(offset)))
+    }
+  }
 }
 
 object CurrentDateFunction {
-  val Name = new FunctionNameImpl("currentDate", classOf[java.util.Date])
+  val param = new Parameter[java.lang.String]("key", classOf[java.lang.String], null, null, false, 0, 1, "P1D", null)
+
+  val Name = new FunctionNameImpl("currentDate", classOf[java.util.Date], param)
 }

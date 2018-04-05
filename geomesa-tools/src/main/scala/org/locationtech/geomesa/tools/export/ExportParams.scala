@@ -23,7 +23,7 @@ trait FileExportParams extends OptionalCqlFilterParam with QueryHintsParams {
   @Parameter(names = Array("--gzip"), description = "Level of gzip compression to apply to output, from 1-9")
   var gzip: Integer = _
 
-  @Parameter(names = Array("-F", "--output-format"), description = "File format of output files (csv|tsv|gml|json|shp|avro)", converter = classOf[DataFormatConverter])
+  @Parameter(names = Array("-F", "--output-format"), description = "File format of output files (csv|tsv|gml|json|shp|avro|leaflet)", converter = classOf[DataFormatConverter])
   var outputFormat: DataFormat = DataFormats.Csv
 
   @Parameter(names = Array("--no-header"), description = "Export as a delimited text format (csv|tsv) without a type header", required = false)

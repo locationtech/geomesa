@@ -10,11 +10,8 @@ package org.locationtech.geomesa.fs.storage.api;
 
 import org.opengis.feature.simple.SimpleFeature;
 
-public interface FileSystemWriter {
+import java.io.Flushable;
 
-    void write(SimpleFeature f);
-
-    void flush();
-
-    void close();
+public interface FileSystemWriter extends AutoCloseable, Flushable {
+    void write(SimpleFeature feature);
 }

@@ -8,11 +8,13 @@
 
 package org.locationtech.geomesa.filter
 
+import java.time.temporal.ChronoUnit
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.Bounds.Bound
@@ -35,6 +37,32 @@ class FilterHelperTest extends Specification {
   }
 
   "FilterHelper" should {
+
+    "evaluate functions with 0 arguments" >> {
+      val filter = ECQL.toFilter("dtg < currentDate()")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsLessThenImpl].getExpression2.isInstanceOf[LiteralExpressionImpl] mustEqual true
+    }
+
+    "evaluate functions with 1 argument" >> {
+      val filter = ECQL.toFilter("dtg > currentDate('P2D')")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsGreaterThanImpl].getExpression2.isInstanceOf[LiteralExpressionImpl] mustEqual true
+    }
+
+    "evaluate functions representing the last day" >> {
+      val filter = ECQL.toFilter("dtg > currentDate('-P1D') AND dtg < currentDate()")
+      val updated = updateFilter(filter)
+      val intervals = FilterHelper.extractIntervals(updated, "dtg", handleExclusiveBounds = true)
+      intervals.values(0).lower.value.get.until(
+        intervals.values(0).upper.value.get, ChronoUnit.HOURS) must beCloseTo(24l, 2)
+    }
+
+    "evaluate functions with math" >> {
+      val filter = ECQL.toFilter("number < 1+2")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsLessThenImpl].getExpression2.evaluate(null) mustEqual 3
+    }
 
     "fix out of bounds bbox" >> {
       val filter = ff.bbox(ff.property("geom"), -181, -91, 181, 91, "4326")

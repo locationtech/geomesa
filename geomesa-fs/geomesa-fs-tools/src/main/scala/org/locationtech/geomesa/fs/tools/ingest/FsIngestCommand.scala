@@ -14,18 +14,17 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.common.conf.{PartitionSchemeArgResolver, SchemeArgs}
-import org.locationtech.geomesa.fs.storage.common.{PartitionOpts, PartitionScheme}
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{EncodingParam, FsParams, SchemeParams}
+import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{OrcConverterJob, ParquetConverterJob}
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.{FileSystemConverterIngest, FsIngestParams}
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.DataFormats
-import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -60,20 +59,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
   }
 
   override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
-    val scheme = PartitionSchemeArgResolver.getArg(SchemeArgs(params.scheme, sft)) match {
-      case Left(e) => throw new ParameterException(e)
-      case Right(s) if s.isLeafStorage == params.leafStorage => s
-      case Right(s) =>
-        val opts = s.getOptions.updated(PartitionOpts.LeafStorage, params.leafStorage.toString).toMap
-        PartitionScheme.apply(sft, s.name(), opts)
-    }
-
-    PartitionScheme.addToSft(sft, scheme)
-
-    // Can use this to set things like compression and summary levels for parquet in the sft user data
-    // to be picked up by the ingest job
-    params.storageOpts.foreach { case (k, v) => sft.getUserData.put(k,v) }
-
+    FsCreateSchemaCommand.setOptions(sft, params)
     new FileSystemConverterIngest(sft,
         connection,
         converterConfig,
@@ -90,18 +76,9 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
 
 object FsIngestCommand {
   @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-  class FsIngestParams extends IngestParams with FsParams with TempDirParam {
+  class FsIngestParams extends IngestParams with FsParams with EncodingParam with SchemeParams with TempDirParam {
     @Parameter(names = Array("--num-reducers"), description = "Num reducers (required for distributed ingest)", required = false)
     var reducers: java.lang.Integer = _
-
-    @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file", required = true)
-    var scheme: java.lang.String = _
-
-    @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", required = false, arity = 1)
-    var leafStorage: java.lang.Boolean = true
-
-    @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", required = false, converter = classOf[KeyValueConverter])
-    var storageOpts: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
   }
 
   trait TempDirParam {
@@ -109,7 +86,6 @@ object FsIngestCommand {
         "Note that this may be useful when using s3 since it is slow as a sink", required = false)
     var tempDir: String = _
   }
-
 
   class FileSystemConverterIngest(sft: SimpleFeatureType,
                                   dsParams: Map[String, String],

@@ -14,7 +14,7 @@ com.github.stephenc.findbugs:findbugs-annotations	1.3.9-1	compile
 com.googlecode.concurrent-trees:concurrent-trees	2.6.0	compile
 com.googlecode.cqengine:cqengine	2.7.1	compile
 com.googlecode.efficient-java-matrix-library:core	0.26	compile
-com.google.code.gson:gson	2.3.1	compile
+com.google.code.gson:gson	2.8.1	compile
 com.googlecode.json-simple:json-simple	1.1	compile
 com.googlecode.juniversalchardet:juniversalchardet	1.0.3	compile
 com.google.guava:guava	12.0.1	compile
@@ -116,6 +116,7 @@ net.jpountz.lz4:lz4	1.3.0	compile
 net.minidev:accessors-smart	1.1	compile
 net.minidev:json-smart	2.2.1	compile
 net.sf.geographiclib:GeographicLib-Java	1.44	compile
+net.sf.saxon:Saxon-HE	9.7.0-20	compile
 net.sf.trove4j:trove4j	3.0.3	compile
 org.antlr:antlr4-runtime	4.5	compile
 org.apache.accumulo:accumulo-core	1.8.1	compile
@@ -129,9 +130,9 @@ org.apache.camel:camel-core	2.15.1	compile
 org.apache.camel:camel-scala	2.15.1	compile
 org.apache.commons:commons-compress	1.4.1	compile
 org.apache.commons:commons-csv	1.5	compile
-org.apache.commons:commons-lang3	3.3.2	compile
+org.apache.commons:commons-lang3	3.6	compile
 org.apache.commons:commons-math	2.2	compile
-org.apache.commons:commons-pool2	2.2	compile
+org.apache.commons:commons-pool2	2.4.2	compile
 org.apache.commons:commons-vfs2	2.1	compile
 org.apache.curator:curator-client	2.4.0	compile
 org.apache.curator:curator-client	2.7.1	compile
@@ -227,13 +228,13 @@ org.scalatra:scalatra-auth_2.11	2.3.0	compile
 org.scalatra:scalatra-common_2.11	2.3.0	compile
 org.scalatra:scalatra-json_2.11	2.3.0	compile
 org.scalatra:scalatra-swagger_2.11	2.3.0	compile
-org.slf4j:slf4j-api	1.7.5	compile
-org.slf4j:slf4j-log4j12	1.7.5	compile
+org.slf4j:slf4j-api	1.7.21	compile
+org.slf4j:slf4j-log4j12	1.7.21	compile
 org.tukaani:xz	1.0	compile
 picocontainer:picocontainer	1.2	compile
 redis.clients:jedis	2.9.0	compile
 
-com.101tec:zkclient	0.7	provided
+com.101tec:zkclient	0.10	provided
 com.datastax.cassandra:cassandra-driver-core	3.0.0	provided
 com.datastax.cassandra:cassandra-driver-mapping	3.0.0	provided
 javax.media:jai_codec	1.1.3	provided
@@ -242,11 +243,12 @@ org.apache.hadoop:hadoop-annotations	2.6.4	provided
 org.apache.hadoop:hadoop-client	2.6.4	provided
 org.apache.hadoop:hadoop-common	2.6.4	provided
 org.apache.hadoop:hadoop-distcp	2.6.4	provided
+org.apache.hadoop:hadoop-hdfs	2.6.4	provided
 org.apache.hadoop:hadoop-mapreduce-client-core	2.6.4	provided
 org.apache.hadoop:hadoop-yarn-api	2.6.4	provided
 org.apache.hadoop:hadoop-yarn-common	2.6.4	provided
-org.apache.kafka:kafka_2.11	0.9.0.1	provided
-org.apache.kafka:kafka-clients	0.9.0.1	provided
+org.apache.kafka:kafka_2.11	1.0.1	provided
+org.apache.kafka:kafka-clients	1.0.1	provided
 org.apache.spark:spark-catalyst_2.11	2.2.0	provided
 org.apache.spark:spark-core_2.11	2.2.0	provided
 org.apache.spark:spark-sql_2.11	2.2.0	provided
@@ -263,8 +265,8 @@ org.apache.camel:camel-netty4	2.15.1	test
 org.apache.cassandra:cassandra-all	3.0.0	test
 org.apache.curator:curator-test	2.7.1	test
 org.apache.hbase:hbase-testing-util	1.3.1	test
-org.apache.kafka:kafka_2.11	test:0.9.0.1	test
-org.apache.kafka:kafka-clients	test:0.9.0.1	test
+org.apache.kafka:kafka_2.11	test:1.0.1	test
+org.apache.kafka:kafka-clients	test:1.0.1	test
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	18.0	test

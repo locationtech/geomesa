@@ -19,6 +19,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -40,27 +41,27 @@ class PartitionSchemeTest extends Specification with AllExpectations {
 
     "partition based on date" >> {
       val ps = new DateTimeScheme("yyyy-MM-dd", ChronoUnit.DAYS, 1, "dtg", true)
-      ps.getPartitionName(sf) mustEqual "2017-01-03"
+      ps.getPartition(sf) mustEqual "2017-01-03"
     }
 
     "partition based on date with slash delimiter" >> {
       val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, "dtg", true)
-      ps.getPartitionName(sf) mustEqual "2017/003/10"
+      ps.getPartition(sf) mustEqual "2017/003/10"
     }
 
     "partition based on date with slash delimiter" >> {
       val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, "dtg", true)
-      ps.getPartitionName(sf) mustEqual "2017/003/10"
+      ps.getPartition(sf) mustEqual "2017/003/10"
     }
 
     "weekly partitions" >> {
-      val ps = CommonSchemeLoader.build("weekly", sft)
+      val ps = PartitionScheme.apply(sft, "weekly")
       ps must beAnInstanceOf[DateTimeScheme]
-      ps.getPartitionName(sf) mustEqual "2017/01"
+      ps.getPartition(sf) mustEqual "2017/01"
       val tenWeeksOut = new SimpleFeatureImpl(
         List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-01T00:00:00Z").plus(9*7 + 1, ChronoUnit.DAYS)),
           gf.createPoint(new Coordinate(10, 10))), sft, new FeatureIdImpl("1"))
-      ps.getPartitionName(tenWeeksOut) mustEqual "2017/10"
+      ps.getPartition(tenWeeksOut) mustEqual "2017/10"
     }
 
     "10 bit datetime z2 partition" >> {
@@ -76,8 +77,8 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, "dtg", true),
         new Z2Scheme(10, "geom", true)
       ))
-      ps.getPartitionName(sf) mustEqual "2017/003/0770"
-      ps.getPartitionName(sf2) mustEqual "2017/003/0617"
+      ps.getPartition(sf) mustEqual "2017/003/0770"
+      ps.getPartition(sf2) mustEqual "2017/003/0617"
 
     }
 
@@ -94,20 +95,19 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, "dtg", true),
         new Z2Scheme(20, "geom", true)
       ))
-      ps.getPartitionName(sf) mustEqual "2017/003/0789456"
-      ps.getPartitionName(sf2) mustEqual "2017/003/0632516"
+      ps.getPartition(sf) mustEqual "2017/003/0789456"
+      ps.getPartition(sf2) mustEqual "2017/003/0632516"
     }
 
     "return correct date partitions" >> {
       val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true)
-      val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
+      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 24
-
     }
 
     "2 bit datetime z2 partition" >> {
       val ps = new Z2Scheme(2, "geom", true)
-      val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
+      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 4
     }
 
@@ -116,25 +116,25 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true),
         new Z2Scheme(2, "geom", true)
       ))
-      val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
+      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 24 * 4
     }
 
     "2 bit with filter" >> {
       val ps = new Z2Scheme(2, "geom", true)
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -180, -90, 180, 90, 'EPSG:4326')")).size mustEqual 4
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -1, -1, 1, 1, 'EPSG:4326')")).size mustEqual 4
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -10, 5, 10, 6, 'EPSG:4326')")).size mustEqual 2
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -180, -90, 180, 90, 'EPSG:4326')")).size mustEqual 4
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -1, -1, 1, 1, 'EPSG:4326')")).size mustEqual 4
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -10, 5, 10, 6, 'EPSG:4326')")).size mustEqual 2
     }
 
     "4 bit with filter" >> {
       val ps = new Z2Scheme(4, "geom", true)
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -180, -90, 180, 90, 'EPSG:4326')")).size mustEqual 16
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -1, -1, 1, 1, 'EPSG:4326')")).size mustEqual 4
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -10, 5, 10, 6, 'EPSG:4326')")).size mustEqual 2
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -90, 5, 90, 6, 'EPSG:4326')")).size mustEqual 3
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -90.000000001, 5, 90, 6, 'EPSG:4326')")).size mustEqual 4
-      ps.getCoveringPartitions(ECQL.toFilter("bbox(geom, -90.000000001, 5, 180, 6, 'EPSG:4326')")).size mustEqual 4
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -180, -90, 180, 90, 'EPSG:4326')")).size mustEqual 16
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -1, -1, 1, 1, 'EPSG:4326')")).size mustEqual 4
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -10, 5, 10, 6, 'EPSG:4326')")).size mustEqual 2
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -90, 5, 90, 6, 'EPSG:4326')")).size mustEqual 3
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -90.000000001, 5, 90, 6, 'EPSG:4326')")).size mustEqual 4
+      ps.getPartitions(ECQL.toFilter("bbox(geom, -90.000000001, 5, 180, 6, 'EPSG:4326')")).size mustEqual 4
     }
 
     "date time test" >> {
@@ -142,24 +142,24 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true),
         new Z2Scheme(2, "geom", true)
       ))
-      val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
+      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size mustEqual 96
       // TODO actually test the resulting values...
     }
 
     "composite scheme test hourly,z2-2bit" >> {
-      val ps = CommonSchemeLoader.build("hourly,z2-2bit", sft)
+      val ps = PartitionScheme.apply(sft, "hourly,z2-2bit")
       ps must beAnInstanceOf[CompositeScheme]
-      val covering = ps.getCoveringPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
+      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
       covering.size() mustEqual 24 * 4
     }
 
     "handle edge boundaries" >> {
       val dtScheme = new DateTimeScheme("yyyy/yyyyMMdd", ChronoUnit.DAYS, 1, "dtg", true)
-      val twoDays = dtScheme.getCoveringPartitions(ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'"))
+      val twoDays = dtScheme.getPartitions(ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'"))
       twoDays.size mustEqual 2
       twoDays.toSeq must containTheSameElementsAs((2 to 3).map(i => f"2017/201701$i%02d"))
-      val threeDays = dtScheme.getCoveringPartitions(ECQL.toFilter("dtg >= '2017-01-02' and dtg <= '2017-01-04T00:00:00.001Z'"))
+      val threeDays = dtScheme.getPartitions(ECQL.toFilter("dtg >= '2017-01-02' and dtg <= '2017-01-04T00:00:00.001Z'"))
       threeDays.size mustEqual 3
       threeDays.toSeq must containTheSameElementsAs((2 to 4).map(i => f"2017/201701$i%02d"))
     }

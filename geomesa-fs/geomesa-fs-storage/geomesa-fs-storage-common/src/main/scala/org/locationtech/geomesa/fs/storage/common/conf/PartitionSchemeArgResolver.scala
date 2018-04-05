@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
-import org.locationtech.geomesa.fs.storage.common.CommonSchemeLoader
 import org.locationtech.geomesa.utils.conf.ArgResolver
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -46,7 +45,7 @@ object PartitionSchemeArgResolver extends ArgResolver[PartitionScheme, SchemeArg
 
   private [PartitionSchemeArgResolver] def getNamedScheme(args: SchemeArgs): ResEither = {
     try {
-      Right(CommonSchemeLoader.build(args.scheme, args.sft))
+      Right(org.locationtech.geomesa.fs.storage.common.PartitionScheme(args.sft, args.scheme))
     } catch {
       case NonFatal(e) => Left((s"Unable to load named scheme ${args.scheme}", e, NAME))
     }
@@ -54,7 +53,8 @@ object PartitionSchemeArgResolver extends ArgResolver[PartitionScheme, SchemeArg
 
   private [PartitionSchemeArgResolver] def parseString(args: SchemeArgs): ResEither = {
     try {
-      Right(org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(args.sft, args.scheme))
+      val conf = ConfigFactory.parseString(args.scheme)
+      Right(org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(args.sft, conf))
     } catch {
       case NonFatal(e) => Left((s"Unable to load scheme from arg ${args.scheme}", e, CONFSTR))
     }

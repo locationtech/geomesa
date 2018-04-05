@@ -9,18 +9,18 @@
 package org.locationtech.geomesa.fs.storage.orc
 
 import java.nio.file.Files
-import java.util.UUID
+import java.util.{Collections, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWriter}
-import org.locationtech.geomesa.fs.storage.common.{FileSystemStorageFactory, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.common.PartitionScheme
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -37,6 +37,8 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
     "read and write features" in {
 
       val sft = SimpleFeatureTypes.createType("orc-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      // 8 bits resolution creates 3 partitions with our test data
+      PartitionScheme.addToSft(sft, PartitionScheme(sft, "z2", Collections.singletonMap("z2-resolution", "8")))
 
       val features = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -51,20 +53,16 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
       withTestDir { dir =>
         import scala.collection.JavaConversions._
 
-        val params = Map(FileSystemStorageFactory.EncodingParam.key -> OrcFileSystemStorage.OrcEncoding,
-          FileSystemStorageFactory.PathParam.key -> dir.toString)
-        val storage: FileSystemStorage = new OrcFileSystemStorageFactory().build(params)
+        val storage = new OrcFileSystemStorageFactory()
+            .create(FileContext.getFileContext(dir.toUri), new Configuration(), dir, sft)
 
         storage must not(beNull)
-
-        // 8 bits resolution creates 3 partitions with our test data
-        storage.createNewFeatureType(sft, PartitionScheme(sft, "z2", Map("z2-resolution" -> "8")))
 
         val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
 
         features.foreach { f =>
-          val partition = storage.getPartitionScheme(sft.getTypeName).getPartitionName(f)
-          val writer = writers.getOrElseUpdate(partition, storage.getWriter(sft.getTypeName, partition))
+          val partition = storage.getPartition(f)
+          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
           writer.write(f)
         }
 
@@ -72,7 +70,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
         logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-        val partitions = storage.getPartitions(sft.getTypeName)
+        val partitions = storage.getPartitions()
         partitions must haveLength(writers.size)
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
@@ -99,6 +97,8 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
             "uuid:UUID,bytes:Bytes,list:List[Int],map:Map[String,Long]," +
             "line:LineString,mpt:MultiPoint,poly:Polygon,mline:MultiLineString,mpoly:MultiPolygon," +
             "dtg:Date,*geom:Point:srid=4326")
+      // 8 bits resolution creates 3 partitions with our test data
+      PartitionScheme.addToSft(sft, PartitionScheme(sft, "z2", Collections.singletonMap("z2-resolution", "8")))
 
       val features = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -133,20 +133,16 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
       withTestDir { dir =>
         import scala.collection.JavaConversions._
 
-        val params = Map(FileSystemStorageFactory.EncodingParam.key -> OrcFileSystemStorage.OrcEncoding,
-          FileSystemStorageFactory.PathParam.key -> dir.toString)
-        val storage: FileSystemStorage = new OrcFileSystemStorageFactory().build(params)
+        val storage = new OrcFileSystemStorageFactory()
+            .create(FileContext.getFileContext(dir.toUri), new Configuration(), dir, sft)
 
         storage must not(beNull)
-
-        // 8 bits resolution creates 3 partitions with our test data
-        storage.createNewFeatureType(sft, PartitionScheme(sft, "z2", Map("z2-resolution" -> "8")))
 
         val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
 
         features.foreach { f =>
-          val partition = storage.getPartitionScheme(sft.getTypeName).getPartitionName(f)
-          val writer = writers.getOrElseUpdate(partition, storage.getWriter(sft.getTypeName, partition))
+          val partition = storage.getPartition(f)
+          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
           writer.write(f)
         }
 
@@ -154,7 +150,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
         logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-        val partitions = storage.getPartitions(sft.getTypeName)
+        val partitions = storage.getPartitions()
         partitions must haveLength(writers.size)
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
@@ -193,7 +189,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms)
     val features = {
-      val iter = SelfClosingIterator(storage.getReader(sft.getTypeName, partitions, query))
+      val iter = SelfClosingIterator(storage.getReader(partitions, query))
       // note: need to copy features in iterator as same object is re-used
       iter.map(ScalaSimpleFeature.copy).toList
     }

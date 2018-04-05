@@ -126,6 +126,7 @@ object ConvertCommand extends LazyLogging {
       case Avro           => new AvroExporter(outputStream, avroCompression)
       case Bin            => new BinExporter(hints, outputStream)
       case Arrow          => new ArrowExporter(hints, outputStream, arrowDictionaries)
+      case Leaflet        => new LeafletMapExporter(params)
       case _              => throw new ParameterException(s"Format ${params.outputFormat} is not supported.")
     }
   }

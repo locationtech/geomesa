@@ -20,13 +20,12 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.data.{DataStoreFinder, DataUtilities}
-import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.{FileSystemStorageFactory, FileType}
+import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{DummyReducer, IngestMapper}
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat, JobWithLibJars}
@@ -72,9 +71,21 @@ trait FileSystemConverterJob extends StorageConfiguration with JobWithLibJars wi
       job.setOutputKeyClass(classOf[Void])
       job.setOutputValueClass(classOf[SimpleFeature])
 
+      val storage = ds.storage(typeName)
+      val metadata = storage.getMetadata
+
+      val qualifiedTempPath = tempPath.map(metadata.getFileContext.makeQualified)
+
+      qualifiedTempPath.foreach { tp =>
+        if (metadata.getFileContext.util.exists(tp)) {
+          Command.user.info("Deleting temp path")
+          metadata.getFileContext.delete(tp, true)
+        }
+      }
+
       StorageConfiguration.setSft(job.getConfiguration, sft)
-      StorageConfiguration.setPath(job.getConfiguration, FileSystemStorageFactory.PathParam.lookup(dsParams))
-      StorageConfiguration.setEncoding(job.getConfiguration, FileSystemStorageFactory.EncodingParam.lookup(dsParams))
+      StorageConfiguration.setPath(job.getConfiguration, metadata.getRoot.toUri.toString)
+      StorageConfiguration.setEncoding(job.getConfiguration, metadata.getEncoding)
       StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
 
       // from ConverterIngestJob
@@ -82,7 +93,7 @@ trait FileSystemConverterJob extends StorageConfiguration with JobWithLibJars wi
       ConverterInputFormat.setSft(job, sft)
 
       FileInputFormat.setInputPaths(job, inputPaths.mkString(","))
-      FileOutputFormat.setOutputPath(job, tempPath.getOrElse(new Path(ds.storage.getRoot)))
+      FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(metadata.getRoot))
 
       // MapReduce options
       job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
@@ -100,7 +111,7 @@ trait FileSystemConverterJob extends StorageConfiguration with JobWithLibJars wi
       def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
       def reduceCounters = Seq(("written", reduced(job)))
 
-      val stageCount = if (tempPath.isDefined) { 3 } else { 2 }
+      val stageCount = if (qualifiedTempPath.isDefined) { 3 } else { 2 }
 
       var mapping = true
       while (!job.isComplete) {
@@ -128,15 +139,14 @@ trait FileSystemConverterJob extends StorageConfiguration with JobWithLibJars wi
       if (!job.isSuccessful) {
         Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
       } else {
-        val copied = tempPath.forall { tp =>
-          val p = new Path(ds.storage.getRoot)
-          StorageJobUtils.distCopy(tp, p, sft, statusCallback, 2, stageCount)
+        val copied = qualifiedTempPath.forall { tp =>
+          StorageJobUtils.distCopy(tp, metadata.getRoot, statusCallback, 3, stageCount)
         }
         if (copied) {
-          Command.user.info("Attempting to update metadata")
+          Command.user.info("Updating metadata for ingest results")
           // We sleep here to allow a chance for S3 to become "consistent" with its storage listings
           Thread.sleep(5000)
-          ds.storage.updateMetadata(typeName)
+          storage.updateMetadata()
           Command.user.info("Metadata Updated")
         }
       }
@@ -173,7 +183,7 @@ object FileSystemConverterJob {
       super.setup(context)
       val sft = StorageConfiguration.getSft(context.getConfiguration)
       serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
-      partitionScheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft)
+      partitionScheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft).get
 
       mapped = context.getCounter(GeoMesaOutputFormat.Counters.Group, "mapped")
       written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
@@ -184,7 +194,7 @@ object FileSystemConverterJob {
       // partitionKey is important because this needs to be correct for the parquet file
       try {
         mapped.increment(1)
-        val partitionKey = new Text(partitionScheme.getPartitionName(sf))
+        val partitionKey = new Text(partitionScheme.getPartition(sf))
         context.write(partitionKey, new BytesWritable(serializer.serialize(sf)))
         written.increment(1)
       } catch {

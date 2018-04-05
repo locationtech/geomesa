@@ -8,97 +8,147 @@
 
 package org.locationtech.geomesa.fs.storage.converter
 
-import java.net.URI
 import java.util.Collections
+import java.util.concurrent.atomic.AtomicBoolean
 
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
 import org.locationtech.geomesa.convert.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api._
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.fs.storage.converter.ConverterStorage.ConverterMetadata
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class ConverterStorage(root: Path,
-                       fs: FileSystem,
-                       partitionScheme: PartitionScheme,
+class ConverterStorage(fc: FileContext,
+                       root: Path,
                        sft: SimpleFeatureType,
-                       converter: SimpleFeatureConverter[_]) extends FileSystemStorage {
-  import scala.collection.JavaConversions._
+                       converter: SimpleFeatureConverter[_],
+                       partitionScheme: PartitionScheme) extends FileSystemStorage {
 
-  override def getRoot: URI = root.toUri
+  private val metadata = new ConverterMetadata(fc, root, sft, partitionScheme)
 
-  override def getTypeNames: java.util.List[String] = Collections.singletonList(sft.getTypeName)
+  import scala.collection.JavaConverters._
 
-  override def getFeatureTypes: java.util.List[SimpleFeatureType] = Collections.singletonList(sft)
+  override def getMetadata: FileMetadata = metadata
 
-  override def getFeatureType(name: String): SimpleFeatureType = {
-    if (sft.getTypeName != name) {
-      throw new IllegalArgumentException(s"Type $name doesn't match configured sft name ${sft.getTypeName}")
-    }
-    sft
-  }
+  override def getPartitions: java.util.List[String] = metadata.getPartitions
 
-  override def getReader(typeName: String,
-                         partitions: java.util.List[String],
-                         query: Query): FileSystemReader = getReader(typeName, partitions, query, 1)
-
-  override def getReader(typeName: String,
-                         partitions: java.util.List[String],
-                         query: Query,
-                         threads: Int): FileSystemReader = {
-    new ConverterPartitionReader(root, partitions, sft, converter, query.getFilter)
-  }
-
-  override def getPartitionScheme(typeName: String): PartitionScheme = partitionScheme
-
-  override def getPartitions(typeName: String): java.util.List[String] = buildPartitionList(root, "", 0)
-
-  override def getPartitions(typeName: String, query: Query): java.util.List[String] = {
-    val all = getPartitions(typeName)
-    if (query.getFilter == Filter.INCLUDE) { all } else {
-      val coveringPartitions = partitionScheme.getCoveringPartitions(query.getFilter)
-      if (coveringPartitions.isEmpty) {
-        all //TODO should this ever happen?
-      } else {
-        all.intersect(coveringPartitions)
-      }
+  override def getPartitions(filter: Filter): java.util.List[String] = {
+    val all = getPartitions
+    lazy val coveringPartitions = partitionScheme.getPartitions(filter)
+    if (filter == Filter.INCLUDE || coveringPartitions.isEmpty) { all } else { // TODO should this ever happen?
+      val filtered = new java.util.ArrayList(all)
+      filtered.retainAll(coveringPartitions)
+      filtered
     }
   }
 
-  override def getPaths(typeName: String, partition: String): java.util.List[URI] =
-    List(new Path(root, partition).toUri)
+  override def getPartition(feature: SimpleFeature): String = partitionScheme.getPartition(feature)
 
-  private def buildPartitionList(path: Path, prefix: String, curDepth: Int): List[String] = {
-    if (curDepth > partitionScheme.maxDepth()) {
-      return List.empty[String]
+  override def getReader(partitions: java.util.List[String], query: Query): FileSystemReader =
+    getReader(partitions, query, 1)
+
+  override def getReader(partitions: java.util.List[String], query: Query, threads: Int): FileSystemReader =
+    new ConverterPartitionReader(this, partitions.asScala, converter, query.getFilter)
+
+  override def getFilePaths(partition: String): java.util.List[Path] = {
+    val path = new Path(root, partition)
+    if (partitionScheme.isLeafStorage) { Collections.singletonList(path) } else {
+      PathCache.list(fc, path).map(_.getPath).toList.asJava
     }
-    val status = fs.listStatus(path)
-    status.flatMap { f =>
-      if (f.isDirectory) {
-        buildPartitionList(f.getPath, s"$prefix${f.getPath.getName}/", curDepth + 1)
-      } else if (f.getPath.getName.equals("schema.sft")) {
-        List.empty
-      } else {
-        List(s"$prefix${f.getPath.getName}")
-      }
-    }.toList
   }
 
-  override def createNewFeatureType(sft: SimpleFeatureType, partitionScheme: PartitionScheme): Unit =
-    throw new UnsupportedOperationException("Converter Storage does not support creation of new feature types")
+  override def getWriter(partition: String): FileSystemWriter =
+    throw new UnsupportedOperationException("Converter storage does not support feature writing")
 
-  override def getWriter(typeName: String, partition: String): FileSystemWriter =
-    throw new UnsupportedOperationException("Converter Storage does not support feature writing")
+  override def compact(partition: String): Unit =
+    throw new UnsupportedOperationException("Converter storage does not support compactions")
 
-  override def getMetadata(typeName: String): Metadata =
-    throw new UnsupportedOperationException("Cannot append to converter datastore")
+  override def compact(partition: String, threads: Int): Unit =
+    throw new UnsupportedOperationException("Converter storage does not support compactions")
 
-  override def updateMetadata(typeName: String): Unit =
-    throw new UnsupportedOperationException("Cannot append to converter datastore")
+  override def updateMetadata(): Unit = metadata.dirty.set(true)
+}
 
-  override def compact(typeName: String, partition: String): Unit =
-    throw new UnsupportedOperationException("Converter datastore does not support compactions")
+object ConverterStorage {
 
-  override def compact(typeName: String, partition: String, threads: Int): Unit =
-    throw new UnsupportedOperationException("Converter datastore does not support compactions")
+  val Encoding = "converter"
+
+  class ConverterMetadata(fc: FileContext,
+                          root: Path,
+                          sft: SimpleFeatureType,
+                          scheme: PartitionScheme) extends FileMetadata {
+
+    import scala.collection.JavaConverters._
+
+    private [ConverterStorage] val dirty = new AtomicBoolean(false)
+
+    override def getRoot: Path = root
+
+    override def getFileContext: FileContext = fc
+
+    override def getEncoding: String = ConverterStorage.Encoding
+
+    override def getPartitionScheme: PartitionScheme = scheme
+
+    override def getSchema: SimpleFeatureType = sft
+
+    override def getPartitionCount: Int = getPartitions.size()
+
+    override def getFileCount: Int =
+      getPartitions.asScala.map(p => PathCache.list(fc, new Path(p)).length).sum
+
+    override def getPartitions: java.util.List[String] =
+      buildPartitionList(fc, scheme, root, "", 0, dirty.compareAndSet(true, false)).asJava
+
+    override def getFiles(partition: String): java.util.List[String] =
+      PathCache.list(fc, new Path(partition)).map(_.getPath.getName).toList.asJava
+
+    override def getPartitionFiles: java.util.Map[String, java.util.List[String]] =
+      getPartitions.asScala.map(p => p -> getFiles(p)).toMap.asJava
+
+    override def addFile(partition: String, file: String): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
+    override def addFiles(partition: String, files: java.util.List[String]): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
+    override def addFiles(partitionsToFiles: java.util.Map[String, java.util.List[String]]): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
+    override def removeFile(partition: String, file: String): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
+    override def removeFiles(partition: String, file: java.util.List[String]): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
+    override def removeFiles(partitionsToFiles: java.util.Map[String, java.util.List[String]]): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
+    override def replaceFiles(partition: String, files: java.util.List[String], replacement: String): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
+    override def setFiles(partitionsToFiles: java.util.Map[String, java.util.List[String]]): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+  }
+
+  private def buildPartitionList(fc: FileContext,
+                                 scheme: PartitionScheme,
+                                 path: Path,
+                                 prefix: String,
+                                 curDepth: Int,
+                                 invalidate: Boolean): List[String] = {
+    if (invalidate) {
+      PathCache.invalidate(fc, path)
+    }
+    if (curDepth == 0) {
+      PathCache.list(fc, path).flatMap(f => buildPartitionList(fc, scheme, f.getPath, prefix, curDepth + 1, invalidate)).toList
+    } else if (curDepth > scheme.getMaxDepth || !PathCache.status(fc, path).isDirectory) {
+      List(s"$prefix${path.getName}")
+    } else {
+      val next = s"$prefix${path.getName}/"
+      PathCache.list(fc, path).flatMap(f => buildPartitionList(fc, scheme, f.getPath, next, curDepth + 1, invalidate)).toList
+    }
+  }
 }

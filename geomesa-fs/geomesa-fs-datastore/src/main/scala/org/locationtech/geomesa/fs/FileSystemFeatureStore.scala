@@ -21,14 +21,17 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWriter}
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.concurrent.duration.Duration
 
 class FileSystemFeatureStore(storage: FileSystemStorage,
                              entry: ContentEntry,
                              query: Query,
-                             readThreads: Int) extends ContentFeatureStore(entry, query) with LazyLogging {
-  private val _sft = storage.getFeatureType(entry.getTypeName)
+                             readThreads: Int,
+                             writeTimeout: Duration) extends ContentFeatureStore(entry, query) with LazyLogging {
+  private val sft = storage.getMetadata.getSchema
 
   override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
     require(flags != 0, "no write flags set")
@@ -36,16 +39,12 @@ class FileSystemFeatureStore(storage: FileSystemStorage,
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {
 
-      private val typeName = query.getTypeName
-
-      private val fileExpirationMillis = FileSystemDataStoreParams.WriterFileTimeout.toDuration.get.toMillis
-
       private val removalListener = new RemovalListener[String, FileSystemWriter]() {
         override def onRemoval(notification: RemovalNotification[String, FileSystemWriter]): Unit = {
-          if(notification.getCause == RemovalCause.EXPIRED) {
+          if (notification.getCause == RemovalCause.EXPIRED) {
             logger.info(s"Flushing writer for partition: ${notification.getKey}")
             val writer = notification.getValue
-            writer.flush()
+            FlushWithLogging(writer)
             CloseWithLogging(writer)
           }
         }
@@ -53,13 +52,11 @@ class FileSystemFeatureStore(storage: FileSystemStorage,
 
       private val writers =
         CacheBuilder.newBuilder()
-          .expireAfterAccess(fileExpirationMillis, TimeUnit.MILLISECONDS)
+          .expireAfterAccess(writeTimeout.toMillis, TimeUnit.MILLISECONDS)
           .removalListener[String, FileSystemWriter](removalListener)
           .build(new CacheLoader[String, FileSystemWriter]() {
-            override def load(partition: String): FileSystemWriter = storage.getWriter(typeName, partition)
+            override def load(partition: String): FileSystemWriter = storage.getWriter(partition)
           })
-
-      private val sft = _sft
 
       private val featureIds = new AtomicLong(0)
       private var feature: SimpleFeature = _
@@ -74,9 +71,8 @@ class FileSystemFeatureStore(storage: FileSystemStorage,
       }
 
       override def write(): Unit = {
-        val partition = storage.getPartitionScheme(typeName).getPartitionName(feature)
-        val writer = writers.get(partition)
-        writer.write(feature)
+        val partition = storage.getPartition(feature)
+        writers.get(partition).write(feature)
         feature = null
       }
 
@@ -85,34 +81,28 @@ class FileSystemFeatureStore(storage: FileSystemStorage,
       override def close(): Unit = {
         import scala.collection.JavaConversions._
         writers.asMap().values().foreach { writer =>
-          writer.flush()
+          FlushWithLogging(writer)
           CloseWithLogging(writer)
-        }
-        try {
-          storage.updateMetadata(typeName)
-        } catch {
-          case e: Throwable => logger.error(s"Error updating metadata for type $typeName", e)
         }
       }
     }
   }
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = ReferencedEnvelope.EVERYTHING
-  override def buildFeatureType(): SimpleFeatureType = _sft
+  override def buildFeatureType(): SimpleFeatureType = sft
   override def getCountInternal(query: Query): Int = -1
 
   override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     val query = new Query(original)
     // The type name can sometimes be empty such as Query.ALL
-    query.setTypeName(_sft.getTypeName)
+    query.setTypeName(sft.getTypeName)
 
     // Set Transforms if present
     import org.locationtech.geomesa.index.conf.QueryHints._
-    QueryPlanner.setQueryTransforms(query, _sft)
-    val transformSft = query.getHints.getTransformSchema.getOrElse(_sft)
+    QueryPlanner.setQueryTransforms(query, sft)
+    val transformSft = query.getHints.getTransformSchema.getOrElse(sft)
 
-    val scheme = storage.getPartitionScheme(_sft.getTypeName)
-    val iter = new FileSystemFeatureIterator(_sft, storage, scheme, query, readThreads)
+    val iter = new FileSystemFeatureIterator(storage, query, readThreads)
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 
