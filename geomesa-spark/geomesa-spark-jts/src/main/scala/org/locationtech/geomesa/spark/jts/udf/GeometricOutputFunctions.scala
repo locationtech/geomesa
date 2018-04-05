@@ -10,19 +10,23 @@
 package org.locationtech.geomesa.spark.jts.udf
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
+import com.vividsolutions.jts.io.geojson.GeoJsonWriter
 import org.apache.spark.sql.SQLContext
-import org.geotools.geojson.geom.GeometryJSON
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.geomesa.spark.jts.util.WKBUtils
 import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
 
 object GeometricOutputFunctions {
   // use ThreadLocal to ensure thread safety
-  private val geomJSON = new ThreadLocal[GeometryJSON]() {
-    override def initialValue() = new GeometryJSON()
+  private val geomJSON = new ThreadLocal[GeoJsonWriter]() {
+    override def initialValue() = {
+      val writer = new GeoJsonWriter()
+      writer.setEncodeCRS(false)
+      writer
+    }
   }
   val ST_AsBinary: Geometry => Array[Byte] = nullableUDF(geom => WKBUtils.write(geom))
-  val ST_AsGeoJSON: Geometry => String = nullableUDF(geom => geomJSON.get().toString(geom))
+  val ST_AsGeoJSON: Geometry => String = nullableUDF(geom => geomJSON.get().write(geom))
   val ST_AsLatLonText: Point => String = nullableUDF(point => toLatLonString(point))
   val ST_AsText: Geometry => String = nullableUDF(geom => geom.toText)
   val ST_GeoHash: (Geometry, Int) => String = nullableUDF((geom, prec) => encode(geom, prec))

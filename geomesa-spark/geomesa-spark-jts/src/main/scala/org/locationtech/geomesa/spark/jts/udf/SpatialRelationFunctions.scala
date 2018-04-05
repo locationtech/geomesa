@@ -8,15 +8,12 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import java.awt.geom.AffineTransform
-
 import com.vividsolutions.jts.geom._
+import com.vividsolutions.jts.geom.util.AffineTransformation
 import com.vividsolutions.jts.operation.distance.DistanceOp
 import org.apache.spark.sql.SQLContext
-import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
-import org.geotools.referencing.GeodeticCalculator
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.geotools.referencing.operation.transform.AffineTransform2D
+import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 
@@ -47,14 +44,14 @@ object SpatialRelationFunctions {
     nullableUDF((g1, g2) => closestPoint(g1, g2))
   val ST_Distance: (Geometry, Geometry) => jl.Double =
     nullableUDF((g1, g2) => g1.distance(g2))
-  val ST_DistanceSpheroid: (Geometry, Geometry) => jl.Double =
+  val ST_DistanceSphere: (Geometry, Geometry) => jl.Double =
     nullableUDF((s, e) => fastDistance(s.getCoordinate, e.getCoordinate))
   val ST_Length: Geometry => jl.Double = nullableUDF(g => g.getLength)
 
   // Assumes input is two points, for use with collect_list and window functions
-  val ST_AggregateDistanceSpheroid: Seq[Geometry] => jl.Double = a => ST_DistanceSpheroid(a(0), a(1))
+  val ST_AggregateDistanceSphere: Seq[Geometry] => jl.Double = a => ST_DistanceSphere(a(0), a(1))
 
-  val ST_LengthSpheroid: LineString => jl.Double =
+  val ST_LengthSphere: LineString => jl.Double =
     nullableUDF(line => line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum)
 
   private[geomesa] val relationNames = Map(
@@ -74,10 +71,10 @@ object SpatialRelationFunctions {
     ST_Centroid -> "st_centroid",
     ST_ClosestPoint -> "st_closestPoint",
     ST_Distance -> "st_distance",
-    ST_DistanceSpheroid -> "st_distanceSpheroid",
+    ST_DistanceSphere -> "st_distanceSphere",
     ST_Length -> "st_length",
-    ST_AggregateDistanceSpheroid -> "st_aggregateDistanceSpheroid",
-    ST_LengthSpheroid -> "st_lengthSpheroid"
+    ST_AggregateDistanceSphere -> "st_aggregateDistanceSphere",
+    ST_LengthSphere -> "st_lengthSphere"
   )
 
   // Geometry Processing
@@ -108,18 +105,20 @@ object SpatialRelationFunctions {
     sqlContext.udf.register(relationNames(ST_Distance), ST_Distance)
     sqlContext.udf.register(relationNames(ST_Length), ST_Length)
 
-    sqlContext.udf.register(relationNames(ST_DistanceSpheroid), ST_DistanceSpheroid)
-    sqlContext.udf.register(relationNames(ST_AggregateDistanceSpheroid), ST_AggregateDistanceSpheroid)
-    sqlContext.udf.register(relationNames(ST_LengthSpheroid), ST_LengthSpheroid)
+    sqlContext.udf.register(relationNames(ST_DistanceSphere), ST_DistanceSphere)
+    sqlContext.udf.register(relationNames(ST_AggregateDistanceSphere), ST_AggregateDistanceSphere)
+    sqlContext.udf.register(relationNames(ST_LengthSphere), ST_LengthSphere)
 
     // Register geometry Processing
     sqlContext.udf.register("st_convexhull", ch)
   }
 
-  @transient private val geoCalcs = new ThreadLocal[GeodeticCalculator] {
-    override def initialValue(): GeodeticCalculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
+  @transient private lazy val spatialContext = JtsSpatialContext.GEO
+
+  @transient private val geoCalcs = new ThreadLocal[DistanceCalculator] {
+    override def initialValue(): DistanceCalculator = spatialContext.getDistCalc
   }
-  @transient private[geomesa] val geomFactory = JTSFactoryFinder.getGeometryFactory
+  @transient private[geomesa] val geomFactory = new GeometryFactory()
 
   def closestPoint(g1: Geometry, g2: Geometry): Point = {
     val op = new DistanceOp(g1, g2)
@@ -129,14 +128,13 @@ object SpatialRelationFunctions {
 
   def fastDistance(c1: Coordinate, c2: Coordinate): Double = {
     val calc = geoCalcs.get()
-    calc.setStartingGeographicPoint(c1.x, c1.y)
-    calc.setDestinationGeographicPoint(c2.x, c2.y)
-    calc.getOrthodromicDistance
+    val startPoint = spatialContext.getShapeFactory.pointXY(c1.x, c1.y)
+    DistanceUtils.DEG_TO_KM * calc.distance(startPoint, c2.x, c2.y) * 1000
   }
 
   def translate(g: Geometry, deltax: Double, deltay: Double): Geometry = {
-    val affineTransform = AffineTransform.getTranslateInstance(deltax, deltay)
-    val transform = new AffineTransform2D(affineTransform)
-    JTS.transform(g, transform)
+    val affineTransform = new AffineTransformation()
+    affineTransform.setToTranslation(deltax, deltay)
+    affineTransform.transform(g)
   }
 }
