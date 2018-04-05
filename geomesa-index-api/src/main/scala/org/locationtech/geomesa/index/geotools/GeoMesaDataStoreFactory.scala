@@ -14,6 +14,7 @@ import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, SystemPropertyBooleanParam, SystemPropertyDurationParam}
+import org.geotools.data.DataAccessFactory.Param
 
 import scala.concurrent.duration.Duration
 
@@ -33,6 +34,8 @@ object GeoMesaDataStoreFactory {
   val CachingParam       = new GeoMesaParam[java.lang.Boolean]("geomesa.query.caching", "Cache the results of queries for faster repeated searches. Warning: large result sets can swamp memory", default = false, deprecatedKeys = Seq("caching"))
   val GenerateStatsParam = new GeoMesaParam[java.lang.Boolean]("geomesa.stats.enable", "Generate and persist data statistics for improved query planning", default = true, deprecatedKeys = Seq("generateStats"), systemProperty = Some(GenerateStatsSysParam))
   val NamespaceParam     = new GeoMesaParam[String]("namespace", "Namespace")
+
+  val HadoopConfigurationParam = new Param("geomesa.hadoop.configuration")
 
   trait NamespaceConfig {
     def namespace: Option[String]
@@ -63,6 +66,8 @@ object GeoMesaDataStoreFactory {
     val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
     val QueryTimeoutParam  = GeoMesaDataStoreFactory.QueryTimeoutParam
     val CachingParam       = GeoMesaDataStoreFactory.CachingParam
+
+    val HadoopConfigurationParam = GeoMesaDataStoreFactory.HadoopConfigurationParam
 
     val LooseBBoxParam =
       if (looseBBoxDefault) { GeoMesaDataStoreFactory.LooseBBoxParam } else { GeoMesaDataStoreFactory.StrictBBoxParam }
