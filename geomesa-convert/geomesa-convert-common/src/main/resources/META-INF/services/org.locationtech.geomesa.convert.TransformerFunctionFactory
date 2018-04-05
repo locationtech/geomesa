@@ -1,3 +1,4 @@
+org.locationtech.geomesa.convert.DefaultsFunctionFactory
 org.locationtech.geomesa.convert.StringFunctionFactory
 org.locationtech.geomesa.convert.DateFunctionFactory
 org.locationtech.geomesa.convert.GeometryFunctionFactory

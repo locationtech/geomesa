@@ -8,13 +8,41 @@
 
 package org.locationtech.geomesa.fs.storage.api;
 
-import java.io.Serializable;
-import java.util.Map;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileContext;
+import org.apache.hadoop.fs.Path;
+import org.opengis.feature.simple.SimpleFeatureType;
+
+import java.util.Optional;
 
 public interface FileSystemStorageFactory {
-    String encoding();
 
-    boolean canProcess(Map<String, Serializable> params);
+    /**
+     * The file encoding used by this factory
+     *
+     * @return encoding
+     */
+    String getEncoding();
 
-    FileSystemStorage build(Map<String, Serializable> params);
+    /**
+     * Attempt to load a storage from the given root path. If there is no compatible storage at the path,
+     * will return nothing.
+     *
+     * @param fc file context
+     * @param conf configuration
+     * @param root storage root path
+     * @return storage, if path is compatible with this factory
+     */
+    Optional<FileSystemStorage> load(FileContext fc, Configuration conf, Path root);
+
+    /**
+     * Create a new storage instance at the given root path, which should be empty
+     *
+     * @param fc file context
+     * @param conf configuration
+     * @param root storage root path
+     * @param sft simple feature type to store
+     * @return the newly created storage
+     */
+    FileSystemStorage create(FileContext fc, Configuration conf, Path root, SimpleFeatureType sft);
 }

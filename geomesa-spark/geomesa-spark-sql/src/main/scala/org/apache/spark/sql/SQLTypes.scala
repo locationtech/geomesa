@@ -8,6 +8,7 @@
 
 package org.apache.spark.sql
 
+import org.locationtech.geomesa.spark.GeometricDistanceFunctions
 import org.locationtech.geomesa.spark.jts._
 
 object SQLTypes {
@@ -15,5 +16,6 @@ object SQLTypes {
   def init(sqlContext: SQLContext): Unit = {
     initJTS(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
+    GeometricDistanceFunctions.registerFunctions(sqlContext)
   }
 }

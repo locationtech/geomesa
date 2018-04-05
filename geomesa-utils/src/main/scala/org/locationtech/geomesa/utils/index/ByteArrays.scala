@@ -6,12 +6,33 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
+/**
+  * Portions
+  * Copyright 2011-2016 The Apache Software Foundation
+  */
+
 package org.locationtech.geomesa.utils.index
 
 object ByteArrays {
 
   val ZeroByte: Byte = 0x00.toByte
+  val OneByte: Byte  = 0x01.toByte
   val MaxByte: Byte =  0xff.toByte
+
+  val ZeroByteArray = Array(ByteArrays.ZeroByte)
+  val OneByteArray = Array(ByteArrays.OneByte)
+
+  /**
+    * Writes the short as 2 bytes in the provided array, starting at offset
+    *
+    * @param short short to write
+    * @param bytes byte array to write to, must have length at least `offset` + 2
+    * @param offset offset to start writing
+    */
+  def writeShort(short: Short, bytes: Array[Byte], offset: Int = 0): Unit = {
+    bytes(offset) = (short >> 8).asInstanceOf[Byte]
+    bytes(offset + 1) = short.asInstanceOf[Byte]
+  }
 
   /**
     * Writes the long as 8 bytes in the provided array, starting at offset
@@ -20,7 +41,7 @@ object ByteArrays {
     * @param bytes byte array to write to, must have length at least `offset` + 8
     * @param offset offset to start writing
     */
-  def writeToByteArray(long: Long, bytes: Array[Byte], offset: Int = 0): Unit = {
+  def writeLong(long: Long, bytes: Array[Byte], offset: Int = 0): Unit = {
     bytes(offset    ) = ((long >> 56) & 0xff).asInstanceOf[Byte]
     bytes(offset + 1) = ((long >> 48) & 0xff).asInstanceOf[Byte]
     bytes(offset + 2) = ((long >> 40) & 0xff).asInstanceOf[Byte]
@@ -32,13 +53,23 @@ object ByteArrays {
   }
 
   /**
+    * Reads 2 bytes from the provided array as a short, starting at offset
+    *
+    * @param bytes array to read from
+    * @param offset offset to start reading
+    * @return
+    */
+  def readShort(bytes: Array[Byte], offset: Int = 0): Short =
+    (((bytes(offset) & 0xff) << 8) | (bytes(offset + 1) & 0xff)).toShort
+
+  /**
     * Reads 8 bytes from the provided array as a long, starting at offset
     *
     * @param bytes array to read from
     * @param offset offset to start reading
     * @return
     */
-  def readFromByteArray(bytes: Array[Byte], offset: Int = 0): Long = {
+  def readLong(bytes: Array[Byte], offset: Int = 0): Long = {
     ((bytes(offset    ) & 0xffL) << 56) |
     ((bytes(offset + 1) & 0xffL) << 48) |
     ((bytes(offset + 2) & 0xffL) << 40) |
@@ -47,6 +78,18 @@ object ByteArrays {
     ((bytes(offset + 5) & 0xffL) << 16) |
     ((bytes(offset + 6) & 0xffL) <<  8) |
      (bytes(offset + 7) & 0xffL)
+  }
+
+  def toBytes(short: Short): Array[Byte] = {
+    val result = Array.ofDim[Byte](2)
+    writeShort(short, result)
+    result
+  }
+
+  def toBytes(long: Long): Array[Byte] = {
+    val result = Array.ofDim[Byte](8)
+    writeLong(long, result)
+    result
   }
 
   /**
@@ -63,12 +106,8 @@ object ByteArrays {
     */
   def toBytes(bin: Short, z: Long): Array[Byte] = {
     val result = Array.ofDim[Byte](10)
-
-    result(0) = (bin >> 8).asInstanceOf[Byte]
-    result(1) = bin.asInstanceOf[Byte]
-
-    writeToByteArray(z, result, 2)
-
+    writeShort(bin, result, 0)
+    writeLong(z, result, 2)
     result
   }
 
@@ -90,7 +129,7 @@ object ByteArrays {
     result(0) = bin(0)
     result(1) = bin(1)
 
-    writeToByteArray(z, result, 2)
+    writeLong(z, result, 2)
 
     result
   }
@@ -108,8 +147,8 @@ object ByteArrays {
     */
   def uuidToBytes(msb: Long, lsb: Long): Array[Byte] = {
     val result = Array.ofDim[Byte](16)
-    writeToByteArray(msb, result, 0)
-    writeToByteArray(lsb, result, 8)
+    writeLong(msb, result, 0)
+    writeLong(lsb, result, 8)
     result
   }
 
@@ -124,8 +163,8 @@ object ByteArrays {
     * @return (most significant bits, least significant bits)
     */
   def uuidFromBytes(bytes: Array[Byte], offset: Int = 0): (Long, Long) = {
-    val msb = readFromByteArray(bytes, offset)
-    val lsb = readFromByteArray(bytes, offset + 8)
+    val msb = readLong(bytes, offset)
+    val lsb = readLong(bytes, offset + 8)
     (msb, lsb)
   }
 
@@ -135,44 +174,13 @@ object ByteArrays {
     * Code based on the following methods, but avoids allocating extra byte arrays:
     *
     *   org.apache.accumulo.core.data.Range#followingPrefix(org.apache.hadoop.io.Text)
-    *   com.google.common.primitives.Shorts#toByteArray(short)
     *   com.google.common.primitives.Longs#toByteArray(long)
     *
     *
     * @param z z value
     * @return
     */
-  def toBytesFollowingPrefix(z: Long): Array[Byte] = {
-    val b0 = ((z >> 56) & 0xff).asInstanceOf[Byte]
-    val b1 = ((z >> 48) & 0xff).asInstanceOf[Byte]
-    val b2 = ((z >> 40) & 0xff).asInstanceOf[Byte]
-    val b3 = ((z >> 32) & 0xff).asInstanceOf[Byte]
-    val b4 = ((z >> 24) & 0xff).asInstanceOf[Byte]
-    val b5 = ((z >> 16) & 0xff).asInstanceOf[Byte]
-    val b6 = ((z >> 8)  & 0xff).asInstanceOf[Byte]
-    val b7 = ( z        & 0xff).asInstanceOf[Byte]
-
-    // find the last byte in the array that is not 0xff and increment it
-    if (b7 != MaxByte) {
-      Array(b0, b1, b2, b3, b4, b5, b6, (b7 + 1).toByte)
-    } else if (b6 != MaxByte) {
-      Array(b0, b1, b2, b3, b4, b5, (b6 + 1).toByte)
-    } else if (b5 != MaxByte) {
-      Array(b0, b1, b2, b3, b4, (b5 + 1).toByte)
-    } else if (b4 != MaxByte) {
-      Array(b0, b1, b2, b3, (b4 + 1).toByte)
-    } else if (b3 != MaxByte) {
-      Array(b0, b1, b2, (b3 + 1).toByte)
-    } else if (b2 != MaxByte) {
-      Array(b0, b1, (b2 + 1).toByte)
-    } else if (b1 != MaxByte) {
-      Array(b0, (b1 + 1).toByte)
-    } else if (b0 != MaxByte) {
-      Array((b0 + 1).toByte)
-    } else {
-      Array.empty
-    }
-  }
+  def toBytesFollowingPrefix(z: Long): Array[Byte] = incrementInPlace(toBytes(z))
 
   /**
     * Creates a byte array that sorts directly after the z-value (as converted into a byte array).
@@ -186,45 +194,85 @@ object ByteArrays {
     * @param z z value
     * @return
     */
-  def toBytesFollowingPrefix(bin: Array[Byte], z: Long): Array[Byte] = {
-    val b0 = bin(0)
-    val b1 = bin(1)
+  def toBytesFollowingPrefix(bin: Short, z: Long): Array[Byte] = incrementInPlace(toBytes(bin, z))
 
-    val b2 = ((z >> 56) & 0xff).asInstanceOf[Byte]
-    val b3 = ((z >> 48) & 0xff).asInstanceOf[Byte]
-    val b4 = ((z >> 40) & 0xff).asInstanceOf[Byte]
-    val b5 = ((z >> 32) & 0xff).asInstanceOf[Byte]
-    val b6 = ((z >> 24) & 0xff).asInstanceOf[Byte]
-    val b7 = ((z >> 16) & 0xff).asInstanceOf[Byte]
-    val b8 = ((z >> 8)  & 0xff).asInstanceOf[Byte]
-    val b9 = ( z        & 0xff).asInstanceOf[Byte]
+  def toBytesFollowingRow(long: Long): Array[Byte] = {
+    val result = Array.ofDim[Byte](9)
+    writeLong(long, result)
+    result(8) = ZeroByte
+    result
+  }
 
-    // find the last byte in the array that is not 0xff and increment it
-    if (b9 != MaxByte) {
-      Array(b0, b1, b2, b3, b4, b5, b6, b7, b8, (b9 + 1).toByte)
-    } else if (b8 != MaxByte) {
-      Array(b0, b1, b2, b3, b4, b5, b6, b7, (b8 + 1).toByte)
-    } else if (b7 != MaxByte) {
-      Array(b0, b1, b2, b3, b4, b5, b6, (b7 + 1).toByte)
-    } else if (b6 != MaxByte) {
-      Array(b0, b1, b2, b3, b4, b5, (b6 + 1).toByte)
-    } else if (b5 != MaxByte) {
-      Array(b0, b1, b2, b3, b4, (b5 + 1).toByte)
-    } else if (b4 != MaxByte) {
-      Array(b0, b1, b2, b3, (b4 + 1).toByte)
-    } else if (b3 != MaxByte) {
-      Array(b0, b1, b2, (b3 + 1).toByte)
-    } else if (b2 != MaxByte) {
-      Array(b0, b1, (b2 + 1).toByte)
-    } else if (b1 != MaxByte) {
-      Array(b0, (b1 + 1).toByte)
-    } else if (b0 != MaxByte) {
-      Array((b0 + 1).toByte)
-    } else {
-      Array.empty
+  def toBytesFollowingRow(bin: Short, z: Long): Array[Byte] = {
+    val result = Array.ofDim[Byte](11)
+    writeShort(bin, result, 0)
+    writeLong(z, result, 2)
+    result(10) = ZeroByte
+    result
+  }
+
+  /**
+    * Returns a row that sorts just after all rows beginning with a prefix. Copied from Accumulo Range
+    *
+    * @param prefix to follow
+    * @return prefix that immediately follows the given prefix when sorted, or an empty array if no prefix can follow
+    *         (i.e., the string is all 0xff bytes)
+    */
+  def rowFollowingPrefix(prefix: Array[Byte]): Array[Byte] = {
+    // find the last byte in the array that is not 0xff
+    var changeIndex = prefix.length - 1
+    while (changeIndex >= 0 && prefix(changeIndex) == MaxByte) {
+      changeIndex -= 1
+    }
+    if (changeIndex < 0) { Array.empty } else {
+      // copy prefix bytes into new array
+      val following = Array.ofDim[Byte](changeIndex + 1)
+      System.arraycopy(prefix, 0, following, 0, changeIndex + 1)
+      // increment the selected byte
+      following(changeIndex) = (following(changeIndex) + 1).toByte
+      following
     }
   }
 
+  /**
+    * Returns a row that immediately follows the row. Useful for inclusive endpoints.
+    *
+    * @param row row
+    * @return
+    */
+  def rowFollowingRow(row: Array[Byte]): Array[Byte] = {
+    val following = Array.ofDim[Byte](row.length + 1)
+    System.arraycopy(row, 0, following, 0, row.length)
+    following(row.length) = ZeroByte
+    following
+  }
+
+  /**
+    * Returns a row that immediately follows the row. Useful for inclusive endpoints.
+    *
+    * @param bytes row
+    * @return
+    */
+  def rowFollowingRow(bytes: Array[Byte]*): Array[Byte] = {
+    var length = 1
+    bytes.foreach(b => length += b.length)
+    val result = Array.ofDim[Byte](length)
+    var i = 0
+    bytes.foreach { b =>
+      System.arraycopy(b, 0, result, i, b.length)
+      i += b.length
+    }
+    result(i) = ZeroByte
+    result
+  }
+
+  /**
+    * Concatenate byte arrays
+    *
+    * @param first first array
+    * @param second second array
+    * @return
+    */
   def concat(first: Array[Byte], second: Array[Byte]): Array[Byte] = {
     val result = Array.ofDim[Byte](first.length + second.length)
     System.arraycopy(first, 0, result, 0, first.length)
@@ -232,6 +280,12 @@ object ByteArrays {
     result
   }
 
+  /**
+    * Concatenate byte arrays
+    *
+    * @param bytes arrays
+    * @return
+    */
   def concat(bytes: Array[Byte]*): Array[Byte] = {
     var length = 0
     bytes.foreach(b => length += b.length)
@@ -259,4 +313,30 @@ object ByteArrays {
     * @return
     */
   def toHex(bytes: Array[Byte]): String = bytes.map(toHex).mkString
+
+  /**
+    * Increment the last byte in the array, if it's not equal to MaxByte. Otherwise,
+    * walk backwards until we find a byte we can increment, and create a new sub-array
+    *
+    * @param bytes bytes
+    * @return
+    */
+  private def incrementInPlace(bytes: Array[Byte]): Array[Byte] = {
+    var i = bytes.length - 1
+    if (bytes(i) != MaxByte) {
+      // normal case - we can just update the original byte array
+      bytes(i) = (bytes(i) + 1).toByte
+      bytes
+    } else {
+      // walk backwards to find the first byte we can increment, then take the sub-array to that point
+      do { i -= 1 } while (i >= 0 && bytes(i) == MaxByte)
+
+      if (i == -1) { Array.empty } else {
+        val result = Array.ofDim[Byte](i + 1)
+        System.arraycopy(bytes, 0, result, 0, result.length)
+        result(i) = (result(i) + 1).toByte
+        result
+      }
+    }
+  }
 }

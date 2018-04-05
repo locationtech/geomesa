@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
+import java.nio.file.{Files, Path}
 
 import com.datastax.driver.core.{Cluster, SocketOptions}
 import org.cassandraunit.CQLDataLoader
@@ -24,10 +23,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.Params
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
-import org.locationtech.geomesa.index.utils.ExplainString
+import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -40,11 +40,36 @@ class CassandraDataStoreTest extends Specification {
 
   sequential
 
+  var storage: Path = _
+  var params: Map[String, String] = _
   var ds: CassandraDataStore = _
 
   step {
-    CassandraDataStoreTest.startServer()
-    ds = DataStoreFinder.getDataStore(CassandraDataStoreTest.params).asInstanceOf[CassandraDataStore]
+    storage = Files.createTempDirectory("cassandra")
+
+    System.setProperty("cassandra.storagedir", storage.toString)
+
+    EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
+
+    var readTimeout: Int = SystemProperty("cassandraReadTimeout", "12000").get.toInt
+
+    if (readTimeout < 0) {
+      readTimeout = 12000
+    }
+    val host = EmbeddedCassandraServerHelper.getHost
+    val port = EmbeddedCassandraServerHelper.getNativeTransportPort
+    val cluster = new Cluster.Builder().addContactPoints(host).withPort(port)
+        .withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout)).build().init()
+    val session = cluster.connect()
+    val cqlDataLoader = new CQLDataLoader(session)
+    cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))
+
+    params = Map(
+      Params.ContactPointParam.getName -> s"$host:$port",
+      Params.KeySpaceParam.getName -> "geomesa_cassandra",
+      Params.CatalogParam.getName -> "test_sft"
+    )
+    ds = DataStoreFinder.getDataStore(params).asInstanceOf[CassandraDataStore]
   }
 
   "CassandraDataStore" should {
@@ -73,7 +98,7 @@ class CassandraDataStoreTest extends Specification {
 
       sft must not(beNull)
 
-      val ns = DataStoreFinder.getDataStore(CassandraDataStoreTest.params ++
+      val ns = DataStoreFinder.getDataStore(params ++
           Map(CassandraDataStoreFactory.Params.NamespaceParam.key -> "ns0")).getSchema(typeName).getName
       ns.getNamespaceURI mustEqual "ns0"
       ns.getLocalPart mustEqual typeName
@@ -93,14 +118,14 @@ class CassandraDataStoreTest extends Specification {
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
       forall(Seq(true, false)) { loose =>
-        val ds = DataStoreFinder.getDataStore(CassandraDataStoreTest.params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
+        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
         forall(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
           testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.dropRight(2))
           testQuery(ds, typeName, "bbox(geom,42,48,52,62)", transforms, toAdd.drop(2))
           testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
-          testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
+          testQuery(ds, typeName, "name = 'name5' OR name = 'name7'", transforms, Seq(toAdd(5), toAdd(7)))
           testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5), toAdd(6)))
         }
       }
@@ -139,12 +164,12 @@ class CassandraDataStoreTest extends Specification {
       testLooseBbox(ds, loose = false)
 
       forall(Seq(true, "true", java.lang.Boolean.TRUE)) { loose =>
-        val ds = DataStoreFinder.getDataStore(CassandraDataStoreTest.params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
+        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
         testLooseBbox(ds, loose = true)
       }
 
       forall(Seq(false, "false", java.lang.Boolean.FALSE)) { loose =>
-        val ds = DataStoreFinder.getDataStore(CassandraDataStoreTest.params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
+        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
         testLooseBbox(ds, loose = false)
       }
 
@@ -251,8 +276,15 @@ class CassandraDataStoreTest extends Specification {
       ds.getSchema(typeName) must beNull
     }
 
-    def testQuery(ds: CassandraDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
-      val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+    def testQuery(ds: CassandraDataStore,
+                  typeName: String,
+                  filter: String,
+                  transforms: Array[String],
+                  results: Seq[SimpleFeature],
+                  explain: Option[Explainer] = None) = {
+      val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+      explain.foreach(e => ds.getQueryPlan(query, explainer = e))
+      val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       val features = SelfClosingIterator(fr).toList
       val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
       features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
@@ -268,43 +300,7 @@ class CassandraDataStoreTest extends Specification {
 
   step {
     ds.dispose()
-  }
-}
-
-object CassandraDataStoreTest {
-  def host: String = EmbeddedCassandraServerHelper.getHost
-  def port: Int = EmbeddedCassandraServerHelper.getNativeTransportPort
-  def params = Map(
-    Params.ContactPointParam.getName -> CassandraDataStoreTest.CP,
-    Params.KeySpaceParam.getName -> "geomesa_cassandra",
-    Params.CatalogParam.getName -> "test_sft"
-  )
-  def CP: String = s"$host:$port"
-
-  private val started = new AtomicBoolean(false)
-
-  def cleanup(): Unit = {
-    EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
-  }
-
-  def startServer(): Unit = {
-    if (started.compareAndSet(false, true)) {
-      val storagedir = File.createTempFile("cassandra","sd")
-      storagedir.delete()
-      storagedir.mkdir()
-
-      System.setProperty("cassandra.storagedir", storagedir.getPath)
-
-      EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
-
-      var readTimeout: Int = SystemProperty("cassandraReadTimeout", "12000").get.toInt
-
-      if(readTimeout < 0) readTimeout = 12000
-      val cluster = new Cluster.Builder().addContactPoints(host).withPort(port)
-        .withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout)).build().init()
-      val session = cluster.connect()
-      val cqlDataLoader = new CQLDataLoader(session)
-      cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))
-    }
+    // note: no way to shutdown c* cluster, and clean method throws exception on system namespace
+    PathUtils.deleteRecursively(storage)
   }
 }

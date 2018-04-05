@@ -26,6 +26,7 @@ Example
 The following is a Scala example of loading a DataFrame with user defined types:
 
 .. code-block:: scala
+
     import com.vividsolutions.jts.geom._
     import org.apache.spark.sql.types._
     import org.locationtech.geomesa.spark.jts._

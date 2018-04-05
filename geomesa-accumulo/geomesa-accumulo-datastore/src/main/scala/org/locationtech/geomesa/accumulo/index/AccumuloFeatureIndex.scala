@@ -19,7 +19,7 @@ import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.legacy.attribute.{AttributeIndexV2, AttributeIndexV3, AttributeIndexV4, AttributeIndexV5}
+import org.locationtech.geomesa.accumulo.index.legacy.attribute._
 import org.locationtech.geomesa.accumulo.index.legacy.id.{RecordIndexV1, RecordIndexV2}
 import org.locationtech.geomesa.accumulo.index.legacy.z2.{Z2IndexV1, Z2IndexV2, Z2IndexV3}
 import org.locationtech.geomesa.accumulo.index.legacy.z3.{Z3IndexV1, Z3IndexV2, Z3IndexV3, Z3IndexV4}
@@ -47,8 +47,9 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
 
   val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV3, Z2IndexV2, Z2IndexV1)
   val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV4, Z3IndexV3, Z3IndexV2, Z3IndexV1)
-  val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV5, AttributeIndexV4, AttributeIndexV3, AttributeIndexV2)
   val RecordIndices         = Seq(RecordIndex, RecordIndexV2, RecordIndexV1)
+  val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV6, AttributeIndexV5, AttributeIndexV4,
+                                    AttributeIndexV3, AttributeIndexV2)
 
   val DeprecatedSchemaVersionKey = "geomesa.version"
 

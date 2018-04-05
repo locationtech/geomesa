@@ -332,17 +332,17 @@ object DataFrameFunctions extends SpatialEncoders {
     def st_distance(left: Column, right: Column): TypedColumn[Any, jl.Double] =
       udfToColumn(ST_Distance, relationNames, left, right)
 
-    def st_distanceSpheroid(left: Column, right: Column): TypedColumn[Any, jl.Double] =
-      udfToColumn(ST_DistanceSpheroid, relationNames, left, right)
+    def st_distanceSphere(left: Column, right: Column): TypedColumn[Any, jl.Double] =
+      udfToColumn(ST_DistanceSphere, relationNames, left, right)
 
     def st_length(geom: Column): TypedColumn[Any, jl.Double] =
       udfToColumn(ST_Length, relationNames, geom)
 
-    def st_aggregateDistanceSpheroid(geomSeq: Column): TypedColumn[Any, jl.Double] =
-      udfToColumn(ST_AggregateDistanceSpheroid, relationNames, geomSeq)
+    def st_aggregateDistanceSphere(geomSeq: Column): TypedColumn[Any, jl.Double] =
+      udfToColumn(ST_AggregateDistanceSphere, relationNames, geomSeq)
 
-    def st_lengthSpheroid(line: Column): TypedColumn[Any, jl.Double] =
-      udfToColumn(ST_LengthSpheroid, relationNames, line)
+    def st_lengthSphere(line: Column): TypedColumn[Any, jl.Double] =
+      udfToColumn(ST_LengthSphere, relationNames, line)
   }
 
   /** Stack of all DataFrame DSL functions. */

@@ -9,13 +9,11 @@
 package org.locationtech.geomesa.parquet
 
 import java.nio.file.Files
-import java.text.SimpleDateFormat
 
-import com.vividsolutions.jts.geom.Coordinate
 import org.apache.commons.io.FileUtils
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common._
@@ -34,64 +32,60 @@ class CompactionTest extends Specification with AllExpectations {
 
   sequential
 
-  "ParquetFileSystemStorage" should {
-    val gf = JTSFactoryFinder.getGeometryFactory
-    val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val ff = CommonFactoryFinder.getFilterFactory2
-    val tempDir = Files.createTempDirectory("geomesa")
-    println(tempDir)
+  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+  val tempDir = Files.createTempDirectory("geomesa")
+  val fc = FileContext.getFileContext(tempDir.toUri)
 
+  "ParquetFileSystemStorage" should {
     "compact partitions" >> {
       val parquetFactory = new ParquetFileSystemStorageFactory
 
-      val fsStorage = parquetFactory.build(Map(
-        "fs.path" -> tempDir.toFile.getPath,
-        "parquet.compression" -> "gzip"
-      ))
+      val conf = new Configuration()
+      conf.set("parquet.compression", "gzip")
 
-      val scheme = CommonSchemeLoader.build("daily", sft)
+      val scheme = PartitionScheme.apply(sft, "daily")
       PartitionScheme.addToSft(sft, scheme)
-      fsStorage.createNewFeatureType(sft, scheme)
 
-      fsStorage.getFeatureTypes().size mustEqual 1
-      fsStorage.getFeatureTypes().head.getTypeName mustEqual "test"
+      val fsStorage = parquetFactory.create(fc, conf, new Path(tempDir.toUri), sft)
 
-      val sdf = new SimpleDateFormat("yyyy-MM-dd")
-      val dtg = sdf.parse("2017-01-01")
-      val sf1 = new ScalaSimpleFeature(sft, "1", Array("first", Integer.valueOf(100), dtg, gf.createPoint(new Coordinate(10, 10))))
-      val partition = scheme.getPartitionName(sf1)
+      val dtg = "2017-01-01"
 
-      def write(sf: SimpleFeature) = {
-        val writer = fsStorage.getWriter(sft.getTypeName, partition)
+      val sf1 = ScalaSimpleFeature.create(sft, "1", "first", 100, dtg, "POINT (10 10)")
+      val partition = scheme.getPartition(sf1)
+
+      partition mustEqual "2017/01/01"
+
+      def write(sf: SimpleFeature): Unit = {
+        val writer = fsStorage.getWriter(partition)
         writer.write(sf)
         writer.close()
       }
 
       // First simple feature goes in its own file
       write(sf1)
-      fsStorage.getPaths(sft.getTypeName, partition) must haveSize(1)
-      SelfClosingIterator(fsStorage.getReader(sft.getTypeName, Seq(partition), Query.ALL)).toList must haveSize(1)
+      fsStorage.getMetadata.getFiles(partition) must haveSize(1)
+      SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList must haveSize(1)
 
       // Second simple feature should be in a separate file
-      val sf2 = new ScalaSimpleFeature(sft, "2", Array("second", Integer.valueOf(200), dtg, gf.createPoint(new Coordinate(10, 10))))
+      val sf2 = ScalaSimpleFeature.create(sft, "2", "second", 200, dtg, "POINT (10 10)")
       write(sf2)
-      fsStorage.getPaths(sft.getTypeName, partition) must haveSize(2)
-      SelfClosingIterator(fsStorage.getReader(sft.getTypeName, Seq(partition), Query.ALL)).toList must haveSize(2)
+      fsStorage.getMetadata.getFiles(partition) must haveSize(2)
+      SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList must haveSize(2)
 
       // Third feature in a third file
-      val sf3 = new ScalaSimpleFeature(sft, "3", Array("third", Integer.valueOf(300), dtg, gf.createPoint(new Coordinate(10, 10))))
+      val sf3 = ScalaSimpleFeature.create(sft, "3", "third", 300, dtg, "POINT (10 10)")
       write(sf3)
-      fsStorage.getPaths(sft.getTypeName, partition) must haveSize(3)
-      SelfClosingIterator(fsStorage.getReader(sft.getTypeName, Seq(partition), Query.ALL)).toList must haveSize(3)
+      fsStorage.getMetadata.getFiles(partition) must haveSize(3)
+      SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList must haveSize(3)
 
       // Compact to create a single file
-      fsStorage.compact(sft.getTypeName, partition)
-      fsStorage.getPaths(sft.getTypeName, partition) must haveSize(1)
-      SelfClosingIterator(fsStorage.getReader(sft.getTypeName, Seq(partition), Query.ALL)).toList must haveSize(3)
+      fsStorage.compact(partition)
+      fsStorage.getMetadata.getFiles(partition) must haveSize(1)
+      SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList must haveSize(3)
     }
+  }
 
-    step {
-      FileUtils.deleteDirectory(tempDir.toFile)
-    }
+  step {
+    FileUtils.deleteDirectory(tempDir.toFile)
   }
 }

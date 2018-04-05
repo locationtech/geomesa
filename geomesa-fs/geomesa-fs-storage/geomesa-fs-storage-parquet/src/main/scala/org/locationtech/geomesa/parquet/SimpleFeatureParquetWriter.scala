@@ -44,7 +44,7 @@ object SimpleFeatureParquetWriter extends LazyLogging {
 
   def builder(file: Path, conf: Configuration): Builder = {
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "SNAPPY"))
-    logger.info(s"Using Parquet Compression codec ${codec.name()}")
+    logger.debug(s"Using Parquet Compression codec ${codec.name()}")
     new Builder(file)
       .withConf(conf)
       .withCompressionCodec(codec)

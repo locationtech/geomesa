@@ -8,45 +8,115 @@
 
 package org.locationtech.geomesa.fs.storage.api;
 
+import org.apache.hadoop.fs.Path;
 import org.geotools.data.Query;
-import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.filter.Filter;
 
-import java.net.URI;
 import java.util.List;
 
 public interface FileSystemStorage {
 
-    URI getRoot();
+    /**
+     * The metadata for this storage instance
+     *
+     * @return metadata
+     */
+    FileMetadata getMetadata();
 
-    List<String> getTypeNames();
-    List<SimpleFeatureType> getFeatureTypes();
+    /**
+     * Convenience method that delegates to the metadata
+     *
+     * @see FileMetadata#getPartitions()
+     *
+     * @return partitions
+     */
+    List<String> getPartitions();
 
-    SimpleFeatureType getFeatureType(String typeName);
-    void createNewFeatureType(SimpleFeatureType sft, PartitionScheme scheme);
+    /**
+     * Convenience method that delegates to the partition scheme
+     *
+     * @see FileMetadata#getPartitionScheme()
+     * @see PartitionScheme#getPartitions(org.opengis.filter.Filter)
+     *
+     * @return partitions
+     */
+    List<String> getPartitions(Filter filter);
 
-    PartitionScheme getPartitionScheme(String typeName);
+    /**
+     * Convenience method that delegates to the partition scheme
+     *
+     * @see FileMetadata#getPartitionScheme()
+     * @see PartitionScheme#getPartition(SimpleFeature)
+     *
+     * @param feature simple feature
+     * @return partition feature should be written to
+     */
+    String getPartition(SimpleFeature feature);
 
-    List<String> getPartitions(String typeName);
-    List<String> getPartitions(String typeName, Query query);
+    /**
+     * Get a writer for a given partition. This method is thread-safe and can be called multiple times,
+     * although this can result in multiple data files.
+     *
+     * @param partition partition
+     * @return writer
+     */
+    FileSystemWriter getWriter(String partition);
 
-    List<URI> getPaths(String typeName, String partition);
+    /**
+     * Get a reader for a given set of partitions, using a single thread
+     *
+     * @param partitions partitions
+     * @param query query
+     * @return reader
+     */
+    FileSystemReader getReader(List<String> partitions, Query query);
 
-    FileSystemReader getReader(String typeName, List<String> partitions, Query q);
-    FileSystemReader getReader(String typeName, List<String> partitions, Query q, int threads);
+    /**
+     * Get a reader for a given set of partitions
+     *
+     * @param partitions partitions
+     * @param query query
+     * @param threads suggested threads used for reading data files
+     * @return reader
+     */
+    FileSystemReader getReader(List<String> partitions, Query query, int threads);
 
-    FileSystemWriter getWriter(String typeName, String partition);
+    /**
+     * Get the full paths to any files contained in the partition
+     *
+     * @param partition partition
+     * @return file paths
+     */
+    List<Path> getFilePaths(String partition);
 
-    void compact(String typeName, String partition);
-    void compact(String typeName, String partition, int threads);
+    /**
+     * Compact a partition - merge multiple data files into a single file, using a single reader thread.
+     *
+     * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
+     * multiple threads or storage instances attempt to compact the same partition simultaneously.
+     *
+     * @param partition partition
+     */
+    void compact(String partition);
+
+    /**
+     * Compact a partition - merge multiple data files into a single file.
+     *
+     * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
+     * multiple threads or storage instances attempt to compact the same partition simultaneously.
+     *
+     * @param partition partition
+     * @param threads suggested threads used for reading to-be-compacted data files
+     */
+    void compact(String partition, int threads);
 
     /**
      * Update the metadata for this filesystem - This should leave the metadata in a
-     * consistent and correct state. Currently this is not a thread-safe operation should
-     * only be invoked by a single thread.
+     * consistent and correct state.
      *
-     * @param typeName
+     * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
+     * multiple threads or storage instances attempt to simultaneously update the metadata.
      */
-    void updateMetadata(String typeName);
-
-    Metadata getMetadata(String typeName);
+    void updateMetadata();
 }

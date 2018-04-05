@@ -459,16 +459,16 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         .as[Double].first mustEqual 10.0
       dfBlank.select(st_distance(st_geomFromWKT(pt1), st_geomFromWKT(pt2))).first mustEqual 10.0
 
-      val expected = beCloseTo(1113194.0, 1.0)
-      sc.sql(s"select st_distanceSpheroid(st_geomFromWKT('$pt1'), st_geomFromWKT('$pt2'))")
+      val expected = beCloseTo(1111950.0, 1.0)
+      sc.sql(s"select st_distanceSphere(st_geomFromWKT('$pt1'), st_geomFromWKT('$pt2'))")
         .as[Double].first must expected
-      dfBlank.select(st_distanceSpheroid(st_geomFromWKT(pt1), st_geomFromWKT(pt2))).first.doubleValue() must expected
+      dfBlank.select(st_distanceSphere(st_geomFromWKT(pt1), st_geomFromWKT(pt2))).first.doubleValue() must expected
 
       sc.sql("select st_distance(null, null)").collect.head(0) must beNull
       dfBlank.select(st_distance(lit(null), lit(null))).first must beNull
 
-      sc.sql("select st_distanceSpheroid(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_distanceSpheroid(lit(null), lit(null))).first must beNull
+      sc.sql("select st_distanceSphere(null, null)").collect.head(0) must beNull
+      dfBlank.select(st_distanceSphere(lit(null), lit(null))).first must beNull
     }
 
     "st_length" >> {
@@ -491,15 +491,15 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       trans mustEqual expected
     }
 
-    "st_aggregateDistanceSpheroid" >> {
+    "st_aggregateDistanceSphere" >> {
       val p1 = points("int")
       val p2 = points("edge")
-      dfBlank.select(st_aggregateDistanceSpheroid(array(st_geomFromWKT(p1), st_geomFromWKT(p2)))).first must not(throwAn[Exception])
+      dfBlank.select(st_aggregateDistanceSphere(array(st_geomFromWKT(p1), st_geomFromWKT(p2)))).first must not(throwAn[Exception])
     }
 
-    "st_lengthSpheroid" >> {
+    "st_lengthSphere" >> {
       val line = "LINESTRING(1 2, 11 2)"
-      dfBlank.select(st_lengthSpheroid(st_castToLineString(st_geomFromWKT(line)))).first must not(throwAn[Exception])
+      dfBlank.select(st_lengthSphere(st_castToLineString(st_geomFromWKT(line)))).first must not(throwAn[Exception])
     }
 
     // after

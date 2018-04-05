@@ -53,8 +53,4 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
       session.execute(s"drop table $table")
     }
   }
-
-  override def dispose(): Unit = {
-    super.dispose()
-  }
 }

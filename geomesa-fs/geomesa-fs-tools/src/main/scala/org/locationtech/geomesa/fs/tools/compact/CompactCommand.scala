@@ -15,10 +15,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{PartitionParam, FsParams}
 import org.locationtech.geomesa.fs.tools.compact.CompactCommand.CompactParams
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.{OrcCompactionJob, ParquetCompactionJob}
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.TempDirParam
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.ingest.AbstractIngest
@@ -45,13 +46,15 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
   override def execute(): Unit = withDataStore(compact)
 
   def compact(ds: FileSystemDataStore): Unit = {
-    Command.user.info(s"Beginning Compaction Process...updating metadata")
+    Command.user.info(s"Beginning Compaction Process...")
+    Command.user.info(s"Updating metadata to ensure consistency")
 
-    ds.storage.updateMetadata(params.featureName)
+    val storage = ds.storage(params.featureName)
+
+    storage.updateMetadata()
     Command.user.info(s"Metadata update complete")
 
-    val m = ds.storage.getMetadata(params.featureName)
-    val allPartitions = m.getPartitions
+    val allPartitions = storage.getPartitions
     val toCompact: Seq[String] = if (params.partitions.nonEmpty) {
       params.partitions.filterNot(allPartitions.contains).headOption.foreach { p =>
         throw new ParameterException(s"Partition $p cannot be found in metadata")
@@ -63,7 +66,7 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
     Command.user.info(s"Compacting ${toCompact.size} partitions")
 
     val mode = Option(params.mode).getOrElse {
-      if (PathUtils.isRemote(ds.storage.getRoot.toString)) {
+      if (PathUtils.isRemote(storage.getMetadata.getRoot.toString)) {
         RunModes.Distributed
       } else {
         RunModes.Local
@@ -73,26 +76,27 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
     mode match {
       case RunModes.Local =>
         toCompact.foreach { p =>
-          logger.info(s"Compacting ${params.featureName}:$p")
-          ds.storage.compact(params.featureName, p)
-          logger.info(s"Completed compaction of ${params.featureName}:$p")
+          logger.info(s"Compacting $p")
+          storage.compact(p)
         }
 
       case RunModes.Distributed =>
-        val job = if (params.encoding == ParquetFileSystemStorage.ParquetEncoding) {
+        val encoding = storage.getMetadata.getEncoding
+        val job = if (encoding == ParquetFileSystemStorage.ParquetEncoding) {
           new ParquetCompactionJob()
-        } else if (params.encoding == OrcFileSystemStorage.OrcEncoding) {
+        } else if (encoding == OrcFileSystemStorage.OrcEncoding) {
           new OrcCompactionJob()
         } else {
-          throw new ParameterException(s"Compaction is not supported for encoding ${params.encoding}")
+          throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
         }
         val tempDir = Option(params.tempDir).map(t => new Path(t))
         val statusCallback = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
 
         val start = System.currentTimeMillis()
-        val (success, failed) = job.run(connection, params.featureName, toCompact, tempDir, libjarsFileName, libjarsSearchPath, statusCallback)
+        val (success, failed) = job.run(connection, params.featureName, toCompact, tempDir,
+          libjarsFileName, libjarsSearchPath, statusCallback)
         Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
-        Command.user.info(AbstractIngest.getStatInfo(success, failed))
+        Command.user.info(AbstractIngest.getStatInfo(success, failed, "Compacted"))
     }
 
     Command.user.info(s"Compaction completed")

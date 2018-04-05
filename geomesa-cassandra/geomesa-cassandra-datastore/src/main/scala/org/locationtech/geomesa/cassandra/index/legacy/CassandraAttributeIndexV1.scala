@@ -9,14 +9,17 @@
 
 package org.locationtech.geomesa.cassandra.index.legacy
 
-import org.locationtech.geomesa.cassandra.data._
-import org.locationtech.geomesa.cassandra.index.CassandraIndexAdapter.ScanConfig
-import org.locationtech.geomesa.cassandra.index.{CassandraAttributeLayout, CassandraFeatureIndex, CassandraIndexAdapter}
-import org.locationtech.geomesa.cassandra.{RowRange, RowValue}
-import org.locationtech.geomesa.index.index.legacy.AttributeZIndex
+import org.locationtech.geomesa.cassandra.index.CassandraAttributeIndex
+import org.locationtech.geomesa.index.index.IndexKeySpace
+import org.locationtech.geomesa.index.index.legacy.{Z2LegacyIndexKeySpace, Z3LegacyIndexKeySpace}
+import org.locationtech.geomesa.index.index.z2.XZ2IndexKeySpace
+import org.locationtech.geomesa.index.index.z3.XZ3IndexKeySpace
+import org.opengis.feature.simple.SimpleFeatureType
 
-case object CassandraAttributeIndexV1
-    extends AttributeZIndex[CassandraDataStore, CassandraFeature, Seq[RowValue], Seq[RowRange], ScanConfig]
-    with CassandraAttributeLayout with CassandraFeatureIndex with CassandraIndexAdapter {
+case object CassandraAttributeIndexV1 extends CassandraAttributeIndex {
+
   override val version: Int = 1
+
+  override protected def tieredKeySpace(sft: SimpleFeatureType): Option[IndexKeySpace[_, _]] =
+    Seq(Z3LegacyIndexKeySpace, XZ3IndexKeySpace, Z2LegacyIndexKeySpace, XZ2IndexKeySpace).find(_.supports(sft))
 }

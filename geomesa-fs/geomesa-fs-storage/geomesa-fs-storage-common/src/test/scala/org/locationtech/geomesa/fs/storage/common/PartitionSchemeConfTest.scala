@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -17,7 +18,9 @@ import org.specs2.specification.AllExpectations
 
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeConfTest extends Specification with AllExpectations {
+
   sequential
+
   "PartitionScheme" should {
     "load from conf" >> {
       val conf =
@@ -45,12 +48,12 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
 
     "load, serialize, deserialize" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val scheme = CommonSchemeLoader.build("daily,z2-2bit", sft)
+      val scheme = PartitionScheme.apply(sft, "daily,z2-2bit")
       scheme must beAnInstanceOf[CompositeScheme]
 
-      val schemeStr = scheme.toString
+      val schemeStr = PartitionScheme.toConfig(scheme).root().render(ConfigRenderOptions.concise)
 
-      val scheme2 = PartitionScheme.apply(sft, schemeStr)
+      val scheme2 = PartitionScheme.apply(sft, ConfigFactory.parseString(schemeStr))
       scheme2 must beAnInstanceOf[CompositeScheme]
     }
 
@@ -75,11 +78,10 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
 
       scheme.isLeafStorage must beTrue
       val opts = scheme.getOptions
-      import PartitionOpts._
-      opts.get(GeomAttribute) mustEqual "bar"
-      opts.get(DtgAttribute) mustEqual "foo"
-      opts.get(StepOpt).toInt mustEqual 1
-      opts.get(LeafStorage).toBoolean must beTrue
+      opts.get(Z2Scheme.Config.GeomAttribute) mustEqual "bar"
+      opts.get(DateTimeScheme.Config.DtgAttribute) mustEqual "foo"
+      opts.get(DateTimeScheme.Config.StepOpt).toInt mustEqual 1
+      opts.get(Z2Scheme.Config.LeafStorage).toBoolean must beTrue
     }
   }
 }

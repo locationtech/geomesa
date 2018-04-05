@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.File
+import java.io.{File, FilenameFilter}
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.LazyLogging
@@ -42,7 +42,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
   }
 
   val inFormats = Seq(DataFormats.Csv, DataFormats.Tsv, DataFormats.Json)
-  val outFormats = DataFormats.values.filter(_ != DataFormats.Null).toSeq
+  val outFormats = DataFormats.values.filter( _ != DataFormats.Null ).toSeq
 
   for (in <- inFormats; out <- outFormats) {
     logger.debug(s"Testing $in to $out converter")
@@ -68,12 +68,28 @@ class ConvertCommandTest extends Specification with LazyLogging {
         command.params.config = conf
         command.params.spec = conf
         command.params.outputFormat = outFmt
-        command.params.file = File.createTempFile("convertTest", s".${outFmt.toString.toLowerCase}")
+        command.params.file =
+          if (outFmt == DataFormats.Leaflet) {
+            File.createTempFile("convertTest", s".html")
+          } else {
+            File.createTempFile("convertTest", s".${outFmt.toString.toLowerCase}")
+          }
+
         try {
           test(command)
         } finally {
           if (!command.params.file.delete()) {
             command.params.file.deleteOnExit()
+          }
+          if (outFmt == DataFormats.Shp) {
+            val root = command.params.file.getName.takeWhile(_ != '.') + "."
+            command.params.file.getParentFile.listFiles(new FilenameFilter() {
+              override def accept(dir: File, name: String) = name.startsWith(root)
+            }).foreach { file =>
+              if (!file.delete()) {
+                file.deleteOnExit()
+              }
+            }
           }
         }
       }

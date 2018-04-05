@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.index
 
 import java.nio.charset.StandardCharsets
-import java.util.Comparator
 
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints
@@ -17,7 +16,10 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestWrappedFeature, 
 import org.locationtech.geomesa.index.api.{GeoMesaIndexManager, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
+import org.locationtech.geomesa.index.index.IndexKeySpace.ByteRange
 import org.locationtech.geomesa.index.index._
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.legacy.AttributeDateIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -26,8 +28,8 @@ import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode}
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -63,20 +65,6 @@ object TestGeoMesaDataStore {
   type TestIndexManagerType = GeoMesaIndexManager[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
   type TestQueryPlanType = QueryPlan[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
   type TestFilterStrategyType = FilterStrategy[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
-
-  val ByteComparator = new Comparator[Array[Byte]] {
-    override def compare(o1: Array[Byte], o2: Array[Byte]): Int = {
-      val minLength = if (o1.length < o2.length) { o1.length } else { o2.length }
-      var i = 0
-      while (i < minLength) {
-        if (o1(i) != o2(i)) {
-          return (o1(i) & 0xff) - (o2(i) & 0xff)
-        }
-        i += 1
-      }
-      o1.length - o2.length
-    }
-  }
 
   case class TestWrappedFeature(feature: SimpleFeature) extends WrappedFeature {
     override lazy val idBytes: Array[Byte] = feature.getID.getBytes(StandardCharsets.UTF_8)
@@ -135,7 +123,7 @@ object TestGeoMesaDataStore {
 
     private val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
       override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
-        ByteComparator.compare(x._1, y._1)
+        ByteRange.ByteOrdering.compare(x._1, y._1)
     }
 
     val features = scala.collection.mutable.SortedSet.empty[(Array[Byte], SimpleFeature)](ordering)
@@ -152,9 +140,9 @@ object TestGeoMesaDataStore {
     override protected def createDelete(row: Array[Byte], feature: TestWrappedFeature): TestWrite =
       TestWrite(row, feature.feature, delete = true)
 
-    override protected def range(start: Array[Byte], end: Array[Byte]): TestRange = TestRange(start, end)
+    override protected def createRange(start: Array[Byte], end: Array[Byte]): TestRange = TestRange(start, end)
 
-    override protected def rangeExact(row: Array[Byte]): TestRange = TestRange(row, IndexAdapter.rowFollowingRow(row))
+    override protected def createRange(row: Array[Byte]): TestRange = TestRange(row, ByteArrays.rowFollowingRow(row))
 
     override protected def scanConfig(sft: SimpleFeatureType,
                                       ds: TestGeoMesaDataStore,
@@ -203,14 +191,14 @@ object TestGeoMesaDataStore {
                            ecql: Option[Filter]) extends TestQueryPlanType {
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
       def contained(range: TestRange, row: Array[Byte]): Boolean =
-        ByteComparator.compare(range.start, row) <= 0 && ByteComparator.compare(range.end, row) > 0
+        ByteRange.ByteOrdering.compare(range.start, row) <= 0 && ByteRange.ByteOrdering.compare(range.end, row) > 0
       index.features.toIterator.collect {
         case (row, sf) if ranges.exists(contained(_, row)) && ecql.forall(_.evaluate(sf)) => sf
       }
     }
 
     override def explain(explainer: Explainer, prefix: String): Unit = {
-      explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r => s"[${r.start.mkString("")}:${r.end.mkString("")})")}")
+      explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r => s"[${r.start.mkString("")}:${r.end.mkString("")})").mkString(",")}")
       explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
     }
   }

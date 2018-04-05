@@ -97,8 +97,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     results.map(_.getAttribute("name").toString).toList
   }
 
-  def runQuery(query: Query): Iterator[SimpleFeature] = {
-    forall(ds.getQueryPlan(query))(_.filter.index mustEqual AttributeIndex)
+  def runQuery(query: Query, explain: Explainer = ExplainNull): Iterator[SimpleFeature] = {
+    forall(ds.getQueryPlan(query, explainer = explain))(_.filter.index mustEqual AttributeIndex)
     SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
   }
 
@@ -342,8 +342,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       val results = runQuery(query).toList
-      results must haveLength(2)
-      results.map(_.getAttribute("track")) must containTheSameElementsAs(Seq("track1", "track2"))
+      results.length must beLessThan(4) // note: due to sharding and multiple ranges, we don't get exact sampling
+      results.map(_.getAttribute("track")).distinct must containTheSameElementsAs(Seq("track1", "track2"))
     }
 
     "support sampling with bin queries" in {

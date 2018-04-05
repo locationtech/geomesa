@@ -13,6 +13,7 @@ import java.io.Closeable
 import kafka.server.KafkaConfig
 import kafka.utils.TestUtils
 import kafka.zk.EmbeddedZookeeper
+import org.apache.kafka.common.network.ListenerName
 import org.locationtech.geomesa.utils.io.PathUtils
 
 class EmbeddedKafka extends Closeable {
@@ -30,7 +31,7 @@ class EmbeddedKafka extends Closeable {
     TestUtils.createServer(new KafkaConfig(config))
   }
 
-  val brokers = s"127.0.0.1:${server.socketServer.boundPort()}"
+  val brokers = s"127.0.0.1:${server.boundPort(ListenerName.normalised("PLAINTEXT"))}"
 
   override def close(): Unit = {
     try { server.shutdown() } catch { case _: Throwable => }

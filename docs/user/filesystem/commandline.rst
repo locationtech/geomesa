@@ -21,8 +21,8 @@ here are FileSystem-specific.
 General Arguments
 -----------------
 
-Most commands require you to specify the file system used. This generally includes the path and encoding
-(parquet, csv, etc). Specify the path with ``--path`` (or ``-p``), and the encoding with ``--encoding`` (or ``-e``).
+Most commands require you to specify the file system used. This generally includes the root path that the files
+are under. Specify the path with ``--path`` (or ``-p``).
 
 Commands
 --------
@@ -79,6 +79,7 @@ All data and metadata will be stored in the filesystem under the hierarchy of th
 ======================== =============================================================
 Argument                 Description
 ======================== =============================================================
+``-e, --encoding *``     The encoding used for the underlying files. Implementations are provided for ``parquet`` and ``orc``.
 ``--partition-scheme *`` Common partition scheme name (e.g. daily, z2) or path to a file containing a scheme config
 ``--num-reducers``       Number of reducers to use (required for distributed ingest)
 ``--leaf-storage``       Use leaf storage

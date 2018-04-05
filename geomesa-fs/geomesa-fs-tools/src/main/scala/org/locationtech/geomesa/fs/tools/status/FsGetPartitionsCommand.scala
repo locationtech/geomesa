@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.status.FsGetPartitionsCommand.FsGetPartitionsParams
-import org.locationtech.geomesa.fs.tools.{FsDataStoreCommand, FsParams}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
-
-import scala.collection.JavaConversions._
 
 class FsGetPartitionsCommand extends FsDataStoreCommand {
   override val params = new FsGetPartitionsParams
@@ -21,8 +20,9 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
   override val name: String = "get-partitions"
 
   override def execute(): Unit = withDataStore { ds =>
-    Command.user.info(s"Partitions for type ${params.featureName}")
-    ds.storage.getMetadata(params.featureName).getPartitions.foreach(Command.output.info)
+    import scala.collection.JavaConverters._
+    Command.user.info(s"Partitions for type ${params.featureName}:")
+    ds.storage(params.featureName).getMetadata.getPartitions.asScala.sorted.foreach(Command.output.info)
   }
 }
 

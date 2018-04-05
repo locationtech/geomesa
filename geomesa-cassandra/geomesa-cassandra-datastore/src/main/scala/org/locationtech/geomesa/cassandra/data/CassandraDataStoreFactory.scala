@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableMap
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -133,19 +132,14 @@ object CassandraDataStoreFactory {
   val Description = "Apache Cassandra\u2122 distributed key/value store"
 
   object Params extends GeoMesaDataStoreParams {
+
+    override protected def looseBBoxDefault = false
+
     val ContactPointParam = new GeoMesaParam[String]("cassandra.contact.point", "HOST:PORT to Cassandra", optional = false, deprecatedKeys = Seq("geomesa.cassandra.contact.point"))
     val KeySpaceParam     = new GeoMesaParam[String]("cassandra.keyspace", "Cassandra Keyspace", optional = false, deprecatedKeys = Seq("geomesa.cassandra.keyspace"))
     val CatalogParam      = new GeoMesaParam[String]("cassandra.catalog", "Name of GeoMesa catalog table", optional = false, deprecatedKeys = Seq("geomesa.cassandra.catalog.table"))
     val UserNameParam     = new GeoMesaParam[String]("cassandra.username", "Username to connect with", deprecatedKeys = Seq("geomesa.cassandra.username"))
     val PasswordParam     = new GeoMesaParam[String]("cassandra.password", "Password to connect with", password = true, deprecatedKeys = Seq("geomesa.cassandra.password"))
-
-    override val LooseBBoxParam: GeoMesaParam[java.lang.Boolean] = {
-      // copy the normal loose bbox param but make default value 'false' instead of 'true'
-      val original = GeoMesaDataStoreFactory.LooseBBoxParam
-      new GeoMesaParam[java.lang.Boolean](original.getName, original.getDescription.toString, !original.isRequired,
-        default = false, original.password, original.largeText, original.extension, original.deprecatedKeys,
-        original.deprecatedParams, original.systemProperty)
-    }
 
     // used to handle geoserver password encryption in persisted ds params
     val DeprecatedGeoServerPasswordParam = new Param("password", classOf[String], "", false, null, ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
