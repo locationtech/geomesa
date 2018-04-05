@@ -19,6 +19,7 @@ import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.HadoopConfigurationParam
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseQuietly
@@ -81,7 +82,7 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
     (params: Map[String, String], indices: Option[Seq[String]], context: TaskAttemptContext)
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  val paramsWithConf = params ++ Map("hadoop.configuration" -> context.getConfiguration)
+  val paramsWithConf = params ++ Map(HadoopConfigurationParam.key -> context.getConfiguration)
 
   val ds: GeoMesaDataStore[DS, F, W] = DataStoreFinder.getDataStore(paramsWithConf).asInstanceOf[GeoMesaDataStore[DS, F, W]]
 

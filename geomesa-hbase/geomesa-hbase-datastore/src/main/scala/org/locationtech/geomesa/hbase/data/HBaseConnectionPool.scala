@@ -21,18 +21,19 @@ import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConnectionParam, ZookeeperParam}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConnectionParam, ZookeeperParam, HadoopConfigurationParam}
 
 object HBaseConnectionPool extends LazyLogging {
 
   private var userCheck: Option[User] = _
 
+  private val zkConfiguration = withPaths(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option)
+
   private val zkConfigCache = Caffeine.newBuilder().build(
     new CacheLoader[(Option[String], Option[String]), Configuration] {
       override def load(key: (Option[String], Option[String])): Configuration = {
         val (zookeepers, paths) = key
-        val configuration = withPaths(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option)
-        val conf = withPaths(configuration, paths)
+        val conf = withPaths(zkConfiguration, paths)
         zookeepers.foreach(zk => conf.set(HConstants.ZOOKEEPER_QUORUM, zk))
         if (zookeepers.isEmpty && conf.get(HConstants.ZOOKEEPER_QUORUM) == "localhost") {
           logger.warn("HBase connection is set to localhost - " +
@@ -43,6 +44,7 @@ object HBaseConnectionPool extends LazyLogging {
       }
     }
   )
+
   private val confConfigCache = Caffeine.newBuilder().build(
     new CacheLoader[(Configuration, Option[String]), Configuration] {
       override def load(key: (Configuration, Option[String])): Configuration = {
@@ -85,8 +87,8 @@ object HBaseConnectionPool extends LazyLogging {
   def getConnection(params: java.util.Map[String, Serializable], validate: Boolean): Connection = {
     if (ConnectionParam.exists(params)) {
       ConnectionParam.lookup(params)
-    } else if (params.containsKey("hadoop.configuration")) {
-      val conf = params.get("hadoop.configuration").asInstanceOf[Configuration]
+    } else if (params.containsKey(HadoopConfigurationParam.key)) {
+      val conf = params.get(HadoopConfigurationParam.key).asInstanceOf[Configuration]
       val paths = ConfigPathsParam.lookupOpt(params)
       connectionCache.get((confConfigCache.get((conf, paths)), validate))
     } else {

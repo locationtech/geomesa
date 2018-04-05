@@ -78,7 +78,7 @@ class ConverterIngest(sft: SimpleFeatureType,
     new LocalIngestConverterImpl(sft, path, converters, failures)
 
   override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
-    val conf = configuration.flatMap(conf => Some(new Configuration(conf)))
+    val conf = configuration.map(conf => new Configuration(conf))
     new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths, conf).run(statusCallback)
   }
 }
