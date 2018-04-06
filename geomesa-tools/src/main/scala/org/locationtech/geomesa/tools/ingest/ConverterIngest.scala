@@ -15,7 +15,6 @@ import com.beust.jcommander.ParameterException
 import com.typesafe.config.{Config, ConfigRenderOptions}
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool}
 import org.apache.commons.pool2.{BasePooledObjectFactory, ObjectPool}
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters}
@@ -26,7 +25,6 @@ import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities.compare
-
 import scala.util.Try
 
 /**
@@ -47,8 +45,7 @@ class ConverterIngest(sft: SimpleFeatureType,
                       mode: Option[RunMode],
                       libjarsFile: String,
                       libjarsPaths: Iterator[() => Seq[File]],
-                      numLocalThreads: Int,
-                      configuration: Option[Configuration] = None)
+                      numLocalThreads: Int)
     extends AbstractIngest(dsParams, sft.getTypeName, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
   override def beforeRunTasks(): Unit = {
@@ -78,8 +75,7 @@ class ConverterIngest(sft: SimpleFeatureType,
     new LocalIngestConverterImpl(sft, path, converters, failures)
 
   override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
-    val conf = configuration.flatMap(conf => Some(new Configuration(conf)))
-    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths, conf).run(statusCallback)
+    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
   }
 }
 
@@ -110,9 +106,8 @@ class ConverterIngestJob(dsParams: Map[String, String],
                          converterConfig: Config,
                          paths: Seq[String],
                          libjarsFile: String,
-                         libjarsPaths: Iterator[() => Seq[File]],
-                         configuration: Option[Configuration] = None)
-    extends AbstractIngestJob(dsParams, sft.getTypeName, paths, libjarsFile, libjarsPaths, configuration) {
+                         libjarsPaths: Iterator[() => Seq[File]])
+    extends AbstractIngestJob(dsParams, sft.getTypeName, paths, libjarsFile, libjarsPaths) {
 
   import ConverterInputFormat.{Counters => ConvertCounters}
   import GeoMesaOutputFormat.{Counters => OutCounters}
