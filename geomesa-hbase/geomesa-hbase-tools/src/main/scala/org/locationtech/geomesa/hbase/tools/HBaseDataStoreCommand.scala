@@ -8,8 +8,11 @@
 
 package org.locationtech.geomesa.hbase.tools
 
+import java.util.Collections
+
 import com.beust.jcommander.Parameter
-import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreParams}
+import org.apache.hadoop.hbase.HConstants
+import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore, HBaseDataStoreParams}
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseParams
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalZookeepersParam}
 
@@ -21,9 +24,14 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
   override def params: HBaseParams
 
   override def connection: Map[String, String] = {
+    // set zookeepers explicitly, so that if the hbase-site.xml isn't distributed with jobs we can still connect
+    val zk = if (params.zookeepers != null) { params.zookeepers } else {
+      HBaseConnectionPool.getConfiguration(Collections.emptyMap()).get(HConstants.ZOOKEEPER_QUORUM)
+    }
+
     Map(
+      HBaseDataStoreParams.ZookeeperParam.getName       -> zk,
       HBaseDataStoreParams.HBaseCatalogParam.getName    -> params.catalog,
-      HBaseDataStoreParams.ZookeeperParam.getName       -> params.zookeepers,
       HBaseDataStoreParams.RemoteFilteringParam.getName -> (!params.noRemote).toString,
       HBaseDataStoreParams.EnableSecurityParam.getName  -> params.secure.toString,
       HBaseDataStoreParams.AuthsParam.getName           -> params.auths
