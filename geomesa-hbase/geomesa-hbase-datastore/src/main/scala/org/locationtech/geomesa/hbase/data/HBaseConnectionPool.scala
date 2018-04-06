@@ -73,13 +73,17 @@ object HBaseConnectionPool extends LazyLogging {
     override def run(): Unit = connectionCache.asMap().foreach(_._2.close())
   })
 
+  def getConfiguration(params: java.util.Map[String, Serializable]): Configuration = {
+    val zk = ZookeeperParam.lookupOpt(params)
+    val paths = ConfigPathsParam.lookupOpt(params)
+    configCache.get((zk, paths))
+  }
+
   def getConnection(params: java.util.Map[String, Serializable], validate: Boolean): Connection = {
     if (ConnectionParam.exists(params)) {
       ConnectionParam.lookup(params)
     } else {
-      val zk = ZookeeperParam.lookupOpt(params)
-      val paths = ConfigPathsParam.lookupOpt(params)
-      connectionCache.get((configCache.get((zk, paths)), validate))
+      connectionCache.get((getConfiguration(params), validate))
     }
   }
 
