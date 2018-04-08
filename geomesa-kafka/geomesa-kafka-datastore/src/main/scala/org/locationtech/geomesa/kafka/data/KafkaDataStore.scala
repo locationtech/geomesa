@@ -21,7 +21,7 @@ import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySe
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore, SimpleFeatureWriter}
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.text.cql2.CQL
+import org.geotools.filter.text.ecql._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -76,7 +76,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
         val ff = CommonFactoryFinder.getFilterFactory2
         val eventTimeExpression =
-          config.eventTimeAttribute.flatMap(s => Try { CQL.toExpression(s) }.toOption).getOrElse(ff.function("fastProperty", ff.literal(sft.indexOf(sft.getDtgField.getOrElse("")))))
+          config.eventTimeAttribute.flatMap(s => Try { ECQL.toExpression(s) }.toOption).getOrElse(ff.function("fastProperty", ff.literal(sft.indexOf(sft.getDtgField.getOrElse("")))))
         val baseCache = if (config.cqEngine) {
           new FeatureCacheCqEngine(sft, config.cacheExpiry, config.eventTimeExpiry, eventTimeExpression, config.cacheCleanup, config.cacheConsistency)(config.ticker)
         } else {
@@ -91,7 +91,9 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
         val doInitialLoad = config.consumeFromBeginning
-        new KafkaCacheLoader.KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, doInitialLoad)
+        new KafkaCacheLoader.KafkaCacheLoaderImpl(
+          sft, cache, consumers, topic, frequency, doInitialLoad, config.eventTime, config.eventTimeOrdering, eventTimeExpression
+        )
       }
     }
   })
