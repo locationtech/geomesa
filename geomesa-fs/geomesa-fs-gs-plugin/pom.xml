@@ -28,6 +28,10 @@
                     <groupId>com.vividsolutions</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>net.sf.saxon</groupId>
+                    <artifactId>Saxon-HE</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
