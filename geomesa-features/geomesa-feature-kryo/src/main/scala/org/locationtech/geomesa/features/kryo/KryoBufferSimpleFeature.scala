@@ -94,7 +94,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   def setBuffer(bytes: Array[Byte], offset: Int, length: Int): Unit = {
     this.offset = offset
     this.length = length
-    input.setBuffer(bytes, offset, offset + length)
+    input.setBuffer(bytes, offset, length)
     // reset our offsets
     input.setPosition(offset + 1) // skip version
     startOfOffsets = offset + input.readInt()

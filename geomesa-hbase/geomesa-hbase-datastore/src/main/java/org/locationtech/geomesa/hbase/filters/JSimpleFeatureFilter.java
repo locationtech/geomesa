@@ -139,7 +139,10 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
-    public JSimpleFeatureFilter(String sftString, String filterString, String transformString, String transformSchemaString) throws CQLException {
+    private JSimpleFeatureFilter(String sftString,
+                                 String filterString,
+                                 String transformString,
+                                 String transformSchemaString) throws CQLException {
         this.sftString = sftString;
         this.sft = IteratorCache.sft(sftString);
         this.reusable = IteratorCache.serializer(sftString, SerializationOptions.withoutId()).getReusableFeature();
@@ -202,12 +205,17 @@ public class JSimpleFeatureFilter extends FilterBase {
         return Bytes.add(arrays);
     }
 
+    @Override
+    public String toString() {
+        return "JSimpleFeatureFilter[filter=" + filterString + ",transform=" + transform + "]";
+    }
+
     public static byte[] toByteArray(String sftString, String filterString, String transform, String transformSchema) throws IOException {
         byte[][] arrays = {getLengthArray(sftString), getLengthArray(filterString), getLengthArray(transform), getLengthArray(transformSchema)};
         return Bytes.add(arrays);
     }
 
-    public static byte[] getLengthArray(String s) {
+    private static byte[] getLengthArray(String s) {
         int len = getLen(s);
         if (len == 0) {
             return Bytes.toBytes(0);
@@ -216,7 +224,7 @@ public class JSimpleFeatureFilter extends FilterBase {
         }
     }
 
-    public static int getLen(String s) {
+    private static int getLen(String s) {
         if (s != null) {
             return s.length();
         } else {

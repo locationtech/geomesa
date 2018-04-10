@@ -12,6 +12,9 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{Filter => HFilter}
 import org.geotools.factory.Hints
+import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.coprocessor.aggregators._
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseFeature, HBaseQueryPlan}
@@ -75,7 +78,6 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
-    val dedupe = hasDuplicates(sft, filter.primary)
 
     if (!ds.config.remoteFilter) {
       // everything is done client side
@@ -85,7 +87,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
       val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
 
       // TODO not actually used for coprocessors
-      val toFeatures = resultsToFeatures(returnSchema, None, None)
+      val toFeatures = resultsToFeatures(sft, returnSchema)
 
       val coprocessorConfig = if (hints.isDensityQuery) {
         val options = HBaseDensityAggregator.configure(sft, this, ecql, hints)
@@ -128,6 +130,32 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
                                       hbaseFilters: Seq[(Int, HFilter)],
                                       coprocessor: Option[CoprocessorConfig],
                                       toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
+
+  /**
+    * Turns hbase results into simple features
+    *
+    * @param sft simple feature type
+    * @param returnSft return simple feature type (transform, etc)
+    * @return
+    */
+  private [index] def resultsToFeatures(sft: SimpleFeatureType,
+                                        returnSft: SimpleFeatureType): Iterator[Result] => Iterator[SimpleFeature] = {
+    // Perform a projecting decode of the simple feature
+    val getId = getIdFromRow(sft)
+    val deserializer = KryoFeatureSerializer(returnSft, SerializationOptions.withoutId)
+    resultsToFeatures(deserializer, getId)
+  }
+
+  private def resultsToFeatures(deserializer: KryoFeatureSerializer,
+                                getId: (Array[Byte], Int, Int, SimpleFeature) => String)
+                               (results: Iterator[Result]): Iterator[SimpleFeature] = {
+    results.map { result =>
+      val RowAndValue(row, rowOffset, rowLength, value, valueOffset, valueLength) = rowAndValue(result)
+      val sf = deserializer.deserialize(value, valueOffset, valueLength)
+      sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row, rowOffset, rowLength, sf))
+      sf
+    }
+  }
 }
 
 object HBaseIndexAdapter {
