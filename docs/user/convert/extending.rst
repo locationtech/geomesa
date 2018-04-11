@@ -4,6 +4,12 @@ Extending the Converter Library
 There are two ways to extend the converter library - adding new
 transformation functions and adding new data formats.
 
+Adding Scripting Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The easiest way to extend functionality is by defining custom Javascript functions. See
+:ref:`convert_scripting_functions` for more details.
+
 Adding New Transformation Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

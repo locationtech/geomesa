@@ -60,7 +60,7 @@ class ValidatorTest extends Specification {
 
     "reject invalid validation mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.validation-mode = "foobar" } """))
+        """ { options.error-mode = "foobar" } """))
       SimpleFeatureConverters.build[String](sft, conf) must throwA[IllegalArgumentException]
     }
   }
@@ -82,7 +82,7 @@ class ValidatorTest extends Specification {
 
     "throw exception with parse mode raise-errors in incremental mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.validation-mode = raise-errors } """))
+        """ { options.error-mode = raise-errors } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not(beNull)
 
@@ -96,7 +96,7 @@ class ValidatorTest extends Specification {
 
     "throw exception with parse mode raise-errors in batch mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.validation-mode = raise-errors } """))
+        """ { options.parse-mode = "batch", options.error-mode = raise-errors } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not(beNull)
 
@@ -113,7 +113,7 @@ class ValidatorTest extends Specification {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
     "raise errors on bad dates" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.validation-mode = raise-errors, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = raise-errors, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not(beNull)
 
@@ -129,7 +129,7 @@ class ValidatorTest extends Specification {
 
     "skip records with bad dates" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.validation-mode = skip-bad-records, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not(beNull)
 
@@ -141,7 +141,7 @@ class ValidatorTest extends Specification {
 
     "raise errors on bad geo" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.validation-mode = raise-errors, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = raise-errors, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not(beNull)
 
@@ -153,7 +153,7 @@ class ValidatorTest extends Specification {
 
     "skip records with bad geo" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.validation-mode = skip-bad-records, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not(beNull)
 
@@ -165,7 +165,7 @@ class ValidatorTest extends Specification {
 
     "skip bad geo records in batch mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.validation-mode = skip-bad-records, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not(beNull)
 

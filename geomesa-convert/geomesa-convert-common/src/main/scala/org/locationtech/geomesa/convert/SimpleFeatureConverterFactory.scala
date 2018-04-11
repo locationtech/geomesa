@@ -39,13 +39,18 @@ case class SimpleField(name: String, transform: Transformers.Expr) extends Field
 
 object StandardOption extends Enumeration {
   type StandardOption = Value
-  @Deprecated val Validating = Value("validating")
 
-  val ValidatorsOpt     = Value("validators")
+  @deprecated
+  val Validating = Value("validating")
+
+  @deprecated
   val ValidationModeOpt = Value("validation-mode")
-  val LineModeOpt       = Value("line-mode")
-  val ParseModeOpt      = Value("parse-mode")
-  val VerboseOpt        = Value("verbose")
+
+  val ValidatorsOpt = Value("validators")
+  val ErrorModeOpt  = Value("error-mode")
+  val LineModeOpt   = Value("line-mode")
+  val ParseModeOpt  = Value("parse-mode")
+  val VerboseOpt    = Value("verbose")
 
   implicit class StandardOptionValue(opt: Value) {
     def path = s"options.$opt"
@@ -140,7 +145,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
   protected def getParsingOptions(conf: Config, sft: SimpleFeatureType): ConvertParseOpts = {
     val verbose = if (conf.hasPath(StandardOption.VerboseOpt.path)) conf.getBoolean(StandardOption.VerboseOpt.path) else false
     val opts = ConvertParseOpts(getParseMode(conf), getValidator(conf, sft), getValidationMode(conf), verbose = verbose)
-    logger.info(s"Using ParseMode ${opts.parseMode} with validation mode ${opts.validationMode} and validator ${opts.validator.name}")
+    logger.info(s"Using ParseMode ${opts.parseMode} with error mode ${opts.validationMode} and validator ${opts.validator.name}")
     opts
   }
 
@@ -149,7 +154,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
     val validators: Seq[String] =
       if (conf.hasPath(StandardOption.Validating.path) && conf.hasPath(StandardOption.ValidatorsOpt.path)) {
         // This is when you have the old deprecated key...
-        throw new IllegalArgumentException(s"Converter should not have both ${StandardOption.Validating.path}(deprecated)g and " +
+        throw new IllegalArgumentException(s"Converter should not have both ${StandardOption.Validating.path}(deprecated) and " +
           s"${StandardOption.ValidatorsOpt.path} config keys")
       } else if (conf.hasPath(StandardOption.ValidatorsOpt.path)) {
         conf.getStringList(StandardOption.ValidatorsOpt.path)
@@ -178,17 +183,22 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
       ParseMode.Default
     }
 
-  protected def getValidationMode(conf: Config): ValidationMode =
-    if (conf.hasPath(StandardOption.ValidationModeOpt.path)) {
+  protected def getValidationMode(conf: Config): ValidationMode = {
+    if (conf.hasPath(StandardOption.ErrorModeOpt.path)) {
+      val modeStr = conf.getString(StandardOption.ErrorModeOpt.path)
+      try { ValidationMode.withName(modeStr) } catch {
+        case _: NoSuchElementException => throw new IllegalArgumentException(s"Unknown error mode $modeStr")
+      }
+    } else if (conf.hasPath(StandardOption.ValidationModeOpt.path)) {
+      logger.warn(s"Using deprecated option ${StandardOption.ValidationModeOpt}. Prefer ${StandardOption.ErrorModeOpt}")
       val modeStr = conf.getString(StandardOption.ValidationModeOpt.path)
-      try {
-        ValidationMode.withName(modeStr)
-      } catch {
+      try { ValidationMode.withName(modeStr) } catch {
         case _: NoSuchElementException => throw new IllegalArgumentException(s"Unknown validation mode $modeStr")
       }
     } else {
       ValidationMode.Default
     }
+  }
 
 }
 
@@ -279,10 +289,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 
   protected val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
     (sf: SimpleFeature, ec: EvaluationContext) => {
-      val v = parseOpts.validator.validate(sf)
-      if (v) {
-        sf
-      } else {
+      if (parseOpts.validator.validate(sf)) { sf } else {
         val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: ${parseOpts.validator.lastError}"
         if (parseOpts.validationMode == ValidationMode.RaiseErrors) {
           throw new IOException(msg)
@@ -336,7 +343,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
             s"Failed to evaluate field '${requiredFields(i).name}' on line ${ec.counter.getLineCount}"
           }
           if (parseOpts.validationMode == ValidationMode.SkipBadRecords) {
-            if (parseOpts.verbose) logger.debug(msg, e) else logger.debug(msg)
+            if (parseOpts.verbose) { logger.debug(msg, e) } else { logger.debug(msg) }
             return null
           } else {
             throw new IOException(msg, e)

@@ -1,7 +1,7 @@
 Loading Converters and SFTs at Runtime
 --------------------------------------
 
-If you have defined converters or SFTs in Typesafe Config you can place
+If you have defined converters or SimpleFeatureTypes in Typesafe Config you can place
 them on the classpath or load them with a ``ConverterConfigProvider`` or
 ``SimpleFeatureTypeProvider`` via Java SPI loading. By default, classpath
 and URL providers are provided. Placing a Typesafe Config file named
