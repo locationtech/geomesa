@@ -62,7 +62,6 @@ class JavaSpatialRDD(rdd: SpatialRDD) extends JavaRDD[SimpleFeature](rdd) with S
   def asPyKeyValueMap:  JavaRDD[util.Map[String,Object]]                    = toPyKeyValueMap(rdd)
 }
 
-
 object JavaSpatialRDD {
 
   def apply(rdd: SpatialRDD) = new JavaSpatialRDD(rdd)
@@ -90,4 +89,9 @@ object JavaSpatialRDD {
       .map(i => util.Arrays.asList(i.toSeq: _*))
 
   def toPyKeyValueMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String,AnyRef]] = toKeyValueJavaMap(in)
+}
+
+object JavaGeometryUDT {
+
+
 }

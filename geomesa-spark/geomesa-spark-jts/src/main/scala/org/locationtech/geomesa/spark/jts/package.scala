@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.spark
 
+import org.apache.spark.sql.jts.GeometryUDT
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
 
@@ -41,4 +42,7 @@ package object jts extends DataFrameFunctions.Library with SpatialEncoders {
       spark
     }
   }
+
+  val PyGeometryUDT = GeometryUDT
+
 }

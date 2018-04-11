@@ -25,7 +25,7 @@ sudo python36 -m pip install --upgrade pip
 # We need to install jupyter get ipython in zeppelin through the %python.ipython magic
 sudo python36 -m pip install pandas jupyter grpcio
 
-gpsversion="0.3.0.gm.1"
+gpsversion="0.3.0.gm.2"
 pushd /opt/
 wget https://github.com/aheyne/geopyspark/archive/v${gpsversion}.tar.gz
 tar xf v${gpsversion}.tar.gz
@@ -34,7 +34,10 @@ sudo python36 -m pip install .
 cd /opt/geomesa
 sudo mkdir -p geopyspark/jars/
 cd geopyspark/jars/
-sudo wget https://github.com/aheyne/geopyspark/releases/download/v${gpsversion}/geopyspark-assembly-${gpsversion}.jar
+# File may have already been downloaded if jupyter bootstrap also ran
+test -f geopyspark-assembly-${gpsversion}.jar \
+  || sudo wget https://github.com/aheyne/geopyspark/releases/download/v${gpsversion}/geopyspark-assembly-${gpsversion}.jar
+sudo cp /opt/geomesa/dist/spark/geomesa-hbase-spark-runtime*.jar .
 popd
 
 sudo stop zeppelin
