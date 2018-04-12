@@ -10,7 +10,8 @@ in your converter definition.
 Configuration
 -------------
 
-The JDBC connection string used to connect to the database must be specified using the ``connection`` element.
+The JDBC connection string used to connect to the database must be specified using the ``connection`` element,
+for example ``jdbc:mysql://localhost/test?user=foo&password=bar``.
 
 The JDBC converter relies on standard JDBC libraries, and requires the correct JDBC driver for the database being
 used. Ensure the correct driver is on the classpath; for GeoMesa binary distributions, it can be placed in the

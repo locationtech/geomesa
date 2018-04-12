@@ -33,7 +33,7 @@ using the PutGeoMesaAccumulo processor.
 Obtain GDELT data
 -----------------
 
-In this tutorial we will be ingesting GDELT data. If you already have some GDELT data available, then
+In this tutorial we will be ingesting GDELT data. If you already have some GDELT data downloaded, then
 you may skip this section.
 
 The `GDELT Event database <http://www.gdeltproject.org>`__ provides a comprehensive time- and location-indexed
