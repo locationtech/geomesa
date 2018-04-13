@@ -62,7 +62,7 @@ object BigtableDataStoreFactory {
   val DisplayName = "Google Bigtable (GeoMesa)"
   val Description = "Google Bigtable\u2122 distributed key/value store"
 
-  val BigtableCatalogParam = new GeoMesaParam("bigtable.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
+  val BigtableCatalogParam = new GeoMesaParam[String]("bigtable.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
 
   // verify that the hbase-site.xml exists and contains the appropriate bigtable keys
   def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean = {
