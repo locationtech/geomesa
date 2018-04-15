@@ -146,7 +146,6 @@ case class ContainsExpression(left: Expression, right: Expression) extends Binar
   override protected def doGenCode(ctx: CodegenContext, ev: ExprCode): ExprCode =
     defineCodeGen(ctx, ev, (c1, c2) => {
       ctx.addMutableState(classOf[GeometryUDT].getName, "geometryUDT", "geometryUDT = new org.apache.spark.sql.jts.GeometryUDT();")
-
      s"geometryUDT.deserialize($c1).contains(geometryUDT.deserialize($c2))"
 
     })
