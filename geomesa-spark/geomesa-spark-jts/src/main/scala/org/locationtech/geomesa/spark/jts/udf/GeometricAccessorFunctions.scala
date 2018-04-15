@@ -13,9 +13,9 @@ import java.{lang => jl}
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.catalyst.expressions.codegen.{CodegenContext, ExprCode}
-import org.apache.spark.sql.catalyst.expressions.{Expression, UnaryExpression}
+import org.apache.spark.sql.catalyst.expressions.{BinaryExpression, Expression, UnaryExpression}
 import org.apache.spark.sql.jts.GeometryUDT
-import org.apache.spark.sql.types.DataType
+import org.apache.spark.sql.types.{BooleanType, DataType}
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 
 object GeometricAccessorFunctions {
@@ -124,6 +124,7 @@ object GeometricAccessorFunctions {
 
     val fr = org.apache.spark.sql.jts.registry(sqlContext)
     fr.registerFunction("st_boundaryExpression", f => BoundaryExpression(f.head))
+    fr.registerFunction("st_containsExpression", f => ContainsExpression(f(0), f(1)))
   }
 }
 
@@ -139,4 +140,16 @@ case class BoundaryExpression(child: Expression) extends UnaryExpression {
   }
 
   override def dataType: DataType = child.dataType
+}
+
+case class ContainsExpression(left: Expression, right: Expression) extends BinaryExpression {
+  override protected def doGenCode(ctx: CodegenContext, ev: ExprCode): ExprCode =
+    defineCodeGen(ctx, ev, (c1, c2) => {
+      ctx.addMutableState(classOf[GeometryUDT].getName, "geometryUDT", "geometryUDT = new org.apache.spark.sql.jts.GeometryUDT();")
+
+     s"geometryUDT.deserialize($c1).contains(geometryUDT.deserialize($c2))"
+
+    })
+
+  override def dataType: DataType = BooleanType
 }
