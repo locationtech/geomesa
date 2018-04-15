@@ -62,7 +62,7 @@ object PolygonUDT extends PolygonUDT
 private [spark] class MultiPolygonUDT extends AbstractGeometryUDT[MultiPolygon]("multipolygon")
 object MultiPolygonUDT extends MultiPolygonUDT
 
-private [spark] class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometry") {
+class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometry") {
   private[sql] override def acceptsType(dataType: DataType): Boolean = {
     super.acceptsType(dataType) ||
       dataType.getClass == JTSTypes.GeometryTypeInstance.getClass ||
