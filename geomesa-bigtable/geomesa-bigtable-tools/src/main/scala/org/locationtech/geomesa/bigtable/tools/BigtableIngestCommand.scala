@@ -17,7 +17,8 @@ import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand.HBaseInges
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
-class BigtableIngestCommand extends IngestCommand[HBaseDataStore] with HBaseDataStoreCommand {
+class BigtableIngestCommand extends IngestCommand[HBaseDataStore]
+    with HBaseDataStoreCommand with BigtableDataStoreCommand {
 
   override val params = new HBaseIngestParams()
 
