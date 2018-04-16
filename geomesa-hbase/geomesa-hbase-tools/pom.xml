@@ -12,6 +12,7 @@
     <name>GeoMesa HBase Tools</name>
 
     <properties>
+        <geopyspark.version>0.3.0.gm.5</geopyspark.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

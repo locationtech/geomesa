@@ -45,7 +45,7 @@ sudo python36 -m pip install --upgrade pip
 sudo python36 -m pip install jupyter pandas
 
 log "Installing GeoPySpark"
-gpsversion="0.3.0.gm.4"
+gpsversion="%%geopyspark.version%%"
 pushd /opt/
 wget https://github.com/aheyne/geopyspark/archive/v${gpsversion}.tar.gz
 tar xf v${gpsversion}.tar.gz
