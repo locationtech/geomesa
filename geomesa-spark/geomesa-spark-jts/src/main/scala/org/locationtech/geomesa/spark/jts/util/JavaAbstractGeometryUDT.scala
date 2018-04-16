@@ -11,11 +11,12 @@ package org.locationtech.geomesa.spark.jts.util
 import com.vividsolutions.jts.geom.Geometry
 
 class JavaAbstractGeometryUDT {
-  def deserialize(datum: Array[Byte]): Geometry = {
+  def deserializer(datum: Array[Byte]): Geometry = {
     WKBUtils.read(datum)
   }
 }
 
 object JavaAbstractGeometryUDT {
   val jagu = new JavaAbstractGeometryUDT()
+  def deserialize(datum: Array[Byte]): Geometry = jagu.deserializer(datum)
 }

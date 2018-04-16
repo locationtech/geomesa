@@ -25,7 +25,7 @@ sudo python36 -m pip install --upgrade pip
 # We need to install jupyter get ipython in zeppelin through the %python.ipython magic
 sudo python36 -m pip install pandas jupyter grpcio
 
-gpsversion="0.3.0.gm.2"
+gpsversion="0.3.0.gm.4"
 pushd /opt/
 wget https://github.com/aheyne/geopyspark/archive/v${gpsversion}.tar.gz
 tar xf v${gpsversion}.tar.gz

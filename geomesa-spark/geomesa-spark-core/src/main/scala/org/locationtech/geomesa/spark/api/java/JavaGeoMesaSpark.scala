@@ -12,12 +12,12 @@ import java.util
 import java.util.AbstractMap.SimpleEntry
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.api.java._
 import org.apache.spark.api.java.JavaRDD._
+import org.apache.spark.api.java._
+import org.apache.spark.rdd.RDD
 import org.geotools.data.Query
 import org.locationtech.geomesa.spark.{GeoMesaSpark, Schema, SpatialRDD, SpatialRDDProvider}
 import org.opengis.feature.simple.SimpleFeature
-import org.apache.spark.rdd.RDD
 
 import scala.collection.JavaConversions._
 
@@ -89,9 +89,4 @@ object JavaSpatialRDD {
       .map(i => util.Arrays.asList(i.toSeq: _*))
 
   def toPyKeyValueMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String,AnyRef]] = toKeyValueJavaMap(in)
-}
-
-object JavaGeometryUDT {
-
-
 }
