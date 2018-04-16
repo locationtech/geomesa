@@ -3,15 +3,14 @@
 Using SFT and Converter Definitions with Command-Line Tools
 -----------------------------------------------------------
 
-Several GeoMesa binary distributions ship with prepackaged feature type and
+The GeoMesa binary distributions ship with prepackaged feature type and
 converter definitions for common data types including Twitter, GeoNames, T-drive, and
-many more. These converters can be used with the GeoMesa command-line tools in these
-distributions out of the box. See :ref:`prepackaged_converters`.
+several more. These converters can be used with the GeoMesa command-line tools out of the box.
+See :ref:`prepackaged_converters`.
 
-Users can add additional SFT and converter types by providing a ``reference.conf`` file
+Users can add additional SimpleFeatureType and converter types by providing a ``reference.conf`` file
 embedded with a JAR within the ``lib`` directory, or by adding the types to the
-``application.conf`` file in the ``$GEOMESA_ACCUMULO_HOME/conf`` or ``$GEOMESA_KAKFA_HOME/conf``
-directory.
+``application.conf`` file in the ``conf`` directory of the tools distribution.
 
 .. note::
 

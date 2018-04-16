@@ -1,7 +1,7 @@
 .. _avro_converter:
 
-Parsing Avro
-------------
+Avro Converter
+--------------
 
 The `Avro <http://avro.apache.org/>`_ parsing library is similar to the JSON parsing library. For
 this example we'll use the following Avro schema in a file named

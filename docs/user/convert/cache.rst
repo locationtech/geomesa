@@ -2,12 +2,11 @@ Using Caches for Enrichment
 ---------------------------
 
 You can configure a literal cache or an external cache as a lookup table
-to populate attributes based on an id in the data.  This is useful to enriching
-records with static information from an external source.  In the example below,
+to populate attributes based on an id in the data. This is useful for enriching
+records with static information from an external source. In the example below,
 we use the ``cacheLookup`` function to resolve the name of a person based on the
-``number`` in each record.  Each cache can be configured to expire records based
+``number`` in each record. Each cache can be configured to expire records based
 on an ``expiration`` parameter in milliseconds.
-
 
 Config:
 
@@ -91,3 +90,4 @@ Config:
            expiration = 30000 // milliseconds
         }
       }
+    }

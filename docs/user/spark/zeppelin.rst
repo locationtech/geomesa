@@ -1,7 +1,8 @@
 Deploying GeoMesa Spark with Zeppelin
 =====================================
 
-Apache `Zeppelin`_ is a web-based notebook server for interactive data analytics, which includes built-in support for `Spark`_.
+Apache `Zeppelin`_ is a web-based notebook server for interactive data analytics, which includes built-in
+support for `Spark`_.
 
 .. note::
 
@@ -15,7 +16,9 @@ Follow the `Zeppelin installation instructions`_, as well as the instructions fo
 Configuring Zeppelin with GeoMesa
 ---------------------------------
 
-The GeoMesa Accumulo Spark runtime JAR may be found either in the ``dist/spark`` directory of the GeoMesa Accumulo binary distribution, or (after building) in the ``geomesa-accumulo/geomesa-accumulo-spark-runtime/target`` directory of the GeoMesa source distribution.
+The GeoMesa Accumulo Spark runtime JAR may be found either in the ``dist/spark`` directory of the GeoMesa Accumulo
+binary distribution, or (after building) in the ``geomesa-accumulo/geomesa-accumulo-spark-runtime/target`` directory
+of the GeoMesa source distribution.
 
 #. In the Zeppelin web UI, click on the downward-pointing triangle next to the username in the upper-right hand corner and select "Interpreter".
 #. Scroll to the bottom where the "Spark" interpreter configuration appears.
@@ -30,7 +33,9 @@ It is not necessary to restart Zeppelin.
 Data Plotting
 -------------
 
-Zeppelin provides built-in tools for visualizing quantitative data, which can be invoked by prepending "%table\\n" to tab-separated output (see the `Zeppelin table display system`_). For example, the following method may be used to print a ``DataFrame`` via this display system:
+Zeppelin provides built-in tools for visualizing quantitative data, which can be invoked by prepending
+"%table\\n" to tab-separated output (see the `Zeppelin table display system`_). For example, the following method
+may be used to print a ``DataFrame`` via this display system:
 
 .. code-block:: scala
 
@@ -41,7 +46,8 @@ Zeppelin provides built-in tools for visualizing quantitative data, which can be
       dfc.foreach(r => println(r.mkString("\t")))
     }
 
-It is also possible to use third-party libraries such as `Vegas`_, as described in :ref:`jupyter_vegas`. For Zeppelin, the following implicit ``displayer`` method should be used:
+It is also possible to use third-party libraries such as `Vegas`_, as described in :ref:`jupyter_vegas`. For
+Zeppelin, the following implicit ``displayer`` method should be used:
 
 .. code-block:: scala
 

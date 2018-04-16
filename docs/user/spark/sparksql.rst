@@ -160,8 +160,8 @@ It is also possible to write a Spark DataFrame to a GeoMesa table with
 
     dataFrame.write.format("geomesa").options("dsParams").option("geomesa.feature", "featureName").save()
 
-This will automatically convert the data frame's underlying RDD[Row] into an RDD[SimpleFeature] and write to the data store in parallel.
-For this to work, the feature type `featureName` must already exist in the data store.
+This will automatically convert the data frame's underlying RDD[Row] into an RDD[SimpleFeature] and write to the
+data store in parallel. For this to work, the feature type `featureName` must already exist in the data store.
 
 Geospatial User-defined Types and Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

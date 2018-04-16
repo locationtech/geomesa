@@ -4,8 +4,8 @@ Prepackaged Converter Definitions
 =================================
 
 GeoMesa Tools distributions contain several prepackaged converters for common, publicly
-available data sources listed below. These are bundled with the command-line tools
-in the GeoMesa binary distributions in individual directories in ``conf/sfts``,
+available data sources. These converters are bundled with the command-line tools
+in the GeoMesa binary distributions, in individual directories under ``conf/sfts``,
 which are included by the ``conf/reference.conf`` file.
 
 These prepackaged converters can also be obtained in a JAR that can be placed on the classpath
