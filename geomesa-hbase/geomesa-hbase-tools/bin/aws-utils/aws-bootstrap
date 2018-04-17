@@ -286,8 +286,8 @@ while [[ -d "${WORKING_DIR}" ]]; do
   WORKING_DIR=$TMP_DIR/$RUN_ID
 done
 mkdir $WORKING_DIR
-echo "Run ID: ${RUN_ID}"
-echo "Working directory: ${WORKING_DIR}"
+#echo "Run ID: ${RUN_ID}"
+#echo "Working directory: ${WORKING_DIR}"
 
 # Package these tools and upload them to the container
 tarball="${WORKING_DIR}/%%gmtools.assembly.name%%-bin.tar.gz"
