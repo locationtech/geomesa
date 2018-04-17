@@ -13,23 +13,24 @@ User Manual
    architecture
    datastores/index
    cli/index
-   accumulo/index
+   geoserver
+   spark/index
    hbase/index
+   accumulo/index
    bigtable/index
    cassandra/index
    kafka/index
-   lambda/index
    filesystem/index
-   geoserver
-   blobstore
+   kudu/index
+   lambda/index
    convert/index
    geojson
-   metrics
-   native_api
    nifi
    process
-   spark/index
+   blobstore
+   native_api
    stream
+   metrics
    web_data
    upgrade
 

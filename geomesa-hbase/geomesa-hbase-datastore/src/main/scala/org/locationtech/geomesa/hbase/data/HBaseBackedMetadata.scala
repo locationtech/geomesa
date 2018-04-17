@@ -12,20 +12,15 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
-import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, MetadataAdapter, MetadataSerializer}
+import org.locationtech.geomesa.index.metadata.{CachedLazyBinaryMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.JavaConversions._
 
 class HBaseBackedMetadata[T](val connection: Connection, val catalog: TableName, val serializer: MetadataSerializer[T])
-    extends CachedLazyMetadata[T] with HBaseMetadataAdapter
-
-trait HBaseMetadataAdapter extends MetadataAdapter {
+    extends CachedLazyBinaryMetadata[T] {
 
   import HBaseMetadataAdapter._
-
-  protected def connection: Connection
-  protected def catalog: TableName
 
   lazy private val table = connection.getTable(catalog)
 
@@ -49,9 +44,6 @@ trait HBaseMetadataAdapter extends MetadataAdapter {
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit =
     table.put(rows.map { case (r, v) => new Put(r).addColumn(ColumnFamily, ColumnQualifier, v) }.toList)
-
-  override protected def delete(row: Array[Byte]): Unit =
-    table.delete(new Delete(row).addColumn(ColumnFamily, ColumnQualifier))
 
   override protected def delete(rows: Seq[Array[Byte]]): Unit =
     // note: list passed in must be mutable

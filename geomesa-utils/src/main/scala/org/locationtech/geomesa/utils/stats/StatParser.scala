@@ -43,6 +43,18 @@ object StatParser {
     }
   }
 
+  @throws(classOf[ParsingException])
+  def propertyNames(stat: String, report: Boolean = true): Seq[String] = {
+    if (stat == null) {
+      throw new IllegalArgumentException("Stat must not be null")
+    }
+    val runner = if (report) { ReportingParseRunner(Parser.attributes) } else { BasicParseRunner(Parser.attributes) }
+    val parsing = runner.run(stat)
+    parsing.result.getOrElse {
+      throw new ParsingException(s"Invalid stat string: ${ErrorUtils.printParseErrors(parsing)}")
+    }
+  }
+
   /**
     * Obtains the index of the attribute within the SFT
     *
@@ -65,8 +77,24 @@ private class StatParser extends BasicParser {
   // main parsing rule
   def stat: Rule1[Stat] = rule { stats ~ EOI }
 
+  def attributes: Rule1[Seq[String]] = rule { properties ~ EOI  ~~> { p => p.distinct} }
+
   private def stats: Rule1[Stat] = rule {
     oneOrMore(singleStat, ";") ~~> { s => if (s.length == 1) s.head else new SeqStat(s) }
+  }
+
+  private def properties: Rule1[Seq[String]] = rule {
+    oneOrMore(names, ";") ~~> { s => s.flatten }
+  }
+
+  private def singleStat: Rule1[Stat] = rule {
+    count | minMax | groupBy | descriptiveStats | enumeration | topK | histogram |
+        frequency | z3Histogram | z3Frequency | iteratorStack
+  }
+
+  private def names: Rule1[Seq[String]] = rule {
+    countNames | minMaxNames | groupByNames | descriptiveStatsNames | enumerationNames |
+        topKNames | histogramNames | frequencyNames | z3HistogramNames | z3FrequencyNames | iteratorStackNames
   }
 
   private def groupBy: Rule1[Stat] = rule {
@@ -75,13 +103,18 @@ private class StatParser extends BasicParser {
     }
   }
 
-  private def singleStat: Rule1[Stat] = rule {
-    count | minMax | groupBy | descriptiveStats | enumeration | topK | histogram |
-        frequency | z3Histogram | z3Frequency | iteratorStack
+  private def groupByNames: Rule1[Seq[String]] = rule {
+    "GroupBy(" ~ string ~ "," ~ properties ~ ")" ~~> { (attribute, groupedStats) =>
+      groupedStats.+:(attribute)
+    }
   }
 
   private def count: Rule1[Stat] = rule {
     "Count()" ~> { _ => new CountStat() }
+  }
+
+  private def countNames: Rule1[Seq[String]] = rule {
+    "Count()" ~> { _ => Seq.empty }
   }
 
   private def minMax: Rule1[Stat] = rule {
@@ -92,8 +125,16 @@ private class StatParser extends BasicParser {
     }
   }
 
+  private def minMaxNames: Rule1[Seq[String]] = rule {
+    "MinMax(" ~ string ~ ")" ~~> { attribute => Seq(attribute) }
+  }
+
   private def iteratorStack: Rule1[Stat] = rule {
     "IteratorStackCount()" ~> { _ => new IteratorStackCount() }
+  }
+
+  private def iteratorStackNames: Rule1[Seq[String]] = rule {
+    "IteratorStackCount()" ~> { _ => Seq.empty }
   }
 
   private def enumeration: Rule1[Stat] = rule {
@@ -104,6 +145,10 @@ private class StatParser extends BasicParser {
     }
   }
 
+  private def enumerationNames: Rule1[Seq[String]] = rule {
+    "Enumeration(" ~ string ~ ")" ~~> { attribute => Seq(attribute) }
+  }
+
   private def topK: Rule1[Stat] = rule {
     "TopK(" ~ string ~ ")" ~~> { attribute =>
       val index = getIndex(attribute)
@@ -112,11 +157,19 @@ private class StatParser extends BasicParser {
     }
   }
 
+  private def topKNames: Rule1[Seq[String]] = rule {
+    "TopK(" ~ string ~ ")" ~~> { attribute => Seq(attribute) }
+  }
+
   private def descriptiveStats: Rule1[Stat] = rule {
     "DescriptiveStats(" ~ string ~ ")" ~~> { attributes =>
       val indices = attributes.split(",").map(getIndex)
       new DescriptiveStats(indices)
     }
+  }
+
+  private def descriptiveStatsNames: Rule1[Seq[String]] = rule {
+    "DescriptiveStats(" ~ string ~ ")" ~~> { attributes => attributes.split(",").toSeq }
   }
 
   private def histogram: Rule1[Stat] = rule {
@@ -132,6 +185,12 @@ private class StatParser extends BasicParser {
     }
   }
 
+  private def histogramNames: Rule1[Seq[String]] = rule {
+    "Histogram(" ~ string ~ "," ~ int ~ "," ~ string ~ "," ~ string ~ ")" ~~> {
+      (attribute, _, _, _) => Seq(attribute)
+    }
+  }
+
   private def frequency: Rule1[Stat] = rule {
     "Frequency(" ~ string ~ "," ~ optional(string ~ "," ~ timePeriod ~ ",") ~ int ~ ")" ~~> {
       (attribute, dtgAndPeriod, precision) => {
@@ -144,15 +203,33 @@ private class StatParser extends BasicParser {
     }
   }
 
+  private def frequencyNames: Rule1[Seq[String]] = rule {
+    "Frequency(" ~ string ~ "," ~ optional(string ~ "," ~ timePeriod ~ ",") ~ int ~ ")" ~~> {
+      (attribute, dtgAndPeriod, _) => Seq(attribute) ++ dtgAndPeriod.map(_._1).toSeq
+    }
+  }
+
   private def z3Histogram: Rule1[Stat] = rule {
     "Z3Histogram(" ~ string ~ "," ~ string ~ "," ~ timePeriod ~ "," ~ int ~ ")" ~~> {
       (geom, dtg, period, length) => new Z3Histogram(getIndex(geom), getIndex(dtg), period, length)
     }
   }
 
+  private def z3HistogramNames: Rule1[Seq[String]] = rule {
+    "Z3Histogram(" ~ string ~ "," ~ string ~ "," ~ timePeriod ~ "," ~ int ~ ")" ~~> {
+      (geom, dtg, _, _) => Seq(geom, dtg)
+    }
+  }
+
   private def z3Frequency: Rule1[Stat] = rule {
     "Z3Frequency(" ~ string ~ "," ~ string ~ "," ~ timePeriod ~ "," ~ int ~ ")" ~~> {
       (geom, dtg, period, precision) => new Z3Frequency(getIndex(geom), getIndex(dtg), period, precision)
+    }
+  }
+
+  private def z3FrequencyNames: Rule1[Seq[String]] = rule {
+    "Z3Frequency(" ~ string ~ "," ~ string ~ "," ~ timePeriod ~ "," ~ int ~ ")" ~~> {
+      (geom, dtg, _, _) => Seq(geom, dtg)
     }
   }
 

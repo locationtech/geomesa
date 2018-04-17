@@ -16,14 +16,13 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.MockTicker
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
-class KafkaFeatureCacheTest extends Specification with Mockito {
+class KafkaFeatureCacheTest extends Specification {
 
   sequential
 

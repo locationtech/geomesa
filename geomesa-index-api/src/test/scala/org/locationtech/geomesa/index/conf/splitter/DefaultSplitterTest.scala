@@ -25,6 +25,28 @@ class DefaultSplitterTest extends Specification {
       "myString:String:index=true,myInt:Int:index=true,dtg:Date,*geom:Point:srid=4326")
     val splitter = new DefaultSplitter
 
+    "produce correct id splits" in {
+      val opts = "id.pattern:[A-Z]"
+      val splits = splitter.getSplits(sft, "id", opts)
+      splits must haveLength(26)
+      splits.map(new String(_, StandardCharsets.UTF_8)).mkString mustEqual "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    }
+
+    "produce correct tiered id splits" in {
+      val opts = "id.pattern:[A-B][A-C]"
+      val splits = splitter.getSplits(sft, "id", opts)
+      splits must haveLength(6)
+      splits.map(new String(_, StandardCharsets.UTF_8)).mkString(",") mustEqual "AA,AB,AC,BA,BB,BC"
+    }
+
+    "produce correct aggregated id splits" in {
+      val opts = "id.pattern:[0-9],id.pattern2:[8-8][0-9]"
+      val splits = splitter.getSplits(sft, "id", opts)
+      splits.length must be equalTo 20
+      splits.map(new String(_, StandardCharsets.UTF_8)).toSeq mustEqual
+          (0 to 9).map(_.toString) ++ (0 to 9).map(i => s"8$i")
+    }
+
     "produce correct z3 splits" in {
       val opts = s"z3.min:2017-01-01,z3.max:2017-01-10,z3.bits:4"
       val splits = splitter.getSplits(sft, "z3", opts)

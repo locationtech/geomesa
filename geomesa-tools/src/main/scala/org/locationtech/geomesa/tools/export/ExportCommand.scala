@@ -107,16 +107,18 @@ object ExportCommand extends LazyLogging {
       }
     }
 
-    if (fmt == DataFormats.Arrow) {
-      query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
-    } else if (fmt == DataFormats.Bin) {
-      // this indicates to run a BIN query, will be overridden by hints if specified
-      query.getHints.put(QueryHints.BIN_TRACK, "id")
-    }
-
     Option(params.hints).foreach { hints =>
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
       ViewParams.setHints(query)
+    }
+
+    if (fmt == DataFormats.Arrow) {
+      query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+    } else if (fmt == DataFormats.Bin) {
+      // if not specified in hints, set it here to trigger the bin query
+      if (!query.getHints.containsKey(QueryHints.BIN_TRACK)) {
+        query.getHints.put(QueryHints.BIN_TRACK, "id")
+      }
     }
 
     val attributes = {

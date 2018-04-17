@@ -23,7 +23,7 @@ import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
@@ -530,6 +530,9 @@ object FilterHelper {
 
   def propertyNames(filter: Filter, sft: SimpleFeatureType): Seq[String] =
     DataUtilities.attributeNames(filter, sft).toSeq.distinct.sorted
+
+  def propertyNames(expression: Expression, sft: SimpleFeatureType): Seq[String] =
+    DataUtilities.attributeNames(expression, sft).toSeq.distinct.sorted
 
   def hasIdFilter(filter: Filter): Boolean =
     filter.accept(new IdDetectingFilterVisitor, false).asInstanceOf[Boolean]

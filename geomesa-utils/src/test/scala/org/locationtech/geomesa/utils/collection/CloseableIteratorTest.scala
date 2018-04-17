@@ -11,12 +11,11 @@ package org.locationtech.geomesa.utils.collection
 import java.io.Closeable
 
 import org.junit.runner.RunWith
-import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CloseableIteratorTest extends Specification with Mockito {
+class CloseableIteratorTest extends Specification {
 
   "CloseableIterator" should {
     "close" >> {

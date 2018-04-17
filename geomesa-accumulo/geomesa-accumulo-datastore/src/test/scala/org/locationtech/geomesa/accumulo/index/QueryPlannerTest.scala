@@ -20,14 +20,13 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.opengis.filter.sort.SortBy
-import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class QueryPlannerTest extends Specification with Mockito with TestWithDataStore {
+class QueryPlannerTest extends Specification with TestWithDataStore {
 
   override val spec = "*geom:Point,dtg:Date,s:String"
   val sf = new ScalaSimpleFeature(sft, "id")

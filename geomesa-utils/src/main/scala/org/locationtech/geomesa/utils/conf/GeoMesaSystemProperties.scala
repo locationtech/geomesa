@@ -20,6 +20,8 @@ object GeoMesaSystemProperties extends LazyLogging {
 
     val threadLocalValue = new ThreadLocal[String]()
 
+    def set(value: String): Unit = System.setProperty(property, value)
+
     def get: String = ConfigLoader.Config.get(property) match {
       case Some((value, true))  => value // final value - can't be overridden
       case Some((value, false)) => fromSysProps.getOrElse(value)
@@ -42,6 +44,15 @@ object GeoMesaSystemProperties extends LazyLogging {
       if (bytes.nonEmpty) { bytes } else {
         logger.warn(s"Invalid duration for property $property: $value")
         Option(default).flatMap(Suffixes.Memory.bytes)
+      }
+    }
+
+    def toInt: Option[Int] = option.flatMap { value =>
+      Try(value.toInt) match {
+        case Success(v) => Some(v)
+        case Failure(_) =>
+          logger.warn(s"Invalid integer for property $property: $value")
+          Option(default).map(_.toInt)
       }
     }
 

@@ -12,6 +12,7 @@ Getting Started
     geomesa-quickstart-cassandra
     geomesa-quickstart-kafka
     geomesa-quickstart-fsds
+    geomesa-quickstart-kudu
     geomesa-quickstart-lambda
     geomesa-quickstart-nifi
     geodocker-geomesa/index

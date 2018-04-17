@@ -26,13 +26,14 @@ General information on the GeoMesa command-line tools are described in the next 
 
 Specific back-end implementations are described in the following chapters:
 
- * :doc:`/user/accumulo/index`
  * :doc:`/user/hbase/index`
+ * :doc:`/user/accumulo/index`
  * :doc:`/user/bigtable/index`
  * :doc:`/user/cassandra/index`
  * :doc:`/user/kafka/index`
- * :doc:`/user/lambda/index`
  * :doc:`/user/filesystem/index`
+ * :doc:`/user/kudu/index`
+ * :doc:`/user/lambda/index`
 
 Additional information on using GeoTools can be found in the
 `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`__.
