@@ -37,6 +37,7 @@
         <module>geomesa-jobs</module>
         <module>geomesa-jupyter</module>
         <module>geomesa-kafka</module>
+        <module>geomesa-kudu</module>
         <module>geomesa-lambda</module>
         <module>geomesa-memory</module>
         <module>geomesa-metrics</module>

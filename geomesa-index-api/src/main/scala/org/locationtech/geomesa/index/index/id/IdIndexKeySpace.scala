@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-object IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]]()(ByteRange.ByteOrdering)
+object IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]]()(ByteArrays.ByteOrdering)
     with IdIndexKeySpace
 
 trait IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {

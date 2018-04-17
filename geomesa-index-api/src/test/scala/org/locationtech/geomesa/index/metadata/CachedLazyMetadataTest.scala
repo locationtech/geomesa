@@ -13,8 +13,8 @@ import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.index.index.IndexKeySpace.ByteRange
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -40,7 +40,7 @@ class CachedLazyMetadataTest extends Specification {
 
     lazy val tableExists = new AtomicBoolean(false)
     lazy val data =
-      Collections.synchronizedMap(new java.util.TreeMap[Array[Byte], Array[Byte]](ByteRange.ByteOrdering))
+      Collections.synchronizedMap(new java.util.TreeMap[Array[Byte], Array[Byte]](ByteArrays.ByteOrdering))
 
     override protected def serializer: MetadataSerializer[String] = MetadataStringSerializer
 
