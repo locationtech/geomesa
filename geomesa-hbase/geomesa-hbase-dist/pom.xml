@@ -24,6 +24,7 @@
         <!-- used in tools filtering -->
         <gmtools.dist.name>GEOMESA_HBASE</gmtools.dist.name>
         <gmtools.assembly.name>geomesa-hbase_${scala.binary.version}-${project.version}</gmtools.assembly.name>
+        <geopyspark.version>0.3.0.gm.5</geopyspark.version>
     </properties>
 
     <dependencies>

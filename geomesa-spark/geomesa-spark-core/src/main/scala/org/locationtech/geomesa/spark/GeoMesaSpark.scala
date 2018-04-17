@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.spark
 
-import java.io.{BufferedWriter, OutputStream, StringWriter}
+import java.io.{BufferedWriter, StringWriter}
 import java.util.ServiceLoader
 
-import com.vividsolutions.jts.geom.Geometry
-import net.razorvine.pickle.{IObjectPickler, Pickler}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.{Partition, SparkContext, TaskContext}
@@ -59,6 +57,7 @@ trait Schema {
 
 class SpatialRDD(rdd: RDD[SimpleFeature], sft: SimpleFeatureType) extends RDD[SimpleFeature](rdd) with Schema {
 
+  GeoMesaSparkKryoRegistratorEndpoint.init()
   GeoMesaSparkKryoRegistrator.register(sft)
 
   private val sft_name = sft.getTypeName
@@ -71,14 +70,6 @@ class SpatialRDD(rdd: RDD[SimpleFeature], sft: SimpleFeatureType) extends RDD[Si
 }
 
 object SpatialRDD {
-
-  {
-    GeoMesaSparkKryoRegistratorEndpoint.init()
-    Pickler.registerCustomPickler(classOf[Geometry],
-      new IObjectPickler {
-        def pickle(o: Object, os: OutputStream, p: Pickler): Unit = p.dump(o.asInstanceOf[Geometry].toText, os)
-      })
-  }
 
   def apply(rdd: RDD[SimpleFeature], schema: SimpleFeatureType) = new SpatialRDD(rdd, schema)
 
