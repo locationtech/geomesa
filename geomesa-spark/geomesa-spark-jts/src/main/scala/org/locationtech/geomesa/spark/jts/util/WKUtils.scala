@@ -10,6 +10,7 @@ package org.locationtech.geomesa.spark.jts.util
 
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io._
+import org.locationtech.geomesa.jts.GeoMesaWKBReader
 
 trait WKTUtils {
   private[this] val readerPool = new ThreadLocal[WKTReader]{
@@ -24,8 +25,8 @@ trait WKTUtils {
 }
 
 trait WKBUtils {
-  private[this] val readerPool = new ThreadLocal[WKBReader]{
-    override def initialValue = new WKBReader
+  private[this] val readerPool = new ThreadLocal[GeoMesaWKBReader]{
+    override def initialValue = new GeoMesaWKBReader
   }
   private[this] val writerPool = new ThreadLocal[WKBWriter]{
     override def initialValue = new WKBWriter
