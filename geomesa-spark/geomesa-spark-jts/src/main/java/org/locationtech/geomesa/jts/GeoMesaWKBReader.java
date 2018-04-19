@@ -47,7 +47,9 @@ import java.io.IOException;
  */
 
         import java.io.IOException;
-        import com.vividsolutions.jts.geom.*;
+import java.nio.ByteBuffer;
+
+import com.vividsolutions.jts.geom.*;
 
 /**
  * Reads a {@link Geometry}from a byte stream in Well-Known Binary format.
@@ -118,8 +120,10 @@ public class GeoMesaWKBReader {
      * At some point this could be made client-controllable.
      */
     private boolean isStrict = false;
-    private ByteOrderDataInStream dis = new ByteOrderDataInStream();
+    //private ByteOrderDataInStream dis = new ByteOrderDataInStream();
     private double[] ordValues;
+
+    private ByteBuffer bb;
 
     public GeoMesaWKBReader() {
         this(new GeometryFactory());
@@ -140,30 +144,14 @@ public class GeoMesaWKBReader {
      */
     public Geometry read(byte[] bytes) throws ParseException
     {
-        // possibly reuse the ByteArrayInStream?
-        // don't throw IOExceptions, since we are not doing any I/O
+        bb = ByteBuffer.wrap(bytes);
+        
         try {
-            return read(new ByteArrayInStream(bytes));
+            return readGeometry();
         }
         catch (IOException ex) {
             throw new RuntimeException("Unexpected IOException caught: " + ex.getMessage());
         }
-    }
-
-    /**
-     * Reads a {@link Geometry} in binary WKB format from an {@link InStream}.
-     *
-     * @param is the stream to read from
-     * @return the Geometry read
-     * @throws IOException if the underlying stream creates an error
-     * @throws ParseException if the WKB is ill-formed
-     */
-    public Geometry read(InStream is)
-            throws IOException, ParseException
-    {
-        dis.setInStream(is);
-        Geometry g = readGeometry();
-        return g;
     }
 
     private Geometry readGeometry()
@@ -171,28 +159,28 @@ public class GeoMesaWKBReader {
     {
 
         // determine byte order
-        byte byteOrderWKB = dis.readByte();
+        byte byteOrderWKB = bb.get();
 
         // always set byte order, since it may change from geometry to geometry
-        if(byteOrderWKB == WKBConstants.wkbNDR)
-        {
-            dis.setOrder(ByteOrderValues.LITTLE_ENDIAN);
-        }
-        else if(byteOrderWKB == WKBConstants.wkbXDR)
-        {
-            dis.setOrder(ByteOrderValues.BIG_ENDIAN);
-        }
-        else if(isStrict)
-        {
-            throw new ParseException("Unknown geometry byte order (not NDR or XDR): " + byteOrderWKB);
-        }
+//        if(byteOrderWKB == WKBConstants.wkbNDR)
+//        {
+//            dis.setOrder(ByteOrderValues.LITTLE_ENDIAN);
+//        }
+//        else if(byteOrderWKB == WKBConstants.wkbXDR)
+//        {
+//            dis.setOrder(ByteOrderValues.BIG_ENDIAN);
+//        }
+//        else if(isStrict)
+//        {
+//            throw new ParseException("Unknown geometry byte order (not NDR or XDR): " + byteOrderWKB);
+//        }
         //if not strict and not XDR or NDR, then we just use the dis default set at the
         //start of the geometry (if a multi-geometry).  This  allows WBKReader to work
         //with Spatialite native BLOB WKB, as well as other WKB variants that might just
         //specify endian-ness at the start of the multigeometry.
 
 
-        int typeInt = dis.readInt();
+        int typeInt = bb.getInt(); // .readInt();
         int geometryType = typeInt & 0xff;
         // determine if Z values are present
         boolean hasZ = (typeInt & 0x80000000) != 0;
@@ -202,7 +190,7 @@ public class GeoMesaWKBReader {
 
         int SRID = 0;
         if (hasSRID) {
-            SRID = dis.readInt();
+            SRID = bb.getInt();
         }
 
         // only allocate ordValues buffer if necessary
@@ -260,21 +248,21 @@ public class GeoMesaWKBReader {
 
     private LineString readLineString() throws IOException
     {
-        int size = dis.readInt();
+        int size = bb.getInt();
         CoordinateSequence pts = readCoordinateSequenceLineString(size);
         return factory.createLineString(pts);
     }
 
     private LinearRing readLinearRing() throws IOException
     {
-        int size = dis.readInt();
+        int size = bb.getInt();
         CoordinateSequence pts = readCoordinateSequenceRing(size);
         return factory.createLinearRing(pts);
     }
 
     private Polygon readPolygon() throws IOException
     {
-        int numRings = dis.readInt();
+        int numRings = bb.getInt();
         LinearRing[] holes = null;
         if (numRings > 1)
             holes = new LinearRing[numRings - 1];
@@ -288,7 +276,7 @@ public class GeoMesaWKBReader {
 
     private MultiPoint readMultiPoint() throws IOException, ParseException
     {
-        int numGeom = dis.readInt();
+        int numGeom = bb.getInt();
         Point[] geoms = new Point[numGeom];
         for (int i = 0; i < numGeom; i++) {
             Geometry g = readGeometry();
@@ -301,7 +289,7 @@ public class GeoMesaWKBReader {
 
     private MultiLineString readMultiLineString() throws IOException, ParseException
     {
-        int numGeom = dis.readInt();
+        int numGeom = bb.getInt();
         LineString[] geoms = new LineString[numGeom];
         for (int i = 0; i < numGeom; i++) {
             Geometry g = readGeometry();
@@ -314,7 +302,7 @@ public class GeoMesaWKBReader {
 
     private MultiPolygon readMultiPolygon() throws IOException, ParseException
     {
-        int numGeom = dis.readInt();
+        int numGeom = bb.getInt();
         Polygon[] geoms = new Polygon[numGeom];
 
         for (int i = 0; i < numGeom; i++) {
@@ -328,7 +316,7 @@ public class GeoMesaWKBReader {
 
     private GeometryCollection readGeometryCollection() throws IOException, ParseException
     {
-        int numGeom = dis.readInt();
+        int numGeom = bb.getInt();
         Geometry[] geoms = new Geometry[numGeom];
         for (int i = 0; i < numGeom; i++) {
             geoms[i] = readGeometry();
@@ -376,10 +364,10 @@ public class GeoMesaWKBReader {
     {
         for (int i = 0; i < inputDimension; i++) {
             if (i <= 1) {
-                ordValues[i] = precisionModel.makePrecise(dis.readDouble());
+                ordValues[i] = precisionModel.makePrecise(bb.getDouble());
             }
             else {
-                ordValues[i] = dis.readDouble();
+                ordValues[i] = bb.getDouble();
             }
 
         }
