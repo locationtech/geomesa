@@ -4,15 +4,23 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Envelope;
 
-public class ByteBufferCoordinateSequence implements CoordinateSequence {
+import java.io.Serializable;
+import java.nio.ByteBuffer;
+
+public class ByteBufferCoordinateSequence implements CoordinateSequence, Serializable {
+    transient private ByteBuffer bb;
+    private int dimension;
+
     @Override
     public int getDimension() {
-        return 0;
+        return dimension;
     }
 
     @Override
     public Coordinate getCoordinate(int i) {
-        return null;
+        double x = bb.getDouble(i*2);
+        double y = bb.getDouble(i*2+8);
+        return new Coordinate(x, y);
     }
 
     @Override
@@ -22,27 +30,27 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence {
 
     @Override
     public void getCoordinate(int index, Coordinate coord) {
-
+        throw new IllegalArgumentException("Nope");
     }
 
     @Override
     public double getX(int index) {
-        return 0;
+        return bb.getDouble(index*2);
     }
 
     @Override
     public double getY(int index) {
-        return 0;
+        return bb.getDouble(index*2+8);
     }
 
     @Override
     public double getOrdinate(int index, int ordinateIndex) {
-        return 0;
+        return bb.getDouble(index*2 + 8 * ordinateIndex);
     }
 
     @Override
     public int size() {
-        return 0;
+        return bb.limit() / (8 * dimension);
     }
 
     @Override
@@ -52,19 +60,22 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence {
 
     @Override
     public Coordinate[] toCoordinateArray() {
-        return new Coordinate[0];
+        throw new IllegalArgumentException("Nope");
+        //return new Coordinate[0];
     }
 
     @Override
     public Envelope expandEnvelope(Envelope env) {
-        return null;
+        throw new IllegalArgumentException("Nope");
     }
 
     @Override
     public Object clone() {
-        return null;
+        throw new IllegalArgumentException("Nope");
     }
 
-    public ByteBufferCoordinateSequence() {
+    public ByteBufferCoordinateSequence(ByteBuffer bb, int dimension) {
+        this.bb = bb;
+        this.dimension = dimension;
     }
 }

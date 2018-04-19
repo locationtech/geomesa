@@ -115,6 +115,7 @@ public class GeoMesaWKBReader {
     private int inputDimension = 2;
     private boolean hasSRID = false;
     private int SRID = 0;
+    private byte[] inputBytes;
     /**
      * true if structurally invalid input should be reported rather than repaired.
      * At some point this could be made client-controllable.
@@ -144,6 +145,7 @@ public class GeoMesaWKBReader {
      */
     public Geometry read(byte[] bytes) throws ParseException
     {
+        inputBytes = bytes;
         bb = ByteBuffer.wrap(bytes);
         
         try {
@@ -326,17 +328,13 @@ public class GeoMesaWKBReader {
 
     private CoordinateSequence readCoordinateSequence(int size) throws IOException
     {
-        CoordinateSequence seq = csFactory.create(size, inputDimension);
-        int targetDim = seq.getDimension();
-        if (targetDim > inputDimension)
-            targetDim = inputDimension;
-        for (int i = 0; i < size; i++) {
-            readCoordinate();
-            for (int j = 0; j < targetDim; j++) {
-                seq.setOrdinate(i, j, ordValues[j]);
-            }
-        }
-        return seq;
+        // inputDimension; // 2 or 3
+        int current = bb.arrayOffset();
+        int length = inputDimension * size * 8;
+        ByteBuffer bb2 = ByteBuffer.wrap(inputBytes, current, length);
+        bb.position(current + length + 1);
+
+        return new ByteBufferCoordinateSequence(bb2, inputDimension);
     }
 
     private CoordinateSequence readCoordinateSequenceLineString(int size) throws IOException
