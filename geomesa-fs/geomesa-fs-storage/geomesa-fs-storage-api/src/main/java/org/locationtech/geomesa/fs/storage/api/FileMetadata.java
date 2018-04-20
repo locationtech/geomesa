@@ -87,7 +87,7 @@ public interface FileMetadata {
     /**
      * The file names of all data files, keyed by partition name
      *
-     * @return map of partition -> file names
+     * @return map of partition -&gt; file names
      */
     Map<String, List<String>> getPartitionFiles();
 
@@ -110,7 +110,7 @@ public interface FileMetadata {
     /**
      * Add metadata entries for multiple files in multiple partitions
      *
-     * @param partitionsToFiles map of partition -> file names
+     * @param partitionsToFiles map of partition -&gt; file names
      */
     void addFiles(Map<String, List<String>> partitionsToFiles);
 
@@ -133,7 +133,7 @@ public interface FileMetadata {
     /**
      * Removes metadata entries for multiple files in multiple partitions
      *
-     * @param partitionsToFiles map of partition -> file names
+     * @param partitionsToFiles map of partition -&gt; file names
      */
     void removeFiles(Map<String, List<String>> partitionsToFiles);
 
@@ -149,7 +149,7 @@ public interface FileMetadata {
     /**
      * Removes any current metadata entries and replaces them with the given partitions and files
      *
-     * @param partitionsToFiles map of partition -> file names
+     * @param partitionsToFiles map of partition -&gt; file names
      */
     void setFiles(Map<String, List<String>> partitionsToFiles);
 }
