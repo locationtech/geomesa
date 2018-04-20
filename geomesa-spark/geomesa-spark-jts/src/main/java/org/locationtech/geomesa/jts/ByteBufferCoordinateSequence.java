@@ -10,6 +10,9 @@ import java.nio.ByteBuffer;
 public class ByteBufferCoordinateSequence implements CoordinateSequence, Serializable {
     transient private ByteBuffer bb;
     private int dimension;
+    private int stride;
+    private int doubleSize = 8;
+
 
     @Override
     public int getDimension() {
@@ -18,8 +21,8 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
 
     @Override
     public Coordinate getCoordinate(int i) {
-        double x = bb.getDouble(i*2);
-        double y = bb.getDouble(i*2+8);
+        double x = bb.getDouble(bb.position() + i*stride);
+        double y = bb.getDouble(bb.position() + i*stride+doubleSize);
         return new Coordinate(x, y);
     }
 
@@ -35,22 +38,22 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
 
     @Override
     public double getX(int index) {
-        return bb.getDouble(index*2);
+        return bb.getDouble(bb.position() + index*stride);
     }
 
     @Override
     public double getY(int index) {
-        return bb.getDouble(index*2+8);
+        return bb.getDouble(bb.position() + index*stride+doubleSize);
     }
 
     @Override
     public double getOrdinate(int index, int ordinateIndex) {
-        return bb.getDouble(index*2 + 8 * ordinateIndex);
+        return bb.getDouble(bb.position() + index*stride + doubleSize * ordinateIndex);
     }
 
     @Override
     public int size() {
-        return bb.limit() / (8 * dimension);
+        return bb.limit() / (doubleSize * dimension);
     }
 
     @Override
@@ -77,5 +80,6 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
     public ByteBufferCoordinateSequence(ByteBuffer bb, int dimension) {
         this.bb = bb;
         this.dimension = dimension;
+        this.stride = dimension*doubleSize;
     }
 }

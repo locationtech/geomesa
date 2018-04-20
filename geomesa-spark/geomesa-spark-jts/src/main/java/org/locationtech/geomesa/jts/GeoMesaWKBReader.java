@@ -48,6 +48,7 @@ import java.io.IOException;
 
         import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import com.vividsolutions.jts.geom.*;
 
@@ -121,7 +122,7 @@ public class GeoMesaWKBReader {
      * At some point this could be made client-controllable.
      */
     private boolean isStrict = false;
-    //private ByteOrderDataInStream dis = new ByteOrderDataInStream();
+    private ByteOrderDataInStream dis = new ByteOrderDataInStream();
     private double[] ordValues;
 
     private ByteBuffer bb;
@@ -163,19 +164,26 @@ public class GeoMesaWKBReader {
         // determine byte order
         byte byteOrderWKB = bb.get();
 
+
         // always set byte order, since it may change from geometry to geometry
-//        if(byteOrderWKB == WKBConstants.wkbNDR)
-//        {
+        if(byteOrderWKB == WKBConstants.wkbNDR)
+        {
+            throw new IllegalArgumentException("Endian change!");
+            //bb.order(ByteOrder.LITTLE_ENDIAN);
+            //System.out.println("Little endian " +  bb.order());
+
 //            dis.setOrder(ByteOrderValues.LITTLE_ENDIAN);
-//        }
-//        else if(byteOrderWKB == WKBConstants.wkbXDR)
-//        {
+        }
+        else if(byteOrderWKB == WKBConstants.wkbXDR)
+        {
+            bb.order(ByteOrder.BIG_ENDIAN);
+            System.out.println("Big endian " +  bb.order());
 //            dis.setOrder(ByteOrderValues.BIG_ENDIAN);
-//        }
-//        else if(isStrict)
-//        {
-//            throw new ParseException("Unknown geometry byte order (not NDR or XDR): " + byteOrderWKB);
-//        }
+        }
+        else if(isStrict)
+        {
+            throw new ParseException("Unknown geometry byte order (not NDR or XDR): " + byteOrderWKB);
+        }
         //if not strict and not XDR or NDR, then we just use the dis default set at the
         //start of the geometry (if a multi-geometry).  This  allows WBKReader to work
         //with Spatialite native BLOB WKB, as well as other WKB variants that might just
@@ -329,10 +337,12 @@ public class GeoMesaWKBReader {
     private CoordinateSequence readCoordinateSequence(int size) throws IOException
     {
         // inputDimension; // 2 or 3
-        int current = bb.arrayOffset();
+        int current = bb.position();
         int length = inputDimension * size * 8;
-        ByteBuffer bb2 = ByteBuffer.wrap(inputBytes, current, length);
-        bb.position(current + length + 1);
+
+        // JNH: Futzing
+        ByteBuffer bb2 = ByteBuffer.wrap(inputBytes, current, length); //.order(bb.order());
+        bb.position(current + length);
 
         return new ByteBufferCoordinateSequence(bb2, inputDimension);
     }
