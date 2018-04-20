@@ -35,18 +35,18 @@ geospatial analytics.
 
 ## Downloads
 
-**Current release: 2.0.0-m.1**
+**Current release: 2.0.0**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-hbase_2.11-2.0.0-m.1-bin.tar.gz) |
-  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-accumulo_2.11-2.0.0-m.1-bin.tar.gz) |
-  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-cassandra_2.11-2.0.0-m.1-bin.tar.gz) |
-  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-kafka_2.11-2.0.0-m.1-bin.tar.gz) |
-  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0-m.1/geomesa-fs_2.11-2.0.0-m.1-bin.tar.gz) |
-  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-2.0.0-m.1.tar.gz) |
-  [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-2.0.0-m.1)
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0/geomesa-hbase_2.11-2.0.0-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0/geomesa-accumulo_2.11-2.0.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0/geomesa-cassandra_2.11-2.0.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0/geomesa-kafka_2.11-2.0.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.0.0/geomesa-fs_2.11-2.0.0-bin.tar.gz) |
+  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-2.0.0.tar.gz) |
+  [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-2.0.0)
 
-**Development version: 2.0.0-SNAPSHOT** &nbsp;
+**Development version: 2.1.0-SNAPSHOT** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 
 ### Upgrading
@@ -87,7 +87,7 @@ and then include the desired `geomesa-*` dependencies:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-utils_2.11</artifactId>
-  <version>2.0.0-m.1</version>
+  <version>2.0.0</version>
 </dependency>
   ...
 ```
@@ -134,7 +134,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
-  "org.locationtech.geomesa" %% "geomesa-utils" % "2.0.0-m.1",
+  "org.locationtech.geomesa" %% "geomesa-utils" % "2.0.0",
   ...
 )
 ```
