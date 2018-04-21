@@ -64,7 +64,7 @@ object KafkaFeatureCache {
                 0L
               } else {
                 val dtg = Instant.ofEpochMilli(eventTime.getTime)
-                val now = Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(curTimeNanos))
+                val now = Instant.now()
                 if (dtg.isBefore(now)) {
                   val duration = java.time.Duration.between(dtg, now) // amount of time elapsed
                   val newExpiry = expiry.toMillis - duration.toMillis
