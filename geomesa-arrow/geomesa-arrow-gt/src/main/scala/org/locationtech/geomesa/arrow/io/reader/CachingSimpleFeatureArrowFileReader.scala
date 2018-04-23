@@ -12,10 +12,9 @@ import java.io.{Closeable, InputStream}
 import java.nio.channels.{Channels, ReadableByteChannel}
 
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.complex.NullableMapVector
-import org.apache.arrow.vector.file.ReadChannel
-import org.apache.arrow.vector.schema.ArrowRecordBatch
-import org.apache.arrow.vector.stream.{ArrowStreamReader, MessageSerializer}
+import org.apache.arrow.vector.complex.StructVector
+import org.apache.arrow.vector.ipc.message.{ArrowRecordBatch, MessageSerializer}
+import org.apache.arrow.vector.ipc.{ArrowStreamReader, ReadChannel}
 import org.apache.arrow.vector.{VectorLoader, VectorSchemaRoot}
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader.{SkipIndicator, VectorToIterator}
@@ -86,8 +85,8 @@ private class CachingSingleFileReader(is: ReadableByteChannel)(implicit allocato
   val vectors: Stream[SimpleFeatureVector] = {
     val hasMore = reader.loadNextBatch() // load dictionaries and the first batch
     val root = reader.getVectorSchemaRoot
-    require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
-    val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
+    require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
+    val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
     val (sft, encoding) = SimpleFeatureVector.getFeatureType(underlying)
 
     // load any dictionaries into memory
@@ -164,7 +163,7 @@ private object CachingSingleFileReader {
         val vectors = fields.map(_.createVector(allocator))
         val root = new VectorSchemaRoot(fields, vectors, 0)
         new VectorLoader(root).load(b)
-        Some(SimpleFeatureVector.clone(original, vectors.head.asInstanceOf[NullableMapVector]))
+        Some(SimpleFeatureVector.clone(original, vectors.head.asInstanceOf[StructVector]))
 
       case b => throw new IllegalArgumentException(s"Expected record batch but got $b")
     }

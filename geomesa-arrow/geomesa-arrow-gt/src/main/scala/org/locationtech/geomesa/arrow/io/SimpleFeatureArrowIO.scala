@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
-import org.apache.arrow.vector.complex.NullableMapVector
+import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.types.pojo.Schema
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -124,11 +124,11 @@ object SimpleFeatureArrowIO extends LazyLogging {
 
       val result = SimpleFeatureVector.create(sft, dictionaries, encoding)
 
-      val inputs = batches.map { bytes =>
+      val inputs: Array[(SimpleFeatureVector, (Int, Int) => Unit)] = batches.map { bytes =>
         // note: for some reason we have to allow the batch loader to create the vectors or this doesn't work
         val field = result.underlying.getField
         val loader = RecordBatchLoader(field)
-        val vector = SimpleFeatureVector.wrap(loader.vector.asInstanceOf[NullableMapVector], dictionaries)
+        val vector = SimpleFeatureVector.wrap(loader.vector.asInstanceOf[StructVector], dictionaries)
         loader.load(bytes)
         val transfers: Seq[(Int, Int) => Unit] = {
           val fromVectors = vector.underlying.getChildrenFromFields
@@ -188,7 +188,7 @@ object SimpleFeatureArrowIO extends LazyLogging {
             val (_, i, batch) = queue.dequeue()
             val (vector, transfer) = inputs(batch)
             transfer.apply(i, resultIndex)
-            result.underlying.getMutator.setIndexDefined(resultIndex)
+            result.underlying.setIndexDefined(resultIndex)
             resultIndex += 1
             val nextBatchIndex = i + 1
             if (vector.reader.getValueCount > nextBatchIndex) {
@@ -310,7 +310,7 @@ object SimpleFeatureArrowIO extends LazyLogging {
     */
   def createRoot(vector: FieldVector, metadata: java.util.Map[String, String] = null): VectorSchemaRoot = {
     val schema = new Schema(Collections.singletonList(vector.getField), metadata)
-    new VectorSchemaRoot(schema, Collections.singletonList(vector), vector.getAccessor.getValueCount)
+    new VectorSchemaRoot(schema, Collections.singletonList(vector), vector.getValueCount)
   }
 
   /**

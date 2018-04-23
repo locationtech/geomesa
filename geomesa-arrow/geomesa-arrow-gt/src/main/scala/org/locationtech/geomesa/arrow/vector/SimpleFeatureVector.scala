@@ -13,10 +13,10 @@ import java.util.{Collections, Date}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.complex.{ListVector, MapVector, NullableMapVector}
+import org.apache.arrow.vector.complex.{ListVector, StructVector}
 import org.apache.arrow.vector.types.FloatingPointPrecision
 import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
-import org.apache.arrow.vector.{FieldVector, NullableBigIntVector}
+import org.apache.arrow.vector.{BigIntVector, FieldVector}
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
@@ -38,7 +38,7 @@ import scala.reflect.ClassTag
   * @param allocator buffer allocator
   */
 class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
-                                           val underlying: NullableMapVector,
+                                           val underlying: StructVector,
                                            val dictionaries: Map[String, ArrowDictionary],
                                            val encoding: SimpleFeatureEncoding)
                                           (implicit allocator: BufferAllocator) extends Closeable {
@@ -50,7 +50,7 @@ class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
   /**
     * Clear any simple features currently stored in the vector
     */
-  def clear(): Unit = underlying.getMutator.setValueCount(0)
+  def clear(): Unit = underlying.setValueCount(0)
 
   override def close(): Unit = {
     underlying.close()
@@ -94,7 +94,7 @@ class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
 
     def load(index: Int): Unit = feature.index = index
 
-    def getValueCount: Int = vector.underlying.getAccessor.getValueCount
+    def getValueCount: Int = vector.underlying.getValueCount
   }
 }
 
@@ -141,7 +141,7 @@ object SimpleFeatureVector {
             (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     val metadata = Collections.singletonMap(OptionsKey, SimpleFeatureTypes.encodeUserData(sft))
     val fieldType = new FieldType(true, ArrowType.Struct.INSTANCE, null, metadata)
-    val underlying = new NullableMapVector(sft.getTypeName, allocator, fieldType, null)
+    val underlying = new StructVector(sft.getTypeName, allocator, fieldType, null)
     val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding)
     // set capacity after all child vectors have been created by the writers, then allocate
     underlying.setInitialCapacity(capacity)
@@ -158,7 +158,7 @@ object SimpleFeatureVector {
     * @param allocator buffer allocator
     * @return
     */
-  def wrap(vector: NullableMapVector, dictionaries: Map[String, ArrowDictionary])
+  def wrap(vector: StructVector, dictionaries: Map[String, ArrowDictionary])
           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     val (sft, encoding) = getFeatureType(vector)
     new SimpleFeatureVector(sft, vector, dictionaries, encoding)
@@ -172,7 +172,7 @@ object SimpleFeatureVector {
     * @param allocator buffer allocator
     * @return
     */
-  def clone(vector: SimpleFeatureVector, underlying: NullableMapVector)
+  def clone(vector: SimpleFeatureVector, underlying: StructVector)
            (implicit allocator: BufferAllocator): SimpleFeatureVector = {
     new SimpleFeatureVector(vector.sft, underlying, vector.dictionaries, vector.encoding)
   }
@@ -183,15 +183,15 @@ object SimpleFeatureVector {
     * @param vector vector
     * @return
     */
-  def getFeatureType(vector: NullableMapVector): (SimpleFeatureType, SimpleFeatureEncoding) = {
+  def getFeatureType(vector: StructVector): (SimpleFeatureType, SimpleFeatureEncoding) = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     val attributes = ArrayBuffer.empty[String]
     var fidEncoding: Option[Encoding] = None
 
-    vector.getField.getChildren.foreach { field =>
+    vector.getField.getChildren.asScala.foreach { field =>
       if (field.getName == FeatureIdField) {
         field.getType match {
           case _: ArrowType.Int           => fidEncoding = Some(Encoding.Min) // proxy id encoded fids
@@ -216,7 +216,7 @@ object SimpleFeatureVector {
     val datePrecision = {
       val dateVector: Option[FieldVector] =
         sft.getDtgField.flatMap(d => Option(vector.getChild(d))).orElse(getNestedVector[Date](sft, vector))
-      val isLong = dateVector.exists(_.isInstanceOf[NullableBigIntVector])
+      val isLong = dateVector.exists(_.isInstanceOf[BigIntVector])
       if (isLong) { Encoding.Max } else { Encoding.Min }
     }
     val encoding = SimpleFeatureEncoding(fidEncoding, geomPrecision, datePrecision)
@@ -240,7 +240,7 @@ object SimpleFeatureVector {
     * @return
     */
   private def getNestedVector[T](sft: SimpleFeatureType,
-                                 vector: NullableMapVector)
+                                 vector: StructVector)
                                 (implicit ct: ClassTag[T]): Option[FieldVector] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
@@ -250,9 +250,9 @@ object SimpleFeatureVector {
       case d if d.isList && ct.runtimeClass.isAssignableFrom(d.getListType()) =>
         Option(vector.getChild(d.getLocalName).asInstanceOf[ListVector]).map(_.getDataVector)
       case d if d.isMap && ct.runtimeClass.isAssignableFrom(d.getMapTypes()._1) =>
-        Option(vector.getChild(d.getLocalName).asInstanceOf[MapVector]).map(_.getChildrenFromFields.get(0))
+        Option(vector.getChild(d.getLocalName).asInstanceOf[StructVector]).map(_.getChildrenFromFields.get(0))
       case d if d.isMap && ct.runtimeClass.isAssignableFrom(d.getMapTypes()._2) =>
-        Option(vector.getChild(d.getLocalName).asInstanceOf[MapVector]).map(_.getChildrenFromFields.get(1))
+        Option(vector.getChild(d.getLocalName).asInstanceOf[StructVector]).map(_.getChildrenFromFields.get(1))
       case _ => None
     }.headOption
   }

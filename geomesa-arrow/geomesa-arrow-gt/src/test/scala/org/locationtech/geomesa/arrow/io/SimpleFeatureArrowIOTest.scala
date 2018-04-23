@@ -12,7 +12,7 @@ import java.util.Date
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
-import org.apache.arrow.vector.complex.NullableMapVector
+import org.apache.arrow.vector.complex.StructVector
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -59,7 +59,7 @@ class SimpleFeatureArrowIOTest extends Specification {
 
       val features = WithClose(SimpleFeatureArrowIO.sortBatches(sft, dictionaries, encoding, "dtg", reverse = false, 10, batches.iterator)) { sorted =>
         val loader = RecordBatchLoader(field)
-        WithClose(SimpleFeatureVector.wrap(loader.vector.asInstanceOf[NullableMapVector], dictionaries)) { vector =>
+        WithClose(SimpleFeatureVector.wrap(loader.vector.asInstanceOf[StructVector], dictionaries)) { vector =>
           sorted.flatMap { batch =>
             vector.clear()
             loader.load(batch)

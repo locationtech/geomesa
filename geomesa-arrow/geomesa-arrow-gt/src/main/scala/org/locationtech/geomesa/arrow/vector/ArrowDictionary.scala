@@ -170,9 +170,8 @@ object ArrowDictionary {
 
     // we use an attribute reader to get the right type conversion
     private val reader = ArrowAttributeReader(descriptor, vector, None, precision)
-    private val accessor = vector.getAccessor
 
-    override val length: Int = accessor.getValueCount
+    override val length: Int = vector.getValueCount
 
     override def lookup(i: Int): AnyRef = if (i < length) { reader.apply(i) } else { "[other]" }
 
