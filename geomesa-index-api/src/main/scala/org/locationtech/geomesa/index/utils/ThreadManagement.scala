@@ -14,61 +14,75 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 /**
  * Singleton for registering and managing running queries.
  */
-object ThreadManagement extends LazyLogging {
+object ThreadManagement extends Runnable with LazyLogging {
 
-  private val interval = 5000L // how often we check for expired readers
-  private val ordering = new Ordering[ReaderAndTime]() {
-    // head of queue will be ones the will timeout first
-    override def compare(x: ReaderAndTime, y: ReaderAndTime) = x.killAt.compareTo(y.killAt)
-  }
-  private val openReaders = new PriorityBlockingQueue[ReaderAndTime](11, ordering) // size will grow unbounded
+  // how often we check for expired readers
+  private val interval = SystemProperty("geomesa.query.timeout.check").toDuration.map(_.toMillis).getOrElse(5000L)
 
-  private val reaper = new Runnable() {
-    override def run() = {
-      val time = System.currentTimeMillis()
-      var loop = true
-      var numClosed = 0
-      while (loop) {
-        val holder = openReaders.poll()
-        if (holder == null) {
-          loop = false
-        } else if (holder.killAt < time) {
-          if (!holder.reader.isClosed) {
-            logger.warn(s"Stopping query on schema '${holder.reader.query.getTypeName}' with filter " +
-                s"'${filterToString(holder.reader.query.getFilter)}' based on timeout of ${holder.timeout}ms")
-            holder.reader.close()
-            numClosed += 1
-          }
-        } else {
-          if (!holder.reader.isClosed) {
-            openReaders.offer(holder)
-          }
-          loop = false
-        }
-      }
-      logger.trace(s"Force closed $numClosed queries with ${openReaders.size()} queries still running.")
-    }
-  }
+  // head of queue will be ones the will timeout first
+  private val openReaders = new PriorityBlockingQueue[ReaderAndTime]()
 
   private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))
-  executor.scheduleWithFixedDelay(reaper, interval, interval, TimeUnit.MILLISECONDS)
+  executor.scheduleWithFixedDelay(this, interval, interval, TimeUnit.MILLISECONDS)
   sys.addShutdownHook(executor.shutdownNow())
+
+  override def run(): Unit = {
+    var loop = true
+    var numClosed = 0
+    while (loop) {
+      val holder = openReaders.peek() // peek but don't remove, as that will trigger a re-ordering
+      if (holder == null || holder.killAt > System.currentTimeMillis()) {
+        loop = false
+      } else {
+        // note: holder should be the first obj in the priority queue backing array, so remove will be O(1)
+        openReaders.remove(holder)
+        // last sanity check in case the reader was closed but hasn't been removed from the queue yet
+        if (!holder.reader.isClosed) {
+          logger.warn(s"Stopping query on schema '${holder.reader.query.getTypeName}' with filter " +
+              s"'${filterToString(holder.reader.query.getFilter)}' based on timeout of ${holder.reader.timeout.get}ms")
+          holder.thread.interrupt()
+          holder.reader.close()
+          numClosed += 1
+        }
+      }
+    }
+    logger.trace(s"Force closed $numClosed queries with ${openReaders.size()} queries still running.")
+  }
 
   /**
    * Register a query with the thread manager
    */
-  def register(reader: GeoMesaFeatureReader, start: Long, timeout: Long): Unit =
-    openReaders.offer(ReaderAndTime(reader, start + timeout, timeout))
+  def register(reader: GeoMesaFeatureReader, timeout: Long): Unit =
+    openReaders.offer(new ReaderAndTime(reader, Thread.currentThread(), System.currentTimeMillis() + timeout))
 
   /**
-   * Unregister a query with the thread manager once the query has been closed
-   */
-  def unregister(reader: GeoMesaFeatureReader, start: Long, timeout: Long): Unit =
-    openReaders.remove(ReaderAndTime(reader, start + timeout, timeout))
+    * Unregister a query with the thread manager once the query has been closed
+    */
+  def unregister(reader: GeoMesaFeatureReader): Unit = openReaders.remove(new ReaderAndTime(reader, null, 0L))
 
-  case class ReaderAndTime(reader: GeoMesaFeatureReader, killAt: Long, timeout: Long)
+  /**
+    * Holder for our queue. Implements equals based on the reader instance, to facilitate removing
+    * from the queue when unregistering. Sorts naturally based on expiry time.
+    *
+    * @param reader reader
+    * @param thread thread
+    * @param killAt system time to kill at
+    */
+  private class ReaderAndTime(val reader: GeoMesaFeatureReader, val thread: Thread, val killAt: Long)
+      extends Ordered[ReaderAndTime] {
+
+    override def compare(that: ReaderAndTime): Int = java.lang.Long.compare(killAt, that.killAt)
+
+    override def equals(obj: Any): Boolean = obj match {
+      case r: ReaderAndTime => reader.eq(r.reader)
+      case _ => false
+    }
+
+    override def hashCode(): Int = reader.hashCode()
+  }
 }

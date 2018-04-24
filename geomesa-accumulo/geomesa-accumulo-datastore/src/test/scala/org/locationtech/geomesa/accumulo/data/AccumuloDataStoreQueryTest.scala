@@ -481,7 +481,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
       reader.isClosed must beFalse
-      reader.isClosed must eventually(10, new Duration(1000))(beTrue) // reaper thread runs every 5 seconds
+      Thread.sleep(10000) must throwAn[InterruptedException] // reaper thread runs every 5 seconds
+      reader.isClosed must eventually(10, new Duration(10))(beTrue)
     }
 
     "block full table scans" in {

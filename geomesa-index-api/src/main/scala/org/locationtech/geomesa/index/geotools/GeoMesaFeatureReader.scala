@@ -27,9 +27,8 @@ abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long],
     extends SimpleFeatureReader {
 
   private val closed = new AtomicBoolean(false)
-  private lazy val start = System.currentTimeMillis()
 
-  timeout.foreach(t => ThreadManagement.register(this, start, t))
+  timeout.foreach(ThreadManagement.register(this, _))
 
   def isClosed: Boolean = closed.get()
   def count: Long = -1L
@@ -38,11 +37,11 @@ abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long],
 
   override def getFeatureType: SimpleFeatureType = query.getHints.getReturnSft
 
-  override def close(): Unit = if (!closed.getAndSet(true)) {
-    try {
-      timeout.foreach(t => ThreadManagement.unregister(this, start, t))
-    } finally {
-      closeOnce()
+  override def close(): Unit = {
+    if (closed.compareAndSet(false, true)) {
+      try { timeout.foreach(_ => ThreadManagement.unregister(this)) } finally {
+        closeOnce()
+      }
     }
   }
 }
