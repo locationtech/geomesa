@@ -1,0 +1,39 @@
+[{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [125.6, 10.1]
+  },
+  "properties": {
+    "name": "Dinagat Islands",
+    "id": 123,
+    "decimal": 1.23,
+    "status": false
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [125.6, 10.1]
+  },
+  "properties": {
+    "name": "Galapagos Islands",
+    "decimal": 12,
+    "status": false
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [125.6, 10.1]
+  },
+  "properties": {
+    "name": "Wuhu Islands",
+    "id": 124,
+    "decimal": 1.2,
+    "status": null
+  }
+}
+]

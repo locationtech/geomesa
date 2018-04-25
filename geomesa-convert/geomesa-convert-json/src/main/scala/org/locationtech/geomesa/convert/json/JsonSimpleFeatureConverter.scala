@@ -112,6 +112,7 @@ object JsonField {
             jsonType: String,
             pathIsRoot: Boolean): BaseJsonField[_] = jsonType match {
     case "string"           => StringJsonField(name, expression, jsonConfig, transform, pathIsRoot)
+    case "date"             => StringJsonField(name, expression, jsonConfig, transform, pathIsRoot)
     case "float"            => FloatJsonField(name, expression, jsonConfig, transform, pathIsRoot)
     case "double"           => DoubleJsonField(name, expression, jsonConfig, transform, pathIsRoot)
     case "int" | "integer"  => IntJsonField(name, expression, jsonConfig, transform, pathIsRoot)
