@@ -136,7 +136,9 @@ object GeoMesaCoprocessor extends LazyLogging {
         calls.add(future)
 
         // block on the result
-        val response = future.get()
+        val response =  try { future.get() } catch {
+          case _ :InterruptedException | _ :InterruptedIOException => controller.startCancel(); null
+        }
 
         if (controller.failed()) {
           throw new IOException(controller.errorText())
