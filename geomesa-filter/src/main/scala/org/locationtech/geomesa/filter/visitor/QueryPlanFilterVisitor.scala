@@ -17,7 +17,7 @@ import org.opengis.filter.spatial._
 import org.opengis.filter.{And, Filter, Or}
 
 import scala.collection.JavaConversions._
-import scala.util.{Success, Try}
+import scala.util.Try
 
 /**
   * Updates filters to handle namespaces, default property names, IDL, dwithin units,
@@ -25,7 +25,7 @@ import scala.util.{Success, Try}
   */
 class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVisitor {
 
-  import FilterHelper.{isFilterWholeWorld, visitBinarySpatialOp, visitDwithin}
+  import FilterHelper.{isFilterWholeWorld, visitBinarySpatialOp}
 
   override def visit(f: Or, data: AnyRef): AnyRef = {
     val newChildren = f.getChildren.map(_.accept(this, data).asInstanceOf[Filter])
@@ -53,7 +53,7 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
         Filter.INCLUDE
       } else if (newChildren.length == 1) {
         newChildren.head
-      } else if (newChildren.exists(_ == Filter.EXCLUDE)) {
+      } else if (newChildren.contains(Filter.EXCLUDE)) {
         // EXCLUDE AND foo == EXCLUDE
         Filter.EXCLUDE
       } else {
@@ -68,32 +68,32 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
 
   override def visit(f: DWithin, data: AnyRef): AnyRef =
     if (isFilterWholeWorld(f)) { Filter.INCLUDE } else {
-      visitDwithin(super.visit(f, data).asInstanceOf[DWithin], sft)
+      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[DWithin], sft, getFactory(data))
     }
 
   override def visit(f: BBOX, data: AnyRef): AnyRef =
     if (isFilterWholeWorld(f)) { Filter.INCLUDE } else {
-      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[BBOX], sft)
+      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[BBOX], sft, getFactory(data))
     }
 
   override def visit(f: Within, data: AnyRef): AnyRef =
     if (isFilterWholeWorld(f)) { Filter.INCLUDE } else {
-      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Within], sft)
+      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Within], sft, getFactory(data))
     }
 
   override def visit(f: Intersects, data: AnyRef): AnyRef =
     if (isFilterWholeWorld(f)) { Filter.INCLUDE } else {
-      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Intersects], sft)
+      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Intersects], sft, getFactory(data))
     }
 
   override def visit(f: Overlaps, data: AnyRef): AnyRef =
     if (isFilterWholeWorld(f)) { Filter.INCLUDE } else {
-      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Overlaps], sft)
+      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Overlaps], sft, getFactory(data))
     }
 
   override def visit(f: Contains, data: AnyRef): AnyRef =
     if (isFilterWholeWorld(f)) { Filter.INCLUDE } else {
-      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Contains], sft)
+      visitBinarySpatialOp(super.visit(f, data).asInstanceOf[Contains], sft, getFactory(data))
     }
   
   override def visit(expression: PropertyName, extraData: AnyRef): AnyRef = {

@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -30,5 +31,11 @@ class GeometryUtilsTest extends Specification {
       (GeometryUtils.calcCrossLat(p1, p2, 171).toInt, GeometryUtils.calcCrossLat(p2, p1, 171).toInt) mustEqual (6, 6)
     }
 
+    "calculate min/max degrees" >> {
+      foreach(Seq("0 0", "0.0005 0.0005", "-0.0005 -0.0005", "45 45")) { pt =>
+        val (min, max) = GeometryUtils.distanceDegrees(WKTUtils.read(s"POINT($pt)"), 150d)
+        min must beLessThanOrEqualTo(max)
+      }
+    }
   }
 }

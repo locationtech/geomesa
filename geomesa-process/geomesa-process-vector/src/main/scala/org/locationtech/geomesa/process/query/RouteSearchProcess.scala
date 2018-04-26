@@ -20,15 +20,14 @@ import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.util.{Converters, NullProgressListener}
-import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.{ff, orFilters}
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.Feature
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.spatial.DWithin
-import org.opengis.filter.{Filter, Or}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 @DescribeProcess(
   title = "Route Search",
@@ -113,13 +112,15 @@ class RouteSearchProcess extends GeoMesaProcess with LazyLogging {
       SelfClosingIterator(routes).map(_.getAttribute(index).asInstanceOf[LineString]).toSeq
     }
 
-    val visitor = new RouteVisitor(routeGeoms, bufferSize, headingThreshold, bi, geomAttribute, isPoints, Option(headingField))
+    val visitor = new RouteVisitor(sft, routeGeoms, bufferSize, headingThreshold, bi,
+      geomAttribute, isPoints, Option(headingField))
     features.accepts(visitor, new NullProgressListener)
     visitor.getResult.results
   }
 }
 
-class RouteVisitor(routes: Seq[LineString],
+class RouteVisitor(sft: SimpleFeatureType,
+                   routes: Seq[LineString],
                    routeBuffer: Double,
                    threshold: Double,
                    bidirectional: Boolean,
@@ -134,10 +135,7 @@ class RouteVisitor(routes: Seq[LineString],
 
   // for manual check, rewrite the filter to handle meters
   // normally handled in our query planner, but we are going to use the filter directly here
-  private lazy val manualRouteFilter = routeFilter match {
-    case f: DWithin => new QueryPlanFilterVisitor(null).visit(f, null).asInstanceOf[Filter]
-    case f: Or      => new QueryPlanFilterVisitor(null).visit(f, null).asInstanceOf[Filter]
-  }
+  private lazy val manualRouteFilter = FastFilterFactory.optimize(sft, routeFilter)
 
   // for collecting results manually
   private var manualCollection: ListFeatureCollection = _
