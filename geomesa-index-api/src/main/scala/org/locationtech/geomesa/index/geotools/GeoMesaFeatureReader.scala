@@ -36,6 +36,10 @@ abstract class GeoMesaFeatureReader(val query: Query, timeout: Option[Long], val
 
   protected def closeOnce(): Unit
 
+  override def isClosed: Boolean = closed.get()
+
+  override def getTimeout: Long = timeout.getOrElse(-1L)
+
   override def getFeatureType: SimpleFeatureType = query.getHints.getReturnSft
 
   override def close(): Unit = {
@@ -43,10 +47,6 @@ abstract class GeoMesaFeatureReader(val query: Query, timeout: Option[Long], val
       try { timeout.foreach(_ => ThreadManagement.unregister(this)) } finally { closeOnce() }
     }
   }
-
-  override def isClosed: Boolean = closed.get()
-
-  override def getTimeout: Long = timeout.getOrElse(-1L)
 
   override def cancel(): Unit = {
     if (closed.compareAndSet(false, true)) {
