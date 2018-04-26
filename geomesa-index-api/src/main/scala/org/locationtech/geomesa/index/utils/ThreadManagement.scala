@@ -12,9 +12,10 @@ import java.util.concurrent.{PriorityBlockingQueue, ScheduledThreadPoolExecutor,
 
 import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
+import scala.util.control.NonFatal
 
 /**
  * Singleton for registering and managing running queries.
@@ -25,7 +26,7 @@ object ThreadManagement extends Runnable with LazyLogging {
   private val interval = SystemProperty("geomesa.query.timeout.check").toDuration.map(_.toMillis).getOrElse(5000L)
 
   // head of queue will be ones the will timeout first
-  private val openReaders = new PriorityBlockingQueue[ReaderAndTime]()
+  private val openReaders = new PriorityBlockingQueue[QueryAndTime]()
 
   private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))
   executor.scheduleWithFixedDelay(this, interval, interval, TimeUnit.MILLISECONDS)
@@ -39,14 +40,15 @@ object ThreadManagement extends Runnable with LazyLogging {
       if (holder == null || holder.killAt > System.currentTimeMillis()) {
         loop = false
       } else {
-        // note: holder should be the first obj in the priority queue backing array, so remove will be O(1)
+        // note: holder should be the first obj in the priority queue backing array, so remove
+        // shouldn't have to traverse the entire collection to find it
         openReaders.remove(holder)
-        // last sanity check in case the reader was closed but hasn't been removed from the queue yet
-        if (!holder.reader.isClosed) {
-          logger.warn(s"Stopping query on schema '${holder.reader.query.getTypeName}' with filter " +
-              s"'${filterToString(holder.reader.query.getFilter)}' based on timeout of ${holder.reader.timeout.get}ms")
-          holder.thread.interrupt()
-          holder.reader.close()
+        // sanity check in case the reader was closed but hadn't been removed from the queue yet
+        if (!holder.query.isClosed) {
+          logger.warn(s"Stopping ${holder.query.debug} based on timeout of ${holder.query.getTimeout}ms")
+          try { holder.query.cancel() } catch {
+            case NonFatal(e) => logger.warn("Error cancelling query:", e)
+          }
           numClosed += 1
         }
       }
@@ -57,32 +59,40 @@ object ThreadManagement extends Runnable with LazyLogging {
   /**
    * Register a query with the thread manager
    */
-  def register(reader: GeoMesaFeatureReader, timeout: Long): Unit =
-    openReaders.offer(new ReaderAndTime(reader, Thread.currentThread(), System.currentTimeMillis() + timeout))
+  def register(query: ManagedQuery): Unit =
+    openReaders.offer(new QueryAndTime(query, System.currentTimeMillis() + query.getTimeout))
 
   /**
     * Unregister a query with the thread manager once the query has been closed
     */
-  def unregister(reader: GeoMesaFeatureReader): Unit = openReaders.remove(new ReaderAndTime(reader, null, 0L))
+  def unregister(reader: GeoMesaFeatureReader): Unit = openReaders.remove(new QueryAndTime(reader, 0L))
+
+  /**
+    * Trait for classes to be managed for timeouts
+    */
+  trait ManagedQuery {
+    def getTimeout: Long
+    def isClosed: Boolean
+    def cancel(): Unit
+    def debug: String
+  }
 
   /**
     * Holder for our queue. Implements equals based on the reader instance, to facilitate removing
     * from the queue when unregistering. Sorts naturally based on expiry time.
     *
-    * @param reader reader
-    * @param thread thread
+    * @param query query
     * @param killAt system time to kill at
     */
-  private class ReaderAndTime(val reader: GeoMesaFeatureReader, val thread: Thread, val killAt: Long)
-      extends Ordered[ReaderAndTime] {
+  private class QueryAndTime(val query: ManagedQuery, val killAt: Long) extends Ordered[QueryAndTime] {
 
-    override def compare(that: ReaderAndTime): Int = java.lang.Long.compare(killAt, that.killAt)
+    override def compare(that: QueryAndTime): Int = java.lang.Long.compare(killAt, that.killAt)
 
     override def equals(obj: Any): Boolean = obj match {
-      case r: ReaderAndTime => reader.eq(r.reader)
+      case r: QueryAndTime => query.eq(r.query)
       case _ => false
     }
 
-    override def hashCode(): Int = reader.hashCode()
+    override def hashCode(): Int = query.hashCode()
   }
 }

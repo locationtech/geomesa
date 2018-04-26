@@ -18,19 +18,20 @@ import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.ThreadManagement
+import org.locationtech.geomesa.index.utils.ThreadManagement.ManagedQuery
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long], val maxFeatures: Long)
-    extends SimpleFeatureReader {
+abstract class GeoMesaFeatureReader(val query: Query, timeout: Option[Long], val maxFeatures: Long)
+    extends SimpleFeatureReader with ManagedQuery {
 
   private val closed = new AtomicBoolean(false)
+  private val thread = Thread.currentThread()
 
-  timeout.foreach(ThreadManagement.register(this, _))
+  timeout.foreach(_ => ThreadManagement.register(this))
 
-  def isClosed: Boolean = closed.get()
   def count: Long = -1L
 
   protected def closeOnce(): Unit
@@ -39,11 +40,22 @@ abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long],
 
   override def close(): Unit = {
     if (closed.compareAndSet(false, true)) {
-      try { timeout.foreach(_ => ThreadManagement.unregister(this)) } finally {
-        closeOnce()
-      }
+      try { timeout.foreach(_ => ThreadManagement.unregister(this)) } finally { closeOnce() }
     }
   }
+
+  override def isClosed: Boolean = closed.get()
+
+  override def getTimeout: Long = timeout.getOrElse(-1L)
+
+  override def cancel(): Unit = {
+    if (closed.compareAndSet(false, true)) {
+      try { closeOnce() } finally { thread.interrupt() }
+    }
+  }
+
+  override def debug: String =
+    s"query on schema '${query.getTypeName}' with filter '${filterToString(query.getFilter)}'"
 }
 
 object GeoMesaFeatureReader {
