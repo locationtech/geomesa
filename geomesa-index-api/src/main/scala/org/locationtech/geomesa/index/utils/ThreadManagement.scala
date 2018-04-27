@@ -14,6 +14,7 @@ import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 
+import scala.ref.WeakReference
 import scala.util.control.NonFatal
 
 /**
@@ -28,7 +29,7 @@ object ThreadManagement extends LazyLogging {
    * Register a query with the thread manager
    */
   def register(query: ManagedQuery): Unit =
-    executor.schedule(new QueryKiller(query), query.getTimeout, TimeUnit.MILLISECONDS)
+    executor.schedule(new QueryKiller(WeakReference(query)), query.getTimeout, TimeUnit.MILLISECONDS)
 
   /**
     * Trait for classes to be managed for timeouts
@@ -39,12 +40,14 @@ object ThreadManagement extends LazyLogging {
     def debug: String
   }
 
-  private class QueryKiller(query: ManagedQuery) extends Runnable {
+  private class QueryKiller(query: WeakReference[ManagedQuery]) extends Runnable {
     override def run(): Unit = {
-      if (!query.isClosed) {
-        logger.warn(s"Stopping ${query.debug} based on timeout of ${query.getTimeout}ms")
-        try { query.close() } catch {
-          case NonFatal(e) => logger.warn("Error cancelling query:", e)
+      query.get.foreach { q =>
+        if (!q.isClosed) {
+          logger.warn(s"Stopping ${q.debug} based on timeout of ${q.getTimeout}ms")
+          try { q.close() } catch {
+            case NonFatal(e) => logger.warn("Error cancelling query:", e)
+          }
         }
       }
     }
