@@ -28,8 +28,7 @@ abstract class GeoMesaFeatureReader(val query: Query, timeout: Option[Long], val
     extends SimpleFeatureReader with ManagedQuery {
 
   private val closed = new AtomicBoolean(false)
-
-  timeout.foreach(_ => ThreadManagement.register(this))
+  private val cancel = timeout.map(_ => ThreadManagement.register(this))
 
   def count: Long = -1L
 
@@ -43,7 +42,9 @@ abstract class GeoMesaFeatureReader(val query: Query, timeout: Option[Long], val
 
   override def close(): Unit = {
     if (closed.compareAndSet(false, true)) {
-      closeOnce()
+      try { closeOnce() } finally {
+        cancel.foreach(_.cancel(false))
+      }
     }
   }
 

@@ -9,12 +9,11 @@
 package org.locationtech.geomesa.index.utils
 
 import java.io.Closeable
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
 import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 
-import scala.ref.WeakReference
 import scala.util.control.NonFatal
 
 /**
@@ -22,14 +21,18 @@ import scala.util.control.NonFatal
  */
 object ThreadManagement extends LazyLogging {
 
-  private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(2))
+  private val executor = {
+    val ex = new ScheduledThreadPoolExecutor(2)
+    ex.setRemoveOnCancelPolicy(true)
+    MoreExecutors.getExitingScheduledExecutorService(ex)
+  }
   sys.addShutdownHook(executor.shutdownNow())
 
   /**
    * Register a query with the thread manager
    */
-  def register(query: ManagedQuery): Unit =
-    executor.schedule(new QueryKiller(WeakReference(query)), query.getTimeout, TimeUnit.MILLISECONDS)
+  def register(query: ManagedQuery): ScheduledFuture[_] =
+    executor.schedule(new QueryKiller(query), query.getTimeout, TimeUnit.MILLISECONDS)
 
   /**
     * Trait for classes to be managed for timeouts
@@ -40,14 +43,12 @@ object ThreadManagement extends LazyLogging {
     def debug: String
   }
 
-  private class QueryKiller(query: WeakReference[ManagedQuery]) extends Runnable {
+  private class QueryKiller(query: ManagedQuery) extends Runnable {
     override def run(): Unit = {
-      query.get.foreach { q =>
-        if (!q.isClosed) {
-          logger.warn(s"Stopping ${q.debug} based on timeout of ${q.getTimeout}ms")
-          try { q.close() } catch {
-            case NonFatal(e) => logger.warn("Error cancelling query:", e)
-          }
+      if (!query.isClosed) {
+        logger.warn(s"Stopping ${query.debug} based on timeout of ${query.getTimeout}ms")
+        try { query.close() } catch {
+          case NonFatal(e) => logger.warn("Error cancelling query:", e)
         }
       }
     }
