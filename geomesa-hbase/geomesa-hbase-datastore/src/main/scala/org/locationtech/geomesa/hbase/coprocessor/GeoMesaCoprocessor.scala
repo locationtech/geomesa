@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.hbase.coprocessor
 
 import java.io.{InterruptedIOException, _}
-import java.util.concurrent.{Callable, Executors, Future, ThreadPoolExecutor}
+import java.util.Collections
+import java.util.concurrent._
 
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.{ByteString, RpcCallback, RpcController, Service}
@@ -25,6 +26,7 @@ import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -113,11 +115,11 @@ object GeoMesaCoprocessor extends LazyLogging {
     * @param options configuration options
     * @return serialized results
     */
-  def execute(table: Table, options: Array[Byte]): List[ByteString] = {
+  def execute(table: Table, options: Array[Byte]): CloseableIterator[ByteString] = {
 
     val request = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
 
-    val calls = new java.util.concurrent.ConcurrentLinkedQueue[Future[_]]()
+    val calls = Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap[Future[_], java.lang.Boolean]())
 
     val callable = new Call[GeoMesaCoprocessorService, java.util.List[ByteString]]() {
       override def call(instance: GeoMesaCoprocessorService): java.util.List[ByteString] = {
@@ -136,9 +138,14 @@ object GeoMesaCoprocessor extends LazyLogging {
         calls.add(future)
 
         // block on the result
-        val response =  try { future.get() } catch {
-          case _ :InterruptedException | _ :InterruptedIOException => controller.startCancel(); null
+        val response = try { future.get() } catch {
+          case e @ (_ : InterruptedException | _ : InterruptedIOException | _: CancellationException) =>
+            logger.warn("Cancelling remote coprocessor call")
+            controller.startCancel()
+            null
         }
+
+        calls.remove(future)
 
         if (controller.failed()) {
           throw new IOException(controller.errorText())
@@ -148,17 +155,23 @@ object GeoMesaCoprocessor extends LazyLogging {
       }
     }
 
-    val callBack: GeoMesaHBaseCallBack = new GeoMesaHBaseCallBack()
+    new CloseableIterator[ByteString] {
 
-    try {
-      table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, callable, callBack)
-    } catch {
-      case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
-        logger.warn("Interrupted executing coprocessor query:", e)
-        calls.asScala.foreach(_.cancel(true))
+      lazy private val result = {
+        val callBack = new GeoMesaHBaseCallBack()
+        try { table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, callable, callBack) } catch {
+          case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
+            logger.warn("Interrupted executing coprocessor query:", e)
+        }
+        callBack.getResult.iterator
+      }
+
+      override def hasNext: Boolean = result.hasNext
+
+      override def next(): ByteString = result.next
+
+      override def close(): Unit = calls.asScala.foreach(_.cancel(true))
     }
-
-    callBack.getResult
   }
 
   /**

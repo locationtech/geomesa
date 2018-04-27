@@ -11,6 +11,7 @@ package org.locationtech.geomesa.hbase.data
 import java.util
 
 import com.google.common.collect.Lists
+import com.google.protobuf.ByteString
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
@@ -111,8 +112,9 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     ds.applySecurity(scan)
     val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
 
-    val result = GeoMesaCoprocessor.execute(hbaseTable, byteArray)
-    val results = result.toIterator.filter(_.size() != 0).map(r => coprocessorConfig.bytesToFeatures(r.toByteArray))
+    val results = GeoMesaCoprocessor.execute(hbaseTable, byteArray).collect {
+      case r if r.size() > 0 => coprocessorConfig.bytesToFeatures(r.toByteArray)
+    }
     coprocessorConfig.reduce(results)
   }
 
