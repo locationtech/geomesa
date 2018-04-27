@@ -11,7 +11,6 @@ package org.locationtech.geomesa.hbase.data
 import java.util
 
 import com.google.common.collect.Lists
-import com.google.protobuf.ByteString
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
