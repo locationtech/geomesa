@@ -55,13 +55,6 @@ This property can be used to prevent long-running queries from overloading the s
 queries will be closed after the timeout, even if not all results have been returned yet. The
 timeout is specified as a duration, e.g. ``1 minute`` or ``30 seconds``.
 
-geomesa.query.timeout.check
-+++++++++++++++++++++++++++
-
-This property is used in conjuction with ``geomesa.query.timeout``. It specifies how often queries
-will be checked for exceeding the timeout. It is specified as a duration, e.g. ``1 minute`` or ``30 seconds``.
-The default is ``5 seconds``.
-
 geomesa.scan.block-full-table
 +++++++++++++++++++++++++++++
 
