@@ -18,33 +18,38 @@ import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.ThreadManagement
+import org.locationtech.geomesa.index.utils.ThreadManagement.ManagedQuery
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long], val maxFeatures: Long)
-    extends SimpleFeatureReader {
+abstract class GeoMesaFeatureReader(val query: Query, timeout: Option[Long], val maxFeatures: Long)
+    extends SimpleFeatureReader with ManagedQuery {
 
   private val closed = new AtomicBoolean(false)
-  private lazy val start = System.currentTimeMillis()
+  private val cancel = timeout.map(_ => ThreadManagement.register(this))
 
-  timeout.foreach(t => ThreadManagement.register(this, start, t))
-
-  def isClosed: Boolean = closed.get()
   def count: Long = -1L
 
   protected def closeOnce(): Unit
 
+  override def isClosed: Boolean = closed.get()
+
+  override def getTimeout: Long = timeout.getOrElse(-1L)
+
   override def getFeatureType: SimpleFeatureType = query.getHints.getReturnSft
 
-  override def close(): Unit = if (!closed.getAndSet(true)) {
-    try {
-      timeout.foreach(t => ThreadManagement.unregister(this, start, t))
-    } finally {
-      closeOnce()
+  override def close(): Unit = {
+    if (closed.compareAndSet(false, true)) {
+      try { closeOnce() } finally {
+        cancel.foreach(_.cancel(false))
+      }
     }
   }
+
+  override def debug: String =
+    s"query on schema '${query.getTypeName}' with filter '${filterToString(query.getFilter)}'"
 }
 
 object GeoMesaFeatureReader {

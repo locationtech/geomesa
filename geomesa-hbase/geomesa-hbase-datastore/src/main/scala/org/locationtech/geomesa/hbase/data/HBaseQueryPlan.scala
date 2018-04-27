@@ -111,8 +111,9 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     ds.applySecurity(scan)
     val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
 
-    val result = GeoMesaCoprocessor.execute(hbaseTable, byteArray)
-    val results = result.toIterator.filter(_.size() != 0).map(r => coprocessorConfig.bytesToFeatures(r.toByteArray))
+    val results = GeoMesaCoprocessor.execute(hbaseTable, byteArray).collect {
+      case r if r.size() > 0 => coprocessorConfig.bytesToFeatures(r.toByteArray)
+    }
     coprocessorConfig.reduce(results)
   }
 
