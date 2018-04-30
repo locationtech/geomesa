@@ -258,7 +258,7 @@ elif [[ "${CONTAINER}" != */ ]]; then
 fi
 
 if [[ ${#attributes[@]} -gt 1 ]]; then
-  attrs=$(join_by , ${attributes[@]})
+  attrs=$(joinBy , ${attributes[@]})
   EC2_ATTRIBUTES="--ec2-attributes ${attrs}"
 fi
 
@@ -269,7 +269,7 @@ fi
 
 if [[ 1 -eq $(echo "${TaskCount#*=} > 0" | bc) ]]; then
   arr=("Name=Task" ${TaskCount} "InstanceGroupType=TASK" ${TaskType} ${TaskBid})
-  TaskGroup=$(join_by , ${arr[@]})
+  TaskGroup=$(joinBy , ${arr[@]})
 fi
 
 echo "Starting GeoMesa AWS EMR Bootstrap Process"
@@ -344,7 +344,7 @@ if [[ -n "${JUPYTER}" ]]; then
 fi
 
 arr=("Name=Workers" ${WorkerCount} "InstanceGroupType=CORE" ${WorkerType} ${WorkerBid})
-WorkerGroup=$(join_by , ${arr[@]})
+WorkerGroup=$(joinBy , ${arr[@]})
 
 cmd="
   aws ${AWS_PROFILE} emr create-cluster                                             \
