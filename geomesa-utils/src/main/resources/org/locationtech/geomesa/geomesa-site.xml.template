@@ -315,12 +315,4 @@
         <final>false</final>
     </property>
 
-    <property>
-        <name>geomesa.hbase.site.xml.path</name>
-        <value></value>
-        <description>Local path to the hbase-site.xml file for the target HBase cluster.
-        </description>
-        <final>false</final>
-    </property>
-
 </configuration>
