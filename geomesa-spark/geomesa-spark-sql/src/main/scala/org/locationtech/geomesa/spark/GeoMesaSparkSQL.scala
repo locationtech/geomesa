@@ -698,7 +698,12 @@ object SparkUtils {
         val fieldType = schema.fields(schemaIndex).dataType
         sf: SimpleFeature =>
           if ( fieldType == TimestampType ) {
-            new Timestamp(sf.getAttribute(index).asInstanceOf[Date].getTime)
+            val attr = sf.getAttribute(index)
+            if (attr != null) {
+              new Timestamp(attr.asInstanceOf[Date].getTime)
+            } else {
+              null
+            }
           } else {
             sf.getAttribute(index)
           }
