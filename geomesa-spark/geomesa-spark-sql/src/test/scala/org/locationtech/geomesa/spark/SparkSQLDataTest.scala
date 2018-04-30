@@ -220,6 +220,17 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       }
     }
 
+    "pushdown spatio-temporal filters" >> {
+      val sql = "select case_number from chicago where " +
+          "st_intersects(geom, st_makeBox2d(st_point(-77.5, 37.9), st_point(-76.5, 38.1))) and " +
+          "dtg between cast('2016-01-01T01:00:00Z' as timestamp) and cast('2016-01-03T01:00:00Z' as timestamp)"
+
+      val df = sc.sql(sql)
+      df.queryExecution.optimizedPlan.children must haveLength(1)
+      df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
+      df.collect().map(_.get(0)) mustEqual Array(2)
+    }
+
     "st_translate" >> {
       "null" >> {
         sc.sql("select st_translate(null, null, null)").collect.head(0) must beNull
