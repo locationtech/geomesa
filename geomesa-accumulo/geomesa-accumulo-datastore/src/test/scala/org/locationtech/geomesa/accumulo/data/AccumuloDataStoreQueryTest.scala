@@ -23,8 +23,8 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
 import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
 import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
@@ -481,7 +481,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
       reader.isClosed must beFalse
-      reader.isClosed must eventually(10, new Duration(1000))(beTrue) // reaper thread runs every 5 seconds
+      reader.isClosed must eventually(20, new Duration(200))(beTrue)
     }
 
     "block full table scans" in {

@@ -201,6 +201,8 @@ contained in ``org.geomesa.example.data.GDELTData``:
 -  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects
 -  ``getTestQueries`` illustrates several different query types, using CQL (GeoTools' Contextual Query Language)
 
+.. _accumulo_quickstart_visualize:
+
 Visualize Data (optional)
 -------------------------
 

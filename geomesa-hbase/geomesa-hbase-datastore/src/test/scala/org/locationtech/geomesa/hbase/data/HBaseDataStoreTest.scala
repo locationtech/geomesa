@@ -72,7 +72,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
-      val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
+      val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"))
 
       foreach(Seq(true, false)) { remote =>
         foreach(Seq(true, false)) { loose =>

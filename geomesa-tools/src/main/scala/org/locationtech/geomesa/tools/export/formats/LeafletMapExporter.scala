@@ -9,17 +9,15 @@
 package org.locationtech.geomesa.tools.export.formats
 
 import java.io._
-import java.security.Security
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geojson.feature.FeatureJSON
 import org.locationtech.geomesa.tools.Command.user
-import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter.SimpleCoordinate
-import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams, FileExportParams}
+import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter.{SimpleCoordinate, _}
+import org.locationtech.geomesa.tools.export.{ExportCommand, FileExportParams}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -114,10 +112,10 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
     indexWriter.write(indexTail)
     indexWriter.close()
 
-    if (totalCount < 1) user.warn("No features were exported. " +
-      "This will cause the map to fail to render correctly.")
-    // Use println to ensure we write the destination to stdout so the bash wrapper can pick it up.
-    System.out.println("\nSuccessfully wrote Leaflet html to: " + indexFile.toString + "\n")
+    if (totalCount < 1) {
+      user.warn("No features were exported. This will cause the map to fail to render correctly.")
+    }
+    user.info(s"Successfully wrote Leaflet html to: ${indexFile.getAbsolutePath}")
   }
 }
 

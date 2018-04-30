@@ -29,7 +29,8 @@ st_geomFromGeoHash
 
     Geometry st_geomFromGeoHash(String geohash, Int prec)
 
-Returns the ``Geometry`` of the bounding box corresponding to the Geohash string *geohash* (base-32 encoded) with a precision of *prec* bits. See :ref:`geohash` for more information on GeoHashes.
+Returns the ``Geometry`` of the bounding box corresponding to the Geohash string *geohash* (base-32 encoded) with
+a precision of *prec* bits. See :ref:`geohash` for more information on GeoHashes.
 
 .. _st_geomFromText:
 
@@ -206,7 +207,8 @@ st_pointFromGeoHash
 
     Point st_pointFromGeoHash(String geohash, Int prec)
 
-Return the ``Point`` at the geometric center of the bounding box defined by the Geohash string *geohash* (base-32 encoded) with a precision of *prec* bits. See :ref:`geohash` for more information on Geohashes.
+Return the ``Point`` at the geometric center of the bounding box defined by the Geohash string *geohash*
+(base-32 encoded) with a precision of *prec* bits. See :ref:`geohash` for more information on Geohashes.
 
 .. _st_pointFromText:
 
@@ -286,7 +288,8 @@ st_dimension
 
     Int st_dimension(Geometry geom)
 
-Returns the inherent number of dimensions of this ``Geometry`` object, which must be less than or equal to the coordinate dimension.
+Returns the inherent number of dimensions of this ``Geometry`` object, which must be less than or equal to the
+coordinate dimension.
 
 .. _st_envelope:
 
@@ -308,7 +311,8 @@ st_exteriorRing
 
     LineString st_exteriorRing(Geometry geom)
 
-Returns a ``LineString`` representing the exterior ring of the geometry; returns null if the ``Geometry`` is not a ``Polygon``.
+Returns a ``LineString`` representing the exterior ring of the geometry; returns null if the ``Geometry`` is not
+a ``Polygon``.
 
 .. _st_geometryN:
 
@@ -319,7 +323,8 @@ st_geometryN
 
     Int st_geometryN(Geometry geom, Int n)
 
-Returns the *n*-th ``Geometry`` (1-based index) of *geom* if the ``Geometry`` is a ``GeometryCollection``, or *geom* if it is not.
+Returns the *n*-th ``Geometry`` (1-based index) of *geom* if the ``Geometry`` is a ``GeometryCollection``, or
+*geom* if it is not.
 
 .. _st_interiorRingN:
 
@@ -330,7 +335,8 @@ st_interiorRingN
 
     Int st_interiorRingN(Geometry geom, Int n)
 
-Returns the *n*-th interior ``LineString`` ring of the ``Polygon`` *geom*. Returns null if the geometry is not a ``Polygon`` or the given *n* is out of range.
+Returns the *n*-th interior ``LineString`` ring of the ``Polygon`` *geom*. Returns null if the geometry is not
+a ``Polygon`` or the given *n* is out of range.
 
 .. _st_isClosed:
 
@@ -341,7 +347,8 @@ st_isClosed
 
     Boolean st_isClosed(Geometry geom)
 
-Returns true if *geom* is a ``LineString`` or ``MultiLineString`` and its start and end points are coincident. Returns true for all other ``Geometry`` types.
+Returns true if *geom* is a ``LineString`` or ``MultiLineString`` and its start and end points are coincident.
+Returns true for all other ``Geometry`` types.
 
 .. _st_isCollection:
 
@@ -429,7 +436,8 @@ st_pointN
 
     Point st_pointN(Geometry geom, Int n)
 
-If *geom* is a ``LineString``, returns the *n*-th vertex of *geom* as a Point. Negative values are counted backwards from the end of the ``LineString``. Returns null if *geom* is not a ``LineString``.
+If *geom* is a ``LineString``, returns the *n*-th vertex of *geom* as a Point. Negative values are counted
+backwards from the end of the ``LineString``. Returns null if *geom* is not a ``LineString``.
 
 .. _st_x:
 
@@ -551,7 +559,8 @@ st_asLatLonText
 
      String st_asLatLonText(Point p)
 
-Returns a ``String`` describing the latitude and longitude of ``Point`` *p* in degrees, minutes, and seconds. (This presumes that the units of the coordinates of *p* are latitude and longitude.)
+Returns a ``String`` describing the latitude and longitude of ``Point`` *p* in degrees, minutes, and seconds.
+(This presumes that the units of the coordinates of *p* are latitude and longitude.)
 
 .. _st_asText:
 
@@ -573,7 +582,8 @@ st_geoHash
 
     String st_geoHash(Geometry geom, Int prec)
 
-Returns the Geohash (in base-32 representation) of an interior point of Geometry *geom*. See :ref:`geohash` for more information on Geohashes.
+Returns the Geohash (in base-32 representation) of an interior point of Geometry *geom*. See :ref:`geohash` for
+more information on Geohashes.
 
 
 Spatial Relationships
@@ -588,7 +598,9 @@ st_area
 
     Double st_area(Geometry g)
 
-If ``Geometry`` *g* is areal, returns the area of its surface in square units of the coordinate reference system (for example, degrees^2 for EPSG:4326). Returns 0.0 for non-areal geometries (e.g. ``Point``\ s, non-closed ``LineString``\ s, etc.).
+If ``Geometry`` *g* is areal, returns the area of its surface in square units of the coordinate reference system
+(for example, degrees^2 for EPSG:4326). Returns 0.0 for non-areal geometries (e.g. ``Point``\ s, non-closed
+``LineString``\ s, etc.).
 
 .. _st_centroid:
 
@@ -621,7 +633,8 @@ st_contains
 
     Boolean st_contains(Geometry a, Geometry b)
 
-Returns true if and only if no points of *b* lie in the exterior of *a*, and at least one point of the interior of *b* lies in the interior of *a*.
+Returns true if and only if no points of *b* lie in the exterior of *a*, and at least one point of the interior
+of *b* lies in the interior of *a*.
 
 .. _st_covers:
 
@@ -654,7 +667,8 @@ st_disjoint
 
     Boolean st_disjoint(Geometry a, Geometry b)
 
-Returns true if the geometries do not "spatially intersect"; i.e., they do not share any space together. Equivalent to ``NOT st_intersects(a, b)``.
+Returns true if the geometries do not "spatially intersect"; i.e., they do not share any space together. Equivalent
+to ``NOT st_intersects(a, b)``.
 
 .. _st_distance:
 
@@ -665,7 +679,19 @@ st_distance
 
     Double st_distance(Geometry a, Geometry b)
 
-Returns the 2D Cartesian distance between the two geometries in units of the coordinate reference system (e.g. degrees for EPSG:4236).
+Returns the 2D Cartesian distance between the two geometries in units of the coordinate reference system (e.g.
+degrees for EPSG:4236).
+
+.. _st_distanceSphere:
+
+st_distanceSphere
+^^^^^^^^^^^^^^^^^
+
+::
+
+    Double st_distanceSphere(Geometry a, Geometry b)
+
+Approximates the minimum distance between two longitude/latitude geometries assuming a spherical earth.
 
 .. _st_distanceSpheroid:
 
@@ -698,7 +724,8 @@ st_intersects
 
     Boolean st_intersects(Geometry a, Geometry b)
 
-Returns true if the geometries spatially intersect in 2D (i.e. share any portion of space). Equivalent to ``NOT st_disjoint(a, b)``.
+Returns true if the geometries spatially intersect in 2D (i.e. share any portion of space). Equivalent to
+``NOT st_disjoint(a, b)``.
 
 .. _st_length:
 
@@ -709,7 +736,20 @@ st_length
 
     Double st_length(Geometry geom)
 
-Returns the 2D path length of linear geometries, or perimeter of areal geometries, in units of the the coordinate reference system (e.g. degrees for EPSG:4236). Returns 0.0 for other geometry types (e.g. Point).
+Returns the 2D path length of linear geometries, or perimeter of areal geometries, in units of the the coordinate
+reference system (e.g. degrees for EPSG:4236). Returns 0.0 for other geometry types (e.g. Point).
+
+.. _st_lengthSphere:
+
+st_lengthSphere
+^^^^^^^^^^^^^^^
+
+::
+
+    Double st_lengthSphere(LineString line)
+
+Approximates the 2D path length of a ``LineString`` geometry using a spherical earth model. The returned length is
+in units of meters. The approximation is within 0.3% of st_lengthSpheroid and is computationally more efficient.
 
 .. _st_lengthSpheroid:
 
@@ -720,7 +760,8 @@ st_lengthSpheroid
 
     Double st_lengthSpheroid(LineString line)
 
-Calculates the 2D path length of a ``LineString`` geometry defined with longitude/latittude coordinates on the WGS84 spheroid. The returned length is in units of meters.
+Calculates the 2D path length of a ``LineString`` geometry defined with longitude/latitude coordinates on the WGS84
+spheroid. The returned length is in units of meters.
 
 .. _st_overlaps:
 
@@ -731,7 +772,8 @@ st_overlaps
 
     Boolean st_overlaps(Geometry a, Geometry b)
 
-Returns true if the geometries have some but not all points in common, are of the same dimension, and the intersection  of the interiors of the two geometries has the same dimension as the geometries themselves.
+Returns true if the geometries have some but not all points in common, are of the same dimension, and the intersection
+of the interiors of the two geometries has the same dimension as the geometries themselves.
 
 .. _st_relate:
 
@@ -742,7 +784,8 @@ st_relate
 
     String st_relate(Geometry a, Geometry b)
 
-Returns the `DE-9IM`_ 3x3 interaction matrix pattern describing the dimensionality of the intersections between the interior, boundary and exterior of the two geometries.
+Returns the `DE-9IM`_ 3x3 interaction matrix pattern describing the dimensionality of the intersections between the
+interior, boundary and exterior of the two geometries.
 
 .. _st_relateBool:
 
@@ -753,7 +796,8 @@ st_relateBool
 
     Boolean st_relateBool(Geometry a, Geometry b, String mask)
 
-Returns true if the `DE-9IM`_ interaction matrix mask *mask* matches the interaction matrix pattern obtained from ``st_relate(a, b)``.
+Returns true if the `DE-9IM`_ interaction matrix mask *mask* matches the interaction matrix pattern obtained from
+``st_relate(a, b)``.
 
 
 .. _st_touches:
@@ -790,7 +834,9 @@ st_antimeridianSafeGeom
 
     Geometry st_antimeridianSafeGeom(Geometry geom)
 
-If *geom* spans the `antimeridian`_, attempt to convert the geometry into an equivalent form that is "antimeridian-safe" (i.e. the output geometry is covered by ``BOX(-180 -90, 180 90)``). In certain circumstances, this method may fail, in which case the input geometry will be returned and an error will be logged.
+If *geom* spans the `antimeridian`_, attempt to convert the geometry into an equivalent form that is
+"antimeridian-safe" (i.e. the output geometry is covered by ``BOX(-180 -90, 180 90)``). In certain circumstances,
+this method may fail, in which case the input geometry will be returned and an error will be logged.
 
 .. _st_bufferPoint:
 
@@ -812,7 +858,8 @@ st_convexHull
 
     Geometry st_convexHull(Geometry geom)
 
-**Aggregate function.** The convex hull of a geometry represents the minimum convex geometry that encloses all geometries *geom* in the aggregated rows.
+**Aggregate function.** The convex hull of a geometry represents the minimum convex geometry that encloses all
+geometries *geom* in the aggregated rows.
 
 .. _st_idlSafeGeom:
 

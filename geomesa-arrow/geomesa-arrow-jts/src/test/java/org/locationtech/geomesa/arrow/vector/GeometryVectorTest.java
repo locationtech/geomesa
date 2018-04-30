@@ -547,24 +547,30 @@ public class GeometryVectorTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    try(FileOutputStream out = new FileOutputStream(file)) {
-      VectorSchemaRoot root = new VectorSchemaRoot(Collections.singletonList(vector.getVector().getField()),
-                                                   Collections.singletonList(vector.getVector()),
-                                                   vector.getReader().getValueCount());
-      DictionaryProvider dict = new MapDictionaryProvider();
-      ArrowStreamWriter writer = new ArrowStreamWriter(root, dict, Channels.newChannel(out));
-      writer.start();
-      writer.writeBatch();
-      writer.end();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    try(FileInputStream in = new FileInputStream(file)) {
-      ArrowStreamReader reader = new ArrowStreamReader(Channels.newChannel(in), allocator);
-      reader.loadNextBatch();
-      return reader.getVectorSchemaRoot().getFieldVectors().get(0);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    try {
+      try (FileOutputStream out = new FileOutputStream(file)) {
+        VectorSchemaRoot root = new VectorSchemaRoot(Collections.singletonList(vector.getVector().getField()),
+                                                     Collections.singletonList(vector.getVector()),
+                                                     vector.getReader().getValueCount());
+        DictionaryProvider dict = new MapDictionaryProvider();
+        ArrowStreamWriter writer = new ArrowStreamWriter(root, dict, Channels.newChannel(out));
+        writer.start();
+        writer.writeBatch();
+        writer.end();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      try (FileInputStream in = new FileInputStream(file)) {
+        ArrowStreamReader reader = new ArrowStreamReader(Channels.newChannel(in), allocator);
+        reader.loadNextBatch();
+        return reader.getVectorSchemaRoot().getFieldVectors().get(0);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } finally {
+      if (!file.delete()) {
+        file.deleteOnExit();
+      }
     }
   }
 }

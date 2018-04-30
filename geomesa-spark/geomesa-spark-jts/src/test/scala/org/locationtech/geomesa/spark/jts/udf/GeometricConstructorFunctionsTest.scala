@@ -10,7 +10,6 @@ package org.locationtech.geomesa.spark.jts.udf
 
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.functions._
-import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.util.{WKBUtils, WKTUtils}
@@ -183,7 +182,9 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
           |select st_makeBBOX(0.0, 0.0, 2.0, 2.0)
         """.stripMargin
       )
-      val expected = JTS.toGeometry(new Envelope(0, 2, 0, 2))
+      val fact = new GeometryFactory()
+
+      val expected = fact.toGeometry(new Envelope(0, 2, 0, 2))
       r.collect().head.getAs[Geometry](0) mustEqual expected
 
       dfBlank.select(st_makeBBOX(0.0, 0.0, 2.0, 2.0)).first mustEqual expected
@@ -199,7 +200,7 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
           |                    st_castToPoint(st_geomFromWKT('POINT(2 2)')))
         """.stripMargin
       )
-      val expected = WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, 2.0 2.0, 0.0 2.0, 0.0 0.0))")
+      val expected = WKTUtils.read("POLYGON((0.0 0.0, 0.0 2.0, 2.0 2.0, 2.0 0.0, 0.0 0.0))")
       r.collect().head.getAs[Geometry](0) mustEqual expected
 
       dfBlank.select(st_makeBox2D(

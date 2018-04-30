@@ -70,6 +70,9 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
 
   override def filter(p: A => Boolean): CloseableIterator[A] = CloseableIterator(super.filter(p), self.close())
 
+  override def collect[B](pf: PartialFunction[A, B]): CloseableIterator[B] =
+    CloseableIterator(super.collect(pf), self.close())
+
   override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] = {
     lazy val applied = CloseableIterator.wrap(that)
     val queue = new scala.collection.mutable.Queue[() => CloseableIterator[B]]

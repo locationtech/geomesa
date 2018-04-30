@@ -11,17 +11,15 @@ package org.locationtech.geomesa.spark
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometryProcessingFunctionsTest extends Specification with LazyLogging {
+class SparkSQLGeometricDistanceFunctionsTest extends Specification with LazyLogging {
 
-  "sql geometry processing functions" should {
+  "sql geometric distance functions" should {
     import scala.collection.JavaConversions._
 
     sequential

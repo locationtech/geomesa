@@ -1,3 +1,5 @@
+.. _converter_validation:
+
 Parsing and Validation
 ----------------------
 
@@ -12,7 +14,7 @@ At their core, converters transform input streams into SimpleFeatures. Validator
 of those SimpleFeatures before they are written to GeoMesa. For example, you may want to validate that there is a
 geometry field and that the geometry is valid.
 
-There are currently three validators available for usage with GeoMesa converters:
+There are currently three validators available for use with GeoMesa converters:
 
 * ``has-geo`` - Ensure that the SimpleFeature has a geometry and it is non-null
 * ``has-dtg`` - Ensure that the SimpleFeature has a date and it is non-null
@@ -25,29 +27,32 @@ block of your typesafe converter config:
 ::
 
     geomesa.converters.myconverter {
-        options {
-            validators = ["has-dtg", "has-geo", "z-index"]
-        }
+      options {
+        validators = ["has-dtg", "has-geo", "z-index"]
+      }
     }
 
-Validation Mode
-~~~~~~~~~~~~~~~
+Validation can be disabled by setting it to an empty array.
 
-There are two types of validation modes:
+Error Mode
+~~~~~~~~~~
+
+There are two types of modes for handling errors:
 
 * ``skip-bad-records``
 * ``raise-errors``
 
-``raise-errors`` mode will throw an IOException if bad data is detected based on parsing or validation.
-``skip-bad-records`` mode will still provide debug level logging but will not throw an exception. To configure the
-validation mode add the following option to your converter's typesafe config:
+``raise-errors`` mode will throw an IOException if bad data is detected based on parsing or validation. This can
+be especially useful when first developing and testing a converter definition. ``skip-bad-records`` mode will
+still provide debug level logging but will not throw an exception. To configure the
+error mode add the following option to your converter's typesafe config:
 
 ::
 
     geomesa.converters.myconverter {
-        options {
-            validation-mode = "raise-errors"
-        }
+      options {
+        error-mode = "raise-errors"
+      }
     }
 
 
@@ -73,47 +78,49 @@ To configure the parse mode use add an option to your converter's typesafe confi
 ::
 
     geomesa.converters.myconverter {
-        options {
-            parse-mode = "incremental"
-        }
+      options {
+        parse-mode = "incremental"
+      }
     }
 
 Logging
 ~~~~~~~
 
-To view validation logs you may want to enable debug level logging on the package ``org.locationtech.geomesa.convert``.
+To view validation logs you can enable debug level logging on the package ``org.locationtech.geomesa.convert``.
+
+By default, logging will just show the field that failed. To show the entire record, along with the stack trace,
+you can set ``options.verbose = true``.
 
 Transactional Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Most of the datastores that GeoMesa works with (Accumulo, HBase, etc) do not provide transactions. Therefore, streaming
 data in and out of a converter and into an ingest pipeline is not transactional. To mimic transactions you can use
-a batch parse mode with ``raise-errors`` validation mode and likely with the ``z-index`` validator. Note that this may
+a batch parse mode with ``raise-errors`` error mode and likely with the ``z-index`` validator. Note that this may
 increase your memory requirements and hurt performance:
 
 ::
 
     geomesa.converters.myconverter {
-        options {
-            validators = ["z-index"]
-            parse-mode = "batch"
-            validation-mode = "raise-errors"
-        }
+      options {
+        validators = [ "z-index" ]
+        parse-mode = "batch"
+        error-mode = "raise-errors"
+      }
     }
 
-If you need notification of bad input data you may consider using a validation mode of ``raise-errors`` with an
+If you need notification of bad input data you may consider using an error mode of ``raise-errors`` with an
 incremental parse mode:
 
 ::
 
     geomesa.converters.myconverter {
-        options {
-            validators = ["z-index"]
-            parse-mode = "incremental"
-            validation-mode = "raise-errors"
-        }
+      options {
+        validators = [ "z-index" ]
+        parse-mode = "incremental"
+        error-mode = "raise-errors"
+      }
     }
 
 If you are using a framework such as the GeoMesa Nifi processor, then the file will still be routed to an error
 relationship but you may experience partially ingested data. See :doc:`/user/nifi` for more info.
-

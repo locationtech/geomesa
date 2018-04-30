@@ -8,21 +8,25 @@
 
 package org.locationtech.geomesa.hbase.coprocessor
 
-import java.io._
+import java.io.{InterruptedIOException, _}
+import java.util.Collections
+import java.util.concurrent._
 
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.{ByteString, RpcCallback, RpcController, Service}
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.client.coprocessor.Batch.Call
 import org.apache.hadoop.hbase.client.{Scan, Table}
 import org.apache.hadoop.hbase.coprocessor.{CoprocessorException, CoprocessorService, RegionCoprocessorEnvironment}
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.FilterList
-import org.apache.hadoop.hbase.ipc.BlockingRpcCallback
 import org.apache.hadoop.hbase.protobuf.ResponseConverter
 import org.apache.hadoop.hbase.{Coprocessor, CoprocessorEnvironment}
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -61,6 +65,9 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       val results = ArrayBuffer.empty[Array[Byte]]
       scanList.foreach { scan =>
         scan.setFilter(filterList)
+        // Enable Visibilities by delegating to the Region Server configured Coprocessors
+        env.getRegion.getCoprocessorHost.preScannerOpen(scan)
+
         // TODO: Explore use of MultiRangeFilter
         val scanner = env.getRegion.getScanner(scan)
         aggregator.setScanner(scanner)
@@ -91,9 +98,15 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
   }
 }
 
-object GeoMesaCoprocessor {
+object GeoMesaCoprocessor extends LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   val AggregatorClass = "geomesa.hbase.aggregator.class"
+
+  private val executor =
+    MoreExecutors.getExitingExecutorService(Executors.newCachedThreadPool().asInstanceOf[ThreadPoolExecutor])
+  sys.addShutdownHook(executor.shutdownNow())
 
   /**
     * Executes a geomesa coprocessor
@@ -102,25 +115,75 @@ object GeoMesaCoprocessor {
     * @param options configuration options
     * @return serialized results
     */
-  def execute(table: Table, options: Array[Byte]): List[ByteString] = {
-    val requestArg = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
+  def execute(table: Table, options: Array[Byte]): CloseableIterator[ByteString] = {
+
+    val request = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
+
+    val calls = Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap[Future[_], java.lang.Boolean]())
 
     val callable = new Call[GeoMesaCoprocessorService, java.util.List[ByteString]]() {
       override def call(instance: GeoMesaCoprocessorService): java.util.List[ByteString] = {
         val controller: RpcController = new GeoMesaHBaseRpcController()
-        val rpcCallback = new BlockingRpcCallback[GeoMesaCoprocessorResponse]()
-        instance.getResult(controller, requestArg, rpcCallback)
-        val response: GeoMesaCoprocessorResponse = rpcCallback.get
+
+        val call = new Callable[java.util.List[ByteString]]() {
+          override def call(): java.util.List[ByteString] = {
+            val rpcCallback = new RpcCallbackImpl()
+            // note: synchronous call
+            instance.getResult(controller, request, rpcCallback)
+            rpcCallback.get()
+          }
+        }
+
+        val future = executor.submit(call)
+        calls.add(future)
+
+        // block on the result
+        val response = try { future.get() } catch {
+          case e @ (_ : InterruptedException | _ : InterruptedIOException | _: CancellationException) =>
+            logger.warn("Cancelling remote coprocessor call")
+            controller.startCancel()
+            null
+        }
+
+        calls.remove(future)
+
         if (controller.failed()) {
           throw new IOException(controller.errorText())
         }
-        response.getPayloadList
+
+        response
       }
     }
 
-    val callBack: GeoMesaHBaseCallBack = new GeoMesaHBaseCallBack()
+    new CloseableIterator[ByteString] {
 
-    table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, callable, callBack)
-    callBack.getResult
+      lazy private val result = {
+        val callBack = new GeoMesaHBaseCallBack()
+        try { table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, callable, callBack) } catch {
+          case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
+            logger.warn("Interrupted executing coprocessor query:", e)
+        }
+        callBack.getResult.iterator
+      }
+
+      override def hasNext: Boolean = result.hasNext
+
+      override def next(): ByteString = result.next
+
+      override def close(): Unit = calls.asScala.foreach(_.cancel(true))
+    }
+  }
+
+  /**
+    * Unsynchronized rpc callback
+    */
+  class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
+
+    private var result: java.util.List[ByteString] = _
+
+    def get(): java.util.List[ByteString] = result
+
+    override def run(parameter: GeoMesaCoprocessorResponse): Unit =
+      result = Option(parameter).map(_.getPayloadList).orNull
   }
 }

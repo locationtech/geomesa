@@ -26,6 +26,35 @@ class CloseableIteratorTest extends Specification with Mockito {
       iter.close()
       closed must beTrue
     }
+    "close with map" >> {
+      var closed = false
+      val iter = CloseableIterator(Iterator(0, 1), { closed = true }).map(i => i + 1)
+      closed must beFalse
+      iter.toSeq mustEqual Seq(1, 2)
+      closed must beFalse
+      iter.close()
+      closed must beTrue
+    }
+    "close with filter" >> {
+      var closed = false
+      val iter = CloseableIterator(Iterator(0, 1), { closed = true }).filter(i => i % 2 == 0)
+      closed must beFalse
+      iter.toSeq mustEqual Seq(0)
+      closed must beFalse
+      iter.close()
+      closed must beTrue
+    }
+    "close with collect" >> {
+      var closed = false
+      val iter = CloseableIterator(Iterator(0, 1), { closed = true }).collect {
+        case i if i % 2 == 0 => i + 1
+      }
+      closed must beFalse
+      iter.toSeq mustEqual Seq(1)
+      closed must beFalse
+      iter.close()
+      closed must beTrue
+    }
     "close with flatmap" >> {
       val closed0, closed1, closed2 = new CloseCounter()
       val result = CloseableIterator(Iterator(0, 1), closed0.close()).flatMap { i =>

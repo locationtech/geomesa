@@ -30,11 +30,14 @@ object ValidatorLoader {
       case unk => throw new IllegalArgumentException(s"Unknown validator $unk")
     }
 
-    val validator = if (validators.lengthCompare(1) == 0) {
-      validators.head
-    } else {
-      new CompositeValidator(validators)
-    }
+    val validator =
+      if (validators.isEmpty) {
+        NoneValidator
+      } else if (validators.lengthCompare(1) == 0) {
+        validators.head
+      } else {
+        new CompositeValidator(validators)
+      }
     validator.init(sft)
     validator
   }

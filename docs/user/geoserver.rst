@@ -148,23 +148,25 @@ specifics of how and where to manage the GeoServer logs.
 
 __ http://docs.geoserver.org/stable/en/user/configuration/logging.html
 
-Monitoring GeoMesa DataStores
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Auditing GeoMesa DataStores
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-GeoMesa DataStores can log query metrics as JSON via log4j.  To use this, there are two steps:
+GeoMesa data stores can audit query metrics. To enabled auditing, check the box for ``geomesa.query.audit``
+when registering the data store in GeoServer.
 
-First, GeoServer logging needs to log `TRACE` level messages in the ``org.locationtech.geomesa.utils.monitoring`` package.
-To enable that logging, edit the GeoServer logging
-file (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``) and add entries like::
+The Accumulo data store will write audited queries to the ``<catalog>_queries`` table. Other data stores
+will generally write audited queries to logs. To configure an audit log, set the level for
+``org.locationtech.geomesa.utils.audit`` to ``DEBUG``. This can be accomplished by editing the GeoServer logging
+configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``)::
 
    log4j.appender.metrics=org.apache.log4j.FileAppender
    log4j.appender.metrics.File=metrics.log
    log4j.appender.metrics.layout=org.apache.log4j.PatternLayout
    log4j.appender.metrics.layout.ConversionPattern=%m%n
 
-   log4j.category.org.locationtech.geomesa.utils.monitoring=TRACE, metrics
+   log4j.logger.org.locationtech.geomesa.utils.audit=DEBUG, metrics
 
-Second as a DataStore is registered in GeoServer, the `collectQueryStats` box should be ticked for the store.
+See :ref:`audit_provider` for details on query attribution.
 
 GeoMesa GeoServer Extensions
 ----------------------------

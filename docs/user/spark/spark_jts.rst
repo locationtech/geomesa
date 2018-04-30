@@ -133,6 +133,39 @@ A complete list of the implemented UDFs is given in the next section (:doc:`./sp
 
 .. _OpenGIS Simple feature access SQL option: http://www.opengeospatial.org/standards/sfs
 
+GeoJSON Output
+^^^^^^^^^^^^^^
+
+The Spark JTS module also provides a means of exporting a ``DataFrame`` to a `GeoJSON <http://geojson.org/>`__ string.
+This allows for quick visualization of the data in many front-end mapping libraries that support GeoJSON input such as
+Leaflet or Open Layers.
+
+To convert a DataFrame, import the implicit conversion and invoke the ``toGeoJSON`` method.
+
+.. code-block:: scala
+
+    import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+    val df : DataFrame = // Some data frame
+    val geojsonDf = df.toGeoJSON
+
+Given only the schema, the converter can infer which of the fields holds the geometry, but in the event of multiple
+geometric fields, it defaults to the first such field. This behavior can be overridden by providing the index (starting
+from 0) of the desired geometry in the schema. For example, ``df.toGeoJSON(2)`` if the desired geometry is the third field
+of the schema.
+
+If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
+write to a distributed file system like HDFS.
+
+.. code:: scala
+
+    val geoJsonString = geojsonDF.collect.mkString("[",",","]")
+
+.. note::
+
+    For this to work, the Data Frame should have a geometry field, meaning its schema should have a ``StructField`` that
+    is one of the JTS geometry types provided in this module. It is acceptable, however, if some of the rows have null
+    geometries. In such a case, ``null`` will be written as the value of the geometry in GeoJSON.
+
 Building
 ^^^^^^^^
 
