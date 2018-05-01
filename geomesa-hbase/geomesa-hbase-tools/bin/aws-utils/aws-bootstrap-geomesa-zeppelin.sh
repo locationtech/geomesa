@@ -23,7 +23,7 @@ log "Installing GeoPySpark"
 sudo yum install -q -y python36 gcc python-devel
 sudo python36 -m pip install --upgrade pip
 # We need to install jupyter get ipython in zeppelin through the %python.ipython magic
-sudo python36 -m pip install pandas jupyter grpcio
+sudo python36 -m pip install pandas jupyter grpcio folium matplotlib
 
 gpsversion="%%geopyspark.version%%"
 pushd /opt/

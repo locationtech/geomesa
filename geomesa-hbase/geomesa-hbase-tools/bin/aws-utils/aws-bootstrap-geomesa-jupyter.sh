@@ -29,7 +29,8 @@ if [[ "$EUID" -ne 0 ]]; then
   exit
 fi
 
-user="hadoop"
+user="jupyter"
+sudo useradd $user
 
 JUPYTER_PASSWORD=$1
 if [[ -z "${JUPYTER_PASSWORD}" ]]; then
@@ -42,7 +43,7 @@ sudo yum install -q -y python36 gcc python-devel
 
 log "Installing Jupyter"
 sudo python36 -m pip install --upgrade pip
-sudo python36 -m pip install jupyter pandas
+sudo python36 -m pip install jupyter pandas folium matplotlib
 
 log "Installing GeoPySpark"
 gpsversion="%%geopyspark.version%%"

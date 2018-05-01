@@ -272,7 +272,7 @@ if [[ 1 -eq $(echo "${TaskCount#*=} > 0" | bc) ]]; then
   TaskGroup=$(joinBy , ${arr[@]})
 fi
 
-echo "Starting GeoMesa AWS EMR Bootstrap Process"
+echo "\n || Starting GeoMesa AWS EMR Bootstrap Process ||\n"
 
 # Create a temp working dir
 TMP_DIR=/tmp/geomesa-aws-bootstrap
@@ -362,7 +362,7 @@ cmd="
     --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}.aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
 "
 
-echo "Ready to create cluster with command:"
+echo "\n || Ready to create cluster with command:"
 echo ""
 echo $cmd
 echo ""
