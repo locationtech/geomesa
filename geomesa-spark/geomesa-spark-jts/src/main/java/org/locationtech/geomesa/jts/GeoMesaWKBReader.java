@@ -169,8 +169,8 @@ public class GeoMesaWKBReader {
         if(byteOrderWKB == WKBConstants.wkbNDR)
         {
             throw new IllegalArgumentException("Endian change!");
-            //bb.order(ByteOrder.LITTLE_ENDIAN);
-            //System.out.println("Little endian " +  bb.order());
+//            bb.order(ByteOrder.LITTLE_ENDIAN);
+//            System.out.println("Little endian " +  bb.order());
 
 //            dis.setOrder(ByteOrderValues.LITTLE_ENDIAN);
         }
@@ -344,7 +344,7 @@ public class GeoMesaWKBReader {
         ByteBuffer bb2 = ByteBuffer.wrap(inputBytes, current, length); //.order(bb.order());
         bb.position(current + length);
 
-        return new ByteBufferCoordinateSequence(bb2, inputDimension);
+        return new ByteBufferCoordinateSequence(bb2, inputDimension, size);
     }
 
     private CoordinateSequence readCoordinateSequenceLineString(int size) throws IOException

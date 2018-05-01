@@ -12,6 +12,8 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
     private int dimension;
     private int stride;
     private int doubleSize = 8;
+    private int size;
+    private Coordinate[] coordinates;
 
 
     @Override
@@ -21,9 +23,13 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
 
     @Override
     public Coordinate getCoordinate(int i) {
-        double x = bb.getDouble(bb.position() + i*stride);
-        double y = bb.getDouble(bb.position() + i*stride+doubleSize);
-        return new Coordinate(x, y);
+//        if (coordinates != null) {
+//            return coordinates[i];
+//        } else {
+            double x = bb.getDouble(bb.position() + i * stride);
+            double y = bb.getDouble(bb.position() + i * stride + doubleSize);
+            return new Coordinate(x, y);
+//        }
     }
 
     @Override
@@ -53,7 +59,7 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
 
     @Override
     public int size() {
-        return bb.limit() / (doubleSize * dimension);
+        return (bb.limit() - bb.position()) / (doubleSize * dimension);
     }
 
     @Override
@@ -63,13 +69,21 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
 
     @Override
     public Coordinate[] toCoordinateArray() {
-        throw new IllegalArgumentException("Nope");
-        //return new Coordinate[0];
+        if (coordinates == null) {
+            coordinates = new Coordinate[size];
+            for (int i = 0; i < size(); i++ ) {
+                coordinates[i] = getCoordinate(i);
+            }
+        }
+        return coordinates;
     }
 
     @Override
     public Envelope expandEnvelope(Envelope env) {
-        throw new IllegalArgumentException("Nope");
+        for (int i = 0; i < size(); i++ ) {
+            env.expandToInclude(getX(i), getY(i));
+        }
+        return env;
     }
 
     @Override
@@ -77,9 +91,10 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
         throw new IllegalArgumentException("Nope");
     }
 
-    public ByteBufferCoordinateSequence(ByteBuffer bb, int dimension) {
+    public ByteBufferCoordinateSequence(ByteBuffer bb, int dimension, int size) {
         this.bb = bb;
         this.dimension = dimension;
         this.stride = dimension*doubleSize;
+        this.size = size;
     }
 }

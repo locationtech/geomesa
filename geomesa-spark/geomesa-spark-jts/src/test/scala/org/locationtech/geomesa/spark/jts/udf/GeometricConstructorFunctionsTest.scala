@@ -37,7 +37,8 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
           """.stripMargin
       )
 
-      val boxCoords = r.collect().head.getAs[Geometry](0).getCoordinates
+      val boundary  = r.collect().head.getAs[Geometry](0)
+      val boxCoords =  boundary.getCoordinates
       val ll = boxCoords(0)
       val ur = boxCoords(2)
       boxCoords.length mustEqual 5
@@ -286,7 +287,8 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
         """.stripMargin
       )
       val expected = WKTUtils.read("MULTILINESTRING((0 0, 1 1, 2 2), (0 1, 1 2, 2 3))")
-      r.collect().head.getAs[MultiLineString](0) mustEqual expected
+      val mls = r.collect().head.getAs[MultiLineString](0)
+      mls mustEqual expected
       dfBlank.select(st_mLineFromText(line)).first mustEqual expected
     }
 

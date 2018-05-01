@@ -191,6 +191,9 @@ public class GeoMesaWKBReaderTest  extends TestCase
         public void test2dWKT() throws ParseException {
             // Point
             checkWKTGeometry("POINT(1 2)");
+            checkWKTGeometry("MULTIPOINT((0 0), (1 1))");
+            checkWKTGeometry("MULTILINESTRING((0 0, 1 1, 2 2), (0 1, 1 2, 2 3))");
+
         }
 
     /**
