@@ -8,6 +8,7 @@
 
 package org.apache.spark.sql
 
+import org.apache.spark.sql.catalyst.analysis.FunctionRegistry
 import org.apache.spark.sql.types.UDTRegistration
 
 package object jts {
@@ -15,6 +16,10 @@ package object jts {
    * This must be called before any JTS types are used.
    */
   def registerTypes(): Unit = registration
+
+  def registry(sqlContext: SQLContext): FunctionRegistry = {
+    sqlContext.sessionState.functionRegistry
+  }
 
   /** Trick to defer initialization until `registerUDTs` is called,
    * and ensure its only called once per ClassLoader.

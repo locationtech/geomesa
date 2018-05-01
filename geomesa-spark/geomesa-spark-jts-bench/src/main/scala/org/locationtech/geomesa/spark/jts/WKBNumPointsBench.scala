@@ -26,7 +26,7 @@ import org.openjdk.jmh.annotations._
 class WKBNumPointsBench {
 
   //  @Param(Array("POINT", "LINESTRING", "POLYGON_1", "POLYGON_2", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON"))
-  @Param(Array("POINT", "LINESTRING", "MULTIPOINT", "MULTIPOLYGON"))
+  @Param(Array("POINT", "LINESTRING", "MULTIP OINT", "MULTIPOLYGON"))
   var testCase: String = _
 
   @transient
