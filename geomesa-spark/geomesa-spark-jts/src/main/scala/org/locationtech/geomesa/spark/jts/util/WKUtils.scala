@@ -25,7 +25,20 @@ trait WKTUtils {
   def write(g: Geometry): String = writerPool.get.write(g)
 }
 
-trait WKBUtils {
+trait JTSWKBUtils {
+  private[this] val readerPool = new ThreadLocal[WKBReader]{
+    override def initialValue = new WKBReader
+  }
+  private[this] val writerPool = new ThreadLocal[WKBWriter]{
+    override def initialValue = new WKBWriter
+  }
+
+  def read(s: String): Geometry = read(s.getBytes)
+  def read(b: Array[Byte]): Geometry = readerPool.get.read(b)
+  def write(g: Geometry): WKBData = writerPool.get.write(g).asInstanceOf[WKBData]
+}
+
+trait GMWKBUtils {
   private[this] val readerPool = new ThreadLocal[GeoMesaWKBReader]{
     override def initialValue = new GeoMesaWKBReader
   }
@@ -39,7 +52,13 @@ trait WKBUtils {
 }
 
 object WKTUtils extends WKTUtils
-object WKBUtils extends WKBUtils {
+
+object GMWKBUtils extends GMWKBUtils {
+  trait RawWKB
+  type WKBData = Array[Byte] with RawWKB
+}
+
+object WKBUtils extends JTSWKBUtils {
   trait RawWKB
   type WKBData = Array[Byte] with RawWKB
 }

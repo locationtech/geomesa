@@ -11,8 +11,9 @@ package org.locationtech.geomesa.spark.jts
 
 import java.util.concurrent.TimeUnit
 
+import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.locationtech.geomesa.spark.jts.util.WKBUtils.WKBData
-import org.locationtech.geomesa.spark.jts.util.{WKBDirectReader, WKBUtils, WKTUtils}
+import org.locationtech.geomesa.spark.jts.util.{GMWKBUtils, WKBDirectReader, WKBUtils, WKTUtils}
 import org.openjdk.jmh.annotations._
 
 
@@ -20,11 +21,12 @@ import org.openjdk.jmh.annotations._
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Fork(1)
-@Warmup(iterations = 5)
-@Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 3)
+@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 class WKBNumPointsBench {
 
-  @Param(Array("POINT", "LINESTRING", "MULTIPOINT"))
+  //  @Param(Array("POINT", "LINESTRING", "POLYGON_1", "POLYGON_2", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON"))
+  @Param(Array("POINT", "LINESTRING", "MULTIPOINT", "MULTIPOLYGON"))
   var testCase: String = _
 
   @transient
@@ -38,14 +40,68 @@ class WKBNumPointsBench {
   }
 
   @Benchmark
-  def deserializeNumPoints: Int = {
+  def jtsdeserializeNumPoints: Int = {
     val geom = WKBUtils.read(wkb)
+    geom.getNumPoints
+  }
+
+  @Benchmark
+  def gmDeserializeNumPoints: Int = {
+    val geom = GMWKBUtils.read(wkb)
     geom.getNumPoints
   }
 
   @Benchmark
   def directNumPoints: Int = {
     WKBDirectReader.getNumPoints(wkb)
+  }
+
+  @Benchmark
+  def jtsCentroid: Point = {
+    val geom = WKBUtils.read(wkb)
+    geom.getCentroid
+  }
+
+  @Benchmark
+  def gmCentroid: Point = {
+    val geom = WKBUtils.read(wkb)
+    geom.getCentroid
+  }
+
+  @Benchmark
+  def jtsEnvelope: Geometry = {
+    val geom = WKBUtils.read(wkb)
+    geom.getEnvelope
+  }
+
+  @Benchmark
+  def gmEnvelope: Geometry = {
+    val geom = WKBUtils.read(wkb)
+    geom.getEnvelope
+  }
+
+  @Benchmark
+  def jtsLength: Double = {
+    val geom = WKBUtils.read(wkb)
+    geom.getLength
+  }
+
+  @Benchmark
+  def gmLength: Double = {
+    val geom = WKBUtils.read(wkb)
+    geom.getLength
+  }
+
+  @Benchmark
+  def jtsLastGeom: Geometry = {
+    val geom = WKBUtils.read(wkb)
+    geom.getGeometryN(geom.getNumGeometries - 1)
+  }
+
+  @Benchmark
+  def gmLastGeom: Geometry = {
+    val geom = WKBUtils.read(wkb)
+    geom.getGeometryN(geom.getNumGeometries - 1)
   }
 }
 
