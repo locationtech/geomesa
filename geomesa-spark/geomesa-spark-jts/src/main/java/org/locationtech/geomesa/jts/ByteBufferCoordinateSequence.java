@@ -42,12 +42,15 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
 
     @Override
     public Coordinate getCoordinateCopy(int i) {
-        return null;
+        return getCoordinate(i);
     }
 
+    // JNH:  Interface says that only deals with X,Y.
+    // CoordinateArraySequence deals with XYZ.
     @Override
     public void getCoordinate(int index, Coordinate coord) {
-        throw new IllegalArgumentException("Nope");
+        coord.x = getX(index);
+        coord.y = getY(index);
     }
 
     @Override
@@ -67,12 +70,13 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
 
     @Override
     public int size() {
-        return (bb.limit() - bb.position()) / (doubleSize * dimension);
+        return size;
+        //return (bb.limit() - bb.position()) / (doubleSize * dimension);
     }
 
     @Override
     public void setOrdinate(int index, int ordinateIndex, double value) {
-
+      bb.putDouble(bb.position() + index*stride + doubleSize * ordinateIndex, value);
     }
 
     @Override
@@ -96,7 +100,7 @@ public class ByteBufferCoordinateSequence implements CoordinateSequence, Seriali
 
     @Override
     public Object clone() {
-        throw new IllegalArgumentException("Nope");
+        return new ByteBufferCoordinateSequence(this.bb, this.dimension, this.size);
     }
 
     public ByteBufferCoordinateSequence(ByteBuffer bb, int dimension, int size) {
