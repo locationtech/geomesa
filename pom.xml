@@ -2746,6 +2746,7 @@
                             <validHeader>build/copyright/dstl-copyright-2017.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
+                            <validHeader>build/copyright/astraea.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>2018</year>

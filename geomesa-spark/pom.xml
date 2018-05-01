@@ -18,6 +18,7 @@
         <module>geomesa-spark-jts</module>
         <module>geomesa-spark-sql</module>
         <module>geomesa_pyspark</module>
+        <module>geomesa-spark-jts-bench</module>
     </modules>
 
 </project>

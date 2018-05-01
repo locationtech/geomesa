@@ -11,6 +11,7 @@ package org.locationtech.geomesa.spark.jts.util
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io._
 import org.locationtech.geomesa.jts.GeoMesaWKBReader
+import org.locationtech.geomesa.spark.jts.util.WKBUtils.WKBData
 
 trait WKTUtils {
   private[this] val readerPool = new ThreadLocal[WKTReader]{
@@ -34,8 +35,11 @@ trait WKBUtils {
 
   def read(s: String): Geometry = read(s.getBytes)
   def read(b: Array[Byte]): Geometry = readerPool.get.read(b)
-  def write(g: Geometry): Array[Byte] = writerPool.get.write(g)
+  def write(g: Geometry): WKBData = writerPool.get.write(g).asInstanceOf[WKBData]
 }
 
 object WKTUtils extends WKTUtils
-object WKBUtils extends WKBUtils
+object WKBUtils extends WKBUtils {
+  trait RawWKB
+  type WKBData = Array[Byte] with RawWKB
+}
