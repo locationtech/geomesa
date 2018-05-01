@@ -177,7 +177,7 @@ public class GeoMesaWKBReader {
         else if(byteOrderWKB == WKBConstants.wkbXDR)
         {
             bb.order(ByteOrder.BIG_ENDIAN);
-            System.out.println("Big endian " +  bb.order());
+            //System.out.println("Big endian " +  bb.order());
 //            dis.setOrder(ByteOrderValues.BIG_ENDIAN);
         }
         else if(isStrict)
