@@ -142,7 +142,7 @@ class SynchronizedQuadtreeWithMetrics extends SynchronizedQuadtree[Point] {
   val totalReads = new AtomicLong()
   val totalWrites = new AtomicLong()
 
-  override protected[index] def withLock[T](lock: Lock)(fn: => T) = {
+  override protected [index] def withLock[U](lock: Lock)(fn: => U): U = {
     val start = System.currentTimeMillis()
     lock.lock()
     val time = System.currentTimeMillis() - start

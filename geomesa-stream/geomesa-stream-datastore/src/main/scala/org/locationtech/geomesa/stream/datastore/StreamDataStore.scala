@@ -65,21 +65,30 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
   
   val sft = source.sft
   source.init()
-  val qt = new SynchronizedQuadtree[SimpleFeature]
 
-  val cb = {
+  private val qt = new SpatialIndexSupport() {
+    override val sft: SimpleFeatureType = StreamDataStore.this.sft
+    override val index: SpatialIndex[SimpleFeature] = new SynchronizedQuadtree[SimpleFeature]
+
+    override def query(f: Filter): Iterator[SimpleFeature] = f match {
+      case Filter.INCLUDE    => features.asMap().valuesIterator.map(_.sf)
+      case id: FidFilterImpl => id.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
+      case _                 => super.query(f)
+    }
+  }
+
+  private val features: Cache[String, FeatureHolder] = {
     val builder = Caffeine.newBuilder()
     if (timeout > 0) { builder.expireAfterWrite(timeout, TimeUnit.SECONDS) }
     builder.removalListener(
       new RemovalListener[String, FeatureHolder] {
         override def onRemoval(k: String, v: FeatureHolder, removalCause: RemovalCause): Unit = {
-          qt.remove(v.env, v.sf)
+          qt.index.remove(v.env, v.sf.getID)
         }
       }
     )
+    builder.build[String, FeatureHolder]()
   }
-
-  private val features = cb.build[String, FeatureHolder]()
 
   private val listeners = new CopyOnWriteArrayList[StreamListener]()
 
@@ -92,7 +101,7 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
             val sf = source.next
             if(sf != null) {
               val env = sf.geometry.getEnvelopeInternal
-              qt.insert(env, sf)
+              qt.index.insert(env, sf.getID, sf)
               features.put(sf.getID, FeatureHolder(sf, env))
               listeners.foreach { l =>
                 try {
@@ -133,9 +142,8 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
 class StreamFeatureStore(entry: ContentEntry,
                          query: Query,
                          features: Cache[String, FeatureHolder],
-                         val spatialIndex: SpatialIndex[SimpleFeature],
-                         val sft: SimpleFeatureType)
-  extends ContentFeatureStore(entry, query) with SpatialIndexSupport {
+                         support: SpatialIndexSupport,
+                         sft: SimpleFeatureType) extends ContentFeatureStore(entry, query) {
 
   override def canFilter: Boolean = true
 
@@ -146,15 +154,7 @@ class StreamFeatureStore(entry: ContentEntry,
 
   override def getCountInternal(query: Query): Int = SelfClosingIterator(getReaderInternal(query)).length
 
-  override def getReaderInternal(query: Query): FR = reader(this.query(query.getFilter))
-
-  override def allFeatures(): Iterator[SimpleFeature] = features.asMap().valuesIterator.map(_.sf)
-
-  override def query(f: Filter): Iterator[SimpleFeature] =
-    f match {
-      case id: FidFilterImpl => id.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
-      case _                 => super.query(f)
-    }
+  override def getReaderInternal(query: Query): FR = reader(support.query(query.getFilter))
 
   override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
 

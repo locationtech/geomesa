@@ -21,6 +21,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.{AttributeReference, Expression, GenericRowWithSchema, ScalaUDF}
+import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.sources.{Filter, _}
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
 import org.apache.spark.storage.StorageLevel
@@ -30,12 +31,11 @@ import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
+import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.apache.spark.sql.jts.JTSTypes
-import org.locationtech.geomesa.spark.jts.util.WKTUtils
 
 import scala.collection.Iterator
 import scala.collection.JavaConversions._
@@ -400,7 +400,7 @@ object RelationUtils extends LazyLogging {
         val sft = SimpleFeatureTypes.createType(typeName,encodedSft)
         val engineStore = RelationUtils.indexIterator(sft, indexId, indexGeom)
         val engine = engineStore.namesToEngine(typeName)
-        engine.addAll(iter.toList)
+        engine.insert(iter.toList)
         Iterator(engineStore)
     }
   }
@@ -414,7 +414,7 @@ object RelationUtils extends LazyLogging {
       val sft = SimpleFeatureTypes.createType(typeName,encodedSft)
       val engineStore = RelationUtils.indexIterator(sft, indexId, indexGeom)
       val engine = engineStore.namesToEngine(typeName)
-      engine.addAll(iter)
+      engine.insert(iter)
       engineStore
     }
   }
