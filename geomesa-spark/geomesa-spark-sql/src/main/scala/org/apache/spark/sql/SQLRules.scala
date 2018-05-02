@@ -8,23 +8,24 @@
 
 package org.apache.spark.sql
 
+import java.util.Date
+
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
-import org.apache.spark.sql.jts.JTSTypes._
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
-import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
+import org.apache.spark.sql.types.{DataTypes, StructType}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
+import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils}
 import org.opengis.filter.expression.{Expression => GTExpression}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
 
 import scala.collection.JavaConversions._
-import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 
 object SQLRules extends LazyLogging {
   @transient
@@ -111,12 +112,11 @@ object SQLRules extends LazyLogging {
 
   def sparkExprToGTExpr(expr: Expression): Option[GTExpression] = {
     expr match {
-      case GeometryLiteral(_, geom) =>
-        Some(ff.literal(geom))
-      case AttributeReference(name, _, _, _) if !name.equals("__fid__") =>
-        Some(ff.property(name))
-      case Literal(value, _) =>
-        Some(ff.literal(value))
+      case GeometryLiteral(_, geom) => Some(ff.literal(geom))
+      case AttributeReference(name, _, _, _) if !name.equals("__fid__") => Some(ff.property(name))
+      // note: timestamps are defined in microseconds
+      case Literal(value, DataTypes.TimestampType) => Some(ff.literal(new Date(value.asInstanceOf[Long] / 1000)))
+      case Literal(value, _) => Some(ff.literal(value))
       case _ =>
         logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
         None

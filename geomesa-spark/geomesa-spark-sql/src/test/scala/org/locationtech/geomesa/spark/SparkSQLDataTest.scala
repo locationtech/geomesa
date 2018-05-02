@@ -184,9 +184,9 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val noPushdown = sc.sql("select geom from chicago where __fid__ = 1")
       val noPushdownPlan = noPushdown.queryExecution.optimizedPlan
 
-      pushdownPlan.children.head.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
-      pushdownDFPlan.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
-      noPushdownPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains at top level
+      pushdownPlan.children.head must beAnInstanceOf[LogicalRelation] // filter is pushed down
+      pushdownDFPlan must beAnInstanceOf[LogicalRelation] // filter is pushed down
+      noPushdownPlan.children.head must beAnInstanceOf[Filter] // filter remains at top level
     }
 
     "pushdown attribute comparison filters" >> {
@@ -205,6 +205,30 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       pushdownLte.collect().map{ r=> r.get(0) } mustEqual Array(1, 2)
       pushdownGt.first().get(0) mustEqual 3
       pushdownGte.collect().map{ r=> r.get(0) } mustEqual Array(2, 3)
+    }
+
+    "pushdown date attribute comparison filters" >> {
+      val and = "select case_number from chicago where dtg > cast('2016-01-01T01:00:00Z' as timestamp) " +
+          "and dtg < cast('2016-01-02T01:00:00Z' as timestamp)"
+      val between = "select case_number from chicago where dtg between cast('2016-01-01T01:00:00Z' as timestamp) " +
+          "and cast('2016-01-02T01:00:00Z' as timestamp)"
+
+      foreach(Seq(and, between)) { select =>
+        val df = sc.sql(select)
+        df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
+        df.collect().map(_.get(0)) mustEqual Array(2)
+      }
+    }
+
+    "pushdown spatio-temporal filters" >> {
+      val sql = "select case_number from chicago where " +
+          "st_intersects(geom, st_makeBox2d(st_point(-77.5, 37.9), st_point(-76.5, 38.1))) and " +
+          "dtg between cast('2016-01-01T01:00:00Z' as timestamp) and cast('2016-01-03T01:00:00Z' as timestamp)"
+
+      val df = sc.sql(sql)
+      df.queryExecution.optimizedPlan.children must haveLength(1)
+      df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
+      df.collect().map(_.get(0)) mustEqual Array(2)
     }
 
     "st_translate" >> {
