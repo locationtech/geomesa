@@ -75,6 +75,7 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
     job.setMapOutputKeyClass(classOf[Text])
     job.setOutputValueClass(classOf[ScalaSimpleFeature])
     job.setNumReduceTasks(0)
+    job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
     job.getConfiguration.set("mapred.reduce.tasks.speculative.execution", "false")
     job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
 
