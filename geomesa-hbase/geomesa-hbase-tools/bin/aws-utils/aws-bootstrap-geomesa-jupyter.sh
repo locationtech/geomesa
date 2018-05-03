@@ -31,6 +31,8 @@ fi
 
 user="jupyter"
 sudo useradd $user
+sudo -u hadoop hdfs dfs -mkdir /user/$user
+sudo -u hadoop hdfs dfs -chown $user /user/$user
 
 JUPYTER_PASSWORD=$1
 if [[ -z "${JUPYTER_PASSWORD}" ]]; then
@@ -45,40 +47,25 @@ log "Installing Jupyter"
 sudo python36 -m pip install --upgrade pip
 sudo python36 -m pip install jupyter pandas folium matplotlib
 
-log "Installing GeoPySpark"
-gpsversion="%%geopyspark.version%%"
-pushd /opt/
-wget https://github.com/aheyne/geopyspark/archive/v${gpsversion}.tar.gz
-tar xf v${gpsversion}.tar.gz
-cd geopyspark-${gpsversion}
-sudo python36 -m pip install .
-cd /opt/geomesa
-sudo mkdir -p geopyspark/jars/
-cd geopyspark/jars/
-# File may have already been downloaded if zeppelin bootstrap also ran
-test -f geopyspark-assembly-${gpsversion}.jar \
-  || sudo wget https://github.com/aheyne/geopyspark/releases/download/v${gpsversion}/geopyspark-assembly-${gpsversion}.jar
-sudo cp /opt/geomesa/dist/spark/geomesa-hbase-spark-runtime*.jar .
-popd
+# Check if geomesa_pyspark is available and should be installed
+gm_pyspark=$%%gmtools.dist.name%%_HOME/dist/spark/geomesa_pyspark-*
+if ls $gm_pyspark 1> /dev/null 2>&1; then
+  log "Installing Geomesa Pyspark"
+  sudo python36 -m pip install $gm_pyspark
+else
+  log "[Warning] geomesa_pyspark is not available for install. Geomesa python interop will not be available. Rebuild the tools distribution with the 'python' profile to enable this functionality."
+fi
 
-#log "Installing s3fs-fuse"
-#export PKG_CONFIG_PATH=/usr/lib/pkgconfig
-#sudo yum install -y automake fuse fuse-devel gcc-c++ git libcurl-devel libxml2-devel make openssl-devel
-#
-#pushd /mnt
-#s3fsVersion=1.83
-#wget https://github.com/s3fs-fuse/s3fs-fuse/archive/v${s3fsVersion}.zip
-#unzip v${s3fsVersion}.zip
-#cd s3fs-fuse-${s3fsVersion}
-#./autogen.sh
-#./configure
-#make
-#sudo make install
-#mkdir -p /mnt/s3fs-cache
-#mkdir -p /mnt/$BUCKET
-#popd
+# Prepare runtime
+projectVersion="%%project.version%%"
+scalaBinVersion="%%scala.binary.version%%"
+runtimeJar="geomesa-hbase-spark-runtime_${scalaBinVersion}-${projectVersion}.jar"
+linkFile="/opt/geomesa/dist/spark/geomesa-hbase-spark-runtime.jar"
+[[ ! -h $linkFile ]] && sudo ln -s $runtimeJar $linkFile
 
 log "Generating Jupyter Notebook Config"
+notebookDir="${%%gmtools.dist.name%%_HOME}/examples/jupyter"
+sudo chown -R $user $notebookDir
 # This IP is the EC2 instance metadata service and is the recommended way to retrieve this information
 publicDNS=$(curl http://169.254.169.254/latest/meta-data/public-hostname)
 password=$((python36 -c "from notebook.auth import passwd; exit(passwd(\"${JUPYTER_PASSWORD}\"))") 2>&1)
@@ -87,7 +74,7 @@ notebookConf="${notebookRes[-1]}"
 rm -f ${notebookConf}
 cat > ${notebookConf} <<EOF
 c.NotebookApp.ip = '${publicDNS}'
-c.NotebookApp.notebook_dir = u'${%%gmtools.dist.name%%_HOME}/examples/'
+c.NotebookApp.notebook_dir = u'$notebookDir'
 c.NotebookApp.open_browser = False
 c.NotebookApp.password = u'${password}'
 c.NotebookApp.port = 8888

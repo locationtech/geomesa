@@ -38,9 +38,10 @@
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
-            <useStrictFiltering>true</useStrictFiltering>
+            <!--<useStrictFiltering>true</useStrictFiltering>-->
             <includes>
                 <include>org.locationtech.geomesa:geomesa-hbase-spark*</include>
+                <include>org.locationtech.geomesa:geomesa_pyspark*</include>
             </includes>
         </dependencySet>
         <dependencySet>

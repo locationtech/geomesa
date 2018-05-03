@@ -1,5 +1,7 @@
 from py4j.java_gateway import java_import
-from pyspark import RDD
+from pyspark import RDD, SparkContext
+from pyspark.sql.types import UserDefinedType, StructField, BinaryType
+from pyspark.sql import Row
 
 
 class GeoMesaSpark:
@@ -49,3 +51,30 @@ class SpatialRDDProvider:
 
     def __pyrdd(self, jrdd):
         return RDD(self.jvm.SerDe.javaToPython(jrdd), self.sc)
+
+
+class GeometryUDT(UserDefinedType):
+    jvm = None
+
+    @classmethod
+    def sqlType(self):
+        return StructField("wkb", BinaryType(), False)
+
+    @classmethod
+    def module(cls):
+        return 'geomesa_pyspark'
+
+    @classmethod
+    def scalaUDT(cls):
+        return 'org.apache.spark.sql.jts.GeometryUDT'
+
+    def serialize(self, obj):
+        if obj is None:
+            return None
+        return Row(obj.toBytes)
+
+    def deserialize(self, datum):
+        if self.jvm is None:
+            self.jvm = SparkContext._active_spark_context._gateway.jvm
+            java_import(self.jvm, "org.locationtech.geomesa.spark.jts.util.JavaAbstractGeometryUDT")
+        return self.jvm.JavaAbstractGeometryUDT.deserialize(datum[0])

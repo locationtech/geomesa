@@ -225,6 +225,22 @@ else
   done
 fi
 
+# Check if geomesa_pyspark is available and prompt if missing
+gm_pyspark=$%%gmtools.dist.name%%_HOME/dist/spark/geomesa_pyspark-*
+if ! ls $gm_pyspark 1> /dev/null 2>&1 &&\
+  [[ $JUPYTER == true || $ZEPPELIN == true ]]; then
+  echo ""
+  echo " || Warning ||"
+  echo "geomesa_pyspark is not available for install. Geomesa python interop will not be available. Rebuild the tools distribution with the 'python' profile to enable this functionality."
+  echo ""
+  read -r -p "Continue? (Y/n) " confirm
+  confirm=${confirm,,} # lower-casing
+  if ! [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+    echo "Canceling"
+    exit 1
+  fi
+fi
+
 # Detect if we're on an existing AWS Instance and the user is just wanting to install software
 if [[ -f /mnt/var/lib/info/extraInstanceData.json ]]; then
   label=$(jq '.releaseLabel' /mnt/var/lib/info/extraInstanceData.json)
@@ -242,6 +258,7 @@ if [[ -f /mnt/var/lib/info/extraInstanceData.json ]]; then
     fi
 
     echo "Bootstrap Complete"
+    exit 0
   fi
 fi
 
@@ -272,7 +289,9 @@ if [[ 1 -eq $(echo "${TaskCount#*=} > 0" | bc) ]]; then
   TaskGroup=$(joinBy , ${arr[@]})
 fi
 
-echo "\n || Starting GeoMesa AWS EMR Bootstrap Process ||\n"
+echo ""
+echo " || Starting GeoMesa AWS EMR Bootstrap Process ||"
+echo ""
 
 # Create a temp working dir
 TMP_DIR=/tmp/geomesa-aws-bootstrap
@@ -289,19 +308,11 @@ mkdir $WORKING_DIR
 #echo "Run ID: ${RUN_ID}"
 #echo "Working directory: ${WORKING_DIR}"
 
-# Package these tools and upload them to the container
+# Package tools
 tarball="${WORKING_DIR}/%%gmtools.assembly.name%%-bin.tar.gz"
 pushd ${%%gmtools.dist.name%%_HOME}/..
 tar -czf "${tarball}" %%gmtools.assembly.name%%/*
 popd
-
-# Upload resources
-error=0
-aws ${AWS_PROFILE} s3 cp "${tarball}" "${CONTAINER}" || error=1
-aws ${AWS_PROFILE} s3 cp "${%%gmtools.dist.name%%_HOME}/bin/aws-utils/.aws-bootstrap-actions.sh" "${CONTAINER}" || error=1
-if [[ error == 1 ]]; then
-  echo "Failed to upload tools package" && exit 1
-fi
 
 # Setup hbase config
 hbase_conf=${WORKING_DIR}/hbase_conf.json
@@ -361,14 +372,23 @@ cmd="
     --configurations file://${hbase_conf}                                           \
     --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}.aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
 "
-
-echo "\n || Ready to create cluster with command:"
+echo ""
+echo " || Ready to create cluster with command:"
 echo ""
 echo $cmd
 echo ""
-read -r -p "Continue? (y/N) " confirm
+read -r -p " || Continue? (y/N) " confirm
 confirm=${confirm,,} # lower-casing
 if [[ $confirm =~ ^(yes|y) ]]; then
+  echo ""
+  # Upload tools resources
+  error=0
+  aws ${AWS_PROFILE} s3 cp "${tarball}" "${CONTAINER}" || error=1
+  aws ${AWS_PROFILE} s3 cp "${%%gmtools.dist.name%%_HOME}/bin/aws-utils/.aws-bootstrap-actions.sh" "${CONTAINER}" || error=1
+  if [[ error == 1 ]]; then
+    echo "Failed to upload tools package" && exit 1
+  fi
+
   # Create the cluster
   CID=$( eval ${cmd} )
   # If there is no CID then the command errored
@@ -384,6 +404,7 @@ echo "Cluster ID: ${CID}"
 # Load an initial value so later code works
 echo "Provisioning" > ${WORKING_DIR}/status.log
 aws ${AWS_PROFILE} s3 cp ${WORKING_DIR}/status.log ${CONTAINER}status.log
+echo ""
 status=""
 failed=""
 count=0
@@ -399,7 +420,7 @@ while [[ "${status}" != "Done" && "${status}" != Fail* && -z "${failed}" ]]; do
   esac
   failed=$(aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep -E "BOOTSTRAP_FAILURE|TERMINATING")
   status=$(aws ${AWS_PROFILE} s3 cp ${CONTAINER}status.log - | tail -n 1)
-  echo -ne "Bootstrap Status ${icon} ${status}                            \r" # Make sure we overwrite the longer messages
+  echo -ne " || Bootstrap Status ${icon} ${status}                            \r" # Make sure we overwrite the longer messages
   sleep 1
 done
 
@@ -411,7 +432,7 @@ if [[ "${status}" == Fail* || -n "${failed}" ]]; then
   rm -r "${WORKING_DIR}"
   exit 1
 else
-  echo -ne "Cluster is ready                                  \n"
+  echo -ne " || Cluster is ready                                  \n"
   # Write out useful addresses
   address=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep MasterPublicDnsName | cut -d "\"" -f 4`
   echo ""

@@ -109,6 +109,20 @@
 
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>python</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa_pyspark</artifactId>
+                    <version>${project.version}</version>
+                    <type>tar.gz</type>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>

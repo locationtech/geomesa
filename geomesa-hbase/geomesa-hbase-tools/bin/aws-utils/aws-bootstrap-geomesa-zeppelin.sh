@@ -19,27 +19,28 @@ function log() {
   echo "${timeStamp}| ${@}" | tee -a /tmp/bootstrap.log
 }
 
-log "Installing GeoPySpark"
+log "Installing Geomesa PySpark"
 sudo yum install -q -y python36 gcc python-devel
 sudo python36 -m pip install --upgrade pip
 # We need to install jupyter get ipython in zeppelin through the %python.ipython magic
 sudo python36 -m pip install pandas jupyter grpcio folium matplotlib
 
-gpsversion="%%geopyspark.version%%"
-pushd /opt/
-wget https://github.com/aheyne/geopyspark/archive/v${gpsversion}.tar.gz
-tar xf v${gpsversion}.tar.gz
-cd geopyspark-${gpsversion}
-sudo python36 -m pip install .
-cd /opt/geomesa
-sudo mkdir -p geopyspark/jars/
-cd geopyspark/jars/
-# File may have already been downloaded if jupyter bootstrap also ran
-test -f geopyspark-assembly-${gpsversion}.jar \
-  || sudo wget https://github.com/aheyne/geopyspark/releases/download/v${gpsversion}/geopyspark-assembly-${gpsversion}.jar
-sudo cp /opt/geomesa/dist/spark/geomesa-hbase-spark-runtime*.jar .
-popd
+# Check if geomesa_pyspark is available and should be installed
+gm_pyspark=$%%gmtools.dist.name%%_HOME/dist/spark/geomesa_pyspark-*
+if ls $gm_pyspark 1> /dev/null 2>&1; then
+  sudo python36 -m pip install $gm_pyspark
+else
+  log "[Warning] geomesa_pyspark is not available for install. Geomesa python interop will not be available. Rebuild the tools distribution with the 'python' profile to enable this functionality."
+fi
 
+# Prepare runtime
+projectVersion="%%project.version%%"
+scalaBinVersion="%%scala.binary.version%%"
+runtimeJar="geomesa-hbase-spark-runtime_${scalaBinVersion}-${projectVersion}.jar"
+linkFile="/opt/geomesa/dist/spark/geomesa-hbase-spark-runtime.jar"
+[[ ! -h $linkFile ]] && sudo ln -s $runtimeJar $linkFile
+
+# Shutdown notebook server so we can modify configuration
 sudo stop zeppelin
 
 sudo rm -r /var/lib/zeppelin/notebook/*
@@ -113,7 +114,7 @@ sudo cat > ${notebookConf} <<EOF
           "exclusions": []
         },
         {
-          "groupArtifactVersion": "/opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-2.0.0-SNAPSHOT.jar",
+          "groupArtifactVersion": "/opt/geomesa/dist/spark/geomesa-hbase-spark-runtime.jar",
           "local": false,
           "exclusions": []
         }
@@ -293,6 +294,12 @@ sudo cat > ${notebookConf} <<EOF
   ]
 }
 EOF
+
+zeppelin_env="/etc/zeppelin/conf/zeppelin-env.sh"
+notebookDir="${%%gmtools.dist.name%%_HOME}/examples/zeppelin/notebook"
+sudo bash -c "echo '' >> ${zeppelin_env}"
+sudo bash -c "echo 'export ZEPPELIN_NOTEBOOK_DIR=${notebookDir}' >> ${zeppelin_env}"
+sudo chown -R zeppelin:zeppelin $notebookDir
 
 sudo chown -R zeppelin:zeppelin /etc/zeppelin/conf/*
 sudo chmod -R 777 /opt/geomesa/logs/
