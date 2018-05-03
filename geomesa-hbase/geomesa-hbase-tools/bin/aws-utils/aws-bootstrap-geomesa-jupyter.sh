@@ -9,10 +9,13 @@
 # Bootstrap Script to install a GeoMesa Jupyter notebook
 #
 
-# Load common functions and setup
+projectVersion="%%project.version%%"
+scalaBinVersion="%%scala.binary.version%%"
+
 if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
-  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/../..; pwd)"
+  %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/../..; pwd)"
 fi
+GM_TOOLS_HOME="${%%gmtools.dist.name%%_HOME}"
 
 function log() {
   timeStamp=$(date +"%T")
@@ -21,12 +24,13 @@ function log() {
 
 if [[ "${1}" == "-h" || "${2}" == "--help" ]]; then
   echo "Usage: ./aws-bootstrap-geomesa-jupyter.sh <jupyter_password>"
+  exit 0
 fi
 
 # Verify that we are running in sudo mode
 if [[ "$EUID" -ne 0 ]]; then
   log "ERROR: Please run in sudo mode"
-  exit
+  exit 1
 fi
 
 user="jupyter"
@@ -40,31 +44,18 @@ if [[ -z "${JUPYTER_PASSWORD}" ]]; then
   log "Using default password: geomesa"
 fi
 
-log "Installing Python 3.6"
-sudo yum install -q -y python36 gcc python-devel
+sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-python.sh
 
 log "Installing Jupyter"
-sudo python36 -m pip install --upgrade pip
-sudo python36 -m pip install jupyter pandas folium matplotlib
+sudo python36 -m pip install jupyter pandas folium matplotlib geopandas
 
-# Check if geomesa_pyspark is available and should be installed
-gm_pyspark=$%%gmtools.dist.name%%_HOME/dist/spark/geomesa_pyspark-*
-if ls $gm_pyspark 1> /dev/null 2>&1; then
-  log "Installing Geomesa Pyspark"
-  sudo python36 -m pip install $gm_pyspark
-else
-  log "[Warning] geomesa_pyspark is not available for install. Geomesa python interop will not be available. Rebuild the tools distribution with the 'python' profile to enable this functionality."
-fi
-
-# Prepare runtime
-projectVersion="%%project.version%%"
-scalaBinVersion="%%scala.binary.version%%"
+# Prepare runtime (gm-hbase bootstrap may not have run)
 runtimeJar="geomesa-hbase-spark-runtime_${scalaBinVersion}-${projectVersion}.jar"
 linkFile="/opt/geomesa/dist/spark/geomesa-hbase-spark-runtime.jar"
 [[ ! -h $linkFile ]] && sudo ln -s $runtimeJar $linkFile
 
 log "Generating Jupyter Notebook Config"
-notebookDir="${%%gmtools.dist.name%%_HOME}/examples/jupyter"
+notebookDir="${GM_TOOLS_HOME}/examples/jupyter"
 sudo chown -R $user $notebookDir
 # This IP is the EC2 instance metadata service and is the recommended way to retrieve this information
 publicDNS=$(curl http://169.254.169.254/latest/meta-data/public-hostname)

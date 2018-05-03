@@ -9,33 +9,25 @@
 # Bootstrap Script to install a GeoMesa Jupyter notebook
 #
 
-# Load common functions and setup
+projectVersion="%%project.version%%"
+scalaBinVersion="%%scala.binary.version%%"
+
 if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
-  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/../..; pwd)"
+  %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/../..; pwd)"
 fi
+GM_TOOLS_HOME="${%%gmtools.dist.name%%_HOME}"
 
 function log() {
   timeStamp=$(date +"%T")
   echo "${timeStamp}| ${@}" | tee -a /tmp/bootstrap.log
 }
 
-log "Installing Geomesa PySpark"
-sudo yum install -q -y python36 gcc python-devel
-sudo python36 -m pip install --upgrade pip
+sudo ${GM_TOOLS_HOME}/bin/aws-utils/aws-bootstrap-geomesa-python.sh
+
 # We need to install jupyter get ipython in zeppelin through the %python.ipython magic
 sudo python36 -m pip install pandas jupyter grpcio folium matplotlib
 
-# Check if geomesa_pyspark is available and should be installed
-gm_pyspark=$%%gmtools.dist.name%%_HOME/dist/spark/geomesa_pyspark-*
-if ls $gm_pyspark 1> /dev/null 2>&1; then
-  sudo python36 -m pip install $gm_pyspark
-else
-  log "[Warning] geomesa_pyspark is not available for install. Geomesa python interop will not be available. Rebuild the tools distribution with the 'python' profile to enable this functionality."
-fi
-
-# Prepare runtime
-projectVersion="%%project.version%%"
-scalaBinVersion="%%scala.binary.version%%"
+# Prepare runtime (gm-hbase bootstrap may not have run)
 runtimeJar="geomesa-hbase-spark-runtime_${scalaBinVersion}-${projectVersion}.jar"
 linkFile="/opt/geomesa/dist/spark/geomesa-hbase-spark-runtime.jar"
 [[ ! -h $linkFile ]] && sudo ln -s $runtimeJar $linkFile
@@ -114,7 +106,7 @@ sudo cat > ${notebookConf} <<EOF
           "exclusions": []
         },
         {
-          "groupArtifactVersion": "/opt/geomesa/dist/spark/geomesa-hbase-spark-runtime.jar",
+          "groupArtifactVersion": "${linkFile}",
           "local": false,
           "exclusions": []
         }
@@ -296,11 +288,11 @@ sudo cat > ${notebookConf} <<EOF
 EOF
 
 zeppelin_env="/etc/zeppelin/conf/zeppelin-env.sh"
-notebookDir="${%%gmtools.dist.name%%_HOME}/examples/zeppelin/notebook"
+notebookDir="${GM_TOOLS_HOME}/examples/zeppelin/notebook"
 sudo bash -c "echo '' >> ${zeppelin_env}"
 sudo bash -c "echo 'export ZEPPELIN_NOTEBOOK_DIR=${notebookDir}' >> ${zeppelin_env}"
 sudo chown -R zeppelin:zeppelin $notebookDir
 
 sudo chown -R zeppelin:zeppelin /etc/zeppelin/conf/*
-sudo chmod -R 777 /opt/geomesa/logs/
+sudo chmod -R 777 ${GM_TOOLS_HOME}/logs/
 sudo start zeppelin

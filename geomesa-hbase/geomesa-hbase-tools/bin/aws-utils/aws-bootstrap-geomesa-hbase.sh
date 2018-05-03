@@ -7,6 +7,9 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
+projectVersion="%%project.version%%"
+scalaBinVersion="%%scala.binary.version%%"
+
 logFile=/tmp/bootstrap.log
 function log() {
   timeStamp=$(date +"%T")
@@ -21,17 +24,18 @@ fi
 
 GMUSER=hadoop
 
-# todo bootstrap from the current running location and ask the user if they want to 
-# install to /opt/geomesa ? Maybe prompt with a default of /opt/geomesa similar to
-# how the maven release plugin works?
-GMDIR="/opt/%%gmtools.assembly.name%%"
+# Get tools home location and bootstrap from there installing to /opt/geomesa
+if [[ -z "${GEOMESA_HBASE_HOME}" ]]; then
+  export GEOMESA_HBASE_HOME="$(cd "`dirname "$0"`"/../..; pwd)"
+fi
 
-if [[ ! -d "${GMDIR}" ]]; then
-  log "Unable to find geomesa directory at ${GMDIR}"
+if [[ ! -d "${GEOMESA_HBASE_HOME}" ]]; then
+  log "Unable to find geomesa directory at ${GEOMESA_HBASE_HOME}"
+  log "Set environment variable 'GEOMESA_HBASE_HOME' to fix this."
   exit 1
 fi
 
-log "Bootstrapping GeoMesa-HBase with version %%project.version%% installed at ${GMDIR}"
+log "Bootstrapping GeoMesa-HBase with version ${projectVersion} installed at ${GEOMESA_HBASE_HOME}"
 
 pip install --upgrade awscli
 
@@ -41,8 +45,7 @@ if [[ ! -d "/opt" ]]; then
 fi
 chmod a+rwx /opt
 
-ln -s ${GMDIR} /opt/geomesa
-export GEOMESA_HBASE_HOME=/opt/geomesa
+ln -s ${GEOMESA_HBASE_HOME} /opt/geomesa
 
 cat <<EOF > /etc/profile.d/geomesa.sh
 export GEOMESA_HBASE_HOME=/opt/geomesa
@@ -60,10 +63,22 @@ do
       ROOTDIR=`cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//'`
 done
 
-chown -R $GMUSER:$GMUSER ${GMDIR}
+chown -R $GMUSER:$GMUSER ${GEOMESA_HBASE_HOME}
+
+# Prepare runtime
+runtimeJar="geomesa-hbase-spark-runtime_${scalaBinVersion}-${projectVersion}.jar"
+linkFile="/opt/geomesa/dist/spark/geomesa-hbase-spark-runtime.jar"
+[[ ! -h $linkFile ]] && sudo ln -s $runtimeJar $linkFile
+
+# Add the hbase-site.xml to the spark runtime
+pushd ${GEOMESA_HBASE_HOME}/dist/spark/
+sudo -u $GMUSER cp /etc/hbase/conf/hbase-site.xml .
+sudo -u $GMUSER jar uf $runtimeJar hbase-site.xml
+sudo -u $GMUSER rm hbase-site.xml
+popd
 
 # Configure coprocessor auto-registration
-DISTRIBUTED_JAR_NAME=geomesa-hbase-distributed-runtime_2.11-%%project.version%%.jar
+DISTRIBUTED_JAR_NAME="geomesa-hbase-distributed-runtime_${scalaBinVersion}-${projectVersion}.jar"
 
 NL=$'\n'
 log "The HBase Root dir is ${ROOTDIR}."
@@ -98,12 +113,5 @@ EOF
 
 # Add hbase-site to conf dir for gmtools
 sudo -u $GMUSER cp /etc/hbase/conf/hbase-site.xml ${GEOMESA_HBASE_HOME}/conf/
-
-# Add the hbase-site.xml to the spark runtime
-pushd ${GEOMESA_HBASE_HOME}/dist/spark/
-sudo -u $GMUSER cp /etc/hbase/conf/hbase-site.xml .
-sudo -u $GMUSER jar uf geomesa-hbase-spark-runtime_2.11-%%project.version%%.jar hbase-site.xml
-sudo -u $GMUSER rm hbase-site.xml
-popd
 
 log "GeoMesa-HBase Bootstrap complete...log out and re-login to complete process"

@@ -68,3 +68,37 @@ GeoMesa tools classpath. The following properties are particularly relevant:
   number of HFiles
 * ``hbase.loadincremental.threads.max`` - can increase to speed up the bulk load. Increasing to match the number of
   region servers may be appropriate.
+
+``aws``
+^^^^^^^
+
+Bootstrap a AWS EMR cluster with GeoMesa on HBase installed and configured with optional notebook
+servers Jupyter or Zeppelin. If the GeoMesa-HBase tools distribution is built with the python maven
+profile then geomesa_pyspark will additionally be available in the notebook servers.
+
+.. warning::
+
+  This command is not intended for production use. It is intended to act as a quickstart and analyst tool, providing quick setup for ephemeral clusters.
+
+In order to you this command you must have access to and the ability to use:
+
+* AWS CLI Tools provided by Amazon and configured with your AWS credentials.
+* Read and Write access to a S3 Bucket. Additionally, the EC2 VPC that will contain your EMR cluster must have read and write access to the same S3 Bucket.
+
+.. note::
+
+  If you wish to use GeoMesa's PySpark support you will need to rebuild the `geomesa-hbase-dist_$VERSION` with the `python` maven profile.
+
+The complete list of parameters are available by running the command ``bin/geomesa-hbase aws``. Some of the key parameters are described here:
+
+* ``--container`` - S3 Bucket URL to use as the HBase root and bootstrap working directory
+* ``--read-only`` - Start HBase in read only mode. This will not permit ingest of data but allows multiple HBase clusters to read from the same S3 root directory.
+* ``--jupyter`` - Specifying this parameter will install and configure a Jupyter notebook on the cluster master. Additionally, you can specify a password to use for the Jupyter server by providing a value to this parameter. (e.g. --jupyter=password) Default password: geomesa
+* ``--zeppelin`` - Specifying this parameter will install and configure a Zeppelin notebook on the cluster master.
+* ``--ec2-attributes`` - Additional EC2 attributes to pass to the 'ec2-attributes' parameter. Comma separated list or can be provided multiple times.
+* ``--WorkerType`` - EC2 Instance type designation for the cluster. Default: 'm1.large'
+* ``--WorkerCount`` - Number of workers to provision. Default: 1
+
+This bootstrap process works by uploading the tools that invoke it to an S3 staging area. It then uses the AWS CLI to start up an EMR cluster and instructs it to run a GeoMesa bootstrap script. This script handles spawning the appropriate child scripts which configure the cluster.
+
+Any of the ``aws-boostrap-geomesa-*`` scripts can be used on an existing cluster to bootstrap the respective functionality. Simply copy the ``geomesa-hbase-dist_$VERSION`` tarball to the master and run the desired script as root.
