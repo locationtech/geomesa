@@ -290,7 +290,7 @@ if [[ 1 -eq $(echo "${TaskCount#*=} > 0" | bc) ]]; then
 fi
 
 echo ""
-echo " || Starting GeoMesa AWS EMR Bootstrap Process ||"
+echo " || Starting GeoMesa AWS EMR Bootstrap Process"
 echo ""
 
 # Create a temp working dir
