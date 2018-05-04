@@ -262,6 +262,14 @@ if [[ -f /mnt/var/lib/info/extraInstanceData.json ]]; then
   fi
 fi
 
+# Validate that the AWS CLI is available here so users don't need it to print help
+# or run individual scripts on an existing cluster.
+if ! which aws > /dev/null; then
+  echo "The AWS CLI Tools are required for this script to run."
+  echo "See the docs for more help."
+  exit 1
+fi
+
 # Validate Parameters now since most params aren't needed if we're on an existing cluster
 if [[ -z "${CONTAINER}" ]]; then
   echo "S3 container is required"

@@ -54,7 +54,6 @@ export PATH=\$PATH:\$GEOMESA_HBASE_HOME/bin
 EOF
 
 ## Make sure 'hbase' is up first!
-
 ROOTDIR=`cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//'`
 while [[ -z "$ROOTDIR" ]]
 do
