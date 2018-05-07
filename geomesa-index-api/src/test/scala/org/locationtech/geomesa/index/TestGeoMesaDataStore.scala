@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index
 
 import java.nio.charset.StandardCharsets
 
+import com.google.common.primitives.UnsignedBytes
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestWrappedFeature, TestWrite, _}
@@ -52,6 +53,9 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
                                                    indices: Option[Seq[TestFeatureIndexType]],
                                                    filter: Filter): TestFeatureWriterType =
     new TestModifyFeatureWriter(sft, this, indices, filter)
+
+  override def getQueryPlan(query: Query, index: Option[TestFeatureIndexType], explainer: Explainer): Seq[TestQueryPlan] =
+    super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[TestQueryPlan]]
 
   override def delete(): Unit = throw new NotImplementedError()
 }
@@ -198,7 +202,9 @@ object TestGeoMesaDataStore {
     }
 
     override def explain(explainer: Explainer, prefix: String): Unit = {
-      explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r => s"[${r.start.mkString("")}:${r.end.mkString("")})").mkString(",")}")
+      explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
+        s"[${r.start.map(UnsignedBytes.toString).mkString(";")}:" +
+        s"${r.end.map(UnsignedBytes.toString).mkString(";")})").mkString(",")}")
       explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
     }
   }
