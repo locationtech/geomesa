@@ -104,15 +104,17 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues, Z3IndexKey] {
 
     // note: intervals shouldn't have any overlaps
     intervals.foreach { interval =>
-      val (lower, upper) = boundsToDates(interval.bounds)
-      val BinnedTime(lb, lt) = dateToIndex(lower)
-      val BinnedTime(ub, ut) = dateToIndex(upper)
-      if (lb == ub) {
-        updateTime(lb, lt, ut)
-      } else {
-        updateTime(lb, lt, sfc.zBounds._2)
-        updateTime(ub, sfc.zBounds._1, ut)
-        Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = sfc.zBounds)
+      if (interval.isBoundedBothSides) {
+        val (lower, upper) = boundsToDates(interval.bounds)
+        val BinnedTime(lb, lt) = dateToIndex(lower)
+        val BinnedTime(ub, ut) = dateToIndex(upper)
+        if (lb == ub) {
+          updateTime(lb, lt, ut)
+        } else {
+          updateTime(lb, lt, sfc.zBounds._2)
+          updateTime(ub, sfc.zBounds._1, ut)
+          Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = sfc.zBounds)
+        }
       }
     }
 

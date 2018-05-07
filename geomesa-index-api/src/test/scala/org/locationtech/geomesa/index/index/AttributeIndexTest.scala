@@ -16,7 +16,7 @@ import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestQueryPlan, TestRange}
+import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestRange}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.IndexKeySpace.ByteRange
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
@@ -91,7 +91,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
         val q = new Query(typeName, ECQL.toFilter(filter))
         // validate that ranges do not overlap
         foreach(ds.getQueryPlan(q, explainer = explain)) { qp =>
-          val ranges = qp.asInstanceOf[TestQueryPlan].ranges.sortBy(_.start)(ByteRange.ByteOrdering)
+          val ranges = qp.ranges.sortBy(_.start)(ByteRange.ByteOrdering)
           forall(ranges.sliding(2)) { case Seq(left, right) => overlaps(left, right) must beFalse }
         }
         SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
@@ -105,6 +105,29 @@ class AttributeIndexTest extends Specification with LazyLogging {
       val results = execute(s"height = 12.0 AND $stFilter")
       results must haveLength(1)
       results must contain("bob")
+    }
+
+    "correctly set secondary index ranges with not nulls" in {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach { f =>
+          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+          writer.write()
+        }
+      }
+
+      val filter = "contains('POLYGON ((46.9 48.9, 47.1 48.9, 47.1 49.1, 46.9 49.1, 46.9 48.9))', geom) AND " +
+          "name = 'bob' AND dtg IS NOT NULL AND name IS NOT NULL AND INCLUDE"
+      val q = new Query(sft.getTypeName, ECQL.toFilter(filter))
+
+      ds.getQueryPlan(q).flatMap(_.ranges) must haveLength(sft.getAttributeShards)
+
+      val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toList
+      results mustEqual Seq("bob")
     }
 
     "handle functions" in {
