@@ -58,7 +58,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
 
       df.createOrReplaceTempView("chicago")
 
@@ -72,7 +72,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .option("geomesa.feature", "chicago")
         .option("cache", "true")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
 
       dfIndexed.createOrReplaceTempView("chicagoIndexed")
 
@@ -88,7 +88,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .option("spatial","true")
         .option("strategy", "RTREE")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
 
       dfPartitioned.createOrReplaceTempView("chicagoPartitioned")
 
@@ -120,7 +120,6 @@ class SparkSQLDataTest extends Specification with LazyLogging {
     }
 
     "basic sql partitioned" >> {
-      sc.sql("select * from chicagoPartitioned").show()
       val r = sc.sql("select * from chicagoPartitioned where st_equals(geom, st_geomFromWKT('POINT(-77 38)'))")
       val d = r.collect
 
@@ -212,6 +211,17 @@ class SparkSQLDataTest extends Specification with LazyLogging {
           "and dtg < cast('2016-01-02T01:00:00Z' as timestamp)"
       val between = "select case_number from chicago where dtg between cast('2016-01-01T01:00:00Z' as timestamp) " +
           "and cast('2016-01-02T01:00:00Z' as timestamp)"
+
+      foreach(Seq(and, between)) { select =>
+        val df = sc.sql(select)
+        df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
+        df.collect().map(_.get(0)) mustEqual Array(2)
+      }
+    }
+
+    "pushdown date attribute string filters" >> {
+      val and = "select case_number from chicago where dtg > '2016-01-01T01:00:00Z' and dtg < '2016-01-02T01:00:00Z'"
+      val between = "select case_number from chicago where dtg between '2016-01-01T01:00:00Z' and '2016-01-02T01:00:00Z'"
 
       foreach(Seq(and, between)) { select =>
         val df = sc.sql(select)
