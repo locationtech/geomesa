@@ -57,6 +57,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
       IndexResolutionX,
       IndexResolutionY,
       CqEngineCache,
+      LazyFeatures,
       ConsumeEarliest,
       AuditQueries,
       LooseBBox,
@@ -104,6 +105,7 @@ object KafkaDataStoreFactory extends LazyLogging {
     val yBuckets = IndexResolutionY.lookup(params).intValue()
 
     val cqEngine = CqEngineCache.lookup(params).booleanValue()
+    val lazyDeserialization = LazyFeatures.lookup(params).booleanValue()
     val looseBBox = LooseBBox.lookup(params).booleanValue()
 
     val audit = if (!AuditQueries.lookup(params)) { None } else {
@@ -122,7 +124,7 @@ object KafkaDataStoreFactory extends LazyLogging {
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, partitions, replication,
       producerConfig, consumerConfig, consumeFromBeginning, cacheExpiry, xBuckets, yBuckets,
-      cqEngine, looseBBox, authProvider, audit, ns)
+      cqEngine, lazyDeserialization, looseBBox, authProvider, audit, ns)
   }
 
   private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
@@ -189,6 +191,7 @@ object KafkaDataStoreFactory extends LazyLogging {
     val IndexResolutionX = new GeoMesaParam[Integer]("kafka.index.resolution.x", "Number of bins in the x-dimension of the spatial index", default = Int.box(360))
     val IndexResolutionY = new GeoMesaParam[Integer]("kafka.index.resolution.y", "Number of bins in the y-dimension of the spatial index", default = Int.box(180))
     val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = false, deprecatedKeys = Seq("useCQCache"))
+    val LazyFeatures     = new GeoMesaParam[java.lang.Boolean]("kafka.serialization.lazy", "Use lazy deserialization of features. This may improve processing load at the slight expense of query times", default = false)
     val LooseBBox        = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries     = GeoMesaDataStoreFactory.AuditQueriesParam
     val Authorizations   = org.locationtech.geomesa.security.AuthsParam

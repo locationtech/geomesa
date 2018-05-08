@@ -81,8 +81,9 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
+        val laz = config.lazyDeserialization
         val doInitialLoad = config.consumeFromBeginning
-        new KafkaCacheLoader.KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, doInitialLoad)
+        new KafkaCacheLoader.KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, doInitialLoad)
       }
     }
   })
@@ -293,6 +294,7 @@ object KafkaDataStore extends LazyLogging {
                                   indexResolutionX: Int,
                                   indexResolutionY: Int,
                                   cqEngine: Boolean,
+                                  lazyDeserialization: Boolean,
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,
                                   audit: Option[(AuditWriter, AuditProvider, String)],
