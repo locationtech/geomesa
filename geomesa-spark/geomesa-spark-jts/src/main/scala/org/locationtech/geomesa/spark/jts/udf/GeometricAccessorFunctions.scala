@@ -12,11 +12,13 @@ import java.{lang => jl}
 
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.catalyst.expressions.codegen.{CodegenContext, ExprCode}
+import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.catalyst.expressions.codegen.{CodegenContext, CodegenFallback, ExprCode}
 import org.apache.spark.sql.catalyst.expressions.{BinaryExpression, Expression, UnaryExpression}
-import org.apache.spark.sql.jts.GeometryUDT
+import org.apache.spark.sql.jts.{AbstractGeometryUDT, GeometryUDT}
 import org.apache.spark.sql.types.{BooleanType, DataType}
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.geomesa.spark.jts.util.WKBUtils
 
 object GeometricAccessorFunctions {
   val ST_Boundary: Geometry => Geometry = nullableUDF(geom => geom.getBoundary)
@@ -125,6 +127,7 @@ object GeometricAccessorFunctions {
     val fr = org.apache.spark.sql.jts.registry(sqlContext)
     fr.registerFunction("st_boundaryExpression", f => BoundaryExpression(f.head))
     fr.registerFunction("st_containsExpression", f => ContainsExpression(f(0), f(1)))
+    fr.registerFunction("st_containsExpressionWithCG", f => ContainsExpressionWithCodeGen(f(0), f(1)))
   }
 }
 
@@ -142,11 +145,40 @@ case class BoundaryExpression(child: Expression) extends UnaryExpression {
   override def dataType: DataType = child.dataType
 }
 
-case class ContainsExpression(left: Expression, right: Expression) extends BinaryExpression {
+case class ContainsExpression(left: Expression, right: Expression) extends BinaryExpression
+  with CodegenFallback
+  with GeomDeserializerSupport {
+  //  override protected def doGenCode(ctx: CodegenContext, ev: ExprCode): ExprCode =
+  //    defineCodeGen(ctx, ev, (c1, c2) => {
+  //      ctx.addMutableState(classOf[GeometryUDT].getName, "geometryUDT",
+  //        "geometryUDT = new org.apache.spark.sql.jts.GeometryUDT();")
+  //     s"geometryUDT.deserialize($c1).contains(geometryUDT.deserialize($c2))"
+//
+//    })
+
+  override def toString: String = s"contains($left, $right)"
+  override def nodeName: String = "contains"
+
+  override def nullSafeEval(input1: Any, input2: Any): Any = {
+    extractGeometry(input1).contains(extractGeometry(input2))
+  }
+
+  override def dataType: DataType = BooleanType
+}
+
+trait GeomDeserializerSupport {
+  def extractGeometry(datum: Any): Geometry = {
+    val ir = datum.asInstanceOf[InternalRow]
+    WKBUtils.read(ir.getBinary(0)).asInstanceOf[Geometry]
+  }
+}
+
+case class ContainsExpressionWithCodeGen(left: Expression, right: Expression) extends BinaryExpression {
   override protected def doGenCode(ctx: CodegenContext, ev: ExprCode): ExprCode =
     defineCodeGen(ctx, ev, (c1, c2) => {
-      ctx.addMutableState(classOf[GeometryUDT].getName, "geometryUDT", "geometryUDT = new org.apache.spark.sql.jts.GeometryUDT();")
-     s"geometryUDT.deserialize($c1).contains(geometryUDT.deserialize($c2))"
+      ctx.addMutableState(classOf[GeometryUDT].getName, "geometryUDT",
+        "geometryUDT = new org.apache.spark.sql.jts.GeometryUDT();")
+      s"geometryUDT.deserialize($c1).contains(geometryUDT.deserialize($c2))"
 
     })
 

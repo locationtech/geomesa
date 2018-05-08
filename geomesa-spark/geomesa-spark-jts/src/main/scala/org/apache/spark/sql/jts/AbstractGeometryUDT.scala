@@ -28,9 +28,7 @@ abstract class AbstractGeometryUDT[T >: Null <: Geometry: ClassTag](override val
     new GenericInternalRow(Array[Any](WKBUtils.write(obj)))
   }
 
-  override def sqlType: DataType = StructType(Seq(
-    StructField("wkb", DataTypes.BinaryType)
-  ))
+  override def sqlType: DataType = AbstractGeometryUDT.dataType
 
   override def userClass: Class[T] = classTag[T].runtimeClass.asInstanceOf[Class[T]]
 
@@ -38,4 +36,10 @@ abstract class AbstractGeometryUDT[T >: Null <: Geometry: ClassTag](override val
     val ir = datum.asInstanceOf[InternalRow]
     WKBUtils.read(ir.getBinary(0)).asInstanceOf[T]
   }
+}
+
+object AbstractGeometryUDT {
+  val dataType = StructType(Seq(
+    StructField("wkb", DataTypes.BinaryType)
+  ))
 }

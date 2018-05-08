@@ -37,7 +37,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       "int"    -> "POINT(5 5)",
       "edge"   -> "POINT(0 5)",
       "corner" -> "POINT(0 0)",
-      "ext"    -> "POINT(-5 0)") ++ (100 until 200).map{
+      "ext"    -> "POINT(-5 0)") ++ (100 until 200000).map{
       i => s"int$i" -> s"POINT($i $i)"
     }
 
@@ -97,6 +97,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         Seq("int")
       ))
       println(s"st_containsExpression")
+
       profile(testData(
         sc.sql(s"select * from points where st_containsExpression(st_geomFromWKT('$boxRef'), geom)"),
         Seq("int")
@@ -113,6 +114,15 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       ))
       profile(testData(
         sc.sql(s"select * from points where st_contains(st_geomFromWKT('$boxRef'), geom)"),
+        Seq("int")
+      ))
+      println(s"st_containsWithCG")
+      profile(testData(
+        sc.sql(s"select * from points where st_containsExpressionWithCG(st_geomFromWKT('$boxRef'), geom)"),
+        Seq("int")
+      ))
+      profile(testData(
+        sc.sql(s"select * from points where st_containsExpressionWithCG(st_geomFromWKT('$boxRef'), geom)"),
         Seq("int")
       ))
 
@@ -133,6 +143,16 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       ))
       profile(testData(
         sc.sql(s"select * from points where st_contains(st_geomFromWKT('$boxRef'), geom)"),
+        Seq("int")
+      ))
+
+      println(s"st_containsWithCG")
+      profile(testData(
+        sc.sql(s"select * from points where st_containsExpressionWithCG(st_geomFromWKT('$boxRef'), geom)"),
+        Seq("int")
+      ))
+      profile(testData(
+        sc.sql(s"select * from points where st_containsExpressionWithCG(st_geomFromWKT('$boxRef'), geom)"),
         Seq("int")
       ))
     }
