@@ -2,12 +2,11 @@
 
 To run build the JMH benchmarks:
 
-    mvn -pl geomesa-spark/geomesa-spark-jts install
-    mvn -pl geomesa-spark/geomesa-spark-jts-bench clean package
+    mvn clean package -pl :geomesa-spark-jts-bench_2.11 -am
     
 To run the packaged benchmarks:
     
-    java -jar geomesa-spark/geomesa-spark-jts-bench/target/jmh-benchmarks.jar -rff json 
+    java -jar geomesa-spark/geomesa-spark-jts-bench/target/jmh-benchmarks.jar -rf json 
     
 The output will be written to `jmh-results.json`
 
