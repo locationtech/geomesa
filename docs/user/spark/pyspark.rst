@@ -1,7 +1,7 @@
 GeoMesa PySpark
 ---------------
 
-GeoMesa provides support for working with data stored in Accumulo using the Spark Python API.
+GeoMesa provides integration with the Spark Python API for accessing data in GeoMesa data stores.
 
 Prerequisites
 ^^^^^^^^^^^^^
@@ -14,9 +14,9 @@ Installation
 ^^^^^^^^^^^^
 
 The ``geomesa_pyspark`` package is not available for download. Build the artifact locally with the profile
-``-Ppython``. Then install using ``pip`` or ``pip3`` as below. You will also need to put the
-geomesa-accumulo-spark-runtime JAR in a convenient location. This JAR bundles together the client libraries
-for GeoMesa Spark.
+``-Ppython``. Then install using ``pip`` or ``pip3`` as below. You will also need an appropriate
+``geomesa-spark-runtime`` JAR. We assume the use of Accumulo here, but you may alternatively use any of
+the providers outlined in :ref:`spatial_rdd_providers`.
 
 .. code-block:: bash
 
