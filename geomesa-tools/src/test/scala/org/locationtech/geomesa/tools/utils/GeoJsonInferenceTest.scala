@@ -19,15 +19,15 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class GeoJsonInferenceTest extends Specification {
 
-  val correctSpec = "name:String,id:Integer,decimal:Double,status:Boolean,*geometry:Point"
+  val correctSpec = "name:String,id:Integer,decimal:Double,status:Boolean,*geom:Point"
   val correctSft: SimpleFeatureType = SimpleFeatureTypes.createType("geojson", correctSpec)
 
   "GeoJsonInference" should {
     sequential
     "get sft from json" >> {
       val filepath = getClass.getResource("/convert/geojson-data.json").getPath
-      val sft = GeoJsonInference.inferSft(filepath)
-      SimpleFeatureTypes.encodeType(sft) mustEqual correctSpec
+      val sft = GeoJsonInference.inferSft(filepath, "geojson")
+      sft.getAttributeDescriptors.containsAll(correctSft.getAttributeDescriptors) mustEqual true
     }
 
     "handle missing geometry" >> {
@@ -42,6 +42,39 @@ class GeoJsonInferenceTest extends Specification {
         |}]""".stripMargin
       val is = new ByteArrayInputStream(geojson.getBytes())
       GeoJsonInference.inferSft(is) must throwAn[UnsupportedOperationException]
+    }
+
+    "handle invalid geojson" >> {
+      val geojson = """[{
+                      |  "name": "Dinagat Islands",
+                      |  "id": 123,
+                      |  "decimal": 1.23,
+                      |  "status": false,
+                      |  "geometry": {
+                      |    "coordinates": [125.6, 10.1]
+                      |  }
+                      |}]""".stripMargin
+      val is = new ByteArrayInputStream(geojson.getBytes())
+      GeoJsonInference.inferSft(is) must throwAn[UnsupportedOperationException]
+    }
+
+    "handle different object orders" >> {
+      val geojson = """[{
+        |  "type": "Feature",
+        |  "properties": {
+        |    "name": "Dinagat Islands",
+        |    "id": 123,
+        |    "decimal": 1.23,
+        |    "status": false
+        |  },
+        |  "geometry": {
+        |    "type": "Point",
+        |    "coordinates": [125.6, 10.1]
+        |  }
+        |}]""".stripMargin
+      val is = new ByteArrayInputStream(geojson.getBytes())
+      val sft = GeoJsonInference.inferSft(is)
+      sft.getAttributeDescriptors.containsAll(correctSft.getAttributeDescriptors) mustEqual true
     }
 
     "handle missing attributes" >> {

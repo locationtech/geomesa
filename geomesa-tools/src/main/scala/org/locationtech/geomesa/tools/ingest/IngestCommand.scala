@@ -89,7 +89,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   protected def createJsonIngest(): Runnable = {
     val filePath = params.files.head
-    val sft = GeoJsonInference.inferSft(filePath)
+    val sft = GeoJsonInference.inferSft(filePath, Option(params.featureName).getOrElse("geojson"))
     val conf = GeoJsonInference.inferConfig(sft)
     createConverterIngest(sft, conf)
   }

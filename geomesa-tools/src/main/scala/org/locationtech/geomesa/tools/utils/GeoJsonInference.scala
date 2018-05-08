@@ -20,7 +20,7 @@ import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate
 import org.locationtech.geomesa.utils.geotools.{AttributeSpec, CRS_EPSG_4326}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureSpecConfig.TypeNamePath
@@ -28,6 +28,8 @@ import org.locationtech.geomesa.utils.text.DateParsing
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
 object GeoJsonInference {
@@ -36,65 +38,75 @@ object GeoJsonInference {
   val OptionsPath = "options"
 
   val attributeBuilder = new AttributeTypeBuilder()
+  val maxToRead = 10
 
   val baseConfig: Config = ConfigFactory.empty()
     .withValue("type", ConfigValueFactory.fromAnyRef("json"))
     .withValue("feature-path", ConfigValueFactory.fromAnyRef("$[*]"))
     .withValue("options", ConfigValueFactory.fromMap(Map(("line-mode", "multi"))))
 
-  def inferSft(filePath: String): SimpleFeatureType = {
+  def inferSft(filePath: String, sftName: String): SimpleFeatureType = {
     val fileHandle: FileSystemDelegate.FileHandle = PathUtils.interpretPath(filePath).head
-    inferSft(fileHandle.open)
+    val builder = WithClose(fileHandle.open)(inferSftBuilder)
+    builder.setName(sftName)
+    builder.buildFeatureType()
   }
 
-  def inferSft(is: InputStream, sftName: String = "geojson", maxToRead: Int = 10): SimpleFeatureType = {
+  def inferSft(is: InputStream, sftName: String = "geojson"): SimpleFeatureType = {
+    val builder = inferSftBuilder(is)
+    builder.setName(sftName)
+    builder.buildFeatureType()
+  }
+
+  def inferSftBuilder(is: InputStream): SimpleFeatureTypeBuilder = {
     val sftBuilder = new SimpleFeatureTypeBuilder()
     val factory = new JsonFactory()
     val parser = factory.createParser(is)
     parser.nextToken()
 
-    var attributes: Map[String, AttributeDescriptor] = Map()
-    var geomTypes: Array[String] = Array()
+    val attributes: mutable.Map[String, AttributeDescriptor] = mutable.Map()
+    val geomTypes: ArrayBuffer[String] = ArrayBuffer()
 
     var numRead = 0
     while (parser.hasCurrentToken && numRead < maxToRead) {
 
-      // Advance to the geometry object and store type
-      while(nextUntil(parser, "geometry")) { parser.nextToken() }
-      geomTypes = geomTypes :+ getKeyValue(parser, "type")
-
-      // Advance to the properties object
-      while(nextUntil(parser, "properties")) { parser.nextToken() }
-      while(nextUntil(parser, START_OBJECT)) { parser.nextToken() }
-      parser.nextToken()
-
-      // parse the properties
-      var properties: Array[AttributeDescriptor] = Array()
-      while (parser.hasCurrentToken && !parser.getCurrentToken.isStructEnd) {
-        val prop = inferField(parser)
-        properties = properties :+  prop
+      val name = parser.getCurrentName
+      if (name != null && name.equals("geometry")) {
+        geomTypes += getKeyValue(parser, "type")
+        // advance to end of geom object
+        while (nextUntil(parser, END_OBJECT)) { }
+      } else if (name != null && name.equals("properties")) {
+        while(nextUntil(parser, START_OBJECT)) { }
         parser.nextToken()
+
+        // parse the properties
+        val properties: ArrayBuffer[AttributeDescriptor] = ArrayBuffer()
+        while (parser.hasCurrentToken && !parser.getCurrentToken.isStructEnd) {
+          val prop = inferField(parser)
+          properties +=  prop
+          parser.nextToken()
+        }
+        // merge any conflicts
+        val propMap = properties.map{ a => (a.getLocalName, a) }.toMap
+        mergeMaps(attributes, propMap)
+        numRead += 1
       }
-
-      // merge any conflicts
-      val propMap = properties.map{ a => (a.getLocalName, a) }.toMap
-      attributes = mergeMaps(attributes, propMap)
-
-      // advance to next object
-      while(nextUntil(parser, FIELD_NAME)) { parser.nextToken() }
       parser.nextToken()
-      numRead+=1
     }
-    is.close()
+
+    // check valid
+    if (attributes.isEmpty) {
+      throw new UnsupportedOperationException("No SFT was provided and none could not be inferred. " +
+        "Provide one or ensure the data is valid geojson.")
+    }
 
     // add geometry
     val mergedGeomType = mergeGeomTypes(geomTypes)
     val allAttrs = attributes.values.toArray :+ buildGeomAttr(mergedGeomType)
 
     sftBuilder.addAll(allAttrs)
-    sftBuilder.setName(sftName)
-    sftBuilder.setDefaultGeometry("geometry")
-    sftBuilder.buildFeatureType()
+    sftBuilder.setDefaultGeometry("geom")
+    sftBuilder
   }
 
   def inferConfig(sft: SimpleFeatureType, idFieldName: Option[String] = None): Config = {
@@ -124,16 +136,15 @@ object GeoJsonInference {
     baseConfig
       .withValue(TypeNamePath, ConfigValueFactory.fromAnyRef(sft.getTypeName))
       .withValue(FieldsPath, ConfigValueFactory.fromIterable(attributes))
+      .withValue("id-field", ConfigValueFactory.fromAnyRef("md5(stringToBytes(jsonToString($0)))"))
   }
 
-  def mergeMaps(attrsA: Map[String, AttributeDescriptor],
-                attrsB: Map[String, AttributeDescriptor]): Map[String, AttributeDescriptor] = {
+  def mergeMaps(attrsA: mutable.Map[String, AttributeDescriptor],
+                attrsB: Map[String, AttributeDescriptor]): Unit = {
     val (overlappingKeys, disjointKeys) = attrsB.keys.partition(attrsA.contains)
 
-    // start with fields unique to A
-    var newMap = attrsA.filter( p => !attrsB.contains(p._1)).toSeq
     // Add fields unique to B
-    disjointKeys.foreach{ name => newMap = newMap :+ (name, attrsB(name)) }
+    disjointKeys.foreach{ name => attrsA.put(name, attrsB(name)) }
     // Merge overlaps
     val merged = overlappingKeys.map { name =>
       val bindingA = attrsA(name).getType.getBinding
@@ -151,15 +162,16 @@ object GeoJsonInference {
           case (JInteger, JDouble) => (name, attrsB(name))
           case (JLong, JInteger) => (name, attrsA(name))
           case (JInteger, JLong) => (name, attrsB(name))
+          case (JDouble, JLong) => (name, attrsA(name))
+          case (JLong, JDouble) => (name, attrsB(name))
           case _ => (name, attrsA(name))
         }
       }
     }
-    newMap = newMap ++ merged
-    newMap.toMap
+    attrsA ++= merged
   }
 
-  def mergeGeomTypes(geomTypes: Array[String]): String = {
+  def mergeGeomTypes(geomTypes: ArrayBuffer[String]): String = {
     val firstNonNull = geomTypes.find(t => t != null)
     firstNonNull match {
       case Some(geomType) =>
@@ -173,6 +185,22 @@ object GeoJsonInference {
   }
 
   // NB: This method is adapted from Apache Spark's JsonInferSchema class
+  /*
+   * Licensed to the Apache Software Foundation (ASF) under one or more
+   * contributor license agreements.  See the NOTICE file distributed with
+   * this work for additional information regarding copyright ownership.
+   * The ASF licenses this file to You under the Apache License, Version 2.0
+   * (the "License"); you may not use this file except in compliance with
+   * the License.  You may obtain a copy of the License at
+   *
+   *    http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
   private def inferField(parser: JsonParser): AttributeDescriptor = {
     import com.fasterxml.jackson.core.JsonToken._
     parser.getCurrentToken match {
@@ -243,19 +271,19 @@ object GeoJsonInference {
     }
   }
 
-  def nextUntil(parser: JsonParser, stopOn: String): Boolean = {
+  def reachedKey(parser: JsonParser, stopOn: String): Boolean = {
     val name = parser.getCurrentName
     if (parser.getCurrentToken == null) {
-      false
-    } else if (name != null && name.equals(stopOn)) {
-      false
-    } else {
       true
+    } else if (name != null && name.equals(stopOn)) {
+      true
+    } else {
+      false
     }
   }
 
   def getKeyValue(parser: JsonParser, key: String): String = {
-    while (nextUntil(parser, key)) { parser.nextToken() }
+    while (!reachedKey(parser, key)) { parser.nextToken() }
     parser.nextTextValue()
   }
 
@@ -281,11 +309,11 @@ object GeoJsonInference {
 
   def buildGeomAttr[T: ClassTag](clazz: Class[T]) : AttributeDescriptor = {
     attributeBuilder.setBinding(clazz)
-    attributeBuilder.setName("geometry")
+    attributeBuilder.setName("geom")
     attributeBuilder.userData("default", "true")
     attributeBuilder.crs(CRS_EPSG_4326)
     val nameType = attributeBuilder.buildGeometryType()
-    attributeBuilder.buildDescriptor("geometry", nameType)
+    attributeBuilder.buildDescriptor("geom", nameType)
   }
 
 

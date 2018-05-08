@@ -24,7 +24,7 @@ class GeoJsonIngestTest extends Specification {
 
   sequential
   val baseArgs = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
-    "--password", "mypassword", "--catalog", "testshpingestcatalog")
+    "--password", "mypassword", "--catalog", "testgeojsoningestcatalog")
 
   var features: List[SimpleFeature] = _
 
@@ -49,9 +49,9 @@ class GeoJsonIngestTest extends Specification {
       }
 
       "parse geometries correctly" >> {
-        val geom0 = features(0).getAttribute("geometry").asInstanceOf[Point]
-        val geom1 = features(1).getAttribute("geometry").asInstanceOf[Point]
-        val geom2 = features(2).getAttribute("geometry").asInstanceOf[Point]
+        val geom0 = features(0).getAttribute("geom").asInstanceOf[Point]
+        val geom1 = features(1).getAttribute("geom").asInstanceOf[Point]
+        val geom2 = features(2).getAttribute("geom").asInstanceOf[Point]
         geom0.equalsExact(geoms(0)) mustEqual true
         geom1.equalsExact(geoms(1)) mustEqual true
         geom2.equalsExact(geoms(2)) mustEqual true
