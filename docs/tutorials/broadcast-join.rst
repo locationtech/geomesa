@@ -1,5 +1,5 @@
-GeoMesa Spark: Aggregating Data
-===============================
+GeoMesa Spark: Broadcast Join and Aggregation
+=============================================
 
 This tutorial will show you how to:
 

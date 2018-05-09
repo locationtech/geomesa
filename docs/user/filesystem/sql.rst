@@ -1,3 +1,5 @@
+.. _fsds_sparksql_example:
+
 GeoMesa FileSystem Data Store with Spark SQL
 ============================================
 
