@@ -67,32 +67,15 @@ via SparkSQL:
 
 Configuration
 ^^^^^^^^^^^^^
+
 Because GeoMesa SparkSQL stacks on top of the ``geomesa-spark-core`` module,
-one or more of the ``SpatialRDDProvider`` implementations, as described in
-:doc:`/user/spark/core`, must be included on the classpath. The shaded JAR built by the
-**geomesa-accumulo-spark-runtime** module (``geomesa-accumulo/geomesa-accumulo-spark-runtime``
-in the source distribution) contains all of the dependencies needed to run
-the :ref:`accumulo_rdd_provider` as well as **geomesa-spark-sql**. This shaded
-JAR can be passed (for example) to the ``spark-submit`` command via the ``--jars``
-option:
-
-.. code-block:: bash
-
-    --jars file://path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar
-
-or passed to Spark via the appropriate mechanism in notebook servers such as
-Jupyter (see :doc:`jupyter`) or Zeppelin.
-
-This shaded JAR should also provide the dependencies needed for the
-:ref:`converter_rdd_provider` and :ref:`geotools_rdd_provider`, so these JARs
-may simply be added to ``--jars`` as well (though in the latter
-case additional JARs may be needed to implement the GeoTools data store accessed).
+one or more of the ``SpatialRDDProvider`` implementations must be included on the
+classpath. See :ref:`spark_core_config` for details on setting up the Spark classpath.
 
 .. note::
 
-    When using the :ref:`accumulo_rdd_provider` or :ref:`converter_rdd_provider`
-    with **geomesa-spark-sql**, it is not necessary to set up the Kryo serialization
-    described in :ref:`spark_sf_serialization`. However, this may be required when
+    In most cases, it is not necessary to set up the Kryo serialization described in
+    :ref:`spark_sf_serialization` when using SparkSQL. However, this may be required when
     using the :ref:`geotools_rdd_provider`.
 
 If you will be ``JOIN``-ing multiple ``DataFrame``\s together, it will be necessary
