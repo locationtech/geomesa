@@ -56,6 +56,8 @@ See :ref:`cli_export` for a description of the arguments.
 
 Export features in a variety of formats.
 
+See :ref:`data_migration` for details on how the export/import commands can be used to move data between clusters.
+
 ======================== =========================================================
 Argument                 Description
 ======================== =========================================================
