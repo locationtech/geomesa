@@ -184,3 +184,6 @@ See :ref:`index_versioning` for an explanation of index versions. The following 
                                       Support for per-attribute visibility
         3             2.0.0           Standardized index identifier to 'id'
         ============= =============== =================================================================
+
+Note that GeoMesa versions prior to 1.2.2 included a geohash index. That index has been replaced with
+the Z indices and is no longer supported.

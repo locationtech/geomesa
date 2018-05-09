@@ -4,8 +4,14 @@ Moving and Migrating Data
 =========================
 
 If you want an offline copy of your data, or you want to move data between networks, you can
-export compressed Avro files containing your simple features. To do this using the command line
-tools, use the export command with the ``format`` and ``gzip`` options:
+export compressed Avro files containing your simple features.
+
+.. note::
+
+    The following examples assume an Accumulo install. For other back-ends, the command
+    will vary slightly. See :ref:`command_line_tools` for more details.
+
+To do this using the command line tools, use the export command with the ``format`` and ``gzip`` options:
 
 .. code-block:: bash
 
