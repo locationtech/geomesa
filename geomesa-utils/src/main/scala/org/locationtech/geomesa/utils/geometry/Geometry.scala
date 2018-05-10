@@ -11,9 +11,13 @@ package org.locationtech.geomesa.utils.geometry
 import com.vividsolutions.jts.geom.Polygon
 import org.geotools.geometry.jts.JTS
 
+@deprecated
 object Geometry {
+
+  @deprecated
   val noPolygon : Polygon  = null
 
+  @deprecated
   implicit class RichPolygon(self: Polygon) {
     def getSafeUnion(other: Polygon): Polygon = {
       if (self != noPolygon && other != noPolygon) {
