@@ -36,6 +36,9 @@ object GeoJsonInference {
 
   val FieldsPath = "fields"
   val OptionsPath = "options"
+  val IdFieldPath = "id-field"
+  val FeaturePathKey = "feature-path"
+  var featurePath: String = null
 
   val attributeBuilder = new AttributeTypeBuilder()
   val maxToRead = 10
@@ -45,11 +48,19 @@ object GeoJsonInference {
     .withValue("feature-path", ConfigValueFactory.fromAnyRef("$[*]"))
     .withValue("options", ConfigValueFactory.fromMap(Map(("line-mode", "multi"))))
 
+  val allowedTypes = Seq(classOf[jl.Integer], classOf[jl.Long], classOf[jl.Double],
+                         classOf[java.util.Date], classOf[jl.String], classOf[java.util.List[jl.String]],
+                         classOf[java.util.Map[jl.String, jl.String]], classOf[jl.Object])
+
   def inferSft(filePath: String, sftName: String): SimpleFeatureType = {
     val fileHandle: FileSystemDelegate.FileHandle = PathUtils.interpretPath(filePath).head
     val builder = WithClose(fileHandle.open)(inferSftBuilder)
     builder.setName(sftName)
-    builder.buildFeatureType()
+    val sft = builder.buildFeatureType()
+    if (sft.getGeometryDescriptor.getType.getBinding == classOf[Geometry]) {
+      sft.getUserData.put("geomesa.mixed.geometries", "true")
+    }
+    sft
   }
 
   def inferSft(is: InputStream, sftName: String = "geojson"): SimpleFeatureType = {
@@ -66,11 +77,15 @@ object GeoJsonInference {
 
     val attributes: mutable.Map[String, AttributeDescriptor] = mutable.Map()
     val geomTypes: ArrayBuffer[String] = ArrayBuffer()
+    val attributeWeights: mutable.Map[String, Seq[Int]] = mutable.Map()
 
     var numRead = 0
     while (parser.hasCurrentToken && numRead < maxToRead) {
 
       val name = parser.getCurrentName
+      if (name != null && name.toLowerCase().equals("features")) {
+        featurePath = name
+      }
       if (name != null && name.equals("geometry")) {
         geomTypes += getKeyValue(parser, "type")
         // advance to end of geom object
@@ -84,11 +99,15 @@ object GeoJsonInference {
         while (parser.hasCurrentToken && !parser.getCurrentToken.isStructEnd) {
           val prop = inferField(parser)
           properties +=  prop
+          val weights = attributeWeights.getOrElse(prop.getLocalName, Seq.fill[Int](allowedTypes.size)(0))
+          val typeIndex = allowedTypes.indexOf(prop.getType.getBinding)
+          val newWeights = weights.zipWithIndex.map { case (weight, index) => if (index == typeIndex) weight + 1 else weight }
+          attributeWeights.put(prop.getLocalName, newWeights)
           parser.nextToken()
         }
         // merge any conflicts
         val propMap = properties.map{ a => (a.getLocalName, a) }.toMap
-        mergeMaps(attributes, propMap)
+        mergeMaps(attributes, propMap, attributeWeights)
         numRead += 1
       }
       parser.nextToken()
@@ -104,7 +123,16 @@ object GeoJsonInference {
     val mergedGeomType = mergeGeomTypes(geomTypes)
     val allAttrs = attributes.values.toArray :+ buildGeomAttr(mergedGeomType)
 
-    sftBuilder.addAll(allAttrs)
+    // replace jl.Object with jl.String
+    val filteredAttrs = allAttrs.map { attr =>
+      if (attr.getType.getBinding == classOf[jl.Object]) {
+        buildAttr(classOf[jl.String], attr.getLocalName)
+      } else {
+        attr
+      }
+    }
+
+    sftBuilder.addAll(filteredAttrs)
     sftBuilder.setDefaultGeometry("geom")
     sftBuilder
   }
@@ -133,14 +161,20 @@ object GeoJsonInference {
       attrMap
     }
 
-    baseConfig
+    val config = baseConfig
       .withValue(TypeNamePath, ConfigValueFactory.fromAnyRef(sft.getTypeName))
       .withValue(FieldsPath, ConfigValueFactory.fromIterable(attributes))
-      .withValue("id-field", ConfigValueFactory.fromAnyRef("md5(stringToBytes(jsonToString($0)))"))
+      .withValue(IdFieldPath, ConfigValueFactory.fromAnyRef("md5(stringToBytes(jsonToString($0)))"))
+    if (featurePath != null) {
+      config.withValue(FeaturePathKey, ConfigValueFactory.fromAnyRef(featurePath))
+    } else {
+      config
+    }
   }
 
   def mergeMaps(attrsA: mutable.Map[String, AttributeDescriptor],
-                attrsB: Map[String, AttributeDescriptor]): Unit = {
+                attrsB: Map[String, AttributeDescriptor],
+                weightsMap: mutable.Map[String, Seq[Int]]): Unit = {
     val (overlappingKeys, disjointKeys) = attrsB.keys.partition(attrsA.contains)
 
     // Add fields unique to B
@@ -164,6 +198,13 @@ object GeoJsonInference {
           case (JInteger, JLong) => (name, attrsB(name))
           case (JDouble, JLong) => (name, attrsA(name))
           case (JLong, JDouble) => (name, attrsB(name))
+          // when precedence is undefined, decide based on frequency
+          case (_, _) =>
+            val weights = weightsMap.get(name).get
+            val maxWeight = weights.max
+            val maxIndex = weights.indexOf(maxWeight)
+            val mostFrequentType = allowedTypes.get(maxIndex)
+            (name, buildAttr(mostFrequentType, name))
           case _ => (name, attrsA(name))
         }
       }
@@ -235,7 +276,7 @@ object GeoJsonInference {
         // exhaust object
         val builder = new StringBuilder
         while (nextUntil(parser, END_OBJECT)) { builder.append(parser.getText) }
-        buildAttr(classOf[jl.String], name)
+        buildAttr(classOf[java.util.Map[jl.String, jl.String]], name)
 
       case END_OBJECT =>
         parser.nextToken()
@@ -291,6 +332,10 @@ object GeoJsonInference {
     attributeBuilder.setBinding(clazz)
     attributeBuilder.setName(name)
     val nameType = attributeBuilder.buildType()
+    if (clazz == classOf[java.util.Map[_,_]]) {
+      attributeBuilder.userData("keyclass", "java.lang.String")
+      attributeBuilder.userData("valueclass", "java.lang.String")
+    }
     attributeBuilder.buildDescriptor(name, nameType)
   }
 
@@ -315,6 +360,4 @@ object GeoJsonInference {
     val nameType = attributeBuilder.buildGeometryType()
     attributeBuilder.buildDescriptor("geom", nameType)
   }
-
-
 }

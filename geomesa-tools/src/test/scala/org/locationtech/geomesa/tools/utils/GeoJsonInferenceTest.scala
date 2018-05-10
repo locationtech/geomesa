@@ -19,7 +19,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class GeoJsonInferenceTest extends Specification {
 
-  val correctSpec = "name:String,id:Integer,decimal:Double,status:Boolean,*geom:Point"
+  val correctSpec = "name:String,id:Integer,decimal:Double,status:Boolean,stats:map,*geom:Point"
   val correctSft: SimpleFeatureType = SimpleFeatureTypes.createType("geojson", correctSpec)
 
   "GeoJsonInference" should {
@@ -65,7 +65,9 @@ class GeoJsonInferenceTest extends Specification {
         |    "name": "Dinagat Islands",
         |    "id": 123,
         |    "decimal": 1.23,
-        |    "status": false
+        |    "status": false,
+        |    "stats":  { "population" : "20000",
+        |                "area": "1500" }
         |  },
         |  "geometry": {
         |    "type": "Point",
@@ -100,12 +102,54 @@ class GeoJsonInferenceTest extends Specification {
         |  },
         |  "properties": {
         |    "name": "Wuhu Islands",
-        |    "decimal": 1.2
+        |    "decimal": 1.2,
+        |    "stats":  { "population" : "20000",
+        |                "area": "1500" }
         |  }
         |}]""".stripMargin
       val is = new ByteArrayInputStream(geojson.getBytes())
       val sft = GeoJsonInference.inferSft(is)
       sft.getAttributeDescriptors.containsAll(correctSft.getAttributeDescriptors) mustEqual true
+    }
+
+    "weight types appropriately" >> {
+      val geojson = """
+        |[{
+        |  "type": "Feature",
+        |  "geometry": {
+        |    "type": "Point",
+        |    "coordinates": [125.6, 10.1]
+        |  },
+        |  "properties": {
+        |    "name": "Galapagos Islands",
+        |    "dtg": "2018-04-25T12:00:00"
+        |  }
+        |},
+        |{
+        |  "type": "Feature",
+        |  "geometry": {
+        |    "type": "Point",
+        |    "coordinates": [125.6, 10.1]
+        |  },
+        |  "properties": {
+        |    "name": "Wuhu Islands",
+        |    "dtg": "2018-04-25T11:00:00"
+        |  }
+        |},
+        |  {
+        |  "type": "Feature",
+        |  "geometry": {
+        |    "type": "Point",
+        |    "coordinates": [125.6, 10.1]
+        |  },
+        |  "properties": {
+        |    "name": "Wuhu Islands",
+        |    "dtg": "bad date"
+        |  }
+        |}]""".stripMargin
+      val is = new ByteArrayInputStream(geojson.getBytes())
+      val sft = GeoJsonInference.inferSft(is)
+      sft.getDescriptor("dtg").getType.getBinding mustEqual classOf[java.util.Date]
     }
 
     "handle conflicting types" >> {
@@ -167,6 +211,5 @@ class GeoJsonInferenceTest extends Specification {
       val sft = GeoJsonInference.inferSft(is)
       sft.getDescriptor("dtg").getType.getBinding mustEqual classOf[java.util.Date]
     }
-
   }
 }

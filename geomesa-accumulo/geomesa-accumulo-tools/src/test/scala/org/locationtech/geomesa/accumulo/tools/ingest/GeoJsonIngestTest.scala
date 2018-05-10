@@ -37,18 +37,18 @@ class GeoJsonIngestTest extends Specification {
 
     "ingest a geojson file" >> {
         val filePath = this.getClass.getClassLoader.getResource("examples/example1.json").getPath
-        val args = baseArgs :+ filePath
+        val args = baseArgs :+ "-f" :+ "example1" :+ filePath
 
         val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
         command.execute()
 
-        val fs = command.withDataStore(_.getFeatureSource("geojson"))
+        val fs = command.withDataStore(_.getFeatureSource("example1"))
         features = SelfClosingIterator(fs.getFeatures.features).toList
                   .sortBy(f => f.getAttribute("idField").asInstanceOf[Integer])
         features must haveLength(3)
       }
 
-      "parse geometries correctly" >> {
+    "parse geometries correctly" >> {
         val geom0 = features(0).getAttribute("geom").asInstanceOf[Point]
         val geom1 = features(1).getAttribute("geom").asInstanceOf[Point]
         val geom2 = features(2).getAttribute("geom").asInstanceOf[Point]
