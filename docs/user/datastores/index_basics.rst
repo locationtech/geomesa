@@ -63,3 +63,17 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
 Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
 
 To prioritize certain attributes over others, see :ref:`attribute_cardinality`.
+
+.. _index_versioning:
+
+Index Versioning
+================
+
+In order to ensure cross-compatibility, each index created by GeoMesa has a version number that identifies
+the layout of data on disk, which is fixed at the time of creation. Updating GeoMesa versions
+will provide bug fixes and new features, but will not update existing data to new index formats.
+
+The exact version of an index used for each schema can be read from the ``SimpleFeatureType`` user data,
+or by simple examining the name of the index tables created by GeoMesa. The particular
+version numbers vary across the different back-end implementations. See :ref:`accumulo_index_versions`,
+:ref:`hbase_index_versions` and :ref:`cassandra_index_versions` for the differences between index versions.
