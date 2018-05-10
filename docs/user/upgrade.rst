@@ -3,10 +3,78 @@
 Upgrade Guide
 =============
 
-This section describes code and configuration changes required when upgrading GeoMesa versions.
+This section contains general information on version upgrades, as well as version-specific changes that may
+affect the end user.
 
-Version 2.0.0
-+++++++++++++
+Compatibility Across Versions
++++++++++++++++++++++++++++++
+
+Semantic Versioning
+-------------------
+
+Starting with 2.0.0, GeoMesa is trying to adhere to `semantic versioning <https://semver.org/>`__. Essentially,
+releases are broken down into major, minor and patch versions. For a version number like 2.0.1, 2 is the major
+version, 2.0 is the minor version, and 2.0.1 is the patch version.
+
+Major version updates contain breaking client API changes. Minor version updates contain new or updated functionality
+that is backwards-compatible. Patch versions contain only backwards-compatible bug fixes. This delineation allows
+users to gauge the potential impact of updating versions.
+
+.. warning::
+
+  Versions prior to 2.0.0 do not follow semantic versioning, and each release should be
+  considered a major version change.
+
+Compatibility
+-------------
+
+Semantic versioning only makes guarantees about the public API of a project, however the GeoMesa public API is not
+currently well defined. In addition, GeoMesa has several other compatibility vectors to consider:
+
+Data Compatibility
+^^^^^^^^^^^^^^^^^^
+
+Data compatibility refers to the ability to read and write data written with older versions of GeoMesa. GeoMesa
+fully supports data written with version 1.2.2 or later, and mostly supports data written with 1.1.0 or later.
+
+Note that although later versions can read earlier data, the reverse is not necessarily true. Data written
+with a newer client may not be readable by an older client.
+
+Data written with 1.2.1 or earlier can be migrated to a newer data format. See :ref:`index_upgrades` for details.
+Note that this functionality is currently only implemented for Accumulo.
+
+Distributed Runtime Compatibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For data stores with a distributed component (e.g. Accumulo or HBase), distributed runtime compatibility refers
+to the ability to write or query data with a client that is a different version than the distributed code.
+Similarly, this also covers the ability to have different versions of the distributed code on different machines in
+a single cluster.
+
+GeoMesa currently requires that all client and server JARs are the same minor version.
+
+Dependency Compatibility
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dependency compatibility refers to the ability to update GeoMesa without updating other components
+(e.g. Accumulo, HBase, Hadoop, Spark, GeoServer, etc). Generally, GeoMesa supports a range of dependency versions
+(e.g. Accumulo 1.6 to 1.9). Spark versions are more tightly coupled, due to the use of private Spark APIs.
+
+Compatibility Matrix
+--------------------
+
++---------------------+-------+-------+-------+
+|                     | Major | Minor | Patch |
++=====================+=======+=======+=======+
+| Data                | Y     | Y     | Y     |
++---------------------+-------+-------+-------+
+| Distributed runtime | N     | N     | Y     |
++---------------------+-------+-------+-------+
+| Dependencies        | N     | N     | Y     |
++---------------------+-------+-------+-------+
+
+Version 2.0.0 Upgrade Guide
++++++++++++++++++++++++++++
 
 GeoTools 18 and GeoServer 2.12
 ------------------------------

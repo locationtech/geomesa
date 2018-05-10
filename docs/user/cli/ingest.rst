@@ -28,6 +28,8 @@ supports common input formats such as delimited text (TSV, CSV), fixed width fil
 The converter framework is extensible via Java SPI, to allow support for custom formats. See
 :ref:`converters` for more information on converters.
 
+See :ref:`data_migration` for details on how the export/import commands can be used to move data between clusters.
+
 ====================== =========================================================
 Argument               Description
 ====================== =========================================================
