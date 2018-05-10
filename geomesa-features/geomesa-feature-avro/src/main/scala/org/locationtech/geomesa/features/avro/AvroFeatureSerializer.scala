@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, DirectBinaryEncoder, EncoderFactory}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
@@ -28,7 +28,7 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
   // Encode using a direct binary encoder that is reused. No need to buffer
   // small simple features. Reuse a common BAOS as well.
   private val baos = new ByteArrayOutputStream()
-  private var reuse: DirectBinaryEncoder = null
+  private var reuse: DirectBinaryEncoder = _
 
   override def serialize(feature: SimpleFeature): Array[Byte] = {
     baos.reset()
@@ -40,6 +40,19 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
 
   override def deserialize(bytes: Array[Byte]): SimpleFeature =
     throw new NotImplementedError("This instance only handles serialization")
+
+  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+    throw new NotImplementedError
+  override def deserialize(in: InputStream): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, in: InputStream): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    throw new NotImplementedError
 }
 
 /**
@@ -57,12 +70,25 @@ class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: 
     throw new NotImplementedError("This instance only handles deserialization")
   override def deserialize(bytes: Array[Byte]): SimpleFeature = decode(new ByteArrayInputStream(bytes))
 
-  private var reuse: BinaryDecoder = null
+  private var reuse: BinaryDecoder = _
 
-  def decode(is: InputStream) = {
+  def decode(is: InputStream): AvroSimpleFeature = {
     reuse = DecoderFactory.get().directBinaryDecoder(is, reuse)
     reader.read(null, reuse)
   }
+
+  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+    throw new NotImplementedError
+  override def deserialize(in: InputStream): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, in: InputStream): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    throw new NotImplementedError
 }
 
 /**

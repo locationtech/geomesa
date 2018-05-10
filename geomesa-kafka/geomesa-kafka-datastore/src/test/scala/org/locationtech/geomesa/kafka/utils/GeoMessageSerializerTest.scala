@@ -32,10 +32,6 @@ class GeoMessageSerializerTest extends Specification {
 
       key must not(beNull)
       value must not(beNull)
-      key.length mustEqual 10
-      key(0) mustEqual 1
-      key(1) mustEqual 'X'
-      value mustEqual Array.empty[Byte]
 
       serializer.deserialize(key, value) mustEqual msg
     }
@@ -45,11 +41,7 @@ class GeoMessageSerializerTest extends Specification {
       val (key, value) = serializer.serialize(msg)
 
       key must not(beNull)
-      value must not(beNull)
-      key.length mustEqual 10
-      key(0) mustEqual 1
-      key(1) mustEqual 'D'
-      value mustEqual feature.getID.getBytes(StandardCharsets.UTF_8)
+      value must beNull
 
       serializer.deserialize(key, value) mustEqual msg
     }
@@ -60,9 +52,6 @@ class GeoMessageSerializerTest extends Specification {
 
       key must not(beNull)
       value must not(beNull)
-      key.length mustEqual 10
-      key(0) mustEqual 1
-      key(1) mustEqual 'C'
 
       val decoded = serializer.deserialize(key, value)
       decoded mustEqual msg

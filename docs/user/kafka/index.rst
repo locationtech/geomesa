@@ -29,4 +29,6 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
    commandline
    producers
    consumers
+   index_config
+   data
    feature_events

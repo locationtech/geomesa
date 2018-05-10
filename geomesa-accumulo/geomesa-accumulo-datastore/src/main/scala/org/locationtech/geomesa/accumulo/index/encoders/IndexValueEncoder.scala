@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index.encoders
 
+import java.io.{InputStream, OutputStream}
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
@@ -148,6 +149,19 @@ class IndexValueEncoderImpl(copyFeature: (SimpleFeature, SimpleFeature) => Unit,
   }
 
   override def deserialize(value: Array[Byte]): SimpleFeature = decoder.deserialize(value)
+
+  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+    throw new NotImplementedError
+  override def deserialize(in: InputStream): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, in: InputStream): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    throw new NotImplementedError
 }
 
 
@@ -236,6 +250,19 @@ class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType
     }
     sf
   }
+
+  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+    throw new NotImplementedError
+  override def deserialize(in: InputStream): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, in: InputStream): SimpleFeature =
+    throw new NotImplementedError
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    throw new NotImplementedError
 }
 
 /**
