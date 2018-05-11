@@ -58,7 +58,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>2.0.0</geomesa.release.version>
+        <geomesa.release.version>2.0.1</geomesa.release.version>
         <geomesa.devel.version>2.1.0-SNAPSHOT</geomesa.devel.version>
 
         <!-- this must remain outside of version specific scala profiles for sbt/ivy -->
