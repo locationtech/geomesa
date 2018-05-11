@@ -5,5 +5,5 @@ setup(
     version='${python.version}',
     url='http://www.geomesa.org',
     packages=find_packages(),
-    install_requires=['pytz','pyspark']
+    install_requires=['pytz','pyspark>=2.1.1,<2.3.0']
 )
