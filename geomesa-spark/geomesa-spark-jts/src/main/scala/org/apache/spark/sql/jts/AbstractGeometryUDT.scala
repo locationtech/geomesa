@@ -24,6 +24,8 @@ import scala.reflect._
 abstract class AbstractGeometryUDT[T >: Null <: Geometry: ClassTag](override val simpleString: String)
   extends UserDefinedType[T] {
 
+  override def pyUDT: String = "geomesa_pyspark.spark.GeometryUDT"
+
   override def serialize(obj: T): InternalRow = {
     new GenericInternalRow(Array[Any](WKBUtils.write(obj)))
   }
