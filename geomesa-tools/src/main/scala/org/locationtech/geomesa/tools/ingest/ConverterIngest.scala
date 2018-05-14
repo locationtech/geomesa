@@ -149,7 +149,7 @@ class ConverterIngestJob(val dsParams: Map[String, String],
                          val paths: Seq[String],
                          val libjarsFile: String,
                          val libjarsPaths: Iterator[() => Seq[File]])
-  extends AbstractConverterIngestJob {
+  extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
 
   override val inputFormatClass: Class[ConverterInputFormat] =  classOf[ConverterInputFormat]
 }
@@ -161,6 +161,6 @@ class ConverterCombineIngestJob(val dsParams: Map[String, String],
                                 val maxSplitSize: Long,
                                 val libjarsFile: String,
                                 val libjarsPaths: Iterator[() => Seq[File]])
-  extends AbstractConverterIngestJob {
+  extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
   override val inputFormatClass: Class[ConverterCombineInputFormat] = classOf[ConverterCombineInputFormat]
 }
