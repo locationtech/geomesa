@@ -224,7 +224,7 @@ trait DistributedRunParam {
 object DistributedRunParam {
   object RunModes extends Enumeration {
     type RunMode = Value
-    val Distributed, Local = Value
+    val Distributed, DistributedCombine, Local = Value
   }
 
   class ModeConverter(name: String) extends BaseConverter[RunMode](name) {

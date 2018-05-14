@@ -14,12 +14,14 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{Path, Seekable}
+import org.apache.hadoop.io.LongWritable
 import org.apache.hadoop.mapreduce._
+import org.apache.hadoop.mapreduce.lib.input.{CombineFileInputFormat, CombineFileRecordReader, CombineFileRecordReaderWrapper, CombineFileSplit}
 import org.geotools.data.ReTypeFeatureReader
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert.{SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -32,6 +34,19 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 class ConverterInputFormat extends FileStreamInputFormat {
   override def createRecordReader(): FileStreamRecordReader = new ConverterRecordReader
 }
+
+class ConverterCombineInputFormat extends CombineFileInputFormat[LongWritable, SimpleFeature] {
+  override def createRecordReader(split: InputSplit, context: TaskAttemptContext) =
+    new CombineFileRecordReader(split.asInstanceOf[CombineFileSplit], context, classOf[CombineFileStreamRecordReaderWrapper])
+}
+
+class CombineFileStreamRecordReaderWrapper(split: CombineFileSplit,
+                                           ctx: TaskAttemptContext,
+                                           idx: Int)
+  extends CombineFileRecordReaderWrapper[LongWritable, SimpleFeature](
+    new ConverterInputFormat, split, ctx, idx)
+
+
 
 object ConverterInputFormat {
 
@@ -61,16 +76,24 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
 
   import ConverterInputFormat._
 
+  private var converter: SimpleFeatureConverter[_] = null
+  private var sft: SimpleFeatureType = null
+  private var confStr: String = null
+
+  override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
+    if(converter == null) {
+      confStr   = context.getConfiguration.get(ConverterKey)
+      val conf      = ConfigFactory.parseString(confStr)
+      sft       = FileStreamInputFormat.getSft(context.getConfiguration)
+      converter = SimpleFeatureConverters.build(sft, conf)
+    }
+  }
+
   override def createIterator(stream: InputStream with Seekable,
                               filePath: Path,
                               context: TaskAttemptContext): Iterator[SimpleFeature] with Closeable = {
-    val confStr   = context.getConfiguration.get(ConverterKey)
-    val conf      = ConfigFactory.parseString(confStr)
-    val sft       = FileStreamInputFormat.getSft(context.getConfiguration)
-    val converter = SimpleFeatureConverters.build(sft, conf)
     val filter    = GeoMesaConfigurator.getFilter(context.getConfiguration).map(ECQL.toFilter)
     val retypedSpec = context.getConfiguration.get(RetypeKey)
-
 
     class MapReduceCounter extends org.locationtech.geomesa.convert.Counter {
       import ConverterInputFormat.{Counters => C}
@@ -106,7 +129,7 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     }
 
     logger.info(s"Initialized record reader on split ${filePath.toString} with " +
-        s"type name ${sft.getTypeName} and convert conf $confStr")
+      s"type name ${sft.getTypeName} and convert conf $confStr")
 
     new Iterator[SimpleFeature] with Closeable {
       override def hasNext: Boolean = featureReader.hasNext

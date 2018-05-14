@@ -17,14 +17,16 @@ import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool}
 import org.apache.commons.pool2.{BasePooledObjectFactory, ObjectPool}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
+import org.geotools.data.DataUtilities.compare
 import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters}
-import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
+import org.locationtech.geomesa.jobs.mapreduce.{ConverterCombineInputFormat, ConverterInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.data.DataUtilities.compare
+
 import scala.util.Try
 
 /**
@@ -75,7 +77,18 @@ class ConverterIngest(sft: SimpleFeatureType,
     new LocalIngestConverterImpl(sft, path, converters, failures)
 
   override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
-    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
+    // check conf if we should run against small files and use Combine* classes accordingly
+    mode match {
+      case Some(RunModes.DistributedCombine) =>
+        new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, ???, libjarsFile, libjarsPaths).run(statusCallback)
+
+      case Some(RunModes.Distributed) =>
+        new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
+
+      case _ =>
+        new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
+
+    }
   }
 }
 
@@ -95,19 +108,13 @@ class LocalIngestConverterImpl(sft: SimpleFeatureType, path: String, converters:
   override def close(): Unit = converters.returnObject(converter)
 }
 
-/**
- * Distributed job that uses converters to process input files
- *
- * @param sft simple feature type
- * @param converterConfig converter definition
- */
-class ConverterIngestJob(dsParams: Map[String, String],
-                         sft: SimpleFeatureType,
-                         converterConfig: Config,
-                         paths: Seq[String],
-                         libjarsFile: String,
-                         libjarsPaths: Iterator[() => Seq[File]])
-    extends AbstractIngestJob(dsParams, sft.getTypeName, paths, libjarsFile, libjarsPaths) {
+trait AbstractConverterIngestJob extends AbstractIngestJob {
+  def dsParams: Map[String, String]
+  def sft: SimpleFeatureType
+  def converterConfig: Config
+  def paths: Seq[String]
+  def libjarsFile: String
+  def libjarsPaths: Iterator[() => Seq[File]]
 
   import ConverterInputFormat.{Counters => ConvertCounters}
   import GeoMesaOutputFormat.{Counters => OutCounters}
@@ -115,7 +122,7 @@ class ConverterIngestJob(dsParams: Map[String, String],
   val failCounters =
     Seq((ConvertCounters.Group, ConvertCounters.Failed), (OutCounters.Group, OutCounters.Failed))
 
-  override val inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]] = classOf[ConverterInputFormat]
+  def inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]]
 
   override def configureJob(job: Job): Unit = {
     super.configureJob(job)
@@ -128,4 +135,32 @@ class ConverterIngestJob(dsParams: Map[String, String],
 
   override def failed(job: Job): Long =
     failCounters.map(c => job.getCounters.findCounter(c._1, c._2).getValue).sum
+}
+
+/**
+  * Distributed job that uses converters to process input files
+  *
+  * @param sft simple feature type
+  * @param converterConfig converter definition
+  */
+class ConverterIngestJob(val dsParams: Map[String, String],
+                         val sft: SimpleFeatureType,
+                         val converterConfig: Config,
+                         val paths: Seq[String],
+                         val libjarsFile: String,
+                         val libjarsPaths: Iterator[() => Seq[File]])
+  extends AbstractConverterIngestJob {
+
+  override val inputFormatClass: Class[ConverterInputFormat] =  classOf[ConverterInputFormat]
+}
+
+class ConverterCombineIngestJob(val dsParams: Map[String, String],
+                                val sft: SimpleFeatureType,
+                                val converterConfig: Config,
+                                val paths: Seq[String],
+                                val maxSplitSize: Long,
+                                val libjarsFile: String,
+                                val libjarsPaths: Iterator[() => Seq[File]])
+  extends AbstractConverterIngestJob {
+  override val inputFormatClass: Class[ConverterCombineInputFormat] = classOf[ConverterCombineInputFormat]
 }
