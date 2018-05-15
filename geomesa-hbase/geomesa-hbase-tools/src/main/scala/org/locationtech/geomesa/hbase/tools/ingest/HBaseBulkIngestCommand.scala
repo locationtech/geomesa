@@ -31,7 +31,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
     import scala.collection.JavaConverters._
 
     new ConverterIngest(sft, connection, converterConfig, params.files.asScala, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads) {
+      libjarsFile, libjarsPaths, params.threads, params.maxSplitSize) {
 
       override def run(): Unit = {
         super.run()
