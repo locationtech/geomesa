@@ -38,7 +38,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
   import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._

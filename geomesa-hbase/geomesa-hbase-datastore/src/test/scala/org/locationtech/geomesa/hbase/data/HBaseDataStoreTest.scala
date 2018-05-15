@@ -27,6 +27,7 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 
+import scala.collection.{GenTraversableOnce, immutable}
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
@@ -72,7 +73,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
-      val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"))
+      val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"), Array("dtg", "geom", "attr", "name"))
 
       foreach(Seq(true, false)) { remote =>
         foreach(Seq(true, false)) { loose =>
@@ -99,9 +100,9 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
         }
       }
 
-      def testTransforms(ds: HBaseDataStore) = {
-        val transforms = Array("derived=strConcat('hello',name)", "geom")
+      def testTransforms(ds: HBaseDataStore): MatchResult[_] = {
         forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
+          val transforms = Array("derived=strConcat('hello',name)", "geom")
           val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
           val features = SelfClosingIterator(fr).toList
           features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
@@ -116,7 +117,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
       testTransforms(ds)
 
-      def testProcesses(ds: HBaseDataStore) = {
+      def testProcesses(ds: HBaseDataStore): MatchResult[_] = {
         val source = ds.getFeatureSource(typeName)
         val input = new ListFeatureCollection(sft, Array[SimpleFeature](toAdd(4)))
 
