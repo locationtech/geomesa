@@ -47,7 +47,8 @@ class ConverterIngest(sft: SimpleFeatureType,
                       mode: Option[RunMode],
                       libjarsFile: String,
                       libjarsPaths: Iterator[() => Seq[File]],
-                      numLocalThreads: Int)
+                      numLocalThreads: Int,
+                      maxSplitSize: Int)
     extends AbstractIngest(dsParams, sft.getTypeName, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
   override def beforeRunTasks(): Unit = {
@@ -80,7 +81,7 @@ class ConverterIngest(sft: SimpleFeatureType,
     // check conf if we should run against small files and use Combine* classes accordingly
     mode match {
       case Some(RunModes.DistributedCombine) =>
-        new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, ???, libjarsFile, libjarsPaths).run(statusCallback)
+        new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, maxSplitSize, libjarsFile, libjarsPaths).run(statusCallback)
 
       case Some(RunModes.Distributed) =>
         new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
@@ -163,4 +164,9 @@ class ConverterCombineIngestJob(dsParams: Map[String, String],
                                 libjarsPaths: Iterator[() => Seq[File]])
   extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
   override val inputFormatClass: Class[ConverterCombineInputFormat] = classOf[ConverterCombineInputFormat]
+
+  override def configureJob(job: Job): Unit = {
+    super.configureJob(job)
+    FileInputFormat.setMaxInputSplitSize(job, maxSplitSize)
+  }
 }

@@ -72,7 +72,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
     new ConverterIngest(sft, connection, converterConfig, params.files, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads)
+      libjarsFile, libjarsPaths, params.threads, params.maxSplitSize)
   }
 
   protected def createAutoIngest(): Runnable = {
@@ -99,4 +99,7 @@ trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam
     with OptionalConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
+
+  @Parameter(names = Array("--splitMaxSize"), description = "Maximum size of a split in bytes")
+  var maxSplitSize: Integer = -1
 }
