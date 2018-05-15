@@ -36,6 +36,9 @@ class ConverterInputFormat extends FileStreamInputFormat {
 }
 
 class ConverterCombineInputFormat extends CombineFileInputFormat[LongWritable, SimpleFeature] {
+
+  override protected def isSplitable(context: JobContext, filename: Path): Boolean = false
+
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) =
     new CombineFileRecordReader(split.asInstanceOf[CombineFileSplit], context, classOf[CombineFileStreamRecordReaderWrapper])
 }
