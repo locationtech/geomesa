@@ -108,13 +108,13 @@ class LocalIngestConverterImpl(sft: SimpleFeatureType, path: String, converters:
   override def close(): Unit = converters.returnObject(converter)
 }
 
-trait AbstractConverterIngestJob extends AbstractIngestJob {
-  def dsParams: Map[String, String]
-  def sft: SimpleFeatureType
-  def converterConfig: Config
-  def paths: Seq[String]
-  def libjarsFile: String
-  def libjarsPaths: Iterator[() => Seq[File]]
+abstract class AbstractConverterIngestJob(dsParams: Map[String, String],
+                                          sft: SimpleFeatureType,
+                                          converterConfig: Config,
+                                          paths: Seq[String],
+                                          libjarsFile: String,
+                                          libjarsPaths: Iterator[() => Seq[File]])
+  extends AbstractIngestJob(dsParams, sft.getTypeName, paths, libjarsFile, libjarsPaths) {
 
   import ConverterInputFormat.{Counters => ConvertCounters}
   import GeoMesaOutputFormat.{Counters => OutCounters}
@@ -143,24 +143,24 @@ trait AbstractConverterIngestJob extends AbstractIngestJob {
   * @param sft simple feature type
   * @param converterConfig converter definition
   */
-class ConverterIngestJob(val dsParams: Map[String, String],
-                         val sft: SimpleFeatureType,
-                         val converterConfig: Config,
-                         val paths: Seq[String],
-                         val libjarsFile: String,
-                         val libjarsPaths: Iterator[() => Seq[File]])
+class ConverterIngestJob(dsParams: Map[String, String],
+                         sft: SimpleFeatureType,
+                         converterConfig: Config,
+                         paths: Seq[String],
+                         libjarsFile: String,
+                         libjarsPaths: Iterator[() => Seq[File]])
   extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
 
   override val inputFormatClass: Class[ConverterInputFormat] =  classOf[ConverterInputFormat]
 }
 
-class ConverterCombineIngestJob(val dsParams: Map[String, String],
-                                val sft: SimpleFeatureType,
-                                val converterConfig: Config,
-                                val paths: Seq[String],
-                                val maxSplitSize: Long,
-                                val libjarsFile: String,
-                                val libjarsPaths: Iterator[() => Seq[File]])
+class ConverterCombineIngestJob(dsParams: Map[String, String],
+                                sft: SimpleFeatureType,
+                                converterConfig: Config,
+                                paths: Seq[String],
+                                maxSplitSize: Long,
+                                libjarsFile: String,
+                                libjarsPaths: Iterator[() => Seq[File]])
   extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
   override val inputFormatClass: Class[ConverterCombineInputFormat] = classOf[ConverterCombineInputFormat]
 }
