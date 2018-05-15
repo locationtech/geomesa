@@ -28,6 +28,22 @@ parameter. When a producer writes an update to an existing feature, the consumer
 Once the timeout is hit without any updates, the feature will be removed from the consumer cache and will no
 longer be returned when querying.
 
+Feature Event Time
+------------------
+
+By default, expiration and updates are determined by Kafka message time. Feature updates will replace any
+prior feature message, and feature will expire based on when they were read. Alternatively, one or both
+of these values may be based on a feature attribute or expression.
+
+To enabled event time, specify a property name or CQL expression using the ``kafka.cache.event-time`` data store
+parameter. This expression will be evaluated on a per-feature basis, and must evaluate to either a date or a
+number representing milliseconds since the Java epoch. This value will be combined with the ``kafka.cache.expiry``
+value to set an expiration time for the feature.
+
+To also enable event time ordering, set the ``kafka.cache.event-time.ordering`` data store parameter to ``true``.
+When enabled, if a feature update is read that has an older event time than the current feature, the message
+will be discarded. This can be useful for handling badly ordered update streams.
+
 Spatial Index Resolution
 ------------------------
 

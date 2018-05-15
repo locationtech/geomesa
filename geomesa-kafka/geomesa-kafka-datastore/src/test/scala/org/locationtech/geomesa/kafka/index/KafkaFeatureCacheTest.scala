@@ -44,8 +44,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
   def caches(expiry: Duration = Duration.Inf) =
     Iterator(
-      KafkaFeatureCache(sft, expiry, BucketIndexSupport(sft, 360, 180)),
-      KafkaFeatureCache(sft, expiry, GeoCQIndexSupport(sft, 360, 180))
+      KafkaFeatureCache(sft, BucketIndexSupport(sft, 360, 180), expiry, None),
+      KafkaFeatureCache(sft, GeoCQIndexSupport(sft, 360, 180), expiry, None)
     )
 
   "KafkaFeatureCache" should {

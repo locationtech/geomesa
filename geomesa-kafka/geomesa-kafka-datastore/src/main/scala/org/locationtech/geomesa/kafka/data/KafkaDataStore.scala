@@ -25,6 +25,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.Namespace
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
+import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
 import org.locationtech.geomesa.kafka.index._
@@ -72,18 +73,18 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         KafkaCacheLoader.NoOpLoader
       } else {
         val sft = getSchema(key)
-        val support: SpatialIndexSupport = if (config.cqEngine) {
-          GeoCQIndexSupport(sft, config.indexResolutionX, config.indexResolutionY)
+        val support: SpatialIndexSupport = if (config.indexConfig.cqEngine) {
+          GeoCQIndexSupport(sft, config.indexConfig.resolutionX, config.indexConfig.resolutionY)
         } else {
-          BucketIndexSupport(sft, config.indexResolutionX, config.indexResolutionY)
+          BucketIndexSupport(sft, config.indexConfig.resolutionX, config.indexConfig.resolutionY)
         }
-        val cache = KafkaFeatureCache(sft, config.cacheExpiry, support)
+        val cache = KafkaFeatureCache(sft, support, config.indexConfig.expiry, config.eventTime)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
-        val laz = config.lazyDeserialization
+        val laz = config.indexConfig.lazyDeserialization
         val doInitialLoad = config.consumeFromBeginning
-        new KafkaCacheLoader.KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, doInitialLoad)
+        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, doInitialLoad)
       }
     }
   })
@@ -290,13 +291,13 @@ object KafkaDataStore extends LazyLogging {
                                   producerConfig: Properties,
                                   consumerConfig: Properties,
                                   consumeFromBeginning: Boolean,
-                                  cacheExpiry: Duration,
-                                  indexResolutionX: Int,
-                                  indexResolutionY: Int,
-                                  cqEngine: Boolean,
-                                  lazyDeserialization: Boolean,
+                                  indexConfig: IndexConfig,
+                                  eventTime: Option[EventTimeConfig],
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,
                                   audit: Option[(AuditWriter, AuditProvider, String)],
                                   namespace: Option[String]) extends NamespaceConfig
+
+  case class IndexConfig(expiry: Duration, cqEngine: Boolean, resolutionX: Int, resolutionY: Int, lazyDeserialization: Boolean)
+  case class EventTimeConfig(expression: String, ordering: Boolean)
 }
