@@ -810,11 +810,10 @@ class JsonConverterTest extends Specification {
           |        "things": [
           |          {
           |            "s": "s1",
-          |            "i": 1,
           |            "d": 1.1,
           |            "u": "12345678-1234-1234-1234-123456781234"
           |          },
-                     {
+          |          {
           |            "s": "s2",
           |            "i": 2,
           |            "d": 2.2,
@@ -833,7 +832,7 @@ class JsonConverterTest extends Specification {
           |      {
           |        "id": 1,
           |        "geometry": {"type": "Point", "coordinates": [55, 56]},
-          |        "i": [1, 2],
+          |        "i": [2],
           |        "d": [1.1, 2.2],
           |        "s": ["s1", "s2"],
           |        "u": ["12345678-1234-1234-1234-123456781234", "00000000-0000-0000-0000-000000000000"]
@@ -891,7 +890,7 @@ class JsonConverterTest extends Specification {
         f.getAttribute("sList").asInstanceOf[java.util.List[String]].toSeq must containTheSameElementsAs(Seq("s1", "s2"))
 
         f.getAttribute("iList") must beAnInstanceOf[java.util.List[Integer]]
-        f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].toSeq must containTheSameElementsAs(Seq(1, 2))
+        f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].toSeq must containTheSameElementsAs(Seq(2))
 
         f.getAttribute("dList") must beAnInstanceOf[java.util.List[Double]]
         f.getAttribute("dList").asInstanceOf[java.util.List[Double]].toSeq must containTheSameElementsAs(Seq(1.1, 2.2))
