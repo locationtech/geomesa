@@ -643,7 +643,7 @@ delimiters for a map:
 
 ::
 
-    { name = "numbers", transform = "parseMap('int -> string', $2, ',', '->')" }
+    { name = "numbers", transform = "parseMap('int -> string', $2, '->', ',')" }
 
 
 Enrichment Functions
