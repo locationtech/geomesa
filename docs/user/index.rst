@@ -28,9 +28,7 @@ User Manual
    nifi
    blobstore
    native_api
-   metrics
    stream
-   web_data
    upgrade
 
 Appendix
@@ -40,3 +38,6 @@ Appendix
    :maxdepth: 2
 
    appendix/utils
+   appendix/memory
+   appendix/metrics
+   appendix/web_data

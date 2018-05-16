@@ -100,6 +100,7 @@
             <fileMode>0644</fileMode>
             <includes>
                 <include>LICENSE.txt</include>
+                <include>README.md</include>
             </includes>
         </fileSet>
 
@@ -175,85 +176,6 @@
         </fileSet>
     </fileSets>
     <files>
-        <file>
-            <source>../../README.md</source>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../README.md</source>
-            <destName>README-accumulo.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/README.md</source>
-            <destName>README-gs-plugin.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-utils/README.md</source>
-            <destName>README-utils.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-datastore/README.md</source>
-            <destName>README-accumulo-datastore.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-raster/README.md</source>
-            <destName>README-raster.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-gs-plugin/README.md</source>
-            <destName>README-accumulo-gs-plugin.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-blobstore/README.md</source>
-            <destName>README-blobstore.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-blobstore/geomesa-blobstore-handlers/geomesa-blobstore-gdal-handler</source>
-            <destName>README-blobstore-gdal-handler.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-stream/README.md</source>
-            <destName>README-stream.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-convert/README.md</source>
-            <destName>README-convert.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-jobs/README.md</source>
-            <destName>README-jobs.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-compute/README.md</source>
-            <destName>README-compute.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-distributed-runtime/README.md</source>
-            <destName>README-accumulo-distributed-runtime.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-web/geomesa-web-data/README.md</source>
-            <destName>README-web-data.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-process/README.md</source>
-            <destName>README-process.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
         <!-- geomesa-site.xml.template -->
         <file>
             <source>../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>

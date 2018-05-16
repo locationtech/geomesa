@@ -13,13 +13,15 @@
             <fileMode>0755</fileMode>
             <filtered>true</filtered>
         </fileSet>
+        <!-- license file -->
+        <fileSet>
+            <directory>../../</directory>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>LICENSE.txt</include>
+                <include>README.md</include>
+            </includes>
+        </fileSet>
     </fileSets>
-
-    <files>
-        <file>
-            <source>../README.md</source>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-    </files>
 
 </component>
