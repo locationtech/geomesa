@@ -24,8 +24,7 @@ import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SftBuilder
-import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
 import org.opengis.feature.simple.SimpleFeature
 
@@ -119,15 +118,12 @@ abstract class BaseBigTableIndex[T](protected val ds: GeoMesaDataStore[_,_,_],
 object BaseBigTableIndex {
   private def buildSimpleFeatureType[T](name: String)
                                        (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T]()) = {
-    val builder = new SftBuilder()
-      .date("dtg", index = false, default = true)
-      .bytes("payload", SftBuilder.Opts(index = false, stIndex = false, default = false, Cardinality.UNKNOWN))
-      .geometry("geom", default = true)
-      .userData("geomesa.mixed.geometries", "true")
+    val builder = SchemaBuilder.builder()
+      .addDate("dtg", default = true)
+      .addBytes("payload")
+      .addMixedGeometry("geom", default = true)
 
-    view.getExtraAttributes.asScala.foreach {
-      builder.attributeDescriptor
-    }
+    view.getExtraAttributes.asScala.foreach(builder.addAttribute)
 
     builder.build(name)
   }

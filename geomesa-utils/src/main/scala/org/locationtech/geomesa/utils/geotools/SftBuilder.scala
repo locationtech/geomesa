@@ -21,6 +21,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe.{Type => UType, _}
 
+@deprecated("SchemaBuilder")
 abstract class InitBuilder[T] {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -178,6 +179,7 @@ abstract class InitBuilder[T] {
 
 }
 
+@deprecated("SchemaBuilder")
 class SftBuilder extends InitBuilder[SftBuilder] {}
 
 object SftBuilder {

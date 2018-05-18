@@ -19,13 +19,13 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SftBuilder
+import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.opengis.feature.simple.SimpleFeature
 
 @DescribeProcess(title = "Point2PointProcess", description = "Aggregates a collection of points into a collection of line segments")
 class Point2PointProcess extends GeoMesaProcess {
 
-  private val baseType = new SftBuilder().lineString("geom", default = true).build("point2point")
+  private val baseType = SchemaBuilder.builder().addLineString("geom", default = true).build("point2point")
 
   private val gf = JTSFactoryFinder.getGeometryFactory
 
