@@ -22,7 +22,7 @@ import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan, Wrapp
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -93,7 +93,10 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
       iterator = new SortingSimpleFeatureIterator(iterator, sort)
     }
 
-    iterator
+    Reprojection(query) match {
+      case None    => iterator
+      case Some(r) => iterator.map(r.reproject)
+    }
   }
 
   /**
