@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert.json
 
 import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
 import com.typesafe.config.ConfigFactory
@@ -1110,6 +1111,38 @@ class JsonConverterTest extends Specification {
       f.get[Double]("d") mustEqual 1.7976931348623157E8
       f.get[Float]("f") mustEqual 1.023f
       f.get[Boolean]("b") mustEqual false
+    }
+
+    "parse missing values as null" >> {
+      val sft = SimpleFeatureTypes.createType("foo", "name:String,*geom:Point:srid=4326")
+      val json = Seq(
+        """{ "lat": 0, "lon": 0, "properties": { "name": "name1" } }""",
+        """{ "lat": 0, "lon": 0, "properties": { "name": null } }""",
+        """{ "lat": 0, "lon": 0, "properties": {} }""",
+        """{ "lat": 0, "lon": 0 }"""
+      ).mkString("\n")
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   options = {
+          |     line-mode = "single"
+          |   }
+          |   fields = [
+          |     { name = "name", json-type = "string", path = "$.properties.name", }
+          |     { name = "lat",  json-type = "double", path = "$.lat",             }
+          |     { name = "lon",  json-type = "double", path = "$.lon",             }
+          |     { name = "geom", transform = "point($lon, $lat)"                   }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      val in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+      val features = converter.process(in).toList
+      features must haveLength(4)
+      features.map(_.getAttribute("name")) mustEqual Seq("name1", null, null, null)
     }
 
     "handle invalid input" >> {
