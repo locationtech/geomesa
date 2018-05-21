@@ -13,14 +13,14 @@ import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.apache.spark.sql.SQLTypes
+import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.catalyst.plans.logical.Filter
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 
@@ -239,6 +239,12 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       df.queryExecution.optimizedPlan.children must haveLength(1)
       df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
       df.collect().map(_.get(0)) mustEqual Array(2)
+    }
+
+    "preserve feature ID through dataframe ops" >> {
+      val sql = "select * from chicago where __fid__ = '1'"
+      sc.sql(sql).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
+      sc.sql(sql).withColumn("label", new Column(Literal(1))).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
     }
 
     "st_translate" >> {
