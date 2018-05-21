@@ -63,7 +63,7 @@ For ``s3n``:
     <property>
         <name>mapreduce.application.classpath</name>
         <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*:$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_MAPRED_HOME/share/hadoop/tools/lib/*</value>
-        <description>The classpath specifically for mapreduce jobs. This override is needed so that s3 URLs work on hadoop 2.6.0+</description>
+        <description>The classpath specifically for map-reduce jobs. This override is needed so that s3 URLs work on hadoop 2.6.0+</description>
     </property>
     <property>
         <name>fs.s3n.impl</name>

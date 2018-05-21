@@ -182,7 +182,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
     GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
     ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
     classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
-    files using a colon (``:``) as a delimiter. These entries will also be added the the mapreduce libjars variable.
+    files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
     Use the ``geomesa-accumulo classpath`` command to print the final classpath that will be used when executing geomesa
     commands.
 
