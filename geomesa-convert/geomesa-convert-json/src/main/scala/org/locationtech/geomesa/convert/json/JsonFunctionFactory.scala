@@ -52,7 +52,7 @@ class JsonMapListFunctionFactory extends TransformerFunctionFactory with MapList
       null
     } else {
       import scala.collection.JavaConversions._
-      jArr.iterator.toSeq.map(p => convert(getPrimitive(p.getAsJsonPrimitive), clazz)).toList.asJava
+      jArr.iterator.filterNot(_.isJsonNull).map(p => convert(getPrimitive(p.getAsJsonPrimitive), clazz)).toList.asJava
     }
   }
 
