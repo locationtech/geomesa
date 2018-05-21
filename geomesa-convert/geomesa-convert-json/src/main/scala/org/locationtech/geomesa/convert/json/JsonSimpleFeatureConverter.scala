@@ -11,9 +11,9 @@ package org.locationtech.geomesa.convert.json
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
-import com.google.gson.{JsonArray, JsonElement, JsonObject}
+import com.google.gson.{JsonArray, JsonElement, JsonNull, JsonObject}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
-import com.jayway.jsonpath.{Configuration, JsonPath}
+import com.jayway.jsonpath.{Configuration, JsonPath, PathNotFoundException}
 import com.typesafe.config.Config
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
@@ -137,24 +137,18 @@ trait BaseJsonField[T] extends Field {
 
   override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
     mutableArray(0) = getAs(evaluateJsonPath(args))
-
-    if(transform == null) mutableArray(0)
-    else super.eval(mutableArray)
-  }
-
-  def evalWithTransform(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-    mutableArray(0) = evaluateJsonPath(args)
-    super.eval(mutableArray)
+    if (transform == null) { mutableArray(0) } else { super.eval(mutableArray) }
   }
 
   // If the expression path is the 'root' path, we read from the second, argument.
   // In order for there to be two arguments passed in, one must be using a feature-path.
   //  Without a feature-path, just use 'path' rather than 'root-path'.
-  def evaluateJsonPath(args: Array[Any]): JsonElement = {
-    val arg = if (pathIsRoot) args(1) else args(0)
-    expression.read[JsonElement](arg, jsonConfig)
+  private def evaluateJsonPath(args: Array[Any]): JsonElement = {
+    val arg = if (pathIsRoot) { args(1) } else { args(0) }
+    try { expression.read[JsonElement](arg, jsonConfig) } catch {
+      case _: PathNotFoundException => JsonNull.INSTANCE
+    }
   }
-
 }
 
 case class BooleanJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr, pathIsRoot: Boolean)
