@@ -36,7 +36,7 @@ object Conversions {
 
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {
     def bufferMeters(meters: Double): Geometry = geom.buffer(distanceDegrees(meters))
-    def distanceDegrees(meters: Double): Double = GeometryUtils.distanceDegrees(geom, meters)
+    def distanceDegrees(meters: Double): Double = GeometryUtils.distanceDegrees(geom, meters)._2
     def safeCentroid(): Point = {
       val centroid = geom.getCentroid
       if (java.lang.Double.isNaN(centroid.getCoordinate.x) || java.lang.Double.isNaN(centroid.getCoordinate.y)) {

@@ -17,34 +17,56 @@ import org.geotools.referencing.GeodeticCalculator
  */
 object GeometryUtils {
 
-  val geoFactory = JTSFactoryFinder.getGeometryFactory
+  val geoFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory
 
-  val zeroPoint = geoFactory.createPoint(new Coordinate(0,0))
+  val zeroPoint: Point = geoFactory.createPoint(new Coordinate(0,0))
 
-  /** Convert meters to dec degrees based on widest point in dec degrees of circles at bounding box corners */
-  def distanceDegrees(geometry: Geometry, meters: Double): Double = {
-    geometry match {
-      case p: Point => geometry.distance(farthestPoint(p, meters))
-      case _ => distanceDegrees(geometry.getEnvelopeInternal, meters)
+  /**
+    * Convert meters to decimal degrees, based on the latitude of the geometry.
+    *
+    * Returns two values, ones based on latitude and one based on longitude. The first value
+    * will always be &lt;= the second value
+    *
+    * For non-point geometries, distances are measured from the corners of the geometry envelope
+    *
+    * @param geom geometry to buffer
+    * @param meters meters
+    * @return (min degrees, max degrees)
+    */
+  def distanceDegrees(geom: Geometry, meters: Double): (Double, Double) = {
+    geom match {
+      case p: Point => distanceDegrees(p, meters)
+      case _        => distanceDegrees(geom.getEnvelopeInternal, meters)
     }
   }
 
-  /** Convert meters to dec degrees based on widest point in dec degrees of circles at envelope corners */
-  def distanceDegrees(env: Envelope, meters: Double): Double =
-    List(
+  private def distanceDegrees(point: Point, meters: Double): (Double, Double) = {
+    val calc = new GeodeticCalculator()
+    calc.setStartingGeographicPoint(point.getX, point.getY)
+    val north = {
+      calc.setDirection(0, meters)
+      val dest2D = calc.getDestinationGeographicPoint
+      point.distance(geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY)))
+    }
+    val east = {
+      calc.setDirection(90, meters)
+      val dest2D = calc.getDestinationGeographicPoint
+      point.distance(geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY)))
+    }
+    // normally east would be the largest in degrees, but sometimes it can be smaller
+    // due to variances in the ellipsoid
+    if (east > north) { (north, east) } else { (east, north) }
+  }
+
+  private def distanceDegrees(env: Envelope, meters: Double): (Double, Double) = {
+    val distances = Seq(
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMaxY)), meters),
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMinY)), meters),
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMinX, env.getMinY)), meters),
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMinX, env.getMaxY)), meters)
-    ).max
+    )
 
-  /** Farthest point based on widest point in dec degrees of circle */
-  def farthestPoint(startPoint: Point, meters: Double) = {
-    val calc = new GeodeticCalculator()
-    calc.setStartingGeographicPoint(startPoint.getX, startPoint.getY)
-    calc.setDirection(90, meters)
-    val dest2D = calc.getDestinationGeographicPoint
-    geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY))
+    (distances.minBy(_._1)._1, distances.maxBy(_._2)._2)
   }
 
   def unfoldRight[A, B](seed: B)(f: B => Option[(A, B)]): List[A] = f(seed) match {
@@ -139,8 +161,8 @@ object GeometryUtils {
     * @return a double representing the intercept latitude
     */
   def calcCrossLat(point1: Coordinate, point2: Coordinate, crossLon: Double): Double = {
-    val slope = (point1.y - point2.y) / (point1.x - point2.x);
-    val intercept = point1.y - (slope * point1.x);
-    (slope * crossLon) + intercept;
+    val slope = (point1.y - point2.y) / (point1.x - point2.x)
+    val intercept = point1.y - (slope * point1.x)
+    (slope * crossLon) + intercept
   }
 }

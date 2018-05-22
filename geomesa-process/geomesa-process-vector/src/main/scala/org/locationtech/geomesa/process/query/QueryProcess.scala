@@ -15,6 +15,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.opengis.feature.Feature
@@ -80,13 +81,15 @@ class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties
       }
     }
 
+  // normally handled in our query planner, but we are going to use the filter directly here
+  private lazy val manualFilter = FastFilterFactory.optimize(features.getSchema, filter)
   private val manualVisitResults = new ListFeatureCollection(sft)
   private var resultCalc = FeatureResult(manualVisitResults)
 
   // non-optimized visit
   override def visit(feature: Feature): Unit = {
     val sf = feature.asInstanceOf[SimpleFeature]
-    if (filter.evaluate(sf)) {
+    if (manualFilter.evaluate(sf)) {
       manualVisitResults.add(retype(sf))
     }
   }

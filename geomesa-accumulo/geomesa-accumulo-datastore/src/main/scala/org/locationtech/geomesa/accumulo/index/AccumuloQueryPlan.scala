@@ -103,7 +103,7 @@ case class ScanPlan(filter: AccumuloFilterStrategyType,
     val scanner = ds.connector.createScanner(table, ds.auths)
     scanner.setRange(range)
     configure(scanner)
-    SelfClosingIterator(scanner.iterator.map(entriesToFeatures), scanner.close)
+    SelfClosingIterator(scanner.iterator.map(entriesToFeatures), scanner.close())
   }
 }
 
@@ -131,7 +131,7 @@ case class BatchScanPlan(filter: AccumuloFilterStrategyType,
         val scanner = ds.connector.createBatchScanner(table, auths.getOrElse(ds.auths), numThreads)
         scanner.setRanges(ranges)
         configure(scanner)
-        SelfClosingIterator(scanner.iterator, scanner.close)
+        SelfClosingIterator(scanner.iterator, scanner.close())
       }
     }
   }
@@ -166,6 +166,6 @@ case class JoinPlan(filter: AccumuloFilterStrategyType,
     configure(primary)
 
     val bms = new BatchMultiScanner(ds, primary, joinQuery, joinFunction)
-    SelfClosingIterator(bms.iterator.map(joinQuery.entriesToFeatures), bms.close)
+    SelfClosingIterator(bms.iterator.map(joinQuery.entriesToFeatures), bms.close())
   }
 }

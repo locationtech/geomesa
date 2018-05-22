@@ -12,10 +12,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
@@ -167,6 +167,9 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
 
   private var attributeIdx: Int = -1
 
+  // normally handled in our query planner, but we are going to use the filter directly here
+  private lazy val manualFilter = filter.map(FastFilterFactory.optimize(features.getSchema, _))
+
   private def getAttribute[T](f: SimpleFeature) = {
     if (attributeIdx == -1) {
       attributeIdx = f.getType.indexOf(attribute)
@@ -194,7 +197,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   // non-optimized visit
   override def visit(feature: Feature): Unit = {
     val f = feature.asInstanceOf[SimpleFeature]
-    if (filter.forall(_.evaluate(f))) {
+    if (manualFilter.forall(_.evaluate(f))) {
       addValue(f)
     }
   }
@@ -255,7 +258,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
 
 object AttributeVisitor {
 
-  lazy val ff  = CommonFactoryFinder.getFilterFactory2
+  import org.locationtech.geomesa.filter.ff
 
   /**
    * Returns a filter that is equivalent to Filter.INCLUDE, but against the attribute index.

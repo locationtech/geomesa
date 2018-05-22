@@ -13,12 +13,14 @@ import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.referencing.GeodeticCalculator
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.GeometryUtils.geoFactory
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -34,8 +36,13 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
   val geoFactory = JTSFactoryFinder.getGeometryFactory
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  def getPoint(lat: Double, lon: Double, meters: Double): Point =
-    GeometryUtils.farthestPoint(geoFactory.createPoint(new Coordinate(lat, lon)), meters)
+  def getPoint(lat: Double, lon: Double, meters: Double): Point = {
+    val calc = new GeodeticCalculator()
+    calc.setStartingGeographicPoint(lat, lon)
+    calc.setDirection(90, meters)
+    val dest2D = calc.getDestinationGeographicPoint
+    geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY))
+  }
 
   "GeomesaProximityQuery" should {
     "find things close by" in {
