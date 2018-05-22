@@ -20,7 +20,7 @@ import org.json4s.native.JsonMethods._
 import org.json4s.{DefaultFormats, Formats, _}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventWriter, ParamsAuditProvider}
+import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventWriter}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -44,13 +44,6 @@ class QueryAuditEndpointTest extends TestWithDataStore with MutableScalatraSpec 
 
   private var startDate: String = _
   private var endDate: String = _
-
-  private lazy val auditUser = {
-    import scala.collection.JavaConverters._
-    val provider = new ParamsAuditProvider
-    provider.configure(dsParams.asInstanceOf[Map[String, java.io.Serializable]].asJava)
-    provider.getCurrentUserId
-  }
 
   val queries = Seq(
     new Query(sftName),
@@ -93,7 +86,7 @@ class QueryAuditEndpointTest extends TestWithDataStore with MutableScalatraSpec 
         AccumuloAuditService.StoreType,
         sftName,
         0L, // will vary, we'll overwrite in comparisons
-        auditUser,
+        "unknown",
         filterToString(query.getFilter),
         ViewParams.getReadableHints(query),
         0L, // will vary, we'll overwrite in comparisons
