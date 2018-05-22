@@ -25,6 +25,7 @@ import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.SecurityParams
@@ -47,7 +48,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       buildAccumuloConnector(params, MockParam.lookup(params))
     }
     val config = buildConfig(connector, params)
-    new AccumuloDataStore(connector, config)
+    val ds = new AccumuloDataStore(connector, config)
+    GeoMesaDataStore.initRemoteVersion(ds)
+    ds
   }
 
   override def getDisplayName: String = AccumuloDataStoreFactory.DISPLAY_NAME
