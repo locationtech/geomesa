@@ -45,7 +45,7 @@ class ConverterCombineInputFormat extends CombineFileInputFormat[LongWritable, S
 
 class CombineFileStreamRecordReaderWrapper(split: CombineFileSplit,
                                            ctx: TaskAttemptContext,
-                                           idx: Int)
+                                           idx: java.lang.Integer)
   extends CombineFileRecordReaderWrapper[LongWritable, SimpleFeature](
     new ConverterInputFormat, split, ctx, idx)
 
@@ -86,9 +86,10 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
   override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
     if(converter == null) {
       confStr   = context.getConfiguration.get(ConverterKey)
-      val conf      = ConfigFactory.parseString(confStr)
+      val conf  = ConfigFactory.parseString(confStr)
       sft       = FileStreamInputFormat.getSft(context.getConfiguration)
       converter = SimpleFeatureConverters.build(sft, conf)
+      super.initialize(split, context)
     }
   }
 
