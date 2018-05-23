@@ -22,7 +22,8 @@ if [[ $RESULT -ne 0 ]]; then
 else
   # now run tests - using the maven executable, as zinc uses too much memory
   # download the plugin first, then run in offline mode (otherwise seems to download jars again?)
-  mvn dependency:resolve-plugins -DincludeArtifactIds=maven-surefire-plugin 2>&1 | tee -a $BUILD_OUTPUT | grep 'Downloading'
+  mvn dependency:resolve-plugins -DincludeArtifactIds=maven-surefire-plugin 2>&1 | tee -a $BUILD_OUTPUT
+  RESULT=${PIPESTATUS[0]} # capture the status of the maven build	
   if [[ $RESULT -ne 0 ]]; then
     # dump out the end of the build log, to show success or errors
     tail -500 $BUILD_OUTPUT
