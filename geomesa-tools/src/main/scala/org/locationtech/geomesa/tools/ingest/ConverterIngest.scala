@@ -159,7 +159,7 @@ class ConverterCombineIngestJob(dsParams: Map[String, String],
                                 sft: SimpleFeatureType,
                                 converterConfig: Config,
                                 paths: Seq[String],
-                                maxSplitSize: Long,
+                                maxSplitSize: Int,
                                 libjarsFile: String,
                                 libjarsPaths: Iterator[() => Seq[File]])
   extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
@@ -167,6 +167,6 @@ class ConverterCombineIngestJob(dsParams: Map[String, String],
 
   override def configureJob(job: Job): Unit = {
     super.configureJob(job)
-    FileInputFormat.setMaxInputSplitSize(job, maxSplitSize)
+    FileInputFormat.setMaxInputSplitSize(job, maxSplitSize.toLong)
   }
 }

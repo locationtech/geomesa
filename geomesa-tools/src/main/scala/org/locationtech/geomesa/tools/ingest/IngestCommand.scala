@@ -100,6 +100,6 @@ trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
 
-  @Parameter(names = Array("--splitMaxSize"), description = "Maximum size of a split in bytes")
+  @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes")
   var maxSplitSize: Integer = -1
 }
