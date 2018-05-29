@@ -130,7 +130,7 @@ object AttributeSpec {
     if (simpleTypeMap.contains(binding.getSimpleName)) {
       SimpleAttributeSpec(name, binding, options)
     } else if (geometryTypeMap.contains(binding.getSimpleName)) {
-      val opts = if (sft.getGeometryDescriptor == descriptor) { options + (OPT_DEFAULT -> "true") } else { options }
+      val opts = if (sft != null && sft.getGeometryDescriptor == descriptor) { options + (OPT_DEFAULT -> "true") } else { options }
       GeomAttributeSpec(name, binding, opts)
     } else if (classOf[java.util.List[_]].isAssignableFrom(binding)) {
       val itemClass = Option(descriptor.getListType()).getOrElse(classOf[String])

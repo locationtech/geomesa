@@ -15,8 +15,7 @@ import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{decomposeAnd, decomposeOr}
 import org.locationtech.geomesa.index.planning.FilterSplitter
-import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
-import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter._
@@ -32,15 +31,15 @@ class QueryFilterSplitterTest extends Specification {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val sft = new SftBuilder()
-    .stringType("attr1")
-    .stringType("attr2", index = true)
-    .stringType("attr3")
-    .stringType("attr4")
-    .stringType("high", Opts(index = true, cardinality = Cardinality.HIGH))
-    .stringType("low", Opts(index = true, cardinality = Cardinality.LOW))
-    .date("dtg", default = true)
-    .point("geom", default = true)
+  val sft = SchemaBuilder.builder()
+    .addString("attr1")
+    .addString("attr2").withIndex()
+    .addString("attr3")
+    .addString("attr4")
+    .addString("high").withIndex(Cardinality.HIGH)
+    .addString("low").withIndex(Cardinality.LOW)
+    .addDate("dtg", default = true)
+    .addPoint("geom", default = true)
     .build("QueryFilterSplitterTest")
 
   sft.setIndices(AccumuloFeatureIndex.CurrentIndices.filter(_.supports(sft)).map(i => (i.name, i.version, IndexMode.ReadWrite)))
