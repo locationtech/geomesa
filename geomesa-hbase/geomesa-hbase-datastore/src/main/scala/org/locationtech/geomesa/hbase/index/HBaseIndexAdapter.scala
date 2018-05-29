@@ -33,6 +33,8 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
 
+  private val skipWal = Option(System.getProperty("geomesa.hbase.disable-wal")).isDefined
+
   override def rowAndValue(result: Result): RowAndValue = {
     val cell = result.rawCells()(0)
     RowAndValue(cell.getRowArray, cell.getRowOffset, cell.getRowLength,
@@ -41,6 +43,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
 
   override protected def createInsert(row: Array[Byte], feature: HBaseFeature): Mutation = {
     val put = new Put(row).addImmutable(feature.fullValue.cf, feature.fullValue.cq, feature.fullValue.value)
+    if(skipWal) put.setWriteToWAL(false)
     feature.fullValue.vis.foreach(put.setCellVisibility)
     put
   }

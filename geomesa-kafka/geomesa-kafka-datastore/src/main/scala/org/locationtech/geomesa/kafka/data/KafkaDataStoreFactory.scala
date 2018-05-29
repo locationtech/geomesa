@@ -56,6 +56,10 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
       CacheConsistency,
       ConsumerConfig,
       CqEngineCache,
+      EventTime,
+      EventTimeAttribute,
+      EventTimeExpiry,
+      EventTimeOrdering,
       ConsumeEarliest,
       AuditQueries,
       LooseBBox,
@@ -102,6 +106,12 @@ object KafkaDataStoreFactory {
     val cacheConsistency = CacheConsistency.lookupOpt(params).getOrElse(Duration.Inf)
 
     val cqEngine = CqEngineCache.lookup(params)
+
+    val eventTime = EventTime.lookupOpt(params).exists(_.booleanValue())
+    val eventTimeAttribute = EventTimeAttribute.lookupOpt(params)
+    val eventTimeOrdering = EventTimeOrdering.lookupOpt(params).exists(_.booleanValue())
+    val eventTimeExpiry = EventTimeExpiry.lookupOpt(params).exists(_.booleanValue())
+
     val looseBBox = LooseBBox.lookup(params)
 
     val audit = if (!AuditQueries.lookup(params)) { None } else {
@@ -115,7 +125,7 @@ object KafkaDataStoreFactory {
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, partitions, replication,
       producerConfig, consumerConfig, consumeFromBeginning, cacheExpiry, cacheCleanup, cacheConsistency,
-      ticker, cqEngine, looseBBox, authProvider, audit, ns)
+      ticker, cqEngine, eventTime, eventTimeAttribute, eventTimeOrdering, eventTimeExpiry, looseBBox, authProvider, audit, ns)
   }
 
   private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
@@ -183,6 +193,10 @@ object KafkaDataStoreFactory {
     val CacheConsistency = new GeoMesaParam[Duration]("kafka.cache.consistency", "Check the feature cache for consistency at this interval", deprecatedParams = Seq(DeprecatedConsistency))
     val CacheTicker      = new GeoMesaParam[Ticker]("kafka.cache.ticker", "Ticker to use for expiring/cleaning feature cache")
     val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = false, deprecatedKeys = Seq("useCQCache"))
+    val EventTime        = new GeoMesaParam[java.lang.Boolean]("kafka.cache.eventtime", "Use Event Time for managing cache of features", default = false)
+    val EventTimeAttribute = new GeoMesaParam[String]("kafka.cache.eventtime.attribute", "Use the configured attribute to compute Event Time", default = "")
+    val EventTimeOrdering  = new GeoMesaParam[java.lang.Boolean]("kafka.cache.eventtime.ordering", "Use order of event time to update a feature or not", default = false)
+    val EventTimeExpiry    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.eventtime.expiry", "Use event time to determine expiry of features", default = false)
     val LooseBBox        = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries     = GeoMesaDataStoreFactory.AuditQueriesParam
     val Authorizations   = org.locationtech.geomesa.security.AuthsParam

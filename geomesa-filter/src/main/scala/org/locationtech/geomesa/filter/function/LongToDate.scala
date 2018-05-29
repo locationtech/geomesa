@@ -8,37 +8,33 @@
 
 package org.locationtech.geomesa.filter.function
 
+import java.time.Instant
+import java.util.Date
+
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl._
-import org.opengis.feature.simple.SimpleFeature
 
-class FastProperty extends FunctionExpressionImpl(FastProperty.Name) {
-
-  private var idx: Int = -1
-
-  def this(i: Int) = {
-    this()
-    idx = i
-  }
-
-  override def evaluate(o: AnyRef): AnyRef = {
-    if (idx == -1) {
-      val tmp = getExpression(0).evaluate(null)
-      idx =
-        tmp match {
-          case long: java.lang.Long => long.toInt
-          case _ => tmp.asInstanceOf[java.lang.Integer]
-        }
+class LongToDate extends FunctionExpressionImpl(LongToDate.Name) {
+  override def evaluate(f: java.lang.Object): AnyRef = {
+    getExpression(0).evaluate(f) match {
+      case str: String =>
+        Date.from(Instant.ofEpochSecond(str.toLong))
+      case long: java.lang.Long =>
+        Date.from(Instant.ofEpochSecond(long))
+      case integer: java.lang.Integer =>
+        Date.from(Instant.ofEpochSecond(integer.toLong))
+      case _ =>
+        null
     }
-    o.asInstanceOf[SimpleFeature].getAttribute(idx)
   }
+
 }
 
-object FastProperty {
+object LongToDate {
   val Name = new FunctionNameImpl(
-    "fastproperty",
-    parameter("propertyValue", classOf[Object]),
-    parameter("propertyIndex", classOf[Integer])
+    "longToDate",
+    classOf[java.util.Date],
+    parameter("arg", classOf[java.lang.Object])
   )
 }
