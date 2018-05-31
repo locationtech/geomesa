@@ -118,7 +118,7 @@ rst_epilog = """
 
 .. |geotools_version| replace:: 18.x
 
-.. |accumulo_version| replace:: 1.7 or 1.9
+.. |accumulo_version| replace:: 1.9.1 or later
 
 .. |hbase_version| replace:: 1.3.x
 
