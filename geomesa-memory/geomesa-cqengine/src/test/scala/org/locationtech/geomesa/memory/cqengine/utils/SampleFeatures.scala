@@ -259,4 +259,13 @@ object SampleFilters {
     "Who ILIKE 'ADD%'",
     "Who ILIKE '%DA%'"
   )
+
+  val functionPredicates: Seq[Filter] = Seq(
+    "strConcat(Who, What) = 'Addams1'",
+    "WhatLong * WhatDouble > 1.0",
+    "WhatLong * WhatDouble < 1.0",
+    "WhatLong * WhatDouble >= 1.0",
+    "WhatLong * WhatDouble <= 1.0",
+    "WhatLong * WhatDouble <> 1.0"
+  )
 }
