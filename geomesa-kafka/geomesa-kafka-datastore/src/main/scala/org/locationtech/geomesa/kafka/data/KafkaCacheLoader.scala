@@ -161,7 +161,6 @@ object KafkaCacheLoader {
     private val offsets = new ConcurrentHashMap[Int, Long]()
     private var latch: CountDownLatch = _
     private val done = new AtomicBoolean(false)
-    private var lastLog = System.currentTimeMillis()
 
     override protected def closeConsumers: Boolean = false
 
