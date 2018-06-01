@@ -27,9 +27,9 @@ Kafka Data Store Parameters
 
 The Kafka Data Store takes several parameters (required parameters are marked with ``*``):
 
-==================================== ======= ===================================================================================================
+==================================== ======= ====================================================================================================
 Parameter                            Type    Description
-==================================== ======= ===================================================================================================
+==================================== ======= ====================================================================================================
 ``kafka.brokers *``                  String  Kafka brokers, e.g. "localhost:9092"
 ``kafka.zookeepers *``               String  Kafka zookeepers, e.g "localhost:2181"
 ``kafka.zk.path``                    String  Zookeeper discoverable path (namespace)
@@ -49,11 +49,11 @@ Parameter                            Type    Description
                                              "60 seconds". If not specified, expired features will be
                                              cleaned incrementally during reads and writes
 ``kafka.cache.consistency``          String  Check the feature cache for consistency at this interval, e.g. "1 hour"
-``kafka.cache.cqengine``             Boolean Use CQEngine-based implementation of in-memory feature cache
+``kafka.cache.cqengine``             Boolean Use CQEngine-based implementation of in-memory feature cache. See :ref:`in_memory_index` for details
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes, which offer improved performance but are not exact
 ``geomesa.query.audit``              Boolean Audit incoming queries. By default audits are written to a log file
 ``geomesa.security.auths``           String  Default authorizations used to query data, comma-separated
-==================================== ======= ===================================================================================================
+==================================== ======= ====================================================================================================
 
 More information on using GeoTools can be found in the `GeoTools user guide
 <http://docs.geotools.org/stable/userguide/>`__.
