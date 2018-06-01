@@ -161,6 +161,7 @@ object KafkaCacheLoader {
     private val offsets = new ConcurrentHashMap[Int, Long]()
     private var latch: CountDownLatch = _
     private val done = new AtomicBoolean(false)
+    private var lastLog = System.currentTimeMillis()
 
     override protected def closeConsumers: Boolean = false
 
@@ -182,7 +183,7 @@ object KafkaCacheLoader {
           latch.countDown()
           logger.info(s"Initial load: consumed [$topic:${record.partition}:${record.offset}] of $maxOffset," +
               s"${latch.getCount} partitions remaining")
-        } else if (record.offset % 1000000 == 0) {
+        } else if (record.offset % 1048576 == 0) { // magic number 2^20
           logger.info(s"Initial load: consumed [$topic:${record.partition}:${record.offset}] of $maxOffset")
         }
       }
