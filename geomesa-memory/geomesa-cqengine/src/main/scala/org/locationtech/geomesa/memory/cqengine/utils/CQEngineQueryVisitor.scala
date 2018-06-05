@@ -47,7 +47,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         case _ => throw new RuntimeException(s"Can't parse filter: $f.")
       }
     }.toList
-    new cqquery.logical.And[SimpleFeature](query)
+    if (query.exists(_.isInstanceOf[All[_]])) {
+      new cqquery.simple.All(classOf[SimpleFeature])
+    } else {
+      new cqquery.logical.And[SimpleFeature](query)
+    }
   }
 
   /**
@@ -62,7 +66,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         case _ => throw new RuntimeException(s"Can't parse filter: $f.")
       }
     }.toList
-    new cqquery.logical.Or[SimpleFeature](query)
+    if (query.exists(_.isInstanceOf[All[_]])) {
+      new cqquery.simple.All(classOf[SimpleFeature])
+    } else {
+      new cqquery.logical.Or[SimpleFeature](query)
+    }
   }
 
   /**
