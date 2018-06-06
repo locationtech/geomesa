@@ -14,7 +14,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
-import org.opengis.feature.`type`.Name
+import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
@@ -65,7 +65,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
   override def getName: Name = sft.getName
 
   override def getAttribute(name: Name): AnyRef = getAttribute(name.getLocalPart)
-  override def getAttribute(name: String): Object = {
+  override def getAttribute(name: String): AnyRef = {
     val index = sft.indexOf(name)
     if (index == -1) { null } else { getAttribute(index) }
   }
@@ -88,29 +88,29 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
     attributes
   }
 
-  override def getDefaultGeometryProperty = throw new NotImplementedError
+  override def getDefaultGeometryProperty: GeometryAttribute = throw new NotImplementedError
   override def getProperties: jCollection[Property] = throw new NotImplementedError
-  override def getProperties(name: Name) = throw new NotImplementedError
-  override def getProperties(name: String) = throw new NotImplementedError
-  override def getProperty(name: Name) = throw new NotImplementedError
-  override def getProperty(name: String) = throw new NotImplementedError
-  override def getValue = throw new NotImplementedError
-  override def getDescriptor = throw new NotImplementedError
+  override def getProperties(name: Name): jCollection[Property] = throw new NotImplementedError
+  override def getProperties(name: String): jCollection[Property] = throw new NotImplementedError
+  override def getProperty(name: Name): Property = throw new NotImplementedError
+  override def getProperty(name: String): Property = throw new NotImplementedError
+  override def getValue: jCollection[Property] = throw new NotImplementedError
+  override def getDescriptor: AttributeDescriptor = throw new NotImplementedError
 
-  override def setAttribute(name: Name, value: Object) = throw new NotImplementedError
-  override def setAttribute(name: String, value: Object) = throw new NotImplementedError
-  override def setAttribute(index: Int, value: Object) = throw new NotImplementedError
-  override def setAttributes(vals: jList[Object]) = throw new NotImplementedError
-  override def setAttributes(vals: Array[Object]) = throw new NotImplementedError
-  override def setDefaultGeometry(geo: Object) = throw new NotImplementedError
-  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute) = throw new NotImplementedError
-  override def setValue(newValue: Object) = throw new NotImplementedError
-  override def setValue(values: jCollection[Property]) = throw new NotImplementedError
+  override def setAttribute(name: Name, value: Object): Unit = throw new NotImplementedError
+  override def setAttribute(name: String, value: Object): Unit = throw new NotImplementedError
+  override def setAttribute(index: Int, value: Object): Unit = throw new NotImplementedError
+  override def setAttributes(vals: jList[Object]): Unit = throw new NotImplementedError
+  override def setAttributes(vals: Array[Object]): Unit = throw new NotImplementedError
+  override def setDefaultGeometry(geo: Object): Unit = throw new NotImplementedError
+  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute): Unit = throw new NotImplementedError
+  override def setValue(newValue: Object): Unit = throw new NotImplementedError
+  override def setValue(values: jCollection[Property]): Unit = throw new NotImplementedError
 
-  override def isNillable = true
-  override def validate() = throw new NotImplementedError
+  override def isNillable: Boolean = true
+  override def validate(): Unit = throw new NotImplementedError
 
-  override def toString = s"ArrowSimpleFeature:$getID:${getAttributes.mkString("|")}"
+  override def toString: String = s"ArrowSimpleFeature:$getID:${getAttributes.mkString("|")}"
 
   override def hashCode: Int = Objects.hash(getID, getName, getAttributes)
 

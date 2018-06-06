@@ -11,8 +11,8 @@ package org.locationtech.geomesa.arrow.io.reader
 import java.io.{Closeable, InputStream}
 
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.complex.NullableMapVector
-import org.apache.arrow.vector.stream.ArrowStreamReader
+import org.apache.arrow.vector.complex.StructVector
+import org.apache.arrow.vector.ipc.ArrowStreamReader
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader.{SkipIndicator, VectorToIterator, loadDictionaries}
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowIO}
@@ -40,8 +40,8 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
     var sort: Option[(String, Boolean)] = None
     WithClose(new ArrowStreamReader(is(), allocator)) { reader =>
       val root = reader.getVectorSchemaRoot
-      require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
-      val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
+      require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
+      val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
       sft = SimpleFeatureVector.getFeatureType(underlying)._1
       sort = SimpleFeatureArrowIO.getSortFromMetadata(reader.getVectorSchemaRoot.getSchema.getCustomMetadata)
     }
@@ -55,8 +55,8 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
     WithClose(is()) { is =>
       val reader = new ArrowStreamReader(is, allocator)
       WithClose(reader.getVectorSchemaRoot) { root =>
-        require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
-        val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
+        require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
+        val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
         reader.loadNextBatch() // load the first batch so we get any dictionaries
         val encoding = SimpleFeatureVector.getFeatureType(underlying)._2
         // load any dictionaries into memory
@@ -122,8 +122,8 @@ private class StreamingSingleFileReader(is: InputStream)(implicit allocator: Buf
 
   private val reader = new ArrowStreamReader(is, allocator)
   private val root = reader.getVectorSchemaRoot
-  require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[NullableMapVector], "Invalid file")
-  private val underlying = root.getFieldVectors.get(0).asInstanceOf[NullableMapVector]
+  require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
+  private val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
   private var done = !reader.loadNextBatch() // load the first batch so we get any dictionaries
 
   val (sft, encoding) = SimpleFeatureVector.getFeatureType(underlying)

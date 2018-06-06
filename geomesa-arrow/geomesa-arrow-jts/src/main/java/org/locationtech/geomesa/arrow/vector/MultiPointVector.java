@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.arrow.vector;
 
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.NullableFloat8Vector;
-import org.apache.arrow.vector.ValueVector.Accessor;
-import org.apache.arrow.vector.ValueVector.Mutator;
+import org.apache.arrow.vector.Float8Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.types.pojo.Field;
@@ -24,7 +22,7 @@ import java.util.Map;
 /**
  * Double-precision vector for multi-points
  */
-public class MultiPointVector extends AbstractMultiPointVector {
+public class MultiPointVector extends AbstractMultiPointVector<Float8Vector> {
 
   // fields created by this vector
   public static final List<Field> fields = GeometryFields.XY_DOUBLE_LIST;
@@ -47,50 +45,12 @@ public class MultiPointVector extends AbstractMultiPointVector {
   }
 
   @Override
-  protected MultiPointWriter createWriter(ListVector vector) {
-    return new MultiPointDoubleWriter(vector);
+  protected void writeOrdinal(int index, double ordinal) {
+    getOrdinalVector().setSafe(index, ordinal);
   }
 
   @Override
-  protected MultiPointReader createReader(ListVector vector) {
-    return new MultiPointDoubleReader(vector);
-  }
-
-  public static class MultiPointDoubleWriter extends MultiPointWriter {
-
-    private NullableFloat8Vector.Mutator mutator;
-
-    public MultiPointDoubleWriter(ListVector vector) {
-      super(vector);
-    }
-
-    @Override
-    protected void setOrdinalMutator(Mutator mutator) {
-      this.mutator = (NullableFloat8Vector.Mutator) mutator;
-    }
-
-    @Override
-    protected void writeOrdinal(int index, double ordinal) {
-      mutator.setSafe(index, ordinal);
-    }
-  }
-
-  public static class MultiPointDoubleReader extends MultiPointReader {
-
-    private NullableFloat8Vector.Accessor accessor;
-
-    public MultiPointDoubleReader(ListVector vector) {
-      super(vector);
-    }
-
-    @Override
-    protected void setOrdinalAccessor(Accessor accessor) {
-      this.accessor = (NullableFloat8Vector.Accessor) accessor;
-    }
-
-    @Override
-    protected double readOrdinal(int index) {
-      return accessor.get(index);
-    }
+  protected double readOrdinal(int index) {
+    return getOrdinalVector().get(index);
   }
 }
