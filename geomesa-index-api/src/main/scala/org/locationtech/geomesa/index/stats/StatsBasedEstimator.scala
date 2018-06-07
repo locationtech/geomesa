@@ -21,6 +21,7 @@ import org.locationtech.geomesa.utils.stats._
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
+import org.opengis.filter.expression.PropertyName
 
 import scala.collection.JavaConversions._
 
@@ -132,11 +133,21 @@ trait StatsBasedEstimator {
                                filter: Not,
                                loDate: Option[Date],
                                hiDate: Option[Date]): Option[Long] = {
-    for {
-      all <- estimateCount(sft, Filter.INCLUDE, None, None)
-      neg <- estimateCount(sft, filter.getFilter, loDate, hiDate)
-    } yield {
-      math.max(0, all - neg)
+    filter.getFilter match {
+      case f: PropertyIsNull =>
+        // special handling for 'is not null'
+        f.getExpression match {
+          case p: PropertyName => estimateRangeCount(sft, p.getPropertyName, Seq((None, None)))
+          case _ => estimateCount(sft, Filter.INCLUDE, None, None) // not something we can handle...
+        }
+
+      case f =>
+        for {
+          all <- estimateCount(sft, Filter.INCLUDE, None, None)
+          neg <- estimateCount(sft, f, loDate, hiDate)
+        } yield {
+          math.max(0, all - neg)
+        }
     }
   }
 

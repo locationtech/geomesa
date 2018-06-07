@@ -91,7 +91,7 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
       val geomDtgOption = for {
         geom <- Option(sft.getGeomField)
         dtg  <- sft.getDtgField
-        if toRetrieve.exists(_ == geom) && toRetrieve.exists(_ == dtg)
+        if toRetrieve.contains(geom) && toRetrieve.contains(dtg)
       } yield {
         (geom, dtg)
       }
