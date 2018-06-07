@@ -13,6 +13,7 @@ import java.util.regex.Pattern
 
 import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.query.Query
+import com.googlecode.cqengine.query.simple.All
 import com.googlecode.cqengine.{query => cqquery}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.LikeToRegexConverter
@@ -46,7 +47,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         case _ => throw new RuntimeException(s"Can't parse filter: $f.")
       }
     }.toList
-    new cqquery.logical.And[SimpleFeature](query)
+    if (query.exists(_.isInstanceOf[All[_]])) {
+      new cqquery.simple.All(classOf[SimpleFeature])
+    } else {
+      new cqquery.logical.And[SimpleFeature](query)
+    }
   }
 
   /**
@@ -61,7 +66,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         case _ => throw new RuntimeException(s"Can't parse filter: $f.")
       }
     }.toList
-    new cqquery.logical.Or[SimpleFeature](query)
+    if (query.exists(_.isInstanceOf[All[_]])) {
+      new cqquery.simple.All(classOf[SimpleFeature])
+    } else {
+      new cqquery.logical.Or[SimpleFeature](query)
+    }
   }
 
   /**
@@ -74,7 +83,14 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
       case q: Query[SimpleFeature] => q
       case _ => throw new RuntimeException(s"Can't parse filter: $subfilter.")
     }
-    new cqquery.logical.Not[SimpleFeature](subquery)
+    // In the event that the visitor cannot 'plan' a query, it returns an 'All' Query to indicate
+    //  that all the Simple Features should be considered.
+    // As such, we do not negate the query going back.
+    if (subquery.isInstanceOf[All[_]]) {
+      subquery
+    } else {
+      new cqquery.logical.Not[SimpleFeature](subquery)
+    }
   }
 
   /* Id, null, nil, exclude, include */
@@ -128,7 +144,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val name = getAttribute(filter)
     val attribute: Attribute[SimpleFeature, Any] = lookup.lookup[Any](name)
     val bounds = FilterHelper.extractAttributeBounds(filter, name, attribute.getAttributeType).values.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse equals values ${filterToString(filter)}")
+      Bounds.everything[Any]
     }
     if(!bounds.isBounded) new cqquery.simple.All(classOf[SimpleFeature])
     else new cqquery.simple.Equal(attribute, bounds.lower.value.get)
@@ -141,7 +157,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val name = getAttribute(filter)
     val binding = sft.getDescriptor(name).getType.getBinding
     FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse greater than values ${filterToString(filter)}")
+      Bounds.everything[Any]
     }.bounds match {
       case (Some(lo), None) =>
         binding match {
@@ -163,7 +179,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTQuery(name, hi.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsGreaterThan: $c not supported")
         }
-      case _ => throw new RuntimeException(s"Can't parse greater than values ${filterToString(filter)}")
+      case _ => new cqquery.simple.All(classOf[SimpleFeature])
     }
   }
 
@@ -174,7 +190,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val name = getAttribute(filter)
     val binding = sft.getDescriptor(name).getType.getBinding
     FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse greater than or equal to values ${filterToString(filter)}")
+      Bounds.everything[Any]
     }.bounds match {
       case (Some(lo), None) =>
         binding match {
@@ -196,7 +212,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTEQuery(name, hi.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsGreaterThanOrEqualTo: $c not supported")
         }
-      case _ => throw new RuntimeException(s"Can't parse greater than or equal to values ${filterToString(filter)}")
+      case _ => new cqquery.simple.All(classOf[SimpleFeature])
     }
   }
 
@@ -207,7 +223,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val name = getAttribute(filter)
     val binding = sft.getDescriptor(name).getType.getBinding
     FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse less than values ${filterToString(filter)}")
+      Bounds.everything[Any]
     }.bounds match {
       case (Some(lo), None) =>
         binding match {
@@ -229,7 +245,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTQuery(name, hi.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsLessThan: $c not supported")
         }
-      case _ => throw new RuntimeException(s"Can't parse less than values ${filterToString(filter)}")
+      case _ => new cqquery.simple.All(classOf[SimpleFeature])
     }
   }
 
@@ -240,7 +256,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val name = getAttribute(filter)
     val binding = sft.getDescriptor(name).getType.getBinding
     FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse less than or equal to values ${filterToString(filter)}")
+      Bounds.everything[Any]
     }.bounds match {
       case (Some(lo), None) =>
         binding match {
@@ -262,7 +278,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
           case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTEQuery(name, hi.asInstanceOf[java.lang.String])
           case c => throw new RuntimeException(s"PropertyIsLessThanOrEqualTo: $c not supported")
         }
-      case _ => throw new RuntimeException(s"Can't parse less than or equal to values ${filterToString(filter)}")
+      case _ => new cqquery.simple.All(classOf[SimpleFeature])
     }
   }
 
