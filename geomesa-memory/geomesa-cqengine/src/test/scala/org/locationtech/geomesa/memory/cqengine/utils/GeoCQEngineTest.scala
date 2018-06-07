@@ -93,6 +93,7 @@ class GeoCQEngineTest extends Specification with LazyLogging {
 
       runFilterTests("attribute predicates", attributePredicates)
 
+      runFilterTests("function predicates", functionPredicates)
 
     }
   }
