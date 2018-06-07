@@ -112,17 +112,17 @@ rst_epilog = """
 
 .. |release_1_2_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release_1_2)s.tar.gz
 
-.. |maven_version| replace:: 3.2.2 or later
+.. |maven_version| replace:: 3.5.2 or later
 
 .. |geoserver_version| replace:: 2.12.x
 
 .. |geotools_version| replace:: 18.x
 
-.. |accumulo_version| replace:: 1.7 or 1.8
+.. |accumulo_version| replace:: 1.9.1 or later
 
 .. |hbase_version| replace:: 1.3.x
 
-.. |hadoop_version| replace:: 2.2 or later
+.. |hadoop_version| replace:: 2.6 or later
 
 .. |zookeeper_version| replace:: 3.4.5 or later
 

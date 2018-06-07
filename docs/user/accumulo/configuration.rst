@@ -17,28 +17,28 @@ geomesa.batchwriter.latency
 
 The latency is defined as a duration, e.g. ``60 seconds`` or ``100 millis``. See the `Accumulo API`__ for details.
 
-__ https://accumulo.apache.org/1.8/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)
+__ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)
 
 geomesa.batchwriter.maxthreads
 ++++++++++++++++++++++++++++++
 
 Determines the max threads used for writing. See the `Accumulo API`__ for details.
 
-__ https://accumulo.apache.org/1.8/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxWriteThreads(int)
+__ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxWriteThreads(int)
 
 geomesa.batchwriter.memory
 ++++++++++++++++++++++++++
 
 The memory is defined in bytes, e.g. ``10mb`` or ``100kb``. See the `Accumulo API`__ for details.
 
-__ https://accumulo.apache.org/1.8/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)
+__ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)
 
 geomesa.batchwriter.timeout.millis
 ++++++++++++++++++++++++++++++++++
 
 The timeout is defined as a duration, e.g. ``60 seconds`` or ``100 millis``. See the `Accumulo API`__ for details.
 
-__ https://accumulo.apache.org/1.8/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
+__ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
 
 Map Reduce Input Splits Properties
 ----------------------------------
@@ -46,7 +46,7 @@ Map Reduce Input Splits Properties
 The following properties control the number of input splits for a map reduce job. See the
 `Accumulo User Manual`__ for details.
 
-__ https://accumulo.apache.org/1.8/accumulo_user_manual#_splitting
+__ https://accumulo.apache.org/1.9/accumulo_user_manual#_splitting
 
 geomesa.mapreduce.splits.max
 ++++++++++++++++++++++++++++
@@ -74,4 +74,4 @@ instance.zookeeper.timeout
 The Zookeeper timeout is defined in milliseconds, according to the Accumulo specification. See the
 `Accumulo User Manual`__ for details.
 
-__ https://accumulo.apache.org/1.8/accumulo_user_manual.html#_instance_zookeeper_timeout
+__ https://accumulo.apache.org/1.9/accumulo_user_manual.html#_instance_zookeeper_timeout
