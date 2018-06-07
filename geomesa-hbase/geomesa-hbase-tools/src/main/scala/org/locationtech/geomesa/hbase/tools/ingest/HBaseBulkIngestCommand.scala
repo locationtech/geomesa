@@ -16,8 +16,9 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.jobs.HBaseIndexFileMapper
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseBulkIngestCommand.HBaseBulkIngestParams
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand.HBaseIngestParams
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
-import org.locationtech.geomesa.tools.ingest.{ConverterIngest, ConverterIngestJob}
+import org.locationtech.geomesa.tools.ingest.{ConverterCombineIngestJob, ConverterIngest, ConverterIngestJob}
 import org.locationtech.geomesa.tools.{Command, OutputPathParam, RequiredIndexParam}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
@@ -31,7 +32,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
     import scala.collection.JavaConverters._
 
     new ConverterIngest(sft, connection, converterConfig, params.files.asScala, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads) {
+      libjarsFile, libjarsPaths, params.threads, params.maxSplitSize) {
 
       override def run(): Unit = {
         super.run()
@@ -41,18 +42,51 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
 
       override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
         // validate index param now that we have a datastore and the sft has been created
-        val index = params.loadRequiredIndex(ds.asInstanceOf[HBaseDataStore], IndexMode.Write).identifier
-        val job = new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths) {
-          override def configureJob(job: Job): Unit = {
-            super.configureJob(job)
-            HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))
-          }
+        val index: String = params.loadRequiredIndex(ds.asInstanceOf[HBaseDataStore], IndexMode.Write).identifier
+
+        val job = Option(params.mode) match {
+          case Some(RunModes.DistributedCombine) =>
+            converterCombineIngestJob(dsParams, sft, converterConfig, inputs, params.maxSplitSize, index)
+
+          case Some(RunModes.Distributed) =>
+            converterIngestJob(dsParams, sft, converterConfig, inputs, index)
+
+          case _ =>
+            converterIngestJob(dsParams, sft, converterConfig, inputs, index)
         }
+
         job.run(statusCallback)
       }
 
       override protected def runLocal(): Unit =
         throw new NotImplementedError("Bulk ingest not implemented for local mode")
+    }
+  }
+
+  private def converterCombineIngestJob(dsParams: Map[String, String],
+                                        sft: SimpleFeatureType,
+                                        converterConfig: Config,
+                                        inputs: Seq[String],
+                                        maxSplitSize: Int,
+                                        index: String): ConverterCombineIngestJob = {
+    new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, params.maxSplitSize, libjarsFile, libjarsPaths) {
+      override def configureJob(job: Job): Unit = {
+        super.configureJob(job)
+        HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))
+      }
+    }
+  }
+
+  private def converterIngestJob(dsParams: Map[String, String],
+                                 sft: SimpleFeatureType,
+                                 converterConfig: Config,
+                                 inputs: Seq[String],
+                                 index: String): ConverterIngestJob = {
+    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths) {
+      override def configureJob(job: Job): Unit = {
+        super.configureJob(job)
+        HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))
+      }
     }
   }
 
