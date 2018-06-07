@@ -68,7 +68,6 @@ de.topobyte:osm4j-utils	0.0.22	compile
 de.topobyte:osm4j-xml	0.0.3	compile
 eu.medsea.mimeutil:mime-util	2.1.3	compile
 io.airlift:aircompressor	0.8	compile
-io.airlift:slice	0.29	compile
 io.dropwizard.metrics:metrics-core	3.1.2	compile
 io.dropwizard.metrics:metrics-ganglia	3.1.2	compile
 io.dropwizard.metrics:metrics-graphite	3.1.2	compile
@@ -148,8 +147,8 @@ org.apache.hive:hive-storage-api	2.2.1	compile
 org.apache.htrace:htrace-core	3.1.0-incubating	compile
 org.apache.metamodel:MetaModel-core	4.3.6	compile
 org.apache.metamodel:MetaModel-pojo	4.3.6	compile
-org.apache.orc:orc-core	1.4.1	compile
-org.apache.orc:orc-mapreduce	1.4.1	compile
+org.apache.orc:orc-core	1.4.4	compile
+org.apache.orc:orc-mapreduce	1.4.4	compile
 org.apache.parquet:parquet-column	1.9.0	compile
 org.apache.parquet:parquet-common	1.9.0	compile
 org.apache.parquet:parquet-encoding	1.9.0	compile
