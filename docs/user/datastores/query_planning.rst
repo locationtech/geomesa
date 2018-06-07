@@ -133,4 +133,4 @@ Using the binary distribution, you can print out an explain plan using the ``exp
 GeoServer
 ^^^^^^^^^
 
-For enabling explain loggingn in GeoServer, see :ref:`geoserver_explain_query`.
+For enabling explain logging in GeoServer, see :ref:`geoserver_explain_query`.
