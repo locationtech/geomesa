@@ -16,14 +16,12 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
-import org.geotools.filter.identity.FeatureIdImpl
-import org.geotools.process.vector.TransformProcess
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool
 import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBaseIndexAdapter}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.util.control.NonFatal
+import org.opengis.filter.Filter
 
 /**
   * Input format that allows processing of simple features from GeoMesa based on a CQL query
@@ -59,17 +57,22 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
                                   context: TaskAttemptContext): RecordReader[Text, SimpleFeature] = {
     init(context.getConfiguration)
     val rr = delegate.createRecordReader(split, context)
+    val ecql = GeoMesaConfigurator.getFilter(context.getConfiguration).map(FastFilterFactory.toFilter(sft, _))
     val transform = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
-    // transforms are pushed down in HBase
-    new HBaseGeoMesaRecordReader(table, sft, transform, rr)
+    // TODO GEOMESA-2300 support local filtering
+    new HBaseGeoMesaRecordReader(table, sft, ecql, transform, rr, true)
   }
 }
 
 class HBaseGeoMesaRecordReader(table: HBaseIndexAdapter,
                                sft: SimpleFeatureType,
+                               ecql: Option[Filter],
                                transform: Option[SimpleFeatureType],
-                               reader: RecordReader[ImmutableBytesWritable, Result])
+                               reader: RecordReader[ImmutableBytesWritable, Result],
+                               remoteFiltering: Boolean)
     extends RecordReader[Text, SimpleFeature] with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   private val results = new Iterator[Result] {
 
@@ -93,7 +96,18 @@ class HBaseGeoMesaRecordReader(table: HBaseIndexAdapter,
     }
   }
 
-  private val features = table.resultsToFeatures(sft, transform.getOrElse(sft))(results)
+  private val features =
+    if (remoteFiltering) {
+      // transforms and filter are pushed down, so we don't have to deal with them here
+      table.resultsToFeatures(sft, transform.getOrElse(sft))(results)
+    } else {
+      // TODO GEOMESA-2300 this doesn't handle anything beyond simple attribute projection
+      val transforms = transform.map { tsft =>
+        (tsft.getAttributeDescriptors.asScala.map(d => s"${d.getLocalName}=${d.getLocalName}").mkString(";"), tsft)
+      }
+      table.resultsToFeatures(sft, ecql, transforms)(results)
+    }
+
   private var staged: SimpleFeature = _
 
   override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = reader.initialize(split, context)
