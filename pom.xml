@@ -75,11 +75,14 @@
         <jts.version>1.14.0</jts.version>
         <avro.version>1.7.5</avro.version>
         <parquet.version>1.9.0</parquet.version>
+        <orc.version>1.4.4</orc.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
         <gdal.version>2.0.0</gdal.version>
         <json4s.version>3.2.10</json4s.version>
         <scalatra.version>2.3.0</scalatra.version>
         <kryo.version>3.0.3</kryo.version>
+        <arrow.version>0.6.0</arrow.version>
+        <netty.version>4.0.41.Final</netty.version>
 
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
@@ -95,9 +98,6 @@
         <kafka.version>1.0.1</kafka.version> <!-- also supports: 0.10.2.1, 0.9.0.1 -->
         <zkclient.version>0.10</zkclient.version> <!-- corresponding versions: 0.10, 0.7 -->
         <kafka.jopt.version>5.0.4</kafka.jopt.version> <!-- corresponding versions: 4.9, 3.2 -->
-
-        <arrow.version>0.6.0</arrow.version>
-        <netty.version>4.0.41.Final</netty.version>
 
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
@@ -122,12 +122,6 @@
 
         <junit.version>4.12</junit.version>
         <specs2.version>2.3.13</specs2.version>
-
-        <!-- distribution properties -->
-        <dist.accumulo.lib.ext>accumulo/lib/ext</dist.accumulo.lib.ext>
-        <dist.hdfs>hdfs</dist.hdfs>
-        <dist.geoserver.lib>geoserver/WEB-INF/lib</dist.geoserver.lib>
-        <dist.dev>dev</dist.dev>
 
         <!-- testing properties -->
         <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500</maven.test.jvmargs>
@@ -2035,7 +2029,7 @@
             <dependency>
                 <groupId>org.apache.orc</groupId>
                 <artifactId>orc-core</artifactId>
-                <version>1.4.1</version>
+                <version>${orc.version}</version>
                 <exclusions>
                     <!-- excluded due to license issue -->
                     <exclusion>
@@ -2047,7 +2041,7 @@
             <dependency>
                 <groupId>org.apache.orc</groupId>
                 <artifactId>orc-mapreduce</artifactId>
-                <version>1.4.1</version>
+                <version>${orc.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
