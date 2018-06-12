@@ -200,6 +200,7 @@ case class JsonObjectField(name: String, expression: JsonPath, jsonConfig: Confi
 trait GeoJsonParsing {
 
   private val CoordsPath = "coordinates"
+  private val GeometryPath = "geometries"
 
   val geoFac = new GeometryFactory
 
@@ -223,6 +224,40 @@ trait GeoJsonParsing {
     }
   }
 
+  // designed for geometrycollection
+  def toGeometry(el: JsonElement): Geometry = {
+    if (el.isJsonObject) {
+      val geomType = el.getAsJsonObject.get("type").getAsString.toLowerCase
+      geomType match {
+        case "point" =>
+          geoFac.createPoint(toPointCoords(el.getAsJsonObject.get(CoordsPath)))
+        case "linestring" =>
+          geoFac.createLineString(toCoordSeq(el.getAsJsonObject.get(CoordsPath)))
+        case "polygon" =>
+          toPolygon(el.getAsJsonObject.get(CoordsPath))
+        case "multipoint" =>
+          geoFac.createMultiPoint(toCoordSeq(el.getAsJsonObject.get(CoordsPath)))
+        case "multilinestring" =>
+          val coords = el.getAsJsonObject.get(CoordsPath).getAsJsonArray
+            .iterator.map(c => geoFac.createLineString(toCoordSeq(c))).toArray
+          geoFac.createMultiLineString(coords)
+        case "multipolygon" =>
+          val polys = el.getAsJsonObject.get(CoordsPath).getAsJsonArray.iterator.map(toPolygon).toArray
+          geoFac.createMultiPolygon(polys)
+        case _ => {
+          throw new IllegalArgumentException(s"Unknown geometry type: $el")
+        }
+      }
+    } else if (el.isJsonNull) {
+      null.asInstanceOf[Geometry]
+    } else if (el.isJsonPrimitive) {
+      WKTUtils.read(el.getAsString)
+    } else {
+      throw new IllegalArgumentException(s"Unknown geometry type in toGeometry: $el")
+    }
+  }
+
+  // add geometrycollection decision
   def parseGeometry(el: JsonElement): Geometry = {
     if (el.isJsonObject) {
       val geomType = el.getAsJsonObject.get("type").getAsString.toLowerCase
@@ -242,6 +277,12 @@ trait GeoJsonParsing {
         case "multipolygon" =>
           val polys = el.getAsJsonObject.get(CoordsPath).getAsJsonArray.iterator.map(toPolygon).toArray
           geoFac.createMultiPolygon(polys)
+        case "geometrycollection" =>
+          val gcs = el.getAsJsonObject.get(GeometryPath).getAsJsonArray.iterator.map(toGeometry).toArray
+          geoFac.createGeometryCollection(gcs)
+        case _ => {
+          throw new IllegalArgumentException(s"Unknown geometry type in parseGeometry of case _: $el")
+        }
       }
     } else if (el.isJsonNull) {
       null.asInstanceOf[Geometry]
