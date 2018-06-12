@@ -16,7 +16,7 @@ import org.locationtech.geomesa.hbase.tools.stats._
 import org.locationtech.geomesa.hbase.tools.status._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
 import org.locationtech.geomesa.tools.status._
-import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
+import org.locationtech.geomesa.tools.{AWSCommand, Command, ConvertCommand, Runner}
 
 object HBaseRunner extends Runner {
 
@@ -49,7 +49,8 @@ object HBaseRunner extends Runner {
     new ConvertCommand,
     new ConfigureCommand,
     new ClasspathCommand,
-    new ScalaConsoleCommand
+    new ScalaConsoleCommand,
+    new AWSCommand
   )
 
   override def environmentErrorInfo(): Option[String] = {

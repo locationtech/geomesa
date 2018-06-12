@@ -75,11 +75,9 @@ private [spark] class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometr
       dataType.getClass == JTSTypes.GeometryCollectionTypeInstance.getClass
   }
 }
-
 case object GeometryUDT extends GeometryUDT
 
 private [spark] class GeometryCollectionUDT
   extends AbstractGeometryUDT[GeometryCollection]("geometrycollection")
-
 object GeometryCollectionUDT extends GeometryCollectionUDT
 

@@ -12,12 +12,12 @@ import java.util
 import java.util.AbstractMap.SimpleEntry
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.api.java._
 import org.apache.spark.api.java.JavaRDD._
+import org.apache.spark.api.java._
+import org.apache.spark.rdd.RDD
 import org.geotools.data.Query
 import org.locationtech.geomesa.spark.{GeoMesaSpark, Schema, SpatialRDD, SpatialRDDProvider}
 import org.opengis.feature.simple.SimpleFeature
-import org.apache.spark.rdd.RDD
 
 import scala.collection.JavaConversions._
 
@@ -62,7 +62,6 @@ class JavaSpatialRDD(rdd: SpatialRDD) extends JavaRDD[SimpleFeature](rdd) with S
   def asPyKeyValueMap:  JavaRDD[util.Map[String,Object]]                    = toPyKeyValueMap(rdd)
 }
 
-
 object JavaSpatialRDD {
 
   def apply(rdd: SpatialRDD) = new JavaSpatialRDD(rdd)
@@ -83,21 +82,11 @@ object JavaSpatialRDD {
   implicit def toGeoJSONString(in: RDD[SimpleFeature] with Schema): RDD[String] =
     SpatialRDD.toGeoJSONString(in)
 
-  def toPyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[AnyRef]] = {
-    val i = in.schema.indexOf("geom")
-    toValueList(in)
-      .map(vl => {vl.set(i, vl.get(i).toString); vl})
-  }
+  def toPyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[AnyRef]] = toValueList(in)
 
-  def toPyKeyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[Array[AnyRef]]] = {
-    val i = in.schema.indexOf("geom")
+  def toPyKeyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[Array[AnyRef]]] =
     in.map(_.getProperties.map(p => Array(p.getName.getLocalPart, p.getValue)))
       .map(i => util.Arrays.asList(i.toSeq: _*))
-      .map(kvl => { kvl.get(i)(1) = kvl.get(i)(1).toString; kvl})
-  }
 
-  def toPyKeyValueMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String,AnyRef]] = {
-    toKeyValueJavaMap(in)
-      .map(m => { m.put("geom", m.get("geom").toString); m })
-  }
+  def toPyKeyValueMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String,AnyRef]] = toKeyValueJavaMap(in)
 }

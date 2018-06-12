@@ -1,0 +1,462 @@
+#!/usr/bin/env bash
+#
+# Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+#
+# Entry point for the GeoMesa command line tools to access the aws-bootstrap-* functionality.
+#
+
+# Load common functions and setup
+if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
+  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/../..; pwd)"
+fi
+
+. "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
+
+usage="usage: ./aws-bootstrap [-c s3_container_path <options>] | [-h|--help]"
+
+function printHelp() {
+  echo ""
+  echo "Easily start up an Amazon EMR cluster preconfigured with GeoMesa, Spark, Hbase and optionally a Zeppelin"
+  echo "or Jupyter notebook server pre-loaded with GeoMesa and examples."
+  echo ""
+  echo "Note: Depending on your AWS region some defaults may not work out of the box because the resources are not"
+  echo "      available in that AWS region."
+  echo ""
+  echo "Required:"
+  echo "  -c,--container        S3 Bucket URL to use as the HBase root and bootstrap working directory"
+  echo ""
+  echo "Options:"
+  echo "  -r, --read-only       Start HBase in read only mode. This will not permit ingest of data but"
+  echo "                        allows multiple HBase clusters to read from the same S3 root directory."
+  echo "  -j,--jupyter          Specifying this parameter will install and configure a Jupyter notebook on the cluster"
+  echo "                        master. Additionally, you can specify a password to use for the Jupyter server by"
+  echo "                        providing a value to this parameter. e.g. -j=password or --jupyter=password"
+  echo "                        Default password: geomesa"
+  echo "  -z,--zeppelin         Specifying this parameter will install and configure a Zeppelin notebook on the cluster"
+  echo "                        master."
+  echo "  -p,--profile          AWS command line tools profile to use. Passed to 'aws' commands as"
+  echo "                        'aws --profile <value>'"
+  echo "  -k,--key-name         SSH key name that identifies an existing SSH key in EC2. Used for setting the SSH key"
+  echo "                        for the cluster."
+  echo "  --ec2-attributes      Additional EC2 attributes to pass to the 'ec2-attributes' parameter. Comma separated"
+  echo "                        list or can be provided multiple times."
+  echo "  --MasterType          EC2 Instance type designation for the Master node."
+  echo "                        Default: Value of '--WorkerType'"
+  echo "  --WorkerType          EC2 Instance type designation for the cluster."
+  echo "                        Default: 'm1.large'"
+  echo "  --WorkerCount         Number of workers to provision."
+  echo "                        Default: 1"
+  echo "  --WorkerBid           Optional Spot BidPrice for worker nodes. Note master must be a Reserved Instance"
+  echo "                        Default: None. Workers are reserved nodes."
+  echo ""
+  echo "Note: Task instances do not perform the roll of an HBase worker and are useful for providing extra resources"
+  echo "      to spark at lower prices."
+  echo "  --TaskType            EC2 Instance type designation for the cluster."
+  echo "                        Default: 'r3.xlarge'"
+  echo "  --TaskCount           Number of workers to provision."
+  echo "                        Default: 0"
+  echo "  --TaskBid             Optional Spot BidPrice for task nodes."
+  echo "                        Default: None. Task workers are reserved nodes."
+  echo ""
+  exit 0
+}
+
+ARGS=($@)
+attributes=()
+WorkerType="InstanceType=m1.large"
+WorkerCount="InstanceCount=1"
+TaskType="InstanceType=m1.large"
+TaskCount="InstanceCount=0"
+
+if [[ $# -eq 0 ]]; then
+  printHelp
+else
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      # Mandatory Params
+      -c|--container)
+        if [[ $2 != -* ]]; then
+          shift
+          CONTAINER="${1}"
+        fi
+        shift
+        ;;
+      # Optional Params
+      -r|--read-only)
+        HBASE_READ_ONLY=',"hbase.emr.readreplica.enabled":"true"'
+        shift
+        ;;
+      -z|--zeppelin)
+        ZEPPELIN=true
+        ZEPPELIN_APP="Name=Zeppelin"
+        shift
+        ;;
+      -j|--jupyter)
+        JUPYTER=true
+        if [[ $2 != -* ]]; then
+          shift
+          JUPYTER_PASSWORD="${1}"
+        fi
+        if [[ -z "${JUPYTER_PASSWORD}" ]]; then
+          echo "Using default Jupyter password: geomesa"
+          JUPYTER_PASSWORD="geomesa"
+        fi
+        shift
+        ;;
+      -p|--aws-profile)
+        if [[ $2 != -* ]]; then
+          shift
+          AWS_PROFILE="--profile ${1}"
+        else
+          echo "Invalid profile name"
+          exit 1
+        fi
+        shift
+        ;;
+      -k|--key-name)
+        if [[ $2 != -* ]]; then
+          shift
+          KeyName="KeyName=${1}"
+          attributes=($attributes $KeyName)
+        else
+          echo "Invalid SSH key name"
+          exit 1
+        fi
+        shift
+        ;;
+      --ec2-attributes*)
+        if [[ $2 != -* ]]; then
+          shift
+          attributes=($attributes $1)
+        else
+          echo "Invalid EC2 Attribute"
+          exit 1
+        fi
+        shift
+#        subnet-0fb41f23
+        ;;
+      # Master Parameters
+      --MasterType)
+        if [[ $2 != -* ]]; then
+          shift
+          MasterType="InstanceType=${1}"
+        else
+          echo "Invalid Master Instance Type"
+          exit 1
+        fi
+        shift
+        ;;
+      # Worker Parameters
+      --WorkerType)
+        if [[ $2 != -* ]]; then
+          shift
+          WorkerType="InstanceType=${1}"
+        else
+          echo "Invalid Instance Type"
+          exit 1
+        fi
+        shift
+        ;;
+      --WorkerCount)
+        if [[ $2 =~ ^[0-9]+ && $2 -gt 0 ]]; then
+          shift
+          WorkerCount="InstanceCount=${1}"
+        else
+          echo "Invalid WorkerCount"
+          exit 1
+        fi
+        shift
+        ;;
+      --WorkerBid)
+        if [[ $2 =~ ^[0-9.]+ && 1 -eq $(echo "$2 > 0" | bc) ]]; then
+          shift
+          WorkerBid="BidPrice=${1}"
+        else
+          echo "Invalid BidPrice"
+          exit 1
+        fi
+        shift
+        ;;
+      # Task Parameters
+      --TaskType)
+        if [[ $2 != -* ]]; then
+          shift
+          TaskType="InstanceType=${1}"
+        else
+          echo "Invalid Instance Type"
+          exit 1
+        fi
+        shift
+        ;;
+      --TaskCount)
+        if [[ $2 =~ ^[0-9]+ ]]; then
+          shift
+          TaskCount="InstanceCount=${1}"
+        else
+          echo "Invalid WorkerCount"
+          exit 1
+        fi
+        shift
+        ;;
+      --TaskBid)
+        if [[ $2 =~ ^[0-9.]+ && 1 -eq $(echo "$2 > 0" | bc) ]]; then
+          shift
+          TaskBid="BidPrice=${1}"
+        else
+          echo "Invalid BidPrice"
+          exit 1
+        fi
+        shift
+        ;;
+      -h|--help)
+        printHelp
+        ;;
+      *)
+        echo "Unknown argument: ${ARGS[$1]}"
+        echo "${usage}"
+        exit 1
+        ;;
+    esac
+  done
+fi
+
+# Check if geomesa_pyspark is available and prompt if missing
+gm_pyspark=$%%gmtools.dist.name%%_HOME/dist/spark/geomesa_pyspark-*
+if ! ls $gm_pyspark 1> /dev/null 2>&1 &&\
+  [[ $JUPYTER == true || $ZEPPELIN == true ]]; then
+  echo ""
+  echo " || Warning ||"
+  echo "geomesa_pyspark is not available for install. Geomesa python interop will not be available. Rebuild the tools distribution with the 'python' profile to enable this functionality."
+  echo ""
+  read -r -p "Continue? (Y/n) " confirm
+  confirm=${confirm,,} # lower-casing
+  if ! [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+    echo "Canceling"
+    exit 1
+  fi
+fi
+
+# Detect if we're on an existing AWS Instance and the user is just wanting to install software
+if [[ -f /mnt/var/lib/info/extraInstanceData.json ]]; then
+  label=$(jq '.releaseLabel' /mnt/var/lib/info/extraInstanceData.json)
+  if [[ $label == *emr* ]]; then
+    echo "Detected running on EMR, will not start new Cluster."
+    echo "Bootstrapping GeoMesa"
+    sudo ${%%gmtools.dist.name%%_HOME}/aws-utils/aws-bootstrap-geomesa-hbase.sh
+
+    if [[ -n "${ZEPPELIN}" ]]; then
+      ( ${%%gmtools.dist.name%%_HOME}/bin/aws-utils/aws-bootstrap-geomesa-zeppelin.sh )
+    fi
+
+    if [[ -n "${JUPYTER}" ]]; then
+      ( ${%%gmtools.dist.name%%_HOME}/bin/aws-utils/aws-bootstrap-geomesa-jupyter.sh "${JUPYTER_PASSWORD}" )
+    fi
+
+    echo "Bootstrap Complete"
+    exit 0
+  fi
+fi
+
+# Validate that the AWS CLI is available here so users don't need it to print help
+# or run individual scripts on an existing cluster.
+if ! which aws > /dev/null; then
+  echo "The AWS CLI Tools are required for this script to run."
+  echo "See the docs for more help."
+  exit 1
+fi
+
+# Validate Parameters now since most params aren't needed if we're on an existing cluster
+if [[ -z "${CONTAINER}" ]]; then
+  echo "S3 container is required"
+  exit 1
+elif [[ "${CONTAINER}" != s3://* ]]; then
+  echo "S3 container must be in the format 's3://'"
+  exit 1
+elif [[ "${CONTAINER}" != */ ]]; then
+  # We need a trailing '/' for consistency
+  CONTAINER="${CONTAINER}/"
+fi
+
+if [[ ${#attributes[@]} -gt 1 ]]; then
+  attrs=$(joinBy , ${attributes[@]})
+  EC2_ATTRIBUTES="--ec2-attributes ${attrs}"
+fi
+
+if [[ -z "${MasterType}" ]]; then
+  # If master type is not given use the same as the workers
+  MasterType=$WorkerType
+fi
+
+if [[ 1 -eq $(echo "${TaskCount#*=} > 0" | bc) ]]; then
+  arr=("Name=Task" ${TaskCount} "InstanceGroupType=TASK" ${TaskType} ${TaskBid})
+  TaskGroup=$(joinBy , ${arr[@]})
+fi
+
+echo ""
+echo " || Starting GeoMesa AWS EMR Bootstrap Process"
+echo ""
+
+# Create a temp working dir
+TMP_DIR=/tmp/geomesa-aws-bootstrap
+if [[ ! -d $TMP_DIR ]]; then
+  mkdir $TMP_DIR
+fi
+RUN_ID=0
+WORKING_DIR=$TMP_DIR/$RUN_ID
+while [[ -d "${WORKING_DIR}" ]]; do
+  let RUN_ID=$RUN_ID+1
+  WORKING_DIR=$TMP_DIR/$RUN_ID
+done
+mkdir $WORKING_DIR
+#echo "Run ID: ${RUN_ID}"
+#echo "Working directory: ${WORKING_DIR}"
+
+# Package tools
+tarball="${WORKING_DIR}/%%gmtools.assembly.name%%-bin.tar.gz"
+pushd ${%%gmtools.dist.name%%_HOME}/..
+tar -czf "${tarball}" %%gmtools.assembly.name%%/*
+popd
+
+# Setup hbase config
+hbase_conf=${WORKING_DIR}/hbase_conf.json
+echo "Writing HBase configuration to: ${hbase_conf}"
+cat > ${hbase_conf} <<EOF
+[
+   {
+     "Classification": "hbase-site",
+     "Properties": {
+        "hbase.rootdir": "${CONTAINER}",
+        "hbase.bucketcache.size": "16384"
+     }
+   },
+   {
+     "Classification": "hbase",
+     "Properties": {
+       "hbase.emr.storageMode":"s3"${HBASE_READ_ONLY}
+     }
+   }
+]
+EOF
+
+# Create cluster name
+name="GeoMesa HBase on S3"
+if [[ -n "${JUPYTER}" && -z "${ZEPPELIN}" ]]; then
+  name="${name} with Jupyter"
+elif [[ -z "${JUPYTER}" && -n "${ZEPPELIN}" ]]; then
+  name="${name} with Zeppelin"
+elif [[ -n "${JUPYTER}" && -n "${ZEPPELIN}" ]]; then
+  name="${name} with Jupyter and Zeppelin"
+fi
+
+# Configure bootstrap arguments
+BootstrapArgs="\"-c=${CONTAINER}\""
+if [[ -n "${ZEPPELIN}" ]]; then
+  BootstrapArgs="${BootstrapArgs},\"--zeppelin\""
+fi
+if [[ -n "${JUPYTER}" ]]; then
+  BootstrapArgs="${BootstrapArgs},\"--jupyter=${JUPYTER_PASSWORD}\""
+fi
+
+arr=("Name=Workers" ${WorkerCount} "InstanceGroupType=CORE" ${WorkerType} ${WorkerBid})
+WorkerGroup=$(joinBy , ${arr[@]})
+
+cmd="
+  aws ${AWS_PROFILE} emr create-cluster                                             \
+    --name \"${name}\"                                                              \
+    --release-label emr-5.10.0                                                      \
+    --output text                                                                   \
+    --use-default-roles                                                             \
+    --applications Name=Hadoop Name=Zookeeper Name=Spark Name=HBase ${ZEPPELIN_APP} \
+    ${EC2_ATTRIBUTES}                                                               \
+    --instance-groups                                                               \
+      Name=Master,InstanceCount=1,InstanceGroupType=MASTER,${MasterType}    \
+      ${WorkerGroup} \
+      ${TaskGroup}
+    --configurations file://${hbase_conf}                                           \
+    --bootstrap-actions Name=BootstrapGeoMesa,Path=${CONTAINER}.aws-bootstrap-actions.sh,Args=[${BootstrapArgs}]
+"
+echo ""
+echo " || Ready to create cluster with command:"
+echo ""
+echo $cmd
+echo ""
+read -r -p " || Continue? (y/N) " confirm
+confirm=${confirm,,} # lower-casing
+if [[ $confirm =~ ^(yes|y) ]]; then
+  echo ""
+  # Upload tools resources
+  error=0
+  aws ${AWS_PROFILE} s3 cp "${tarball}" "${CONTAINER}" || error=1
+  aws ${AWS_PROFILE} s3 cp "${%%gmtools.dist.name%%_HOME}/bin/aws-utils/.aws-bootstrap-actions.sh" "${CONTAINER}" || error=1
+  if [[ error == 1 ]]; then
+    echo "Failed to upload tools package" && exit 1
+  fi
+
+  # Create the cluster
+  CID=$( eval ${cmd} )
+  # If there is no CID then the command errored
+  [[ -z "${CID}" ]] && exit 1
+else
+  echo "Canceling"
+  exit 1
+fi
+
+echo "Cluster ID: ${CID}"
+
+# Cluster bootstrapping status monitor
+# Load an initial value so later code works
+echo "Provisioning" > ${WORKING_DIR}/status.log
+aws ${AWS_PROFILE} s3 cp ${WORKING_DIR}/status.log ${CONTAINER}status.log
+echo ""
+status=""
+failed=""
+count=0
+while [[ "${status}" != "Done" && "${status}" != Fail* && -z "${failed}" ]]; do
+  let count=$count%6+1
+  case $count in
+    1) icon=">  " ;;
+    2) icon=">> " ;;
+    3) icon=">>>" ;;
+    4) icon=" >>" ;;
+    5) icon="  >" ;;
+    6) icon="   " ;;
+  esac
+  failed=$(aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep -E "BOOTSTRAP_FAILURE|TERMINATING")
+  status=$(aws ${AWS_PROFILE} s3 cp ${CONTAINER}status.log - | tail -n 1)
+  echo -ne " || Bootstrap Status ${icon} ${status}                            \r" # Make sure we overwrite the longer messages
+  sleep 1
+done
+
+if [[ "${status}" == Fail* || -n "${failed}" ]]; then
+  echo -ne "Last Status: ${status}                            \n"
+  echo "Cluster setup failed. Check the AWS console for more information"
+
+  # Cleanup
+  rm -r "${WORKING_DIR}"
+  exit 1
+else
+  echo -ne " || Cluster is ready                                  \n"
+  # Write out useful addresses
+  address=`aws ${AWS_PROFILE} emr describe-cluster --cluster-id $CID | grep MasterPublicDnsName | cut -d "\"" -f 4`
+  echo ""
+  echo "Master public DNS name: ${address}"
+  echo "Resource Manager: ${address}:8088"
+  echo "Spark History Server: ${address}:18080"
+  echo "HBase Master: ${address}:16010/master-status"
+  echo "HDFS Name Node: ${address}:50070"
+  if [[ -n "${JUPYTER}" ]]; then
+    echo "Jupyter Server: ${address}:8888"
+  fi
+  if [[ -n "${ZEPPELIN}" ]]; then
+    echo "Zeppelin Server: ${address}:8890"
+  fi
+  echo ""
+
+  # Cleanup
+  rm -r "${WORKING_DIR}"
+fi

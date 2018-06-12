@@ -21,7 +21,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <gmtools.dist.name>GEOMESA_HBASE</gmtools.dist.name> <!-- used in tools filtering -->
+        <!-- used in tools filtering -->
+        <gmtools.dist.name>GEOMESA_HBASE</gmtools.dist.name>
+        <gmtools.assembly.name>geomesa-hbase_${scala.binary.version}-${project.version}</gmtools.assembly.name>
+        <geopyspark.version>0.3.0.gm.6</geopyspark.version>
     </properties>
 
     <dependencies>
@@ -106,6 +109,20 @@
 
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>python</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa_pyspark</artifactId>
+                    <version>${project.version}</version>
+                    <type>tar.gz</type>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -120,7 +137,7 @@
                         <phase>package</phase>
                         <configuration>
                             <attach>true</attach>
-                            <finalName>geomesa-hbase_${scala.binary.version}-${project.version}</finalName>
+                            <finalName>${gmtools.assembly.name}</finalName>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>
