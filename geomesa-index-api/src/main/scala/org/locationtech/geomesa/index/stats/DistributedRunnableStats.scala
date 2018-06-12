@@ -13,6 +13,7 @@ import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -29,16 +30,15 @@ class DistributedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]
     query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
 
     try {
-      val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-      val result = try {
+      WithClose(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) { reader =>
         // stats should always return exactly one result, even if there are no features in the table
-        StatsScan.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
-      } finally {
-        reader.close()
-      }
-      result match {
-        case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
-        case s => Seq(s).asInstanceOf[Seq[T]]
+        val result = if (reader.hasNext) { reader.next.getAttribute(0).asInstanceOf[String] } else {
+          throw new IllegalStateException("Stats scan didn't return any rows")
+        }
+        StatsScan.decodeStat(sft)(result) match {
+          case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
+          case s => Seq(s).asInstanceOf[Seq[T]]
+        }
       }
     } catch {
       case e: Exception =>

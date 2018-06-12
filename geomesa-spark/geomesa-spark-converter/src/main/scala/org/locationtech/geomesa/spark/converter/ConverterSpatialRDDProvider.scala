@@ -22,14 +22,14 @@ import org.apache.spark.rdd.RDD
 import org.geotools.data.Query
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.convert.{ConverterConfigLoader, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.ConverterConfigLoader
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat
-import org.locationtech.geomesa.spark.SpatialRDD
-import org.locationtech.geomesa.spark.SpatialRDDProvider
+import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypeLoader}
-import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
@@ -46,7 +46,7 @@ import scala.util.control.NonFatal
   */
 class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
-  import ConverterSpatialRDDProvider.{ConverterKey, IngestTypeKey, FeatureNameKey, InputFilesKey, SftKey}
+  import ConverterSpatialRDDProvider._
 
   override def canProcess(params: util.Map[String, Serializable]): Boolean =
     ((params.containsKey(ConverterKey) && params.containsKey(SftKey))
@@ -88,7 +88,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
     // Verify the config before returning.
     try {
-      CloseQuietly(SimpleFeatureConverters.build(sft, ConfigFactory.parseString(converterConf)))
+      SimpleFeatureConverter(sft, ConfigFactory.parseString(converterConf))
     } catch {
       case NonFatal(e) => throw new IllegalArgumentException("Could not resolve converter", e)
     }

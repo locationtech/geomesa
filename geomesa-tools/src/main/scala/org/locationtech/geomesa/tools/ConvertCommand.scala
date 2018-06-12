@@ -16,15 +16,17 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.tools.ConvertParameters.ConvertParameters
 import org.locationtech.geomesa.tools.export._
 import org.locationtech.geomesa.tools.export.formats._
 import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.tools.utils.DataFormats._
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.stats.MethodProfiling
@@ -71,7 +73,7 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
 
     try {
       exporter.start(sft)
-      val count = exporter.export(features())
+      val count = WithClose(features())(exporter.export)
       val records = ec.counter.getLineCount - (if (params.noHeader) { 0 } else { params.files.size })
       Command.user.info(s"Converted ${getPlural(records, "line")} "
           + s"with ${getPlural(ec.counter.getSuccess, "success", "successes")} "
@@ -79,23 +81,22 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
       count
     } finally {
       IOUtils.closeQuietly(exporter)
-      IOUtils.closeQuietly(converter)
     }
   }
 }
 
 object ConvertCommand extends LazyLogging {
 
-  def getConverter(params: ConvertParameters, sft: SimpleFeatureType): SimpleFeatureConverter[Any] = {
+  def getConverter(params: ConvertParameters, sft: SimpleFeatureType): SimpleFeatureConverter = {
     val converterConfig = {
       if (params.config != null)
         CLArgResolver.getConfig(params.config)
       else throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
     }
-    SimpleFeatureConverters.build(sft, converterConfig)
+    SimpleFeatureConverter(sft, converterConfig)
   }
 
-  def getExporter(params: ConvertParameters, features: => Iterator[SimpleFeature]): FeatureExporter = {
+  def getExporter(params: ConvertParameters, features: => CloseableIterator[SimpleFeature]): FeatureExporter = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     lazy val outputStream: OutputStream = ExportCommand.createOutputStream(params.file, params.gzip)
@@ -113,7 +114,7 @@ object ConvertCommand extends LazyLogging {
       val attributes = hints.getArrowDictionaryFields
       if (attributes.isEmpty) { Map.empty } else {
         val values = attributes.map(a => a -> scala.collection.mutable.HashSet.empty[AnyRef])
-        features.foreach(f => values.foreach { case (a, v) => v.add(f.getAttribute(a))})
+        SelfClosingIterator(features).foreach(f => values.foreach { case (a, v) => v.add(f.getAttribute(a))})
         values.map { case (attribute, value) => attribute -> value.toArray }.toMap
       }
     }
@@ -132,11 +133,11 @@ object ConvertCommand extends LazyLogging {
   }
 
   def convertFeatures(files: Iterator[FileHandle],
-                      converter: SimpleFeatureConverter[Any],
+                      converter: SimpleFeatureConverter,
                       ec: EvaluationContext,
                       filter: Option[Filter],
-                      maxFeatures: Option[Int]): Iterator[SimpleFeature] = {
-    val all = files.flatMap { file =>
+                      maxFeatures: Option[Int]): CloseableIterator[SimpleFeature] = {
+    val all = CloseableIterator(files).flatMap { file =>
       ec.set(ec.indexOf("inputFilePath"), file.path)
       val is = PathUtils.handleCompression(file.open, file.path)
       converter.process(is, ec)

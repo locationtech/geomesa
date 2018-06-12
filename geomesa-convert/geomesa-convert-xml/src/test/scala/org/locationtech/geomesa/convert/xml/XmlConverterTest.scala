@@ -8,19 +8,20 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io.{ByteArrayInputStream, File, FileInputStream}
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class XMLConverterTest extends Specification {
+class XmlConverterTest extends Specification {
 
   sequential
 
@@ -64,6 +65,7 @@ class XMLConverterTest extends Specification {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "number",           transform = "$0::integer" }
@@ -74,8 +76,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+      val converter = SimpleFeatureConverter(sft, parserConf)
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
       features must haveLength(2)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -126,6 +128,7 @@ class XMLConverterTest extends Specification {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "number",           transform = "$0::integer" }
@@ -139,8 +142,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft2, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+      val converter = SimpleFeatureConverter(sft2, parserConf)
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
       features must haveLength(2)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -184,6 +187,7 @@ class XMLConverterTest extends Specification {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "/doc/IgnoreMe/Feature" // can be any xpath - relative to the root, or absolute
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "number",           transform = "$0::integer" }
@@ -194,8 +198,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+      val converter = SimpleFeatureConverter(sft, parserConf)
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
       features must haveLength(2)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -227,6 +231,7 @@ class XMLConverterTest extends Specification {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "number",                  transform = "$0::integer" }
@@ -237,8 +242,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+      val converter = SimpleFeatureConverter(sft, parserConf)
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
       features must haveLength(1)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -271,6 +276,7 @@ class XMLConverterTest extends Specification {
           |   type         = "xml"
           |   id-field     = "md5(string2bytes(xml2string($0)))"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "number",           transform = "$0::integer" }
@@ -281,8 +287,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+      val converter = SimpleFeatureConverter(sft, parserConf)
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
       features must haveLength(2)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -318,6 +324,7 @@ class XMLConverterTest extends Specification {
           |   id-field     = "uuid()"
           |   feature-path = "ns:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "ns:number",           transform = "$0::integer" }
@@ -331,10 +338,10 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      val converter = SimpleFeatureConverter(sft, parserConf)
 
       "parse as itr" >> {
-        val features = converter.processInput(Iterator(xml)).toList
+        val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
         features must haveLength(1)
         features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
         features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -343,7 +350,7 @@ class XMLConverterTest extends Specification {
       }
 
       "parse as stream" >> {
-        val features = converter.process(new ByteArrayInputStream(xml.replaceAllLiterally("\n", " ").getBytes)).toList
+        val features = converter.process(new ByteArrayInputStream(xml.replaceAllLiterally("\n", " ").getBytes(StandardCharsets.UTF_8))).toList
         features must haveLength(1)
         features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
         features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -390,7 +397,7 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      val converter = SimpleFeatureConverter(sft, parserConf)
 
       val features = converter.process(new ByteArrayInputStream(xml.getBytes)).toList
       features must haveLength(1)
@@ -440,7 +447,7 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      val converter = SimpleFeatureConverter(sft, parserConf)
 
       val features = converter.process(new ByteArrayInputStream(xml.getBytes)).toList
       features must haveLength(2)
@@ -477,6 +484,7 @@ class XMLConverterTest extends Specification {
           |   id-field     = "uuid()"
           |   feature-path = "ns:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "ns:number",           transform = "$0::integer" }
@@ -490,8 +498,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+      val converter = SimpleFeatureConverter(sft, parserConf)
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
       features must haveLength(0)
     }
 
@@ -515,6 +523,7 @@ class XMLConverterTest extends Specification {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   options { line-mode  = "multi" }
           |   user-data    = {
           |     my.user.key  = "$weight"
           |   }
@@ -528,8 +537,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+      val converter = SimpleFeatureConverter(sft, parserConf)
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
       features must haveLength(1)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -540,8 +549,8 @@ class XMLConverterTest extends Specification {
 
     "Parse XMLs with a BOM" >> {
 
-      val xml = new File("src/test/resources/bomTest.xml")
-      xml.exists() mustEqual true
+      val xml = getClass.getClassLoader.getResource("bomTest.xml")
+      xml must not(beNull)
 
       val parserConf = ConfigFactory.parseString(
         """
@@ -549,9 +558,7 @@ class XMLConverterTest extends Specification {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
-          |   options {
-          |     line-mode  = "multi"
-          |   }
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "number",           transform = "$0::integer" }
@@ -562,8 +569,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val xmlConverter = (new XMLConverterFactory).buildConverter(sft, parserConf)
-      val features = xmlConverter.process(new FileInputStream(xml)).toList
+      val xmlConverter = SimpleFeatureConverter(sft, parserConf)
+      val features = xmlConverter.process(xml.openStream()).toList
       features must haveLength(2)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
@@ -595,6 +602,7 @@ class XMLConverterTest extends Specification {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "ns:Feature" // can be any xpath - relative to the root, or absolute
+          |   options { line-mode  = "multi" }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
           |     { name = "number", path = "ns:number",                  transform = "$0::integer" }
@@ -609,8 +617,8 @@ class XMLConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+      val converter = SimpleFeatureConverter(sft, parserConf)
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
       features must haveLength(1)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"

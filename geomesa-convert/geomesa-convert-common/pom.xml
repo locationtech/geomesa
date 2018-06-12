@@ -32,6 +32,10 @@
             <artifactId>config</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.pureconfig</groupId>
+            <artifactId>pureconfig_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>

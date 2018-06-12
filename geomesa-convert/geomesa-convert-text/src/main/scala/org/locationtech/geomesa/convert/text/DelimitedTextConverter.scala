@@ -9,102 +9,144 @@
 package org.locationtech.geomesa.convert.text
 
 import java.io._
+import java.nio.charset.Charset
 
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
-import org.locationtech.geomesa.convert.Transformers.Expr
-import org.locationtech.geomesa.convert._
-import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.DelimitedOptions
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
+import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{DelimitedTextConfig, DelimitedTextOptions}
+import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
+import org.locationtech.geomesa.convert2._
+import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.immutable.IndexedSeq
+import scala.annotation.tailrec
 
-class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
+class DelimitedTextConverter(targetSft: SimpleFeatureType,
+                             config: DelimitedTextConfig,
+                             fields: Seq[BasicField],
+                             options: DelimitedTextOptions)
+    extends AbstractConverter(targetSft, config, fields, options) {
 
-  import DelimitedTextConverterFactory._
+  private val format = {
+    var format = DelimitedTextConverter.formats.getOrElse(config.format.toUpperCase,
+      throw new IllegalArgumentException(s"Unknown delimited text format '${config.format}'"))
+    options.quote.foreach(c => format = format.withQuote(c))
+    options.escape.foreach(c => format = format.withEscape(c))
+    options.delimiter.foreach(c => format = format.withDelimiter(c))
+    format
+  }
 
-  override protected val typeToProcess = "delimited-text"
+  override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
+    var array = Array.empty[Any]
+    val writer = new StringWriter
+    val printer = format.print(writer)
 
-  override protected def buildConverter(sft: SimpleFeatureType,
-                                        conf: Config,
-                                        idBuilder: Expr,
-                                        fields: IndexedSeq[Field],
-                                        userDataBuilder: Map[String, Expr],
-                                        cacheServices: Map[String, EnrichmentCache],
-                                        parseOpts: ConvertParseOpts): DelimitedTextConverter = {
-    import org.locationtech.geomesa.utils.conf.ConfConversions._
+    val parser = format.parse(new InputStreamReader(is, options.encoding))
+    val records = parser.iterator()
 
-    val baseFormat = conf.getString("format").toUpperCase match {
-      case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
-      case "EXCEL"                    => CSVFormat.EXCEL
-      case "MYSQL"                    => CSVFormat.MYSQL
-      case "TDF" | "TSV" | "TAB"      => CSVFormat.TDF
-      case "RFC4180"                  => CSVFormat.RFC4180
-      case "QUOTED"                   => QUOTED
-      case "QUOTE_ESCAPE"             => QUOTE_ESCAPE
-      case "QUOTED_WITH_QUOTE_ESCAPE" => QUOTED_WITH_QUOTE_ESCAPE
-      case _ => throw new IllegalArgumentException("Unknown delimited text format")
-    }
+    val elements = new Iterator[Array[Any]] {
 
-    val format = formatOptions.foldLeft(baseFormat) { case (fmt, (name, fn)) =>
-      conf.getStringOpt(s"options.$name") match {
-        case None => fmt
-        case Some(o) if o.length == 1 => fn.apply(fmt, o.toCharArray()(0))
-        case Some(o) => throw new IllegalArgumentException(s"$name must be a single character: $o")
+      private var lastLine = 0L
+      private var staged: Array[Any] = _
+
+      @tailrec
+      override final def hasNext: Boolean = staged != null || {
+        if (!records.hasNext) {
+          false
+        } else {
+          val record = records.next
+          val line = parser.getCurrentLineNumber
+          if (line == lastLine) {
+            // commons-csv doesn't always increment the line count for the final line in a file...
+            ec.counter.incLineCount()
+            lastLine = line + 1
+          } else {
+            ec.counter.incLineCount(line - lastLine)
+            lastLine = line
+          }
+
+          if (options.skipLines.exists(lastLine <= _)) {
+            hasNext
+          } else {
+            writer.getBuffer.setLength(0)
+
+            val len = record.size()
+            if (array.length != len + 1) {
+              array = Array.ofDim[Any](len + 1)
+            }
+
+            var i = 0
+            while (i < len) {
+              val value = record.get(i)
+              array(i + 1) = value
+              printer.print(value)
+              i += 1
+            }
+
+            printer.println()
+            array(0) = writer.toString
+
+            staged = array
+            true
+          }
+        }
+      }
+
+      override def next(): Array[Any] = {
+        val res = staged
+        staged = null
+        res
       }
     }
 
-    val opts = new DelimitedOptions()
-    conf.getIntOpt("options.skip-lines").foreach(s => opts.skipLines = s)
-    conf.getIntOpt("options.pipe-size").foreach(p => opts.pipeSize = p)
-
-    new DelimitedTextConverter(format, sft, idBuilder, fields, userDataBuilder, cacheServices, opts, parseOpts)
+    CloseableIterator(elements, parser.close())
   }
 }
 
-object DelimitedTextConverterFactory {
+object DelimitedTextConverter {
 
-  private val QUOTED                   = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.ALL)
-  private val QUOTE_ESCAPE             = CSVFormat.DEFAULT.withEscape('"')
-  private val QUOTED_WITH_QUOTE_ESCAPE = QUOTE_ESCAPE.withQuoteMode(QuoteMode.ALL)
+  object Formats {
+    val Default          : CSVFormat = CSVFormat.DEFAULT
+    val Excel            : CSVFormat = CSVFormat.EXCEL
+    val MySql            : CSVFormat = CSVFormat.MYSQL
+    val Tabs             : CSVFormat = CSVFormat.TDF
+    val Rfc4180          : CSVFormat = CSVFormat.RFC4180
+    val Quoted           : CSVFormat = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.ALL)
+    val QuoteEscape      : CSVFormat = CSVFormat.DEFAULT.withEscape('"')
+    val QuotedQuoteEscape: CSVFormat = CSVFormat.DEFAULT.withEscape('"').withQuoteMode(QuoteMode.ALL)
+  }
 
-  private val formatOptions: Seq[(String, (CSVFormat, Char) => CSVFormat)] = Seq(
-    ("quote",     (f, c) => f.withQuote(c)),
-    ("escape",    (f, c) => f.withEscape(c)),
-    ("delimiter", (f, c) => f.withDelimiter(c))
+  private [text] val formats = Map(
+    "CSV"                      -> Formats.Default,
+    "DEFAULT"                  -> Formats.Default,
+    "EXCEL"                    -> Formats.Excel,
+    "MYSQL"                    -> Formats.MySql,
+    "TDF"                      -> Formats.Tabs,
+    "TSV"                      -> Formats.Tabs,
+    "TAB"                      -> Formats.Tabs,
+    "RFC4180"                  -> Formats.Rfc4180,
+    "QUOTED"                   -> Formats.Quoted,
+    "QUOTE_ESCAPE"             -> Formats.QuoteEscape,
+    "QUOTED_WITH_QUOTE_ESCAPE" -> Formats.QuotedQuoteEscape
   )
 
-  class DelimitedOptions(var skipLines: Int = 0, var pipeSize: Int = 16 * 1024)
-}
+  case class DelimitedTextConfig(`type`: String,
+                                 format: String,
+                                 idField: Option[Expression],
+                                 caches: Map[String, Config],
+                                 userData: Map[String, Expression]) extends ConverterConfig
 
-class DelimitedTextConverter(format: CSVFormat,
-                             val targetSFT: SimpleFeatureType,
-                             val idBuilder: Expr,
-                             val inputFields: IndexedSeq[Field],
-                             val userDataBuilder: Map[String, Expr],
-                             val caches: Map[String, EnrichmentCache],
-                             val options: DelimitedOptions,
-                             val parseOpts: ConvertParseOpts)
-  extends LinesToSimpleFeatureConverter {
-
-  override def processInput(is: Iterator[String], ec: EvaluationContext): Iterator[SimpleFeature] = {
-    ec.counter.incLineCount(options.skipLines)
-    super.processInput(is.drop(options.skipLines), ec)
-  }
-
-  override def fromInputType(string: String, ec: EvaluationContext): Iterator[Array[Any]] = {
-    if (string == null || string.isEmpty) {
-      throw new IllegalArgumentException("Invalid input (empty)")
-    }
-    val rec = format.parse(new StringReader(string)).iterator().next()
-    val len = rec.size()
-    val ret = Array.ofDim[Any](len + 1)
-    ret(0) = string
-    var i = 0
-    while (i < len) {
-      ret(i+1) = rec.get(i)
-      i += 1
-    }
-    Iterator.single(ret)
-  }
+  case class DelimitedTextOptions(skipLines: Option[Int],
+                                  quote: Option[Char],
+                                  escape: Option[Char],
+                                  delimiter: Option[Char],
+                                  validators: SimpleFeatureValidator,
+                                  parseMode: ParseMode,
+                                  errorMode: ErrorMode,
+                                  encoding: Charset,
+                                  verbose: Boolean) extends ConverterOptions
 }

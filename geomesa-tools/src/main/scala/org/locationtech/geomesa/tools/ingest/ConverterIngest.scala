@@ -17,14 +17,16 @@ import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool}
 import org.apache.commons.pool2.{BasePooledObjectFactory, ObjectPool}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContext, SimpleFeatureConverter, SimpleFeatureConverters}
+import org.geotools.data.DataUtilities.compare
+import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContext}
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.data.DataUtilities.compare
+
 import scala.util.Try
 
 /**
@@ -64,12 +66,12 @@ class ConverterIngest(sft: SimpleFeatureType,
     }
   }
 
-  private val factory = new BasePooledObjectFactory[SimpleFeatureConverter[_]] {
-    override def wrap(obj: SimpleFeatureConverter[_]) = new DefaultPooledObject[SimpleFeatureConverter[_]](obj)
-    override def create(): SimpleFeatureConverter[_] = SimpleFeatureConverters.build(sft, converterConfig)
+  private val factory = new BasePooledObjectFactory[SimpleFeatureConverter] {
+    override def wrap(obj: SimpleFeatureConverter) = new DefaultPooledObject[SimpleFeatureConverter](obj)
+    override def create(): SimpleFeatureConverter = SimpleFeatureConverter(sft, converterConfig)
   }
 
-  protected val converters = new GenericObjectPool[SimpleFeatureConverter[_]](factory)
+  protected val converters = new GenericObjectPool[SimpleFeatureConverter](factory)
 
   override def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter =
     new LocalIngestConverterImpl(sft, path, converters, failures)
@@ -79,7 +81,7 @@ class ConverterIngest(sft: SimpleFeatureType,
   }
 }
 
-class LocalIngestConverterImpl(sft: SimpleFeatureType, path: String, converters: ObjectPool[SimpleFeatureConverter[_]], failures: AtomicLong)
+class LocalIngestConverterImpl(sft: SimpleFeatureType, path: String, converters: ObjectPool[SimpleFeatureConverter], failures: AtomicLong)
     extends LocalIngestConverter {
 
   class LocalIngestCounter extends DefaultCounter {
@@ -88,8 +90,9 @@ class LocalIngestConverterImpl(sft: SimpleFeatureType, path: String, converters:
     override def getFailure: Long          = failures.get()
   }
 
-  protected val converter: SimpleFeatureConverter[_] = converters.borrowObject()
-  protected val ec: EvaluationContext = converter.createEvaluationContext(Map("inputFilePath" -> path), new LocalIngestCounter)
+  protected val converter: SimpleFeatureConverter = converters.borrowObject()
+  protected val ec: EvaluationContext =
+    converter.createEvaluationContext(Map("inputFilePath" -> path), counter = new LocalIngestCounter)
 
   override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = (sft, converter.process(is, ec))
   override def close(): Unit = converters.returnObject(converter)

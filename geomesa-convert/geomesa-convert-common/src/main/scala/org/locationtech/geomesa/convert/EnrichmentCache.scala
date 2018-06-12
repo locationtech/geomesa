@@ -41,7 +41,7 @@ object EnrichmentCache {
 // For testing purposes
 class SimpleEnrichmentCache(val cache: java.util.Map[String, java.util.HashMap[String, AnyRef]] = Maps.newHashMap[String, java.util.HashMap[String, AnyRef]]()) extends EnrichmentCache {
 
-  override def get(args: Array[String]): Any = Option(cache.get(args(0))).map(_.get(args(1))).getOrElse(null)
+  override def get(args: Array[String]): Any = Option(cache.get(args(0))).map(_.get(args(1))).orNull
 
 
   override def put(args: Array[String], value: Any): Unit = {

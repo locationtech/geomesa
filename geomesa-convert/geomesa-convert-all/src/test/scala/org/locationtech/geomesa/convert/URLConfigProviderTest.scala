@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.convert
 
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, URLSftProvider}
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.{Request, Server}
@@ -114,10 +112,9 @@ class URLConfigProviderTest extends Specification {
         ConverterConfigLoader.listConverterNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
         SimpleFeatureTypeLoader.listTypeNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
 
-        // Intententional second calls to ensure the providers is a list and can be called twice
+        // Intentional second calls to ensure the providers is a list and can be called twice
         ConverterConfigLoader.listConverterNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
         SimpleFeatureTypeLoader.listTypeNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
-
 
         SimpleFeatureTypeLoader.sftForName("example-csv-url").isDefined must beTrue
 
@@ -128,9 +125,6 @@ class URLConfigProviderTest extends Specification {
         val configOpt2 = ConverterConfigLoader.configForName("example-csv-url2")
         configOpt2.isDefined must beTrue
         configOpt2.get.getInt("options.skip-lines") mustEqual 5
-
-        SimpleFeatureConverters.build("example-csv-url", "example-csv-url") must beAnInstanceOf[DelimitedTextConverter]
-        SimpleFeatureConverters.build("example-csv-url2", "example-csv-url2") must beAnInstanceOf[DelimitedTextConverter]
       }
       finally {
         jetty.stop()

@@ -2166,6 +2166,18 @@
                 <version>1.2.1</version>
             </dependency>
             <dependency>
+                <groupId>com.github.pureconfig</groupId>
+                <artifactId>pureconfig_${scala.binary.version}</artifactId>
+                <version>0.9.1</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- should only be needed for scala 2.10 compilation -->
+                        <groupId>org.typelevel</groupId>
+                        <artifactId>macro-compat_${scala.binary.version}</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.arrow</groupId>
                 <artifactId>arrow-vector</artifactId>
                 <version>${arrow.version}</version>
@@ -2814,6 +2826,12 @@
                             <goal>add-source</goal>
                             <goal>compile</goal>
                         </goals>
+                        <!-- uncomment to enable useful error messages for pureconfig development -->
+                        <!--<configuration>
+                            <args>
+                                <arg>-Xmacro-settings:materialize-derivations</arg>
+                            </args>
+                        </configuration>-->
                     </execution>
                     <execution>
                         <id>scala-test-compile</id>

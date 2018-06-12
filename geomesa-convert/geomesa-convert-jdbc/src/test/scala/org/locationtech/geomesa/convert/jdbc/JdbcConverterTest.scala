@@ -8,13 +8,15 @@
 
 package org.locationtech.geomesa.convert.jdbc
 
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.sql.{Connection, DriverManager}
 
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
@@ -72,13 +74,13 @@ class JdbcConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      WithClose(SimpleFeatureConverters.build[String](sft, conf)) { converter =>
-        converter must not(beNull)
-        val res = converter.processInput(Iterator.single("select * from example")).toList
-        // note: comparison has to be done backwards,
-        // as java.util.Date.equals(java.sql.Timestamp) != java.sql.Timestamp.equals(java.util.Date)
-        features mustEqual res
-      }
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+
+      val res = converter.process(new ByteArrayInputStream("select * from example".getBytes(StandardCharsets.UTF_8))).toList
+      // note: comparison has to be done backwards,
+      // as java.util.Date.equals(java.sql.Timestamp) != java.sql.Timestamp.equals(java.util.Date)
+      features mustEqual res
     }
   }
 

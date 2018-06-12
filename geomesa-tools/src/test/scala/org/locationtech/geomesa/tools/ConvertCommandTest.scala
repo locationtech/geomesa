@@ -96,7 +96,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
 
       "get a Converter" in {
         withCommand { command =>
-          WithClose(ConvertCommand.getConverter(command.params, sft))(_ must not(beNull))
+          ConvertCommand.getConverter(command.params, sft) must not(beNull)
         }
       }
       "get an Exporter" in {

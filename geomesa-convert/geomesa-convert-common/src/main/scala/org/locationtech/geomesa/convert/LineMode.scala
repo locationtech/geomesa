@@ -8,23 +8,9 @@
 
 package org.locationtech.geomesa.convert
 
-import com.typesafe.config.Config
-
 object LineMode extends Enumeration {
   type LineMode = Value
-
-  val Single  = Value("single")
-  val Multi   = Value("multi")
-
-  val Default = Single
-
-  def getLineMode(conf: Config): LineMode = {
-    if (conf.hasPath(StandardOption.LineModeOpt.path)) {
-      val m = conf.getString(StandardOption.LineModeOpt.path).toLowerCase
-      LineMode.withName(m)
-    } else {
-      LineMode.Default
-    }
-  }
-
+  val Single : LineMode = Value("single")
+  val Multi  : LineMode = Value("multi")
+  val Default: LineMode = Single
 }
