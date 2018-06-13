@@ -8,42 +8,48 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.io.{BufferedReader, InputStreamReader}
+import scala.language.reflectiveCalls
 
 object Prompt {
 
-  def confirm(msg: String, confirmStrings: List[String] = List("yes", "y")): Boolean = {
-    ensureConsole()
+  /**
+    * Abstraction over system console, to allow for unit testing
+    */
+  type SystemConsole = Any {
+    def readLine(): String
+    def readPassword(): Array[Char]
+  }
+
+  lazy val SystemConsole: SystemConsole = {
+    val console = System.console()
+    if (console == null) {
+      throw new IllegalStateException("Unable to access console..." +
+          "Please ensure stdout is not redirected or --force flag is set")
+    }
+    console
+  }
+
+  def confirm(msg: String,
+              confirmStrings: List[String] = List("yes", "y"))
+             (implicit console: SystemConsole = SystemConsole): Boolean = {
     print(msg)
-    confirmStrings.map(_.toLowerCase).contains(System.console.readLine.toLowerCase.trim)
+    val response = console.readLine().toLowerCase.trim
+    confirmStrings.map(_.toLowerCase).contains(response)
   }
 
   // note: user must press enter as java does not support reading single chars from the console
-  def acknowledge(msg: String): Unit = {
-    ensureConsole()
+  def acknowledge(msg: String)(implicit console: SystemConsole = SystemConsole): Unit = {
     print(msg)
-    System.console.readLine
+    console.readLine()
   }
 
-  def read(msg: String): String = {
-    ensureConsole()
+  def read(msg: String)(implicit console: SystemConsole = SystemConsole): String = {
     print(msg)
-    System.console.readLine.trim
+    console.readLine().trim
   }
 
-  def readPassword(): String = {
-    if (System.console() != null) {
-      System.err.print("Password (mask enabled)> ")
-      System.console().readPassword().mkString
-    } else {
-      System.err.print("Password (mask disabled when redirecting output)> ")
-      val reader = new BufferedReader(new InputStreamReader(System.in))
-      reader.readLine()
-    }
-  }
-
-  private def ensureConsole(): Unit = if (System.console() == null) {
-    throw new IllegalStateException("Unable to confirm via console..." +
-        "Please ensure stdout is not redirected or --force flag is set")
+  def readPassword()(implicit console: SystemConsole = SystemConsole): String = {
+    print("Password (mask enabled)> ")
+    console.readPassword().mkString
   }
 }

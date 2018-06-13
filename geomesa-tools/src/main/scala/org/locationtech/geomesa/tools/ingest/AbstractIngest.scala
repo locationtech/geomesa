@@ -118,7 +118,6 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
           try {
             val (sft, features) = converter.convert(is)
             if (features.hasNext) {
-              ds.createSchema(sft)
               fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
             }
             features.foreach { sf =>

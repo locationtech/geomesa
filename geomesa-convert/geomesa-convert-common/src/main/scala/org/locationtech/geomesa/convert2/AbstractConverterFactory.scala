@@ -393,7 +393,7 @@ object AbstractConverterFactory {
       map.put("error-mode", options.errorMode.toString)
       map.put("encoding", options.encoding.name)
       map.put("verbose", Boolean.box(options.verbose))
-      map.put("validators", options.validators.name.split(","))
+      map.put("validators", java.util.Arrays.asList(options.validators.name.split(","): _*))
       encodeOptions(options, map)
       map
     }

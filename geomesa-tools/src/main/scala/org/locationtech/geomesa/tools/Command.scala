@@ -8,8 +8,11 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.Console
+
 import com.beust.jcommander.{JCommander, ParameterException}
 import org.geotools.data.{DataStore, DataStoreFinder}
+import org.locationtech.geomesa.tools.utils.Prompt
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.JavaConversions._
@@ -60,4 +63,8 @@ trait DataStoreCommand[DS <: DataStore] extends Command {
       ds.dispose()
     }
   }
+}
+
+trait InteractiveCommand {
+  implicit def console: Prompt.SystemConsole = Prompt.SystemConsole
 }

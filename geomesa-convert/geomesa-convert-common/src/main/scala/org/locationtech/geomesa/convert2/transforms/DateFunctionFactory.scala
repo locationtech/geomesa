@@ -24,8 +24,8 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   import java.time.{ZoneOffset, ZonedDateTime}
 
   override def functions: Seq[TransformerFunction] =
-    Seq(now, customFormatDateParser, datetime, isodate, isodatetime, basicDateTimeNoMillis,
-      dateHourMinuteSecondMillis, millisToDate, secsToDate, dateToString)
+    Seq(now, customFormatDateParser, datetime, basicDateTimeNoMillis, basicIsoDate, basicIsoDateTime, isoLocalDate,
+      isoLocalDateTime, isoOffsetDateTime, dateHourMinuteSecondMillis, millisToDate, secsToDate, dateToString)
 
   private val now = TransformerFunction("now") { _ =>
     Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant)
@@ -40,7 +40,7 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   }
 
   // yyyy-MM-dd'T'HH:mm:ss.SSSZZ (ZZ is time zone with colon)
-  private val datetime = new StandardDateParser(Seq("datetime", "dateTime")) {
+  private val datetime = new StandardDateParser(Seq("dateTime", "datetime")) {
     override val format: DateTimeFormatter =
       new DateTimeFormatterBuilder()
           .parseCaseInsensitive()
@@ -59,13 +59,35 @@ class DateFunctionFactory extends TransformerFunctionFactory {
           .withZone(ZoneOffset.UTC)
   }
 
+  // TODO https://geomesa.atlassian.net/browse/GEOMESA-2326 update 'isodate' alias
+  // even though this parser is aliased to 'isodate', it doesn't correspond with 'DateTimeFormatter.ISO_DATE',
+  // which is '2011-12-03' or '2011-12-03+01:00'
+
   // yyyyMMdd
-  private val isodate = new StandardDateParser(Seq("isodate", "basicDate")) {
+  private val basicIsoDate = new StandardDateParser(Seq("basicIsoDate", "basicDate", "isodate")) {
     override val format: DateTimeFormatter = DateTimeFormatter.BASIC_ISO_DATE.withZone(ZoneOffset.UTC)
   }
 
+  // yyyy-MM-dd
+  private val isoLocalDate = new StandardDateParser(Seq("isoLocalDate")) {
+    override val format: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
+  }
+
+  // yyyy-MM-dd'T'HH:mm:ss
+  private val isoLocalDateTime = new StandardDateParser(Seq("isoLocalDateTime")) {
+    override val format: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC)
+  }
+
+  // yyyy-MM-dd'T'HH:mm:ssZ
+  private val isoOffsetDateTime = new StandardDateParser(Seq("isoOffsetDateTime")) {
+    override val format: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
+  }
+
+  // TODO even though it is aliased to 'isodatetime', it doesn't correspond with 'DateTimeFormatter.ISO_DATE_TIME',
+  // which is '2011-12-03T10:15:30', '2011-12-03T10:15:30+01:00' or '2011-12-03T10:15:30+01:00[Europe/Paris]'
+
   // yyyyMMdd'T'HHmmss.SSSZ
-  private val isodatetime = new StandardDateParser(Seq("isodatetime", "basicDateTime")) {
+  private val basicIsoDateTime = new StandardDateParser(Seq("basicDateTime", "isodatetime")) {
     override val format: DateTimeFormatter =
       new DateTimeFormatterBuilder()
           .parseCaseInsensitive()
@@ -119,8 +141,6 @@ class DateFunctionFactory extends TransformerFunctionFactory {
             .toFormatter(Locale.US)
             .withZone(ZoneOffset.UTC)
     }
-
-  // TODO add more default dates for type inference
 
   private val customFormatDateParser = new CustomFormatDateParser()
 
