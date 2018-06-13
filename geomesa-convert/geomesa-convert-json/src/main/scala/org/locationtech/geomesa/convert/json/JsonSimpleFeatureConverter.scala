@@ -21,7 +21,7 @@ import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
-import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.utils.text.{DateParsing, WKTUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -112,6 +112,7 @@ object JsonField {
             jsonType: String,
             pathIsRoot: Boolean): BaseJsonField[_] = jsonType match {
     case "string"           => StringJsonField(name, expression, jsonConfig, transform, pathIsRoot)
+    case "date"             => DateJsonField(name, expression, jsonConfig, transform, pathIsRoot)
     case "float"            => FloatJsonField(name, expression, jsonConfig, transform, pathIsRoot)
     case "double"           => DoubleJsonField(name, expression, jsonConfig, transform, pathIsRoot)
     case "int" | "integer"  => IntJsonField(name, expression, jsonConfig, transform, pathIsRoot)
@@ -179,6 +180,11 @@ case class DoubleJsonField(name: String, expression: JsonPath, jsonConfig: Confi
 case class StringJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr, pathIsRoot: Boolean)
     extends BaseJsonField[java.lang.String] {
   override def getAs(el: JsonElement): String = if (el.isJsonNull) null else el.getAsString
+}
+
+case class DateJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr, pathIsRoot: Boolean)
+  extends BaseJsonField[java.util.Date] {
+  override def getAs(el: JsonElement): java.util.Date = if (el.isJsonNull) null else DateParsing.parseDate(el.getAsString)
 }
 
 case class GeometryJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr, pathIsRoot: Boolean)

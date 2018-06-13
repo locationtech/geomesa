@@ -1,0 +1,45 @@
+{"type": "FeatureCollection",
+ "Features": [{
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [-100.236523, 23]
+    },
+    "properties": {
+      "idField": 23623,
+      "Name": "Harry",
+      "age": 20,
+      "LastSeen": "2015-05-06",
+      "Friends": ["Will", "Mark", "Suzan"]
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [40.232, -53.2356]
+    },
+    "properties": {
+      "idField": 26236,
+      "Name": "Hermione",
+      "age": 25,
+      "LastSeen": "2015-06-07",
+      "Friends": ["Edward", "Bill", "Harry"]
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [3, -62.23]
+    },
+    "properties": {
+      "idField": 3233,
+      "Name": "Severus",
+      "age": 30,
+      "LastSeen": "2015-10-23",
+      "Friends": ["Tom", "Riddle", "Voldemort"]
+    }
+  }]
+}
+

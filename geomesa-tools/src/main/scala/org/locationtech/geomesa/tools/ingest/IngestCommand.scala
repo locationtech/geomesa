@@ -17,6 +17,7 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeatureType
+import utils.GeoJsonInference
 
 import scala.util.Try
 
@@ -31,12 +32,14 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   def libjarsPaths: Iterator[() => Seq[File]]
 
   override def execute(): Unit = {
-    import DataFormats.{Avro, Csv, Shp, Tsv}
+    import DataFormats.{Avro, Csv, Shp, Tsv, Json}
 
     ensureSameFs(PathUtils.RemotePrefixes)
 
     val ingest = if (params.fmt == Shp) {
       createShpIngest()
+    } else if (params.spec == null && params.config == null && params.fmt == Json) {
+      createJsonIngest()
     } else if (params.spec == null && params.config == null && Seq(Csv, Tsv, Avro).contains(params.fmt)) {
       // if there is no sft and no converter passed in, try to use the auto ingest which will
       // pick up the schema from the input files themselves
@@ -82,6 +85,13 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   protected def createShpIngest(): Runnable = {
     new ShapefileIngest(connection, Option(params.featureName), params.files, params.threads)
+  }
+
+  protected def createJsonIngest(): Runnable = {
+    val filePath = params.files.head
+    val sft = GeoJsonInference.inferSft(filePath, Option(params.featureName).getOrElse("geojson"))
+    val conf = GeoJsonInference.inferConfig(sft)
+    createConverterIngest(sft, conf)
   }
 
   def ensureSameFs(prefixes: Seq[String]): Unit = {
