@@ -10,7 +10,9 @@ GeoMesa, and ships with the GeoMesa command-line tools. Data types are defined i
 variety of data without any custom code.
 
 Converter definitions are provided out-of-the-box for some common open-source data sets, including Twitter and
-GDELT; see :ref:`prepackaged_converters` for details.
+GDELT; see :ref:`prepackaged_converters` for details. In addition, common file formats such as GeoJSON,
+delimited text, or self-describing Avro can often be ingested without a converter. See :ref:`cli_ingest` for
+details.
 
 .. toctree::
     :maxdepth: 1

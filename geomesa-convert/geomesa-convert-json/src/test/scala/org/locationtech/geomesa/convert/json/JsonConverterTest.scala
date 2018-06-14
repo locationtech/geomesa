@@ -24,6 +24,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class JsonConverterTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   val sftConfPoint = ConfigFactory.parseString(
@@ -1200,6 +1202,75 @@ class JsonConverterTest extends Specification {
       val features = converter.process(in, ec).toList
       features must haveLength(8)
       forall(features)(_.getDefaultGeometry must not(beNull))
+    }
+
+    "infer schema from geojson files" >> {
+      val json =
+        """{
+          |  "type": "FeatureCollection",
+          |  "features": [
+          |    {
+          |      "type": "Feature",
+          |      "geometry": {
+          |        "type": "Point",
+          |        "coordinates": [41.0, 51.0]
+          |      },
+          |      "properties": {
+          |        "name": "name1"
+          |      }
+          |    },
+          |    {
+          |      "type": "Feature",
+          |      "geometry": {
+          |        "type": "Point",
+          |        "coordinates": [42.0, 52.0]
+          |      },
+          |      "properties": {
+          |        "name": "name2",
+          |        "demographics": {
+          |          "age": 2
+          |        }
+          |      }
+          |    },
+          |    {
+          |      "type": "Feature",
+          |      "geometry": {
+          |        "type": "Point",
+          |        "coordinates": [43.0, 53.0]
+          |      },
+          |      "properties": {
+          |        "name": "name3",
+          |        "demographics": {
+          |          "age": 3
+          |        }
+          |      }
+          |    }
+          |  ]
+          |}
+        """.stripMargin
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes)
+
+      inferred must beSome
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("name", classOf[String]), ("demographics_age", classOf[Integer]), ("geom", classOf[Point]))
+
+      val converter = SimpleFeatureConverter(sft, inferred.get._2)
+      converter must not(beNull)
+
+      val features = converter.process(bytes).toList
+      features must haveLength(3)
+
+      val expected = Seq(
+        Seq("name1", null, WKTUtils.read("POINT (41 51)")),
+        Seq("name2", 2, WKTUtils.read("POINT (42 52)")),
+        Seq("name3", 3, WKTUtils.read("POINT (43 53)"))
+      )
+      features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
     }
   }
 }

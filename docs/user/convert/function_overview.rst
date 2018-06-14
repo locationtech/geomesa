@@ -3,11 +3,20 @@
 Transformation Function Overview
 --------------------------------
 
-Control Functions
-~~~~~~~~~~~~~~~~~
+Type Conversions
+~~~~~~~~~~~~~~~~
 
--  ``try``
--  ``withDefault``
+-  ``::int`` or ``::integer``
+-  ``::long``
+-  ``::float``
+-  ``::double``
+-  ``::boolean``
+-  ``::r``
+-  ``stringToInt`` or ``stringToInteger``
+-  ``stringToLong``
+-  ``stringToFloat``
+-  ``stringToDouble``
+-  ``stringToBoolean``
 
 String Functions
 ~~~~~~~~~~~~~~~~
@@ -30,8 +39,11 @@ Date Functions
 -  ``now``
 -  ``date``
 -  ``dateTime``
--  ``basicDate``
+-  ``basicIsoDate``
+-  ``isoLocalDate``
 -  ``basicDateTime``
+-  ``isoLocalDateTime``
+-  ``isoOffsetDateTime``
 -  ``basicDateTimeNoMillis``
 -  ``dateHourMinuteSecondMillis``
 -  ``millisToDate``
@@ -41,8 +53,12 @@ Geometry Functions
 ~~~~~~~~~~~~~~~~~~
 
 -  ``point``
+-  ``multipoint``
 -  ``linestring``
+-  ``multilinestring``
 -  ``polygon``
+-  ``multipolygon``
+-  ``geometrycollection``
 -  ``geometry``
 -  ``projectFrom``
 
@@ -51,31 +67,37 @@ ID Functions
 
 -  ``stringToBytes``
 -  ``md5``
+-  ``murmur3_32``
+-  ``murmur3_128``
 -  ``uuid``
 -  ``uuidZ3``
 -  ``uuidZ3Centroid``
 -  ``base64``
 
-Type Conversions
-~~~~~~~~~~~~~~~~
+Math Functions
+~~~~~~~~~~~~~~
 
--  ``::int`` or ``::integer``
--  ``::long``
--  ``::float``
--  ``::double``
--  ``::boolean``
--  ``::r``
--  ``stringToInt`` or ``stringToInteger``
--  ``stringToLong``
--  ``stringToFloat``
--  ``stringToDouble``
--  ``stringToBoolean``
+-  ``add``
+-  ``subtract``
+-  ``multiply``
+-  ``divide``
+-  ``mean``
+-  ``min``
+-  ``max``
 
-List and Map Parsing
-~~~~~~~~~~~~~~~~~~~~
+List and Map Functions
+~~~~~~~~~~~~~~~~~~~~~~
 
+-  ``list``
+-  ``mapValue``
 -  ``parseList``
 -  ``parseMap``
+
+Control Functions
+~~~~~~~~~~~~~~~~~
+
+-  ``try``
+-  ``withDefault``
 
 .. _convert_scripting_functions:
 
@@ -173,7 +195,7 @@ reference <http://docs.geoserver.org/stable/en/user/filter/function_reference.ht
 JSON/Avro Transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See Parsing Json and Parsing Avro sections
+See :ref:`json_converter_functions` and :ref:`avro_converter_functions`.
 
 Enrichment Functions
 ~~~~~~~~~~~~~~~~~~~~

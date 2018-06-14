@@ -29,6 +29,7 @@ class JsonConverter(targetSft: SimpleFeatureType, config: JsonConfig, fields: Se
     extends AbstractConverter(targetSft, config, fields, options) {
 
   private val parser = new JsonParser
+  private val featurePath = config.featurePath.map(JsonPath.compile(_))
 
   override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
     val reader = new JsonReader(new InputStreamReader(is, options.encoding))
@@ -51,7 +52,7 @@ class JsonConverter(targetSft: SimpleFeatureType, config: JsonConfig, fields: Se
     //  This solution involves handing a pointer to the feature path and the entire document.
     //  In the converter config, use 'root-path' to defined paths which reference the entire document.
 
-    val records = config.featurePath match {
+    val records = featurePath match {
       case None =>
         elements.map(Array[Any](_))
 
@@ -65,7 +66,7 @@ class JsonConverter(targetSft: SimpleFeatureType, config: JsonConfig, fields: Se
   }
 }
 
-object JsonConverter {
+object JsonConverter extends GeoJsonParsing {
 
   private val jsonConfiguration =
     Configuration.builder()
@@ -76,7 +77,7 @@ object JsonConverter {
   private val lineRegex = """JsonReader at line (\d+)""".r
 
   case class JsonConfig(`type`: String,
-                        featurePath: Option[JsonPath],
+                        featurePath: Option[String],
                         idField: Option[Expression],
                         caches: Map[String, Config],
                         userData: Map[String, Expression]) extends ConverterConfig
@@ -87,17 +88,18 @@ object JsonConverter {
 
   abstract class TypedJsonField(val name: String,
                                 val jsonType: String,
-                                val path: JsonPath,
+                                val path: String,
                                 val pathIsRoot: Boolean,
                                 val transforms: Option[Expression]) extends JsonField {
 
     private val i = if (pathIsRoot) { 1 } else { 0 }
     private val mutableArray = Array.ofDim[Any](1)
+    private val jsonPath = JsonPath.compile(path)
 
     protected def unwrap(elem: JsonElement): AnyRef
 
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      val e = try { path.read[JsonElement](args(i), jsonConfiguration) } catch {
+      val e = try { jsonPath.read[JsonElement](args(i), jsonConfiguration) } catch {
         case _: PathNotFoundException => JsonNull.INSTANCE
       }
       mutableArray(0) = if (e.isJsonNull) { null } else { unwrap(e) }
@@ -105,47 +107,47 @@ object JsonConverter {
     }
   }
 
-  class StringJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
+  class StringJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
       extends TypedJsonField(name, "string", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = elem.getAsString
   }
 
-  class FloatJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
+  class FloatJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
       extends TypedJsonField(name, "float", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = Float.box(elem.getAsFloat)
   }
 
-  class DoubleJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
+  class DoubleJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
       extends TypedJsonField(name, "double", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = Double.box(elem.getAsDouble)
   }
 
-  class IntJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
+  class IntJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
       extends TypedJsonField(name, "int", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = Int.box(elem.getAsInt)
   }
 
-  class BooleanJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
+  class BooleanJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
       extends TypedJsonField(name, "boolean", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = Boolean.box(elem.getAsBoolean)
   }
 
-  class LongJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
+  class LongJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
       extends TypedJsonField(name, "long", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = Long.box(elem.getAsBigInteger.longValue())
   }
 
-  class GeometryJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "geometry", path, pathIsRoot, transforms) with GeoJsonParsing {
+  class GeometryJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField(name, "geometry", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = parseGeometry(elem)
   }
 
-  class ArrayJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
+  class ArrayJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
       extends TypedJsonField(name, "array", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = elem.getAsJsonArray
   }
 
-  class ObjectJsonField(name: String, path: JsonPath, pathIsRoot: Boolean, transforms: Option[Expression])
+  class ObjectJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
       extends TypedJsonField(name, "object", path, pathIsRoot, transforms) {
     override def unwrap(elem: JsonElement): AnyRef = elem.getAsJsonObject
   }

@@ -49,28 +49,28 @@ The ``--converter`` argument may be any of the following:
 * A converter configuration string
 * The name of a file containing a converter configuration
 
+If a converter is not specified, GeoMesa will attempt to infer a converter definition based on the input files.
+Currently this supports GeoJSON, self-describing Avro, delimited text (TSV, CSV) or Shapefiles. If GeoMesa is able
+to infer a schema and converter definition, the user can accept them as-is, or alternatively use them as the basis
+for a fully custom converter. When ingesting a large data set, it can be useful to ingest a single file in local
+mode, using schema inference to generate the converter. The converter definition can be persisted and tweaked to
+satisfaction, then used for the entire data set with a distributed ingest.
+
 See :ref:`cli_converter_conf` for more details on specifying the converter.
 
-If a converter is not specified, GeoMesa will attempt to extract a schema from the input files. Currently
-this only works in a very limited fashion - the input must be a Shapefile, self describing Avro, or
-delimited text (TSV, CSV) with a header row that defines the attribute name and type of each column. For example::
-
-    id,name:String,dtg:Date,*geom:Point:srid=4326
-    1,foo,2017-01-01T00:00:00.000Z,POINT(45 55)
-    2,bar,2017-01-02T00:00:00.000Z,POINT(55 65)
-
-If the ``--feature-name`` is specified and the schema already exists, then ``--spec`` is not required. Otherwise,
-``--spec`` may be any of the following:
+If the ``--feature-name`` is specified and the schema already exists, then ``--spec`` is not required. Likewise,
+if a converter is not defined, the schema will be inferred alongside the converter. Otherwise, ``--spec`` may be
+any of the following:
 
 * A string of attributes, for example ``name:String,dtg:Date,*geom:Point:srid=4326``
 * The name of a ``SimpleFeatureType`` already available on the classpath
 * A string of attributes, defined as a TypeSafe configuration
 * The name of a file containing one of the above
 
-See :ref:`cli_sft_conf` for more details on specifying the ``SimpleFeatureType``.
-
 If the schema doesn't exist, the ``--feature-name`` argument is required if it is not implied by
 the specification string. It may also be used to override the implied feature name.
+
+See :ref:`cli_sft_conf` for more details on specifying the ``SimpleFeatureType``.
 
 The ``--input-format`` argument can be used to specify the type of files being ingested. Currently
 GeoMesa supports Avro, CSV, TSV, Json/GeoJson, GML, and SHP. If not specified, the input file extensions
@@ -90,7 +90,8 @@ and Microsoft's Azure file systems are supported with a few configuration change
 :doc:`/user/cli/filesystems` for details.
 
 Instead of specifying files, input data may be piped directly to the ingest command using `stdin` shell redirection.
-Note that this will only work in local mode, and will only use a single thread for ingestion. Progress indicators
-may not be entirely accurate, as the total size isn't known up front. For example::
+Note that this will only work in local mode, and will only use a single thread for ingestion. Schema inference is
+disabled in this case, and progress indicators may not be entirely accurate, as the total size isn't known up front.
+For example::
 
     cat foo.csv | geomesa-accumulo ingest ...

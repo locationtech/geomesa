@@ -24,7 +24,7 @@ import scala.util.control.NonFatal
 
 class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
-  override def functions = Seq(string2Bytes, md5, uuid, uuidZ3, uuidZ3Centroid, base64, murmur3_32, murmur3_64)
+  override def functions = Seq(string2Bytes, md5, uuid, uuidZ3, uuidZ3Centroid, base64, murmur3_32, murmur3_128)
 
   private val string2Bytes = TransformerFunction("string2bytes", "stringToBytes") {
     args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
@@ -72,7 +72,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
       hasher.hashString(args(0).toString, StandardCharsets.UTF_8)
   }
 
-  private val murmur3_64 = new NamedTransformerFunction(Seq("murmur3_64")) {
+  private val murmur3_128 = new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64")) {
     private val hasher = Hashing.murmur3_128()
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       hasher.hashString(args(0).toString, StandardCharsets.UTF_8).asLong()
