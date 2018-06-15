@@ -17,7 +17,7 @@ import org.locationtech.geomesa.fs.tools.stats._
 import org.locationtech.geomesa.fs.tools.status._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
 import org.locationtech.geomesa.tools.status._
-import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
+import org.locationtech.geomesa.tools.{AWSCommand, Command, ConvertCommand, Runner}
 
 object FsRunner extends Runner {
 
@@ -45,6 +45,7 @@ object FsRunner extends Runner {
     new FsStatsBoundsCommand,
     new FsStatsCountCommand,
     new FsStatsHistogramCommand,
-    new FsStatsTopKCommand
+    new FsStatsTopKCommand,
+    new AWSCommand
   )
 }

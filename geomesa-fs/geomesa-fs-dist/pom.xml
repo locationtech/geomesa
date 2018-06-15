@@ -14,6 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <gmtools.dist.name>GEOMESA_FS</gmtools.dist.name> <!-- used in tools filtering -->
+        <gmtools.assembly.name>geomesa-fs_${scala.binary.version}-${project.version}</gmtools.assembly.name>
     </properties>
 
     <dependencies>
@@ -101,6 +102,20 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>python</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa_pyspark</artifactId>
+                    <version>${project.version}</version>
+                    <type>tar.gz</type>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>

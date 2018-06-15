@@ -79,6 +79,13 @@
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
+        <fileSet>
+            <directory>../geomesa-fs-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
 
         <!-- Common Tools filesets -->
         <fileSet>

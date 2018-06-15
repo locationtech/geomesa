@@ -1,0 +1,134 @@
+{
+  "paragraphs": [
+    {
+      "text": "%md\n# GDELT Ingest Example\n\nThis notebook demonstrates how to ingest GDELT data directly from S3. GDELT is provided for use by Amazon ([more info here](https://aws.amazon.com/public-datasets/gdelt/)). Simply provide the desired dates in the form to the right then run the notebook. The code will generate a list of files to ingest and then use the GeoMesa Commandline Tools to start a distributed ingest of the desired files. \n\nNote: It is usual for a percentage (~10%) of records to fail to ingest as there is a decent number of malformed records in GDELT.",
+      "user": "anonymous",
+      "dateUpdated": "Apr 2, 2018 6:26:35 PM",
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true
+        },
+        "colWidth": 6.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003ch1\u003eGDELT Ingest Example\u003c/h1\u003e\n\u003cp\u003eThis notebook demonstrates how to ingest GDELT data directly from S3. GDELT is provided for use by Amazon (\u003ca href\u003d\"https://aws.amazon.com/public-datasets/gdelt/\"\u003emore info here\u003c/a\u003e). Simply provide the desired dates in the form to the right then run the notebook. The code will generate a list of files to ingest and then use the GeoMesa Commandline Tools to start a distributed ingest of the desired files.\u003c/p\u003e\n\u003cp\u003eNote: It is usual for a percentage (~10%) of records to fail to ingest as there is a decent number of malformed records in GDELT.\u003c/p\u003e\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1522693474708_-779638893",
+      "id": "20180330-184620_181124641",
+      "dateCreated": "Apr 2, 2018 6:24:34 PM",
+      "dateStarted": "Apr 2, 2018 6:26:20 PM",
+      "dateFinished": "Apr 2, 2018 6:26:20 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Date Ranges for GDELT Data (Start \u0026 End Inclusive)",
+      "text": "%python\nimport pandas as pd\n\n# DateFormat: (Year, Month, Day), start and end are inclusive\nstart \u003d z.input(\"Start Date (Day/Month/Year)\", \"1/1/2017\")\nend \u003d z.input(\"End Date (Day/Month/Year)\", \"1/1/2017\")",
+      "dateUpdated": "Apr 2, 2018 6:24:34 PM",
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false
+        },
+        "colWidth": 6.0,
+        "editorMode": "ace/mode/python",
+        "editorHide": true,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {
+          "Date (Year, Month, Day)": "",
+          "Start Date (Year, Month, Day)": "",
+          "End Date (Year, Month, Day)": "",
+          "Start Date (Day/Month/Year)": "1/1/2017",
+          "End Date (Day/Month/Year)": "1/1/2017"
+        },
+        "forms": {
+          "Start Date (Day/Month/Year)": {
+            "name": "Start Date (Day/Month/Year)",
+            "displayName": "Start Date (Day/Month/Year)",
+            "type": "input",
+            "defaultValue": "1/1/2017",
+            "hidden": false
+          },
+          "End Date (Day/Month/Year)": {
+            "name": "End Date (Day/Month/Year)",
+            "displayName": "End Date (Day/Month/Year)",
+            "type": "input",
+            "defaultValue": "1/1/2017",
+            "hidden": false
+          }
+        }
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": []
+      },
+      "apps": [],
+      "jobName": "paragraph_1522693474708_-779638893",
+      "id": "20180402-173951_987203661",
+      "dateCreated": "Apr 2, 2018 6:24:34 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Run GDELT ingest",
+      "text": "%python\nimport subprocess, shlex\nimport pandas as pd\n\n# DateFormat: (Year, Month, Day), start and end are inclusive\nstartDate \u003d pd.to_datetime(start, infer_datetime_format\u003dTrue)\nendDate \u003d pd.to_datetime(end, infer_datetime_format\u003dTrue)\n\ndates \u003d pd.date_range(startDate, endDate)\nfileList \u003d list(map(lambda x: \"s3://gdelt-open-data/events/\" + x.strftime(\"%Y%m%d\") + \".export.csv\", dates))\ningestFiles \u003d \u0027 \u0027.join(fileList)\n\ncmd \u003d \"/opt/geomesa/bin/geomesa-hbase ingest -c catalog -s gdelt -C gdelt %s\" % ingestFiles\nprocess \u003d subprocess.Popen(shlex.split(cmd), stdout\u003dsubprocess.PIPE)\nprocess.communicate()",
+      "dateUpdated": "Apr 2, 2018 6:28:10 PM",
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "editorHide": false,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1522693474708_-779638893",
+      "id": "20180330-185909_308706573",
+      "dateCreated": "Apr 2, 2018 6:24:34 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "GeoMesa/Ingest/GDELT",
+  "id": "2DCUM4JJW",
+  "angularObjects": {
+    "2BRWU4WXC:shared_process": [],
+    "2AM1YV5CU:shared_process": [],
+    "2ANGGHHMQ::2DCUM4JJW": [],
+    "2AJXGMUUJ:shared_process": [],
+    "2AKK3QQXU:shared_process": []
+  },
+  "config": {},
+  "info": {}
+}

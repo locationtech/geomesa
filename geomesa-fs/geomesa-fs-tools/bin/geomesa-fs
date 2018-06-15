@@ -94,6 +94,9 @@ fi
 
 if  [[ $1 = configure ]]; then
   geomesaConfigure
+elif [[ $1 = aws ]]; then
+  shift
+  "${%%gmtools.dist.name%%_HOME}"/bin/aws-utils/aws-bootstrap "$@"
 else
   CLASSPATH="$GEOMESA_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
   if [[ $1 = scala-console ]]; then

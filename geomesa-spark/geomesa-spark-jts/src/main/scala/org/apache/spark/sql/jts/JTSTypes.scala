@@ -75,11 +75,25 @@ private [spark] class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometr
       dataType.getClass == JTSTypes.GeometryCollectionTypeInstance.getClass
   }
 }
-
 case object GeometryUDT extends GeometryUDT
 
 private [spark] class GeometryCollectionUDT
   extends AbstractGeometryUDT[GeometryCollection]("geometrycollection")
-
 object GeometryCollectionUDT extends GeometryCollectionUDT
 
+object Test {
+  import java.util.Calendar
+  val cal = Calendar.getInstance()
+  cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - 1)
+  new java.sql.Timestamp(cal.getTimeInMillis)
+
+  import java.text.DateFormat
+  import java.text.SimpleDateFormat
+  import java.util.TimeZone
+
+
+  val tz: TimeZone = TimeZone.getTimeZone("UTC")
+  val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") // Quoted "Z" to indicate UTC, no timezone offset
+  df.setTimeZone(tz)
+  val nowAsISO: String = df.format()
+}
