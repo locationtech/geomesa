@@ -11,11 +11,13 @@ package org.locationtech.geomesa.convert.avro
 import java.io.InputStream
 
 import com.typesafe.config.Config
+import org.apache.avro.Schema
 import org.apache.avro.Schema.Parser
+import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
-import org.apache.avro.io.{BinaryDecoder, DecoderFactory}
-import org.locationtech.geomesa.convert.EvaluationContext
-import org.locationtech.geomesa.convert.avro.AvroConverter.{AvroConfig, AvroReaderIterator, SchemaFile, SchemaString}
+import org.apache.avro.io.DecoderFactory
+import org.locationtech.geomesa.convert.avro.AvroConverter._
+import org.locationtech.geomesa.convert.{Counter, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
@@ -29,17 +31,16 @@ class AvroConverter(targetSft: SimpleFeatureType,
     extends AbstractConverter(targetSft, config, fields, options) {
 
   private val schema = config.schema match {
-    case SchemaString(s) => new Parser().parse(s)
-    case SchemaFile(s)   => new Parser().parse(getClass.getResourceAsStream(s))
+    case SchemaString(s) => Some(new Parser().parse(s))
+    case SchemaFile(s)   => Some(new Parser().parse(getClass.getResourceAsStream(s)))
+    case SchemaEmbedded  => None
   }
 
-  private val reader = new GenericDatumReader[GenericRecord](schema)
-
-  private var decoder: BinaryDecoder = _
-
   override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
-    decoder = DecoderFactory.get.binaryDecoder(is, decoder)
-    new AvroReaderIterator(reader, decoder, ec)
+    schema match {
+      case None    => new FileStreamIterator(is, ec.counter)
+      case Some(s) => new GenericDatumReaderIterator(is, s, ec.counter)
+    }
   }
 }
 
@@ -53,32 +54,66 @@ object AvroConverter {
 
   sealed trait SchemaConfig
 
-  case class SchemaFile(path: String) extends SchemaConfig
   case class SchemaString(schema: String) extends SchemaConfig
+  case class SchemaFile(file: String) extends SchemaConfig
+  case object SchemaEmbedded extends SchemaConfig {
+    val name: String = "embedded"
+  }
+
 
   /**
-    * Iterator for reading from an avro stream
+    * Reader for IPC stream, where schema is defined ahead of time and not included in the input
     *
-    * @param reader reader
-    * @param decoder decoder
-    * @param ec evaluation context
+    * @param is input
+    * @param schema avro schema
+    * @param counter counter
     */
-  class AvroReaderIterator(reader: GenericDatumReader[GenericRecord],
-                           decoder: BinaryDecoder,
-                           ec: EvaluationContext) extends CloseableIterator[Array[Any]] {
+  class GenericDatumReaderIterator private [AvroConverter](is: InputStream, schema: Schema, counter: Counter)
+      extends GenericRecordIterator(schema, counter) {
 
-    private var record: GenericRecord = _
-    private val array = Array.ofDim[Any](2)
+    private val decoder = DecoderFactory.get.binaryDecoder(is, null)
 
     override def hasNext: Boolean = !decoder.isEnd
+    override protected def readNext(record: GenericRecord): GenericRecord = reader.read(record, decoder)
+    override def close(): Unit = is.close()
+  }
+
+  /**
+    * Reader for Avro files, where the schema is embedded in the file
+    *
+    * @param is input
+    * @param counter counter
+    */
+  class FileStreamIterator private [AvroConverter] (is: InputStream, counter: Counter)
+      extends GenericRecordIterator(null, counter) {
+
+    private val stream = new DataFileStream(is, reader)
+
+    override def hasNext: Boolean = stream.hasNext
+    override protected def readNext(record: GenericRecord): GenericRecord = stream.next(record)
+    override def close(): Unit = stream.close()
+  }
+
+  /**
+    * Base class for reading generic records and returning them for conversion
+    *
+    * @param schema schema, may be null
+    * @param counter counter
+    */
+  abstract class GenericRecordIterator private [AvroConverter] (schema: Schema, counter: Counter)
+      extends CloseableIterator[Array[Any]] {
+
+    protected val reader = new GenericDatumReader[GenericRecord](schema)
+    private val array = Array.ofDim[Any](2)
+    private var record: GenericRecord = _
+
+    protected def readNext(record: GenericRecord): GenericRecord
 
     override def next(): Array[Any] = {
-      record = reader.read(record, decoder)
+      counter.incLineCount()
+      record = readNext(record)
       array(1) = record
-      ec.counter.incLineCount()
       array
     }
-
-    override def close(): Unit = {}
   }
 }

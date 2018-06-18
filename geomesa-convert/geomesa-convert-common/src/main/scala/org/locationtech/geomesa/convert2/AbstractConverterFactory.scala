@@ -23,6 +23,7 @@ import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConf
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
@@ -114,6 +115,13 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[C, F, O]: ClassTa
 object AbstractConverterFactory {
 
   import scala.collection.JavaConverters._
+
+  val InferSampleSize: SystemProperty = SystemProperty("geomesa.convert.infer.sample", "100")
+
+  def inferSampleSize: Int = InferSampleSize.toInt.getOrElse {
+    // shouldn't ever happen since the default is a valid int
+    throw new IllegalStateException("Could not determine sample size from system property")
+  }
 
   /**
     * Validate an inferred type matches an existing type

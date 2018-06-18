@@ -22,6 +22,9 @@
     <category name="org.locationtech.geomesa.convert">
         <priority value="error"/>
     </category>
+    <category name="org.locationtech.geomesa.convert2">
+        <priority value="error"/>
+    </category>
 
     <root>
         <priority value="info"/>

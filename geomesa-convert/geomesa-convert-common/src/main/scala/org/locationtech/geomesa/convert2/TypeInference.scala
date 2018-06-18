@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.text.{DateParsing, WKTUtils}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
-import scala.util.{Success, Try}
+import scala.util.Try
 
 object TypeInference {
 
@@ -98,14 +98,20 @@ object TypeInference {
     }
 
     // if there is no geometry field, see if we can derive one
-    if (types.lengthCompare(1) > 0 && !types.map(_.typed).exists(geometries.contains)) {
-      var name = "geom"
-      var i = 0
-      while (!uniqueNames.add(name)) {
-        name = s"geom_$i"
-        i += 1
-      }
+    deriveGeometry(types).foreach(types += _)
 
+    types
+  }
+
+  /**
+    * Try to derive a geometry field, if one does not already exist
+    *
+    * @param types known types
+    * @return
+    */
+  def deriveGeometry(types: Seq[InferredType]): Option[InferredType] = {
+    // if there is no geometry field, see if we can derive one
+    if (types.lengthCompare(2) < 0 || types.map(_.typed).exists(geometries.contains)) { None } else {
       var lat, lon: String = null
 
       // if we have lat/lon columns, use those
@@ -123,7 +129,7 @@ object TypeInference {
       if (lat == null || lon == null) {
         // as a fallback, check for 2 consecutive floats or doubles - assume longitude first
         // note that this is pretty brittle, but hopefully better than nothing
-        i = 1
+        var i = 1
         while (i < types.length) {
           val left = types(i - 1)
           val right = types(i)
@@ -136,12 +142,16 @@ object TypeInference {
         }
       }
 
-      if (lat != null && lon != null) {
-        types += InferredType(name, POINT, DerivedTransform("point", lon, lat))
+      if (lat == null || lon == null) { None } else {
+        var name = "geom"
+        var i = 0
+        while (types.exists(_.name == name)) {
+          name = s"geom_$i"
+          i += 1
+        }
+        Some(InferredType(name, POINT, DerivedTransform("point", lon, lat)))
       }
     }
-
-    types
   }
 
   /**
@@ -235,7 +245,7 @@ object TypeInference {
     } else if (left.typed == null || right.typed == STRING) {
       Some(right)
     } else if (geometries.contains(left.typed) && geometries.contains(right.typed)) {
-      Some(InferredType("", GEOMETRY, FunctionTransform("geometry")))
+      Some(InferredType("", GEOMETRY, FunctionTransform("geometry(", ")")))
     } else {
       left.typed match {
         case INT    if Seq(LONG, FLOAT, DOUBLE).contains(right.typed) => Some(right)
@@ -320,9 +330,8 @@ object TypeInference {
   case object CastToBoolean extends CastTransform("boolean")
   case object CastToString extends CastTransform("string")
 
-  // note: assumes args come after $i in the function definition
-  case class FunctionTransform(name: String, args: Any*) extends InferredTransform {
-    def apply(i: Int): String = s"$name${args.+:(i).mkString("($", ",", ")")}"
+  case class FunctionTransform(prefix: String, suffix: String) extends InferredTransform {
+    def apply(i: Int): String = s"$prefix$$$i$suffix"
   }
 
   // function transform that only operates on derived fields and not $i
@@ -385,7 +394,7 @@ object TypeInference {
     private def tryDateParsing(s: String): Option[InferredType] = {
       dateParsers.foreach { p =>
         if (Try(DateParsing.parseDate(s, p.format)).isSuccess) {
-          return Some(InferredType("", DATE, FunctionTransform(p.names.head)))
+          return Some(InferredType("", DATE, FunctionTransform(s"${p.names.head}(", ")")))
         }
       }
       None
@@ -393,14 +402,14 @@ object TypeInference {
 
     private def tryGeometryParsing(s: String): Option[InferredType] = {
       Try(WKTUtils.read(s)).toOption.map {
-        case _: Point              => InferredType("", POINT, FunctionTransform("point"))
-        case _: LineString         => InferredType("", LINESTRING, FunctionTransform("linestring"))
-        case _: Polygon            => InferredType("", POLYGON, FunctionTransform("polygon"))
-        case _: MultiPoint         => InferredType("", MULTIPOINT, FunctionTransform("multipoint"))
-        case _: MultiLineString    => InferredType("", MULTILINESTRING, FunctionTransform("multilinestring"))
-        case _: MultiPolygon       => InferredType("", MULTIPOLYGON, FunctionTransform("multipolygon"))
-        case _: GeometryCollection => InferredType("", GEOMETRY_COLLECTION, FunctionTransform("geometrycollection"))
-        case _                     => InferredType("", GEOMETRY, FunctionTransform("geometry"))
+        case _: Point              => InferredType("", POINT, FunctionTransform("point(", ")"))
+        case _: LineString         => InferredType("", LINESTRING, FunctionTransform("linestring(", ")"))
+        case _: Polygon            => InferredType("", POLYGON, FunctionTransform("polygon(", ")"))
+        case _: MultiPoint         => InferredType("", MULTIPOINT, FunctionTransform("multipoint(", ")"))
+        case _: MultiLineString    => InferredType("", MULTILINESTRING, FunctionTransform("multilinestring(", ")"))
+        case _: MultiPolygon       => InferredType("", MULTIPOLYGON, FunctionTransform("multipolygon(", ")"))
+        case _: GeometryCollection => InferredType("", GEOMETRY_COLLECTION, FunctionTransform("geometrycollection(", ")"))
+        case _                     => InferredType("", GEOMETRY, FunctionTransform("geometry(", ")"))
       }
     }
 

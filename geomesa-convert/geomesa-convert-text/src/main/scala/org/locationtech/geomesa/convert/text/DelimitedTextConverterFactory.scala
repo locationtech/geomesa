@@ -23,7 +23,6 @@ import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldCon
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
@@ -44,10 +43,7 @@ class DelimitedTextConverterFactory
 
     import scala.collection.JavaConverters._
 
-    val sampleSize = DelimitedTextConverterFactory.InferSampleSize.toInt.getOrElse {
-      // shouldn't ever happen since the default is a valid int
-      throw new IllegalStateException("Could not determine sample size from system property")
-    }
+    val sampleSize = AbstractConverterFactory.inferSampleSize
     val lines = IOUtils.lineIterator(is, StandardCharsets.UTF_8.displayName).asScala.take(sampleSize).toSeq
     // if only a single line, assume that it isn't actually delimited text
     if (lines.lengthCompare(2) < 0) { None } else {
@@ -101,8 +97,6 @@ class DelimitedTextConverterFactory
 }
 
 object DelimitedTextConverterFactory {
-
-  val InferSampleSize: SystemProperty = SystemProperty("geomesa.convert.text.infer.sample", "100")
 
   object DelimitedTextConfigConvert extends ConverterConfigConvert[DelimitedTextConfig] {
 
