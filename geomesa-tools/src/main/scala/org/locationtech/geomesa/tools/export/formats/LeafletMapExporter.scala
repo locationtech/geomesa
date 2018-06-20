@@ -10,67 +10,53 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io._
 
+import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Coordinate, Geometry}
+import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geojson.feature.FeatureJSON
 import org.locationtech.geomesa.tools.Command.user
 import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter.{SimpleCoordinate, _}
 import org.locationtech.geomesa.tools.export.{ExportCommand, FileExportParams}
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.io.Source
-import scala.io.StdIn.readLine
 
 class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with LazyLogging {
 
-  private val json = new FeatureJSON()
-  private val coordMap = mutable.Map[SimpleCoordinate[Double], Int]()
-
-  private var first = true
-  private var sft: SimpleFeatureType = _
-  private var totalCount: Long = 0L
-
   Option(params.maxFeatures) match {
     case Some(limit) =>
-      if (limit > 10000) {
-        // Note we have to ask if the user wants to continue like this or the output will be
-        // hidden since this command runs in a sub-shell
-        user.warn("A large number of features might be exported. This can cause performance issues when using the map. For large numbers of features it is recommended to use GeoServer to render a map.\nDo you want to continue? [y/N]")
-        // readLine() could be string, null or empty string, handle all
-        val response = Option(readLine()).getOrElse("").headOption.getOrElse("n").toString
-        if (response.matches("^[nN]")) {
-          throw new RuntimeException("User requested program termination.")
+      if (limit > MaxFeatures) {
+        val warn = "The Leaflet map may exhibit performance issues displaying large numbers of features. " +
+            "Instead, consider using GeoServer for map rendering. Would you like to continue anyway (y/n)? "
+        if (!Prompt.confirm(warn)) {
+          throw new ParameterException("Terminating execution")
         }
       }
-    case None => params.maxFeatures = 10000
+
+    case None =>
+      user.debug(s"Limiting max features to $MaxFeatures")
+      params.maxFeatures = MaxFeatures
   }
 
-  if (params.noHeader) { user.warn("NoHeader parameter cannot be used with leaflet format, ignoring.") }
-  if (params.gzip != null) { user.warn("GZip parameter cannot be used with leaflet format, ignoring.") }
-
-  val GEOMESA_HOME = SystemProperty("geomesa.home", "/tmp")
-  val indexFile: File = getDestination(Option(params.file).getOrElse{
-    new File(new File(GEOMESA_HOME.get), "leaflet")
-  })
-  val indexWriter: Writer = ExportCommand.getWriter(indexFile, null)
-
-  val (indexHead, indexTail): (String, String) = {
-    val indexStream: InputStream = getClass.getClassLoader.getResourceAsStream("leaflet/index.html")
-    try {
-      val indexString: String = Source.fromInputStream(indexStream).mkString
-      val indexArray: Array[String] = indexString.split("\\|codegen\\|")
-      require(indexArray.length == 2, "Malformed index.html unable to render map.")
-      (indexArray(0), indexArray(1))
-    } finally {
-      indexStream.close()
-    }
+  if (params.gzip != null) {
+    user.warn("Ignoring gzip parameter for Leaflet export")
   }
+
+  private val json = new FeatureJSON()
+  private val coordMap = scala.collection.mutable.Map.empty[SimpleCoordinate, Int]
+
+  private var first = true
+  private var featureInfo = ""
+  private var totalCount = 0L
+
+  private val indexFile = getDestination(Option(params.file).getOrElse(new File(sys.props("user.dir"))))
+  private val indexWriter = ExportCommand.getWriter(indexFile, null)
 
   override def start(sft: SimpleFeatureType): Unit = {
-    this.sft = sft
+    featureInfo = getFeatureInfo(sft)
     indexWriter.write(indexHead)
     indexWriter.write("""var points = {"type":"FeatureCollection","features":[""")
   }
@@ -95,50 +81,64 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
   override def close(): Unit  = {
     // Finish writing GeoJson
     indexWriter.write("]};\n\n")
-    indexWriter.write(getFeatureInfo(sft))
+    indexWriter.write(featureInfo)
     // Write Heatmap Data
     val values = normalizeValues(coordMap)
     first = true
     indexWriter.write("""var heat = L.heatLayer([""" + "\n")
-    values.foreach{ c =>
+    values.foreach { case (coord, weight) =>
       if (first) {
         first = false
       } else {
         indexWriter.write(",\n")
       }
-      indexWriter.write(c._1.render(c._2))
+      indexWriter.write(s"""        [${coord.y}, ${coord.x}, $weight]""")
     }
     indexWriter.write("\n    ], {radius: 25});\n\n")
     indexWriter.write(indexTail)
     indexWriter.close()
 
     if (totalCount < 1) {
-      user.warn("No features were exported. This will cause the map to fail to render correctly.")
+      user.warn("No features were exported - the map will not render correctly")
     }
-    user.info(s"Successfully wrote Leaflet html to: ${indexFile.getAbsolutePath}")
+    user.info(s"Leaflet html exported to: ${indexFile.getAbsolutePath}")
   }
 }
 
 object LeafletMapExporter {
-  def getDestination(file: File): File = {
-    implicit class WritableFile(file: File) {
-      def ensureWritable: File = {
-        if (file.canWrite) { file }
-        else { throw new SecurityException(s"Unable to create output destination ${file.toString}, check permissions.") }
-      }
-    }
 
-    // Handle both files and directories that could exist or not
-    if (file.exists()) {
-      if (file.isDirectory) {
-        new File(file, "index.html").ensureWritable
+  val MaxFeatures = 10000
+
+  lazy val Array(indexHead, indexTail) = {
+    WithClose(getClass.getClassLoader.getResourceAsStream("leaflet/index.html")) { is =>
+      val indexArray = Source.fromInputStream(is).mkString.split("\\|codegen\\|")
+      require(indexArray.length == 2, "Malformed index.html, unable to render map")
+      indexArray
+    }
+  }
+
+  /**
+    * Handle both files and directories that could exist or not
+    *
+    * @param path file parameter
+    * @return
+    */
+  def getDestination(path: File): File = {
+    if (path.exists()) {
+      if (path.isDirectory) {
+        getDestination(new File(path, "index.html"))
+      } else if (path.canWrite) {
+        path
       } else {
-        if (file.toString.endsWith(".html")) { file.ensureWritable }
-        else { throw new RuntimeException(s"Destination file ${file.toString} must end with '.html'") }
+        throw new IOException(s"Can't write to ${path.getAbsolutePath}, please check file permissions")
       }
+    } else if (path.getName.contains(".")) {
+      // this will throw an exception if we don't have permissions
+      Option(path.getParentFile).foreach(_.mkdirs())
+      path.createNewFile()
+      path
     } else {
-      file.mkdirs()
-      new File(file, "index.html").ensureWritable
+      getDestination(new File(path, "index.html"))
     }
   }
 
@@ -159,29 +159,24 @@ object LeafletMapExporter {
     str.toString()
   }
 
-  def storeFeature(feature: SimpleFeature, coordMap: mutable.Map[SimpleCoordinate[Double], Int]): Unit = {
-    val coords: Array[Coordinate] = feature.getDefaultGeometry match {
-      case geom: Geometry => geom.getCoordinates
-      case _ => Array[Coordinate]()
-    }
-    coords.map(c => SimpleCoordinate(c.x, c.y)).foreach{ sc =>
-      coordMap.put(sc, 1) match {
-        case Some(count) => coordMap.put(sc, count + 1)
-        case None =>
+  def storeFeature(feature: SimpleFeature, coords: scala.collection.mutable.Map[SimpleCoordinate, Int]): Unit = {
+    val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom != null) {
+      geom.getCoordinates.foreach { c =>
+        val simple = SimpleCoordinate(c.x, c.y)
+        coords.put(simple, 1).foreach(count => coords.put(simple, count + 1))
       }
     }
   }
 
-  def normalizeValues(coordMap: mutable.Map[SimpleCoordinate[Double], Int]): Map[SimpleCoordinate[Double], Float] = {
-    if (coordMap.nonEmpty) {
-      val max: Float = coordMap.maxBy(_._2)._2
-      coordMap.map(c => (c._1, c._2 / max)).toMap
-    } else Map[SimpleCoordinate[Double], Float]()
-  }
-
-  case class SimpleCoordinate[@specialized(Double) T](x: T, y: T) {
-    def render(weight: Float): String = {
-      s"""        [${y.toString}, ${x.toString}, ${weight.toString}]"""
+  def normalizeValues(coords: scala.collection.mutable.Map[SimpleCoordinate, Int]): Map[SimpleCoordinate, Float] = {
+    if (coords.nonEmpty) {
+      val max: Float = coords.maxBy(_._2)._2
+      coords.map(c => (c._1, c._2 / max)).toMap
+    } else {
+      Map.empty[SimpleCoordinate, Float]
     }
   }
+
+  case class SimpleCoordinate(x: Double, y: Double)
 }

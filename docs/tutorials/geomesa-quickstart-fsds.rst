@@ -197,8 +197,7 @@ FSDS tools distribution directory:
 
     bin/geomesa-fs export         \
         --output-format leaflet   \
-        --path /tmp/fsds/         \
-        --encoding parquet
+        --path /tmp/fsds/
 
 
 Where the connection parameters are the same you used above during the quickstart. To view the map simply
