@@ -19,6 +19,7 @@ import org.locationtech.geomesa.fs.storage.common.{Encodings, FileSystemStorageF
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -52,6 +53,7 @@ class FileSystemDataStore(fc: FileContext,
           SimpleFeatureTypes.encodeType(s.getMetadata.getSchema, includeUserData = true))
 
       case None =>
+        GeoMesaSchemaValidator.validate(sft)
         val encoding = Encodings.getEncoding(sft).getOrElse {
           val enc = this.defaultEncoding.getOrElse {
             throw new IllegalArgumentException("Encoding type must be specified in either " +
