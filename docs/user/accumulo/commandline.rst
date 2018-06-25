@@ -91,6 +91,31 @@ Argument                 Description
 
 For a description of index coverage, see :ref:`accumulo_attribute_indices`.
 
+.. _compact_command:
+
+``compact``
+^^^^^^^^^^^
+
+Incrementally compact tables for a given feature type. This can be used with data age-off to ensure that expired
+rows are physically deleted from disk - see :ref:`ageoff_accumulo` for more information. It can also be used
+to speed up queries by removing entries that are duplicated or marked for deletion. This may be useful for a
+static data set, which will not be automatically compacted by Accumulo once the size stops growing.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``-c, --catalog *``      The catalog table containing schema metadata
+``-f, --feature-name *`` The name of the schema
+``--threads``            Number of ranges to compact simultaneously, by default 4
+``--from``               How long ago to compact data, based on the default date attribute, relative to current time.
+                         E.g. '1 day', '2 weeks and 1 hour', etc
+``--duration``           Amount of time to compact data, based on the default date attribute, relative to ``--from``.
+                         E.g. '1 day', '2 weeks and 1 hour', etc
+``--z3-feature-ids``     Indicates that feature IDs were written using the Z3FeatureIdGenerator. This allows
+                         optimization of compactions on the ID table, based on the configured ``time``. See
+                         :ref:`id_generator_config` for more information
+======================== =============================================================
+
 ``configure-age-off``
 ^^^^^^^^^^^^^^^^^^^^^
 
