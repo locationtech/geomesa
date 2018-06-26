@@ -163,6 +163,11 @@ object KafkaFeatureCache extends LazyLogging {
 
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
 
+    /**
+      * WARNING: this method is not thread-safe
+      *
+      * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
+      */
     override def put(feature: SimpleFeature): Unit = {
       val pt = feature.getAttribute(geometryIndex).asInstanceOf[Geometry].safeCentroid()
       val featureState = new FeatureState(pt.getX, pt.getY, feature.getID)

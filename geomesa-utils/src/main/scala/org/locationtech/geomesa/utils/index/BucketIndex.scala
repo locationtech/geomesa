@@ -39,7 +39,7 @@ class BucketIndex[T](xBuckets: Int = 360,
 
   override def insert(envelope: Envelope, key: String, item: T): Unit = {
     if (envelope.getArea > 0) {
-      logger.warn(s"This index only supports point inserts, but received $envelope")
+      logger.warn(s"This index only supports point inserts, but received $envelope - will insert using the centroid")
     }
     insert((envelope.getMinX + envelope.getMaxX) / 2.0, (envelope.getMinY + envelope.getMaxY) / 2.0, key, item)
   }
