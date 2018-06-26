@@ -78,8 +78,8 @@
         <orc.version>1.4.4</orc.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
         <gdal.version>2.0.0</gdal.version>
-        <json4s.version>3.2.10</json4s.version>
-        <scalatra.version>2.3.0</scalatra.version>
+        <json4s.version>3.5.4</json4s.version>
+        <scalatra.version>2.6.3</scalatra.version>
         <kryo.version>3.0.3</kryo.version>
         <arrow.version>0.6.0</arrow.version>
         <netty.version>4.0.41.Final</netty.version>
@@ -2575,7 +2575,7 @@
             <dependency>
                 <groupId>org.scalatra</groupId>
                 <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
-                <version>${scalatra.version}</version>
+                <version>2.3.0</version> <!-- version that works with specs 2.3 -->
                 <scope>test</scope>
             </dependency>
         </dependencies>

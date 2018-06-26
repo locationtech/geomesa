@@ -45,7 +45,7 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
   def handleError(msg: String, e: Exception): ActionResult = {
     logger.error(msg, e)
     if (debug) {
-      InternalServerError(reason = msg, body = s"${e.getMessage}\n${ExceptionUtils.getStackTrace(e)}")
+      InternalServerError(body = s"$msg\n${e.getMessage}\n${ExceptionUtils.getStackTrace(e)}")
     } else {
       InternalServerError()
     }
@@ -73,12 +73,12 @@ class SpringScalatraBootstrap extends ApplicationContextAware with ServletContex
   @BeanProperty var rootPath: String = GeoMesaScalatraServlet.DefaultRootPath
 
   def init(): Unit = {
-    val richCtx = new RichServletContext(servletContext)
+    val richCtx = RichServletContext(servletContext)
     val servlets = applicationContext.getBeansOfType(classOf[GeoMesaScalatraServlet])
     for ((name, servlet) <- servlets) {
-      val path = s"/$rootPath/${servlet.root}"
-      logger.info(s"Mounting servlet bean '$name' at path '$path'")
-      richCtx.mount(servlet, s"$path/*")
+      val path = s"$rootPath/${servlet.root}"
+      logger.info(s"Mounting servlet bean '$name' at path '/$path'")
+      richCtx.mount(servlet, s"/$path/*", path) // name is needed for swagger support to work
     }
 
     richCtx.mount(applicationContext.getBean("geomesaResourcesApp").asInstanceOf[ResourcesApp], "/api-docs")
