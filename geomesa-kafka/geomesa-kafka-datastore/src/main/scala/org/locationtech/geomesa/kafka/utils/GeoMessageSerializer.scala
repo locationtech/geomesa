@@ -15,7 +15,6 @@ import java.time.Instant
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
@@ -94,11 +93,14 @@ object GeoMessageSerializer {
   *
   * @param sft simple feature type being serialized
   */
-class GeoMessageSerializer(sft: SimpleFeatureType) extends LazyLogging {
+class GeoMessageSerializer(sft: SimpleFeatureType, lazyDeserialization: Boolean = false) extends LazyLogging {
 
   import GeoMessageSerializer._
 
-  private val serializer = KryoFeatureSerializer(sft, SerializationOptions.builder.withUserData.immutable.`lazy`.build)
+  private val serializer = {
+    val builder = KryoFeatureSerializer.builder(sft).withUserData.immutable
+    if (lazyDeserialization) { builder.`lazy`.build() } else { builder.build() }
+  }
 
   /**
     * Serializes a message

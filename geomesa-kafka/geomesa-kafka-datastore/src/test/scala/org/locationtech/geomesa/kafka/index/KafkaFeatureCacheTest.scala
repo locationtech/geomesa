@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.kafka.index
 
-import com.github.benmanes.caffeine.cache.Ticker
-import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.kafka.MockTicker
+import org.locationtech.geomesa.filter.index.BucketIndexSupport
+import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
@@ -38,16 +37,16 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
   val track1v1 = track("track1", "POINT (50 21)")
 
   val track2v0 = track("track2", "POINT (30 30)")
+
   val track3v0 = track("track3", "POINT (0 60)")
 
   def track(id: String, track: String): SimpleFeature = ScalaSimpleFeature.create(sft, id, id, track)
 
-  def caches(expiry: Duration = Duration.Inf,
-             cleanUp: Duration = Duration.Inf,
-             consistency: Duration = Duration.Inf)
-            (implicit ticker: Ticker = Ticker.systemTicker()) =
-    Iterator(new FeatureCacheCqEngine(sft, expiry, cleanUp, consistency),
-      new FeatureCacheGuava(sft, expiry, cleanUp, consistency))
+  def caches(expiry: Duration = Duration.Inf) =
+    Iterator(
+      KafkaFeatureCache(sft, expiry, BucketIndexSupport(sft, 360, 180)),
+      KafkaFeatureCache(sft, expiry, GeoCQIndexSupport(sft, 360, 180))
+    )
 
   "KafkaFeatureCache" should {
 
@@ -121,19 +120,13 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
     }
 
     "expire" >> {
-      val ticker = new MockTicker
-
-      foreach(caches(Duration("100ms"))(ticker)) { cache =>
+      foreach(caches(Duration("100ms"))) { cache =>
         try {
           cache.put(track0v0)
 
           cache.size() mustEqual 1
           cache.query(track0v0.getID) must beSome(track0v0)
           cache.query(wholeWorldFilter).toSeq mustEqual Seq(track0v0)
-
-          ticker.millis += 1000L
-
-          cache.cleanUp()
 
           cache.query(track0v0.getID) must eventually(40, 100.millis)(beNone)
           cache.query(wholeWorldFilter).toSeq must eventually(40, 100.millis)(beEmpty)
@@ -144,83 +137,29 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
       }
     }
 
-    "cleanup" >> {
-      val ticker = new MockTicker
-
-      foreach(caches(Duration("100ms"), Duration("10ms"))(ticker)) { cache =>
+    "query on strings" >> {
+      foreach(caches()) { cache =>
         try {
           cache.put(track0v0)
-
-          cache.size() mustEqual 1
-          cache.query(track0v0.getID) must beSome(track0v0)
-          cache.query(wholeWorldFilter).toSeq mustEqual Seq(track0v0)
-
-          ticker.millis += 1000L
-
-          cache.query(track0v0.getID) must eventually(40, 100.millis)(beNone)
-          cache.query(wholeWorldFilter).toSeq must eventually(40, 100.millis)(beEmpty)
-          cache.size() mustEqual 0
+          cache.put(track1v0)
+          cache.size() mustEqual 2
+          cache.query(ECQL.toFilter("trackId > 'track0'")).toSeq mustEqual Seq(track1v0)
         } finally {
           cache.close()
         }
       }
     }
 
-    // turns out Geotools supports querying on string attributes with numeric greaterThan etc
-    "string queries" >> {
-      val ticker = new MockTicker
-
-      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
-      try {
-        val stringFilter = ECQL.toFilter("trackId > 0")
-
-        cache.put(track0v0)
-
-        cache.size() mustEqual 1
-        cache.query(stringFilter).size must be greaterThan 0
-      } finally {
-        cache.close()
-      }
-    }
-
-    "like queries" >> {
-      val ticker = new MockTicker
-
-      val cache = new FeatureCacheCqEngine(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
-      try {
-        val stringFilter = ECQL.toFilter("trackId ILIKE 'T%'")
-
-        cache.put(track0v0)
-
-        cache.size() mustEqual 1
-        cache.query(stringFilter).size must be greaterThan 0
-      } finally {
-        cache.close()
-      }
-    }
-
-    "check consistency" >> {
-      skipped("intermittent travis failures")
-
-      val ticker = new MockTicker
-
-      val cache = new FeatureCacheGuava(sft, Duration.Inf, Duration.Inf, Duration("10ms"))(ticker)
-      try {
-        cache.put(track0v0)
-
-        cache.size() mustEqual 1
-        cache.query(track0v0.getID) must beSome(track0v0)
-        cache.query(wholeWorldFilter).toSeq mustEqual Seq(track0v0)
-
-        // remove from the spatial cache, but no the guava cache
-        cache.spatialIndex.remove(track0v0.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, track0v0)
-
-        // consistency checker should detect and remove from the guava cache
-        cache.query(track0v0.getID) must eventually(30, 1000.millis)(beNone)
-        cache.query(wholeWorldFilter).toSeq must eventually(30, 1000.millis)(beEmpty)
-        cache.size() mustEqual 0
-      } finally {
-        cache.close()
+    "query on likes" >> {
+      foreach(caches()) { cache =>
+        try {
+          cache.put(track0v0)
+          cache.put(track1v0)
+          cache.size() mustEqual 2
+          cache.query(ECQL.toFilter("trackId ILIKE 'T%'")).toSeq must containTheSameElementsAs(Seq(track0v0, track1v0))
+        } finally {
+          cache.close()
+        }
       }
     }
   }

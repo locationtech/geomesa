@@ -24,6 +24,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
 import org.locationtech.geomesa.memory.cqengine.utils._
+import org.locationtech.geomesa.utils.index.SimpleFeatureIndex
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -32,76 +33,71 @@ import scala.collection.JavaConversions._
 
 class GeoCQEngine(val sft: SimpleFeatureType,
                   enableFidIndex: Boolean = false,
-                  enableGeomIndex: Boolean = true) extends LazyLogging {
-  //val cqcache = CQIndexingOptions.buildIndexedCollection(sft)
+                  enableGeomIndex: Boolean = true,
+                  geomResolution: (Int, Int) = (360, 180),
+                  dedupe: Boolean = true) extends SimpleFeatureIndex with LazyLogging {
+
   val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
   val attributes = SFTAttributes(sft)
 
   // Add Geometry index on default geometry first.
   // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
-  if (enableGeomIndex) addGeoIndex(sft.getGeometryDescriptor)
+  if (enableGeomIndex) {
+    addGeoIndex(sft.getGeometryDescriptor)
+  }
 
-  if (enableFidIndex) addFidIndex()
+  if (enableFidIndex) {
+    addFidIndex()
+  }
 
   // Add other indexes
   sft.getAttributeDescriptors.foreach(addIndex)
 
-  def remove(sf: SimpleFeature): Boolean = {
-    cqcache.remove(sf)
+  // methods from SimpleFeatureIndex
+
+  override def insert(feature: SimpleFeature): Unit = cqcache.add(feature)
+
+  override def insert(features: Iterable[SimpleFeature]): Unit = cqcache.addAll(features)
+
+  override def update(feature: SimpleFeature): SimpleFeature = {
+    val existing = remove(feature.getID)
+    cqcache.add(feature)
+    existing
   }
 
-  def add(sf: SimpleFeature): Boolean = {
-    cqcache.add(sf)
+  override def remove(id: String): SimpleFeature = {
+    val existing = get(id)
+    if (existing != null) {
+      cqcache.remove(existing)
+    }
+    existing
   }
 
-  def addAll(sfs: util.Collection[SimpleFeature]): Boolean = {
-    cqcache.addAll(sfs)
-  }
-
-  def clear(): Unit = {
-    cqcache.clear()
-  }
-
-  def getById(id: String): Option[SimpleFeature] = {
+  override def get(id: String): SimpleFeature = {
     // if this gets used, set enableFidIndex=true
-    cqcache.retrieve(new Equal(SFTAttributes.fidAttribute, id)).headOption
+    cqcache.retrieve(new Equal(SFTAttributes.fidAttribute, id)).headOption.orNull
   }
 
-  def update(sf: SimpleFeature): Boolean = {
-    getById(sf.getID) match {
-      case Some(oldsf) => cqcache.remove(oldsf)
-      case None =>
-    }
-    cqcache.add(sf)
-  }
-
-  // NB: We expect that FID filters have been handled previously
-  def getReaderForFilter(filter: Filter): Iterator[SimpleFeature] =
-    filter match {
-      case f: IncludeFilter => include(f)
-      case f => queryCQ(f, dedup = true)
-    }
-
-  def queryCQ(f: Filter, dedup: Boolean = true): Iterator[SimpleFeature] = {
-    val visitor = new CQEngineQueryVisitor(sft)
-
-    val query: Query[SimpleFeature] = f.accept(visitor, null) match {
-      case q: Query[SimpleFeature] => q
-      case _ => throw new Exception(s"Filter visitor didn't recognize filter: $f.")
-    }
-    val iter = if (dedup) {
+  override def query(filter: Filter): Iterator[SimpleFeature] = {
+    val query = filter.accept(new CQEngineQueryVisitor(sft), null).asInstanceOf[Query[SimpleFeature]]
+    val iter = if (dedupe) {
       val dedupOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)
       val queryOptions = QueryFactory.queryOptions(dedupOpt)
       cqcache.retrieve(query, queryOptions).iterator()
     } else {
       cqcache.retrieve(query).iterator()
     }
-    if (query.isInstanceOf[All[_]]) iter.filter(f.evaluate(_))
-    else iter
+    if (query.isInstanceOf[All[_]]) { iter.filter(filter.evaluate) } else { iter }
   }
 
-  def include(i: IncludeFilter): Iterator[SimpleFeature] =
-    cqcache.retrieve(new All(classOf[SimpleFeature])).iterator()
+  def size(): Int = cqcache.size()
+  def clear(): Unit = cqcache.clear()
+
+  @deprecated def add(sf: SimpleFeature): Boolean = cqcache.add(sf)
+  @deprecated def addAll(sfs: util.Collection[SimpleFeature]): Boolean = cqcache.addAll(sfs)
+  @deprecated def remove(sf: SimpleFeature): Boolean = cqcache.remove(sf)
+  @deprecated def getById(id: String): Option[SimpleFeature] = Option(get(id))
+  @deprecated def getReaderForFilter(filter: Filter): Iterator[SimpleFeature] = query(filter)
 
   private def addIndex(ad: AttributeDescriptor): Unit = {
     CQIndexingOptions.getCQIndexType(ad) match {
@@ -136,32 +132,32 @@ class GeoCQEngine(val sft: SimpleFeatureType,
 
   private def addGeoIndex(ad: AttributeDescriptor): Unit = {
     val geom: Attribute[SimpleFeature, Geometry] = attributes.lookup[Geometry](ad.getLocalName)
-    cqcache.addIndex(GeoIndex.onAttribute(sft, geom))
+    cqcache.addIndex(GeoIndex.onAttribute(sft, geom, geomResolution._1, geomResolution._2))
   }
 
   private def addNavigableIndex(ad: AttributeDescriptor): Unit = {
     val binding = ad.getType.getBinding
     binding match {
-      case c if classOf[java.lang.Integer].isAssignableFrom(c) => {
+      case c if classOf[java.lang.Integer].isAssignableFrom(c) =>
         val attr = attributes.lookup[java.lang.Integer](ad.getLocalName)
         cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case c if classOf[java.lang.Long].isAssignableFrom(c) => {
+
+      case c if classOf[java.lang.Long].isAssignableFrom(c) =>
         val attr = attributes.lookup[java.lang.Long](ad.getLocalName)
         cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case c if classOf[java.lang.Float].isAssignableFrom(c) => {
+
+      case c if classOf[java.lang.Float].isAssignableFrom(c) =>
         val attr = attributes.lookup[java.lang.Float](ad.getLocalName)
         cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case c if classOf[java.lang.Double].isAssignableFrom(c) => {
+
+      case c if classOf[java.lang.Double].isAssignableFrom(c) =>
         val attr = attributes.lookup[java.lang.Double](ad.getLocalName)
         cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case c if classOf[java.util.Date].isAssignableFrom(c) => {
+
+      case c if classOf[java.util.Date].isAssignableFrom(c) =>
         val attr = attributes.lookup[java.util.Date](ad.getLocalName)
         cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
+
       case _ => logger.warn(s"Failed to add a Navigable index for attribute ${ad.getLocalName}")
     }
   }

@@ -9,57 +9,32 @@
 package org.locationtech.geomesa.filter.index
 
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.index.SpatialIndex
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter._
-import org.opengis.filter.spatial.BinarySpatialOperator
+import org.opengis.filter.Filter
 
 trait SpatialIndexSupport {
 
-  import scala.collection.JavaConversions._
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   def sft: SimpleFeatureType
 
-  def spatialIndex: SpatialIndex[SimpleFeature]
+  def index: SpatialIndex[SimpleFeature]
 
-  def allFeatures(): Iterator[SimpleFeature]
-
-  def query(filter: Filter): Iterator[SimpleFeature] = filter match {
-    case f: IncludeFilter => include()
-    case f: BinarySpatialOperator => spatial(f)
-    case f: And => and(f)
-    case f: Or => or(f)
-    case f => unoptimized(f)
-  }
-
-  def include(): Iterator[SimpleFeature] = allFeatures()
-
-  def spatial(f: BinarySpatialOperator): Iterator[SimpleFeature] = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    val geometries = FilterHelper.extractGeometries(f, sft.getGeomField, intersect = false)
-    if (geometries.isEmpty) {
-      unoptimized(f)
-    } else {
-      val envelope = geometries.values.head.getEnvelopeInternal
-      geometries.values.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
-      spatialIndex.query(envelope, f.evaluate)
+  /**
+    * Query based on a geotools filter
+    *
+    * @param filter filter
+    * @return
+    */
+  def query(filter: Filter): Iterator[SimpleFeature] = {
+    if (filter == Filter.INCLUDE) { index.query() } else {
+      val geometries = FilterHelper.extractGeometries(filter, sft.getGeomField, intersect = false)
+      if (geometries.isEmpty) { index.query().filter(filter.evaluate) } else {
+        val env = geometries.values.head.getEnvelopeInternal
+        geometries.values.tail.foreach(g => env.expandToInclude(g.getEnvelopeInternal))
+        index.query(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).filter(filter.evaluate)
+      }
     }
   }
-
-  def and(a: And): Iterator[SimpleFeature] = {
-    val geometries = extractGeometries(a, sft.getGeometryDescriptor.getLocalName, intersect = false)
-    if (geometries.isEmpty) {
-      unoptimized(a)
-    } else {
-      val envelope = geometries.values.head.getEnvelopeInternal
-      geometries.values.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
-      spatialIndex.query(envelope, a.evaluate)
-    }
-  }
-
-  def or(o: Or): Iterator[SimpleFeature] = o.getChildren.map(query).reduceLeft(_ ++ _)
-
-  def unoptimized(f: Filter): Iterator[SimpleFeature] = include().filter(f.evaluate)
 }

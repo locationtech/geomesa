@@ -90,9 +90,10 @@ object KafkaCacheLoader {
                              override protected val consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
                              override protected val topic: String,
                              override protected val frequency: Long,
+                             lazyDeserialization: Boolean,
                              private var doInitialLoad: Boolean) extends ThreadedConsumer with KafkaCacheLoader {
 
-    private val serializer = new GeoMessageSerializer(sft)
+    private val serializer = new GeoMessageSerializer(sft, lazyDeserialization)
 
     if (doInitialLoad) {
       doInitialLoad = false

@@ -18,12 +18,33 @@ import scala.collection.JavaConverters._
  */
 class WrappedQuadtree[T] extends SpatialIndex[T] with Serializable {
 
-  private val qt = new Quadtree
+  private var qt = new Quadtree
 
-  override def query(envelope: Envelope): Iterator[T] =
-    qt.query(envelope).iterator().asScala.asInstanceOf[Iterator[T]]
+  override def insert(x: Double, y: Double, key: String, item: T): Unit = insert(new Envelope(x, x, y, y), key, item)
 
-  override def insert(envelope: Envelope, item: T): Unit = qt.insert(envelope, item)
+  override def insert(envelope: Envelope, key: String, item: T): Unit = qt.insert(envelope, (key, item))
 
-  override def remove(envelope: Envelope, item: T): Boolean = qt.remove(envelope, item)
+  override def remove(x: Double, y: Double, key: String): T = remove(new Envelope(x, x, y, y), key)
+
+  override def remove(envelope: Envelope, key: String): T = {
+    qt.query(envelope).asScala.asInstanceOf[Seq[(String, T)]].find(_._1 == key) match {
+      case None => null.asInstanceOf[T]
+      case Some(kv) => qt.remove(envelope, kv); kv._2
+    }
+  }
+
+  override def get(x: Double, y: Double, key: String): T = get(new Envelope(x, x, y, y), key)
+
+  override def get(envelope: Envelope, key: String): T =
+    qt.query(envelope).asScala.asInstanceOf[Seq[(String, T)]].find(_._1 == key).map(_._2).getOrElse(null.asInstanceOf[T])
+
+  override def query(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Iterator[T] =
+    qt.query(new Envelope(xmin, xmax, ymin, ymax)).iterator.asScala.asInstanceOf[Iterator[(String, T)]].map(_._2)
+
+  override def query(): Iterator[T] =
+    qt.queryAll().iterator.asScala.asInstanceOf[Iterator[(String, T)]].map(_._2)
+
+  override def size(): Int = qt.size()
+
+  override def clear(): Unit = qt = new Quadtree
 }
