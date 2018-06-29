@@ -544,7 +544,7 @@ object FilterHelper {
     }
   }
 
-  private def flattenAnd(filters: Seq[Filter]): ListBuffer[Filter] = {
+  private [filter] def flattenAnd(filters: Seq[Filter]): ListBuffer[Filter] = {
     val remaining = ListBuffer.empty[Filter] ++ filters
     val result = ListBuffer.empty[Filter]
     do {
@@ -556,7 +556,7 @@ object FilterHelper {
     result
   }
 
-  private def flattenOr(filters: Seq[Filter]): ListBuffer[Filter] = {
+  private [filter] def flattenOr(filters: Seq[Filter]): ListBuffer[Filter] = {
     val remaining = ListBuffer.empty[Filter] ++ filters
     val result = ListBuffer.empty[Filter]
     do {
