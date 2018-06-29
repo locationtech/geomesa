@@ -25,6 +25,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -230,6 +231,32 @@ class AttributeIndexTest extends Specification with LazyLogging {
         logger.warn(s"Attribute query processing took ${time}ms for large OR query")
       }
       time must beLessThan(10000L)
+    }
+
+    "de-prioritize not-null queries" in {
+      import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+      val spec = "name:String:index=true:cardinality=high,age:Int:index=true,height:Float:index=true," +
+          "dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType(typeName, spec)
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      ds.getSchema(typeName).getDescriptor("name").getCardinality mustEqual Cardinality.HIGH
+
+      val notNull = ECQL.toFilter("name IS NOT NULL")
+      val notNullPlans = ds.getQueryPlan(new Query(typeName, notNull))
+      notNullPlans must haveLength(1)
+      notNullPlans.head.index must beAnInstanceOf[TestAttributeIndex]
+      notNullPlans.head.filter.primary must beSome(notNull)
+      notNullPlans.head.filter.secondary must beNone
+
+      val agePlans = ds.getQueryPlan(new Query(typeName, ECQL.toFilter("age = 21 AND name IS NOT NULL")))
+      agePlans must haveLength(1)
+      agePlans.head.index must beAnInstanceOf[TestAttributeIndex]
+      agePlans.head.filter.primary must beSome(ECQL.toFilter("age = 21"))
+      agePlans.head.filter.secondary must beSome(notNull)
     }
   }
 }
