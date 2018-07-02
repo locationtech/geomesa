@@ -96,10 +96,12 @@ For a description of index coverage, see :ref:`accumulo_attribute_indices`.
 ``compact``
 ^^^^^^^^^^^
 
-Incrementally compact tables for a given feature type. This can be used with data age-off to ensure that expired
-rows are physically deleted from disk - see :ref:`ageoff_accumulo` for more information. It can also be used
-to speed up queries by removing entries that are duplicated or marked for deletion. This may be useful for a
-static data set, which will not be automatically compacted by Accumulo once the size stops growing.
+Incrementally compact tables for a given feature type.
+`Compactions <https://accumulo.apache.org/1.9/accumulo_user_manual.html#_compaction>`__ in Accumulo will merge
+multiple data files into a single file, which has the side effect of permanently deleting rows which have been
+marked for deletion. Compactions can be triggered through the Accumulo shell; however queuing up too many
+compactions at once can impact the performance of a cluster. This command will handle compacting all the tables
+for a given feature type, and throttle the compactions so that only a few are running at one time.
 
 ======================== =============================================================
 Argument                 Description
@@ -115,6 +117,23 @@ Argument                 Description
                          optimization of compactions on the ID table, based on the configured ``time``. See
                          :ref:`id_generator_config` for more information
 ======================== =============================================================
+
+The ``--from`` and ``--duration`` parameters can be used to reduce the number of files that need to be compacted,
+based on the default date attribute for the schema. Due to table keys, this is mainly useful for the Z3 index,
+and the ID index when used with ``--z3-feature-ids``. Other indices will typically be compacted in full, as they
+are not partitioned by date.
+
+This command is particularly useful when using :ref:`ageoff_accumulo`, to ensure that expired rows are physically
+deleted from disk. In this scenario, the ``--from`` parameter should be set to the age-off period, and the
+``--duration`` parameter should be set based on how often compactions are run. The intent is to only compact
+the data that may have aged-off since the last compaction. Note that the time periods align with attribute-based
+age-off; ingest time age-off may need a time buffer, assuming some relationship between ingest time and the default
+date attribute.
+
+This command can also be used to speed up queries by removing entries that are duplicated or marked for deletion.
+This may be useful for a static data set, which will not be automatically compacted by Accumulo once the size
+stops growing. In this scenario, the ``--from`` and ``--duration`` parameters can be omitted, so that the
+entire data set is compacted.
 
 ``configure-age-off``
 ^^^^^^^^^^^^^^^^^^^^^
