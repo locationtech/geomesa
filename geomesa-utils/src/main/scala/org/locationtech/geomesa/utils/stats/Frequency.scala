@@ -16,7 +16,7 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC}
 import org.locationtech.geomesa.utils.clearspring.CountMinSketch
 import org.locationtech.sfcurve.IndexRange
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
@@ -24,8 +24,9 @@ import scala.reflect.ClassTag
 /**
   *  Estimates frequency counts at scale
   *
-  * @param attribute attribute index for the attribute the sketch is being made for
-  * @param dtgIndex index for the primary date attribute of the sft, or -1 if no date
+  * @param sft simple feature type
+  * @param property attribute the sketch is being made for
+  * @param dtg primary date attribute of the sft, if there is one
   * @param period time period to use for splitting by date
   * @param eps (epsilon) with probability at least @see confidence, estimates will be within eps * N
   * @param confidence percent - with probability at least confidence, estimates will be within @see eps * N
@@ -38,16 +39,26 @@ import scala.reflect.ClassTag
   * @param ct class tag
   * @tparam T type parameter, should match the type binding of the attribute
   */
-class Frequency[T](val attribute: Int,
-                   val dtgIndex: Int,
-                   val period: TimePeriod,
-                   val precision: Int,
-                   val eps: Double = 0.005,
-                   val confidence: Double = 0.95)(implicit ct: ClassTag[T]) extends Stat {
+class Frequency[T] private [stats] (val sft: SimpleFeatureType,
+                                    val property: String,
+                                    val dtg: Option[String],
+                                    val period: TimePeriod,
+                                    val precision: Int,
+                                    val eps: Double = 0.005,
+                                    val confidence: Double = 0.95)
+                                   (implicit ct: ClassTag[T]) extends Stat {
 
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
   override type S = Frequency[T]
+
+  @deprecated("property")
+  lazy val attribute: Int = i
+  @deprecated("dtg")
+  lazy val dtgIndex: Int = d
+
+  private val i = sft.indexOf(property)
+  private val d = dtg.map(sft.indexOf).getOrElse(-1)
 
   private [stats] val sketchMap = scala.collection.mutable.Map.empty[Short, CountMinSketch]
   private [stats] def newSketch = CountMinSketch(eps, confidence, Frequency.Seed)
@@ -143,18 +154,18 @@ class Frequency[T](val attribute: Int,
     */
   def splitByTime: Seq[(Short, Frequency[T])] = {
     sketchMap.toSeq.map { case (w, sketch) =>
-      val freq = new Frequency[T](attribute, dtgIndex, period, precision, eps, confidence)
+      val freq = new Frequency[T](sft, property, dtg, period, precision, eps, confidence)
       freq.sketchMap.put(w, sketch)
       (w, freq)
     }
   }
 
   override def observe(sf: SimpleFeature): Unit = {
-    val value = sf.getAttribute(attribute).asInstanceOf[T]
+    val value = sf.getAttribute(i).asInstanceOf[T]
     if (value != null) {
-      val timeBin: Short = if (dtgIndex == -1) { Frequency.DefaultTimeBin } else {
-        val dtg = sf.getAttribute(dtgIndex).asInstanceOf[Date]
-        if (dtg == null) Frequency.DefaultTimeBin else timeToBin(dtg.getTime).bin
+      val timeBin: Short = if (d == -1) { Frequency.DefaultTimeBin } else {
+        val dtg = sf.getAttribute(d).asInstanceOf[Date]
+        if (dtg == null) { Frequency.DefaultTimeBin } else { timeToBin(dtg.getTime).bin }
       }
       addAttribute(sketchMap.getOrElseUpdate(timeBin, newSketch), value)
     }
@@ -164,7 +175,7 @@ class Frequency[T](val attribute: Int,
   override def unobserve(sf: SimpleFeature): Unit = {}
 
   override def +(other: Frequency[T]): Frequency[T] = {
-    val plus = new Frequency[T](attribute, dtgIndex, period, precision, eps, confidence)
+    val plus = new Frequency[T](sft, property, dtg, period, precision, eps, confidence)
     plus += this
     plus += other
     plus
@@ -188,7 +199,7 @@ class Frequency[T](val attribute: Int,
   override def isEquivalent(other: Stat): Boolean = {
     other match {
       case s: Frequency[T] =>
-        attribute == s.attribute && dtgIndex == s.dtgIndex && period == s.period && precision == s.precision && {
+        property == s.property && dtg == s.dtg && period == s.period && precision == s.precision && {
           val sketches = sketchMap.filter(_._2.size != 0)
           val otherSketches = s.sketchMap.filter(_._2.size != 0)
           sketches.keySet == otherSketches.keySet && sketches.forall {

@@ -131,7 +131,7 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
     logger.debug(s"Writing stats for ${sft.getTypeName}")
 
     // write the stats in one go - don't merge, this is the authoritative value
-    writeStat(new SeqStat(stats), sft, merge = false)
+    writeStat(new SeqStat(sft, stats), sft, merge = false)
 
     // update our last run time
     val date = GeoToolsDateFormat.format(Instant.now().atZone(ZoneOffset.UTC))
@@ -186,29 +186,24 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
     * @return metadata keys and split stats
     */
   protected def getKeysAndStatsForWrite(stat: Stat, sft: SimpleFeatureType): Seq[KeyAndStat] = {
-    def name(i: Int) = sft.getDescriptor(i).getLocalName
-
     stat match {
       case s: SeqStat      => s.stats.flatMap(getKeysAndStatsForWrite(_, sft))
       case s: CountStat    => Seq(KeyAndStat(countKey(), s))
-      case s: MinMax[_]    => Seq(KeyAndStat(minMaxKey(name(s.attribute)), s))
-      case s: TopK[_]      => Seq(KeyAndStat(topKKey(name(s.attribute)), s))
-      case s: Histogram[_] => Seq(KeyAndStat(histogramKey(name(s.attribute)), s))
+      case s: MinMax[_]    => Seq(KeyAndStat(minMaxKey(s.property), s))
+      case s: TopK[_]      => Seq(KeyAndStat(topKKey(s.property), s))
+      case s: Histogram[_] => Seq(KeyAndStat(histogramKey(s.property), s))
 
       case s: Frequency[_] =>
-        val attribute = name(s.attribute)
-        if (s.dtgIndex == -1) {
-          Seq(KeyAndStat(frequencyKey(attribute), s))
+        if (s.dtg.isEmpty) {
+          Seq(KeyAndStat(frequencyKey(s.property), s))
         } else {
           // split up the frequency and store by week
-          s.splitByTime.map { case (b, f) => KeyAndStat(frequencyKey(attribute, b), f) }
+          s.splitByTime.map { case (b, f) => KeyAndStat(frequencyKey(s.property, b), f) }
         }
 
       case s: Z3Histogram  =>
-        val geom = name(s.geomIndex)
-        val dtg  = name(s.dtgIndex)
         // split up the z3 histogram and store by week
-        s.splitByTime.map { case (b, z) => KeyAndStat(histogramKey(geom, dtg, b), z) }
+        s.splitByTime.map { case (b, z) => KeyAndStat(histogramKey(s.geom, s.dtg, b), z) }
 
       case _ => throw new NotImplementedError("Only Count, Frequency, MinMax, TopK and Histogram stats are tracked")
     }

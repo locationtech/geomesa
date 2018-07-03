@@ -55,8 +55,8 @@ class Z3FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Z3Frequency]
-        unpacked.asInstanceOf[Z3Frequency].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Frequency].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Frequency].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Frequency].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Frequency].precision mustEqual stat.precision
         unpacked.asInstanceOf[Z3Frequency].toJson mustEqual stat.toJson
       }
@@ -67,8 +67,8 @@ class Z3FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Z3Frequency]
-        unpacked.asInstanceOf[Z3Frequency].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Frequency].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Frequency].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Frequency].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Frequency].precision mustEqual stat.precision
         unpacked.asInstanceOf[Z3Frequency].toJson mustEqual stat.toJson
       }
@@ -80,8 +80,8 @@ class Z3FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
 
         unpacked must beAnInstanceOf[Z3Frequency]
-        unpacked.asInstanceOf[Z3Frequency].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Frequency].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Frequency].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Frequency].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Frequency].precision mustEqual stat.precision
         unpacked.asInstanceOf[Z3Frequency].toJson mustEqual stat.toJson
 

@@ -65,7 +65,7 @@ class AttributeIndexValuesTest extends TestWithDataStore {
           val stats = results.map(f => StatsScan.decodeStat(sft)(f.getAttribute(0).asInstanceOf[String])).toList
           stats must haveLength(1)
           stats.head must beAnInstanceOf[EnumerationStat[String]]
-          stats.head.asInstanceOf[EnumerationStat[String]].attribute mustEqual sft.indexOf(enumeration)
+          stats.head.asInstanceOf[EnumerationStat[String]].property mustEqual enumeration
           val expected = expectation.map(i => features(i).getAttribute(enumeration)).groupBy(e => e).toSeq.map {
             case (e, list) => (e, list.length.toLong)
           }

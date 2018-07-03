@@ -8,13 +8,15 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
- * The IteratorStackCount keeps track of the number of times Accumulo sets up an iterator stack
- * as a result of a query.
- */
-class IteratorStackCount extends Stat {
+  * The IteratorStackCount keeps track of the number of times Accumulo sets up an iterator stack
+  * as a result of a query.
+  *
+  * @param sft simple feature type
+  */
+class IteratorStackCount private [stats] (val sft: SimpleFeatureType) extends Stat {
 
   private [stats] var counter: Long = 1
 
@@ -27,7 +29,7 @@ class IteratorStackCount extends Stat {
   override def unobserve(sf: SimpleFeature): Unit = {}
 
   override def +(other: IteratorStackCount): IteratorStackCount = {
-    val plus = new IteratorStackCount()
+    val plus = new IteratorStackCount(sft)
     plus.counter += this.counter
     plus.counter += other.counter
     plus
@@ -35,7 +37,7 @@ class IteratorStackCount extends Stat {
 
   override def +=(other: IteratorStackCount): Unit = counter += other.counter
 
-  override def toJsonObject = Map("count" -> counter)
+  override def toJsonObject: Map[String, Long] = Map("count" -> counter)
 
   override def isEmpty: Boolean = false
 

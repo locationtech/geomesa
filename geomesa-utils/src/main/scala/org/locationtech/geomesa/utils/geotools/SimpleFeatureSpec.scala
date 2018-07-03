@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.util.regex.Pattern
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom._
+import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -56,7 +58,16 @@ sealed trait AttributeSpec {
     *
     * @return a partial spec string
     */
-  def toSpec: String = s"$name:$getClassSpec${specOptions.map { case (k, v) => s":$k=$v" }.mkString}"
+  def toSpec: String = {
+    val opts = specOptions.map { case (k, v) =>
+      if (AttributeSpec.simpleOptionPattern.matcher(v).matches()) {
+        s":$k=$v"
+      } else {
+        s":$k='${StringEscapeUtils.escapeJava(v)}'"
+      }
+    }
+    s"$name:$getClassSpec${opts.mkString}"
+  }
 
   /**
     * Convert to a typesafe config map
@@ -116,6 +127,8 @@ sealed trait AttributeSpec {
 object AttributeSpec {
 
   import SimpleFeatureTypes.AttributeOptions.{OPT_DEFAULT, OPT_INDEX, OPT_SRID}
+
+  private val simpleOptionPattern = Pattern.compile("[a-zA-Z0-9_]+")
 
   def apply(sft: SimpleFeatureType, descriptor: AttributeDescriptor): AttributeSpec = {
     import SimpleFeatureTypes.AttributeOptions.OPT_DEFAULT

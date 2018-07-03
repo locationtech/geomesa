@@ -62,7 +62,7 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
         if (response == 1) {
           Command.user.info("Running bounds query...")
           ds.stats.runStats[MinMax[Any]](sft, Stat.SeqStat(noBounds.map(Stat.MinMax)), filter).foreach { mm =>
-            bounds.put(sft.getDescriptor(mm.attribute).getLocalName, mm.bounds)
+            bounds.put(mm.property, mm.bounds)
           }
         } else if (response == 2) {
           noBounds.foreach { attribute =>
@@ -113,10 +113,9 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
       ds.stats.getStats[Histogram[Any]](sft, attributes).map {
         case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
         case histogram: Histogram[Any] =>
-          val descriptor = sft.getDescriptor(histogram.attribute)
+          val descriptor = sft.getDescriptor(histogram.property)
           val ct = ClassTag[Any](descriptor.getType.getBinding)
-          val attribute = descriptor.getLocalName
-          val statString = Stat.Histogram[Any](attribute, bins.get, histogram.min, histogram.max)(ct)
+          val statString = Stat.Histogram[Any](histogram.property, bins.get, histogram.min, histogram.max)(ct)
           val binned = Stat(sft, statString).asInstanceOf[Histogram[Any]]
           binned.addCountsFrom(histogram)
           binned
@@ -124,7 +123,7 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
     }
 
     attributes.foreach { attribute =>
-      histograms.find(_.attribute == sft.indexOf(attribute)) match {
+      histograms.find(_.property == attribute) match {
         case None => Command.user.info(s"No histogram available for attribute '$attribute'")
         case Some(hist) =>
           if (classOf[Geometry].isAssignableFrom(sft.getDescriptor(attribute).getType.getBinding)) {

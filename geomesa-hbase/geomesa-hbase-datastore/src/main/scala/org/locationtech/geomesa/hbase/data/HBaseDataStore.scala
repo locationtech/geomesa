@@ -15,7 +15,7 @@ import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.hbase.index.{HBaseColumnGroups, HBaseFeatureIndex}
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -45,6 +45,12 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
                                          indices: Option[Seq[HBaseFeatureIndexType]],
                                          filter: Filter): HBaseFeatureWriterType =
     new HBaseModifyFeatureWriter(sft, this, indices, filter)
+
+  @throws(classOf[IllegalArgumentException])
+  override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
+    super.validateNewSchema(sft)
+    HBaseColumnGroups.validate(sft)
+  }
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType

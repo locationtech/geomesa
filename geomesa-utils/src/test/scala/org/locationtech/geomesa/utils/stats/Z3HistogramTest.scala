@@ -57,8 +57,8 @@ class Z3HistogramTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Z3Histogram]
-        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Histogram].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
         unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
       }
@@ -69,8 +69,8 @@ class Z3HistogramTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Z3Histogram]
-        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Histogram].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
         unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
       }
@@ -81,8 +81,8 @@ class Z3HistogramTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
 
         unpacked must beAnInstanceOf[Z3Histogram]
-        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Histogram].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
         unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
 

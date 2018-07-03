@@ -15,7 +15,7 @@ import org.apache.orc.{OrcFile, Reader}
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.filter.{ExpressionHelper, FilterHelper}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.common.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.orc.utils.{OrcAttributeReader, OrcSearchArguments}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -112,7 +112,7 @@ object OrcFileSystemReader {
       import scala.collection.JavaConversions._
       val fromFilter = filter.map(FilterHelper.propertyNames(_, sft)).getOrElse(Seq.empty)
       val fromTransform = TransformProcess.toDefinition(tdefs).flatMap { definition =>
-        ExpressionHelper.propertyNames(definition.expression)
+        FilterHelper.propertyNames(definition.expression, sft)
       }
       (fromFilter ++ fromTransform).toSet
     }

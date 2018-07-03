@@ -8,9 +8,7 @@
 
 package org.locationtech.geomesa.hbase.index.legacy
 
-import org.apache.hadoop.hbase.HColumnDescriptor
-import org.apache.hadoop.hbase.client.{Mutation, Query}
-import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
+import org.apache.hadoop.hbase.client.{Mutation, Scan}
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
 import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBaseIndexAdapter, HBasePlatform}
@@ -19,11 +17,6 @@ import org.locationtech.geomesa.index.index.legacy.AttributeShardedIndex
 case object HBaseAttributeIndexV4 extends HBaseLikeAttributeIndexV4 with HBasePlatform
 
 trait HBaseLikeAttributeIndexV4 extends HBaseFeatureIndex with HBaseIndexAdapter
-    with AttributeShardedIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
-
+    with AttributeShardedIndex[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig] {
   override val version: Int = 4
-
-  override def configureColumnFamilyDescriptor(desc: HColumnDescriptor): Unit = {
-    desc.setDataBlockEncoding(DataBlockEncoding.FAST_DIFF)
-  }
 }

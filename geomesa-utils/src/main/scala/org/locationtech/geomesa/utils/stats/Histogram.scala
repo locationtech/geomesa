@@ -13,29 +13,37 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
- * The histogram's state is stored in an indexed array, where the index is the bin number
- * and the values are the counts.
- *
- * e.g. a range of 0 to 3 with 3 bins will result in these bins: [0, 1), [1, 2), [2, 3) and the
- * array will contain three entries.
- *
- * @param attribute attribute index for the attribute the histogram is being made for
- * @param initialBins number of bins the histogram has
- * @param initialEndpoints lower/upper end of histogram
- * @tparam T a comparable type which must have a StatHelperFunctions type class
- */
-class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
-                  (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
-    extends Stat with LazyLogging {
+  * The histogram's state is stored in an indexed array, where the index is the bin number
+  * and the values are the counts.
+  *
+  * e.g. a range of 0 to 3 with 3 bins will result in these bins: [0, 1), [1, 2), [2, 3) and the
+  * array will contain three entries.
+  *
+  * @param sft simple feature type
+  * @param property property name for the attribute the histogram is being made for
+  * @param initialBins number of bins the histogram has
+  * @param initialEndpoints lower/upper end of histogram
+  * @tparam T a comparable type which must have a StatHelperFunctions type class
+  */
+class Histogram[T] private [stats] (val sft: SimpleFeatureType,
+                                    val property: String,
+                                    initialBins: Int,
+                                    initialEndpoints: (T, T))
+                                   (implicit val defaults: MinMax.MinMaxDefaults[T],
+                                    ct: ClassTag[T]) extends Stat with LazyLogging {
 
   override type S = Histogram[T]
 
+  @deprecated("property")
+  lazy val attribute: Int = i
+
+  private val i = sft.indexOf(property)
   private [stats] var bins: BinnedArray[T] = BinnedArray[T](initialBins, initialEndpoints)
 
   def length: Int = bins.length
@@ -63,7 +71,7 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   }
 
   override def observe(sf: SimpleFeature): Unit = {
-    val value = sf.getAttribute(attribute)
+    val value = sf.getAttribute(i)
     if (value != null) {
       try {
         val i = bins.indexOf(value.asInstanceOf[T])
@@ -80,7 +88,7 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   }
 
   override def unobserve(sf: SimpleFeature): Unit = {
-    val value = sf.getAttribute(attribute)
+    val value = sf.getAttribute(i)
     if (value != null) {
       try {
         val i = bins.indexOf(value.asInstanceOf[T])
@@ -101,7 +109,7 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
     * Bounds and length will both be the greater from each histogram.
     */
   override def +(other: Histogram[T]): Histogram[T] = {
-    val plus = new Histogram(attribute, length, bounds)
+    val plus = new Histogram(sft, property, length, bounds)
     plus += this
     plus += other
     plus
@@ -144,19 +152,21 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
     }
   }
 
-  override def toJsonObject =
-    ListMap(
-      "lower-bound" -> bounds._1,
-      "upper-bound" -> bounds._2,
-      "bins" -> (ListMap(
-        "index" -> 0,
-        "lower-bound" -> bounds(0)._1,
-        "upper-bound" -> bounds(0)._2,
-        "count" -> bins.counts(0)) +:
-        (1 until bins.length).map(i => ListMap(
-        "index" -> i,
-        "upper-bound" -> bounds(i)._2,
-        "count" -> bins.counts(i)))))
+  override def toJsonObject: Map[String, Any] = {
+    val binSeq = Seq.tabulate(bins.length) { bin =>
+      val builder = ListMap.newBuilder[String, Any]
+      builder.sizeHint(if (bin == 0) { 4 } else { 3 })
+      builder += "index" -> bin
+      builder += "lower-bound" -> bounds(bin)._1
+      if (bin == 0) {
+        builder += "upper-bound" -> bounds(bin)._2
+      }
+      builder += "count" -> bins.counts(bin)
+      builder.result
+    }
+    ListMap("lower-bound" -> bounds._1, "upper-bound" -> bounds._2, "bins" -> binSeq)
+
+  }
 
   override def isEmpty: Boolean = bins.counts.forall(_ == 0)
 
@@ -164,7 +174,7 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
 
   override def isEquivalent(other: Stat): Boolean = other match {
     case that: Histogram[T] =>
-      attribute == that.attribute && bounds == that.bounds &&
+      property == that.property && bounds == that.bounds &&
           java.util.Arrays.equals(bins.counts, that.bins.counts)
     case _ => false
   }

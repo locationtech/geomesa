@@ -8,14 +8,16 @@
 
 package org.locationtech.geomesa.hbase.index
 
-import org.apache.hadoop.hbase.client._
-import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.apache.hadoop.hbase.util.Bytes
+import org.locationtech.geomesa.index.conf.ColumnGroups
 
-case object HBaseAttributeIndex extends HBaseLikeAttributeIndex with HBasePlatform
+object HBaseColumnGroups extends ColumnGroups[Array[Byte]] {
 
-trait HBaseLikeAttributeIndex extends HBaseFeatureIndex with HBaseIndexAdapter
-    with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig] {
-  override val version: Int = 5
+  override val default: Array[Byte] = Bytes.toBytes("d")
+
+  override protected val reserved: Set[Array[Byte]] = Set.empty
+
+  override protected def convert(group: String): Array[Byte] = Bytes.toBytes(group)
+
+  override protected def convert(group: Array[Byte]): String = Bytes.toString(group)
 }

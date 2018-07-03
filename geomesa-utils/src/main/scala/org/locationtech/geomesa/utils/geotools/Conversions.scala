@@ -133,6 +133,9 @@ object RichAttributeDescriptors {
 
     def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).contains("true")
 
+    def getColumnGroups(): Set[String] =
+      Option(ad.getUserData.get(OPT_COL_GROUPS).asInstanceOf[String]).map(_.split(",").toSet).getOrElse(Set.empty)
+
     def setCardinality(cardinality: Cardinality): Unit =
       ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
 
