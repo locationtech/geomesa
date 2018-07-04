@@ -19,6 +19,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan
 import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter, ShapefileExporter, _}
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
@@ -122,7 +123,7 @@ object ExportCommand extends LazyLogging {
     val attributes = {
       import scala.collection.JavaConversions._
       val provided = Option(params.attributes).collect { case a if !a.isEmpty => a.toSeq }.orElse {
-        if (fmt == DataFormats.Bin) { Some(BinExporter.getAttributeList(sft, query.getHints)) } else { None }
+        if (fmt == DataFormats.Bin) { Some(BinAggregatingScan.propertyNames(query.getHints, sft)) } else { None }
       }
       if (fmt == DataFormats.Shp) {
         val attributes = provided.map(ShapefileExporter.replaceGeom(sft, _)).getOrElse(ShapefileExporter.modifySchema(sft))

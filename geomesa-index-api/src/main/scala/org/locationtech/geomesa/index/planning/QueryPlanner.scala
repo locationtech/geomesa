@@ -13,7 +13,6 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.Query
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.{FunctionExpressionImpl, MathExpressionImpl}
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
@@ -22,6 +21,7 @@ import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan, Wrapp
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -189,11 +189,9 @@ object QueryPlanner extends LazyLogging {
     def transformsFromQueryType: Seq[String] = {
       val hints = query.getHints
       if (hints.isBinQuery) {
-        (Seq(hints.getBinTrackIdField) ++ hints.getBinGeomField.orElse(Option(sft.getGeomField)) ++
-            hints.getBinDtgField.orElse(sft.getDtgField) ++ hints.getBinLabelField).distinct
+        BinAggregatingScan.propertyNames(hints, sft)
       } else if (hints.isDensityQuery) {
-        (Seq(sft.getGeomField) ++
-            hints.getDensityWeight.map(ECQL.toExpression).toSeq.flatMap(FilterHelper.propertyNames(_, sft))).distinct
+        DensityScan.propertyNames(hints, sft)
       } else if (hints.isStatsQuery) {
         val props = Stat.propertyNames(sft, Stat(sft, hints.getStatsQuery))
         if (props.nonEmpty) { props } else {
