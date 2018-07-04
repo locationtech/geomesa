@@ -124,3 +124,53 @@ have all index types.
 
 The ``--gzip`` argument can be used to compress the output through **gzip** encoding. It can be specified
 as a number between 1-9. Higher numbers indicate more compression, lower numbers indicate faster compression.
+
+``playback``
+------------
+
+The playback command can simulate a streaming ingestion by replaying features that have already been ingested.
+Features are returned based on a date attribute in the feature. For example, if replaying three features that
+have dates that are each one second apart, each feature will be emitted after a delay of one second. The rate
+of export can be modified to speed up or slow down the original time differences.
+
+In order to simulate a data stream, the output of this command can be piped into another process, for example
+to send messages to a Kafka topic or write files to NiFi for ingestion.
+
+======================== =========================================================
+Argument                 Description
+======================== =========================================================
+``-c, --catalog *``      The catalog table containing schema metadata
+``-f, --feature-name *`` The name of the schema
+``--interval *``         Date interval to replay, in the format
+                         ``yyyy-MM-dd'T'HH:mm:ss.SSSZ/yyyy-MM-dd'T'HH:mm:ss.SSSZ``
+``--dtg``                Date attribute to base playback on. If not specified,
+                         will use the default schema date field
+``--rate``               Rate to speed-up features being returned, as a float
+``--window``             Query the interval in discrete chunks instead of all at
+                         once ('10 minutes', '30 seconds', etc)
+``-q, --cql``            Additional CQL filter to select features to export.
+                         Features will automatically be filtered to match the
+                         time interval
+``-a, --attributes``     Specific attributes to export
+``-m, --max-features``   Limit the number of features exported
+``-F, --output-format``  Output format used for export
+``-o, --output``         Output to a file instead of standard out
+``--hints``              Query hints used to modify the query
+``--no-header``          Don't export the type header, for CSV and TSV formats
+``--gzip``               Level of gzip compression to use for output, from 1-9
+======================== =========================================================
+
+The playback command is an extension of the :ref:`cli_export` command, and accepts all the parameters outlined there.
+
+The ``--interval`` parameter specifies the date range for features to replay, based on the date attribute
+specified by ``--dtg``, or the default schema date attribute if not specified.
+
+The ``--rate`` parameter can be used to speed up or slow down the replay. It is specified as a floating point
+number. For example ``--rate 10`` will make replay ten times faster, while ``--rate 0.1`` will make replay
+ten times slower.
+
+The ``--window`` parameter can be used to break up the query into discrete chunks, based on the time interval.
+For larger exports, this will save memory overhead when sorting and will likely be faster. The window should be
+large enough so that the overhead of creating multiple queries doesn't slow down the process, but small enough so
+that a manageable batch of features is returned for each query. The optimal window size will depend on the
+time-based density of features, and the available hardware.

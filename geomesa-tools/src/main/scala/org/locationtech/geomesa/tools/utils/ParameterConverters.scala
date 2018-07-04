@@ -8,9 +8,12 @@
 
 package org.locationtech.geomesa.tools.utils
 
+import java.util.Date
+
 import com.beust.jcommander.ParameterException
 import com.beust.jcommander.converters.BaseConverter
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.Converters
 import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
 import org.opengis.filter.Filter
 
@@ -70,8 +73,30 @@ object ParameterConverters {
   class KeyValueConverter(name: String) extends BaseConverter[(String, String)](name) {
     override def convert(value: String): (String, String) = {
       try {
-        val Array(k, v) = value.split("=", 1)
-        (k, v)
+        val i = value.indexOf('=')
+        if (i == -1 || value.indexOf('=', i + 1) != -1) {
+          throw new IllegalArgumentException("key-value pairs must be separated by a single '='")
+        }
+        (value.substring(0, i), value.substring(i + 1))
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
+      }
+    }
+  }
+
+  class IntervalConverter(name: String) extends BaseConverter[(Date, Date)](name) {
+    override def convert(value: String): (Date, Date) = {
+      try {
+        val i = value.indexOf('/')
+        if (i == -1 || value.indexOf('/', i + 1) != -1) {
+          throw new IllegalArgumentException("Interval from/to must be separated by a single '/'")
+        }
+        val start = Converters.convert(value.substring(0, i), classOf[Date])
+        val end = Converters.convert(value.substring(i + 1), classOf[Date])
+        if (start == null || end == null) {
+          throw new IllegalArgumentException(s"Could not convert $value to date interval")
+        }
+        (start, end)
       } catch {
         case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
       }
