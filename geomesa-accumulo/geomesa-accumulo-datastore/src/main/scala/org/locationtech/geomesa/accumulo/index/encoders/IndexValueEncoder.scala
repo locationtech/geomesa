@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index.encoders
 
-import java.io.{InputStream, OutputStream}
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
@@ -16,6 +15,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
+import org.locationtech.geomesa.features.SimpleFeatureSerializer.LimitedSerialization
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer, ProjectingKryoFeatureSerializer}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocalCache}
@@ -137,7 +137,8 @@ object IndexValueEncoder {
 class IndexValueEncoderImpl(copyFeature: (SimpleFeature, SimpleFeature) => Unit,
                             indexSft: SimpleFeatureType,
                             encoder: SimpleFeatureSerializer,
-                            decoder: SimpleFeatureSerializer) extends SimpleFeatureSerializer {
+                            decoder: SimpleFeatureSerializer)
+    extends SimpleFeatureSerializer with LimitedSerialization {
 
   val reusableFeature = new ScalaSimpleFeature(indexSft, "")
 
@@ -149,19 +150,6 @@ class IndexValueEncoderImpl(copyFeature: (SimpleFeature, SimpleFeature) => Unit,
   }
 
   override def deserialize(value: Array[Byte]): SimpleFeature = decoder.deserialize(value)
-
-  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
-    throw new NotImplementedError
-  override def deserialize(in: InputStream): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, in: InputStream): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError
 }
 
 
@@ -173,7 +161,7 @@ class IndexValueEncoderImpl(copyFeature: (SimpleFeature, SimpleFeature) => Unit,
  */
 @deprecated
 class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType, val fields: Seq[String])
-    extends SimpleFeatureSerializer {
+    extends SimpleFeatureSerializer with LimitedSerialization {
 
   import OldIndexValueEncoder._
 
@@ -250,19 +238,6 @@ class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType
     }
     sf
   }
-
-  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
-    throw new NotImplementedError
-  override def deserialize(in: InputStream): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, in: InputStream): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError
 }
 
 /**

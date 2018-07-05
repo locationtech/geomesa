@@ -50,7 +50,7 @@ trait SimpleFeatureSerializer extends HasEncodingOptions {
     * @param bytes bytes
     * @return
     */
-  def deserialize(bytes: Array[Byte]): SimpleFeature
+  def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
 
   /**
     * Deserialize a simple feature from an input stream
@@ -80,7 +80,7 @@ trait SimpleFeatureSerializer extends HasEncodingOptions {
     * @param bytes bytes
     * @return
     */
-  def deserialize(id: String, bytes: Array[Byte]): SimpleFeature
+  def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = deserialize(id, bytes, 0, bytes.length)
 
   /**
     * Deserialize a simple feature from an input stream, with a feature id provided separately
@@ -107,4 +107,23 @@ trait SimpleFeatureSerializer extends HasEncodingOptions {
     * @return
     */
   def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature
+}
+
+object SimpleFeatureSerializer {
+
+  /**
+    * Serializer that doesn't implement all the semi-optional methods
+    */
+  trait LimitedSerialization extends SimpleFeatureSerializer {
+    override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+      throw new NotImplementedError
+    override def deserialize(in: InputStream): SimpleFeature =
+      throw new NotImplementedError
+    override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+      throw new NotImplementedError
+    override def deserialize(id: String, in: InputStream): SimpleFeature =
+      throw new NotImplementedError
+    override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+      throw new NotImplementedError
+  }
 }

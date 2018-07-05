@@ -8,11 +8,12 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, DirectBinaryEncoder, EncoderFactory}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
+import org.locationtech.geomesa.features.SimpleFeatureSerializer.LimitedSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
@@ -21,7 +22,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  * @param options the options to apply when encoding
  */
 class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[SerializationOption] = Set.empty)
-    extends SimpleFeatureSerializer {
+    extends SimpleFeatureSerializer with LimitedSerialization {
 
   private val writer = new AvroSimpleFeatureWriter(sft, options)
 
@@ -40,19 +41,6 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
 
   override def deserialize(bytes: Array[Byte]): SimpleFeature =
     throw new NotImplementedError("This instance only handles serialization")
-
-  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
-    throw new NotImplementedError
-  override def deserialize(in: InputStream): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, in: InputStream): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError
 }
 
 /**
@@ -62,7 +50,7 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
  */
 class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: SimpleFeatureType,
                                         val options: Set[SerializationOption] = Set.empty)
-    extends SimpleFeatureSerializer {
+    extends SimpleFeatureSerializer with LimitedSerialization {
 
   private val reader = new FeatureSpecificReader(original, projected, options)
 
@@ -76,19 +64,6 @@ class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: 
     reuse = DecoderFactory.get().directBinaryDecoder(is, reuse)
     reader.read(null, reuse)
   }
-
-  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
-    throw new NotImplementedError
-  override def deserialize(in: InputStream): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, in: InputStream): SimpleFeature =
-    throw new NotImplementedError
-  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError
 }
 
 /**
