@@ -32,10 +32,14 @@ import scala.util.control.NonFatal
   */
 trait KafkaCacheLoader extends Closeable with LazyLogging {
 
-  private val listeners = Collections.newSetFromMap {
-    new ConcurrentHashMap[(SimpleFeatureSource, FeatureListener), java.lang.Boolean]()
+  import scala.collection.JavaConverters._
+
+  private val listeners = {
+    val map = new ConcurrentHashMap[(SimpleFeatureSource, FeatureListener), java.lang.Boolean]()
+    Collections.newSetFromMap(map).asScala
   }
 
+  // use a flag instead of checking listeners.isEmpty, which is slightly expensive for ConcurrentHashMap
   @volatile
   private var hasListeners = false
 
@@ -48,7 +52,7 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
 
   def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = synchronized {
     listeners.remove((source, listener))
-    hasListeners = !listeners.isEmpty
+    hasListeners = listeners.nonEmpty
   }
 
   protected [KafkaCacheLoader] def fireEvent(message: Change, timestamp: Long): Unit = {
@@ -71,7 +75,6 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
   }
 
   private def fireEvent(toEvent: (SimpleFeatureSource) => FeatureEvent): Unit = {
-    import scala.collection.JavaConversions._
     val events = scala.collection.mutable.Map.empty[SimpleFeatureSource, FeatureEvent]
     listeners.foreach { case (source, listener) =>
       val event = events.getOrElseUpdate(source, toEvent(source))

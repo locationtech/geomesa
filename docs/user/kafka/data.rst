@@ -43,7 +43,7 @@ Kafka Topic Compaction
 Kafka has various options for preventing data from growing unbounded. The simplest is to set a size or time-based
 retention policy. This will cause older messages to be deleted when the topic reaches a certain threshold.
 
-Starting with GeoMesa 2.1.0, the Kafka data store also supports Kafka
+Starting with GeoMesa 2.1.0, the Kafka data store supports Kafka
 `log compaction <https://kafka.apache.org/10/documentation.html#compaction>`__. This allows for the topic size
 to be managed, while preserving the latest state for each feature. When combined with :ref:`kafka_initial_load`,
 the persistent state of a system can be maintained through restarts and down-time. Note that when using log

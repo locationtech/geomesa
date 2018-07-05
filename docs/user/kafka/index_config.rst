@@ -47,10 +47,9 @@ is still a fast operation.
 
 For more advanced use-cases, additional in-memory index structures can be created to satisfy non-spatial queries.
 This can be enabled by setting the ``kafka.cache.cqengine`` data store parameter to ``true``. This will enable
-`CQEngine <https://github.com/npgall/cqengine>`__ indices on each SimpleFeature attribute. Note that this
-may require more processing than the standard index. Also, as each attribute will be read on load, it should
-not be used with lazy deserialization (see next).
-
+`CQEngine <https://github.com/npgall/cqengine>`__ indices on each SimpleFeature attribute that is marked
+with a ``cq-index=true`` flag in the type definition. See :ref:`attribute_options` for details. Note that this
+may require more processing than the standard index.
 
 Lazy Deserialization
 --------------------
