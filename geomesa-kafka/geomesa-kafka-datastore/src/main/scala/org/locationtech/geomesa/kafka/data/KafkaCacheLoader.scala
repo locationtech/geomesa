@@ -13,7 +13,6 @@ import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ConcurrentHashMap, Executors}
 
-import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
 import org.geotools.data.simple.SimpleFeatureSource
@@ -33,39 +32,49 @@ import scala.util.control.NonFatal
   */
 trait KafkaCacheLoader extends Closeable with LazyLogging {
 
-  private val listeners = Collections.newSetFromMap {
-    new ConcurrentHashMap[(SimpleFeatureSource, FeatureListener), java.lang.Boolean]()
+  import scala.collection.JavaConverters._
+
+  private val listeners = {
+    val map = new ConcurrentHashMap[(SimpleFeatureSource, FeatureListener), java.lang.Boolean]()
+    Collections.newSetFromMap(map).asScala
   }
+
+  // use a flag instead of checking listeners.isEmpty, which is slightly expensive for ConcurrentHashMap
+  @volatile
+  private var hasListeners = false
 
   def cache: KafkaFeatureCache
 
-  def addListener(source: SimpleFeatureSource, listener: FeatureListener): Unit =
+  def addListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = synchronized {
     listeners.add((source, listener))
+    hasListeners = true
+  }
 
-  def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit =
+  def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = synchronized {
     listeners.remove((source, listener))
+    hasListeners = listeners.nonEmpty
+  }
 
-  protected [KafkaCacheLoader] def fireEvent(message: Change): Unit = {
-    if (!listeners.isEmpty) {
-      fireEvent(KafkaFeatureEvent.changed(_, message.feature, message.timestamp.toEpochMilli))
+  protected [KafkaCacheLoader] def fireEvent(message: Change, timestamp: Long): Unit = {
+    if (hasListeners) {
+      fireEvent(KafkaFeatureEvent.changed(_, message.feature, timestamp))
     }
   }
 
-  protected [KafkaCacheLoader] def fireEvent(message: Delete): Unit = {
-    if (!listeners.isEmpty) {
+  protected [KafkaCacheLoader] def fireEvent(message: Delete, timestamp: Long): Unit = {
+    if (hasListeners) {
       val removed = cache.query(message.id).orNull
-      fireEvent(KafkaFeatureEvent.removed(_, message.id, removed, message.timestamp.toEpochMilli))
+      fireEvent(KafkaFeatureEvent.removed(_, message.id, removed, timestamp))
     }
   }
 
-  protected [KafkaCacheLoader] def fireEvent(message: Clear): Unit = {
-    if (!listeners.isEmpty) {
-      fireEvent(KafkaFeatureEvent.cleared(_, message.timestamp.toEpochMilli))
+  protected [KafkaCacheLoader] def fireEvent(message: Clear, timestamp: Long): Unit = {
+    if (hasListeners) {
+      fireEvent(KafkaFeatureEvent.cleared(_, timestamp))
     }
   }
 
   private def fireEvent(toEvent: (SimpleFeatureSource) => FeatureEvent): Unit = {
-    import scala.collection.JavaConversions._
     val events = scala.collection.mutable.Map.empty[SimpleFeatureSource, FeatureEvent]
     listeners.foreach { case (source, listener) =>
       val event = events.getOrElseUpdate(source, toEvent(source))
@@ -95,6 +104,10 @@ object KafkaCacheLoader {
 
     private val serializer = new GeoMessageSerializer(sft, lazyDeserialization)
 
+    try { classOf[ConsumerRecord[Any, Any]].getMethod("timestamp") } catch {
+      case e: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
+    }
+
     if (doInitialLoad) {
       doInitialLoad = false
       // for the initial load, don't bother indexing in the feature cache until we have the final state
@@ -114,12 +127,13 @@ object KafkaCacheLoader {
     }
 
     override protected [KafkaCacheLoader] def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
-      val message = serializer.deserialize(record.key, record.value)
+      val message = serializer.deserialize(record.key(), record.value())
+      val timestamp = try { record.timestamp() } catch { case e: NoSuchMethodError => System.currentTimeMillis() }
       logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
       message match {
-        case m: Change => fireEvent(m); cache.put(m.feature)
-        case m: Delete => fireEvent(m); cache.remove(m.id)
-        case m: Clear  => fireEvent(m); cache.clear()
+        case m: Change => fireEvent(m, timestamp); cache.put(m.feature)
+        case m: Delete => fireEvent(m, timestamp); cache.remove(m.id)
+        case m: Clear  => fireEvent(m, timestamp); cache.clear()
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -141,7 +155,7 @@ object KafkaCacheLoader {
                               serializer: GeoMessageSerializer,
                               toLoad: KafkaCacheLoaderImpl) extends ThreadedConsumer with Runnable {
 
-    private val loadCache: Cache[String, SimpleFeature] = Caffeine.newBuilder().build()
+    private val loadCache = new ConcurrentHashMap[String, SimpleFeature](1000)
 
     // track the offsets that we want to read to
     private val offsets = new ConcurrentHashMap[Int, Long]()
@@ -152,11 +166,12 @@ object KafkaCacheLoader {
     override protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
       if (done.get) { toLoad.consume(record) } else {
         val message = serializer.deserialize(record.key, record.value)
+        val timestamp = try { record.timestamp() } catch { case e: NoSuchMethodError => System.currentTimeMillis() }
         logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
         message match {
-          case m: Change => toLoad.fireEvent(m); loadCache.put(m.feature.getID, m.feature)
-          case m: Delete => toLoad.fireEvent(m); loadCache.invalidate(m.id)
-          case m: Clear  => toLoad.fireEvent(m); loadCache.invalidateAll()
+          case m: Change => toLoad.fireEvent(m, timestamp); loadCache.put(m.feature.getID, m.feature)
+          case m: Delete => toLoad.fireEvent(m, timestamp); loadCache.remove(m.id)
+          case m: Clear  => toLoad.fireEvent(m, timestamp); loadCache.clear()
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done
@@ -203,7 +218,7 @@ object KafkaCacheLoader {
         // set a flag just in case the consumer threads haven't finished spinning down, so that we will
         // pass any additional messages back to the main loader
         done.set(true)
-        loadCache.asMap().asScala.foreach { case (_, v) => toLoad.cache.put(v) }
+        loadCache.asScala.foreach { case (_, v) => toLoad.cache.put(v) }
       }
       // start the normal loading
       toLoad.startConsumers()

@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.kafka.utils
 
 import java.nio.charset.StandardCharsets
+import java.util.Base64
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.kafka.utils.GeoMessage.Change
+import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -32,10 +33,6 @@ class GeoMessageSerializerTest extends Specification {
 
       key must not(beNull)
       value must not(beNull)
-      key.length mustEqual 10
-      key(0) mustEqual 1
-      key(1) mustEqual 'X'
-      value mustEqual Array.empty[Byte]
 
       serializer.deserialize(key, value) mustEqual msg
     }
@@ -45,11 +42,7 @@ class GeoMessageSerializerTest extends Specification {
       val (key, value) = serializer.serialize(msg)
 
       key must not(beNull)
-      value must not(beNull)
-      key.length mustEqual 10
-      key(0) mustEqual 1
-      key(1) mustEqual 'D'
-      value mustEqual feature.getID.getBytes(StandardCharsets.UTF_8)
+      value must beNull
 
       serializer.deserialize(key, value) mustEqual msg
     }
@@ -60,12 +53,38 @@ class GeoMessageSerializerTest extends Specification {
 
       key must not(beNull)
       value must not(beNull)
-      key.length mustEqual 10
-      key(0) mustEqual 1
-      key(1) mustEqual 'C'
 
       val decoded = serializer.deserialize(key, value)
       decoded mustEqual msg
+      decoded.asInstanceOf[Change].feature mustEqual feature
+    }
+
+    "deserialize version one clear messages" >> {
+      val decoder = Base64.getDecoder
+      val key = decoder.decode("AVgAAAFkbDTpaw==")
+      val value = Array.empty[Byte]
+
+      val decoded = serializer.deserialize(key, value)
+      decoded must beAnInstanceOf[Clear]
+    }
+
+    "deserialize version one delete messages" >> {
+      val decoder = Base64.getDecoder
+      val key = decoder.decode("AUQAAAFkbDTpag==")
+      val value = decoder.decode("dGVzdF9pZA==")
+
+      val decoded = serializer.deserialize(key, value)
+      decoded must beAnInstanceOf[Delete]
+      decoded.asInstanceOf[Delete].id mustEqual feature.getID
+    }
+
+    "deserialize version one change messages" >> {
+      val decoder = Base64.getDecoder
+      val key = decoder.decode("AUMAAAFkbDTpZg==")
+      val value = decoder.decode("AgAAACp0ZXN0X2nkZm/vAQgDP/AAAAAAAAC/8AAAAAAAAH/4AAAAAAAADA8AAAAA")
+
+      val decoded = serializer.deserialize(key, value)
+      decoded must beAnInstanceOf[Change]
       decoded.asInstanceOf[Change].feature mustEqual feature
     }
 

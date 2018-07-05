@@ -191,7 +191,7 @@ object KafkaDataStoreFactory extends LazyLogging {
     val IndexResolutionX = new GeoMesaParam[Integer]("kafka.index.resolution.x", "Number of bins in the x-dimension of the spatial index", default = Int.box(360))
     val IndexResolutionY = new GeoMesaParam[Integer]("kafka.index.resolution.y", "Number of bins in the y-dimension of the spatial index", default = Int.box(180))
     val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = Boolean.box(false), deprecatedKeys = Seq("useCQCache"))
-    val LazyFeatures     = new GeoMesaParam[java.lang.Boolean]("kafka.serialization.lazy", "Use lazy deserialization of features. This may improve processing load at the slight expense of query times", default = Boolean.box(true))
+    val LazyFeatures     = new GeoMesaParam[java.lang.Boolean]("kafka.serialization.lazy", "Use lazy deserialization of features. This may improve processing load at the expense of slightly slower query times", default = Boolean.box(true))
     val LooseBBox        = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries     = GeoMesaDataStoreFactory.AuditQueriesParam
     val Authorizations   = org.locationtech.geomesa.security.AuthsParam

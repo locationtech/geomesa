@@ -20,7 +20,7 @@ Extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-kafka-dist_2.11-$VERSION-bin.tar.gz"
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-kafka_2.11-$VERSION-bin.tar.gz"
     $ tar xzvf geomesa-kafka-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-kafka-dist_2.11-$VERSION
     $ ls
