@@ -1,3 +1,5 @@
+.. _kafka_index_config:
+
 Kafka Index Configuration
 =========================
 
@@ -18,6 +20,8 @@ any query results during this initial load, until it has caught up to head state
 
 Also see :ref:`topic_compaction` for details on managing the size and history of the Kafka topic.
 
+.. _kafka_expiry:
+
 Feature Expiration
 ------------------
 
@@ -28,21 +32,23 @@ parameter. When a producer writes an update to an existing feature, the consumer
 Once the timeout is hit without any updates, the feature will be removed from the consumer cache and will no
 longer be returned when querying.
 
+.. _kafka_event_time:
+
 Feature Event Time
 ------------------
 
 By default, expiration and updates are determined by Kafka message time. Feature updates will replace any
 prior feature message, and feature will expire based on when they were read. Alternatively, one or both
-of these values may be based on a feature attribute or expression.
+of these values may be based on feature attributes.
 
-To enabled event time, specify a property name or CQL expression using the ``kafka.cache.event-time`` data store
+To enable event time, specify a property name or CQL expression using the ``kafka.cache.event-time`` data store
 parameter. This expression will be evaluated on a per-feature basis, and must evaluate to either a date or a
 number representing milliseconds since the Java epoch. This value will be combined with the ``kafka.cache.expiry``
 value to set an expiration time for the feature.
 
 To also enable event time ordering, set the ``kafka.cache.event-time.ordering`` data store parameter to ``true``.
 When enabled, if a feature update is read that has an older event time than the current feature, the message
-will be discarded. This can be useful for handling badly ordered update streams.
+will be discarded. This can be useful for handling irregular update streams.
 
 Spatial Index Resolution
 ------------------------
@@ -54,6 +60,8 @@ store parameters. By default, the grid is 360 by 180 cells. Increasing the grid 
 number of false-positive features that must be considered when querying, and can reduce contention between
 simultaneous updates, deletes and queries. However, it also requires more memory.
 
+.. _kafka_cqengine:
+
 CQEngine Indexing
 -----------------
 
@@ -62,10 +70,11 @@ will have to iterate over all the features in the index. Generally the number of
 is still a fast operation.
 
 For more advanced use-cases, additional in-memory index structures can be created to satisfy non-spatial queries.
-This can be enabled by setting the ``kafka.cache.cqengine`` data store parameter to ``true``. This will enable
-`CQEngine <https://github.com/npgall/cqengine>`__ indices on each SimpleFeature attribute that is marked
-with a ``cq-index=true`` flag in the type definition. See :ref:`attribute_options` for details. Note that this
-may require more processing than the standard index.
+This can be enabled by setting the ``kafka.cache.cqengine.indices`` data store parameter. The value should
+be a comma-delimited list of ``name:type``, where `name` is an attribute name and `type` is a CQEngine index
+type. See :ref:`in_memory_index` for more information. Note that when using CQEngine, the default geometry will
+not be indexed without an explicit configuration (e.g. ``geom:geometry`` in the parameter value). In addition,
+CQEngine may require more processing than the standard index.
 
 Lazy Deserialization
 --------------------

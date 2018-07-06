@@ -45,7 +45,7 @@ object SampleFeatures {
     "WhatDouble:Double:cq-index=navigable",
     "WhatBool:Boolean",
     "When:Date:cq-index=navigable",
-    "*Where:Point:srid=4326",
+    "*Where:Point:srid=4326:cq-index=geometry",
     "Why:String" // Why can have nulls
   ).mkString(",")
   val sftWithIndexes = SimpleFeatureTypes.createType("test2", specIndexes)

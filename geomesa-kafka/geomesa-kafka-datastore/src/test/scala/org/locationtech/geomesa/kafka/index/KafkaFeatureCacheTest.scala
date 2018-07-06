@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.index.BucketIndexSupport
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
+import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
@@ -45,7 +46,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
   def caches(expiry: Duration = Duration.Inf) =
     Iterator(
       KafkaFeatureCache(sft, BucketIndexSupport(sft, 360, 180), expiry, None),
-      KafkaFeatureCache(sft, GeoCQIndexSupport(sft, 360, 180), expiry, None)
+      KafkaFeatureCache(sft, GeoCQIndexSupport(sft, Seq(("geom", CQIndexType.GEOMETRY)), 360, 180), expiry, None)
     )
 
   "KafkaFeatureCache" should {

@@ -8,24 +8,32 @@ An instance of a Kafka data store can be obtained through the normal GeoTools di
 assuming that the GeoMesa code is on the classpath. To create a ``KafkaDataStore`` there are two
 required properties, one for the Apache Kafka connection, ``kafka.brokers``, and one for the Apache
 Zookeeper connection, ``kafka.zookeepers``. An optional parameter, ``kafka.zk.path`` is
-used to specify a path in Zookeeper under which schemas are stored. If
-no zk path is specified then a default path will be used. Configuration
-parameters are described fully below.
+used to specify a path in Zookeeper under which schemas are stored. If no zk path is specified then
+a default path will be used. Configuration parameters are described fully below.
 
 .. code-block:: java
+
+    import org.geotools.data.DataStore;
+    import org.geotools.data.DataStoreFinder;
 
     Map<String, Serializable> parameters = new HashMap<>();
     parameters.put("kafka.zookeepers", "localhost:2181");
     parameters.put("kafka.brokers", "localhost:9092");
-    org.geotools.data.DataStore dataStore =
-        org.geotools.data.DataStoreFinder.getDataStore(parameters);
+    DataStore dataStore = DataStoreFinder.getDataStore(parameters);
 
 .. _kafka_parameters:
 
 Kafka Data Store Parameters
 ---------------------------
 
-The Kafka Data Store takes several parameters (required parameters are marked with ``*``):
+The Kafka data store differs from most data stores in that the data set is kept entirely in memory. Because of this,
+the in-memory indexing can be configured at runtime through data store parameters. See :ref:`kafka_index_config` for
+more information on the available indexing options.
+
+Because configuration options can reference attributes from a particular SimpleFeatureType, it may be necessary to
+create multiple Kafka data store instances when dealing with multiple schemas.
+
+The Kafka data store accepts the following parameters (required parameters are marked with ``*``):
 
 ==================================== ======= ====================================================================================================
 Parameter                            Type    Description
@@ -39,15 +47,15 @@ Parameter                            Type    Description
                                              format. See `New Consumer Configs <http://kafka.apache.org/documentation.html#newconsumerconfigs>`_
 ``kafka.consumer.from-beginning``    Boolean Start reading from the beginning of the topic (vs ignore existing messages). If enabled, features
                                              will not be available for query until all existing messages are processed. However, feature
-                                             listeners will still be invoked as normal.
+                                             listeners will still be invoked as normal. See :ref:`kafka_initial_load`
 ``kafka.consumer.count``             Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)
-``kafka.topic.partitions``           Integer Number of partitions to use in kafka topics
-``kafka.topic.replication``          Integer Replication factor to use in kafka topics
-``kafka.cache.expiry``               String  Expire features from in-memory cache after this delay, e.g. "10 minutes"
-``kafka.cache.event-time``           String  Instead of message time, determine expiry based on feature data. This can be an attribute
-                                             name or a CQL expression, but it must evaluate to a date
-``kafka.cache.event-time.ordering``  Boolean Instead of message time, determine feature ordering based on the feature event time
-``kafka.cache.cqengine``             Boolean Use CQEngine-based implementation of in-memory feature cache. See :ref:`in_memory_index` for details
+``kafka.topic.partitions``           Integer Number of partitions to use in new kafka topics
+``kafka.topic.replication``          Integer Replication factor to use in new kafka topics
+``kafka.cache.expiry``               String  Expire features from in-memory cache after this delay, e.g. "10 minutes". See :ref:`kafka_expiry`
+``kafka.cache.event-time``           String  Instead of message time, determine expiry based on feature data. See :ref:`kafka_event_time`
+``kafka.cache.event-time.ordering``  Boolean Instead of message time, determine feature ordering based on the feature event time.
+                                             See :ref:`kafka_event_time`
+``kafka.cache.cqengine.indices``     String  Use CQEngine-based attribute indices for the in-memory feature cache. See :ref:`kafka_cqengine`
 ``kafka.index.resolution.x``         Integer Number of bins in the x-dimension of the spatial index, by default 360
 ``kafka.index.resolution.y``         Integer Number of bins in the y-dimension of the spatial index, by default 180
 ``kafka.serialization.lazy``         Boolean Use lazy deserialization of features. This may improve processing load at
