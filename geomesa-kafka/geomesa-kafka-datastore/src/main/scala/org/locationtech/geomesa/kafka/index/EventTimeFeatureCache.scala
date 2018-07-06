@@ -43,37 +43,29 @@ class EventTimeFeatureCache(geom: Int, dtg: Expression, dtgOrdering: Boolean, ex
 
     val featureState = new FeatureState(pt.getX, pt.getY, feature.getID, time)
     if (expiry > 0) {
-      val expiration = time + expiry - System.currentTimeMillis()
-      if (expiration < 1) {
-        logger.trace(s"${featureState.id} ignoring expired feature")
-      } else {
-        logger.trace(s"${featureState.id} adding feature with expiry $expiry")
-        val old = state.put(featureState.id, featureState)
-        if (old == null) {
-          featureState.expire = executor.schedule(featureState, expiration, TimeUnit.MILLISECONDS)
-          support.index.insert(featureState.x, featureState.y, featureState.id, feature)
-        } else if (!dtgOrdering || old.time <= featureState.time) {
-          logger.trace(s"${featureState.id} removing old feature")
-          old.expire.cancel(false)
-          support.index.remove(old.x, old.y, old.id)
-          featureState.expire = executor.schedule(featureState, expiration, TimeUnit.MILLISECONDS)
-          support.index.insert(featureState.x, featureState.y, featureState.id, feature)
-        } else {
-          logger.trace(s"${featureState.id} ignoring out of sequence event time")
-          if (!state.replace(featureState.id, featureState, old)) {
-            logger.warn(s"${featureState.id} detected inconsistent state... spatial index may be incorrect")
-            support.index.remove(old.x, old.y, old.id)
-          }
-        }
-      }
+      putWithExpiry(feature, featureState, expiry)
+    } else {
+      putWithoutExpiry(feature, featureState)
+    }
+
+    logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
+  }
+
+  private def putWithExpiry(feature: SimpleFeature, featureState: FeatureState, expiry: Long): Unit = {
+    val expiration = featureState.time + expiry - System.currentTimeMillis()
+    if (expiration < 1) {
+      logger.trace(s"${featureState.id} ignoring expired feature")
     } else {
       logger.trace(s"${featureState.id} adding feature with expiry $expiry")
       val old = state.put(featureState.id, featureState)
       if (old == null) {
+        featureState.expire = executor.schedule(featureState, expiration, TimeUnit.MILLISECONDS)
         support.index.insert(featureState.x, featureState.y, featureState.id, feature)
       } else if (!dtgOrdering || old.time <= featureState.time) {
         logger.trace(s"${featureState.id} removing old feature")
-        support.index.remove(featureState.x, featureState.y, featureState.id)
+        old.expire.cancel(false)
+        support.index.remove(old.x, old.y, old.id)
+        featureState.expire = executor.schedule(featureState, expiration, TimeUnit.MILLISECONDS)
         support.index.insert(featureState.x, featureState.y, featureState.id, feature)
       } else {
         logger.trace(s"${featureState.id} ignoring out of sequence event time")
@@ -83,7 +75,23 @@ class EventTimeFeatureCache(geom: Int, dtg: Expression, dtgOrdering: Boolean, ex
         }
       }
     }
+  }
 
-    logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
+  private def putWithoutExpiry(feature: SimpleFeature, featureState: FeatureState): Unit = {
+    logger.trace(s"${featureState.id} adding feature without expiry")
+    val old = state.put(featureState.id, featureState)
+    if (old == null) {
+      support.index.insert(featureState.x, featureState.y, featureState.id, feature)
+    } else if (!dtgOrdering || old.time <= featureState.time) {
+      logger.trace(s"${featureState.id} removing old feature")
+      support.index.remove(featureState.x, featureState.y, featureState.id)
+      support.index.insert(featureState.x, featureState.y, featureState.id, feature)
+    } else {
+      logger.trace(s"${featureState.id} ignoring out of sequence event time")
+      if (!state.replace(featureState.id, featureState, old)) {
+        logger.warn(s"${featureState.id} detected inconsistent state... spatial index may be incorrect")
+        support.index.remove(old.x, old.y, old.id)
+      }
+    }
   }
 }
