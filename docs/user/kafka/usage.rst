@@ -44,6 +44,9 @@ Parameter                            Type    Description
 ``kafka.topic.partitions``           Integer Number of partitions to use in kafka topics
 ``kafka.topic.replication``          Integer Replication factor to use in kafka topics
 ``kafka.cache.expiry``               String  Expire features from in-memory cache after this delay, e.g. "10 minutes"
+``kafka.cache.event-time``           String  Instead of message time, determine expiry based on feature data. This can be an attribute
+                                             name or a CQL expression, but it must evaluate to a date
+``kafka.cache.event-time.ordering``  Boolean Instead of message time, determine feature ordering based on the feature event time
 ``kafka.cache.cqengine``             Boolean Use CQEngine-based implementation of in-memory feature cache. See :ref:`in_memory_index` for details
 ``kafka.index.resolution.x``         Integer Number of bins in the x-dimension of the spatial index, by default 360
 ``kafka.index.resolution.y``         Integer Number of bins in the y-dimension of the spatial index, by default 180
