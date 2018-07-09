@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBox
 import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -226,11 +226,11 @@ class CassandraDataStoreTest extends Specification {
       ds.getSchema(typeName) must beNull
 
       val inputsft =
-        new SftBuilder()
-          .stringType("name")
-          .date("dtg")
-          .point("geom", default = true)
-          .withIndexes(List("z3"))
+        SchemaBuilder.builder()
+          .addString("name")
+          .addDate("dtg")
+          .addPoint("geom", default = true)
+          .userData.indices(List("z3"))
           .build(typeName)
 
       ds.createSchema(inputsft)

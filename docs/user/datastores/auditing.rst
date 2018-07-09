@@ -15,4 +15,4 @@ can be enabled by placing them on the classpath and including a special service 
 for details on implementing a service provider.
 
 The GeoMesa Accumulo GeoServer plugin comes bundled with an ``AuditProvider`` that pulls user credentials from
-GeoServer's Spring security framework - ``org.locationtech.geomesa.plugin.security.SpringAuditProvider``.
+GeoServer's Spring security framework - ``org.locationtech.geomesa.security.SpringAuditProvider``.

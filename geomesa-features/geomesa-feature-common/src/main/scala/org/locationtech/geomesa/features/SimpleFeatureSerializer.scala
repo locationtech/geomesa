@@ -27,9 +27,103 @@ trait HasEncodingOptions {
  * as instance variables for performance reasons.
  */
 trait SimpleFeatureSerializer extends HasEncodingOptions {
+
+  /**
+    * Serialize a simple feature to a byte array
+    *
+    * @param feature feature
+    * @return
+    */
   def serialize(feature: SimpleFeature): Array[Byte]
-  def serialize(feature: SimpleFeature, out: OutputStream): Unit = throw new NotImplementedError
-  def deserialize(bytes: Array[Byte]): SimpleFeature
-  def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError
-  def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = throw new NotImplementedError
+
+  /**
+    * Serialize a simple feature to an output stream
+    *
+    * @param feature feature
+    * @param out output stream
+    */
+  def serialize(feature: SimpleFeature, out: OutputStream): Unit
+
+  /**
+    * Deserialize a simple feature from a byte array
+    *
+    * @param bytes bytes
+    * @return
+    */
+  def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
+
+  /**
+    * Deserialize a simple feature from an input stream
+    *
+    * @param in input
+    * @return
+    */
+  def deserialize(in: InputStream): SimpleFeature
+
+  /**
+    * Deserialize a simple feature from a subset of a byte array
+    *
+    * @param bytes bytes
+    * @param offset offset of first byte to read
+    * @param length total bytes to read
+    * @return
+    */
+  def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature
+
+  /**
+    * Deserialize a simple feature from a byte array, with a feature id provided separately.
+    *
+    * Note that this only makes sense when used in conjunction with
+    * `org.locationtech.geomesa.features.SerializationOption.WithoutId()`
+    *
+    * @param id feature id
+    * @param bytes bytes
+    * @return
+    */
+  def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = deserialize(id, bytes, 0, bytes.length)
+
+  /**
+    * Deserialize a simple feature from an input stream, with a feature id provided separately
+    *
+    * Note that this only makes sense when used in conjunction with
+    * `org.locationtech.geomesa.features.SerializationOption.WithoutId()`
+    *
+    * @param id feature id
+    * @param in input
+    * @return
+    */
+  def deserialize(id: String, in: InputStream): SimpleFeature
+
+  /**
+    * Deserialize a simple feature from a subset of a byte array, with a feature id provided separately
+    *
+    * Note that this only makes sense when used in conjunction with
+    * `org.locationtech.geomesa.features.SerializationOption.WithoutId()`
+    *
+    * @param id feature id
+    * @param bytes bytes
+    * @param offset offset of first byte to read
+    * @param length total bytes to read
+    * @return
+    */
+  def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature
+}
+
+object SimpleFeatureSerializer {
+
+  /**
+    * Serializer that doesn't implement all the semi-optional methods
+    */
+  trait LimitedSerialization extends SimpleFeatureSerializer {
+    override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+      throw new NotImplementedError
+    override def deserialize(in: InputStream): SimpleFeature =
+      throw new NotImplementedError
+    override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+      throw new NotImplementedError
+    override def deserialize(id: String, in: InputStream): SimpleFeature =
+      throw new NotImplementedError
+    override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+      throw new NotImplementedError
+  }
 }

@@ -11,14 +11,22 @@ package org.locationtech.geomesa.filter.factory
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.BindingFilterVisitor
-import org.locationtech.geomesa.filter.expression._
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
+import org.locationtech.geomesa.filter.expression.FastDWithin.DWithinLiteral
+import org.locationtech.geomesa.filter.expression.FastPropertyIsEqualTo.{FastIsEqualTo, FastIsEqualToIgnoreCase, FastListIsEqualToAny}
+import org.locationtech.geomesa.filter.expression.FastPropertyName.{FastPropertyNameAccessor, FastPropertyNameAttribute}
+import org.locationtech.geomesa.filter.expression.OrHashEquality
+import org.locationtech.geomesa.filter.expression.OrHashEquality.OrHashListEquality
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
-import org.locationtech.geomesa.utils.geotools.{SimpleFeaturePropertyAccessor, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.MultiValuedFilter.MatchAction
 import org.opengis.filter.expression.{Expression, PropertyName}
-import org.opengis.filter.{Filter, FilterFactory2, PropertyIsEqualTo}
+import org.opengis.filter.spatial.DWithin
+import org.opengis.filter.{Filter, FilterFactory2, Or, PropertyIsEqualTo}
+import org.opengis.geometry.Geometry
 import org.xml.sax.helpers.NamespaceSupport
 
 /**
@@ -31,19 +39,20 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
+  import scala.collection.JavaConverters._
+
   override def property(name: String): PropertyName = {
     val sft = FastFilterFactory.sfts.get
     val colon = name.indexOf(":")
     val local = if (colon == -1) { name } else { name.substring(colon + 1) }
     val index = sft.indexOf(local)
     if (index != -1) {
-      new FastPropertyName(name, index)
+      new FastPropertyNameAttribute(name, index)
     } else {
       val sf = new SimpleFeatureBuilder(sft).buildFeature("")
       SimpleFeaturePropertyAccessor.getAccessor(sf, name) match {
         case Some(a) => new FastPropertyNameAccessor(name, a)
-        case None => throw new RuntimeException(s"Can't handle property '$name' for feature type " +
-            s"${sft.getTypeName} ${SimpleFeatureTypes.encodeType(sft)}")
+        case None    => super.property(name)
       }
     }
   }
@@ -51,6 +60,35 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
   override def property(name: Name): PropertyName = property(name.getLocalPart)
 
   override def property(name: String, namespaceContext: NamespaceSupport): PropertyName = property(name)
+
+  override def or(f: Filter, g: Filter): Or = or(java.util.Arrays.asList(f, g))
+
+  override def or(filters: java.util.List[Filter]): Or = {
+    if (filters.isEmpty) {
+      return super.or(filters.asInstanceOf[java.util.List[_]])
+    }
+
+    val literals = scala.collection.immutable.HashSet.newBuilder[AnyRef]
+    val props = scala.collection.mutable.HashSet.empty[String]
+
+    FilterHelper.flattenOr(filters.asScala).foreach {
+      case p: PropertyIsEqualTo if p.getMatchAction == MatchAction.ANY && p.isMatchingCase =>
+        org.locationtech.geomesa.filter.checkOrder(p.getExpression1, p.getExpression2) match {
+          case Some(PropertyLiteral(name, lit, _)) if !props.add(name) || props.size == 1 => literals += lit.getValue
+          case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+        }
+
+      case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+    }
+
+    // if we've reached here, we have verified that all the child filters are equality matches on the same property
+    val descriptor = FastFilterFactory.sfts.get.getDescriptor(props.head)
+    if (descriptor != null && descriptor.isList) {
+      new OrHashListEquality(property(props.head), literals.result)
+    } else {
+      new OrHashEquality(property(props.head), literals.result)
+    }
+  }
 
   override def equals(exp1: Expression, exp2: Expression): PropertyIsEqualTo =
     equal(exp1, exp2, matchCase = true, MatchAction.ANY)
@@ -60,25 +98,47 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
 
   override def equal(exp1: Expression, exp2: Expression, matchCase: Boolean, matchAction: MatchAction): PropertyIsEqualTo = {
     if (matchAction == MatchAction.ANY) {
-      if (matchCase) {
-        org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
-          case None => super.equal(exp1, exp2, matchCase, matchAction)
-          case Some(prop) =>
-            val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
-            if (descriptor == null || !descriptor.isList) {
-              new FastIsEqualTo(exp1, exp2)
-            } else if (prop.flipped) {
-              // FastListIsEqual expects list to be in the first expression
-              new FastListIsEqualToAny(exp2, exp1)
-            } else {
-              new FastListIsEqualToAny(exp1, exp2)
-            }
-        }
-      } else {
-        new FastIsEqualToIgnoreCase(exp1, exp2)
+      org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
+        case None =>
+          super.equal(exp1, exp2, matchCase, matchAction)
+
+        case Some(prop) =>
+          val exp1 = prop match {
+            case p: PropertyLiteral => property(p.name)
+            case p: FunctionLiteral => p.function
+          }
+          val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
+          if (descriptor != null && descriptor.isList) {
+            new FastListIsEqualToAny(exp1, prop.literal)
+          } else if (matchCase) {
+            new FastIsEqualTo(exp1, prop.literal)
+          } else {
+            new FastIsEqualToIgnoreCase(exp1, prop.literal)
+          }
       }
     } else {
       super.equal(exp1, exp2, matchCase, matchAction)
+    }
+  }
+
+  override def dwithin(name: String, geom: Geometry, distance: Double, units: String): DWithin =
+    dwithin(property(name), literal(geom), distance, units)
+
+  override def dwithin(name: String, geom: Geometry, distance: Double, units: String, action: MatchAction): DWithin =
+    dwithin(property(name), literal(geom), distance, units, action)
+
+  override def dwithin(exp1: Expression, exp2: Expression, distance: Double, units: String): DWithin =
+    dwithin(exp1, exp2, distance, units, MatchAction.ANY)
+
+  override def dwithin(exp1: Expression, exp2: Expression, distance: Double, units: String, action: MatchAction): DWithin = {
+    if (action == MatchAction.ANY) {
+      org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
+        case Some(PropertyLiteral(name, lit, _))     => new DWithinLiteral(property(name), lit, distance, units)
+        case Some(FunctionLiteral(name, fn, lit, _)) => new DWithinLiteral(fn, lit, distance, units)
+        case _ => super.dwithin(exp1, exp2, distance, units, action)
+      }
+    } else {
+      super.dwithin(exp1, exp2, distance, units, action)
     }
   }
 }
@@ -91,9 +151,14 @@ object FastFilterFactory {
 
   def toFilter(sft: SimpleFeatureType, ecql: String): Filter = {
     sfts.set(sft)
-    try {
-      ECQL.toFilter(ecql, factory)
-    } finally {
+    try { ECQL.toFilter(ecql, factory) } finally {
+      sfts.remove()
+    }
+  }
+
+  def toExpression(sft: SimpleFeatureType, ecql: String): Expression = {
+    sfts.set(sft)
+    try { ECQL.toExpression(ecql, factory) } finally {
       sfts.remove()
     }
   }

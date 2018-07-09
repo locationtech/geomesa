@@ -18,6 +18,7 @@ about GeoMesa data stores.
     analytic_queries
     authorizations
     auditing
+    data
     reserved_words
 
 General information on the GeoMesa command-line tools are described in the next chapter:

@@ -8,23 +8,25 @@
 
 package org.apache.spark.sql
 
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.util.Date
+
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
-import org.apache.spark.sql.jts.JTSTypes._
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
-import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
+import org.apache.spark.sql.types.{DataTypes, StructType}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
+import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils}
-import org.opengis.filter.expression.{Expression => GTExpression}
+import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
 
 import scala.collection.JavaConversions._
-import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 
 object SQLRules extends LazyLogging {
   @transient
@@ -106,21 +108,39 @@ object SQLRules extends LazyLogging {
         logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
         None
     }
-
   }
 
-  def sparkExprToGTExpr(expr: Expression): Option[GTExpression] = {
-    expr match {
-      case GeometryLiteral(_, geom) =>
-        Some(ff.literal(geom))
-      case AttributeReference(name, _, _, _) if !name.equals("__fid__") =>
-        Some(ff.property(name))
-      case Literal(value, _) =>
-        Some(ff.literal(value))
-      case _ =>
-        logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
-        None
-    }
+  def sparkExprToGTExpr(expression: Expression): Option[GTExpression] = expression match {
+    case g: GeometryLiteral =>
+      Some(ff.literal(g.geom))
+
+    case a: AttributeReference if a.name != "__fid__" =>
+      Some(ff.property(a.name))
+
+    case c: Cast =>
+      lazy val zone = c.timeZoneId.map(ZoneId.of).orNull
+      sparkExprToGTExpr(c.child).map {
+        case lit: GTLiteral if lit.getValue.isInstanceOf[Date] && zone != null =>
+          val date = LocalDateTime.ofInstant(lit.getValue.asInstanceOf[Date].toInstant, zone)
+          ff.literal(new Date(date.atZone(ZoneOffset.UTC).toInstant.toEpochMilli))
+        case e => e
+      }
+
+    case lit: Literal if lit.dataType == DataTypes.StringType =>
+      // the actual class is org.apache.spark.unsafe.types.UTF8String, we need to make it
+      // a normal string so that geotools can handle it
+      Some(ff.literal(Option(lit.value).map(_.toString).orNull))
+
+    case lit: Literal if lit.dataType == DataTypes.TimestampType =>
+      // timestamps are defined as microseconds
+      Some(ff.literal(new Date(lit.value.asInstanceOf[Long] / 1000)))
+
+    case lit: Literal =>
+      Some(ff.literal(lit.value))
+
+    case _ =>
+      logger.debug(s"Can't turn expression into geotools: $expression")
+      None
   }
 
   // new optimizations rules

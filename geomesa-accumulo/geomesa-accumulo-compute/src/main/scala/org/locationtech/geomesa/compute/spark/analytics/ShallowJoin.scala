@@ -9,20 +9,18 @@
 package org.locationtech.geomesa.compute.spark.analytics
 
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.geotools.data.DataStoreFinder
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.SparkContext._
-import org.locationtech.geomesa.compute.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
-
-import scala.collection.JavaConversions._
-import org.apache.spark.rdd.RDD
-import org.opengis.feature.simple.SimpleFeature
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.broadcast.Broadcast
-import org.geotools.data._
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+import org.geotools.data.{DataStoreFinder, _}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.compute.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
+import org.opengis.feature.simple.SimpleFeature
+
+import scala.collection.JavaConversions._
 
 @deprecated
 object ShallowJoin {
@@ -109,21 +107,21 @@ object ShallowJoin {
     val countable = sc.broadcast(countableIndices)
 
     // Create a Simple Feature Type based on what can be aggregated
-    val sftBuilder = new SftBuilder()
-    sftBuilder.stringType(key)
-    sftBuilder.multiPolygon("geom")
-    sftBuilder.intType("count")
+    val sftBuilder = SchemaBuilder.builder()
+    sftBuilder.addString(key)
+    sftBuilder.addMultiPolygon("geom")
+    sftBuilder.addInt("count")
     val featureProperties = data.first.getProperties.toSeq
     countableIndices.foreach{ case (index, clazz) =>
       val featureName = featureProperties.apply(index).getName
       clazz match {
-        case "Integer" => sftBuilder.intType(s"total_$featureName")
-        case "Long" => sftBuilder.longType(s"total_$featureName")
-        case "Double" => sftBuilder.doubleType(s"total_$featureName")
+        case "Integer" => sftBuilder.addInt(s"total_$featureName")
+        case "Long" => sftBuilder.addLong(s"total_$featureName")
+        case "Double" => sftBuilder.addDouble(s"total_$featureName")
       }
-      sftBuilder.doubleType(s"avg_${featureProperties.apply(index).getName}")
+      sftBuilder.addDouble(s"avg_${featureProperties.apply(index).getName}")
     }
-    val coverSft = SimpleFeatureTypes.createType("aggregate", sftBuilder.getSpec)
+    val coverSft = sftBuilder.build("aggregate")
 
     // Register it with kryo and send it to executors
     GeoMesaSparkKryoRegistrator.register(Seq(coverSft))

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert.json
 
 import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
 import com.typesafe.config.ConfigFactory
@@ -810,11 +811,10 @@ class JsonConverterTest extends Specification {
           |        "things": [
           |          {
           |            "s": "s1",
-          |            "i": 1,
           |            "d": 1.1,
           |            "u": "12345678-1234-1234-1234-123456781234"
           |          },
-                     {
+          |          {
           |            "s": "s2",
           |            "i": 2,
           |            "d": 2.2,
@@ -833,7 +833,7 @@ class JsonConverterTest extends Specification {
           |      {
           |        "id": 1,
           |        "geometry": {"type": "Point", "coordinates": [55, 56]},
-          |        "i": [1, 2],
+          |        "i": [2],
           |        "d": [1.1, 2.2],
           |        "s": ["s1", "s2"],
           |        "u": ["12345678-1234-1234-1234-123456781234", "00000000-0000-0000-0000-000000000000"]
@@ -891,7 +891,7 @@ class JsonConverterTest extends Specification {
         f.getAttribute("sList").asInstanceOf[java.util.List[String]].toSeq must containTheSameElementsAs(Seq("s1", "s2"))
 
         f.getAttribute("iList") must beAnInstanceOf[java.util.List[Integer]]
-        f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].toSeq must containTheSameElementsAs(Seq(1, 2))
+        f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].toSeq must containTheSameElementsAs(Seq(2))
 
         f.getAttribute("dList") must beAnInstanceOf[java.util.List[Double]]
         f.getAttribute("dList").asInstanceOf[java.util.List[Double]].toSeq must containTheSameElementsAs(Seq(1.1, 2.2))
@@ -1110,6 +1110,38 @@ class JsonConverterTest extends Specification {
       f.get[Double]("d") mustEqual 1.7976931348623157E8
       f.get[Float]("f") mustEqual 1.023f
       f.get[Boolean]("b") mustEqual false
+    }
+
+    "parse missing values as null" >> {
+      val sft = SimpleFeatureTypes.createType("foo", "name:String,*geom:Point:srid=4326")
+      val json = Seq(
+        """{ "lat": 0, "lon": 0, "properties": { "name": "name1" } }""",
+        """{ "lat": 0, "lon": 0, "properties": { "name": null } }""",
+        """{ "lat": 0, "lon": 0, "properties": {} }""",
+        """{ "lat": 0, "lon": 0 }"""
+      ).mkString("\n")
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   options = {
+          |     line-mode = "single"
+          |   }
+          |   fields = [
+          |     { name = "name", json-type = "string", path = "$.properties.name", }
+          |     { name = "lat",  json-type = "double", path = "$.lat",             }
+          |     { name = "lon",  json-type = "double", path = "$.lon",             }
+          |     { name = "geom", transform = "point($lon, $lat)"                   }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      val in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+      val features = converter.process(in).toList
+      features must haveLength(4)
+      features.map(_.getAttribute("name")) mustEqual Seq("name1", null, null, null)
     }
 
     "handle invalid input" >> {

@@ -102,7 +102,7 @@ The command line arguments the script accepts are:
 * -p <Accumulo password>
 * -t <Use a cached Kerberos TGT>
 * -g <Path of GeoMesa distributed runtime JAR> (optional, will default to the distribution folder and without raster support)
-* -h <HDFS URI e.g. hdfs://localhost:54310> (optional, will attempt to determine if not supplied)
+* -h <HDFS URI e.g. hdfs://localhost:9000> (optional, will attempt to determine if not supplied)
 
 Since ``accumulo shell`` does not directly support Kerberos keytabs, if using Kerberos (``-t``) then a cached Kerberos
 ticket-granting-ticket (TGT) should be obtained using the ``kinit`` command.
@@ -182,7 +182,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
     GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
     ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
     classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
-    files using a colon (``:``) as a delimiter. These entries will also be added the the mapreduce libjars variable.
+    files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
     Use the ``geomesa-accumulo classpath`` command to print the final classpath that will be used when executing geomesa
     commands.
 
@@ -331,13 +331,13 @@ The specific JARs needed for some common configurations are listed below:
 
 .. tabs::
 
-    .. tab:: Accumulo 1.8
+    .. tab:: Accumulo 1.9
 
-        * accumulo-core-1.8.1.jar
-        * accumulo-fate-1.8.1.jar
-        * accumulo-server-base-1.8.1.jar
-        * accumulo-trace-1.8.1.jar
-        * accumulo-start-1.8.1.jar
+        * accumulo-core-1.9.1.jar
+        * accumulo-fate-1.9.1.jar
+        * accumulo-server-base-1.9.1.jar
+        * accumulo-trace-1.9.1.jar
+        * accumulo-start-1.9.1.jar
         * libthrift-0.9.3.jar
         * zookeeper-3.4.10.jar
         * htrace-core-3.1.0-incubating.jar
@@ -345,11 +345,11 @@ The specific JARs needed for some common configurations are listed below:
 
     .. tab:: Accumulo 1.7
 
-        * accumulo-core-1.7.3.jar
-        * accumulo-fate-1.7.3.jar
-        * accumulo-server-base-1.7.3.jar
-        * accumulo-trace-1.7.3.jar
-        * accumulo-start-1.7.3.jar
+        * accumulo-core-1.7.4.jar
+        * accumulo-fate-1.7.4.jar
+        * accumulo-server-base-1.7.4.jar
+        * accumulo-trace-1.7.4.jar
+        * accumulo-start-1.7.4.jar
         * libthrift-0.9.1.jar
         * zookeeper-3.4.10.jar
         * htrace-core-3.1.0-incubating.jar
@@ -368,15 +368,15 @@ The specific JARs needed for some common configurations are listed below:
 
 .. tabs::
 
-    .. tab:: Hadoop 2.6-2.8
+    .. tab:: Hadoop 2.6-2.9
 
         (adjust versions as needed)
 
         * commons-configuration-1.6.jar
-        * hadoop-auth-2.7.4.jar
-        * hadoop-client-2.7.4.jar
-        * hadoop-common-2.7.4.jar
-        * hadoop-hdfs-2.7.4.jar
+        * hadoop-auth-2.8.4.jar
+        * hadoop-client-2.8.4.jar
+        * hadoop-common-2.8.4.jar
+        * hadoop-hdfs-2.8.4.jar
 
 
 Restart GeoServer after the JARs are installed.
@@ -386,11 +386,16 @@ Accumulo Versions
 
 .. note::
 
-    GeoMesa targets Accumulo 1.8 as a runtime dependency. Most artifacts will work with older versions
+    GeoMesa targets Accumulo 1.9 as a runtime dependency. Most artifacts will work with older versions
     of Accumulo without changes, however some artifacts which bundle Accumulo will need to be built manually.
     Accumulo 1.8 introduced a dependency on libthrift version 0.9.3 which is not compatible with Accumulo
     1.7/libthrift 0.9.1. To target an earlier Accumulo version, modify ``<accumulo.version>`` and
     ``<thrift.version>`` in the main pom.xml and re-build.
+
+.. warning::
+
+    There are severe issues with Accumulo versions 1.8.0-1.9.0 and the Accumulo team recommends immediately 
+    upgrading to 1.9.1 or higher.
 
 .. _install_geomesa_process:
 

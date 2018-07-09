@@ -24,14 +24,12 @@ User Manual
    kudu/index
    lambda/index
    convert/index
+   process
    geojson
    nifi
-   process
    blobstore
    native_api
    stream
-   metrics
-   web_data
    upgrade
 
 Appendix
@@ -41,3 +39,6 @@ Appendix
    :maxdepth: 2
 
    appendix/utils
+   appendix/memory
+   appendix/metrics
+   appendix/web_data

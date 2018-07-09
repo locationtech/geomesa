@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.features.kryo
 
+import java.io.OutputStream
+
+import com.esotericsoftware.kryo.io.Output
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.ActiveDeserialization.MutableActiveDeserialization
@@ -36,17 +39,26 @@ class ProjectingKryoFeatureSerializer(original: SimpleFeatureType,
   private val numAttributes = projected.getAttributeCount
   private val writers = KryoFeatureSerialization.getWriters(cacheKey, projected)
   private val mappings = Array.ofDim[Int](numAttributes)
+  private val withId = !options.withoutId
 
   projected.getAttributeDescriptors.zipWithIndex.foreach { case (d, i) =>
     mappings(i) = original.indexOf(d.getLocalName)
   }
 
-  override def serialize(sf: SimpleFeature): Array[Byte] = {
-    val offsets = KryoFeatureSerialization.getOffsets(cacheKey, numAttributes)
+  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+    writeFeature(feature, KryoFeatureSerialization.getOutput(out))
+
+  override def serialize(feature: SimpleFeature): Array[Byte] = {
     val output = KryoFeatureSerialization.getOutput(null)
+    writeFeature(feature, output)
+    output.toBytes
+  }
+
+  private def writeFeature(sf: SimpleFeature, output: Output): Unit = {
+    val offsets = KryoFeatureSerialization.getOffsets(cacheKey, numAttributes)
     output.writeInt(VERSION, true)
     output.setPosition(5) // leave 4 bytes to write the offsets
-    if (!options.withoutId) {
+    if (withId) {
       output.writeString(sf.getID)  // TODO optimize for uuids?
     }
     // write attributes and keep track off offset into byte array
@@ -67,8 +79,7 @@ class ProjectingKryoFeatureSerializer(original: SimpleFeatureType,
     val total = output.position()
     output.setPosition(1)
     output.writeInt(offsetStart)
-    // reset the position back to the end of the buffer so that toBytes works
+    // reset the position back to the end of the buffer so that toBytes works, and we can keep writing user data
     output.setPosition(total)
-    output.toBytes
   }
 }

@@ -138,7 +138,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
     * @param returnSft return simple feature type (transform, etc)
     * @return
     */
-  private [index] def resultsToFeatures(sft: SimpleFeatureType,
+  private [hbase] def resultsToFeatures(sft: SimpleFeatureType,
                                         returnSft: SimpleFeatureType): Iterator[Result] => Iterator[SimpleFeature] = {
     // Perform a projecting decode of the simple feature
     val getId = getIdFromRow(sft)

@@ -25,7 +25,7 @@ with GeoMesa FSDS are:
 * **HDFS** - Hadoop Distributed File System
 * **S3** - Amazon Simple Storage
 * **GCS** - Google Cloud Storage
-* **WASB** - Windows Azure Blob Store
+* **WASB** - Windows Azure Blob Storage
 * **Local** - Locally Mounted File System (e.g. local disk or NFS)
 
 Choosing a filesystem depends generally on cost and performance requirements. One thing to note is that S3, GCS, and
@@ -61,11 +61,13 @@ More information on defining partition schemes can be found in :ref:`fsds_partit
 Storage Formats
 ---------------
 
-* **Apache Parquet** - Apache Parquet is the leading interoperable columnar format in the Hadoop ecosystem. It provides
-  efficient compression, storage, and query of structured data. Apache Parquet is currently the only format that can be
-  used for writing data into the FileSystem datastore.
+* **Apache Parquet** - Apache Parquet is the leading interoperable columnar format in the Hadoop ecosystem. It
+  provides efficient compression, storage, and query of structured data.
+
+* **Apache ORC** - Apache ORC is a self-describing type-aware columnar file format designed for Hadoop workloads. It
+  is optimized for large streaming reads, but with integrated support for finding required rows quickly.
 
 * **Converter Storage** - The converter storage format is a synthetic format which allows you to overlay a GeoMesa converter
   on top of a filesystem using a defined partition scheme. This allows you to utilize existing data storage layouts of
   data stored in JSON, CSV, TSV, Avro, or other formats. Converters are pluggable allowing users to expose their own
-  custom storage formats if desired.
+  custom storage formats if desired. Converter storage is a read-only format.

@@ -20,6 +20,7 @@ geospatial analytics.
 
 * <a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
 * GeoMesa [Users](https://locationtech.org/mhonarc/lists/geomesa-users/) and [Dev](https://locationtech.org/mhonarc/lists/geomesa-dev/) mailing lists
+* GeoMesa [JIRA](https://geomesa.atlassian.net/issues/?jql=order+by+created+DESC) for issue tracking
 
 ## Documentation
 
@@ -48,6 +49,28 @@ geospatial analytics.
 
 **Development version: ${geomesa.devel.version}** &nbsp;
   [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
+
+### Verifying Downloads
+
+Downloads hosted on GitHub include SHA-256 hashes and gpg signatures (.asc files). To verify a download using gpg,
+import the appropriate key:
+
+```bash
+$ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
+```
+
+Then verify the file:
+
+```bash
+$ gpg2 --verify geomesa-accumulo_2.11-2.0.0-bin.tar.gz.asc geomesa-accumulo_2.11-2.0.0-bin.tar.gz
+```
+
+The keys currently used for signing are:
+
+| Key ID | Name |
+| ------ | ---- |
+| `CD24F317` | Emilio Lahr-Vivaz &lt;elahrvivaz(-at-)ccri.com&gt; |
+| `1E679A56` | James Hughes &lt;jnh5y(-at-)ccri.com&gt; |
 
 ### Upgrading
 
@@ -161,11 +184,3 @@ provides the script `build/mvn`, which is a wrapper around Maven that downloads 
 [Zinc](https://github.com/typesafehub/zinc), a fast incremental compiler:
 
     build/mvn clean install -T8 -DskipTests
-
-## Scala 2.10 Support
-
-GeoMesa uses Scala 2.11 by default. To build for Scala 2.10, run:
-
-    build/change-scala-version.sh 2.10
-
-This will update the project poms to publish artifacts with a `_2.10` suffix. Then build normally using maven.

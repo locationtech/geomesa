@@ -19,8 +19,9 @@ import org.apache.spark.SparkContext
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore}
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBaseIndexAdapter}
 import org.locationtech.geomesa.hbase.jobs.HBaseGeoMesaRecordReader
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDD
@@ -92,11 +93,11 @@ class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] {
   var delegate: BigtableInputFormat = _
 
   var sft: SimpleFeatureType = _
-  var table: HBaseFeatureIndex = _
+  var table: HBaseIndexAdapter = _
 
-  private def init(conf: Configuration) = if (sft == null) {
+  private def init(conf: Configuration): Unit = if (sft == null) {
     sft = GeoMesaConfigurator.getSchema(conf)
-    table = HBaseFeatureIndex.index(GeoMesaConfigurator.getIndexIn(conf))
+    table = HBaseFeatureIndex.index(GeoMesaConfigurator.getIndexIn(conf)).asInstanceOf[HBaseIndexAdapter]
     delegate = new BigtableInputFormat(TableName.valueOf(GeoMesaConfigurator.getTable(conf)))
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
@@ -117,11 +118,10 @@ class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] {
                                   context: TaskAttemptContext): RecordReader[Text, SimpleFeature] = {
     init(context.getConfiguration)
     val rr = delegate.createRecordReader(split, context)
-    val transformSchema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
-    val q = GeoMesaConfigurator.getFilter(context.getConfiguration).map { f => ECQL.toFilter(f) }
-    new HBaseGeoMesaRecordReader(sft, table, rr, q, transformSchema)
+    val transform = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
+    val ecql = GeoMesaConfigurator.getFilter(context.getConfiguration).map(FastFilterFactory.toFilter(sft, _))
+    new HBaseGeoMesaRecordReader(table, sft, ecql, transform, rr, false)
   }
-
 }
 
 object BigtableInputFormat {
@@ -133,7 +133,7 @@ class BigtableInputFormat(val name: TableName) extends BigtableInputFormatBase w
   setName(name)
 
   /** The configuration. */
-  private var conf: Configuration = null
+  private var conf: Configuration = _
 
 
   /**
@@ -161,4 +161,3 @@ class BigtableInputFormat(val name: TableName) extends BigtableInputFormatBase w
     setScans(s)
   }
 }
-

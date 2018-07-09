@@ -132,7 +132,7 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
       new DecoratingSimpleFeatureCollection(results) {
         override def getSchema: SimpleFeatureType = returnSft
         override def features(): SimpleFeatureIterator = new SimpleFeatureIterator {
-          val delegate = results.features
+          private val delegate = results.features
           override def next(): SimpleFeature = {
             val secondarySf = delegate.next()
             val toJoin = secondarySf.getAttribute(joinAttribute)

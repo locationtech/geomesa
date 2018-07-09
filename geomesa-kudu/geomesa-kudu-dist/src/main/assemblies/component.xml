@@ -5,7 +5,7 @@
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
-            <directoryMode>755</directoryMode>
+            <directoryMode>0755</directoryMode>
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>true</useTransitiveDependencies>
@@ -13,31 +13,20 @@
             <useStrictFiltering>true</useStrictFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-kudu-gs-plugin*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-kudu-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
             </excludes>
         </dependencySet>
         <dependencySet>
             <outputDirectory>dist/gs-plugins</outputDirectory>
             <directoryMode>0755</directoryMode>
-            <fileMode>0755</fileMode>
+            <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-kudu-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process-wps*</include>
-            </includes>
-        </dependencySet>
-        <dependencySet>
-            <outputDirectory>dist/converters</outputDirectory>
-            <directoryMode>0755</directoryMode>
-            <fileMode>0644</fileMode>
-            <useProjectArtifact>false</useProjectArtifact>
-            <useTransitiveDependencies>false</useTransitiveDependencies>
-            <useStrictFiltering>true</useStrictFiltering>
-            <includes>
-                <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -51,15 +40,27 @@
                 <include>org.locationtech.geomesa:geomesa-kudu-spark*</include>
             </includes>
         </dependencySet>
-
+        <dependencySet>
+            <outputDirectory>dist/converters</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
+            </includes>
+        </dependencySet>
     </dependencySets>
 
     <fileSets>
+        <!-- license file -->
         <fileSet>
             <directory>../../</directory>
             <fileMode>0644</fileMode>
             <includes>
                 <include>LICENSE.txt</include>
+                <include>README.md</include>
             </includes>
         </fileSet>
 
@@ -75,14 +76,14 @@
             <directory>../geomesa-kudu-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
             <fileMode>0644</fileMode>
-            <filtered>true</filtered>
+            <filtered>false</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
         <fileSet>
             <directory>../geomesa-kudu-tools/examples</directory>
             <outputDirectory>examples</outputDirectory>
             <fileMode>0644</fileMode>
-            <filtered>true</filtered>
+            <filtered>false</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
 
@@ -126,25 +127,6 @@
     </fileSets>
 
     <files>
-        <file>
-            <source>../../README.md</source>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/README.md</source>
-            <destName>README-gs-plugin.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-utils/README.md</source>
-            <destName>README-utils.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-convert/README.md</source>
-            <destName>README-convert.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
         <!-- geomesa-site.xml.template -->
         <file>
             <source>../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
@@ -158,4 +140,5 @@
             <outputDirectory>conf</outputDirectory>
         </file>
     </files>
+
 </component>

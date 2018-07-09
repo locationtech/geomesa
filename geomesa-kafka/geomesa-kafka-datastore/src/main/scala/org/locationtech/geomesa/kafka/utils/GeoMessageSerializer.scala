@@ -8,47 +8,58 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.time.Instant
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Random
+import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 
 /**
   * Serialized `GeoMessage`s
   *
-  * The following encoding is used:
+  * Current encoding (version 2), designed to work with kafka log compaction.
+  * See https://kafka.apache.org/10/documentation.html#design_compactionbasics
   *
-  * Key: version (1 byte) type (1 byte) timestamp (8 bytes)
+  * change:
+  *   key: 1 byte message version, n bytes feature id
+  *   value: n bytes for serialized feature (without id)
   *
-  * The current version is 1
-  * The type is 'C' for change, 'D' for delete and 'X' for clear
+  * delete:
+  *   key: 1 byte message version, n bytes feature id
+  *   value: null - this allows for log compaction to delete the feature out
   *
-  * Value
-  *   Change: serialized simple feature
-  *   Delete: simple feature ID as UTF-8 bytes
-  *   Clear: empty
+  * clear:
+  *   key: 1 byte message version
+  *   value: empty
   *
+  *
+  * Version 1 legacy encoding:
+  *
+  * change:
+  *   key: 1 byte message version, 1 byte for message type ('C'), 8 byte long for epoch millis
+  *   value: n bytes for serialized feature (with id)
+  *
+  * delete:
+  *   key: 1 byte message version, 1 byte for message type ('D'), 8 byte long for epoch millis
+  *   value: n bytes for feature id
+  *
+  * clear:
+  *   key: 1 byte message version, 1 byte for message type ('X'), 8 byte long for epoch millis
+  *   value: empty
   */
 object GeoMessageSerializer {
 
+  val Version: Byte = 2
+
   private val Empty = Array.empty[Byte]
-
-  val Version: Byte = 1
-
-  val ChangeType: Byte = 'C'
-  val DeleteType: Byte = 'D'
-  val ClearType: Byte  = 'X'
 
   /**
     * Ensures that updates to a given feature go to the same partition, so that they maintain order
@@ -63,29 +74,25 @@ object GeoMessageSerializer {
                            cluster: Cluster): Int = {
       val count = cluster.partitionsForTopic(topic).size
 
-      def hash(id: String): Int = Math.abs(MurmurHash3.stringHash(id)) % count
-
-      // use the feature id if available, otherwise (for clear) use random shard
-      keyBytes(1) match {
-        case ChangeType => hash(deserializeFid(valueBytes))
-        case DeleteType => hash(new String(valueBytes, StandardCharsets.UTF_8))
-        case _          => Random.nextInt(count)
+      try {
+        // use the feature id if available, otherwise (for clear) use random shard
+        if (keyBytes.length > 1) {
+          Math.abs(MurmurHash3.bytesHash(keyBytes)) % count
+        } else {
+          Random.nextInt(count)
+        }
+      } catch {
+        case NonFatal(e) =>
+          throw new IllegalArgumentException(
+            s"Unexpected message format: ${Option(keyBytes).map(ByteArrays.toHex).getOrElse("")} " +
+                s"${Option(valueBytes).map(ByteArrays.toHex).getOrElse("")}", e)
       }
+
     }
 
     override def configure(configs: java.util.Map[String, _]): Unit = {}
 
     override def close(): Unit = {}
-
-    /**
-      * Deserializes just the feature id from a serialized simple feature.
-      * Note: feature id starts at position 5
-      *
-      * @param bytes serialized bytes
-      * @return feature id
-      */
-    private def deserializeFid(bytes: Array[Byte]): String =
-      KryoFeatureDeserialization.getInput(bytes, 5, bytes.length - 5).readString()
   }
 }
 
@@ -94,11 +101,17 @@ object GeoMessageSerializer {
   *
   * @param sft simple feature type being serialized
   */
-class GeoMessageSerializer(sft: SimpleFeatureType) extends LazyLogging {
+class GeoMessageSerializer(sft: SimpleFeatureType, lazyDeserialization: Boolean = false) extends LazyLogging {
 
-  import GeoMessageSerializer._
+  private val serializer = {
+    val builder = KryoFeatureSerializer.builder(sft).withoutId.withUserData.immutable
+    if (lazyDeserialization) { builder.`lazy`.build() } else { builder.build() }
+  }
 
-  private val serializer = KryoFeatureSerializer(sft, SerializationOptions.builder.withUserData.immutable.`lazy`.build)
+  private lazy val serializerV1 = {
+    val builder = KryoFeatureSerializer.builder(sft).withUserData.immutable
+    if (lazyDeserialization) { builder.`lazy`.build() } else { builder.build() }
+  }
 
   /**
     * Serializes a message
@@ -115,13 +128,53 @@ class GeoMessageSerializer(sft: SimpleFeatureType) extends LazyLogging {
     }
   }
 
-  def serialize(msg: Change): (Array[Byte], Array[Byte]) =
-    (serializeKey(ChangeType, msg.timestamp), serializer.serialize(msg.feature))
+  /**
+    * Serializes a change message
+    *
+    * key: 1 byte message version, n bytes feature id
+    * value: n bytes for serialized feature (without id)
+    *
+    * @param msg msg
+    * @return (serialized key, serialized value)
+    */
+  private def serialize(msg: Change): (Array[Byte], Array[Byte]) = {
+    val id = msg.feature.getID.getBytes(StandardCharsets.UTF_8)
+    val key = Array.ofDim[Byte](id.length + 1)
+    System.arraycopy(id, 0, key, 1, id.length)
+    key(0) = GeoMessageSerializer.Version
 
-  def serialize(msg: Delete): (Array[Byte], Array[Byte]) =
-    (serializeKey(DeleteType, msg.timestamp), msg.id.getBytes(StandardCharsets.UTF_8))
+    (key, serializer.serialize(msg.feature))
+  }
 
-  def serialize(msg: Clear): (Array[Byte], Array[Byte]) = (serializeKey(ClearType, msg.timestamp), Empty)
+  /**
+    * Serializes a delete message
+    *
+    * key: 1 byte message version, n bytes feature id
+    * value: null
+    *
+    * @param msg msg
+    * @return (serialized key, serialized value)
+    */
+  private def serialize(msg: Delete): (Array[Byte], Array[Byte]) = {
+    val id = msg.id.getBytes(StandardCharsets.UTF_8)
+    val key = Array.ofDim[Byte](id.length + 1)
+    System.arraycopy(id, 0, key, 1, id.length)
+    key(0) = GeoMessageSerializer.Version
+
+    (key, null)
+  }
+
+  /**
+    * Serializes a clear message
+    *
+    * key: 1 byte message version
+    * value: 1 byte clear
+    *
+    * @param msg msg
+    * @return (serialized key, serialized value)
+    */
+  private def serialize(msg: Clear): (Array[Byte], Array[Byte]) =
+    (Array(GeoMessageSerializer.Version), GeoMessageSerializer.Empty)
 
   /**
     * Deserializes a serialized `GeoMessage`
@@ -131,29 +184,33 @@ class GeoMessageSerializer(sft: SimpleFeatureType) extends LazyLogging {
     * @return the deserialized message
     */
   def deserialize(key: Array[Byte], value: Array[Byte]): GeoMessage = {
-    require(key != null && key.length > 0, s"Invalid empty message key")
-
-    val buffer = ByteBuffer.wrap(key)
-    val version = buffer.get()
-
-    require(version == 1 && key.length == 10, s"Invalid version/length (expected 1-10): $version-${key.length}")
-
-    val msgType = buffer.get()
-    val ts = Instant.ofEpochMilli(buffer.getLong)
-
-    msgType match {
-      case ChangeType => Change(ts, serializer.deserialize(value))
-      case DeleteType => Delete(ts, new String(value, StandardCharsets.UTF_8))
-      case ClearType  => Clear(ts)
-      case _ => throw new IllegalArgumentException("Unknown message type: " + msgType.toChar)
+    try {
+      key(0) match {
+        case 2 => deserializeV2(key, value)
+        case 1 => deserializeV1(key, value)
+        case _ => throw new IllegalArgumentException(s"Invalid message version: '${key(0)}'")
+      }
+    } catch {
+      case NonFatal(e) =>
+        throw new IllegalArgumentException(
+          s"Unexpected message format: ${Option(key).map(ByteArrays.toHex).getOrElse("")} " +
+              s"${Option(value).map(ByteArrays.toHex).getOrElse("")}", e)
     }
   }
 
-  private def serializeKey(msgType: Byte, ts: Instant): Array[Byte] = {
-    val bb = ByteBuffer.allocate(10)
-    bb.put(Version)
-    bb.put(msgType)
-    bb.putLong(ts.toEpochMilli)
-    bb.array()
+  private def deserializeV2(key: Array[Byte], value: Array[Byte]): GeoMessage = {
+    if (key.length == 1) { Clear } else {
+      val id = new String(key, 1, key.length - 1, StandardCharsets.UTF_8)
+      if (value == null) { Delete(id) } else { Change(serializer.deserialize(id, value)) }
+    }
+  }
+
+  private def deserializeV1(key: Array[Byte], value: Array[Byte]): GeoMessage = {
+    key(1).toChar match {
+      case 'C' => Change(serializerV1.deserialize(value))
+      case 'D' => Delete(new String(value, StandardCharsets.UTF_8))
+      case 'X' => Clear
+      case m   => throw new IllegalArgumentException(s"Unknown message type: $m" )
+    }
   }
 }

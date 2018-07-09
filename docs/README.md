@@ -27,7 +27,7 @@ You will also need ``make``.
 
 To build HTML versions of the manuals:
 
-    $ mvn clean install -Pdocs
+    $ mvn clean install -Pdocs -pl docs
 
 If you do not have Sphinx installed the manual will not be built.
 The outputted files are written to the ``target/html`` directory. 

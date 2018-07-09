@@ -57,6 +57,7 @@ object SimpleFeatureTypes {
     val SHARING_PREFIX_KEY  = "geomesa.table.sharing.prefix"
     val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
     val INDEX_VERSIONS      = "geomesa.indices"
+    val REMOTE_VERSION      = "gm.remote.version" // note: doesn't start with geomesa so we don't persist it
     val KEYWORDS_DELIMITER  = "\u0000"
   }
 

@@ -44,14 +44,18 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
         add(Intersects.class);
     }};
 
-    public GeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute) {
+    public GeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, int xBuckets, int yBuckets) {
         super(attribute, supportedQueries);
-        index = new BucketIndex<SimpleFeature>(360, 180, new Envelope(-180.0, 180.0, -90.0, 90.0));
+        index = new BucketIndex<SimpleFeature>(xBuckets, yBuckets, new Envelope(-180.0, 180.0, -90.0, 90.0));
         geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
     }
 
     public static <A extends Geometry, O extends SimpleFeature> GeoIndex<A , O> onAttribute(SimpleFeatureType sft, Attribute<O, A> attribute) {
-        return new GeoIndex<A, O>(sft, attribute);
+        return new GeoIndex<A, O>(sft, attribute, 360, 180);
+    }
+
+    public static <A extends Geometry, O extends SimpleFeature> GeoIndex<A , O> onAttribute(SimpleFeatureType sft, Attribute<O, A> attribute, int xBuckets, int yBuckets) {
+        return new GeoIndex<A, O>(sft, attribute, xBuckets, yBuckets);
     }
 
     @Override

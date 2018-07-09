@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-// Execute : protoc --java_out=../java ./KryoLazyDensityProtoGenerator.proto
+// Execute : protoc --java_out=./geomesa-hbase/geomesa-hbase-datastore/src/main/java ./geomesa-hbase/geomesa-hbase-datastore/src/main/protobuf/GeoMesaProtoGenerator.proto
 
 option java_package = "org.locationtech.geomesa.hbase.proto";
 option java_outer_classname = "GeoMesaProto";

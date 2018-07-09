@@ -797,6 +797,27 @@ class TransformersTest extends Specification {
       }
     }
 
+    "parse maps" >> {
+      "default delimiter" >> {
+        val trans = Transformers.parseTransform("parseMap('String->Int', $0)")
+        val res = trans.eval(Array("a->1,b->2,c->3"))
+        res must beAnInstanceOf[java.util.Map[String, Int]]
+        res.asInstanceOf[java.util.Map[String, Int]].size mustEqual 3
+        res.asInstanceOf[java.util.Map[String, Int]].toMap mustEqual Map("a" -> 1, "b" -> 2, "c" -> 3)
+      }
+      "custom delimiter" >> {
+        val trans = Transformers.parseTransform("parseMap('String->Int', $0, '%', ';')")
+        val res = trans.eval(Array("a%1;b%2;c%3"))
+        res must beAnInstanceOf[java.util.Map[String, Int]]
+        res.asInstanceOf[java.util.Map[String, Int]].size mustEqual 3
+        res.asInstanceOf[java.util.Map[String, Int]].toMap mustEqual Map("a" -> 1, "b" -> 2, "c" -> 3)
+      }
+      "throw exception for invalid values" >> {
+        val trans = Transformers.parseTransform("parseMap('String->Int', $0)")
+        trans.eval(Array("a->1,b->2,c->d")) must throwAn[IllegalArgumentException]
+      }
+    }
+
     "handle default values" >> {
       val trans = Transformers.parseTransform("withDefault($0, 'foo')")
       trans.eval(Array(null)) mustEqual "foo"

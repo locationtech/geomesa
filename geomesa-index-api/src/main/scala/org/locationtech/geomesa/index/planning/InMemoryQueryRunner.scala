@@ -23,7 +23,7 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFea
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, Reprojection}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
@@ -71,7 +71,12 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
     val iter = features(sft, filter).filter(isVisible(_, auths))
 
-    CloseableIterator(transform(iter, sft, stats, query.getHints, filter))
+    val result = CloseableIterator(transform(iter, sft, stats, query.getHints, filter))
+
+    Reprojection(query) match {
+      case None    => result
+      case Some(r) => result.map(r.reproject)
+    }
   }
 
   override protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter =

@@ -102,7 +102,7 @@ Installing Custom Scripts
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Custom scripting functions are made available to GeoMesa comamnd line tools or
-distributed (mapreduce) ingest via including them on the classpath or
+distributed (map-reduce) ingest via including them on the classpath or
 setting a system property.
 
 For local usage, geomesa defines the system property ``geomesa.convert.scripts.path``
@@ -134,7 +134,7 @@ inside the archive containing the scripts:
            42                     2 files
 
 For either zip or jar files add them to the extra classpaths in your environment to
-make them available for the tools or mapreduce ingest:
+make them available for the tools or map-reduce ingest:
 
 .. code-block:: bash
 

@@ -16,17 +16,12 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
-import org.geotools.filter.identity.FeatureIdImpl
-import org.geotools.filter.text.ecql.ECQL
-import org.geotools.process.vector.TransformProcess
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBaseIndexAdapter}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-
-import scala.collection.JavaConversions._
-import scala.util.control.NonFatal
 
 /**
   * Input format that allows processing of simple features from GeoMesa based on a CQL query
@@ -36,11 +31,11 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
   val delegate = new MultiTableInputFormat
 
   var sft: SimpleFeatureType = _
-  var table: HBaseFeatureIndex = _
+  var table: HBaseIndexAdapter = _
 
   private def init(conf: Configuration): Unit = if (sft == null) {
     sft = GeoMesaConfigurator.getSchema(conf)
-    table = HBaseFeatureIndex.index(GeoMesaConfigurator.getIndexIn(conf))
+    table = HBaseFeatureIndex.index(GeoMesaConfigurator.getIndexIn(conf)).asInstanceOf[HBaseIndexAdapter]
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
     HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
@@ -62,96 +57,75 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
                                   context: TaskAttemptContext): RecordReader[Text, SimpleFeature] = {
     init(context.getConfiguration)
     val rr = delegate.createRecordReader(split, context)
-    val transformSchema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
-    val schema = transformSchema.getOrElse(sft)
-    val q = GeoMesaConfigurator.getFilter(context.getConfiguration).map { f => ECQL.toFilter(f) }
-    // transforms are pushed down in HBase
-    new HBaseGeoMesaRecordReader(schema, table, rr, q, None)
+    val ecql = GeoMesaConfigurator.getFilter(context.getConfiguration).map(FastFilterFactory.toFilter(sft, _))
+    val transform = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
+    // TODO GEOMESA-2300 support local filtering
+    new HBaseGeoMesaRecordReader(table, sft, ecql, transform, rr, true)
   }
 }
 
-class HBaseGeoMesaRecordReader(sft: SimpleFeatureType,
-                               table: HBaseFeatureIndex,
+class HBaseGeoMesaRecordReader(table: HBaseIndexAdapter,
+                               sft: SimpleFeatureType,
+                               ecql: Option[Filter],
+                               transform: Option[SimpleFeatureType],
                                reader: RecordReader[ImmutableBytesWritable, Result],
-                               filterOpt: Option[Filter],
-                               transformSchema: Option[SimpleFeatureType])
+                               remoteFiltering: Boolean)
     extends RecordReader[Text, SimpleFeature] with LazyLogging {
 
-  private var staged: SimpleFeature = _
+  import scala.collection.JavaConverters._
 
-  private val nextFeature =
-    (filterOpt, transformSchema) match {
-      case (Some(filter), Some(ts)) =>
-        val indices = ts.getAttributeDescriptors.map { ad => sft.indexOf(ad.getLocalName) }
-        val fn = table.toFeaturesWithFilterTransform(sft, filter, Array.empty[TransformProcess.Definition], indices.toArray, ts)
-        nextFeatureFromOptional(fn)
+  private val results = new Iterator[Result] {
 
-      case (Some(filter), None) =>
-        val fn = table.toFeaturesWithFilter(sft, filter)
-        nextFeatureFromOptional(fn)
+    private var current: Result = _
 
-      case (None, Some(ts))         =>
-        val indices = ts.getAttributeDescriptors.map { ad => sft.indexOf(ad.getLocalName) }
-        val fn = table.toFeaturesWithTransform(sft, Array.empty[TransformProcess.Definition], indices.toArray, ts)
-        nextFeatureFromDirect(fn)
-
-      case (None, None)         =>
-        val fn = table.toFeaturesDirect(sft)
-        nextFeatureFromDirect(fn)
+    override def hasNext: Boolean = {
+      if (current != null) {
+        true
+      } else if (reader.nextKeyValue()) {
+        current = reader.getCurrentValue
+        true
+      } else {
+        false
+      }
     }
 
-  private val getId = table.getIdFromRow(sft)
+    override def next(): Result = {
+      val res = current
+      current = null
+      res
+    }
+  }
+
+  private val features =
+    if (remoteFiltering) {
+      // transforms and filter are pushed down, so we don't have to deal with them here
+      table.resultsToFeatures(sft, transform.getOrElse(sft))(results)
+    } else {
+      // TODO GEOMESA-2300 this doesn't handle anything beyond simple attribute projection
+      val transforms = transform.map { tsft =>
+        (tsft.getAttributeDescriptors.asScala.map(d => s"${d.getLocalName}=${d.getLocalName}").mkString(";"), tsft)
+      }
+      table.resultsToFeatures(sft, ecql, transforms)(results)
+    }
+
+  private var staged: SimpleFeature = _
 
   override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = reader.initialize(split, context)
 
   override def getProgress: Float = reader.getProgress
 
-  override def nextKeyValue(): Boolean = nextKeyValueInternal()
-
-  override def getCurrentValue: SimpleFeature = staged
-
-  override def getCurrentKey = new Text(staged.getID)
-
-  override def close(): Unit = reader.close()
-
-  /**
-    * Get the next key value from the underlying reader, incrementing the reader when required
-    */
-  private def nextKeyValueInternal(): Boolean = {
-    nextFeature()
-    if (staged != null) {
-      val row = reader.getCurrentKey
-      val offset = row.getOffset
-      val length = row.getLength
-      staged.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.get(), offset, length, staged))
+  override def nextKeyValue(): Boolean = {
+    if (features.hasNext) {
+      staged = features.next
       true
     } else {
       false
     }
   }
 
-  private def nextFeatureFromOptional(toFeature: Result => Option[SimpleFeature]) = () => {
-    staged = null
-    while (staged == null && reader.nextKeyValue()) {
-      try {
-        toFeature(reader.getCurrentValue) match {
-          case Some(feature) => staged = feature
-          case None => staged = null
-        }
-      } catch {
-        case NonFatal(e) => logger.error(s"Error reading row: ${reader.getCurrentValue}", e)
-      }
-    }
-  }
+  override def getCurrentValue: SimpleFeature = staged
 
-  private def nextFeatureFromDirect(toFeature: Result => SimpleFeature) = () => {
-    staged = null
-    while (staged == null && reader.nextKeyValue()) {
-      try {
-        staged = toFeature(reader.getCurrentValue)
-      } catch {
-        case NonFatal(e) => logger.error(s"Error reading row: ${reader.getCurrentValue}", e)
-      }
-    }
-  }
+  override def getCurrentKey = new Text(staged.getID)
+
+  override def close(): Unit = reader.close()
 }

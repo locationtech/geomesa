@@ -41,7 +41,7 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
   }
 
   /**
-    * Static cost - equals 100, range 250
+    * Static cost - equals 100, range 250, not null 5000
     *
     * high cardinality: / 10
     * low cardinality: * 10
@@ -62,7 +62,9 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
         val cost = stats.flatMap(_.getCount(sft, f, exact = false)).getOrElse {
           val binding = sft.getDescriptor(attribute).getType.getBinding
           val bounds = FilterHelper.extractAttributeBounds(f, attribute, binding)
-          if (bounds.precise && bounds.nonEmpty && !bounds.exists(_.isRange)) {
+          if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
+            AttributeFilterStrategy.StaticNotNullCost
+          } else if (bounds.precise && !bounds.exists(_.isRange)) {
             AttributeFilterStrategy.StaticEqualsCost
           } else {
             AttributeFilterStrategy.StaticRangeCost
@@ -80,8 +82,9 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
 
 object AttributeFilterStrategy {
 
-  val StaticEqualsCost = 100L
-  val StaticRangeCost  = 250L
+  val StaticEqualsCost  = 100L
+  val StaticRangeCost   = 250L
+  val StaticNotNullCost = 5000L
 
   /**
     * Checks for attribute filters that we can satisfy using the attribute index strategy

@@ -8,10 +8,11 @@
 
 package org.locationtech.geomesa.utils.index
 
+import java.util.concurrent.{Executors, TimeUnit}
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Envelope, Point}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -28,41 +29,48 @@ class BucketIndexTest extends Specification with LazyLogging {
       val envelopes = (0 until numFeatures).map(i => (i, WKTUtils.read(s"POINT(45.$i 50)").getEnvelopeInternal)).toArray
       val index = new BucketIndex[Int]()
       val running = new AtomicBoolean(true)
-      val insert = new Thread(new Runnable(){
+
+      var inserts = 0L
+      var queries = 0L
+      var removes = 0L
+
+      val es = Executors.newFixedThreadPool(3)
+      es.submit(new Runnable(){
         override def run(): Unit = {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
             index.insert(envelopes(i)._2, i)
+            inserts += 1
           }
         }
       })
-      val query = new Thread(new Runnable(){
+      es.submit(new Runnable(){
         override def run(): Unit = {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
-            index.query(envelopes(i)._2).mkString("")
+            index.query(envelopes(i)._2).foreach(_ => Unit)
+            queries += 1
           }
         }
       })
-      val remove = new Thread(new Runnable(){
+      es.submit(new Runnable(){
         override def run(): Unit = {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
             index.remove(envelopes(i)._2, i)
+            removes += 1
           }
         }
       })
-      insert.start()
-      query.start()
-      remove.start()
+
+      es.shutdown()
       Thread.sleep(1000)
       running.set(false)
-      insert.join()
-      query.join()
-      remove.join()
+      es.awaitTermination(1, TimeUnit.SECONDS)
+
       success
     }
 
@@ -77,6 +85,20 @@ class BucketIndexTest extends Specification with LazyLogging {
       }
       pts.foreach { pt =>
         val env = WKTUtils.read(pt).getEnvelopeInternal
+        val results = index.query(env).toSeq
+        results must contain(pt)
+      }
+      success
+    }
+
+    "support insert by point and query" in {
+      val index = new BucketIndex[Point]()
+      val pts = for (x <- -180 to 180; y <- -90 to 90) yield { WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point] }
+      pts.foreach { pt =>
+        index.insert(pt.getX, pt.getY, pt.toString, pt)
+      }
+      pts.foreach { pt =>
+        val env = pt.getEnvelopeInternal
         val results = index.query(env).toSeq
         results must contain(pt)
       }

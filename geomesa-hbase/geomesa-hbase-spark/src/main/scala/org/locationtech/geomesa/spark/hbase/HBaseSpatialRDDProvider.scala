@@ -17,8 +17,7 @@ import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{Query, Transaction}
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory}
+import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory, HBaseQueryPlan}
 import org.locationtech.geomesa.hbase.jobs.GeoMesaHBaseInputFormat
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
@@ -29,6 +28,8 @@ import org.opengis.feature.simple.SimpleFeature
 
 class HBaseSpatialRDDProvider extends SpatialRDDProvider {
 
+  import org.locationtech.geomesa.index.conf.QueryHints._
+
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
 
@@ -36,47 +37,63 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
           sc: SparkContext,
           dsParams: Map[String, String],
           origQuery: Query): SpatialRDD = {
-    import org.locationtech.geomesa.index.conf.QueryHints._
+
     val ds = DataStoreConnector.loadingMap.get(dsParams).asInstanceOf[HBaseDataStore]
-    // force loose bbox to be false
-    origQuery.getHints.put(QueryHints.LOOSE_BBOX, false)
 
     // get the query plan to set up the iterators, ranges, etc
     lazy val sft = ds.getSchema(origQuery.getTypeName)
-    lazy val qp = ds.getQueryPlan(origQuery).head
+    lazy val qps = {
+      // force loose bbox to be false
+      origQuery.getHints.put(QueryHints.LOOSE_BBOX, false)
+      ds.getQueryPlan(origQuery)
+    }
+    lazy val transform = ds.queryPlanner.configureQuery(sft, origQuery).getHints.getTransformSchema
 
-    if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
-      val transform = origQuery.getHints.getTransformSchema
-      SpatialRDD(sc.emptyRDD[SimpleFeature], transform.getOrElse(sft))
-    } else {
-      val transform = ds.queryPlanner.configureQuery(sft, origQuery).getHints.getTransformSchema
-      GeoMesaConfigurator.setSchema(conf, sft)
-      GeoMesaConfigurator.setSerialization(conf)
-      GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)
-      GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
-      transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
-      qp.filter.secondary.foreach { f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)) }
-      val scans = qp.ranges.map { s =>
-        val scan = s
-        // need to set the table name in each scan
-        scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
-        convertScanToString(scan)
+    def queryPlanToRDD(qp: HBaseQueryPlan, conf: Configuration): RDD[SimpleFeature] = {
+      if (qp.isInstanceOf[EmptyPlan]) {
+        sc.emptyRDD[SimpleFeature]
+      } else {
+        GeoMesaConfigurator.setSchema(conf, sft)
+        GeoMesaConfigurator.setSerialization(conf)
+        GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)
+        GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
+        transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+        // note: secondary filter is handled by scan push-down filter
+        val scans = qp.ranges.map { scan =>
+          // need to set the table name in each scan
+          scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
+          convertScanToString(scan)
+        }
+        conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
+
+        sc.newAPIHadoopRDD(conf, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
       }
-      conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
+    }
 
-      val rdd = sc.newAPIHadoopRDD(conf, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
-      SpatialRDD(rdd, transform.getOrElse(sft))
+    try {
+      if (ds == null || sft == null || qps.isEmpty || qps.forall(_.isInstanceOf[EmptyPlan])) {
+        SpatialRDD(sc.emptyRDD[SimpleFeature], origQuery.getHints.getTransformSchema.getOrElse(sft))
+      } else {
+        // can return a union of the RDDs because the query planner *should*
+        // be rewriting ORs to make them logically disjoint
+        // e.g. "A OR B OR C" -> "A OR (B NOT A) OR ((C NOT A) NOT B)"
+        val rdd = if (qps.lengthCompare(1) == 0) {
+          queryPlanToRDD(qps.head, conf) // no union needed for single query plan
+        } else {
+          sc.union(qps.map(queryPlanToRDD(_, new Configuration(conf))))
+        }
+        SpatialRDD(rdd, transform.getOrElse(sft))
+      }
+    } finally {
+      if (ds != null) {
+        ds.dispose()
+      }
     }
   }
 
   private def convertScanToString(scan: org.apache.hadoop.hbase.client.Query): String = scan match {
-    case g: Get =>
-      val proto = ProtobufUtil.toGet(g)
-      Base64.encodeBytes(proto.toByteArray)
-
-    case s: Scan =>
-      val proto = ProtobufUtil.toScan(s)
-      Base64.encodeBytes(proto.toByteArray)
+    case g: Get  => Base64.encodeBytes(ProtobufUtil.toGet(g).toByteArray)
+    case s: Scan => Base64.encodeBytes(ProtobufUtil.toScan(s).toByteArray)
   }
 
   /**

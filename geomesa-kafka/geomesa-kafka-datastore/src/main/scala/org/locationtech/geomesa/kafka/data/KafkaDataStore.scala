@@ -11,7 +11,7 @@ package org.locationtech.geomesa.kafka.data
 import java.io.IOException
 import java.util.{Properties, UUID}
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, Ticker}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
 import kafka.utils.ZkUtils
@@ -20,15 +20,18 @@ import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore, SimpleFeatureWriter}
 import org.geotools.data.{Query, Transaction}
+import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SpatialIndexSupport}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
+import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
-import org.locationtech.geomesa.kafka.index.{FeatureCacheCqEngine, FeatureCacheGuava, KafkaQueryRunner}
+import org.locationtech.geomesa.kafka.index._
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
+import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -70,16 +73,18 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         KafkaCacheLoader.NoOpLoader
       } else {
         val sft = getSchema(key)
-        val cache = if (config.cqEngine) {
-          new FeatureCacheCqEngine(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
+        val support: SpatialIndexSupport = if (config.indexConfig.cqEngine) {
+          GeoCQIndexSupport(sft, config.indexConfig.resolutionX, config.indexConfig.resolutionY)
         } else {
-          new FeatureCacheGuava(sft, config.cacheExpiry, config.cacheCleanup, config.cacheConsistency)(config.ticker)
+          BucketIndexSupport(sft, config.indexConfig.resolutionX, config.indexConfig.resolutionY)
         }
+        val cache = KafkaFeatureCache(sft, support, config.indexConfig.expiry, config.eventTime)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
+        val laz = config.indexConfig.lazyDeserialization
         val doInitialLoad = config.consumeFromBeginning
-        new KafkaCacheLoader.KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, doInitialLoad)
+        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, doInitialLoad)
       }
     }
   })
@@ -286,13 +291,13 @@ object KafkaDataStore extends LazyLogging {
                                   producerConfig: Properties,
                                   consumerConfig: Properties,
                                   consumeFromBeginning: Boolean,
-                                  cacheExpiry: Duration,
-                                  cacheCleanup: Duration,
-                                  cacheConsistency: Duration,
-                                  ticker: Ticker,
-                                  cqEngine: Boolean,
+                                  indexConfig: IndexConfig,
+                                  eventTime: Option[EventTimeConfig],
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,
                                   audit: Option[(AuditWriter, AuditProvider, String)],
                                   namespace: Option[String]) extends NamespaceConfig
+
+  case class IndexConfig(expiry: Duration, cqEngine: Boolean, resolutionX: Int, resolutionY: Int, lazyDeserialization: Boolean)
+  case class EventTimeConfig(expression: String, ordering: Boolean)
 }

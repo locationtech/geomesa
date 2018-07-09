@@ -11,6 +11,7 @@ package org.locationtech.geomesa.process.query
 import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.referencing.GeodeticCalculator
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -24,8 +25,13 @@ class ProximitySearchProcessTest extends Specification {
 
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
-  def getPoint(lat: Double, lon: Double, meters: Double): Point =
-    GeometryUtils.farthestPoint(geoFactory.createPoint(new Coordinate(lat, lon)), meters)
+  def getPoint(lat: Double, lon: Double, meters: Double): Point = {
+    val calc = new GeodeticCalculator()
+    calc.setStartingGeographicPoint(lat, lon)
+    calc.setDirection(90, meters)
+    val dest2D = calc.getDestinationGeographicPoint
+    geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY))
+  }
 
   "ProximitySearchProcess" should {
     "manually visit a feature collection" in {

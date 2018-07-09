@@ -13,14 +13,14 @@ import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.apache.spark.sql.SQLTypes
+import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.catalyst.plans.logical.Filter
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 
@@ -58,7 +58,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
 
       df.createOrReplaceTempView("chicago")
 
@@ -72,7 +72,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .option("geomesa.feature", "chicago")
         .option("cache", "true")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
 
       dfIndexed.createOrReplaceTempView("chicagoIndexed")
 
@@ -88,7 +88,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .option("spatial","true")
         .option("strategy", "RTREE")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
 
       dfPartitioned.createOrReplaceTempView("chicagoPartitioned")
 
@@ -120,7 +120,6 @@ class SparkSQLDataTest extends Specification with LazyLogging {
     }
 
     "basic sql partitioned" >> {
-      sc.sql("select * from chicagoPartitioned").show()
       val r = sc.sql("select * from chicagoPartitioned where st_equals(geom, st_geomFromWKT('POINT(-77 38)'))")
       val d = r.collect
 
@@ -184,9 +183,9 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val noPushdown = sc.sql("select geom from chicago where __fid__ = 1")
       val noPushdownPlan = noPushdown.queryExecution.optimizedPlan
 
-      pushdownPlan.children.head.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
-      pushdownDFPlan.isInstanceOf[LogicalRelation] mustEqual true // filter is pushed down
-      noPushdownPlan.children.head.isInstanceOf[Filter] mustEqual true // filter remains at top level
+      pushdownPlan.children.head must beAnInstanceOf[LogicalRelation] // filter is pushed down
+      pushdownDFPlan must beAnInstanceOf[LogicalRelation] // filter is pushed down
+      noPushdownPlan.children.head must beAnInstanceOf[Filter] // filter remains at top level
     }
 
     "pushdown attribute comparison filters" >> {
@@ -205,6 +204,47 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       pushdownLte.collect().map{ r=> r.get(0) } mustEqual Array(1, 2)
       pushdownGt.first().get(0) mustEqual 3
       pushdownGte.collect().map{ r=> r.get(0) } mustEqual Array(2, 3)
+    }
+
+    "pushdown date attribute comparison filters" >> {
+      val and = "select case_number from chicago where dtg > cast('2016-01-01T01:00:00Z' as timestamp) " +
+          "and dtg < cast('2016-01-02T01:00:00Z' as timestamp)"
+      val between = "select case_number from chicago where dtg between cast('2016-01-01T01:00:00Z' as timestamp) " +
+          "and cast('2016-01-02T01:00:00Z' as timestamp)"
+
+      foreach(Seq(and, between)) { select =>
+        val df = sc.sql(select)
+        df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
+        df.collect().map(_.get(0)) mustEqual Array(2)
+      }
+    }
+
+    "pushdown date attribute string filters" >> {
+      val and = "select case_number from chicago where dtg > '2016-01-01T01:00:00Z' and dtg < '2016-01-02T01:00:00Z'"
+      val between = "select case_number from chicago where dtg between '2016-01-01T01:00:00Z' and '2016-01-02T01:00:00Z'"
+
+      foreach(Seq(and, between)) { select =>
+        val df = sc.sql(select)
+        df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
+        df.collect().map(_.get(0)) mustEqual Array(2)
+      }
+    }
+
+    "pushdown spatio-temporal filters" >> {
+      val sql = "select case_number from chicago where " +
+          "st_intersects(geom, st_makeBox2d(st_point(-77.5, 37.9), st_point(-76.5, 38.1))) and " +
+          "dtg between cast('2016-01-01T01:00:00Z' as timestamp) and cast('2016-01-03T01:00:00Z' as timestamp)"
+
+      val df = sc.sql(sql)
+      df.queryExecution.optimizedPlan.children must haveLength(1)
+      df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
+      df.collect().map(_.get(0)) mustEqual Array(2)
+    }
+
+    "preserve feature ID through dataframe ops" >> {
+      val sql = "select * from chicago where __fid__ = '1'"
+      sc.sql(sql).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
+      sc.sql(sql).withColumn("label", new Column(Literal(1))).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
     }
 
     "st_translate" >> {

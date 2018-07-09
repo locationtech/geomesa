@@ -78,34 +78,6 @@ Table sharing can be disabled by setting the user data ``geomesa.table.sharing``
 
 See :ref:`set_sft_options` for more details on how to set user data values.
 
-Moving and Migrating Data
--------------------------
-
-If you want an offline copy of your data, or you want to move data between networks, you can
-export compressed Avro files containing your simple features. To do this using the command line
-tools, use the export command with the ``format`` and ``gzip`` options:
-
-.. code-block:: bash
-
-    $ geomesa-accumulo export -c myTable -f mySft --format avro --gzip 6 -o myFeatures.avro
-
-To re-import the data into another environment, you may use the ingest command. Because the Avro file
-is self-describing, you do not need to specify any converter config or simple feature type definition:
-
-.. code-block:: bash
-
-    $ geomesa-accumulo ingest -c myTable -f mySft myFeatures.avro
-
-If your data is too large for a single file, you may run multiple exports and use CQL
-filters to separate your data.
-
-If you prefer to not use Avro files, you may do the same process with delimited text files:
-
-.. code-block:: bash
-
-    $ geomesa-accumulo export -c myTable -f mySft --format tsv --gzip 6 -o myFeatures.tsv.gz
-    $ geomesa-accumulo ingest -c myTable -f mySft myFeatures.tsv.gz
-
 .. _index_upgrades:
 
 Upgrading Existing Indices
@@ -116,7 +88,8 @@ the index format for a given schema is fixed when it is first created. Updating 
 will provide bug fixes and new features, but will not update existing data to new index formats.
 
 The exact version of an index used for each schema can be read from the ``SimpleFeatureType`` user data,
-or by simple examining the name of the index tables created by GeoMesa.
+or by simple examining the name of the index tables created by GeoMesa. See below for a description of
+current index versions.
 
 Using the GeoMesa command line tools, you can add or update an index to a newer version using ``add-index``.
 For example, you could add the XZ3 index to replace the Z3 index for a feature type with non-point geometries.
@@ -125,3 +98,92 @@ only populate features matching a CQL filter (e.g. the last month), or choose to
 data. The update is seamless, and clients can continue to query and ingest while it runs.
 
 See :ref:`add_index_command` for more details on the command line tools.
+
+.. _accumulo_index_versions:
+
+Accumulo Index Versions
+-----------------------
+
+See :ref:`index_versioning` for an explanation of index versions. The following versions are available in Accumulo:
+
+.. tabs::
+
+    .. tab:: Z3
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.1.0           Initial implementation
+        2             1.2.1           Support for non-point geometries
+
+                                      Support for shards
+        3             1.2.5           Removed support for non-point geometries in favor of xz
+
+                                      Removed redundant feature ID in row value to reduce size on disk
+
+                                      Support for per-attribute visibility
+        4             1.3.1           Support for table sharing
+        5             2.0.0           Uses fixed Z-curve implementation
+        ============= =============== =================================================================
+
+    .. tab:: Z2
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.2.2           Initial implementation
+        2             1.2.5           Removed support for non-point geometries in favor of xz
+
+                                      Removed redundant feature ID in row value to reduce size on disk
+
+                                      Support for per-attribute visibility
+        3             1.3.1           Optimized deletes
+        4             2.0.0           Uses fixed Z-curve implementation
+        ============= =============== =================================================================
+
+    .. tab:: XZ3
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.2.5           Initial implementation
+        ============= =============== =================================================================
+
+    .. tab:: XZ2
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.2.5           Initial implementation
+        ============= =============== =================================================================
+
+    .. tab:: Attribute
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.0.0           Initial implementation
+        2             1.1.0           Added secondary date index
+        3             1.2.5           Removed redundant feature ID in row value to reduce size on disk
+
+                                      Support for per-attribute visibility
+        4             1.3.1           Added secondary Z index
+        5             1.3.2           Support for shards
+        6             2.0.0-m.1       Internal row layout change
+        7             2.0.0           Uses fixed Z-curve implementation
+        ============= =============== =================================================================
+
+    .. tab:: ID
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.0.0           Initial implementation
+        2             1.2.5           Removed redundant feature ID in row value to reduce size on disk
+
+                                      Support for per-attribute visibility
+        3             2.0.0           Standardized index identifier to 'id'
+        ============= =============== =================================================================
+
+Note that GeoMesa versions prior to 1.2.2 included a geohash index. That index has been replaced with
+the Z indices and is no longer supported.

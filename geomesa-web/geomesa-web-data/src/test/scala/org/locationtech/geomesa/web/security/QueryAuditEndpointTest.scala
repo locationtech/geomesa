@@ -20,7 +20,7 @@ import org.json4s.native.JsonMethods._
 import org.json4s.{DefaultFormats, Formats, _}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventWriter, ParamsAuditProvider}
+import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventWriter}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -44,13 +44,6 @@ class QueryAuditEndpointTest extends TestWithDataStore with MutableScalatraSpec 
 
   private var startDate: String = _
   private var endDate: String = _
-
-  private lazy val auditUser = {
-    import scala.collection.JavaConverters._
-    val provider = new ParamsAuditProvider
-    provider.configure(dsParams.asInstanceOf[Map[String, java.io.Serializable]].asJava)
-    provider.getCurrentUserId
-  }
 
   val queries = Seq(
     new Query(sftName),
@@ -93,7 +86,7 @@ class QueryAuditEndpointTest extends TestWithDataStore with MutableScalatraSpec 
         AccumuloAuditService.StoreType,
         sftName,
         0L, // will vary, we'll overwrite in comparisons
-        auditUser,
+        "unknown",
         filterToString(query.getFilter),
         ViewParams.getReadableHints(query),
         0L, // will vary, we'll overwrite in comparisons
@@ -128,28 +121,28 @@ class QueryAuditEndpointTest extends TestWithDataStore with MutableScalatraSpec 
     "check for required fields" in {
       get("/test/queries") {
         status mustEqual 400
-        response.getReason() must contain("typeName not specified")
-        response.getReason() must contain("date not specified or invalid")
+        response.body must contain("typeName not specified")
+        response.body must contain("date not specified or invalid")
       }
       get("/test/queries", ("typeName", sftName)) {
         status mustEqual 400
-        response.getReason() must contain("date not specified or invalid")
+        response.body must contain("date not specified or invalid")
       }
       get("/test/queries", ("dates", "2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z")) {
         status mustEqual 400
-        response.getReason() must contain("typeName not specified")
+        response.body must contain("typeName not specified")
       }
       get("/test/queries", ("typeName", sftName), ("dates", "2015/2016")) {
         status mustEqual 400
-        response.getReason() must contain("date not specified or invalid")
+        response.body must contain("date not specified or invalid")
       }
       get("/test/queries", ("typeName", sftName), ("dates", "2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z"), ("arrow", "foo")) {
         status mustEqual 400
-        response.getReason() must contain("arrow is not a valid Boolean")
+        response.body must contain("arrow is not a valid Boolean")
       }
       get("/test/queries", ("typeName", sftName), ("dates", "2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z"), ("bin", "foo")) {
         status mustEqual 400
-        response.getReason() must contain("bin is not a valid Boolean")
+        response.body must contain("bin is not a valid Boolean")
       }
     }
     "return empty list of queries" in {

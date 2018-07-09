@@ -30,8 +30,8 @@ trait KryoFeatureDeserialization extends SimpleFeatureSerializer {
 
   private [kryo] def deserializeSft: SimpleFeatureType
 
-  private val withoutId = options.withoutId
   private val withoutUserData = !options.withUserData
+  protected val withoutId: Boolean = options.withoutId
 
   protected val readers: Array[Input => AnyRef] = getReaders(CacheKeyGenerator.cacheKey(deserializeSft), deserializeSft)
 
@@ -48,12 +48,6 @@ trait KryoFeatureDeserialization extends SimpleFeatureSerializer {
         }
       }
       KryoUserDataSerialization.deserialize(input)
-    }
-  }
-
-  protected def readId(input: Input): String = {
-    if (withoutId) { "" } else {
-      input.readString()
     }
   }
 
