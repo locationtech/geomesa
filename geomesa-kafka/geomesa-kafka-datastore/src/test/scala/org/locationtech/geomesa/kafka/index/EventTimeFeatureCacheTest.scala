@@ -13,8 +13,7 @@ import java.util.Date
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.index.BucketIndexSupport
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.EventTimeConfig
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, IndexConfig}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
@@ -30,13 +29,12 @@ class EventTimeFeatureCacheTest extends Specification {
 
   val sft = SimpleFeatureTypes.createType("track", "trackId:String,dtg:Date:default=true,*geom:Point:srid=4326")
 
-  def support = BucketIndexSupport(sft, 180, 90)
-
   "EventTimeFeatureCache" should {
     "order by event time" in {
-      val config = Some(EventTimeConfig("dtg", ordering = true))
+      val ev = Some(EventTimeConfig("dtg", ordering = true))
+      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, lazyDeserialization = true)
 
-      WithClose(KafkaFeatureCache(sft, support, Duration.Inf, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config)) { cache =>
         cache must beAnInstanceOf[EventTimeFeatureCache]
 
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
@@ -58,9 +56,10 @@ class EventTimeFeatureCacheTest extends Specification {
     }
 
     "order by event time expression" in {
-      val config = Some(EventTimeConfig("dateToLong(dtg)", ordering = true))
+      val ev = Some(EventTimeConfig("dateToLong(dtg)", ordering = true))
+      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, lazyDeserialization = true)
 
-      WithClose(KafkaFeatureCache(sft, support, Duration.Inf, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config)) { cache =>
         cache must beAnInstanceOf[EventTimeFeatureCache]
 
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
@@ -82,9 +81,10 @@ class EventTimeFeatureCacheTest extends Specification {
     }
 
     "order by message time" in {
-      val config = Some(EventTimeConfig("dtg", ordering = false))
+      val ev = Some(EventTimeConfig("dtg", ordering = false))
+      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, lazyDeserialization = true)
 
-      WithClose(KafkaFeatureCache(sft, support, Duration.Inf, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config)) { cache =>
         cache must beAnInstanceOf[EventTimeFeatureCache]
 
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
@@ -106,9 +106,10 @@ class EventTimeFeatureCacheTest extends Specification {
     }
 
     "expire by event time with ordering" in {
-      val config = Some(EventTimeConfig("dtg", ordering = true))
+      val ev = Some(EventTimeConfig("dtg", ordering = true))
+      val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, lazyDeserialization = true)
 
-      WithClose(KafkaFeatureCache(sft, support, Duration("100ms"), config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config)) { cache =>
         cache must beAnInstanceOf[EventTimeFeatureCache]
 
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(), "POINT (-78.0 35.0)")
@@ -141,9 +142,10 @@ class EventTimeFeatureCacheTest extends Specification {
     }
 
     "expire by event time without ordering" in {
-      val config = Some(EventTimeConfig("dtg", ordering = false))
+      val ev = Some(EventTimeConfig("dtg", ordering = false))
+      val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, lazyDeserialization = true)
 
-      WithClose(KafkaFeatureCache(sft, support, Duration("100ms"), config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config)) { cache =>
         cache must beAnInstanceOf[EventTimeFeatureCache]
 
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(), "POINT (-78.0 35.0)")

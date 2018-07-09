@@ -11,8 +11,7 @@ package org.locationtech.geomesa.kafka.index
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.index.BucketIndexSupport
-import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -44,8 +43,8 @@ class KafkaFeatureCacheTest extends Specification {
 
   def caches(expiry: Duration = Duration.Inf) =
     Iterator(
-      KafkaFeatureCache(sft, BucketIndexSupport(sft, 360, 180), expiry, None),
-      KafkaFeatureCache(sft, GeoCQIndexSupport(sft, Seq(("geom", CQIndexType.GEOMETRY)), 360, 180), expiry, None)
+      KafkaFeatureCache(sft, IndexConfig(expiry, None, 360, 180, Seq.empty, lazyDeserialization = true)),
+      KafkaFeatureCache(sft, IndexConfig(expiry, None, 360, 180, Seq(("geom", CQIndexType.GEOMETRY)), lazyDeserialization = true))
     )
 
   "KafkaFeatureCache" should {
