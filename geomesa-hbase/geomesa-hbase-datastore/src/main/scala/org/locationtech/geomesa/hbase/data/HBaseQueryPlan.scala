@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
+import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.filterToString
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
@@ -107,11 +108,9 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     val (scan, filterList) = calculateScanAndFilterList(ranges, remoteFilters)
     val hbaseTable = ds.connection.getTable(table)
 
-    import org.locationtech.geomesa.hbase.coprocessor._
     ds.applySecurity(scan)
-    val byteArray = serializeOptions(coprocessorConfig.configureScanAndFilter(scan, filterList))
 
-    val results = GeoMesaCoprocessor.execute(hbaseTable, byteArray).collect {
+    val results = GeoMesaCoprocessor.execute(hbaseTable, scan, filterList, coprocessorConfig.options).collect {
       case r if r.size() > 0 => coprocessorConfig.bytesToFeatures(r.toByteArray)
     }
     coprocessorConfig.reduce(results)

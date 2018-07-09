@@ -21,6 +21,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityParams}
@@ -69,7 +70,10 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val config = HBaseDataStoreConfig(catalog, remoteFilters, generateStats, audit, queryThreads, queryTimeout,
       maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl, ns)
-    buildDataStore(connection, config)
+
+    val ds = buildDataStore(connection, config)
+    GeoMesaDataStore.initRemoteVersion(ds)
+    ds
   }
 
   // overridden by BigtableFactory
