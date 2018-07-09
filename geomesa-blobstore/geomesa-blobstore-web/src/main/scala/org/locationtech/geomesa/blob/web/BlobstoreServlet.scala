@@ -13,8 +13,8 @@ import java.nio.file.attribute.PosixFilePermission._
 import java.nio.file.attribute.PosixFilePermissions
 import java.util.concurrent.ConcurrentHashMap
 import java.util.{Locale, UUID}
-import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
 
+import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
 import org.apache.commons.io.FilenameUtils
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore
@@ -31,7 +31,7 @@ import scala.collection.concurrent
 class BlobstoreServlet(val persistence: FilePersistence)
   extends PersistentDataStoreServlet
     with FileUploadSupport
-    with GZipSupport {
+    with ContentEncodingSupport {
   override def root: String = "blobstore"
 
   val maxFileSize: Int = SystemProperty(BlobstoreServlet.maxFileSizeSysProp, "50").get.toInt
@@ -100,7 +100,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
     val dsParams = datastoreParams
     val ds = new AccumuloDataStoreFactory().createDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     if (ds == null) {
-      BadRequest(reason = "Could not load data store using the provided parameters.")
+      BadRequest(body = "Could not load data store using the provided parameters")
     } else {
       val alias = params("alias")
       val prefix = keyFor(alias)
@@ -136,7 +136,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
     try {
       persistence.removeAll(persistence.keys(prefix).toSeq)
       blobStores.remove(alias) match {
-        case None      => BadRequest(reason = s"Error removing data store '$alias'")
+        case None      => BadRequest(body = s"Error removing data store '$alias'")
         case Some(abs) => Ok()
       }
     } catch {
@@ -161,13 +161,13 @@ class BlobstoreServlet(val persistence: FilePersistence)
   delete("/blob/:alias/:id/?") {
     val alias = params("alias")
     blobStores.get(alias) match {
-      case None => BadRequest(reason = "AccumuloBlobStore is not initialized.")
+      case None => BadRequest(body = "AccumuloBlobStore is not initialized")
       case Some(abs) =>
         val id = params("id")
         logger.debug("Attempting to deleteBlob: {} from store: {}", id, alias)
         try {
           abs.delete(id)
-          Ok(reason = s"deleted feature: $id")
+          Ok(body = s"deleted feature: $id")
         } catch {
           case e: Exception => handleError("Error deleting blob", e)
         }
@@ -180,7 +180,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
   get("/blob/:alias/:id/?") {
     val alias = params("alias")
     blobStores.get(alias) match {
-      case None => BadRequest(reason = "AccumuloBlobStore is not initialized.")
+      case None => BadRequest(body = "AccumuloBlobStore is not initialized")
       case Some(abs) =>
         val id = params("id")
         logger.debug("Attempting to get blob for id: {} from store: {}", id, alias)
@@ -188,7 +188,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
           val ret: Option[Blob] = Option(abs.get(id))
           ret match {
             case None =>
-              BadRequest(reason = s"Unknown ID $id")
+              BadRequest(body = s"Unknown ID $id")
             case Some(blob) =>
               contentType = "application/octet-stream"
               response.setHeader("Content-Disposition", "attachment;filename=" + blob.getLocalName)
@@ -206,13 +206,13 @@ class BlobstoreServlet(val persistence: FilePersistence)
   post("/blob/:alias/?") {
     val alias = params("alias")
     blobStores.get(alias) match {
-      case None => BadRequest(reason = "AccumuloBlobStore is not initialized in BlobStore.")
+      case None => BadRequest(body = "AccumuloBlobStore is not initialized in BlobStore")
       case Some(abs) =>
         logger.debug("Attempting to ingest file to BlobStore")
         try {
           fileParams.get("file") match {
             case None =>
-              BadRequest(reason = "no file parameter in request")
+              BadRequest(body = "no file parameter in request")
             case Some(file) =>
               val params = multiParams.map{case (k, v) => k -> v.toString}.updated(GeoMesaBlobStoreSFT.FilenameFieldName, file.getName)
               attemptBlobWriting(abs, file, params)
@@ -229,7 +229,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
       file.write(tempFile)
       val ret = abs.put(tempFile, otherParams)
       if (ret == null) {
-        BadRequest(reason = "Unable to ingest file to blobstore")
+        BadRequest(body = "Unable to ingest file to blobstore")
       } else {
         Created(body = ret, headers = Map("Location" -> request.getRequestURL.append(ret).toString))
       }

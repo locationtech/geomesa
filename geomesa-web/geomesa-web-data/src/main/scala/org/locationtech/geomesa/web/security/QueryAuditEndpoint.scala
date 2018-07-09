@@ -73,7 +73,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
           if (arrowTry.isFailure) {
             reason.append("arrow is not a valid Boolean. ")
           }
-          BadRequest(reason = reason.toString())
+          BadRequest(body = reason.toString())
         } else {
           val reader = ds.config.audit.get._1
           val interval = (dates(0), dates(1))
@@ -118,7 +118,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
           if (dates == null || dates.length != 2) {
             reason.append("date not specified or invalid. ")
           }
-          BadRequest(reason = reason.toString())
+          BadRequest(body = reason.toString())
         } else {
           val reader = ds.config.audit.get._1
           val interval = (dates(0), dates(1))
