@@ -83,21 +83,11 @@ object JavaSpatialRDD {
   implicit def toGeoJSONString(in: RDD[SimpleFeature] with Schema): RDD[String] =
     SpatialRDD.toGeoJSONString(in)
 
-  def toPyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[AnyRef]] = {
-    val i = in.schema.indexOf("geom")
-    toValueList(in)
-      .map(vl => {vl.set(i, vl.get(i).toString); vl})
-  }
+  def toPyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[AnyRef]] = toValueList(in)
 
-  def toPyKeyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[Array[AnyRef]]] = {
-    val i = in.schema.indexOf("geom")
+  def toPyKeyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[Array[AnyRef]]] =
     in.map(_.getProperties.map(p => Array(p.getName.getLocalPart, p.getValue)))
       .map(i => util.Arrays.asList(i.toSeq: _*))
-      .map(kvl => { kvl.get(i)(1) = kvl.get(i)(1).toString; kvl})
-  }
 
-  def toPyKeyValueMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String,AnyRef]] = {
-    toKeyValueJavaMap(in)
-      .map(m => { m.put("geom", m.get("geom").toString); m })
-  }
+  def toPyKeyValueMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String,AnyRef]] = toKeyValueJavaMap(in)
 }
