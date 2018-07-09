@@ -8,12 +8,18 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
+
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.security.visibility.Authorizations
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
+import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
+import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseVersionAggregator
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.{HBaseColumnGroups, HBaseFeatureIndex}
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
@@ -23,8 +29,11 @@ import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.{DistributedRunnableStats, GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import scala.util.control.NonFatal
 
 class HBaseDataStore(val connection: Connection, override val config: HBaseDataStoreConfig)
     extends HBaseDataStoreType(config) with LocalLocking {
@@ -81,8 +90,6 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
     super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[HBaseQueryPlan]]
   }
 
-  override def dispose(): Unit = super.dispose()
-
   override protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
     new HBaseFeatureCollection(source, query)
 
@@ -102,6 +109,31 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
 
   override protected def createQueryPlanner(): QueryPlanner[HBaseDataStore, HBaseFeature, Mutation] =
     new HBaseQueryPlanner(this)
+
+  override protected def loadIteratorVersions: Set[String] = {
+    val tables = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean])
+    val admin = connection.getAdmin
+    val versions = getTypeNames.par.map(getSchema).flatMap { sft =>
+      manager.indices(sft).par.flatMap { index =>
+        try {
+          val table = TableName.valueOf(index.getTableName(sft.getTypeName, this))
+          if (tables.add(table.getNameAsString) && admin.tableExists(table)) {
+            val options = HBaseVersionAggregator.configure(sft, index)
+            WithClose(connection.getTable(table)) { t =>
+              WithClose(GeoMesaCoprocessor.execute(t, new Scan().setFilter(new FilterList()), options)) { bytes =>
+                bytes.map(_.toStringUtf8).toList // force evaluation of the iterator before closing it
+              }
+            }
+          } else {
+            Seq.empty
+          }
+        } catch {
+          case NonFatal(_) => Seq.empty
+        }
+      }
+    }
+    versions.seq.toSet
+  }
 }
 
 class HBaseQueryPlanner(ds: HBaseDataStore) extends HBaseQueryPlannerType(ds) {
@@ -123,6 +155,5 @@ class HBaseQueryPlanner(ds: HBaseDataStore) extends HBaseQueryPlannerType(ds) {
 }
 
 object HBaseDataStore {
-  import scala.collection.JavaConverters._
-  val EmptyAuths: java.util.List[String] = List("").asJava
+  val EmptyAuths: java.util.List[String] = Collections.singletonList("")
 }

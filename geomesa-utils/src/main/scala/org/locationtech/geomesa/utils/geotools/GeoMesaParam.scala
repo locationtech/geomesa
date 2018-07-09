@@ -16,6 +16,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.Parameter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam._
+import org.locationtech.geomesa.utils.text.DurationParsing
 
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
@@ -204,7 +205,7 @@ object GeoMesaParam {
     }
   }
 
-  private def parseDuration(text: String): Duration = Duration(text)
+  private def parseDuration(text: String): Duration = DurationParsing.caseInsensitive(text)
 
   private def printDuration(duration: Duration): String =
     if (duration == Duration.Inf) { "Inf" } else { duration.toString }

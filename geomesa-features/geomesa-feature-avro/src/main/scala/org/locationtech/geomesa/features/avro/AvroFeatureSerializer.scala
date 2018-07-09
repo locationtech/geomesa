@@ -13,6 +13,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, DirectBinaryEncoder, EncoderFactory}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
+import org.locationtech.geomesa.features.SimpleFeatureSerializer.LimitedSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
@@ -21,14 +22,14 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  * @param options the options to apply when encoding
  */
 class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[SerializationOption] = Set.empty)
-    extends SimpleFeatureSerializer {
+    extends SimpleFeatureSerializer with LimitedSerialization {
 
   private val writer = new AvroSimpleFeatureWriter(sft, options)
 
   // Encode using a direct binary encoder that is reused. No need to buffer
   // small simple features. Reuse a common BAOS as well.
   private val baos = new ByteArrayOutputStream()
-  private var reuse: DirectBinaryEncoder = null
+  private var reuse: DirectBinaryEncoder = _
 
   override def serialize(feature: SimpleFeature): Array[Byte] = {
     baos.reset()
@@ -49,7 +50,7 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
  */
 class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: SimpleFeatureType,
                                         val options: Set[SerializationOption] = Set.empty)
-    extends SimpleFeatureSerializer {
+    extends SimpleFeatureSerializer with LimitedSerialization {
 
   private val reader = new FeatureSpecificReader(original, projected, options)
 
@@ -57,9 +58,9 @@ class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: 
     throw new NotImplementedError("This instance only handles deserialization")
   override def deserialize(bytes: Array[Byte]): SimpleFeature = decode(new ByteArrayInputStream(bytes))
 
-  private var reuse: BinaryDecoder = null
+  private var reuse: BinaryDecoder = _
 
-  def decode(is: InputStream) = {
+  def decode(is: InputStream): AvroSimpleFeature = {
     reuse = DecoderFactory.get().directBinaryDecoder(is, reuse)
     reader.read(null, reuse)
   }

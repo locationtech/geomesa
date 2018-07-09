@@ -53,18 +53,26 @@ class Z3FeatureIdGenerator extends FeatureIdGenerator {
  */
 object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
 
+  private val NullGeom = "Cannot meaningfully index a feature with a NULL geometry"
+
   /**
-   * Creates a UUID where the first 8 bytes are based on the z3 index of the feature and
-   * the second 8 bytes are based on a random number.
-   *
-   * This provides uniqueness along with locality.
-   */
+    * Creates a UUID where the first 8 bytes are based on the z3 index of the feature and
+    * the second 8 bytes are based on a random number.
+    *
+    * This provides uniqueness along with locality.
+    *
+    * @param sft simple feature type
+    * @param sf feature
+    * @return
+    */
   def createUuid(sft: SimpleFeatureType, sf: SimpleFeature): UUID = {
     val time = sft.getDtgIndex.flatMap(i => Option(sf.getAttribute(i)).map(_.asInstanceOf[Date].getTime))
         .getOrElse(System.currentTimeMillis())
 
     val pt = sf.getAttribute(sft.getGeomIndex)
-    validateGeometry(pt.asInstanceOf[Geometry])
+    if (pt == null) {
+      throw new IllegalArgumentException(NullGeom)
+    }
 
     if (sft.isPoints) {
       createUuid(pt.asInstanceOf[Point], time, sft.getZ3Interval)
@@ -74,15 +82,35 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
     }
   }
 
+  /**
+    * Create a UUID based on the raw values that make up the z3
+    *
+    * @param geom geometry
+    * @param time millis since java epoch
+    * @param period z3 time period
+    * @return
+    */
   def createUuid(geom: Geometry, time: Long, period: TimePeriod): UUID = {
-    validateGeometry(geom)
-
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+
+    if (geom == null) {
+      throw new IllegalArgumentException(NullGeom)
+    }
     createUuid(geom.safeCentroid(), time, period)
   }
 
+  /**
+    * Create a UUID based on the raw values that make up the z3, optimized for point geometries
+    *
+    * @param pt point
+    * @param time millis since java epoch
+    * @param period z3 time period
+    * @return
+    */
   def createUuid(pt: Point, time: Long, period: TimePeriod): UUID = {
-    validateGeometry(pt)
+    if (pt == null) {
+      throw new IllegalArgumentException(NullGeom)
+    }
 
     // create the random part
     // this uses the same temp array we use later, so be careful with the order this gets called
@@ -118,11 +146,28 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
     new UUID(mostSigBits, leastSigBits)
   }
 
-  // features with a null geometry-to-index should be rejected
-  private def validateGeometry(geom: Geometry): Unit = if (geom == null) {
-    throw new IllegalArgumentException("Cannot meaningfully index a feature with a NULL geometry")
+  /**
+    * Gets the z3 time period bin based on a z3 uuid
+    *
+    * @param uuid uuid, as bytes
+    * @return
+    */
+  def timeBin(uuid: Array[Byte], offset: Int = 0): Short = timeBin(uuid(offset), uuid(offset + 1), uuid(offset + 2))
+
+  /**
+    * Gets the z3 time period bin based on a z3 uuid
+    *
+    * @param b0 first byte of the uuid
+    * @param b1 second byte of the uuid
+    * @param b2 third byte of the uuid
+    * @return
+    */
+  def timeBin(b0: Byte, b1: Byte, b2: Byte): Short = {
+    // undo the lo-hi byte merging to get the two bytes for the time period
+    Shorts.fromBytes(lohi(b0, b1), lohi(b1, b2))
   }
 
-  // takes 4 low bits from b1 and 4 high bits of b2 as a new byte
-  private def lohi(b1: Byte, b2: Byte) = ((b1 << 4) | (b2 >>> 4)).asInstanceOf[Byte]
+  // takes 4 low bits from b1 as the new hi bits, and 4 high bits of b2 as the new low bits, of a new byte
+  private def lohi(b1: Byte, b2: Byte): Byte =
+    ((java.lang.Byte.toUnsignedInt(b1) << 4) | (java.lang.Byte.toUnsignedInt(b2) >>> 4)).asInstanceOf[Byte]
 }

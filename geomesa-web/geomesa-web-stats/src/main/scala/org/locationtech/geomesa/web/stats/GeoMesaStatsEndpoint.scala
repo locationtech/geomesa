@@ -30,8 +30,6 @@ import scala.reflect.ClassTag
 class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScalatraServlet.DefaultRootPath)
     extends GeoMesaScalatraServlet with LazyLogging with NativeJsonSupport with SwaggerSupport {
 
-  // must override applicationName for Swagger to work
-  override def applicationName: Option[String] = Some(s"$rootPath/$root")
   override def root: String = "stats"
   override def defaultFormat: Symbol = 'json
   override protected def applicationDescription: String = "The GeoMesa Stats API"

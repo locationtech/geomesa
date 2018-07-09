@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 class BigtableDataStore(connection: Connection, config: HBaseDataStoreConfig)
     extends HBaseDataStore(connection, config) {
   override def manager: HBaseIndexManagerType = BigtableFeatureIndex
+  override protected def loadIteratorVersions: Set[String] = Set.empty
 }
 
 class BigtableDataStoreFactory extends HBaseDataStoreFactory {

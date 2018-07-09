@@ -51,9 +51,20 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
 
   protected def createFeature(id: String, offsets: Array[Int], userDataOffset: Int, input: Input): SimpleFeature
 
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes, 0, bytes.length)
 
-  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
+    deserialize(id, bytes, 0, bytes.length)
+
+  // TODO read into a byte array so we can lazily evaluate it
+  // user data is tricky here as we don't know the length...
+  override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError
+  override def deserialize(id: String, in: InputStream): SimpleFeature = throw new NotImplementedError
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    deserialize("", bytes, offset, length)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
     val input = new Input(bytes, offset, offset + length)
     if (input.readInt(true) != KryoFeatureSerializer.VERSION) {
       throw new IllegalArgumentException("Can't process features serialized with wrong version")
@@ -61,7 +72,7 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
     // read the start of the offsets, then the feature id
     val offsets = Array.ofDim[Int](readers.length)
     val offsetStarts = offset + input.readInt()
-    val id = readId(input)
+    val finalId = if (withoutId) { id } else { input.readString() }
     // now read our offsets
     input.setPosition(offsetStarts) // set to offsets start
     var i = 0
@@ -75,14 +86,9 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
     }
     val userDataOffset = input.position()
 
-    createFeature(id, offsets, userDataOffset, input)
+    createFeature(finalId, offsets, userDataOffset, input)
   }
 
-  override def deserialize(in: InputStream): SimpleFeature = {
-    // TODO read into a byte array so we can lazily evaluate it
-    // user data is tricky here as we don't know the length...
-    throw new NotImplementedError
-  }
 
   protected def readAttribute(index: Int, offsets: Array[Int], input: Input): AnyRef = {
     val offset = offsets(index)

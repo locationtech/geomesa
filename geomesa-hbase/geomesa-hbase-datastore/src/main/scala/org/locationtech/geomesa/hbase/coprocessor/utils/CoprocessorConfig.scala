@@ -8,18 +8,9 @@
 
 package org.locationtech.geomesa.hbase.coprocessor.utils
 
-import org.apache.hadoop.hbase.client.Scan
-import org.apache.hadoop.hbase.protobuf.ProtobufUtil
-import org.locationtech.geomesa.hbase.coprocessor.{FILTER_OPT, SCAN_OPT}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeature
 
 case class CoprocessorConfig(options: Map[String, String],
                              bytesToFeatures: Array[Byte] => SimpleFeature,
-                             reduce: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = (i) => i) {
-  def configureScanAndFilter(scan: Scan): Map[String, String] = {
-    import org.apache.hadoop.hbase.util.Base64
-    options.updated(FILTER_OPT, Base64.encodeBytes(scan.getFilter.toByteArray))
-      .updated(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
-  }
-}
+                             reduce: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = (i) => i)
