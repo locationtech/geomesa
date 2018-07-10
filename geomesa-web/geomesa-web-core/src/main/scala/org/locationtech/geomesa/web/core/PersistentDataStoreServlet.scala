@@ -16,9 +16,7 @@ trait PersistentDataStoreServlet extends GeoMesaScalatraServlet {
 
   override def datastoreParams: Map[String, String] = {
     val ds = super.datastoreParams
-    if (ds.nonEmpty) {
-      ds
-    } else {
+    if (ds.nonEmpty) { ds } else {
       params.get("alias").map(getPersistedDataStore).getOrElse(Map.empty)
     }
   }
