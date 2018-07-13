@@ -139,7 +139,7 @@ object SimpleFeatureValidator {
       if (date == null) {
         lastErr = "Null date attribute"
         false
-      } else if(geom == null) {
+      } else if (geom == null) {
         lastErr = "Null geometry attribute"
         false
       } else if (date.before(minDate)) {
@@ -148,7 +148,7 @@ object SimpleFeatureValidator {
       } else if (date.after(maxDate)) {
         lastErr = s"Date is after Z3 Max Date ($maxDate)"
         false
-      } else  if (!wholeWorldEnvelope.contains(geom.getEnvelopeInternal)) {
+      } else if (!wholeWorldEnvelope.contains(geom.getEnvelopeInternal)) {
         lastErr = s"Geometry exceeds world bounds ($wholeWorldEnvelope)"
         false
       } else {
