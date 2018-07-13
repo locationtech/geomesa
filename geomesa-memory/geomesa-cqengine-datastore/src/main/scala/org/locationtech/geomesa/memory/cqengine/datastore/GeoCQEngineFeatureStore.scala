@@ -55,11 +55,11 @@ class GeoCQEngineFeatureStore(engine: GeoCQEngine, entry: ContentEntry, query: Q
   override def getBoundsInternal(query: Query): ReferencedEnvelope = null
 
   override def getCountInternal(query: Query): Int =
-    SelfClosingIterator(engine.getReaderForFilter(query.getFilter)).length
+    SelfClosingIterator(engine.query(query.getFilter)).length
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     import scala.collection.JavaConversions._
-    new DelegateFeatureReader(engine.sft, new DelegateFeatureIterator(engine.getReaderForFilter(query.getFilter)))
+    new DelegateFeatureReader(engine.sft, new DelegateFeatureIterator(engine.query(query.getFilter)))
   }
 
   object GeoCQEngineQueryCapabilities extends QueryCapabilities {

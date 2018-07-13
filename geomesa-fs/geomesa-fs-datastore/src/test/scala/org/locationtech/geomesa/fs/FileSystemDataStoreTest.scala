@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs
 
-import java.io.File
+import java.io.{File, IOException}
 import java.nio.file.Files
 import java.time.temporal.ChronoUnit
 
@@ -109,6 +109,17 @@ class FileSystemDataStoreTest extends Specification {
       PartitionScheme.addToSft(sameSft, partitionScheme)
 
       ds2.createSchema(sameSft) must not(throwA[Throwable])
+    }
+
+    "reject schemas with reserved words" >> {
+      val sft = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
+      val ds = DataStoreFinder.getDataStore(Map(
+        "fs.path" -> dir.getPath,
+        "fs.encoding" -> "parquet",
+        "fs.config" -> "parquet.compression=gzip"))
+      PartitionScheme.addToSft(sft, partitionScheme)
+      ds.createSchema(sft) must throwAn[IllegalArgumentException]
+      ds.getSchema(sft.getTypeName) must throwAn[IOException] // content data store schema does not exist
     }
 
     "support transforms" >> {

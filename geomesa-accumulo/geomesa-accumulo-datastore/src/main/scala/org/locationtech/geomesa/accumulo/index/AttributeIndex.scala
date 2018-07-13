@@ -491,12 +491,18 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     * full index range query:
     *   high cardinality - 100
     *   unknown cardinality - 1010
+    * full index not null query:
+    *   high cardinality - 500
+    *   unknown cardinality - 5050
     * join index equals query:
     *   high cardinality - 100
     *   unknown cardinality - 1010
     * join index range query:
     *   high cardinality - 1000
     *   unknown cardinality - 10100
+    * join index not null query:
+    *   high cardinality - 5000
+    *   unknown cardinality - 50500
     *
     * Compare with id lookups at 1, z2/z3 at 200-401
     */
@@ -513,23 +519,24 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
       if bounds.nonEmpty
     } yield {
       if (bounds.disjoint) { 0L } else {
-        // scale attribute cost by expected cardinality
+        // high cardinality attributes and equality queries are prioritized
+        // joins and not-null queries are de-prioritized
+
         val baseCost = descriptor.getCardinality() match {
           case Cardinality.HIGH    => 10
           case Cardinality.UNKNOWN => 101
           case Cardinality.LOW     => 1000
         }
-        // range queries don't allow us to use our secondary z-index
         val secondaryIndexMultiplier = {
-          val isEqualsQuery = bounds.precise && !bounds.exists(_.isRange)
-          if (isEqualsQuery) { 1 } else { 10 }
+          if (!bounds.forall(_.isBounded)) { 50 } // not null
+          else if (bounds.precise && !bounds.exists(_.isRange)) { 1 } // equals
+          else { 10 } // range
         }
-        // join queries are much more expensive than non-join queries
         val joinMultiplier = {
-          val isJoin = descriptor.getIndexCoverage == IndexCoverage.FULL ||
+          val notJoin = descriptor.getIndexCoverage == IndexCoverage.FULL ||
             IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
             IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)
-          if (isJoin) { 1 } else { 10 + (bounds.values.length - 1) }
+          if (notJoin) { 1 } else { 10 + (bounds.values.length - 1) }
         }
 
         baseCost * secondaryIndexMultiplier * joinMultiplier

@@ -20,6 +20,7 @@ geospatial analytics.
 
 * <a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
 * GeoMesa [Users](https://locationtech.org/mhonarc/lists/geomesa-users/) and [Dev](https://locationtech.org/mhonarc/lists/geomesa-dev/) mailing lists
+* GeoMesa [JIRA](https://geomesa.atlassian.net/issues/?jql=order+by+created+DESC) for issue tracking
 
 ## Documentation
 
@@ -183,11 +184,3 @@ provides the script `build/mvn`, which is a wrapper around Maven that downloads 
 [Zinc](https://github.com/typesafehub/zinc), a fast incremental compiler:
 
     build/mvn clean install -T8 -DskipTests
-
-## Scala 2.10 Support
-
-GeoMesa uses Scala 2.11 by default. To build for Scala 2.10, run:
-
-    build/change-scala-version.sh 2.10
-
-This will update the project poms to publish artifacts with a `_2.10` suffix. Then build normally using maven.

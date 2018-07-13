@@ -121,28 +121,28 @@ class QueryAuditEndpointTest extends TestWithDataStore with MutableScalatraSpec 
     "check for required fields" in {
       get("/test/queries") {
         status mustEqual 400
-        response.getReason() must contain("typeName not specified")
-        response.getReason() must contain("date not specified or invalid")
+        response.body must contain("typeName not specified")
+        response.body must contain("date not specified or invalid")
       }
       get("/test/queries", ("typeName", sftName)) {
         status mustEqual 400
-        response.getReason() must contain("date not specified or invalid")
+        response.body must contain("date not specified or invalid")
       }
       get("/test/queries", ("dates", "2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z")) {
         status mustEqual 400
-        response.getReason() must contain("typeName not specified")
+        response.body must contain("typeName not specified")
       }
       get("/test/queries", ("typeName", sftName), ("dates", "2015/2016")) {
         status mustEqual 400
-        response.getReason() must contain("date not specified or invalid")
+        response.body must contain("date not specified or invalid")
       }
       get("/test/queries", ("typeName", sftName), ("dates", "2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z"), ("arrow", "foo")) {
         status mustEqual 400
-        response.getReason() must contain("arrow is not a valid Boolean")
+        response.body must contain("arrow is not a valid Boolean")
       }
       get("/test/queries", ("typeName", sftName), ("dates", "2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z"), ("bin", "foo")) {
         status mustEqual 400
-        response.getReason() must contain("bin is not a valid Boolean")
+        response.body must contain("bin is not a valid Boolean")
       }
     }
     "return empty list of queries" in {

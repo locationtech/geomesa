@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.features.kryo
 
+import java.io.InputStream
+
 import com.esotericsoftware.kryo.io.Input
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
@@ -32,6 +34,7 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
   private val offsets = Array.fill[Int](numProjectedAttributes)(-1)
   private val readersInOrder = Array.ofDim[(Input) => AnyRef](numProjectedAttributes)
   private val indices = Array.ofDim[Int](original.getAttributeCount)
+  private val withoutId = options.withoutId
 
   setup()
 
@@ -48,9 +51,18 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
     }
   }
 
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes, 0, bytes.length)
 
-  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = deserialize(id, bytes, 0, bytes.length)
+
+  override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError
+
+  override def deserialize(id: String, in: InputStream): SimpleFeature = throw new NotImplementedError
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    deserialize("", bytes, offset, length)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
     val input = KryoFeatureDeserialization.getInput(bytes, offset, length)
     if (input.readInt(true) != KryoFeatureSerializer.VERSION) {
       throw new IllegalArgumentException("Can't process features serialized with an older version")
@@ -58,7 +70,7 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
     val attributes = Array.ofDim[AnyRef](numProjectedAttributes)
     // read in the offsets
     val offsetStart = offset + input.readInt()
-    val id = input.readString()
+    val finalId = if (withoutId) { id }  else { input.readString() }
     input.setPosition(offsetStart)
     var i = 0
     while (i < indices.length) {
@@ -79,7 +91,7 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
       }
       i += 1
     }
-    val sf = new ScalaSimpleFeature(projected, id, attributes)
+    val sf = new ScalaSimpleFeature(projected, finalId, attributes)
     if (options.withUserData) {
       // skip offset data
       input.setPosition(offsetStart)

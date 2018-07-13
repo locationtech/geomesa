@@ -51,14 +51,22 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
                               attributes: Array[AnyRef],
                               userData: java.util.Map[AnyRef, AnyRef]): SimpleFeature
 
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = readFeature("", getInput(bytes, 0, bytes.length))
+
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature =
+    readFeature(id, getInput(bytes, 0, bytes.length))
 
   override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    readFeature(getInput(bytes, offset, length))
+    readFeature("", getInput(bytes, offset, length))
 
-  override def deserialize(in: InputStream): SimpleFeature = readFeature(getInput(in))
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    readFeature(id, getInput(bytes, offset, length))
 
-  private def readFeature(input: Input): SimpleFeature = {
+  override def deserialize(in: InputStream): SimpleFeature = readFeature("", getInput(in))
+
+  override def deserialize(id: String, in: InputStream): SimpleFeature = readFeature(id, getInput(in))
+
+  private def readFeature(id: String, input: Input): SimpleFeature = {
     val offset = input.position()
     if (input.readInt(true) != KryoFeatureSerializer.VERSION) {
       throw new IllegalArgumentException("Can't process features serialized with an older version")
@@ -66,7 +74,7 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
 
     // read the start of the offsets - we'll stop reading when we hit this
     val limit = offset + input.readInt()
-    val id = readId(input)
+    val finalId = if (withoutId) { id } else { input.readString() }
     val attributes = Array.ofDim[AnyRef](readers.length)
     var i = 0
     while (i < readers.length && input.position < limit) {
@@ -74,6 +82,6 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
       i += 1
     }
     val userData = readUserData(input, skipOffsets = true)
-    createFeature(id, attributes, userData)
+    createFeature(finalId, attributes, userData)
   }
 }

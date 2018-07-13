@@ -18,8 +18,6 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class GeoCQEngineTest extends Specification with LazyLogging {
   "GeoCQEngine" should {
@@ -29,16 +27,16 @@ class GeoCQEngineTest extends Specification with LazyLogging {
 
       // Set up CQEngine with no indexes
       val cqNoIndexes = new GeoCQEngine(sft, enableGeomIndex=false)
-      cqNoIndexes.addAll(feats)
+      cqNoIndexes.insert(feats)
 
       // Set up CQEngine with all indexes
       val cqWithIndexes = new GeoCQEngine(sftWithIndexes, enableFidIndex=true, enableGeomIndex=true)
-      cqWithIndexes.addAll(feats)
+      cqWithIndexes.insert(feats)
 
       def getGeoToolsCount(filter: Filter) = feats.count(filter.evaluate)
 
       def getCQEngineCount(filter: Filter, cq: GeoCQEngine) = {
-        SelfClosingIterator(cq.getReaderForFilter(filter)).size
+        SelfClosingIterator(cq.query(filter)).size
       }
 
       def checkFilter(filter: Filter, cq: GeoCQEngine): MatchResult[Int] = {
