@@ -80,7 +80,7 @@ on new ``SimpleFeatures``, use a ``StreamListener``:
     ds.asInstanceOf[org.locationtech.geomesa.stream.datastore.StreamDataStore].registerListener(listener)
 
 UDP
-----
+---
 
 The generic source can be used with UDP as well, although there are some
 caveats:

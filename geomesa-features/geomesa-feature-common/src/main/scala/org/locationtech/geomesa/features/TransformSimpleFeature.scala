@@ -94,6 +94,23 @@ class TransformSimpleFeature(transformSchema: SimpleFeatureType,
   override def isNillable: Boolean = true
   override def validate(): Unit = throw new NotImplementedError
 
+  override def hashCode: Int = getID.hashCode()
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case other: SimpleFeature =>
+      getID == other.getID && getName == other.getName && getAttributeCount == other.getAttributeCount && {
+        var i = 0
+        while (i < getAttributeCount) {
+          if (getAttribute(i) != other.getAttribute(i)) {
+            return false
+          }
+          i += 1
+        }
+        true
+      }
+    case _ => false
+  }
+
   override def toString = s"TransformSimpleFeature:$getID"
 }
 

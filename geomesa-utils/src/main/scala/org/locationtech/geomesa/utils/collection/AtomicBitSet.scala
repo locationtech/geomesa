@@ -69,6 +69,17 @@ class AtomicBitSet(array: AtomicIntegerArray) {
     }
     false // note: code will never reach here but compiler doesn't seem to realize
   }
+
+  /**
+    * Resets all values
+    */
+  def clear(): Unit = {
+    var i = 0
+    while (i < array.length) {
+      array.set(i, 0)
+      i += 1
+    }
+  }
 }
 
 object AtomicBitSet {

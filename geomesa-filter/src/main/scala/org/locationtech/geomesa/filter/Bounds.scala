@@ -45,6 +45,13 @@ case class Bounds[T](lower: Bound[T], upper: Bound[T]) {
     */
   def isRange: Boolean = lower.value.isEmpty || lower.value != upper.value
 
+  /**
+    * Covers a single value
+    *
+    * @return
+    */
+  def isEquals: Boolean = !isRange
+
   override def toString: String = {
     (if (lower.inclusive) { "[" } else { "(" }) + lower.value.getOrElse("-\u221E") + "," +
       upper.value.getOrElse("+\u221E") + (if (upper.inclusive) { "]" } else { ")" })

@@ -96,7 +96,7 @@ object KryoFeatureSerialization {
     offsets.getOrElseUpdate(sft, Array.ofDim[Int](size))
 
   // noinspection UnitInMap
-  def getWriters(key: String, sft: SimpleFeatureType): Array[(Output, AnyRef) => Unit] = {
+  private [geomesa] def getWriters(key: String, sft: SimpleFeatureType): Array[(Output, AnyRef) => Unit] = {
     import scala.collection.JavaConversions._
     writers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
       val bindings = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
@@ -104,7 +104,7 @@ object KryoFeatureSerialization {
     }.toArray)
   }
 
-  private def matchWriter(bindings: Seq[ObjectType]): (Output, AnyRef) => Unit = {
+  private [geomesa] def matchWriter(bindings: Seq[ObjectType]): (Output, AnyRef) => Unit = {
     bindings.head match {
       case ObjectType.STRING =>
         (o: Output, v: AnyRef) => o.writeString(v.asInstanceOf[String]) // write string supports nulls

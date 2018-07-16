@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.index.index
 
-import com.google.common.primitives.UnsignedBytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.IndexKeySpace.{ByteRange, ScanRange, ToIndexKeyBytes}
@@ -131,10 +130,8 @@ object IndexKeySpace {
 
   object ByteRange {
 
+    import ByteArrays.ByteOrdering
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
-    implicit val ByteOrdering: Ordering[Array[Byte]] =
-      Ordering.comparatorToOrdering(UnsignedBytes.lexicographicalComparator)
 
     val UnboundedLowerRange: Array[Byte] = Array.empty
     val UnboundedUpperRange: Array[Byte] = Array.fill(3)(ByteArrays.MaxByte)
