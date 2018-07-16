@@ -97,7 +97,8 @@ trait AttributeIndexKeySpace extends IndexKeySpace[AttributeIndexValues[Any], At
     AttributeIndexValues(attribute, i, bounds.asInstanceOf[FilterValues[Bounds[Any]]], binding.asInstanceOf[Class[Any]])
   }
 
-  override def getRanges(values: AttributeIndexValues[Any]): Iterator[ScanRange[AttributeIndexKey]] = {
+  override def getRanges(values: AttributeIndexValues[Any],
+                         multiplier: Int): Iterator[ScanRange[AttributeIndexKey]] = {
 
     import AttributeIndexKey.encodeForQuery
     import org.locationtech.geomesa.filter.WILDCARD_SUFFIX

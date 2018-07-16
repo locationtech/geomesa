@@ -71,9 +71,11 @@ abstract class IndexKeySpace[T, U](implicit val ordering: Ordering[U]) {
     * Creates ranges over the index keys
     *
     * @param values index values @see getIndexValues
+    * @param multiplier hint for how many times the ranges will be multiplied. can be used to
+    *                   inform the number of ranges generated
     * @return
     */
-  def getRanges(values: T): Iterator[ScanRange[U]]
+  def getRanges(values: T, multiplier: Int = 1): Iterator[ScanRange[U]]
 
   /**
     * Creates bytes from ranges

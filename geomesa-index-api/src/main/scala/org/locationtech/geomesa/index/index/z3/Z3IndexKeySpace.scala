@@ -122,12 +122,15 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
     Z3IndexValues(z3, geometries, xy, intervals, timesByBin.toMap)
   }
 
-  override def getRanges(values: Z3IndexValues): Iterator[ScanRange[Z3IndexKey]] = {
+  override def getRanges(values: Z3IndexValues, multiplier: Int): Iterator[ScanRange[Z3IndexKey]] = {
     val Z3IndexValues(z3, _, xy, _, timesByBin) = values
 
-    val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
+    // note: `target` will always be Some, as ScanRangesTarget has a default value
+    val target = QueryProperties.ScanRangesTarget.option.map { t =>
+      math.max(1, if (timesByBin.isEmpty) { t.toInt } else { t.toInt / timesByBin.size } / multiplier)
+    }
 
-    def toZRanges(t: Seq[(Long, Long)]): Seq[IndexRange] = z3.ranges(xy, t, 64, rangeTarget)
+    def toZRanges(t: Seq[(Long, Long)]): Seq[IndexRange] = z3.ranges(xy, t, 64, target)
 
     lazy val wholePeriodRanges = toZRanges(z3.wholePeriod)
 

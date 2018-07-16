@@ -91,14 +91,19 @@ trait BaseTieredFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatu
           case TieredByteRange(lo, hi, _, true) => createRange(lo, ByteArrays.concat(hi, ByteRange.UnboundedUpperRange))
           case TieredByteRange(lo, hi, _, false) => createRange(lo, hi)
           case r => throw new IllegalArgumentException(s"Unexpected range type $r")
-        }
+        }.toSeq
       } else {
+        val bytes = keySpace.getRangeBytes(keySpace.getRanges(values), prefixes, tier = true).toSeq
+
         // only evaluate the tiered ranges if needed - depending on the primary filter we might not use them
-        lazy val tiers = tier.getRangeBytes(tier.getRanges(tier.getIndexValues(sft, secondary, explain))).toSeq
+        lazy val tiers = {
+          val multiplier = math.max(1, bytes.count(_.isInstanceOf[SingleRowByteRange]))
+          tier.getRangeBytes(tier.getRanges(tier.getIndexValues(sft, secondary, explain), multiplier)).toSeq
+        }
         lazy val minTier = ByteRange.min(tiers)
         lazy val maxTier = ByteRange.max(tiers)
 
-        keySpace.getRangeBytes(keySpace.getRanges(values), prefixes, tier = true).flatMap {
+        bytes.flatMap {
           case SingleRowByteRange(row) =>
             // single row - we can use all the tiered ranges appended to the end
             if (tiers.isEmpty) {
@@ -127,7 +132,7 @@ trait BaseTieredFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatu
 
       val useFullFilter = keySpace.useFullFilter(Some(values), Some(ds.config), hints)
       val ecql = if (useFullFilter) { filter.filter } else { filter.secondary }
-      val config = updateScanConfig(sft, scanConfig(sft, ds, filter, ranges.toSeq, ecql, hints), Some(values))
+      val config = updateScanConfig(sft, scanConfig(sft, ds, filter, ranges, ecql, hints), Some(values))
       scanPlan(sft, ds, filter, config)
     }
   }
