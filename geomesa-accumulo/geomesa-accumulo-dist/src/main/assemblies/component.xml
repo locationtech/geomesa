@@ -166,14 +166,6 @@
             </excludes>
         </fileSet>
 
-        <fileSet>
-            <directory>../../geomesa-web/geomesa-web-install/target</directory>
-            <outputDirectory>dist/webservices</outputDirectory>
-            <fileMode>0644</fileMode>
-            <includes>
-                <include>spark-*-geomesa-assembly.jar</include>
-            </includes>
-        </fileSet>
     </fileSets>
     <files>
         <!-- geomesa-site.xml.template -->
