@@ -44,9 +44,7 @@ geomesa.scan.ranges.target
 This property provides a rough upper-limit for the number of row ranges that will be scanned for a single
 query. It is specified as a number. In general, more ranges will result in fewer false-positive rows being
 scanned, which will speed up most queries. However, too many ranges can take a long time to generate, and
-overwhelm clients, causing slowdowns. The optimal value depends on the environment. Note that for temporal
-queries against the Z3 or XZ3 index, the number of ranges will be multiplied by the number of time periods
-(e.g. weeks by default) being queried.
+overwhelm clients, causing slowdowns. The optimal value depends on the environment.
 
 geomesa.query.timeout
 +++++++++++++++++++++

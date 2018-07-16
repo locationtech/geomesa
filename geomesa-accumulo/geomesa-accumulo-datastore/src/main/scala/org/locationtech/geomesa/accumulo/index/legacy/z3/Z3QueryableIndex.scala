@@ -155,7 +155,11 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
         }
       }
 
-      val rangeTarget = QueryProperties.ScanRangesTarget.option.map(_.toInt)
+      val rangeTarget = {
+        // note: this will always be Some, as ScanRangesTarget has a default value
+        val opt = QueryProperties.ScanRangesTarget.option
+        if (timesByBin.isEmpty) { opt.map(_.toInt) } else { opt.map(_.toInt / timesByBin.size) }
+      }
       def toZRanges(t: Seq[(Long, Long)]): Seq[(Array[Byte], Array[Byte])] = if (sft.isPoints) {
         sfc.ranges(xy, t, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
       } else {

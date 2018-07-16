@@ -46,7 +46,7 @@ trait IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {
     identifiers.map(serializer.apply)
   }
 
-  override def getRanges(values: Set[Array[Byte]]): Iterator[ScanRange[Array[Byte]]] =
+  override def getRanges(values: Set[Array[Byte]], multiplier: Int): Iterator[ScanRange[Array[Byte]]] =
     values.iterator.map(SingleRowRange.apply)
 
   override def getRangeBytes(ranges: Iterator[ScanRange[Array[Byte]]],
