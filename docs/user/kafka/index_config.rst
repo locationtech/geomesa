@@ -76,6 +76,11 @@ type. See :ref:`in_memory_index` for more information. Note that when using CQEn
 not be indexed without an explicit configuration (e.g. ``geom:geometry`` in the parameter value). In addition,
 CQEngine may require more processing than the standard index.
 
+As an example, consider the schema ``name:String,age:Int,dtg:Date,*geom:Point:srid=4326``. To create an index
+on each attribute, you could set ``kafka.cache.cqengine.indices`` to
+``name:radix,age:default,dtg:navigable,geom:geometry``. See :ref:`in_memory_index` for an explanation of the
+index types.
+
 Lazy Deserialization
 --------------------
 
