@@ -44,7 +44,7 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
       ds
     }
     if (ds == null) {
-      BadRequest(reason = "Could not load data store using the provided parameters.")
+      BadRequest(body = "Could not load data store using the provided parameters")
     } else {
       method(ds)
     }
@@ -66,7 +66,7 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
     val dsParams = datastoreParams
     val ds = Try(DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]).getOrElse(null)
     if (ds == null) {
-      BadRequest(reason = "Could not load data store using the provided parameters.")
+      BadRequest(body = "Could not load data store using the provided parameters.")
     } else {
       dataStoreCache.put(dsParams.toSeq.sorted.mkString(","), ds)
       val alias = params("alias")

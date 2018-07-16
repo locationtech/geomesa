@@ -118,6 +118,9 @@ class GeoMesaParamTest extends Specification with LazyLogging {
     }
     "lookup durations" in {
       new GeoMesaParam[Duration]("foo").lookup(Map("foo" -> "10s")) mustEqual Duration("10s")
+      new GeoMesaParam[Duration]("foo").lookup(Map("foo" -> "10S")) mustEqual Duration("10s")
+      new GeoMesaParam[Duration]("foo").lookup(Map("foo" -> "Inf")) mustEqual Duration.Inf
+      new GeoMesaParam[Duration]("foo").lookup(Map("foo" -> "inf")) mustEqual Duration.Inf
       new GeoMesaParam[Duration]("foo").lookup(Map("foo" -> "bar")) must throwAn[IOException]
     }
     "lookup durations with defaults" in {

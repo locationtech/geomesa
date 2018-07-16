@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.conf
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.utils.text.Suffixes
+import org.locationtech.geomesa.utils.text.{DurationParsing, Suffixes}
 
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
@@ -29,7 +29,7 @@ object GeoMesaSystemProperties extends LazyLogging {
     def option: Option[String] = Option(get)
 
     def toDuration: Option[Duration] = option.flatMap { value =>
-      Try(Duration.apply(value)) match {
+      Try(DurationParsing.caseInsensitive(value)) match {
         case Success(v) => Some(v)
         case Failure(_) =>
           logger.warn(s"Invalid duration for property $property: $value")

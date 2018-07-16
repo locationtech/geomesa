@@ -98,6 +98,8 @@ The class must have a no-arg constructor.
 By default GeoMesa will use cost-based query planning, which should work well for most situations. See
 :ref:`query_planning` for more details on query planning strategies.
 
+.. _id_generator_config:
+
 geomesa.feature.id-generator
 ++++++++++++++++++++++++++++
 
@@ -105,8 +107,9 @@ This property controls the default implementation used for generating IDs for si
 if the ``USE_PROVIDED_FIDS`` or ``PROVIDED_FID`` hint is not set in the feature. It should be set to
 the fully-qualified class name for a class implementing ``org.locationtech.geomesa.utils.uuid.FeatureIdGenerator``.
 
-By default GeoMesa creates a unique feature ID partially based on the default time and geometry for the feature,
-which should work well for most situations.
+GeoMesa includes an implementing class ``org.locationtech.geomesa.utils.uuid.Z3FeatureIdGenerator``, which creates
+a unique feature ID partially based on the default time and geometry for the feature. This class is used by
+default if nothing else is specified, and should work well for most situations.
 
 geomesa.metadata.expiry
 +++++++++++++++++++++++
