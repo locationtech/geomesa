@@ -14,6 +14,10 @@ Data Store is a good choice for running Spark analytics on a few attributes at a
 minimizes the underlying data reads. In addition, due to Kudu's compression options and ability to rapidly query
 non-indexed columns, space on disk is minimized compared to more complex systems like HBase.
 
+.. warning::
+
+The GeoMesa Kudu data store is an alpha-level feature, and hasn't been robustly tested at scale.
+
 To get started with the Kudu Data Store, try the :doc:`/tutorials/geomesa-quickstart-kudu` tutorial.
 
 .. toctree::
