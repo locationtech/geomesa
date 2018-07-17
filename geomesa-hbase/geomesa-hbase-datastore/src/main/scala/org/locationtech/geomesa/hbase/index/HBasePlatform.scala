@@ -34,7 +34,7 @@ trait HBasePlatform extends HBaseIndexAdapter {
       case None =>
         // optimize the scans
         val scans = if (ranges.head.isSmall) {
-          configureGet(ds, ranges, colFamily, filterList)
+          configureSmallScans(ds, ranges, colFamily, filterList)
         } else {
           configureMultiRowRangeFilter(ds, ranges, colFamily, filterList)
         }
@@ -46,10 +46,10 @@ trait HBasePlatform extends HBaseIndexAdapter {
     }
   }
 
-  private def configureGet(ds: HBaseDataStore,
-                           ranges: Seq[Scan],
-                           colFamily: Array[Byte],
-                           hbaseFilters: Seq[HFilter]): Seq[Scan] = {
+  private def configureSmallScans(ds: HBaseDataStore,
+                                  ranges: Seq[Scan],
+                                  colFamily: Array[Byte],
+                                  hbaseFilters: Seq[HFilter]): Seq[Scan] = {
     val filterList = if (hbaseFilters.isEmpty) { None } else { Some(new FilterList(hbaseFilters: _*)) }
     ranges.foreach { r =>
       r.addColumn(colFamily, HBaseColumnGroups.default)

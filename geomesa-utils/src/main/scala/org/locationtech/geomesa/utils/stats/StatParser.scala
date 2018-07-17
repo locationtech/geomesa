@@ -43,14 +43,19 @@ object StatParser {
   }
 
   @throws(classOf[ParsingException])
-  def propertyNames(stat: String, report: Boolean = true): Seq[String] = {
+  def propertyNames(sft: SimpleFeatureType, stat: String, report: Boolean = true): Seq[String] = {
     if (stat == null) {
       throw new IllegalArgumentException("Stat must not be null")
     }
     val runner = if (report) { ReportingParseRunner(Parser.attributes) } else { BasicParseRunner(Parser.attributes) }
-    val parsing = runner.run(stat)
-    parsing.result.getOrElse {
-      throw new ParsingException(s"Invalid stat string: ${ErrorUtils.printParseErrors(parsing)}")
+    sfts.set(sft)
+    try {
+      val parsing = runner.run(stat)
+      parsing.result.getOrElse {
+        throw new ParsingException(s"Invalid stat string: ${ErrorUtils.printParseErrors(parsing)}")
+      }
+    } finally {
+      sfts.remove()
     }
   }
 

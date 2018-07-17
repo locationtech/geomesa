@@ -14,6 +14,9 @@ import org.locationtech.geomesa.filter.FilterHelper
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+/**
+  * Convenience methods for working with relational query projections (aka transforms)
+  */
 object Transforms {
 
   import scala.collection.JavaConverters._

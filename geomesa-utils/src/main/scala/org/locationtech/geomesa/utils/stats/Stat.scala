@@ -327,30 +327,6 @@ object Stat {
     }
   }
 
-  /**
-    * Get the attributes read by a stat
-    *
-    * @param sft simple feature type, for looking up attributes
-    * @param stat stat
-    * @return
-    */
-  def propertyNames(sft: SimpleFeatureType, stat: Stat): Seq[String] = {
-    stat match {
-      case s: CountStat          => Seq.empty
-      case s: DescriptiveStats   => s.properties
-      case s: EnumerationStat[_] => Seq(s.property)
-      case s: Frequency[_]       => s.dtg.toSeq.+:(s.property).distinct
-      case s: GroupBy[_]         => propertyNames(sft, apply(sft, s.stat)).+:(s.property).distinct
-      case s: Histogram[_]       => Seq(s.property)
-      case s: IteratorStackCount => Seq.empty
-      case s: MinMax[_]          => Seq(s.property)
-      case s: SeqStat            => s.stats.flatMap(propertyNames(sft, _)).distinct
-      case s: TopK[_]            => Seq(s.property)
-      case s: Z3Frequency        => Seq(s.geom, s.dtg)
-      case s: Z3Histogram        => Seq(s.geom, s.dtg)
-    }
-  }
-
   // note: adds quotes around the string
   private def safeString(s: String): String = s""""${StringEscapeUtils.escapeJava(s)}""""
 

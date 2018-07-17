@@ -27,7 +27,7 @@ import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortingSimpleFeatureIterator}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Stat}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.PropertyName
@@ -193,7 +193,7 @@ object QueryPlanner extends LazyLogging {
       } else if (hints.isDensityQuery) {
         DensityScan.propertyNames(hints, sft)
       } else if (hints.isStatsQuery) {
-        val props = Stat.propertyNames(sft, Stat(sft, hints.getStatsQuery))
+        val props = StatParser.propertyNames(sft, hints.getStatsQuery)
         if (props.nonEmpty) { props } else {
           // some stats don't require explicit props (e.g. count), so just take a field that is likely
           // to be available anyway
