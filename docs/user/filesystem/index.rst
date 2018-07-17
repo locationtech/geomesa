@@ -1,7 +1,7 @@
-FileSystem Datastore (Amazon S3, HDFS Datastore)
-================================================
+FileSystem Data Store (HDFS, S3)
+================================
 
-The GeoMesa FileSystem Datastore (FSDS) provides a cost-effective, performant solution for massive OLAP-style spatial
+The GeoMesa FileSystem datastore (FSDS) provides a cost-effective, performant solution for massive OLAP-style spatial
 data analytics using frameworks such as Apache Spark. It utilizes modern columnar formats that enable data compression
 and column-based encodings for efficient OLAP queries. GeoMesa FSDS can run on top of any distributed or local
 filesystem including Amazon S3, Hadoop HDFS, Google FileStorage, and Azure BlobStore. This enables users to realize

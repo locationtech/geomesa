@@ -22,36 +22,25 @@ import com.googlecode.cqengine.query.{Query, QueryFactory}
 import com.googlecode.cqengine.{ConcurrentIndexedCollection, IndexedCollection}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.memory.cqengine.attribute.SimpleFeatureAttribute
 import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
+import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.memory.cqengine.utils._
 import org.locationtech.geomesa.utils.index.SimpleFeatureIndex
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
 class GeoCQEngine(val sft: SimpleFeatureType,
+                  attributes: Seq[(String, CQIndexType)],
                   enableFidIndex: Boolean = false,
-                  enableGeomIndex: Boolean = true,
                   geomResolution: (Int, Int) = (360, 180),
                   dedupe: Boolean = true) extends SimpleFeatureIndex with LazyLogging {
 
-  val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
-  val attributes = SFTAttributes(sft)
+  protected val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
 
-  // Add Geometry index on default geometry first.
-  // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
-  if (enableGeomIndex) {
-    addGeoIndex(sft.getGeometryDescriptor)
-  }
-
-  if (enableFidIndex) {
-    addFidIndex()
-  }
-
-  // Add other indexes
-  sft.getAttributeDescriptors.foreach(addIndex)
+  addIndices()
 
   // methods from SimpleFeatureIndex
 
@@ -99,85 +88,56 @@ class GeoCQEngine(val sft: SimpleFeatureType,
   @deprecated def getById(id: String): Option[SimpleFeature] = Option(get(id))
   @deprecated def getReaderForFilter(filter: Filter): Iterator[SimpleFeature] = query(filter)
 
-  private def addIndex(ad: AttributeDescriptor): Unit = {
-    CQIndexingOptions.getCQIndexType(ad) match {
-      case CQIndexType.DEFAULT =>
-        ad.getType.getBinding match {
-          // Comparable fields should have a Navigable Index
-          case c if
-          classOf[java.lang.Integer].isAssignableFrom(c) ||
-            classOf[java.lang.Long].isAssignableFrom(c) ||
-            classOf[java.lang.Float].isAssignableFrom(c) ||
-            classOf[java.lang.Double].isAssignableFrom(c) ||
-            classOf[java.util.Date].isAssignableFrom(c) => addNavigableIndex(ad)
-          case c if classOf[java.lang.String].isAssignableFrom(c) => addRadixIndex(ad)
-          case c if classOf[Geometry].isAssignableFrom(c) => addGeoIndex(ad)
-          case c if classOf[UUID].isAssignableFrom(c) => addUniqueIndex(ad)
-          // TODO: Decide how boolean fields should be indexed
-          case c if classOf[java.lang.Boolean].isAssignableFrom(c) => addHashIndex(ad)
+  private def addIndices(): Unit = {
+
+    import CQIndexType._
+
+    if (enableFidIndex) {
+      cqcache.addIndex(HashIndex.onAttribute(SFTAttributes.fidAttribute))
+    }
+
+    // track attribute names in case there are duplicates...
+    val names = scala.collection.mutable.Set.empty[String]
+
+    // works around casting to T <: Comparable[T]
+    def navigableIndex[T <: Comparable[T]](name: String): NavigableIndex[T, SimpleFeature] = {
+      val attribute = new SimpleFeatureAttribute(classOf[Comparable[_]], sft, name)
+      NavigableIndex.onAttribute(attribute.asInstanceOf[Attribute[SimpleFeature, T]])
+    }
+
+    attributes.foreach { case (name, indexType) =>
+      if (indexType != NONE && names.add(name)) {
+        val descriptor = sft.getDescriptor(name)
+        require(descriptor != null, s"Could not find descriptor for $name in schema ${sft.getTypeName}")
+        val binding = descriptor.getType.getBinding
+        val index = indexType match {
+          case RADIX | DEFAULT if classOf[String].isAssignableFrom(binding) =>
+              RadixTreeIndex.onAttribute(new SimpleFeatureAttribute(classOf[String], sft, name))
+
+          case GEOMETRY | DEFAULT if classOf[Geometry].isAssignableFrom(binding) =>
+              val attribute = new SimpleFeatureAttribute(classOf[Geometry], sft, name)
+              GeoIndex.onAttribute(sft, attribute, geomResolution._1, geomResolution._2)
+
+          case DEFAULT if classOf[UUID].isAssignableFrom(binding) =>
+              UniqueIndex.onAttribute(new SimpleFeatureAttribute(classOf[UUID], sft, name))
+
+          case DEFAULT if classOf[java.lang.Boolean].isAssignableFrom(binding) =>
+              HashIndex.onAttribute(new SimpleFeatureAttribute(classOf[java.lang.Boolean], sft, name))
+
+          case NAVIGABLE | DEFAULT if classOf[Comparable[_]].isAssignableFrom(binding) =>
+            navigableIndex(name)
+
+          case UNIQUE =>
+            UniqueIndex.onAttribute(new SimpleFeatureAttribute(classOf[AnyRef], sft, name))
+
+          case HASH =>
+            HashIndex.onAttribute(new SimpleFeatureAttribute(classOf[AnyRef], sft, name))
+
+          case t =>
+              throw new IllegalArgumentException(s"No CQEngine binding available for type $t and class $binding")
         }
-
-      case CQIndexType.NAVIGABLE => addNavigableIndex(ad)
-      case CQIndexType.RADIX => addRadixIndex(ad)
-      case CQIndexType.UNIQUE => addUniqueIndex(ad)
-      case CQIndexType.HASH => addHashIndex(ad)
-      case CQIndexType.NONE => // NO-OP
+        cqcache.addIndex(index)
+      }
     }
-  }
-
-  private def addFidIndex(): Unit = {
-    val attribute = SFTAttributes.fidAttribute
-    cqcache.addIndex(HashIndex.onAttribute(attribute))
-  }
-
-  private def addGeoIndex(ad: AttributeDescriptor): Unit = {
-    val geom: Attribute[SimpleFeature, Geometry] = attributes.lookup[Geometry](ad.getLocalName)
-    cqcache.addIndex(GeoIndex.onAttribute(sft, geom, geomResolution._1, geomResolution._2))
-  }
-
-  private def addNavigableIndex(ad: AttributeDescriptor): Unit = {
-    val binding = ad.getType.getBinding
-    binding match {
-      case c if classOf[java.lang.Integer].isAssignableFrom(c) =>
-        val attr = attributes.lookup[java.lang.Integer](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-
-      case c if classOf[java.lang.Long].isAssignableFrom(c) =>
-        val attr = attributes.lookup[java.lang.Long](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-
-      case c if classOf[java.lang.Float].isAssignableFrom(c) =>
-        val attr = attributes.lookup[java.lang.Float](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-
-      case c if classOf[java.lang.Double].isAssignableFrom(c) =>
-        val attr = attributes.lookup[java.lang.Double](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-
-      case c if classOf[java.util.Date].isAssignableFrom(c) =>
-        val attr = attributes.lookup[java.util.Date](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-
-      case _ => logger.warn(s"Failed to add a Navigable index for attribute ${ad.getLocalName}")
-    }
-  }
-
-  private def addRadixIndex(ad: AttributeDescriptor): Unit = {
-    if (classOf[java.lang.String].isAssignableFrom(ad.getType.getBinding)) {
-      val attribute: Attribute[SimpleFeature, String] = attributes.lookup(ad.getLocalName)
-      cqcache.addIndex(RadixTreeIndex.onAttribute(attribute))
-    } else {
-      logger.warn(s"Failed to add a Radix index for attribute ${ad.getLocalName}.")
-    }
-  }
-
-  private def addUniqueIndex(ad: AttributeDescriptor): Unit = {
-    val attribute: Attribute[SimpleFeature, Any] = attributes.lookup(ad.getLocalName)
-    cqcache.addIndex(UniqueIndex.onAttribute(attribute))
-  }
-
-  private def addHashIndex(ad: AttributeDescriptor): Unit = {
-    val attribute: Attribute[SimpleFeature, Any] = attributes.lookup(ad.getLocalName)
-    cqcache.addIndex(HashIndex.onAttribute(attribute))
   }
 }

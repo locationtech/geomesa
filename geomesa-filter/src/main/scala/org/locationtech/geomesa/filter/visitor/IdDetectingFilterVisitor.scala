@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.filter.visitor
 
 import org.geotools.filter.visitor.DefaultFilterVisitor
-import org.opengis.filter.{Id, Or}
+import org.opengis.filter.Id
 
 /**
   * Returns true if filter contains an ID filter

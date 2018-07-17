@@ -13,19 +13,14 @@ import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, GeoMesaMetadata, MetadataAdapter, MetadataSerializer}
+import org.locationtech.geomesa.index.metadata.{CachedLazyBinaryMetadata, GeoMesaMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 
 import scala.collection.JavaConversions._
 
 class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, val serializer: MetadataSerializer[T])
-    extends GeoMesaMetadata[T] with CachedLazyMetadata[T] with AccumuloMetadataAdapter
-
-trait AccumuloMetadataAdapter extends MetadataAdapter {
-
-  protected def catalog: String
-  protected def connector: Connector
+    extends GeoMesaMetadata[T] with CachedLazyBinaryMetadata[T] {
 
   protected val config: BatchWriterConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(2)
 
@@ -51,8 +46,6 @@ trait AccumuloMetadataAdapter extends MetadataAdapter {
     }
     writer.flush()
   }
-
-  override protected def delete(row: Array[Byte]): Unit = delete(Seq(row))
 
   override protected def delete(rows: Seq[Array[Byte]]): Unit = {
     val ranges = rows.map(r => Range.exact(new Text(r)))

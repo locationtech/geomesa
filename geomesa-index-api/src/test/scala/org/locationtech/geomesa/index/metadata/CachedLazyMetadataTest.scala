@@ -13,8 +13,8 @@ import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.index.index.IndexKeySpace.ByteRange
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -36,11 +36,11 @@ class CachedLazyMetadataTest extends Specification {
     }
   }
 
-  class TestCachedLazyMetadata extends CachedLazyMetadata[String] with MetadataAdapter {
+  class TestCachedLazyMetadata extends CachedLazyBinaryMetadata[String] {
 
     lazy val tableExists = new AtomicBoolean(false)
     lazy val data =
-      Collections.synchronizedMap(new java.util.TreeMap[Array[Byte], Array[Byte]](ByteRange.ByteOrdering))
+      Collections.synchronizedMap(new java.util.TreeMap[Array[Byte], Array[Byte]](ByteArrays.ByteOrdering))
 
     override protected def serializer: MetadataSerializer[String] = MetadataStringSerializer
 
@@ -50,8 +50,6 @@ class CachedLazyMetadataTest extends Specification {
 
     override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit =
       rows.foreach { case (k, v) => data.put(k, v) }
-
-    override protected def delete(row: Array[Byte]): Unit = data.remove(row)
 
     override protected def delete(rows: Seq[Array[Byte]]): Unit = rows.foreach(data.remove)
 

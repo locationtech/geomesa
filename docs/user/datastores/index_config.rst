@@ -116,6 +116,8 @@ key ``geomesa.index.dtg``. If you would prefer to not index any date, you may di
     // disable indexing by date
     sft2.getUserData().put("geomesa.ignore.dtg", true);
 
+.. _customizing_index_creation:
+
 Customizing Index Creation
 --------------------------
 

@@ -17,7 +17,6 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestWrappedFeature, 
 import org.locationtech.geomesa.index.api.{GeoMesaIndexManager, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
-import org.locationtech.geomesa.index.index.IndexKeySpace.ByteRange
 import org.locationtech.geomesa.index.index._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -127,7 +126,7 @@ object TestGeoMesaDataStore {
 
     private val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
       override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
-        ByteRange.ByteOrdering.compare(x._1, y._1)
+        ByteArrays.ByteOrdering.compare(x._1, y._1)
     }
 
     val features = scala.collection.mutable.SortedSet.empty[(Array[Byte], SimpleFeature)](ordering)
@@ -195,7 +194,7 @@ object TestGeoMesaDataStore {
                            ecql: Option[Filter]) extends TestQueryPlanType {
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
       def contained(range: TestRange, row: Array[Byte]): Boolean =
-        ByteRange.ByteOrdering.compare(range.start, row) <= 0 && ByteRange.ByteOrdering.compare(range.end, row) > 0
+        ByteArrays.ByteOrdering.compare(range.start, row) <= 0 && ByteArrays.ByteOrdering.compare(range.end, row) > 0
       index.features.toIterator.collect {
         case (row, sf) if ranges.exists(contained(_, row)) && ecql.forall(_.evaluate(sf)) => sf
       }

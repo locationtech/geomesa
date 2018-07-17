@@ -107,7 +107,7 @@ object InMemoryQueryRunner {
                 hints: Hints,
                 filter: Option[Filter]): Iterator[SimpleFeature] = {
     if (hints.isBinQuery) {
-      val trackId = Option(hints.getBinTrackIdField).map(sft.indexOf)
+      val trackId = Option(hints.getBinTrackIdField).filter(_ != "id").map(sft.indexOf)
       val geom = hints.getBinGeomField.map(sft.indexOf)
       val dtg = hints.getBinDtgField.map(sft.indexOf)
       binTransform(features, sft, trackId, geom, dtg, hints.getBinLabelField.map(sft.indexOf), hints.isBinSorting)

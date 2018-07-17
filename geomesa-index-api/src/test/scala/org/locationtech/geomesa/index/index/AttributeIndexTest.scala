@@ -18,7 +18,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestRange}
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.index.IndexKeySpace.ByteRange
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -60,10 +59,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
   }
 
   def overlaps(r1: TestRange, r2: TestRange): Boolean = {
-    ByteRange.ByteOrdering.compare(r1.start, r2.start) match {
+    ByteArrays.ByteOrdering.compare(r1.start, r2.start) match {
       case 0 => true
-      case i if i < 0 => ByteRange.ByteOrdering.compare(r1.end, r2.start) > 0
-      case i if i > 0 => ByteRange.ByteOrdering.compare(r2.end, r1.start) > 0
+      case i if i < 0 => ByteArrays.ByteOrdering.compare(r1.end, r2.start) > 0
+      case i if i > 0 => ByteArrays.ByteOrdering.compare(r2.end, r1.start) > 0
     }
   }
 
@@ -92,7 +91,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
         val q = new Query(typeName, ECQL.toFilter(filter))
         // validate that ranges do not overlap
         foreach(ds.getQueryPlan(q, explainer = explain)) { qp =>
-          val ranges = qp.ranges.sortBy(_.start)(ByteRange.ByteOrdering)
+          val ranges = qp.ranges.sortBy(_.start)(ByteArrays.ByteOrdering)
           forall(ranges.sliding(2)) { case Seq(left, right) => overlaps(left, right) must beFalse }
         }
         SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
