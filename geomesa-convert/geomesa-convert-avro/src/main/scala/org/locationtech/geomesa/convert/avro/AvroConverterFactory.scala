@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.convert.avro
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.avro.AvroConverter.AvroConfig
+import org.locationtech.geomesa.convert.avro.AvroConverter.{AvroConfig, SchemaConfig, SchemaFile, SchemaString}
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
@@ -37,11 +37,10 @@ object AvroConverterFactory {
                                         caches: Map[String, Config],
                                         userData: Map[String, Expression]): Either[ConfigReaderFailures, AvroConfig] = {
 
-      def schemaOrFile(schema: Option[String],
-                       schemaFile: Option[String]): Either[ConfigReaderFailures, Either[String, String]] = {
-        (schema, schemaFile) match {
-          case (Some(s), None) => Right(Left(s))
-          case (None, Some(s)) => Right(Right(s))
+      def schemaOrFile(schema: Option[String], file: Option[String]): Either[ConfigReaderFailures, SchemaConfig] = {
+        (schema, file) match {
+          case (Some(s), None) => Right(SchemaString(s))
+          case (None, Some(s)) => Right(SchemaFile(s))
           case _ =>
             val reason = new FailureReason {
               override val description: String = "Exactly one of 'schema' or 'schema-file' must be defined"
@@ -61,8 +60,8 @@ object AvroConverterFactory {
 
     override protected def encodeConfig(config: AvroConfig, base: java.util.Map[String, AnyRef]): Unit = {
       config.schema match {
-        case Left(s)  => base.put("schema", s)
-        case Right(s) => base.put("schema-file", s)
+        case SchemaString(s) => base.put("schema", s)
+        case SchemaFile(s)   => base.put("schema-file", s)
       }
     }
   }

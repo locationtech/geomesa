@@ -10,12 +10,14 @@ package org.locationtech.geomesa.convert
 
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
-import java.util.ServiceLoader
+import java.util.concurrent.ConcurrentHashMap
+import java.util.{Collections, ServiceLoader}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert2
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -68,6 +70,15 @@ object SimpleFeatureConverters extends LazyLogging {
     */
   class SimpleFeatureConverterWrapper[I](converter: AbstractConverter[_ <: ConverterConfig, _, _]) extends
       SimpleFeatureConverter[I] {
+
+    private val open =
+      Collections.newSetFromMap(new ConcurrentHashMap[CloseableIterator[SimpleFeature], java.lang.Boolean])
+
+    private def register(iter: CloseableIterator[SimpleFeature]): Iterator[SimpleFeature] = {
+      open.add(iter)
+      SelfClosingIterator(iter, { iter.close(); open.remove(iter) })
+    }
+
     override lazy val caches: Map[String, EnrichmentCache] =
       converter.config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
 
@@ -78,16 +89,18 @@ object SimpleFeatureConverters extends LazyLogging {
 
     override def processSingleInput(i: I, ec: EvaluationContext): Iterator[SimpleFeature] = {
       i match {
-        case s: String => converter.process(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)), ec)
-        case b: Array[Byte] => converter.process(new ByteArrayInputStream(b), ec)
+        case s: String => register(converter.process(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)), ec))
+        case b: Array[Byte] => register(converter.process(new ByteArrayInputStream(b), ec))
         case _ => throw new NotImplementedError()
       }
     }
 
     override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] =
-      converter.process(is, ec)
+      register(converter.process(is, ec))
 
     override def createEvaluationContext(globalParams: Map[String, Any], counter: Counter): EvaluationContext =
       converter.createEvaluationContext(globalParams, Map.empty, counter)
+
+    override def close(): Unit = open.asScala.foreach(_.close())
   }
 }

@@ -15,7 +15,7 @@ import org.apache.avro.Schema.Parser
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory}
 import org.locationtech.geomesa.convert.EvaluationContext
-import org.locationtech.geomesa.convert.avro.AvroConverter.AvroConfig
+import org.locationtech.geomesa.convert.avro.AvroConverter.{AvroConfig, SchemaFile, SchemaString}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
@@ -29,8 +29,8 @@ class AvroConverter(targetSft: SimpleFeatureType,
     extends AbstractConverter(targetSft, config, fields, options) {
 
   private val schema = config.schema match {
-    case Left(s)  => new Parser().parse(s)
-    case Right(s) => new Parser().parse(getClass.getResourceAsStream(s))
+    case SchemaString(s) => new Parser().parse(s)
+    case SchemaFile(s)   => new Parser().parse(getClass.getResourceAsStream(s))
   }
 
   private val reader = new GenericDatumReader[GenericRecord](schema)
@@ -61,8 +61,13 @@ class AvroConverter(targetSft: SimpleFeatureType,
 object AvroConverter {
 
   case class AvroConfig(`type`: String,
-                        schema: Either[String, String], // left indicates string to parse, right indicates resource
+                        schema: SchemaConfig,
                         idField: Option[Expression],
                         caches: Map[String, Config],
                         userData: Map[String, Expression]) extends ConverterConfig
+
+  sealed trait SchemaConfig
+
+  case class SchemaFile(path: String) extends SchemaConfig
+  case class SchemaString(schema: String) extends SchemaConfig
 }

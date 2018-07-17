@@ -65,7 +65,11 @@ object SimpleFeatureConverter extends StrictLogging {
     val converters = factories.iterator.flatMap(_.apply(sft, config))
     if (converters.hasNext) { converters.next } else {
       val convertersV1 = factoriesV1.iterator.filter(_.canProcess(config)).map(_.buildConverter(sft, config))
-      if (convertersV1.hasNext) { new SimpleFeatureConverterWrapper(convertersV1.next) } else {
+      if (convertersV1.hasNext) {
+        val v1 = convertersV1.next
+        logger.warn(s"Wrapping deprecated converter of class ${v1.getClass.getName}, converter will not be closed")
+        new SimpleFeatureConverterWrapper(v1)
+      } else {
         throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}")
       }
     }
@@ -77,7 +81,6 @@ object SimpleFeatureConverter extends StrictLogging {
     }
   }
 
-  // TODO close converter?
   class SimpleFeatureConverterWrapper(converter: convert.SimpleFeatureConverter[_]) extends SimpleFeatureConverter {
 
     override def targetSft: SimpleFeatureType = converter.targetSFT
