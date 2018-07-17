@@ -20,7 +20,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore, SimpleFeatureWriter}
 import org.geotools.data.{Query, Transaction}
-import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SpatialIndexSupport}
+import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport, SpatialIndexSupport}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -76,18 +76,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         KafkaCacheLoader.NoOpLoader
       } else {
         val sft = getSchema(key)
-        val support: SpatialIndexSupport = if (config.indices.cqAttributes.nonEmpty) {
-          val attributes = if (config.indices.cqAttributes == Seq(KafkaDataStore.CqIndexFlag)) {
-            // deprecated boolean config to enable indices based on the stored simple feature type
-            CQIndexType.getDefinedAttributes(sft) ++ Option(sft.getGeomField).map((_, CQIndexType.GEOMETRY))
-          } else {
-            config.indices.cqAttributes
-          }
-          GeoCQIndexSupport(sft, attributes, config.indices.resolutionX, config.indices.resolutionY)
-        } else {
-          BucketIndexSupport(sft, config.indices.resolutionX, config.indices.resolutionY)
-        }
-        val cache = KafkaFeatureCache(sft, support, config.indices.expiry, config.indices.eventTime)
+        val cache = KafkaFeatureCache(sft, config.indices)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
