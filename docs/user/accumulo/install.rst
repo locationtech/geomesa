@@ -145,7 +145,7 @@ GeoMesa comes with a set of command line tools for managing Accumulo features lo
 
 .. note::
 
-    You can configure environment variables and classpath settings in geomesa-accumulo_2.11-$VERSION/bin/geomesa-env.sh.
+    You can configure environment variables and classpath settings in geomesa-accumulo_2.11-$VERSION/conf/geomesa-env.sh.
 
 In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa-accumulo configure`` to set up the tools.
 

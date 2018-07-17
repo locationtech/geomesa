@@ -130,8 +130,7 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
         }
 
         val jsonBoundsList = attributes.map { attribute =>
-          val i = sft.indexOf(attribute)
-          val out = boundStatList.find(_.attribute == i) match {
+          val out = boundStatList.find(_.property == attribute) match {
             case None => "\"unavailable\""
             case Some(mm) if mm.isEmpty => "\"no matching data\""
             case Some(mm) => mm.toJson
@@ -198,7 +197,7 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
             if (calculateBounds) {
               logger.debug("Calculating bounds...")
               stats.runStats[MinMax[Any]](sft, Stat.SeqStat(noBounds.map(Stat.MinMax)), filter).foreach { mm =>
-                bounds.put(sft.getDescriptor(mm.attribute).getLocalName, mm.bounds)
+                bounds.put(mm.property, mm.bounds)
               }
             } else {
               logger.debug("Using default bounds.")
@@ -221,10 +220,9 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
           stats.getStats[Histogram[Any]](sft, attributes).map {
             case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
             case histogram: Histogram[Any] =>
-              val descriptor = sft.getDescriptor(histogram.attribute)
+              val descriptor = sft.getDescriptor(histogram.property)
               val ct = ClassTag[Any](descriptor.getType.getBinding)
-              val attribute = descriptor.getLocalName
-              val statString = Stat.Histogram[Any](attribute, bins.get, histogram.min, histogram.max)(ct)
+              val statString = Stat.Histogram[Any](histogram.property, bins.get, histogram.min, histogram.max)(ct)
               val binned = Stat(sft, statString).asInstanceOf[Histogram[Any]]
               binned.addCountsFrom(histogram)
               binned
@@ -232,7 +230,7 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
         }
 
         val jsonHistogramList = attributes.map { attribute =>
-          val out = histograms.find(_.attribute == sft.indexOf(attribute)) match {
+          val out = histograms.find(_.property == attribute) match {
             case None => "\"unavailable\""
             case Some(hist) if hist.isEmpty => "\"no matching data\""
             case Some(hist) => hist.toJson

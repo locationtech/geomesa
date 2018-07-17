@@ -8,9 +8,7 @@
 
 package org.locationtech.geomesa.hbase.index
 
-import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.filters.Z2HBaseFilter
 import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
@@ -21,16 +19,11 @@ import org.opengis.feature.simple.SimpleFeatureType
 case object HBaseZ2Index extends HBaseLikeZ2Index with HBasePlatform with HBaseZ2PushDown
 
 trait HBaseLikeZ2Index extends HBaseFeatureIndex with HBaseIndexAdapter
-    with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
+    with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig] {
   override val version: Int = 2
-
-  override def configureColumnFamilyDescriptor(desc: HColumnDescriptor): Unit = {
-    desc.setDataBlockEncoding(DataBlockEncoding.FAST_DIFF)
-  }
-
 }
 
-trait HBaseZ2PushDown extends Z2Index[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
+trait HBaseZ2PushDown extends Z2Index[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig] {
 
   override protected def updateScanConfig(sft: SimpleFeatureType,
                                           config: ScanConfig,

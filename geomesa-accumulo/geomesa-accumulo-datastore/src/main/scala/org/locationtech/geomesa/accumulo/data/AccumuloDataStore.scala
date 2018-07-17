@@ -171,6 +171,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
     super.validateNewSchema(sft)
 
+    // validate column groups
+    AccumuloColumnGroups.validate(sft)
+
     if (sft.isTableSharing &&
         getTypeNames.map(getSchema).exists(t => t.isTableSharing && t.isLogicalTime != sft.isLogicalTime)) {
       logger.warn(s"Trying to create schema '${sft.getTypeName}' using " +

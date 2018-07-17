@@ -185,9 +185,8 @@ object ArrowScan {
     val dictionaryFields = hints.getArrowDictionaryFields
     val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
-      def name(i: Int): String = sft.getDescriptor(i).getLocalName
       val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => name(k.attribute) -> k).toMap
+      stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => k.property -> k).toMap
     }
 
     if (hints.isArrowDoublePass ||

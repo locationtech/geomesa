@@ -17,11 +17,10 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.KeyOnlyFilter
 import org.apache.hadoop.hbase.io.compress.Compression
-import org.apache.hadoop.hbase.util.Bytes
+import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.AllCoprocessors
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex.{DataColumnFamily, log}
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.index.ClientSideFiltering
@@ -31,11 +30,9 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
-import org.slf4j.LoggerFactory
 
 object HBaseFeatureIndex extends HBaseIndexManagerType {
 
-  private val log = LoggerFactory.getLogger(classOf[HBaseFeatureIndex])
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
     Seq(HBaseZ3Index, HBaseZ3IndexV1, HBaseXZ3Index, HBaseZ2Index, HBaseZ2IndexV1, HBaseXZ2Index, HBaseIdIndex,
@@ -51,16 +48,13 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
   override def index(identifier: String): HBaseFeatureIndex =
     super.index(identifier).asInstanceOf[HBaseFeatureIndex]
-
-  val DataColumnFamily: Array[Byte] = Bytes.toBytes("d")
-
-  val DataColumnQualifier: Array[Byte] = Bytes.toBytes("d")
-  val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[Result] with LazyLogging {
 
-  def configureColumnFamilyDescriptor(desc: HColumnDescriptor): Unit = {}
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  protected val dataBlockEncoding: Option[DataBlockEncoding] = Some(DataBlockEncoding.FAST_DIFF)
 
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
     super.configure(sft, ds)
@@ -83,10 +77,22 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
     try {
       if (!admin.tableExists(name)) {
         logger.debug(s"Creating table $name")
+
+        val compression = sft.userData[String](Configs.COMPRESSION_ENABLED).filter(_.toBoolean).map { _ =>
+          // note: all compression types in HBase are case-sensitive and lower-cased
+          val compressionType = sft.userData[String](Configs.COMPRESSION_TYPE).getOrElse("gz").toLowerCase(Locale.US)
+          logger.debug(s"Setting compression '$compressionType' on table $name for feature ${sft.getTypeName}")
+          Compression.getCompressionAlgorithmByName(compressionType)
+        }
+
         val descriptor = new HTableDescriptor(name)
-        val dcfd = buildDataColumnFamilyDescriptor(sft)
-        HBaseVersions.addFamily(descriptor, dcfd)
-        configureColumnFamilyDescriptor(dcfd)
+        HBaseColumnGroups(sft).foreach { case (group, _) =>
+          val column = new HColumnDescriptor(group)
+          compression.foreach(column.setCompressionType)
+          HBaseVersions.addFamily(descriptor, column)
+          dataBlockEncoding.foreach(column.setDataBlockEncoding)
+        }
+
         if (ds.config.remoteFilter) {
           import CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY
           // if the coprocessors are installed site-wide don't register them in the table descriptor
@@ -94,6 +100,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
           val names = installed.map(_.split(":").toSet).getOrElse(Set.empty[String])
           AllCoprocessors.foreach(c => if (!names.contains(c.getCanonicalName)) { addCoprocessor(c, descriptor) })
         }
+
         admin.createTable(descriptor, getSplits(sft).toArray)
       }
     } finally {
@@ -135,17 +142,5 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
         }
       }
     }
-  }
-
-  protected def buildDataColumnFamilyDescriptor(sft: SimpleFeatureType): HColumnDescriptor = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-    val dcfd = new HColumnDescriptor(DataColumnFamily)
-    if (sft.userData(Configs.COMPRESSION_ENABLED).isDefined) {
-      // note: all compression types in HBase are case-sensitive and lower-cased
-      val compressionType = sft.userData[String](Configs.COMPRESSION_TYPE).getOrElse("gz").toLowerCase(Locale.US)
-      log.debug(s"Setting compression '$compressionType' on $name table for feature ${sft.getTypeName}")
-      dcfd.setCompressionType(Compression.getCompressionAlgorithmByName(compressionType))
-    }
-    dcfd
   }
 }

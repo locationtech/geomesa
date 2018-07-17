@@ -10,7 +10,6 @@ package org.locationtech.geomesa.index.planning
 
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{andFilters, decomposeAnd, ff}
@@ -98,10 +97,8 @@ trait QueryRunner {
     */
   protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter = {
     // bind the literal values to the appropriate type, so that it isn't done every time the filter is evaluated
-    // important: do this before running through the QueryPlanFilterVisitor, otherwise can mess with IDL handling
-    filter.accept(new BindingFilterVisitor(sft), null).asInstanceOf[Filter]
     // update the filter to remove namespaces, handle null property names, and tweak topological filters
-      .accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
+    QueryPlanFilterVisitor.apply(sft, filter)
   }
 
   /**

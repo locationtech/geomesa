@@ -100,9 +100,6 @@ class FrequencyTest extends Specification with StatTestHelper {
       forall(offsets.flatMap(o => o +  7 until o + 14))(d => splits((weekStart + 1).toShort).count(d) mustEqual 1)
       forall(offsets.flatMap(o => o + 14 until o + 21))(d => splits((weekStart + 2).toShort).count(d) mustEqual 1)
       forall(offsets.flatMap(o => o + 21 until o + 28))(d => splits((weekStart + 3).toShort).count(d) mustEqual 1)
-
-      // the splits still have to serialize the attribute, eps, etc, hence the extra 25 bytes per (split - 1)
-      splits.values.map(serializer.serialize).map(_.length).sum mustEqual serialized.length + 3 * 25
     }
 
     "work with strings" >> {
@@ -126,7 +123,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[String]]
-        unpacked.asInstanceOf[Frequency[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[String]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[String]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[String]].toJson mustEqual stat.toJson
@@ -138,7 +135,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[String]]
-        unpacked.asInstanceOf[Frequency[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[String]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[String]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[String]].toJson mustEqual stat.toJson
@@ -150,7 +147,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
 
         unpacked must beAnInstanceOf[Frequency[String]]
-        unpacked.asInstanceOf[Frequency[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[String]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[String]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[String]].toJson mustEqual stat.toJson
@@ -213,7 +210,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[Integer]]
-        unpacked.asInstanceOf[Frequency[Integer]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[Integer]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[Integer]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[Integer]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Integer]].toJson mustEqual stat.toJson
@@ -225,7 +222,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[Integer]]
-        unpacked.asInstanceOf[Frequency[Integer]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[Integer]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[Integer]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[Integer]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Integer]].toJson mustEqual stat.toJson
@@ -283,7 +280,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[jLong]]
-        unpacked.asInstanceOf[Frequency[jLong]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[jLong]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[jLong]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[jLong]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jLong]].toJson mustEqual stat.toJson
@@ -295,7 +292,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[jLong]]
-        unpacked.asInstanceOf[Frequency[jLong]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[jLong]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[jLong]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[jLong]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jLong]].toJson mustEqual stat.toJson
@@ -353,7 +350,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[jFloat]]
-        unpacked.asInstanceOf[Frequency[jFloat]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[jFloat]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[jFloat]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[jFloat]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jFloat]].toJson mustEqual stat.toJson
@@ -365,7 +362,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[jFloat]]
-        unpacked.asInstanceOf[Frequency[jFloat]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[jFloat]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[jFloat]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[jFloat]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jFloat]].toJson mustEqual stat.toJson
@@ -423,7 +420,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[jDouble]]
-        unpacked.asInstanceOf[Frequency[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[jDouble]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[jDouble]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[jDouble]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jDouble]].toJson mustEqual stat.toJson
@@ -435,7 +432,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[jDouble]]
-        unpacked.asInstanceOf[Frequency[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[jDouble]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[jDouble]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[jDouble]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jDouble]].toJson mustEqual stat.toJson
@@ -493,7 +490,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[Date]]
-        unpacked.asInstanceOf[Frequency[Date]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[Date]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[Date]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[Date]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Date]].toJson mustEqual stat.toJson
@@ -505,7 +502,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[Date]]
-        unpacked.asInstanceOf[Frequency[Date]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[Date]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[Date]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[Date]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Date]].toJson mustEqual stat.toJson
@@ -564,7 +561,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[Geometry]]
-        unpacked.asInstanceOf[Frequency[Geometry]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[Geometry]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[Geometry]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[Geometry]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Geometry]].toJson mustEqual stat.toJson
@@ -576,7 +573,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Frequency[Geometry]]
-        unpacked.asInstanceOf[Frequency[Geometry]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Frequency[Geometry]].property mustEqual stat.property
         unpacked.asInstanceOf[Frequency[Geometry]].precision mustEqual stat.precision
         unpacked.asInstanceOf[Frequency[Geometry]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Geometry]].toJson mustEqual stat.toJson

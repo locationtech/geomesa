@@ -179,12 +179,13 @@ First we create a SimpleFeatureType that is aligned with the aggregated result:
 
 .. code-block:: scala
 
-    import org.locationtech.geomesa.utils.geotools.SftBuilder
-    val sftBuilder = new SftBuilder()
-    sftBuilder.stringType("name")
-    sftBuilder.intType("numPickups")
-    sftBuilder.polygon("buffer")
-    val aggregateSft = sftBuilder.build("aggregate")
+    import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+
+    val aggregateSft = SchemaBuilder.builder()
+        .addString("name")
+        .addInt("numPickups")
+        .addPolygon("buffer")
+        .build("aggregate")
 
 Following this, we can create the schema in the data store, then safely write the data.
 

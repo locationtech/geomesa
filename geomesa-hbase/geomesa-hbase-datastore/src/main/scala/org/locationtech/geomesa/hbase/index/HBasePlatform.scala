@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.index
 
 import com.google.common.collect.Lists
 import org.apache.hadoop.hbase.TableName
-import org.apache.hadoop.hbase.client.{Get, Query, Result, Scan}
+import org.apache.hadoop.hbase.client.{Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
@@ -23,49 +23,51 @@ trait HBasePlatform extends HBaseIndexAdapter {
   override protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
                                                filter: HBaseFilterStrategyType,
-                                               ranges: Seq[Query],
+                                               ranges: Seq[Scan],
+                                               colFamily: Array[Byte],
                                                table: TableName,
                                                hbaseFilters: Seq[(Int, HFilter)],
                                                coprocessor: Option[CoprocessorConfig],
                                                toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
+    val filterList = hbaseFilters.sortBy(_._1).map(_._2)
     coprocessor match {
       case None =>
         // optimize the scans
-        val scans = ranges.head match {
-          case t: Get  => configureGet(ranges.asInstanceOf[Seq[Get]], hbaseFilters)
-          case t: Scan => configureMultiRowRangeFilter(ds, ranges.asInstanceOf[Seq[Scan]], hbaseFilters)
+        val scans = if (ranges.head.isSmall) {
+          configureSmallScans(ds, ranges, colFamily, filterList)
+        } else {
+          configureMultiRowRangeFilter(ds, ranges, colFamily, filterList)
         }
         ScanPlan(filter, table, scans, toFeatures)
 
       case Some(coprocessorConfig) =>
-        // note: coprocessors don't currently handle multiRowRangeFilters, so pass the raw ranges
-        CoprocessorPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], hbaseFilters, coprocessorConfig)
+        val scan = configureCoprocessorScan(ds, ranges, colFamily, filterList)
+        CoprocessorPlan(filter, table, ranges, scan, coprocessorConfig)
     }
   }
 
-  private def configureGet(originalRanges: Seq[Get], hbaseFilters: Seq[(Int, HFilter)]): Seq[Scan] = {
-    val filterList = if (hbaseFilters.isEmpty) { None } else {
-      Some(new FilterList(hbaseFilters.sortBy(_._1).map(_._2): _*))
+  private def configureSmallScans(ds: HBaseDataStore,
+                                  ranges: Seq[Scan],
+                                  colFamily: Array[Byte],
+                                  hbaseFilters: Seq[HFilter]): Seq[Scan] = {
+    val filterList = if (hbaseFilters.isEmpty) { None } else { Some(new FilterList(hbaseFilters: _*)) }
+    ranges.foreach { r =>
+      r.addColumn(colFamily, HBaseColumnGroups.default)
+      filterList.foreach(r.setFilter)
+      ds.applySecurity(r)
     }
-    // convert Gets to Scans for Spark SQL compatibility
-    originalRanges.map { r =>
-      val scan = new Scan(r).setSmall(true)
-      filterList.foreach(scan.setFilter)
-      scan
-    }
+    ranges
   }
 
   private def configureMultiRowRangeFilter(ds: HBaseDataStore,
                                            originalRanges: Seq[Scan],
-                                           hbaseFilters: Seq[(Int, HFilter)]) = {
+                                           colFamily: Array[Byte],
+                                           hbaseFilters: Seq[HFilter]): Seq[Scan] = {
     import scala.collection.JavaConversions._
 
-    val sortedFilters = hbaseFilters.sortBy(_._1).map(_._2)
+    val rowRanges = new java.util.ArrayList[RowRange](originalRanges.length)
+    originalRanges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
 
-    val rowRanges = Lists.newArrayList[RowRange]()
-    originalRanges.foreach { r =>
-      rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false))
-    }
     val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
     val numRanges = sortedRowRanges.length
     val numThreads = ds.config.queryThreads
@@ -81,12 +83,13 @@ trait HBasePlatform extends HBaseIndexAdapter {
       // this is unnecessary as we have already sorted and merged above
       val mrrf = new MultiRowRangeFilter(localRanges)
       // note: mrrf first priority
-      val filterList = new FilterList(sortedFilters.+:(mrrf): _*)
+      val filterList = new FilterList(hbaseFilters.+:(mrrf): _*)
 
       val s = new Scan()
       s.setStartRow(localRanges.head.getStartRow)
       s.setStopRow(localRanges.get(localRanges.length - 1).getStopRow)
       s.setFilter(filterList)
+      s.addColumn(colFamily, HBaseColumnGroups.default)
       // TODO GEOMESA-1806 parameterize cache size
       s.setCaching(1000)
       s.setCacheBlocks(true)
@@ -96,5 +99,24 @@ trait HBasePlatform extends HBaseIndexAdapter {
     // Apply Visibilities
     groupedScans.foreach(ds.applySecurity)
     groupedScans
+  }
+
+  private def configureCoprocessorScan(ds: HBaseDataStore,
+                                       ranges: Seq[Scan],
+                                       colFamily: Array[Byte],
+                                       hbaseFilters: Seq[HFilter]): Scan = {
+    val rowRanges = new java.util.ArrayList[RowRange](ranges.length)
+    ranges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
+
+    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
+    val mrrf = new MultiRowRangeFilter(sortedRowRanges)
+    // note: mrrf first priority
+    val filterList = new FilterList(hbaseFilters.+:(mrrf): _*)
+
+    val scan = new Scan()
+    scan.addColumn(colFamily, HBaseColumnGroups.default)
+    scan.setFilter(filterList)
+    ds.applySecurity(scan)
+    scan
   }
 }

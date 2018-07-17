@@ -10,20 +10,28 @@ package org.locationtech.geomesa.utils.stats
 
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.mutable
 import scala.reflect.ClassTag
 
-class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFeatureType)(implicit val ct: ClassTag[T]) extends Stat {
+class GroupBy[T] private [stats] (val sft: SimpleFeatureType,
+                                  val property: String,
+                                  val stat: String)
+                                 (implicit val ct: ClassTag[T]) extends Stat {
 
   override type S = GroupBy[T]
 
-  private [stats] val groupedStats: mutable.HashMap[T, Stat] = mutable.HashMap[T, Stat]()
+  @deprecated("property")
+  lazy val attribute: Int = i
+  @deprecated("stat")
+  lazy val exampleStat: String = stat
 
-  def size: Int = groupedStats.size
-  def get(key: T): Option[Stat] = groupedStats.get(key)
-  def getOrElse[U >: Stat](key: T, default: => U): U = groupedStats.getOrElse(key, default)
+  private val i = sft.indexOf(property)
+  private [stats] val groups = scala.collection.mutable.Map.empty[T, Stat]
 
-  private def buildNewStat: Stat = StatParser.parse(sft, exampleStat)
+  def size: Int = groups.size
+  def get(key: T): Option[Stat] = groups.get(key)
+  def getOrElse[U >: Stat](key: T, default: => U): U = groups.getOrElse(key, default)
+
+  private def buildNewStat: Stat = StatParser.parse(sft, stat)
 
   /**
     * Compute statistics based upon the given simple feature.
@@ -32,8 +40,8 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     * @param sf feature to evaluate
     */
   override def observe(sf: SimpleFeature): Unit = {
-    val key = sf.getAttribute(attribute).asInstanceOf[T]
-    groupedStats.getOrElseUpdate(key, buildNewStat).observe(sf)
+    val key = sf.getAttribute(i).asInstanceOf[T]
+    groups.getOrElseUpdate(key, buildNewStat).observe(sf)
   }
 
   /**
@@ -44,8 +52,8 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     * @param sf feature to un-evaluate
     */
   override def unobserve(sf: SimpleFeature): Unit = {
-    val key = sf.getAttribute(attribute).asInstanceOf[T]
-    groupedStats.get(key).foreach(groupedStat => groupedStat.unobserve(sf))
+    val key = sf.getAttribute(i).asInstanceOf[T]
+    groups.get(key).foreach(groupedStat => groupedStat.unobserve(sf))
   }
 
   /**
@@ -54,8 +62,8 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     * @param other the other stat to add
     */
   override def +=(other: GroupBy[T]): Unit = {
-    other.groupedStats.foreach { case (key, stat) =>
-      groupedStats.getOrElseUpdate(key, buildNewStat) += stat
+    other.groups.foreach { case (key, s) =>
+      groups.getOrElseUpdate(key, buildNewStat) += s
     }
   }
 
@@ -65,23 +73,23 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     * @param other the other stat to add
     */
   override def +(other: GroupBy[T]): GroupBy[T] = {
-    val newGB = new GroupBy[T](attribute, exampleStat, sft)
-    newGB += this
-    newGB += other
-    newGB
+    val sum = new GroupBy[T](sft, property, stat)
+    sum += this
+    sum += other
+    sum
   }
 
-  override def toJsonObject: Any = {
-    val keyClass = groupedStats.keys.headOption.map(_.getClass).getOrElse(ct.runtimeClass)
+  override def toJsonObject: Seq[Map[T, Any]] = {
+    val keyClass = groups.keys.headOption.map(_.getClass).getOrElse(ct.runtimeClass)
     if (classOf[Comparable[T]].isAssignableFrom(keyClass)) {
       val ordering = new Ordering[T] {
         def compare(l: T, r: T): Int = l.asInstanceOf[Comparable[T]].compareTo(r)
       }
-      groupedStats.toSeq.sortBy(_._1)(ordering)
+      groups.toSeq.sortBy(_._1)(ordering)
     } else {
-      groupedStats.toSeq
+      groups.toSeq
     }
-  }.map{ case (k, v) => Map(k -> v.toJsonObject) }
+  }.map { case (k, v) => Map(k -> v.toJsonObject) }
 
 
   /**
@@ -89,7 +97,7 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     *
     * @return true if stat contains values
     */
-  override def isEmpty: Boolean = groupedStats.values.forall(_.isEmpty)
+  override def isEmpty: Boolean = groups.values.forall(_.isEmpty)
 
   /**
     * Compares the two stats for equivalence. We don't use standard 'equals' as it gets messy with
@@ -101,8 +109,8 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
   override def isEquivalent(other: Stat): Boolean = {
     other match {
       case other: GroupBy[T] =>
-        other.groupedStats.keys == groupedStats.keys &&
-          groupedStats.forall{ case (key, stat) => other.groupedStats(key).isEquivalent(stat) }
+        groups.keys == other.groups.keys &&
+          groups.forall { case (key, s) => other.groups(key).isEquivalent(s) }
       case _ => false
     }
   }
@@ -111,5 +119,5 @@ class GroupBy[T](val attribute: Int, val exampleStat: String, val sft: SimpleFea
     * Clears the stat to its original state when first initialized.
     * Necessary method used by the StatIterator.
     */
-  override def clear(): Unit = groupedStats.clear()
+  override def clear(): Unit = groups.clear()
 }

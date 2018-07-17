@@ -15,28 +15,38 @@ import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.utils.clearspring.CountMinSketch
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
 
 /**
   * Estimates frequency counts at scale. Tracks geometry and date attributes as a single value.
   *
-  * @param geomIndex geometry attribute index in the sft
-  * @param dtgIndex date attribute index in the sft
+  * @param sft simple feature type
+  * @param geom geometry attribute in the sft
+  * @param dtg date attribute in the sft
   * @param period time period to use for z index
   * @param precision number of bits of z-index that will be used
   * @param eps (epsilon) with probability at least @see confidence, estimates will be within eps * N
   * @param confidence percent - with probability at least confidence, estimates will be within @see eps * N
   */
-class Z3Frequency(val geomIndex: Int,
-                  val dtgIndex: Int,
+class Z3Frequency(val sft: SimpleFeatureType,
+                  val geom: String,
+                  val dtg: String,
                   val period: TimePeriod,
                   val precision: Int,
                   val eps: Double = 0.005,
                   val confidence: Double = 0.95) extends Stat with LazyLogging {
 
   override type S = Z3Frequency
+
+  @deprecated("geom")
+  lazy val geomIndex: Int = g
+  @deprecated("dtg")
+  lazy val dtgIndex: Int = d
+
+  private val g = sft.indexOf(geom)
+  private val d = sft.indexOf(dtg)
 
   private val mask = Frequency.getMask(precision)
   private val sfc = Z3SFC(period)
@@ -89,15 +99,15 @@ class Z3Frequency(val geomIndex: Int,
     */
   def splitByTime: Seq[(Short, Z3Frequency)] = {
     sketches.toSeq.map { case (w, sketch) =>
-      val freq = new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence)
+      val freq = new Z3Frequency(sft, geom, dtg, period, precision, eps, confidence)
       freq.sketches.put(w, sketch)
       (w, freq)
     }
   }
 
   override def observe(sf: SimpleFeature): Unit = {
-    val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry]
-    val dtg  = sf.getAttribute(dtgIndex).asInstanceOf[Date]
+    val geom = sf.getAttribute(g).asInstanceOf[Geometry]
+    val dtg  = sf.getAttribute(d).asInstanceOf[Date]
     if (geom != null && dtg != null) {
       try {
         val (bin, z3) = toKey(geom, dtg)
@@ -112,7 +122,7 @@ class Z3Frequency(val geomIndex: Int,
   override def unobserve(sf: SimpleFeature): Unit = {}
 
   override def +(other: Z3Frequency): Z3Frequency = {
-    val plus = new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence)
+    val plus = new Z3Frequency(sft, geom, dtg, period, precision, eps, confidence)
     plus += this
     plus += other
     plus
@@ -136,7 +146,7 @@ class Z3Frequency(val geomIndex: Int,
   override def isEquivalent(other: Stat): Boolean = {
     other match {
       case s: Z3Frequency =>
-        geomIndex == s.geomIndex && dtgIndex == s.dtgIndex && period == s.period && precision == s.precision && {
+        geom == s.geom && dtg == s.dtg && period == s.period && precision == s.precision && {
           val nonEmpty = sketches.filter(_._2.size > 0)
           val sNonEmpty = s.sketches.filter(_._2.size > 0)
           nonEmpty.keys == sNonEmpty.keys && nonEmpty.keys.forall { k =>

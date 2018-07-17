@@ -49,7 +49,7 @@ case class StatsAdapter(sft: SimpleFeatureType,
 
   // determine all the attributes that we need to be able to evaluate the transform and filter
   private val attributes = {
-    val fromStat = StatParser.propertyNames(query) // TODO support function transforms before the stat evaluation
+    val fromStat = StatParser.propertyNames(sft, query) // TODO support function transforms before the stat evaluation
     val fromFilter = ecql.map(FilterHelper.propertyNames(_, sft)).getOrElse(Seq.empty)
     (fromStat ++ fromFilter).distinct
   }

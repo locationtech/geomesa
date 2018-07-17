@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import java.util.Collections
 import java.util.Map.Entry
 
-import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
+import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.conf.Property
@@ -28,8 +28,8 @@ import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloInde
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -37,13 +37,6 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
-
-  val FullColumnFamily      = new Text("F")
-  val IndexColumnFamily     = new Text("I")
-  val BinColumnFamily       = new Text("B")
-  val AttributeColumnFamily = new Text("A")
-
-  val EmptyColumnQualifier  = new Text()
 
   val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV3, Z2IndexV2, Z2IndexV1)
   val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV4, Z3IndexV3, Z3IndexV2, Z3IndexV1)
@@ -145,7 +138,6 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
 
 trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
 
-  import AccumuloFeatureIndex.{AttributeColumnFamily, BinColumnFamily, FullColumnFamily}
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   protected def hasPrecomputedBins: Boolean
@@ -168,12 +160,26 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     }
 
     // create locality groups
-    val cfs = if (hasPrecomputedBins) {
-      Seq(FullColumnFamily, BinColumnFamily, AttributeColumnFamily)
-    } else {
-      Seq(FullColumnFamily, AttributeColumnFamily)
+    val localityGroups = new java.util.HashMap[String, java.util.Set[Text]](ds.tableOps.getLocalityGroups(table))
+
+    def addGroup(cf: Text): Unit = {
+      val key = cf.toString
+      if (localityGroups.containsKey(key)) {
+        val update = new java.util.HashSet(localityGroups.get(key))
+        update.add(cf)
+        localityGroups.put(key, update)
+      } else {
+        localityGroups.put(key, Collections.singleton(cf))
+      }
     }
-    val localityGroups = cfs.map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
+
+    AccumuloColumnGroups(sft).foreach { case (k, _) => addGroup(k) }
+    if (sft.getVisibilityLevel == VisibilityLevel.Attribute) {
+      addGroup(AccumuloColumnGroups.AttributeColumnFamily)
+    }
+    if (hasPrecomputedBins) {
+      addGroup(AccumuloColumnGroups.BinColumnFamily)
+    }
     ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // enable block cache

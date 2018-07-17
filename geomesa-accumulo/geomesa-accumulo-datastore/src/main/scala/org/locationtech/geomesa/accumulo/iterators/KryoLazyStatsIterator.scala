@@ -44,7 +44,7 @@ object KryoLazyStatsIterator extends LazyLogging {
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
     val is = new IteratorSetting(priority, "stats-iter", classOf[KryoLazyStatsIterator])
     BaseAggregatingIterator.configure(is, deduplicate, None)
-    StatsScan.configure(sft, index, filter, hints) .foreach { case (k, v) => is.addOption(k, v) }
+    StatsScan.configure(sft, index, filter, hints).foreach { case (k, v) => is.addOption(k, v) }
     is
   }
 

@@ -38,7 +38,7 @@ trait StatsTopKCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCo
 
     attributes.foreach { attribute =>
       Command.output.info(s"Top values for '$attribute':")
-      val stat = results.find(_.attribute == sft.indexOf(attribute))
+      val stat = results.find(_.property == attribute)
       stat match {
         case None => Command.output.info("  unavailable")
         case Some(s) =>

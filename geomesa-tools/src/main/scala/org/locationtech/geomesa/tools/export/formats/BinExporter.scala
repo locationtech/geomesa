@@ -54,14 +54,3 @@ class BinExporter(hints: Hints, os: OutputStream) extends FeatureExporter {
 
   override def close(): Unit = os.close()
 }
-
-object BinExporter {
-
-  def getAttributeList(sft: SimpleFeatureType, hints: Hints): Seq[String] = {
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val geom = hints.getBinGeomField.orElse(Option(sft.getGeomField))
-    val dtg = hints.getBinDtgField.orElse(sft.getDtgField)
-    (Seq(hints.getBinTrackIdField) ++ geom ++ dtg ++ hints.getBinLabelField).filter(_ != "id")
-  }
-}

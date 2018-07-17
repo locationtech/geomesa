@@ -10,8 +10,8 @@ package org.locationtech.geomesa.accumulo.index.legacy.z3
 
 import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature, EMPTY_TEXT}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
+import org.locationtech.geomesa.accumulo.index.AccumuloColumnGroups.BinColumnFamily
+import org.locationtech.geomesa.accumulo.index.{AccumuloColumnGroups, AccumuloFeatureIndex}
 import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC}
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
@@ -49,7 +49,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
       val rows = getRowKeys(wf, dtgIndex)
       rows.map { row =>
         val mutation = new Mutation(row)
-        wf.fullValuesWithId.foreach(value => mutation.put(FullColumnFamily, EMPTY_TEXT, value.vis, value.value))
+        wf.fullValuesWithId.foreach(value => mutation.put(AccumuloColumnGroups.default, EMPTY_TEXT, value.vis, value.value))
         wf.binValues.foreach(value => mutation.put(BinColumnFamily, EMPTY_TEXT, value.vis, value.value))
         mutation
       }
@@ -69,7 +69,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
       val rows = getRowKeys(wf, dtgIndex)
       rows.map { row =>
         val mutation = new Mutation(row)
-        wf.fullValuesWithId.foreach(value => mutation.putDelete(FullColumnFamily, EMPTY_TEXT, value.vis))
+        wf.fullValuesWithId.foreach(value => mutation.putDelete(AccumuloColumnGroups.default, EMPTY_TEXT, value.vis))
         wf.binValues.foreach(value => mutation.putDelete(BinColumnFamily, EMPTY_TEXT, value.vis))
         mutation
       }

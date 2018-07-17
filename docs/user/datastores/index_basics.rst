@@ -42,23 +42,22 @@ To index an attribute, add an ``index`` key to the attribute descriptor user dat
     Accumulo data stores have an additional option to create reduced 'join' attribute indices, which can
     save space. See :ref:`accumulo_attribute_indices` for details.
 
-.. code-block:: java
+.. tabs::
 
-    SimpleFeatureType sft = ...
-    sft.getDescriptor("name").getUserData().put("index", "true");
+    .. code-tab:: java
 
-If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
+        SimpleFeatureType sft = ...
+        sft.getDescriptor("name").getUserData().put("index", "true");
 
-.. code-block:: scala
+    .. code-tab:: scala SchemaBuilder
 
-    // scala example
-    import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
+        import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 
-    val sft = new SftBuilder()
-        .stringType("name", Opts(index = true)
-        .date("dtg")
-        .geometry("geom", default = true)
-        .build("mySft")
+        val sft = SchemaBuilder.builder()
+            .addString("name").withIndex()
+            .addDate("dtg")
+            .addPoint("geom", default = true)
+            .build("mySft")
 
 Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
 

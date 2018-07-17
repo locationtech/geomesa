@@ -41,8 +41,7 @@ trait StatsBoundsCommand[DS <: DataStore with HasGeoMesaStats] extends DataStore
     }
 
     attributes.foreach { attribute =>
-      val i = sft.indexOf(attribute)
-      val out = allBounds.find(_.attribute == i) match {
+      val out = allBounds.find(_.property == attribute) match {
         case None => "[ unavailable ]"
         case Some(mm) if mm.isEmpty => "[ no matching data ]"
         case Some(mm) =>
@@ -51,7 +50,7 @@ trait StatsBoundsCommand[DS <: DataStore with HasGeoMesaStats] extends DataStore
             e.expandToInclude(mm.max.asInstanceOf[Geometry].getEnvelopeInternal)
             s"[ ${e.getMinX}, ${e.getMinY}, ${e.getMaxX}, ${e.getMaxY} ] cardinality: ${mm.cardinality}"
           } else {
-            val stringify = Stat.stringifier(sft.getDescriptor(i).getType.getBinding)
+            val stringify = Stat.stringifier(sft.getDescriptor(attribute).getType.getBinding)
             s"[ ${stringify(mm.min)} to ${stringify(mm.max)} ] cardinality: ${mm.cardinality}"
           }
       }

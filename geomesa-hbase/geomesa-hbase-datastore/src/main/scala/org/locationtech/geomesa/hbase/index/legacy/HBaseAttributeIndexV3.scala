@@ -17,6 +17,6 @@ import org.locationtech.geomesa.index.index.legacy.AttributeZIndex
 case object HBaseAttributeIndexV3 extends HBaseLikeAttributeIndexV3 with HBasePlatform
 
 trait HBaseLikeAttributeIndexV3 extends HBaseFeatureIndex
-    with AttributeZIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
+    with AttributeZIndex[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig] {
   override val version: Int = 3
 }

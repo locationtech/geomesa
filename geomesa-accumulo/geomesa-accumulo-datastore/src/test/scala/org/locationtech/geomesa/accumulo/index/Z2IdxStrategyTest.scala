@@ -20,10 +20,10 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -145,7 +145,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
           " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
       val qps = getQueryPlans(query)
-      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloFeatureIndex.BinColumnFamily)))
+      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloColumnGroups.BinColumnFamily)))
 
       val features = execute(filter, Some(Array("geom", "dtg")))
       features must haveSize(4)

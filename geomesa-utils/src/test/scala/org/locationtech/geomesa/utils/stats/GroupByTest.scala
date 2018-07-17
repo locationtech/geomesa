@@ -326,7 +326,7 @@ class GroupByTest extends Specification with StatTestHelper {
             val enums1 = enumerationStat(groupBy)
             val enums2 = enumerationStat(unpacked.asInstanceOf[GroupBy[Int]])
 
-            enums2.attribute mustEqual enums1.attribute
+            enums2.property mustEqual enums1.property
             enums2.enumeration mustEqual enums1.enumeration
             enums2.size mustEqual enums1.size
             enums2.toJson mustEqual enums1.toJson
@@ -434,7 +434,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
                 unpackedHist must beAnInstanceOf[Histogram[Int]]
                 unpackedHist.length mustEqual groupByHist.length
-                unpackedHist.attribute mustEqual groupByHist.attribute
+                unpackedHist.property mustEqual groupByHist.property
               }
             }
 

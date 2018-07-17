@@ -32,7 +32,7 @@ class StatTest extends Specification with StatTestHelper {
       val stat = Stat(sft, Stat.Histogram("foreign_key", 1000, min, max))
       stat must beAnInstanceOf[Histogram[String]]
       val histogram = stat.asInstanceOf[Histogram[String]]
-      histogram.attribute mustEqual 0
+      histogram.property mustEqual "foreign_key"
       histogram.bins.bounds mustEqual BinnedStringArray.normalizeBounds(min, max)
     }
   }

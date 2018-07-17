@@ -134,19 +134,19 @@ To enable only certain indices, you may set a user data value in your simple fea
 ``geomesa.indices.enabled``, and it should contain a comma-delimited list containing a subset of index
 identifiers, as specified in :ref:`index_overview`.
 
-See :ref:`set_sft_options` for details on setting user data. If you are using the GeoMesa ``SftBuilder``,
-you may instead call the ``withIndexes`` methods:
+See :ref:`set_sft_options` for details on setting user data. If you are using the GeoMesa ``SchemaBuilder``,
+you may instead call the ``indexes`` methods:
 
 .. code-block:: scala
 
-    // scala example
-    import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
+    import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 
-    val sft = new SftBuilder()
-        .stringType("name")
-        .date("dtg")
-        .geometry("geom", default = true)
-        .withIndexes(List("id", "z3", "attr"))
+    val sft = SchemaBuilder.builder()
+        .addString("name")
+        .addDate("dtg")
+        .addPoint("geom", default = true)
+        .userData
+        .indices(List("id", "z3", "attr"))
         .build("mySft")
 
 Configuring Feature ID Encoding
@@ -181,6 +181,64 @@ provide some benefit when exporting data in certain formats (e.g. Arrow):
 
     Ensure that you use valid UUIDs if you indicate that you are using them. Otherwise you will experience
     exceptions writing and/or reading data.
+
+Configuring Column Groups
+-------------------------
+
+For back-ends that support it (currently HBase and Accumulo), subsets of attributes may be replicated into
+separate column groups. When possible, only the reduced column groups will be scanned for a query, which avoids
+having to read unused data from disk. For schemas with a large number of attributes, this can speed up some queries,
+at the cost of writing more data to disk.
+
+Column groups are specified per attribute, using attribute-level user data. An attribute may belong to multiple
+column groups, in which case it will be replicated multiple times. All attributes will belong to the default
+column group without having to specify anything. See :ref:`attribute_options` for details on how to set attribute
+options.
+
+Column groups are specified using the user data key ``column-groups``, with the value being a comma-delimited list
+of groups for that attribute. It is recommended to keep column group names short (ideally a single character), in
+order to minimize disk usage. If a column group conflicts with one of the default groups used by GeoMesa, it
+will throw an exception when creating the schema. Currently, the reserved groups are ``d`` for HBase and
+``F``, ``A``, ``I``, and ``B`` for Accumulo.
+
+.. tabs::
+
+    .. code-tab:: java
+
+        SimpleFeatureType sft = ...
+        sft.getDescriptor("name").getUserData().put("column-groups", "a,b");
+
+    .. code-tab:: scala spec
+
+        import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+        // for java, use org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
+
+        val spec = "name:String:column-groups=a,dtg:Date:column-groups='a,b',*geom:Point:srid=4326:column-groups='a,b'"
+        SimpleFeatureTypes.createType("mySft", spec)
+
+    .. code-tab:: javascript config
+
+        geomesa {
+          sfts {
+            "mySft" = {
+              attributes = [
+                { name = "name", type = "String", column-groups = "a"                }
+                { name = "dtg",  type = "Date",   column-groups = "a,b"              }
+                { name = "geom", type = "Point",  column-groups = "a,b", srid = 4326 }
+              ]
+            }
+          }
+        }
+
+    .. code-tab:: scala SchemaBuilder
+
+        import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+
+        val sft = SchemaBuilder.builder()
+            .addString("name").withColumnGroups("a")
+            .addDate("dtg").withColumnGroups("a", "b")
+            .addPoint("geom", default = true).withColumnGroups("a", "b")
+            .build("mySft")
 
 .. _configuring_z_shards:
 
@@ -275,25 +333,24 @@ query planning. For more information, see :ref:`attribute_cardinality`.
 To set the cardinality of an attribute, use the key ``cardinality`` on the attribute, with a value of
 ``high`` or ``low``.
 
-.. code-block:: java
+.. tabs::
 
-    SimpleFeatureType sft = ...
-    sft.getDescriptor("name").getUserData().put("index", "true");
-    sft.getDescriptor("name").getUserData().put("cardinality", "high");
+    .. code-tab:: java
 
-If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
+        SimpleFeatureType sft = ...
+        sft.getDescriptor("name").getUserData().put("index", "true");
+        sft.getDescriptor("name").getUserData().put("cardinality", "high");
 
-.. code-block:: scala
+    .. code-tab:: scala SchemaBuilder
 
-    // scala example
-    import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
-    import org.locationtech.geomesa.utils.stats.Cardinality
+        import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+        import org.locationtech.geomesa.utils.stats.Cardinality
 
-    val sft = new SftBuilder()
-        .stringType("name", Opts(index = true, cardinality = Cardinality.HIGH))
-        .date("dtg")
-        .geometry("geom", default = true)
-        .build("mySft")
+        val sft = SchemaBuilder.builder()
+            .addString("name").withIndex(Cardinality.HIGH)
+            .addDate("dtg")
+            .addPoint("geom", default = true)
+            .build("mySft")
 
 .. _table_split_config:
 
