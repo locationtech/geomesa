@@ -1,6 +1,6 @@
 from pyspark.sql.types import UserDefinedType, StructField, BinaryType, StructType
 from shapely import wkb
-from shapely.geometry import LinearRing, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon
+from shapely.geometry import LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.collection import GeometryCollection
 
@@ -77,10 +77,10 @@ Point.__UDT__ = PointUDT()
 MultiPoint.__UDT__ = MultiPointUDT()
 LineString.__UDT__ = LineStringUDT()
 MultiLineString.__UDT__ = MultiLineStringUDT()
-PolygonUDT.__UDT__ = PolygonUDT()
+Polygon.__UDT__ = PolygonUDT()
 MultiPolygon.__UDT__ = MultiPolygonUDT()
 BaseGeometry.__UDT__ = GeometryUDT()
-GeometryCollection.__UDT__ = GeometryCollection()
+GeometryCollection.__UDT__ = GeometryCollectionUDT()
 
 # make Geometry dumps a little cleaner
 BaseGeometry.__repr__ = BaseGeometry.__str__
