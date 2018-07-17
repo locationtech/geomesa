@@ -19,6 +19,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan
 import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter, ShapefileExporter, _}
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
@@ -107,22 +108,24 @@ object ExportCommand extends LazyLogging {
       }
     }
 
-    if (fmt == DataFormats.Arrow) {
-      query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
-    } else if (fmt == DataFormats.Bin) {
-      // this indicates to run a BIN query, will be overridden by hints if specified
-      query.getHints.put(QueryHints.BIN_TRACK, "id")
-    }
-
     Option(params.hints).foreach { hints =>
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, hints)
       ViewParams.setHints(query)
     }
 
+    if (fmt == DataFormats.Arrow) {
+      query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+    } else if (fmt == DataFormats.Bin) {
+      // if not specified in hints, set it here to trigger the bin query
+      if (!query.getHints.containsKey(QueryHints.BIN_TRACK)) {
+        query.getHints.put(QueryHints.BIN_TRACK, "id")
+      }
+    }
+
     val attributes = {
       import scala.collection.JavaConversions._
       val provided = Option(params.attributes).collect { case a if !a.isEmpty => a.toSeq }.orElse {
-        if (fmt == DataFormats.Bin) { Some(BinExporter.getAttributeList(sft, query.getHints)) } else { None }
+        if (fmt == DataFormats.Bin) { Some(BinAggregatingScan.propertyNames(query.getHints, sft)) } else { None }
       }
       if (fmt == DataFormats.Shp) {
         val attributes = provided.map(ShapefileExporter.replaceGeom(sft, _)).getOrElse(ShapefileExporter.modifySchema(sft))

@@ -15,6 +15,7 @@ import org.scalatra.{BadRequest, InternalServerError, Ok}
 
 import scala.collection.JavaConversions._
 
+@deprecated
 class DataEndpoint extends GeoMesaScalatraServlet with LazyLogging {
 
   override val root: String = "data"

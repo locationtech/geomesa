@@ -380,7 +380,7 @@ GeoMesa comes with a set of command line tools for managing HBase features locat
 
 .. note::
 
-    You can configure environment variables and classpath settings in geomesa-hbase_2.11-$VERSION/bin/geomesa-env.sh.
+    You can configure environment variables and classpath settings in geomesa-hbase_2.11-$VERSION/conf/geomesa-env.sh.
 
 If desired, you may use the included script ``bin/geomesa-hbase configure`` to help set up the environment variables
 used by the tools. Otherwise, you may invoke the ``geomesa-hbase`` script using the fully-qualified path, and

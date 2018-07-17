@@ -13,15 +13,16 @@ User Manual
    architecture
    datastores/index
    cli/index
-   accumulo/index
+   geoserver
+   spark/index
    hbase/index
+   accumulo/index
    bigtable/index
    cassandra/index
    kafka/index
-   lambda/index
    filesystem/index
-   geoserver
-   spark/index
+   kudu/index
+   lambda/index
    convert/index
    process
    geojson

@@ -175,7 +175,7 @@ private class SimpleFeatureSpecParser extends BasicParser {
 
   // single attribute option
   private def attributeOption: Rule2[String, String] = rule("AttributeOption") {
-    oneOrMore(char | anyOf(".-")) ~> { s => s } ~ "=" ~ oneOrMore(noneOf(":,;")) ~> { s => s }
+    oneOrMore(char | anyOf(".-")) ~> { s => s } ~ "=" ~ (quotedString | singleQuotedString | unquotedString)
   }
 
   // options for the simple feature type

@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.index.index
 
-import com.google.common.primitives.UnsignedBytes
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.IndexKeySpace.{ByteRange, ScanRange, ToIndexKeyBytes}
@@ -72,9 +71,11 @@ abstract class IndexKeySpace[T, U](implicit val ordering: Ordering[U]) {
     * Creates ranges over the index keys
     *
     * @param values index values @see getIndexValues
+    * @param multiplier hint for how many times the ranges will be multiplied. can be used to
+    *                   inform the number of ranges generated
     * @return
     */
-  def getRanges(values: T): Iterator[ScanRange[U]]
+  def getRanges(values: T, multiplier: Int = 1): Iterator[ScanRange[U]]
 
   /**
     * Creates bytes from ranges
@@ -131,10 +132,8 @@ object IndexKeySpace {
 
   object ByteRange {
 
+    import ByteArrays.ByteOrdering
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
-    implicit val ByteOrdering: Ordering[Array[Byte]] =
-      Ordering.comparatorToOrdering(UnsignedBytes.lexicographicalComparator)
 
     val UnboundedLowerRange: Array[Byte] = Array.empty
     val UnboundedUpperRange: Array[Byte] = Array.fill(3)(ByteArrays.MaxByte)

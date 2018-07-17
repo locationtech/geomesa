@@ -44,6 +44,7 @@ object SimpleFeatureTypes {
     val ST_INDEX_SCHEMA_KEY  = "geomesa.index.st.schema"
     val Z_SPLITS_KEY         = "geomesa.z.splits"
     val ATTR_SPLITS_KEY      = "geomesa.attr.splits"
+    val ID_SPLITS_KEY        = "geomesa.id.splits"
     val LOGICAL_TIME_KEY     = "geomesa.logical.time"
     val COMPRESSION_ENABLED  = "geomesa.table.compression.enabled"
     val COMPRESSION_TYPE     = "geomesa.table.compression.type"  // valid: snappy, lzo, gz(default), bzip2, lz4, zstd
@@ -67,6 +68,7 @@ object SimpleFeatureTypes {
     val OPT_INDEX        = "index"
     val OPT_STATS        = "keep-stats"
     val OPT_CARDINALITY  = "cardinality"
+    val OPT_COL_GROUPS   = "column-groups"
     val OPT_BIN_TRACK_ID = "bin-track-id"
     val OPT_CQ_INDEX     = "cq-index"
     val OPT_JSON         = "json"

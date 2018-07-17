@@ -21,7 +21,7 @@ import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseVersionAggregator
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.hbase.index.{HBaseColumnGroups, HBaseFeatureIndex}
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -54,6 +54,12 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
                                          indices: Option[Seq[HBaseFeatureIndexType]],
                                          filter: Filter): HBaseFeatureWriterType =
     new HBaseModifyFeatureWriter(sft, this, indices, filter)
+
+  @throws(classOf[IllegalArgumentException])
+  override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
+    super.validateNewSchema(sft)
+    HBaseColumnGroups.validate(sft)
+  }
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -114,7 +120,7 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
           if (tables.add(table.getNameAsString) && admin.tableExists(table)) {
             val options = HBaseVersionAggregator.configure(sft, index)
             WithClose(connection.getTable(table)) { t =>
-              WithClose(GeoMesaCoprocessor.execute(t, new Scan(), new FilterList(), options)) { bytes =>
+              WithClose(GeoMesaCoprocessor.execute(t, new Scan().setFilter(new FilterList()), options)) { bytes =>
                 bytes.map(_.toStringUtf8).toList // force evaluation of the iterator before closing it
               }
             }

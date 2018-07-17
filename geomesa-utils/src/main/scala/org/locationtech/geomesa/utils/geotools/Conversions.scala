@@ -134,6 +134,9 @@ object RichAttributeDescriptors {
 
     def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).contains("true")
 
+    def getColumnGroups(): Set[String] =
+      Option(ad.getUserData.get(OPT_COL_GROUPS).asInstanceOf[String]).map(_.split(",").toSet).getOrElse(Set.empty)
+
     def setCardinality(cardinality: Cardinality): Unit =
       ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
 
@@ -295,6 +298,9 @@ object RichSimpleFeatureType {
 
     def setAttributeShards(splits: Int): Unit = sft.getUserData.put(ATTR_SPLITS_KEY, splits.toString)
     def getAttributeShards: Int = userData[String](ATTR_SPLITS_KEY).map(_.toInt).getOrElse(4)
+
+    def setIdShards(splits: Int): Unit = sft.getUserData.put(ID_SPLITS_KEY, splits.toString)
+    def getIdShards: Int = userData[String](ID_SPLITS_KEY).map(_.toInt).getOrElse(4)
 
     def setUuid(uuid: Boolean): Unit = sft.getUserData.put(FID_UUID_KEY, String.valueOf(uuid))
     def isUuid: Boolean = userData[String](FID_UUID_KEY).exists(java.lang.Boolean.parseBoolean)

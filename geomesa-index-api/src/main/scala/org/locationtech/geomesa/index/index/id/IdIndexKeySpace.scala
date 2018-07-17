@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-object IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]]()(ByteRange.ByteOrdering)
+object IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]]()(ByteArrays.ByteOrdering)
     with IdIndexKeySpace
 
 trait IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {
@@ -46,7 +46,7 @@ trait IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {
     identifiers.map(serializer.apply)
   }
 
-  override def getRanges(values: Set[Array[Byte]]): Iterator[ScanRange[Array[Byte]]] =
+  override def getRanges(values: Set[Array[Byte]], multiplier: Int): Iterator[ScanRange[Array[Byte]]] =
     values.iterator.map(SingleRowRange.apply)
 
   override def getRangeBytes(ranges: Iterator[ScanRange[Array[Byte]]],

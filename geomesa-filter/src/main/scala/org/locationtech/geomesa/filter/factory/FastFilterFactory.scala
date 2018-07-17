@@ -165,10 +165,7 @@ object FastFilterFactory {
 
   def optimize(sft: SimpleFeatureType, filter: Filter): Filter = {
     sfts.set(sft)
-    try {
-      filter.accept(new BindingFilterVisitor(sft), null).asInstanceOf[Filter]
-          .accept(new QueryPlanFilterVisitor(sft), factory).asInstanceOf[Filter]
-    } finally {
+    try { filter.accept(new QueryPlanFilterVisitor(sft), factory).asInstanceOf[Filter] } finally {
       sfts.remove()
     }
   }

@@ -40,7 +40,7 @@ class BucketIndexTest extends Specification with LazyLogging {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
-            index.insert(envelopes(i)._2, i)
+            index.insert(envelopes(i)._2, i.toString, i)
             inserts += 1
           }
         }
@@ -60,7 +60,7 @@ class BucketIndexTest extends Specification with LazyLogging {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
-            index.remove(envelopes(i)._2, i)
+            index.remove(envelopes(i)._2, i.toString)
             removes += 1
           }
         }
@@ -81,7 +81,7 @@ class BucketIndexTest extends Specification with LazyLogging {
       }
       pts.foreach { pt =>
         val env = WKTUtils.read(pt).getEnvelopeInternal
-        index.insert(env, pt)
+        index.insert(env, pt, pt)
       }
       pts.foreach { pt =>
         val env = WKTUtils.read(pt).getEnvelopeInternal
@@ -112,7 +112,7 @@ class BucketIndexTest extends Specification with LazyLogging {
       }
       pts.foreach { pt =>
         val env = WKTUtils.read(pt).getEnvelopeInternal
-        index.insert(env, pt)
+        index.insert(env, pt, pt)
       }
       val bbox = new Envelope(-10, -8, 8, 10)
       val results = index.query(bbox).toSeq
@@ -125,11 +125,11 @@ class BucketIndexTest extends Specification with LazyLogging {
       results2 must haveLength(9)
       results2 must containTheSameElementsAs(for (x <- -11 to -9; y <- 8 to 10) yield s"POINT($x $y)")
 
-      val results3 = index.query(bbox, (s) => {
+      val results3 = index.query(bbox).toSeq.filter { s =>
         val x = s.substring(6, s.indexOf(" ")).toInt
         val y = s.substring(s.indexOf(" ") + 1, s.length - 1).toInt
         x > -10.5 && x < -8.5 && y > 8.5 && y < 10.5
-      }).toSeq
+      }
       results3 must haveLength(4)
       results3 must containTheSameElementsAs(for (x <- -10 to -9; y <- 9 to 10) yield s"POINT($x $y)")
     }

@@ -13,26 +13,25 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.Query
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.filter.expression.PropertyAccessors
 import org.geotools.filter.{FunctionExpressionImpl, MathExpressionImpl}
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
-import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortingSimpleFeatureIterator}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.PropertyName
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 /**
@@ -130,7 +129,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
           s"stats[${hints.isStatsQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
       output(s"Sort: ${query.getHints.getSortReadableString}")
-      output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
+      output(s"Transforms: ${query.getHints.getTransformDefinition.map(t => if (t.isEmpty) { "empty" } else { t }).getOrElse("none")}")
 
       output.pushLevel("Strategy selection:")
       val requestedIndex = requested.orElse(hints.getRequestedIndex.map(toIndex(sft, _)))
@@ -183,10 +182,40 @@ object QueryPlanner extends LazyLogging {
    * @return
    */
   def setQueryTransforms(query: Query, sft: SimpleFeatureType): Unit = {
-    val properties = query.getPropertyNames
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    // even if a transform is not specified, some queries only use a subset of attributes
+    // specify them here so that it's easier to pick the best column group later
+    def transformsFromQueryType: Seq[String] = {
+      val hints = query.getHints
+      if (hints.isBinQuery) {
+        BinAggregatingScan.propertyNames(hints, sft)
+      } else if (hints.isDensityQuery) {
+        DensityScan.propertyNames(hints, sft)
+      } else if (hints.isStatsQuery) {
+        val props = StatParser.propertyNames(sft, hints.getStatsQuery)
+        if (props.nonEmpty) { props } else {
+          // some stats don't require explicit props (e.g. count), so just take a field that is likely
+          // to be available anyway
+          val prop = Option(sft.getGeomField)
+              .orElse(sft.getDtgField)
+              .orElse(FilterHelper.propertyNames(query.getFilter, sft).headOption)
+              .getOrElse(sft.getDescriptor(0).getLocalName)
+          Seq(prop)
+        }
+      } else {
+        Seq.empty
+      }
+    }
+
+    val properties = Option(query.getPropertyNames).map(_.toSeq)
+      .filter(_ != sft.getAttributeDescriptors.asScala.map(_.getLocalName))
+      .orElse(Some(transformsFromQueryType).filter(_.nonEmpty))
+
     query.setProperties(Query.ALL_PROPERTIES)
-    if (properties != null && properties.toSeq != sft.getAttributeDescriptors.map(_.getLocalName)) {
-      val (transforms, derivedSchema) = buildTransformSFT(sft, properties)
+
+    properties.foreach { props =>
+      val (transforms, derivedSchema) = buildTransformSFT(sft, props)
       query.getHints.put(QueryHints.Internal.TRANSFORMS, transforms)
       query.getHints.put(QueryHints.Internal.TRANSFORM_SCHEMA, derivedSchema)
     }
@@ -216,65 +245,56 @@ object QueryPlanner extends LazyLogging {
     }
   }
 
-  private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
+  private def computeSchema(sft: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
     val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
-      val name = definition.name
-      val cql  = definition.expression
-      cql match {
+      definition.expression match {
         case p: PropertyName =>
-          val prop = p.getPropertyName
-          if (origSFT.getAttributeDescriptors.exists(_.getLocalName == prop)) {
-            val origAttr = origSFT.getDescriptor(prop)
-            val ab = new AttributeTypeBuilder()
-            ab.init(origAttr)
-            val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
-              ab.buildDescriptor(name, ab.buildGeometryType())
-            } else {
-              ab.buildDescriptor(name, ab.buildType())
-            }
-            descriptor.getUserData.putAll(origAttr.getUserData)
-            descriptor
-          } else if (PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature(origSFT, ""), prop, null, null).nonEmpty) {
-            // note: we return String as we have to use a concrete type, but the json might return anything
-            val ab = new AttributeTypeBuilder().binding(classOf[String])
-            ab.buildDescriptor(name, ab.buildType())
+          val originalDescriptor = Option(p.evaluate(sft, classOf[AttributeDescriptor])).getOrElse {
+            throw new IllegalArgumentException(s"Attribute '${p.getPropertyName}' " +
+                s"does not exist in schema '${sft.getTypeName}'.")
+          }
+          val builder = new AttributeTypeBuilder()
+          builder.init(originalDescriptor)
+          if (originalDescriptor.isInstanceOf[GeometryDescriptor]) {
+            builder.buildDescriptor(definition.name, builder.buildGeometryType())
           } else {
-            throw new IllegalArgumentException(s"Attribute '$prop' does not exist in SFT '${origSFT.getTypeName}'.")
+            builder.buildDescriptor(definition.name, builder.buildType())
           }
 
         case f: FunctionExpressionImpl  =>
           val clazz = f.getFunctionName.getReturn.getType
           val ab = new AttributeTypeBuilder().binding(clazz)
           if (classOf[Geometry].isAssignableFrom(clazz)) {
-            ab.buildDescriptor(name, ab.buildGeometryType())
+            ab.buildDescriptor(definition.name, ab.buildGeometryType())
           } else {
-            ab.buildDescriptor(name, ab.buildType())
+            ab.buildDescriptor(definition.name, ab.buildType())
           }
 
         case _: MathExpressionImpl =>
           // Do math ops always return doubles?
           val ab = new AttributeTypeBuilder().binding(classOf[java.lang.Double])
-          ab.buildDescriptor(name, ab.buildType())
+          ab.buildDescriptor(definition.name, ab.buildType())
 
         // TODO: Add support for LiteralExpressionImpl and/or ClassificationFunction?
+        case _ => throw new IllegalArgumentException(s"Can't handle transform expression ${definition.expression}")
       }
     }
 
     val geomAttributes = descriptors.filter(_.isInstanceOf[GeometryDescriptor]).map(_.getLocalName)
     val sftBuilder = new SimpleFeatureTypeBuilder()
-    sftBuilder.setName(origSFT.getName)
+    sftBuilder.setName(sft.getName)
     sftBuilder.addAll(descriptors.toArray)
     if (geomAttributes.nonEmpty) {
       val defaultGeom = if (geomAttributes.lengthCompare(1) == 0) { geomAttributes.head } else {
         // try to find a geom with the same name as the original default geom
-        val origDefaultGeom = origSFT.getGeometryDescriptor.getLocalName
+        val origDefaultGeom = sft.getGeometryDescriptor.getLocalName
         geomAttributes.find(_ == origDefaultGeom).getOrElse(geomAttributes.head)
       }
       sftBuilder.setDefaultGeometry(defaultGeom)
     }
-    val schema = sftBuilder.buildFeatureType()
-    schema.getUserData.putAll(origSFT.getUserData) // TODO reconsider default field user data?
-    schema
+    val tsft = sftBuilder.buildFeatureType()
+    tsft.getUserData.putAll(sft.getUserData) // TODO reconsider default field user data?
+    tsft
   }
 }
 

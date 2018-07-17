@@ -19,8 +19,12 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 import org.locationtech.geomesa.memory.cqengine.query.Intersects;
 import org.locationtech.geomesa.utils.index.BucketIndex;
+import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex;
+import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex$;
+import org.locationtech.geomesa.utils.index.SpatialIndex;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
@@ -37,7 +41,7 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
 
     private static final int INDEX_RETRIEVAL_COST = 40;
 
-    volatile BucketIndex<SimpleFeature> index;
+    SpatialIndex<SimpleFeature> index;
     int geomAttributeIndex;
 
     static Set<Class<? extends Query>> supportedQueries = new HashSet<Class<? extends Query>>() {{
@@ -46,8 +50,15 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
 
     public GeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, int xBuckets, int yBuckets) {
         super(attribute, supportedQueries);
-        index = new BucketIndex<SimpleFeature>(xBuckets, yBuckets, new Envelope(-180.0, 180.0, -90.0, 90.0));
         geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
+        if (sft.getDescriptor(geomAttributeIndex).getType().getBinding() == Point.class) {
+            index = new BucketIndex<>(xBuckets, yBuckets, new Envelope(-180.0, 180.0, -90.0, 90.0));
+        } else {
+            index = new SizeSeparatedBucketIndex<>(SizeSeparatedBucketIndex$.MODULE$.DefaultTiers(),
+                                                   xBuckets / 360d,
+                                                   yBuckets / 180d,
+                                                   new Envelope(-180.0, 180.0, -90.0, 90.0));
+        }
     }
 
     public static <A extends Geometry, O extends SimpleFeature> GeoIndex<A , O> onAttribute(SimpleFeatureType sft, Attribute<O, A> attribute) {
@@ -70,7 +81,7 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
 
             for (O object : objectSet) {
                 Envelope env = ((Geometry)object.getDefaultGeometry()).getEnvelopeInternal();
-                index.insert(env, object);
+                index.insert(env, object.getID(), object);
                 modified = true;
             }
 
@@ -88,7 +99,7 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
 
             for (O object : objectSet) {
                 Envelope env = ((Geometry)object.getDefaultGeometry()).getEnvelopeInternal();
-                index.remove(env, object);
+                index.remove(env, object.getID());
                 modified = true;
             }
 
@@ -101,7 +112,7 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
 
     @Override
     public void clear(QueryOptions queryOptions) {
-        this.index = new BucketIndex<SimpleFeature>(360, 180, new Envelope(-180.0, 180.0, -90.0, 90.0));
+        this.index.clear();
     }
 
     @Override
@@ -109,8 +120,8 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
         return new ResultSet<O>() {
             @Override
             public Iterator<O> iterator() {
-                scala.collection.Iterator<SimpleFeature> iter = getSimpleFeatureIteratorInternal((Intersects) query, queryOptions);
-
+                scala.collection.Iterator<SimpleFeature> iter =
+                      getSimpleFeatureIteratorInternal((Intersects) query, queryOptions);
                 return (Iterator<O>) JavaConversions.asJavaIterator(iter);
             }
 
@@ -160,10 +171,11 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
         };
     }
 
-    private scala.collection.Iterator<SimpleFeature> getSimpleFeatureIteratorInternal(Intersects query, final QueryOptions queryOptions) {
+    private scala.collection.Iterator<SimpleFeature> getSimpleFeatureIteratorInternal(Intersects query,
+                                                                                      final QueryOptions queryOptions) {
         final Intersects intersects = query;
         Envelope queryEnvelope = intersects.getEnvelope();
-        return index.query(queryEnvelope, new AbstractFunction1<SimpleFeature, Object>() {
+        return index.query(queryEnvelope).filter(new AbstractFunction1<SimpleFeature, Object>() {
             @Override
             public Object apply(SimpleFeature feature) {
                 try {

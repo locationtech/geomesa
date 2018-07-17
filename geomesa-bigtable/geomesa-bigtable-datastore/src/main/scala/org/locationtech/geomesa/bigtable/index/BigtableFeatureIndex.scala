@@ -20,8 +20,7 @@ import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseQueryPlan, Scan
 import org.locationtech.geomesa.hbase.index._
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseIndexManagerType}
-import org.locationtech.geomesa.index.index.IndexAdapter
-import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode}
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -50,7 +49,8 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
   override def buildPlatformScanPlan(ds: HBaseDataStore,
                                      sft: SimpleFeatureType,
                                      filter: HBaseFilterStrategyType,
-                                     ranges: Seq[Query],
+                                     ranges: Seq[Scan],
+                                     colFamily: Array[Byte],
                                      table: TableName,
                                      hbaseFilters: Seq[(Int, HFilter)],
                                      coprocessor: Option[CoprocessorConfig],
@@ -60,32 +60,26 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
       throw new IllegalArgumentException(s"Bigtable doesn't support filters: ${hbaseFilters.mkString(", ")}")
     }
 
-    // check if these Scans or Gets
-    // Only in the case of 'ID IN ()' queries will this be Gets
-    val scans = ranges.head match {
-      case t: Get  => configureGet(ranges)
-      case t: Scan => configureBigtableExtendedScan(ds, ranges)
+    // check if these are large scans or small scans (e.g. gets)
+    // only in the case of 'ID IN ()' queries will the scans be small
+    val scans = if (ranges.headOption.exists(_.isSmall)) {
+      ranges.foreach(_.addColumn(colFamily, HBaseColumnGroups.default))
+      ranges
+    } else {
+      configureBigtableExtendedScan(ds, ranges, colFamily)
     }
 
     ScanPlan(filter, table, scans, toFeatures)
   }
 
-  private def configureGet(originalRanges: Seq[Query]): Seq[Scan] = {
-    // convert Gets to Scans for Spark SQL compatibility
-    originalRanges.map { r =>
-      val g = r.asInstanceOf[Get]
-      val start = g.getRow
-      val end = ByteArrays.rowFollowingRow(start)
-      new Scan(g).setStartRow(start).setStopRow(end).setSmall(true)
-    }
-  }
-
-  private def configureBigtableExtendedScan(ds: HBaseDataStore, originalRanges: Seq[Query]): Seq[Scan] = {
+  private def configureBigtableExtendedScan(ds: HBaseDataStore,
+                                            originalRanges: Seq[Scan],
+                                            colFamily: Array[Byte]): Seq[Scan] = {
     import scala.collection.JavaConversions._
-    val rowRanges = Lists.newArrayList[RowRange]()
-    originalRanges.foreach { r =>
-      rowRanges.add(new RowRange(r.asInstanceOf[Scan].getStartRow, true, r.asInstanceOf[Scan].getStopRow, false))
-    }
+
+    val rowRanges = new java.util.ArrayList[RowRange](originalRanges.length)
+    originalRanges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
+
     val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
     val numRanges = sortedRowRanges.size()
     val numThreads = ds.config.queryThreads
@@ -96,12 +90,9 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
 
     // group scans into batches to achieve some client side parallelism
     val groupedScans = groupedRanges.map { localRanges =>
-      // TODO GEOMESA-1802
-      // currently, this constructor will call sortAndMerge a second time
-      // this is unnecessary as we have already sorted and merged above
-      val scan = new BigtableExtendedScan
-
-      localRanges.foreach { r => scan.addRange(r.getStartRow, r.getStopRow) }
+      val scan = new BigtableExtendedScan()
+      localRanges.foreach(r => scan.addRange(r.getStartRow, r.getStopRow))
+      scan.addColumn(colFamily, HBaseColumnGroups.default)
       scan
     }
 

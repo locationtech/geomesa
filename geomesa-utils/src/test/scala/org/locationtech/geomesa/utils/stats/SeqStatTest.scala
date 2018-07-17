@@ -36,15 +36,15 @@ class SeqStatTest extends Specification with StatTestHelper {
       val eh = stat.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
       val rh = stat.stats(3).asInstanceOf[Histogram[java.lang.Double]]
 
-      mm.attribute mustEqual intIndex
+      mm.property mustEqual "intAttr"
       mm.isEmpty must beTrue
 
       ic.counter mustEqual 1
 
-      eh.attribute mustEqual longIndex
+      eh.property mustEqual "longAttr"
       eh.enumeration must beEmpty
 
-      rh.attribute mustEqual doubleIndex
+      rh.property mustEqual "doubleAttr"
       forall(0 until rh.length)(rh.count(_) mustEqual 0)
     }
 
@@ -174,15 +174,15 @@ class SeqStatTest extends Specification with StatTestHelper {
       val eh = stat.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
       val rh = stat.stats(3).asInstanceOf[Histogram[java.lang.Double]]
 
-      mm.attribute mustEqual intIndex
+      mm.property mustEqual "intAttr"
       mm.isEmpty must beTrue
 
       ic.counter mustEqual 1
 
-      eh.attribute mustEqual longIndex
+      eh.property mustEqual "longAttr"
       eh.enumeration must beEmpty
 
-      rh.attribute mustEqual doubleIndex
+      rh.property mustEqual "doubleAttr"
       forall(0 until rh.length)(rh.count(_) mustEqual 0)
     }
   }

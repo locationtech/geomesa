@@ -108,13 +108,14 @@ object GeoMesaCoprocessor extends LazyLogging {
     * Executes a geomesa coprocessor
     *
     * @param table table to execute against
+    * @param scan scan to execute
     * @param options configuration options
     * @return serialized results
     */
-  def execute(table: Table, scan: Scan, filters: FilterList, options: Map[String, String]): CloseableIterator[ByteString] = {
+  def execute(table: Table, scan: Scan, options: Map[String, String]): CloseableIterator[ByteString] = {
     val request = {
       val opts = options
-          .updated(FILTER_OPT, Base64.encodeBytes(filters.toByteArray))
+          .updated(FILTER_OPT, Base64.encodeBytes(scan.getFilter.toByteArray))
           .updated(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
       GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
     }

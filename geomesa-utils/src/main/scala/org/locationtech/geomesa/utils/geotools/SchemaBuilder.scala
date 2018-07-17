@@ -351,6 +351,14 @@ object SchemaBuilder {
       withOptions(AttributeOptions.OPT_INDEX -> "true", AttributeOptions.OPT_CARDINALITY -> cardinality.toString)
 
     /**
+      * Specify column groups for a particular attribute, to speed up querying for subsets of attributes
+      *
+      * @param groups column groups - preferably short strings (one character is best), case sensitive
+      * @return
+      */
+    def withColumnGroups(groups: String*): A = withOptions(AttributeOptions.OPT_COL_GROUPS -> groups.mkString(","))
+
+    /**
       * Add any attribute-level option
       *
       * @param key option key
@@ -472,6 +480,17 @@ object SchemaBuilder {
       */
     def userData(key: String, value: String): U = {
       userData.append(SimpleFeatureTypes.encodeUserData(key, value)).append(",")
+      this
+    }
+
+    /**
+      * Add multiple user data values to the schema
+      *
+      * @param data user data key values
+      * @return
+      */
+    def userData(data: Map[String, String]): U = {
+      data.foreach { case (k, v) => userData(k, v) }
       this
     }
 

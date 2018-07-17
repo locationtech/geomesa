@@ -80,7 +80,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[String]]
         unpacked.asInstanceOf[Histogram[String]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Histogram[String]].toJson mustEqual stat.toJson
       }
 
@@ -91,7 +91,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[String]]
         unpacked.asInstanceOf[Histogram[String]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Histogram[String]].toJson mustEqual stat.toJson
       }
 
@@ -102,7 +102,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[String]]
         unpacked.asInstanceOf[Histogram[String]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Histogram[String]].toJson mustEqual stat.toJson
 
         unpacked.clear must throwAn[Exception]
@@ -189,7 +189,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[Integer]]
         unpacked.asInstanceOf[Histogram[Integer]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[Integer]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[Integer]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -200,7 +200,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[Integer]]
         unpacked.asInstanceOf[Histogram[Integer]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[Integer]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[Integer]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -320,7 +320,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jLong]]
         unpacked.asInstanceOf[Histogram[jLong]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jLong]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jLong]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -331,7 +331,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jLong]]
         unpacked.asInstanceOf[Histogram[jLong]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jLong]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jLong]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -392,7 +392,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jFloat]]
         unpacked.asInstanceOf[Histogram[jFloat]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jFloat]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jFloat]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -403,7 +403,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jFloat]]
         unpacked.asInstanceOf[Histogram[jFloat]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jFloat]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jFloat]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -466,7 +466,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -477,7 +477,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -543,7 +543,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[Date]]
         unpacked.asInstanceOf[Histogram[Date]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[Date]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[Date]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -554,7 +554,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -656,7 +656,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -667,7 +667,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 

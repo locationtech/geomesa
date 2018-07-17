@@ -10,32 +10,38 @@ package org.locationtech.geomesa.utils.stats
 
 import org.ejml.simple.SimpleMatrix
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
 import scala.Array._
 
-class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable {
+class DescriptiveStats private [stats] (val sft: SimpleFeatureType,
+                                        val properties: Seq[String]) extends Stat with Serializable {
 
   override type S = DescriptiveStats
 
-  private[stats] val size = attributes.size
-  private[stats] val size_squared = size * size
+  @deprecated("properties")
+  lazy val attributes: Seq[Int] = properties.map(sft.indexOf)
 
-  private[stats] var _count: Long = _
-  private[stats] val _min: SimpleMatrix  = new SimpleMatrix(size, 1)
-  private[stats] val _max: SimpleMatrix  = new SimpleMatrix(size, 1)
-  private[stats] val _sum: SimpleMatrix  = new SimpleMatrix(size, 1)
-  private[stats] val _mean: SimpleMatrix = new SimpleMatrix(size, 1)
-  private[stats] val _m2n: SimpleMatrix  = new SimpleMatrix(size, 1)
-  private[stats] val _m3n: SimpleMatrix  = new SimpleMatrix(size, 1)
-  private[stats] val _m4n: SimpleMatrix  = new SimpleMatrix(size, 1)
-  private[stats] val _c2: SimpleMatrix   = new SimpleMatrix(size, size)
+  private val indices = properties.map(sft.indexOf)
+
+  private val size = properties.size
+  private val size_squared = size * size
+
+  private [stats] var _count = 0L
+  private [stats] val _min:  SimpleMatrix = new SimpleMatrix(size, 1)
+  private [stats] val _max:  SimpleMatrix = new SimpleMatrix(size, 1)
+  private [stats] val _sum:  SimpleMatrix = new SimpleMatrix(size, 1)
+  private [stats] val _mean: SimpleMatrix = new SimpleMatrix(size, 1)
+  private [stats] val _m2n:  SimpleMatrix = new SimpleMatrix(size, 1)
+  private [stats] val _m3n:  SimpleMatrix = new SimpleMatrix(size, 1)
+  private [stats] val _m4n:  SimpleMatrix = new SimpleMatrix(size, 1)
+  private [stats] val _c2:   SimpleMatrix = new SimpleMatrix(size, size)
 
   clear()
 
   override def clear(): Unit = {
-    _count = 0
+    _count = 0L
     _min.set(java.lang.Double.MAX_VALUE)
     _max.set(0d - java.lang.Double.MAX_VALUE)
     _sum.set(0d)
@@ -99,7 +105,7 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
   }
 
   def sampleExcessKurtosis: Array[Double] = sampleKurtosis.map(_ - 3.0 )
-  
+
   def coMoment2: Array[Double] = requireCount(2, size_squared) { _c2 }
 
   def populationCovariance: Array[Double] = requireCount(2, size_squared) { _c2 / _count }
@@ -113,82 +119,87 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
   /* population and sample calculations are equal w/ df term cancellation */
   def sampleCorrelation: Array[Double] = populationCorrelation
 
-  private def requireCount(count: Int, length: Int = size)(op: => SimpleMatrix):Array[Double] =
+  private def requireCount(count: Int, length: Int = size)(op: => SimpleMatrix): Array[Double] =
     if (_count < count) Array.fill(length)(Double.NaN) else op.getMatrix.data.clone()
 
-  override def observe(sf: SimpleFeature): Unit =
-    observe(attributes.map(sf.getAttribute(_).asInstanceOf[Number]).toArray)
-
-  def observe(values: Array[Number]): Unit = {
-    if (values.forall(_ != null)) {
-      val values_d = values.map(_.doubleValue)
-      if (values_d.forall(v => v == v /* == is fast NaN check */)) {
-        val values_v = new SimpleMatrix(size, 1, true, values_d: _*)
-
-        if (_count > 0) {
-
-          _sum += values_v
-
-          val r = _count
-          val n = { _count += 1; _count }
-          val n_i = 1d / n
-
-          val delta = values_v - _mean
-
-          val A = delta * n_i
-          _mean += A
-
-          _m4n += A * (A * A * delta * r * (n * (n - 3d) + 3d) + A * _m2n * 6d - _m3n * 4d)
-
-          val B = values_v - _mean
-          _m3n += A * (B * delta * (n - 2d) - _m2n * 3d)
-          _m2n += delta * B
-
-
-          /* optimize original code (below) by special handling of diagonal and reflection about it
-           * _c2 += (delta |*| delta.T * (n_i * r))
-           */
-          val coef = n_i * r
-          var ri = 0
-          while (ri < size) {
-            _c2.set(ri, ri, _m2n.get(ri)) // c2 diagonal is equal to m2n
-            val rd = delta.get(ri)
-            var ci = ri + 1  // traverse upper diagonal
-            while (ci < size) {
-              val c2 = _c2.get(ri, ci) + rd * delta.get(ci) * coef
-              _c2.set(ri, ci, c2) // set upper diagonal
-              _c2.set(ci, ri, c2) // set lower diagonal
-              ci += 1
-            }
-            ri += 1
-          } // c2 update
-
-          var i = 0
-          while (i < size) {
-            val v = values_v.get(i)
-            if (v > _max.get(i)) {
-              _max.set(i, v)
-            } else if (v < _min.get(i)) { // 'else if' optimization due to how min/max set when _count == 1 (below)
-              _min.set(i, v)
-            }
-            i += 1
-          } // min/max update
-
-        } else {
-          _count = 1
-          _min.set(values_v)
-          _max.set(values_v)
-          _sum.set(values_v)
-          _mean.set(values_v)
+  override def observe(sf: SimpleFeature): Unit = {
+    val values = indices.map(sf.getAttribute).map {
+      case n: Number =>
+        val double = n.doubleValue()
+        if (double != double) {
+          return // NaN, short-circuit evaluation
         }
-      }
+        double
+
+      case null => return // short-circuit evaluation
+
+      case n => throw new IllegalArgumentException(s"Not a number: $n")
+    }
+
+    val values_v = new SimpleMatrix(size, 1, true, values: _*)
+
+    if (_count < 1) {
+      _count = 1
+      _min.set(values_v)
+      _max.set(values_v)
+      _sum.set(values_v)
+      _mean.set(values_v)
+    } else {
+
+      _sum += values_v
+
+      val r = _count
+      val n = { _count += 1; _count }
+      val n_i = 1d / n
+
+      val delta = values_v - _mean
+
+      val A = delta * n_i
+      _mean += A
+
+      _m4n += A * (A * A * delta * r * (n * (n - 3d) + 3d) + A * _m2n * 6d - _m3n * 4d)
+
+      val B = values_v - _mean
+      _m3n += A * (B * delta * (n - 2d) - _m2n * 3d)
+      _m2n += delta * B
+
+
+      /* optimize original code (below) by special handling of diagonal and reflection about it
+       * _c2 += (delta |*| delta.T * (n_i * r))
+       */
+      val coef = n_i * r
+      var ri = 0
+      while (ri < size) {
+        _c2.set(ri, ri, _m2n.get(ri)) // c2 diagonal is equal to m2n
+        val rd = delta.get(ri)
+        var ci = ri + 1  // traverse upper diagonal
+        while (ci < size) {
+          val c2 = _c2.get(ri, ci) + rd * delta.get(ci) * coef
+          _c2.set(ri, ci, c2) // set upper diagonal
+          _c2.set(ci, ri, c2) // set lower diagonal
+          ci += 1
+        }
+        ri += 1
+      } // c2 update
+
+      var i = 0
+      while (i < size) {
+        val v = values_v.get(i)
+        if (v > _max.get(i)) {
+          _max.set(i, v)
+        } else if (v < _min.get(i)) { // 'else if' optimization due to how min/max set when _count == 1 (below)
+          _min.set(i, v)
+        }
+        i += 1
+      } // min/max update
+
     }
   }
 
   override def unobserve(sf: SimpleFeature): Unit = {}
 
   override def +(that: DescriptiveStats): DescriptiveStats = {
-    val stats = new DescriptiveStats(attributes)
+    val stats = new DescriptiveStats(sft, properties)
     if (that.isEmpty) {
       stats.copyFrom(this)
     } else if (this.isEmpty) {
@@ -277,7 +288,7 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
 
   override def isEquivalent(other: Stat): Boolean = other match {
     case that: DescriptiveStats =>
-      attributes == that.attributes &&
+      properties == that.properties &&
         _count  == that._count &&
         _min.isIdenticalWithinTolerances(that._min, 1e-6, 1e-12) &&
         _max.isIdenticalWithinTolerances(that._max, 1e-6, 1e-12) &&
@@ -290,11 +301,12 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
     case _ => false
   }
 
-  override def toJsonObject =
+  override def toJsonObject: Map[String, Any] =
     if (isEmpty) {
       Map("count" -> 0)
     } else {
-      ListMap("count" -> count,
+      ListMap(
+        "count" -> count,
         "minimum" -> minimum,
         "maximum" -> maximum,
         "mean" -> mean,
@@ -311,6 +323,7 @@ class DescriptiveStats(val attributes: Seq[Int]) extends Stat with Serializable 
         "population_covariance" -> populationCovariance,
         "population_correlation" -> populationCorrelation,
         "sample_covariance" -> sampleCovariance,
-        "sample_correlation" -> sampleCorrelation)
+        "sample_correlation" -> sampleCorrelation
+      )
     }
 }

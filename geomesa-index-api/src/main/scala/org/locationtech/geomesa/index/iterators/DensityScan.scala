@@ -16,6 +16,7 @@ import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
@@ -59,6 +60,9 @@ trait DensityScan extends AggregatingScan[DensityResult] {
 
 object DensityScan extends LazyLogging {
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   type DensityResult = scala.collection.mutable.Map[(Int, Int), Double]
   type GridIterator  = (SimpleFeature) => Iterator[(Double, Double, Double)]
 
@@ -78,7 +82,6 @@ object DensityScan extends LazyLogging {
                 hints: Hints): Map[String, String] = {
     import AggregatingScan.{OptionToConfig, StringToConfig}
     import Configuration.{EnvelopeOpt, GridOpt, WeightOpt}
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
@@ -149,8 +152,19 @@ object DensityScan extends LazyLogging {
     }
   }
 
+  /**
+    * Get the attributes used by a density query
+    *
+    * @param hints query hints
+    * @param sft simple feature type
+    * @return
+    */
+  def propertyNames(hints: Hints, sft: SimpleFeatureType): Seq[String] = {
+    val weight = hints.getDensityWeight.map(ECQL.toExpression)
+    (Seq(sft.getGeomField) ++ weight.toSeq.flatMap(FilterHelper.propertyNames(_, sft))).distinct
+  }
+
   def writeGeometry(sft: SimpleFeatureType, grid: GridSnap): (SimpleFeature, Double, DensityResult) => Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val geomIndex = sft.getGeomIndex
     sft.getGeometryDescriptor.getType.getBinding match {
       case b if b == classOf[Point]           => writePoint(geomIndex, grid)

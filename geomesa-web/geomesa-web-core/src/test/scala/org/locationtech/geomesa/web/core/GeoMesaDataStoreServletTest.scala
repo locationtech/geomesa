@@ -11,6 +11,7 @@ package org.locationtech.geomesa.web.core
 import java.net.URLEncoder
 import java.nio.file.Files
 
+import org.geotools.data.DataStore
 import org.json4s.{DefaultFormats, Formats}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.cache.FilePersistence
@@ -49,7 +50,7 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
 
     get("/test") {
       try {
-        withDataStore((ds) => { calledTest = true; Ok() })
+        withDataStore((ds: DataStore) => { calledTest = true; Ok() })
       } catch {
         case e: Exception => handleError(s"Error creating index:", e)
       }

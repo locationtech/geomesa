@@ -8,9 +8,7 @@
 
 package org.locationtech.geomesa.hbase.index
 
-import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -18,9 +16,6 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 case object HBaseAttributeIndex extends HBaseLikeAttributeIndex with HBasePlatform
 
 trait HBaseLikeAttributeIndex extends HBaseFeatureIndex with HBaseIndexAdapter
-    with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] {
+    with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig] {
   override val version: Int = 5
-
-  override def configureColumnFamilyDescriptor(desc: HColumnDescriptor): Unit =
-    desc.setDataBlockEncoding(DataBlockEncoding.FAST_DIFF)
 }

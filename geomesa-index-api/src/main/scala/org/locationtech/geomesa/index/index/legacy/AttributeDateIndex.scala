@@ -65,7 +65,7 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
     override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): (Option[String], Filter) =
       (sft.getDtgField, filter)
 
-    override def getRanges(values: (Option[String], Filter)): Iterator[ScanRange[Long]] = {
+    override def getRanges(values: (Option[String], Filter), multiplier: Int): Iterator[ScanRange[Long]] = {
       val (dtgField, filter) = values
       val intervals = dtgField.map(FilterHelper.extractIntervals(filter, _)).getOrElse(FilterValues.empty)
       intervals.values.iterator.map { bounds =>
