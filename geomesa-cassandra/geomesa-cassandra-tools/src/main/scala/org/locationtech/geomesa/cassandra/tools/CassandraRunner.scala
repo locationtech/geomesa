@@ -10,7 +10,7 @@ package org.locationtech.geomesa.cassandra.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.cassandra.tools.commands._
-import org.locationtech.geomesa.cassandra.tools.export.CassandraExportCommand
+import org.locationtech.geomesa.cassandra.tools.export.{CassandraExportCommand, CassandraPlaybackCommand}
 import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
 
@@ -30,6 +30,7 @@ object CassandraRunner extends Runner {
     new CassandraDeleteFeaturesCommand,
     new CassandraIngestCommand,
     new CassandraExportCommand,
+    new CassandraPlaybackCommand,
     new CassandraExplainCommand,
     new ConfigureCommand,
     new ClasspathCommand,
