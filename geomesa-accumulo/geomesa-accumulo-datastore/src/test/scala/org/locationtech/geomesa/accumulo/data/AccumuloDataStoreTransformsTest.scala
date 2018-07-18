@@ -13,7 +13,7 @@ import java.util.Date
 import com.vividsolutions.jts.geom.Point
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
@@ -32,6 +32,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipleSfts {
 
+  import org.locationtech.geomesa.filter.ff
+
   sequential
 
   val spec  = "name:String,dtg:Date,*geom:Point:srid=4326"
@@ -41,8 +43,6 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
   val name = "myname"
   val date = Converters.convert("2012-01-01T00:00:00.000Z", classOf[Date])
   val geom = Converters.convert("POINT(45 49)", classOf[Point])
-
-  val ff = CommonFactoryFinder.getFilterFactory2
 
   def createFeature(sft: SimpleFeatureType) =
     Seq(new ScalaSimpleFeature(sft, "fid-1", Array(name, date, geom)))

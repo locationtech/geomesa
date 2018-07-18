@@ -18,21 +18,21 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class DeduplicatingSimpleFeatureIteratorTest extends Specification {
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  private val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   "DeDuplicatingIterator" should {
     "filter on unique elements" in {
       val sft = SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326")
       val attributes = Array[AnyRef]("POINT(0,0)")
       val features = Seq(
-        new SimpleFeatureImpl(attributes, sft, ff.featureId("1"), false),
-        new SimpleFeatureImpl(attributes, sft, ff.featureId("2"), false),
-        new SimpleFeatureImpl(attributes, sft, ff.featureId("0"), false),
-        new SimpleFeatureImpl(attributes, sft, ff.featureId("1"), false),
-        new SimpleFeatureImpl(attributes, sft, ff.featureId("3"), false),
-        new SimpleFeatureImpl(attributes, sft, ff.featureId("4"), false),
-        new SimpleFeatureImpl(attributes, sft, ff.featureId("1"), false),
-        new SimpleFeatureImpl(attributes, sft, ff.featureId("3"), false)
+        new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("1"), false),
+        new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("2"), false),
+        new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("0"), false),
+        new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("1"), false),
+        new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("3"), false),
+        new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("4"), false),
+        new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("1"), false),
+        new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("3"), false)
       )
       val deduped = new DeduplicatingSimpleFeatureIterator(features.toIterator).toSeq
       deduped must haveLength(5)

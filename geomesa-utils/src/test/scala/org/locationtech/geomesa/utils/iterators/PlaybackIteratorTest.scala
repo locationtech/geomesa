@@ -42,7 +42,7 @@ class PlaybackIteratorTest extends Specification {
   "PlaybackIterator" should {
     "return features in sorted order" in {
       WithClose(new PlaybackIterator(ds, sft.getTypeName, interval, dtg, rate = 100f)) { iter =>
-        foreach(iter.sliding(2)) { case Seq(left, right) =>
+        foreach(iter.sliding(2).toSeq) { case Seq(left, right) =>
           left.getAttribute("dtg").asInstanceOf[Date].before(right.getAttribute("dtg").asInstanceOf[Date]) must beTrue
         }
       }
@@ -50,7 +50,7 @@ class PlaybackIteratorTest extends Specification {
     "query using windows" in {
       val window = Some(Duration("5 seconds"))
       WithClose(new PlaybackIterator(ds, sft.getTypeName, interval, dtg, window = window, rate = 100f)) { iter =>
-        foreach(iter.sliding(2)) { case Seq(left, right) =>
+        foreach(iter.sliding(2).toSeq) { case Seq(left, right) =>
           left.getAttribute("dtg").asInstanceOf[Date].before(right.getAttribute("dtg").asInstanceOf[Date]) must beTrue
         }
       }

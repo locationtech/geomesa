@@ -28,27 +28,28 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLDataTest extends Specification with LazyLogging {
+  sequential
+
+  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
+  var ds: DataStore = _
+  var spark: SparkSession = _
+  var sc: SQLContext = _
+
+  var df: DataFrame = _
+  var dfIndexed: DataFrame = _
+  var dfPartitioned: DataFrame = _
+
   val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
+  // before
+  step {
+    ds = DataStoreFinder.getDataStore(dsParams)
+    spark = SparkSQLTestUtils.createSparkSession()
+    sc = spark.sqlContext
+    SQLTypes.init(sc)
+  }
+
   "sql data tests" should {
-    sequential
-
-    val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
-    var ds: DataStore = null
-    var spark: SparkSession = null
-    var sc: SQLContext = null
-
-    var df: DataFrame = null
-    var dfIndexed: DataFrame = null
-    var dfPartitioned: DataFrame = null
-
-    // before
-    step {
-      ds = DataStoreFinder.getDataStore(dsParams)
-      spark = SparkSQLTestUtils.createSparkSession()
-      sc = spark.sqlContext
-      SQLTypes.init(sc)
-    }
 
     "ingest chicago" >> {
       SparkSQLTestUtils.ingestChicago(ds)

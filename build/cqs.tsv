@@ -275,5 +275,7 @@ org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	18.0	test
 org.jruby:jruby	9.0.4.0	test
 org.mortbay.jetty:jetty	6.1.26	test
-org.scalatra:scalatra-specs2_2.11	2.3.0	test
-org.specs2:specs2_2.11	2.3.13	test
+org.scalatra:scalatra-specs2_2.11	2.6.3	test
+org.specs2:specs2-core_2.11	4.3.2	test
+org.specs2:specs2-junit_2.11	4.3.2	test
+org.specs2:specs2-mock_2.11	4.3.2	test

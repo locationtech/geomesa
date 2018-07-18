@@ -38,10 +38,11 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConversions._
+  import scala.concurrent.duration._
 
   sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
 
@@ -143,11 +144,11 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
           }
           consumer.removeSchema(sft.getTypeName)
           foreach(Seq(consumer, producer)) { ds =>
-            ds.getTypeNames.toSeq must eventually(40, 100.millis)(beEmpty)
+            eventually(40, 100.millis)(ds.getTypeNames.toSeq must beEmpty)
             ds.getSchema(sft.getTypeName) must beNull
           }
           KafkaDataStore.withZk(kafka.zookeepers) { zk =>
-            AdminUtils.topicExists(zk, topic) must eventually(40, 100.millis)(beFalse)
+            eventually(40, 100.millis)(AdminUtils.topicExists(zk, topic) must beFalse)
           }
         } finally {
           consumer.dispose()
@@ -173,7 +174,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
               writer.write()
             }
           }
-          SelfClosingIterator(store.getFeatures.features).toSeq must eventually(40, 100.millis)(containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
 
           // update
           f0.setAttributes(Array[AnyRef]("smith2", Int.box(32), "2017-01-01T00:00:02.000Z", "POINT (2 2)"))
@@ -181,7 +182,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
             FeatureUtils.copyToWriter(writer, f0, useProvidedFid = true)
             writer.write()
           }
-          SelfClosingIterator(store.getFeatures.features).toSeq must eventually(40, 100.millis)(containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
 
           // query
           val queries = Seq(
@@ -201,11 +202,11 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
 
           // delete
           producer.getFeatureSource(sft.getTypeName).removeFeatures(ECQL.toFilter("IN('sm')"))
-          SelfClosingIterator(store.getFeatures.features).toSeq must eventually(40, 100.millis)(beEqualTo(Seq(f1)))
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEqualTo(Seq(f1)))
 
           // clear
           producer.getFeatureSource(sft.getTypeName).removeFeatures(Filter.INCLUDE)
-          SelfClosingIterator(store.getFeatures.features).toSeq must eventually(40, 100.millis)(beEmpty)
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEmpty)
         } finally {
           consumer.dispose()
           producer.dispose()
@@ -244,7 +245,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
 
           // admin user
           auths = Set("USER", "ADMIN")
-          SelfClosingIterator(store.getFeatures.features).toSeq must eventually(40, 100.millis)(containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
 
           // regular user
           auths = Set("USER")
@@ -283,19 +284,19 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
             }
           }
           // check the cache directly
-          SelfClosingIterator(store.getFeatures.features).toSeq must
-              eventually(40, 100.millis)(containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1)))
           // check the spatial index
-          SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
-              eventually(40, 100.millis)(containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1)))
 
           // allow the cache to expire
           ticker.millis += 1000
 
           // verify feature has expired - hit the cache directly
-          SelfClosingIterator(store.getFeatures.features) must eventually(40, 100.millis)(beEmpty)
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features) must beEmpty)
           // verify feature has expired - hit the spatial index
-          SelfClosingIterator(store.getFeatures(bbox).features) must eventually(40, 100.millis)(beEmpty)
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features) must beEmpty)
         } finally {
           consumer.dispose()
           producer.dispose()
@@ -337,7 +338,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
           }
         }
 
-        count must eventually(40, 100.millis)(beEqualTo(numUpdates))
+        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
         latestLon must be equalTo 0.0
       } finally {
         consumer.dispose()

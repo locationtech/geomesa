@@ -10,7 +10,6 @@ package org.locationtech.geomesa.process.knn
 
 import com.vividsolutions.jts.geom.GeometryCollection
 import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
@@ -27,6 +26,8 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class GenerateKNNQueryTest extends Specification {
+
+  import org.locationtech.geomesa.filter.ff
 
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
@@ -50,8 +51,6 @@ class GenerateKNNQueryTest extends Specification {
   val fs = ds.getFeatureSource(sftName)
 
   val smallGH = GeoHash("dqb0tg")
-
-  val ff = CommonFactoryFinder.getFilterFactory2
 
   val WGS84 = DefaultGeographicCRS.WGS84
 
@@ -96,7 +95,7 @@ class GenerateKNNQueryTest extends Specification {
       val newFilter =  newQuery.getFilter
 
       // process the newFilter to split out the geometry part
-      val (geomFilters, otherFilters) = partitionPrimarySpatials(newFilter, sft)
+      val (geomFilters, _) = partitionPrimarySpatials(newFilter, sft)
 
       // rewrite the geometry filter
       val tweakedGeomFilters = geomFilters.map { filter =>

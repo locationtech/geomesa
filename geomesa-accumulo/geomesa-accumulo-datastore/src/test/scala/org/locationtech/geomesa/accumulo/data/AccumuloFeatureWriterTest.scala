@@ -30,14 +30,14 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.BeforeExample
+import org.specs2.specification.BeforeEach
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloFeatureWriterTest extends Specification with TestWithDataStore with BeforeExample {
+class AccumuloFeatureWriterTest extends Specification with TestWithDataStore with BeforeEach {
 
-  override def before: Unit = clearTablesHard()
+  override def before: Any = clearTablesHard()
 
   sequential
 

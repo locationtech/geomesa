@@ -48,12 +48,14 @@ class TransformersTest extends Specification {
         }
         "allow native ints" >> {
           val res = Transformers.parseTransform("1").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Integer]
+          res must not(beNull)
+          res.getClass mustEqual classOf[java.lang.Integer]
           res mustEqual 1
         }
         "allow native longs" >> {
           val res = Transformers.parseTransform("1L").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Long]
+          res must not(beNull)
+          res.getClass mustEqual classOf[java.lang.Long]
           res mustEqual 1L
         }
         "allow native floats" >> {
@@ -61,7 +63,8 @@ class TransformersTest extends Specification {
           foreach(tests) { case (s, expected) =>
             foreach(Seq("f", "F")) { suffix =>
               val res = Transformers.parseTransform(s + suffix).eval(Array(null))
-              res must beAnInstanceOf[java.lang.Float]
+              res must not(beNull)
+              res.getClass mustEqual classOf[java.lang.Float]
               res mustEqual expected
             }
           }
@@ -71,7 +74,8 @@ class TransformersTest extends Specification {
           foreach(tests) { case (s, expected) =>
             foreach(Seq("", "d", "D")) { suffix =>
               val res = Transformers.parseTransform(s + suffix).eval(Array(null))
-              res must beAnInstanceOf[java.lang.Double]
+              res must not(beNull)
+              res.getClass mustEqual classOf[java.lang.Double]
               res mustEqual expected
             }
           }
@@ -296,7 +300,8 @@ class TransformersTest extends Specification {
         val geoFac = new GeometryFactory()
         val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[Point]
+        res must not(beNull)
+        res.getClass mustEqual classOf[Point]
         res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
       }
 
@@ -309,7 +314,8 @@ class TransformersTest extends Specification {
         // convert objects
         val geom = multiPoint.asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[MultiPoint]
+        res must not(beNull)
+        res.getClass mustEqual classOf[MultiPoint]
         res.asInstanceOf[MultiPoint] mustEqual WKTUtils.read("Multipoint((45.0 45.0), (50 52))")
       }
 
@@ -322,7 +328,8 @@ class TransformersTest extends Specification {
         // type conversion
         val geom = lineStr.asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[LineString]
+        res must not(beNull)
+        res.getClass mustEqual classOf[LineString]
         res.asInstanceOf[LineString] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
       }
 
@@ -338,7 +345,8 @@ class TransformersTest extends Specification {
         // type conversion
         val geom = multiLineStr.asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[MultiLineString]
+        res must not(beNull)
+        res.getClass mustEqual classOf[MultiLineString]
         res.asInstanceOf[MultiLineString] mustEqual WKTUtils.read("MultiLinestring((102 0, 103 1, 104 0, 105 1), (0 0, 1 2, 2 3, 4 5))")
       }
 
@@ -351,7 +359,8 @@ class TransformersTest extends Specification {
         // type conversion
         val geom = poly.asInstanceOf[Polygon]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[Polygon]
+        res must not(beNull)
+        res.getClass mustEqual classOf[Polygon]
         res.asInstanceOf[Polygon] mustEqual WKTUtils.read("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")
       }
 
@@ -367,7 +376,8 @@ class TransformersTest extends Specification {
         // type conversion
         val geom = multiPoly.asInstanceOf[MultiPolygon]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[MultiPolygon]
+        res must not(beNull)
+        res.getClass mustEqual classOf[MultiPolygon]
         res.asInstanceOf[MultiPolygon] mustEqual WKTUtils.read("multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0)))")
       }
 
@@ -380,7 +390,8 @@ class TransformersTest extends Specification {
         // type conversion
         val geom = lineStr.asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[Geometry]
+        res must not(beNull)
+        res.asInstanceOf[AnyRef] must beAnInstanceOf[Geometry]
         res.asInstanceOf[Geometry] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)\"")
       }
 
@@ -401,7 +412,8 @@ class TransformersTest extends Specification {
         // type conversion
         val geom = geoCol.asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[GeometryCollection]
+        res must not(beNull)
+        res.getClass mustEqual classOf[GeometryCollection]
         res.asInstanceOf[GeometryCollection] mustEqual WKTUtils.read(
           "GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1), " +
           "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0))))")
@@ -411,7 +423,8 @@ class TransformersTest extends Specification {
         val geom = WKTUtils.read("POINT (1113194.91 1689200.14)")
         val trans = Transformers.parseTransform("projectFrom('EPSG:3857',$1)")
         val transformed = trans.eval(Array("", geom))
-        transformed must beAnInstanceOf[Point]
+        transformed must not(beNull)
+        transformed.getClass mustEqual classOf[Point]
         transformed.asInstanceOf[Point].getX must beCloseTo(15d, 0.001)
         transformed.asInstanceOf[Point].getY must beCloseTo(10d, 0.001)
       }
@@ -427,19 +440,25 @@ class TransformersTest extends Specification {
         }
         "uuid" >> {
           val exp = Transformers.parseTransform("uuid()")
-          exp.eval(Array(null)) must anInstanceOf[String]
+          val res = exp.eval(Array(null))
+          res must not(beNull)
+          res.getClass mustEqual classOf[String]
         }
         "z3 uuid" >> {
           val exp = Transformers.parseTransform("uuidZ3($0, $1, 'week')")
           val geom = WKTUtils.read("POINT (103 1)")
           val date = Converters.convert("2018-01-01T00:00:00.000Z", classOf[Date])
-          exp.eval(Array(geom, date)) must anInstanceOf[String]
+          val res = exp.eval(Array(geom, date))
+          res must not(beNull)
+          res.getClass mustEqual classOf[String]
         }
         "z3 centroid uuid" >> {
           val exp = Transformers.parseTransform("uuidZ3Centroid($0, $1, 'week')")
           val geom = WKTUtils.read("LINESTRING (102 0, 103 1, 104 0, 105 1)")
           val date = Converters.convert("2018-01-01T00:00:00.000Z", classOf[Date])
-          exp.eval(Array(geom, date)) must anInstanceOf[String]
+          val res = exp.eval(Array(geom, date))
+          res must not(beNull)
+          res.getClass mustEqual classOf[String]
         }
         "base64" >> {
           val exp = Transformers.parseTransform("base64($0)")
@@ -749,7 +768,8 @@ class TransformersTest extends Specification {
         "buffer" >> {
           val exp = Transformers.parseTransform("cql:buffer($1, $2)")
           val buf = exp.eval(Array(null, "POINT(1 1)", 2.0))
-          buf must beAnInstanceOf[Polygon]
+          buf must not(beNull)
+          buf.getClass mustEqual classOf[Polygon]
           buf.asInstanceOf[Polygon].getCentroid.getX must beCloseTo(1, 0.0001)
           buf.asInstanceOf[Polygon].getCentroid.getY must beCloseTo(1, 0.0001)
           // note: area is not particularly close as there aren't very many points in the polygon
@@ -801,14 +821,16 @@ class TransformersTest extends Specification {
       "default delimiter" >> {
         val trans = Transformers.parseTransform("parseMap('String->Int', $0)")
         val res = trans.eval(Array("a->1,b->2,c->3"))
-        res must beAnInstanceOf[java.util.Map[String, Int]]
+        res must not(beNull)
+        res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.Map[String, Int]]
         res.asInstanceOf[java.util.Map[String, Int]].size mustEqual 3
         res.asInstanceOf[java.util.Map[String, Int]].toMap mustEqual Map("a" -> 1, "b" -> 2, "c" -> 3)
       }
       "custom delimiter" >> {
         val trans = Transformers.parseTransform("parseMap('String->Int', $0, '%', ';')")
         val res = trans.eval(Array("a%1;b%2;c%3"))
-        res must beAnInstanceOf[java.util.Map[String, Int]]
+        res must not(beNull)
+        res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.Map[String, Int]]
         res.asInstanceOf[java.util.Map[String, Int]].size mustEqual 3
         res.asInstanceOf[java.util.Map[String, Int]].toMap mustEqual Map("a" -> 1, "b" -> 2, "c" -> 3)
       }

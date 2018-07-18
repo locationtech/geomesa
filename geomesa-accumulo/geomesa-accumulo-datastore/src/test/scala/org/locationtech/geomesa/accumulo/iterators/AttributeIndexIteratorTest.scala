@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.{Collections, Date, TimeZone}
 
 import org.geotools.data.Query
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -54,8 +54,6 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
     }
   })
 
-  val ff = CommonFactoryFinder.getFilterFactory2
-
   val queryPlanner = ds.queryPlanner
 
   def query(filter: String, attributes: Array[String] = Array.empty) = {
@@ -73,7 +71,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(4)
         results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("b").foreach
+        foreach(results.map(_.getAttribute("name").asInstanceOf[String]))(_ must contain("b"))
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
@@ -84,7 +82,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(4)
         results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("a").foreach
+        foreach(results.map(_.getAttribute("name").asInstanceOf[String]))(_ must contain("a"))
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
@@ -95,8 +93,8 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(8)
         results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("c").exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("d").exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("c")).exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("d")).exactly(4)
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
@@ -107,9 +105,9 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(12)
         results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("b").exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("c").exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("d").exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("b")).exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("c")).exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("d")).exactly(4)
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
@@ -145,7 +143,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         results must haveSize(5)
         results.map(_.getAttributeCount) must contain(3).foreach
         results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(1).foreach
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)").foreach
+        foreach(results.map(_.getAttribute("geom").toString))(_ must contain("POINT (45 45)"))
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
 
@@ -157,8 +155,8 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         results.map(_.getAttributeCount) must contain(3).foreach
         results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(3).exactly(5)
         results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(4).exactly(5)
-        results.map(_.getAttribute("geom").toString) must contain("POINT (47 47)").exactly(5)
-        results.map(_.getAttribute("geom").toString) must contain("POINT (48 48)").exactly(5)
+        results.map(_.getAttribute("geom").toString) must contain(beEqualTo("POINT (47 47)")).exactly(5)
+        results.map(_.getAttribute("geom").toString) must contain(beEqualTo("POINT (48 48)")).exactly(5)
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
 
@@ -196,7 +194,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(4)
         results.map(_.getAttributeCount) must contain(1).foreach
-        results.map(_.getAttribute("name").toString) must contain("b").foreach
+        foreach(results.map(_.getAttribute("name").toString))(_ must contain("b"))
       }
 
       "with additional filter applied" >> {

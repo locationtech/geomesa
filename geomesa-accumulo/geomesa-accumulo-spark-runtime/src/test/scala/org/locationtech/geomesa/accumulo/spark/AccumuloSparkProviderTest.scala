@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.spark
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
@@ -24,30 +23,29 @@ import org.specs2.runner.JUnitRunner
 class AccumuloSparkProviderTest extends Specification with TestWithDataStore with LazyLogging {
 
   import AccumuloDataStoreParams._
+  import org.locationtech.geomesa.filter.ff
+
+  sequential
 
   override lazy val sftName: String = "chicago"
   override def spec: String = SparkSQLTestUtils.ChiSpec
-  private val ff = CommonFactoryFinder.getFilterFactory2
 
-  "sql data tests" should {
-    sequential
+  var spark: SparkSession = _
+  var sc: SQLContext = _
 
-    var spark: SparkSession = null
-    var sc: SQLContext = null
+  var df: DataFrame = _
 
-    var df: DataFrame = null
+  val params = dsParams.filterNot { case (k, _) => k == AccumuloDataStoreParams.ConnectorParam.key } ++
+      Map(AccumuloDataStoreParams.MockParam.key -> true)
 
-    val params = dsParams.filterNot { case (k, _) => k == AccumuloDataStoreParams.ConnectorParam.key } ++
-        Map(AccumuloDataStoreParams.MockParam.key -> true)
+  // before
+  step {
+    spark = SparkSQLTestUtils.createSparkSession()
+    sc = spark.sqlContext
+    SQLTypes.init(sc)
+    SparkSQLTestUtils.ingestChicago(ds)
 
-    // before
-    step {
-      spark = SparkSQLTestUtils.createSparkSession()
-      sc = spark.sqlContext
-      SQLTypes.init(sc)
-      SparkSQLTestUtils.ingestChicago(ds)
-
-      df = spark.read
+    df = spark.read
         .format("geomesa")
         .option(InstanceIdParam.key, mockInstanceId)
         .option(ZookeepersParam.key, mockZookeepers)
@@ -57,9 +55,11 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
         .option("geomesa.feature", "chicago")
         .load()
 
-      logger.debug(df.schema.treeString)
-      df.createOrReplaceTempView("chicago")
-    }
+    logger.debug(df.schema.treeString)
+    df.createOrReplaceTempView("chicago")
+  }
+
+  "sql data tests" should {
 
     "select by secondary indexed attribute" >> {
       val cases = df.select("case_number").where("case_number = 1").collect().map(_.getInt(0))

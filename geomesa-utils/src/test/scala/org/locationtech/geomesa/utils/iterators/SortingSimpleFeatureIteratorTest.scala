@@ -10,7 +10,6 @@ package org.locationtech.geomesa.utils.iterators
 
 import java.util.NoSuchElementException
 
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -23,8 +22,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
-
-  val ff = CommonFactoryFinder.getFilterFactory
 
   "SortingSimpleFeatureIterator" should {
 

@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.accumulo
 
-import org.apache.accumulo.core.client.{Connector, Scanner}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.{Connector, Scanner}
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -25,7 +25,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConverters._
 
@@ -88,7 +88,7 @@ trait TestWithDataStore extends Specification {
   lazy val fs = ds.getFeatureSource(sftName)
 
   // after all tests, drop the tables we created to free up memory
-  override def map(fragments: => Fragments) = fragments ^ Step {
+  override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
     ds.removeSchema(sftName)
     ds.dispose()
   }

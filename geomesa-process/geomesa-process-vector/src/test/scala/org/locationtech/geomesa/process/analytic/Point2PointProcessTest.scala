@@ -58,7 +58,7 @@ class Point2PointProcessTest extends Specification {
     "properly create linestrings of groups of 2 coordinates" >> {
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val res = p2p.execute(features, "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
-      SelfClosingIterator(res.features) must haveLength(8)
+      SelfClosingIterator(res.features).toSeq must haveLength(8)
 
       val f1 = SelfClosingIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
         "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toSeq
@@ -122,13 +122,13 @@ class Point2PointProcessTest extends Specification {
       val res = p2p.execute(features.subCollection(filter),
         "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
       res.getSchema must not(beNull)
-      SelfClosingIterator(res.features) must haveLength(0)
+      SelfClosingIterator(res.features).toSeq must haveLength(0)
     }
 
     "group on non-string attributes" >> {
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val res = p2p.execute(features, "myint", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
-      SelfClosingIterator(res.features) must haveLength(8)
+      SelfClosingIterator(res.features).toSeq must haveLength(8)
 
       val f1 = SelfClosingIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
         "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toSeq

@@ -16,7 +16,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.Fragments
+import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConversions._
 
@@ -59,7 +59,8 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
     }
 
     "handle ANDs with multiple predicates" in {
-      val filters = List(ECQL.toFilter("attr1 = val1"), ECQL.toFilter("attr2 = val2"), geomFilter).permutations.map(ff.and(_))
+      val filters = List(ECQL.toFilter("attr1 = val1"), ECQL.toFilter("attr2 = val2"), geomFilter)
+          .permutations.map(ff.and(_)).toSeq
 
       forall(filters) { filter => 
         val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)

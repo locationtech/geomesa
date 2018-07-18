@@ -13,7 +13,6 @@ import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
@@ -31,7 +30,9 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification with LazyLogging {
-  val ff = CommonFactoryFinder.getFilterFactory2
+
+  import org.locationtech.geomesa.filter.ff
+
   val gf = JTSFactoryFinder.getGeometryFactory
 
   def dt2lit(dt: ZonedDateTime): Expression = ff.literal(Date.from(dt.toInstant))
@@ -142,7 +143,7 @@ class FilterHelperTest extends Specification with LazyLogging {
     }
 
     "return date1 to date2 for during filters" in {
-      forall(dts.combinations(2).map(sortDates)) { case (start, end) =>
+      forall(dts.combinations(2).map(sortDates).toSeq) { case (start, end) =>
 
         val filter = during(start, end)
 
@@ -154,7 +155,7 @@ class FilterHelperTest extends Specification with LazyLogging {
     }
 
     "offset dates for during filters" in {
-      forall(dts.combinations(2).map(sortDates)) { case (start, end) =>
+      forall(dts.combinations(2).map(sortDates).toSeq) { case (start, end) =>
         val filter = during(start, end)
         val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).values.head
         val expectedInterval = Bounds(Bound(Some(start.plusSeconds(1)), inclusive = true), Bound(Some(end.minusSeconds(1)), inclusive = true))
@@ -162,7 +163,7 @@ class FilterHelperTest extends Specification with LazyLogging {
         extractedInterval must equalTo(expectedInterval)
       }
       val r = new Random(-7)
-      forall(dts.combinations(2).map(sortDates)) { case (s, e) =>
+      forall(dts.combinations(2).map(sortDates).toSeq) { case (s, e) =>
         val start = s.plus(r.nextInt(998) + 1, ChronoUnit.MILLIS)
         val end = e.plus(r.nextInt(998) + 1, ChronoUnit.MILLIS)
         val filter = during(start, end)
@@ -186,7 +187,7 @@ class FilterHelperTest extends Specification with LazyLogging {
     }
 
     "return appropriate interval for 'and'ed between/during filters" in {
-      forall(dtPairs.combinations(2)) { dtTuples =>
+      forall(dtPairs.combinations(2).toSeq) { dtTuples =>
         val t1 = dtTuples(0)
         val t2 = dtTuples(1)
 

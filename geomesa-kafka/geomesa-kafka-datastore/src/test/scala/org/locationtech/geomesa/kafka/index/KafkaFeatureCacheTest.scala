@@ -18,10 +18,10 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.concurrent.duration.Duration
-
 @RunWith(classOf[JUnitRunner])
 class KafkaFeatureCacheTest extends Specification {
+
+  import scala.concurrent.duration._
 
   sequential
 
@@ -42,7 +42,7 @@ class KafkaFeatureCacheTest extends Specification {
   def track(id: String, track: String): SimpleFeature = ScalaSimpleFeature.create(sft, id, id, track)
 
   def caches(expiry: Duration = Duration.Inf) =
-    Iterator(
+    Seq(
       KafkaFeatureCache(sft, IndexConfig(expiry, None, 360, 180, Seq.empty, lazyDeserialization = true)),
       KafkaFeatureCache(sft, IndexConfig(expiry, None, 360, 180, Seq(("geom", CQIndexType.GEOMETRY)), lazyDeserialization = true))
     )
@@ -127,8 +127,8 @@ class KafkaFeatureCacheTest extends Specification {
           cache.query(track0v0.getID) must beSome(track0v0)
           cache.query(wholeWorldFilter).toSeq mustEqual Seq(track0v0)
 
-          cache.query(track0v0.getID) must eventually(40, 100.millis)(beNone)
-          cache.query(wholeWorldFilter).toSeq must eventually(40, 100.millis)(beEmpty)
+          eventually(40, 100.millis)(cache.query(track0v0.getID) must beNone)
+          eventually(40, 100.millis)(cache.query(wholeWorldFilter).toSeq must beEmpty)
           cache.size() mustEqual 0
         } finally {
           cache.close()

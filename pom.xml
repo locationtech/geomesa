@@ -121,8 +121,8 @@
         <scalalogging.version>3.1.0</scalalogging.version>
         <log4j.version>1.2.17</log4j.version>
 
+        <specs2.version>4.3.2</specs2.version>
         <junit.version>4.12</junit.version>
-        <specs2.version>2.3.13</specs2.version>
 
         <!-- testing properties -->
         <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500</maven.test.jvmargs>
@@ -2574,7 +2574,19 @@
             </dependency>
             <dependency>
                 <groupId>org.specs2</groupId>
-                <artifactId>specs2_${scala.binary.version}</artifactId>
+                <artifactId>specs2-core_${scala.binary.version}</artifactId>
+                <version>${specs2.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.specs2</groupId>
+                <artifactId>specs2-junit_${scala.binary.version}</artifactId>
+                <version>${specs2.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.specs2</groupId>
+                <artifactId>specs2-mock_${scala.binary.version}</artifactId>
                 <version>${specs2.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -2593,7 +2605,7 @@
             <dependency>
                 <groupId>org.scalatra</groupId>
                 <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
-                <version>2.3.0</version> <!-- version that works with specs 2.3 -->
+                <version>${scalatra.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

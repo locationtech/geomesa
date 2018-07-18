@@ -27,6 +27,8 @@ import scala.concurrent.Future
 @RunWith(classOf[JUnitRunner])
 class GenericSimpleFeatureStreamSourceTest extends Specification  {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   "GenericSimpleFeatureStreamSource" should {
 
     val confString =

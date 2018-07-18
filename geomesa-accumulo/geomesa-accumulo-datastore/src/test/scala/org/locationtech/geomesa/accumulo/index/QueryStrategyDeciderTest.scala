@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
@@ -29,11 +28,11 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
+  import org.locationtech.geomesa.filter.ff
+
   override val spec = "nameHighCardinality:String:index=join:cardinality=high,ageJoinIndex:Long:index=join," +
       "heightFullIndex:Float:index=full,dtgJoinIndex:Date:index=join,weightNoIndex:String," +
       "dtgNoIndex:Date,dtg:Date,*geom:Point:srid=4326"
-
-  val ff = CommonFactoryFinder.getFilterFactory2
 
   addFeatures {
     val r = new Random(-57L)

@@ -55,7 +55,7 @@ class BinSorterTest extends Specification {
       val bytes = Arrays.copyOf(bin, bin.length)
       BinSorter.quickSort(bytes, 0, bytes.length - 16, 16)
       val result = bytes.grouped(16).map(BinaryOutputEncoder.decode).map(_.dtg).toSeq
-      forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
+      forall(result.sliding(2).toSeq)(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
     }
     "mergesort" in {
       val bytes = Arrays.copyOf(bin, bin.length).grouped(48).toSeq
@@ -63,7 +63,7 @@ class BinSorterTest extends Specification {
       val result = BinSorter.mergeSort(bytes.iterator, 16).map {
         case (b, o) => BinaryOutputEncoder.decode(b.slice(o, o + 16)).dtg
       }
-      forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
+      forall(result.sliding(2).toSeq)(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
     }
     "mergesort in place" in {
       val bytes = Arrays.copyOf(bin, bin.length).grouped(48)
@@ -73,7 +73,7 @@ class BinSorterTest extends Specification {
       BinSorter.quickSort(right, 0, right.length - 16, 16)
       val merged = BinSorter.mergeSort(left, right, 16)
       val result = merged.grouped(16).map(BinaryOutputEncoder.decode).map(_.dtg).toSeq
-      forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
+      forall(result.sliding(2).toSeq)(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
     }
     "quicksort 24 byte records" in {
       val out = new ByteArrayOutputStream(24 * features.length)
@@ -89,7 +89,7 @@ class BinSorterTest extends Specification {
       val bytes = out.toByteArray
       BinSorter.quickSort(bytes, 0, bytes.length - 24, 24)
       val result = bytes.grouped(24).map(BinaryOutputEncoder.decode).map(_.dtg).toSeq
-      forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
+      forall(result.sliding(2).toSeq)(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
     }
     "quicksort edge cases" in {
       val maxLength = 8 // anything more than 8 takes too long to run
@@ -106,7 +106,7 @@ class BinSorterTest extends Specification {
           val result = buffer.take(right + 16).grouped(16).map(BinaryOutputEncoder.decode).map(_.dtg).toSeq
           result must haveLength(i)
           if (result.length > 1) {
-            forall(result.sliding(2))(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
+            forall(result.sliding(2).toSeq)(s => s.head must beLessThanOrEqualTo(s.drop(1).head))
           }
         }
       }

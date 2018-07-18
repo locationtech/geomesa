@@ -50,19 +50,16 @@
         <!-- test deps -->
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-core_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-            <scope>test</scope>
+            <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
             <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>

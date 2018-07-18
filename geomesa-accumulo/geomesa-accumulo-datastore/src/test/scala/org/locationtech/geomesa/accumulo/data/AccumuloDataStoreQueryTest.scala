@@ -12,7 +12,7 @@ import java.util.{Collections, Date}
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.Hints
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
@@ -33,7 +33,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.time.Duration
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -41,9 +40,10 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts {
 
+  import org.locationtech.geomesa.filter.ff
+
   sequential
 
-  val ff = CommonFactoryFinder.getFilterFactory2
   val defaultSft = createNewSchema("name:String:index=join,geom:Point:srid=4326,dtg:Date")
   addFeature(defaultSft, ScalaSimpleFeature.create(defaultSft, "fid-1", "name1", "POINT(45 49)", "2010-05-07T12:30:00.000Z"))
 
@@ -131,7 +131,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val filterUsingMeters  = ff.and(during, dwithinUsingMeters)
         val queryUsingMeters   = new Query(sftPoints.getTypeName, filterUsingMeters)
         val resultsUsingMeters = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingMeters)
-        SelfClosingIterator(resultsUsingMeters.features) must haveLength(50)
+        SelfClosingIterator(resultsUsingMeters.features).toSeq must haveLength(50)
       }
     }
 
@@ -476,12 +476,14 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "kill queries after a configurable timeout" in {
+      import scala.concurrent.duration._
+
       val params = dsParams ++ Map(AccumuloDataStoreParams.QueryTimeoutParam.getName -> "1s")
 
       val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
       reader.isClosed must beFalse
-      reader.isClosed must eventually(20, new Duration(200))(beTrue)
+      eventually(20, 200.millis)(reader.isClosed must beTrue)
     }
 
     "block full table scans" in {

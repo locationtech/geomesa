@@ -11,7 +11,6 @@ package org.locationtech.geomesa.hbase.spark
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
@@ -25,14 +24,14 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
 
+  import org.locationtech.geomesa.filter.ff
+
   sequential
 
   // START HBASE INSTANCE MANUALLY
   lazy val sftName: String = "chicago"
 
   def spec: String = SparkSQLTestUtils.ChiSpec
-
-  private val ff = CommonFactoryFinder.getFilterFactory2
 
   def dtgField: Option[String] = Some("dtg")
 

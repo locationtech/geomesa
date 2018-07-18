@@ -12,7 +12,6 @@ import java.time.temporal.ChronoUnit
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl}
 import org.geotools.util.Converters
@@ -29,8 +28,6 @@ class FilterHelperTest extends Specification {
 
   val sft = SimpleFeatureTypes.createType("FilterHelperTest",
     "dtg:Date,number:Int,a:Int,b:Int,c:Int,*geom:Point:srid=4326")
-
-  val ff = CommonFactoryFinder.getFilterFactory2
 
   def updateFilter(filter: Filter): Filter = QueryPlanFilterVisitor.apply(sft, filter)
 

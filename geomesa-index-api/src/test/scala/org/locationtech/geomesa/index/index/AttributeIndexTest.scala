@@ -92,7 +92,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
         // validate that ranges do not overlap
         foreach(ds.getQueryPlan(q, explainer = explain)) { qp =>
           val ranges = qp.ranges.sortBy(_.start)(ByteArrays.ByteOrdering)
-          forall(ranges.sliding(2)) { case Seq(left, right) => overlaps(left, right) must beFalse }
+          forall(ranges.sliding(2).toSeq) { case Seq(left, right) => overlaps(left, right) must beFalse }
         }
         SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
       }

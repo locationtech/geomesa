@@ -24,7 +24,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.identity.FeatureId
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -51,7 +51,7 @@ trait TestWithMultipleSfts extends Specification {
   val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
 
   // after all tests, drop the tables we created to free up memory
-  override def map(fragments: => Fragments) = fragments ^ Step {
+  override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
     val to = connector.tableOperations()
     val tables = Seq(sftBaseName) ++ sfts.flatMap { sft =>
       Try(AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds))).getOrElse(Seq.empty)
