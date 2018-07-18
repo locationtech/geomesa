@@ -99,10 +99,10 @@ object PlaybackCommand {
     @Parameter(names = Array("--dtg"), description = "Date attribute to base playback on")
     var dtg: String = _
 
-    @Parameter(names = Array("--window"), description = "Query the interval in discrete chunks instead of all at once ('10 minutes', '30 seconds', etc)", converter = classOf[DurationConverter])
+    @Parameter(names = Array("--step-window"), description = "Query the interval in discrete chunks instead of all at once ('10 minutes', '30 seconds', etc)", converter = classOf[DurationConverter])
     var window: Duration = _
 
-    @Parameter(names = Array("--rate"), description = "Rate to speed-up features being returned")
+    @Parameter(names = Array("--rate"), description = "Rate multiplier to speed-up (or slow down) features being returned")
     var rate: java.lang.Float = _
   }
 }

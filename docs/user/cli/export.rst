@@ -145,8 +145,9 @@ Argument                 Description
                          ``yyyy-MM-dd'T'HH:mm:ss.SSSZ/yyyy-MM-dd'T'HH:mm:ss.SSSZ``
 ``--dtg``                Date attribute to base playback on. If not specified,
                          will use the default schema date field
-``--rate``               Rate to speed-up features being returned, as a float
-``--window``             Query the interval in discrete chunks instead of all at
+``--rate``               Rate multiplier to speed-up (or slow down) features being
+                         returned, as a float
+``--step-window``        Query the interval in discrete chunks instead of all at
                          once ('10 minutes', '30 seconds', etc)
 ``-q, --cql``            Additional CQL filter to select features to export.
                          Features will automatically be filtered to match the
@@ -169,7 +170,7 @@ The ``--rate`` parameter can be used to speed up or slow down the replay. It is 
 number. For example ``--rate 10`` will make replay ten times faster, while ``--rate 0.1`` will make replay
 ten times slower.
 
-The ``--window`` parameter can be used to break up the query into discrete chunks, based on the time interval.
+The ``--step-window`` parameter can be used to break up the query into discrete chunks, based on the time interval.
 For larger exports, this will save memory overhead when sorting and will likely be faster. The window should be
 large enough so that the overhead of creating multiple queries doesn't slow down the process, but small enough so
 that a manageable batch of features is returned for each query. The optimal window size will depend on the
