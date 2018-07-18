@@ -8,16 +8,34 @@
 
 package org.locationtech.geomesa.convert.avro
 
+import java.nio.ByteBuffer
+
 import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 
-class AvroPathFunctionFactory extends TransformerFunctionFactory {
+class AvroFunctionFactory extends TransformerFunctionFactory {
 
-  override def functions: Seq[TransformerFunction] = Seq(avroPath)
+  override def functions: Seq[TransformerFunction] = Seq(avroPath, binaryList, binaryMap, binaryUuid)
 
   private val avroPath = new AvroPathFn()
+
+  // parses a list encoded by the geomesa avro writer
+  private val binaryList = TransformerFunction("avroBinaryList") { args =>
+    AvroSimpleFeatureUtils.decodeList(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
+  }
+
+  // parses a map encoded by the geomesa avro writer
+  private val binaryMap = TransformerFunction("avroBinaryMap") { args =>
+    AvroSimpleFeatureUtils.decodeMap(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
+  }
+
+  // parses a uuid encoded by the geomesa avro writer
+  private val binaryUuid = TransformerFunction("avroBinaryUuid") { args =>
+    AvroSimpleFeatureUtils.decodeUUID(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
+  }
 
   class AvroPathFn extends NamedTransformerFunction(Seq("avroPath")) {
     private var path: AvroPath = _

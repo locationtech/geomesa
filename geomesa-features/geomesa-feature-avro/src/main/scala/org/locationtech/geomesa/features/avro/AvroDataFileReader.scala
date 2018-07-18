@@ -12,7 +12,8 @@ import java.io.{Closeable, InputStream}
 
 import org.apache.avro.file.DataFileStream
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AvroDataFileReader(is: InputStream) extends Iterator[SimpleFeature] with Closeable {
 
@@ -20,6 +21,7 @@ class AvroDataFileReader(is: InputStream) extends Iterator[SimpleFeature] with C
   private val dfs = new DataFileStream[AvroSimpleFeature](is, datumReader)
 
   if (!AvroDataFile.canParse(dfs)) {
+    CloseWithLogging(dfs)
     throw new IllegalArgumentException(s"Only version ${AvroDataFile.Version} data files supported")
   }
 
@@ -29,7 +31,7 @@ class AvroDataFileReader(is: InputStream) extends Iterator[SimpleFeature] with C
   datumReader.setSchema(schema)
   datumReader.setTypes(sft, sft)
 
-  def getSft = sft
+  def getSft: SimpleFeatureType = sft
 
   override def hasNext: Boolean = dfs.hasNext
 
