@@ -38,5 +38,6 @@ artifact with the ``data`` classifier. For example, for Maven add the following 
     nyctaxi
     osm
     osm-gpx
+    marinecadastre-ais
     tdrive
     twitter
