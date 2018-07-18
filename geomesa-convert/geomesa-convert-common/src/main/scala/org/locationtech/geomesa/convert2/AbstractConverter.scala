@@ -54,8 +54,9 @@ abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: Converte
 
   /**
     * Read values for simple features out of the input stream. This should be lazily evaluated,
-    * so that any exceptions occur in the call to `hasNext`. If there is any sense of 'lines',
-    * they should be indicated with `ec.counter.incLineCount`
+    * so that any exceptions occur in the call to `hasNext` (and not during the iterator creation),
+    * which lets us handle them appropriately in `ErrorHandlingIterator`. If there is any sense of
+    * 'lines', they should be indicated with `ec.counter.incLineCount`
     *
     * @param is input
     * @param ec evaluation context
@@ -66,11 +67,13 @@ abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: Converte
   override def createEvaluationContext(globalParams: Map[String, Any],
                                        caches: Map[String, EnrichmentCache],
                                        counter: Counter): EvaluationContext = {
+    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
+
     val globalKeys = globalParams.keys.toSeq
     val names = requiredFields.map(_.name) ++ globalKeys
     val values = Array.ofDim[Any](names.length)
     // note, globalKeys are maintained even through EvaluationContext.clear()
-    globalKeys.zipWithIndex.foreach { case (k, i) => values(requiredFields.length + i) = globalParams(k) }
+    globalKeys.foreachIndex { case (k, i) => values(requiredFields.length + i) = globalParams(k) }
     val configCaches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
     new EvaluationContextImpl(names, values, counter, configCaches ++ caches)
   }

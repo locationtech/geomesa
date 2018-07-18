@@ -86,7 +86,7 @@ object SimpleFeatureValidator {
 
     override def init(sft: SimpleFeatureType): Unit = {
       lastErr = null
-      i = Option(sft.getGeomField).map(sft.indexOf).getOrElse(-1)
+      i = sft.getGeomIndex
     }
 
     override def validate(sf: SimpleFeature): Boolean = {
@@ -123,7 +123,7 @@ object SimpleFeatureValidator {
     override def init(sft: SimpleFeatureType): Unit = {
       lastErr = null
       dtgIndex = sft.getDtgIndex.getOrElse(-1)
-      geomIndex = Option(sft.getGeomField).map(sft.indexOf).getOrElse(-1)
+      geomIndex = sft.getGeomIndex
       minDate = Date.from(BinnedTime.ZMinDate.toInstant)
       maxDate = Date.from(BinnedTime.maxDate(sft.getZ3Interval).toInstant)
 

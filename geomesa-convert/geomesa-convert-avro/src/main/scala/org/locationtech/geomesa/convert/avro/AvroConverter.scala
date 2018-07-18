@@ -15,7 +15,7 @@ import org.apache.avro.Schema.Parser
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory}
 import org.locationtech.geomesa.convert.EvaluationContext
-import org.locationtech.geomesa.convert.avro.AvroConverter.{AvroConfig, SchemaFile, SchemaString}
+import org.locationtech.geomesa.convert.avro.AvroConverter.{AvroConfig, AvroReaderIterator, SchemaFile, SchemaString}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
@@ -38,23 +38,8 @@ class AvroConverter(targetSft: SimpleFeatureType,
   private var decoder: BinaryDecoder = _
 
   override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
-    new CloseableIterator[Array[Any]] {
-
-      private var record: GenericRecord = _
-      private val array = Array.ofDim[Any](2)
-      decoder = DecoderFactory.get.binaryDecoder(is, decoder)
-
-      override def hasNext: Boolean = !decoder.isEnd
-
-      override def next(): Array[Any] = {
-        record = reader.read(record, decoder)
-        array(1) = record
-        ec.counter.incLineCount()
-        array
-      }
-
-      override def close(): Unit = {}
-    }
+    decoder = DecoderFactory.get.binaryDecoder(is, decoder)
+    new AvroReaderIterator(reader, decoder, ec)
   }
 }
 
@@ -70,4 +55,30 @@ object AvroConverter {
 
   case class SchemaFile(path: String) extends SchemaConfig
   case class SchemaString(schema: String) extends SchemaConfig
+
+  /**
+    * Iterator for reading from an avro stream
+    *
+    * @param reader reader
+    * @param decoder decoder
+    * @param ec evaluation context
+    */
+  class AvroReaderIterator(reader: GenericDatumReader[GenericRecord],
+                           decoder: BinaryDecoder,
+                           ec: EvaluationContext) extends CloseableIterator[Array[Any]] {
+
+    private var record: GenericRecord = _
+    private val array = Array.ofDim[Any](2)
+
+    override def hasNext: Boolean = !decoder.isEnd
+
+    override def next(): Array[Any] = {
+      record = reader.read(record, decoder)
+      array(1) = record
+      ec.counter.incLineCount()
+      array
+    }
+
+    override def close(): Unit = {}
+  }
 }

@@ -13,10 +13,10 @@ import org.locationtech.geomesa.convert2
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
 import org.locationtech.geomesa.convert2.transforms._
 
-@deprecated("org.locationtech.geomesa.convert2.transforms.Expression, org.locationtech.geomesa.convert2.transforms.Predicate")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.Expression and org.locationtech.geomesa.convert2.transforms.Predicate")
 object Transformers extends LazyLogging {
 
-  @deprecated("org.locationtech.geomesa.convert2.transforms.Expression")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.Expression")
   trait Expr extends org.locationtech.geomesa.convert2.transforms.Expression {
 
     /**
@@ -41,14 +41,14 @@ object Transformers extends LazyLogging {
       expr.dependencies(stack, fieldMap)
   }
 
-  @deprecated("org.locationtech.geomesa.convert2.transforms.Predicate")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.Predicate")
   trait Predicate extends org.locationtech.geomesa.convert2.transforms.Predicate
 
   case class PredicateWrapper(pred: org.locationtech.geomesa.convert2.transforms.Predicate) extends Predicate {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean = pred.eval(args)(ctx)
   }
 
-  @deprecated("org.locationtech.geomesa.convert2.transforms.Expression.Column")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.Expression.Column")
   case class Col(i: Int) extends Expr {
     private val delegate = Column(i)
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = delegate.eval(args)(ctx)
@@ -56,7 +56,7 @@ object Transformers extends LazyLogging {
       delegate.dependencies(stack, fieldMap)
   }
 
-  @deprecated("org.locationtech.geomesa.convert2.transforms.Expression.FieldLookup")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.Expression.FieldLookup")
   case class FieldLookup(n: String) extends Expr {
     private val delegate = org.locationtech.geomesa.convert2.transforms.Expression.FieldLookup(n)
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = delegate.eval(args)(ctx)
@@ -64,14 +64,14 @@ object Transformers extends LazyLogging {
       delegate.dependencies(stack, fieldMap)
   }
 
-  @deprecated("org.locationtech.geomesa.convert2.transforms.ExpressionParser")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.ExpressionParser")
   def parseTransform(s: String): Expr = ExpressionWrapper(Expression(s))
 
-  @deprecated("org.locationtech.geomesa.convert2.transforms.PredicateParser")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.PredicateParser")
   def parsePred(s: String): Predicate = PredicateWrapper(Predicate(s))
 }
 
-@deprecated("org.locationtech.geomesa.convert2.transforms.TransformerFunction")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.TransformerFunction")
 object TransformerFn {
   def apply(n: String*)(f: (Array[Any]) => Any): TransformerFn = new TransformerFn {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = f(args)
@@ -79,10 +79,10 @@ object TransformerFn {
   }
 }
 
-@deprecated("org.locationtech.geomesa.convert2.transforms.TransformerFunction")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.TransformerFunction")
 trait TransformerFn extends org.locationtech.geomesa.convert2.transforms.TransformerFunction
 
-@deprecated("org.locationtech.geomesa.convert2.transforms.TransformerFunctionFactory")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.transforms.TransformerFunctionFactory")
 trait TransformerFunctionFactory extends org.locationtech.geomesa.convert2.transforms.TransformerFunctionFactory {
   def functions: Seq[TransformerFn]
 }

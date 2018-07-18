@@ -9,7 +9,7 @@ definition.
 Configuration
 -------------
 
-The JSON converter supports parsing multiple json documents out of a single file.
+The JSON converter supports parsing multiple JSON documents out of a single file.
 In order to support JSON path expressions, each JSON document is fully parsed into memory.
 For large documents, this may take considerable time and memory. Thus, it is usually better to have multiple
 smaller JSON documents per file, when possible.

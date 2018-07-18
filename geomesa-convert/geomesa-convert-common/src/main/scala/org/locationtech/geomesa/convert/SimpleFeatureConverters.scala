@@ -24,7 +24,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 /**
   * Simplified API to build SimpleFeatureType converters
   */
-@deprecated("org.locationtech.geomesa.convert2.SimpleFeatureConverter")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverter")
 object SimpleFeatureConverters extends LazyLogging {
 
   import scala.collection.JavaConverters._
@@ -36,19 +36,19 @@ object SimpleFeatureConverters extends LazyLogging {
   logger.debug(s"Found ${factories.size + factoriesV1.size} factories: " +
       (factories ++ factoriesV1).map(_.getClass.getName).mkString(", "))
 
-  @deprecated("org.locationtech.geomesa.convert2.SimpleFeatureConverter.apply")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverter.apply")
   def build[I](typeName: String, converterName: String): SimpleFeatureConverter[I] = {
     val sft = SimpleFeatureTypeLoader.sftForName(typeName)
       .getOrElse(throw new IllegalArgumentException(s"Unable to load SFT for typeName $typeName"))
     build[I](sft, converterName)
   }
 
-  @deprecated("org.locationtech.geomesa.convert2.SimpleFeatureConverter.apply")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverter.apply")
   def build[I](sft: SimpleFeatureType, converterName: String): SimpleFeatureConverter[I] =
     ConverterConfigLoader.configForName(converterName).map(build[I](sft, _))
       .getOrElse(throw new IllegalArgumentException(s"Unable to find converter config for converterName $converterName"))
 
-  @deprecated("org.locationtech.geomesa.convert2.SimpleFeatureConverter.apply")
+  @deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverter.apply")
   def build[I](sft: SimpleFeatureType, converterConf: Config): SimpleFeatureConverter[I] = {
     factoriesV1.find(_.canProcess(converterConf)).map(_.buildConverter(sft, converterConf)) match {
       case Some(c) => c.asInstanceOf[SimpleFeatureConverter[I]]

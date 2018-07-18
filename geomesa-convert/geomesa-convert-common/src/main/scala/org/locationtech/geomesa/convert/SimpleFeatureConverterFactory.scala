@@ -29,7 +29,7 @@ import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-@deprecated("org.locationtech.geomesa.convert2.Field")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.Field")
 trait Field extends org.locationtech.geomesa.convert2.Field {
   def name: String
   def transform: Transformers.Expr
@@ -49,7 +49,7 @@ case class FieldWrapper(field: org.locationtech.geomesa.convert2.Field) extends 
   override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = field.eval(args)(ec)
 }
 
-@deprecated("org.locationtech.geomesa.convert2.BasicField")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.BasicField")
 case class SimpleField(name: String, transform: Transformers.Expr) extends Field {
   override val transforms: Option[Expression] = Option(transform)
   override def toString: String = s"$name = $transform"
@@ -75,7 +75,7 @@ object StandardOption extends Enumeration {
   }
 }
 
-@deprecated("ErrorMode")
+@deprecated("Replaced with org.locationtech.geomesa.convert.ErrorMode")
 object ValidationMode extends Enumeration {
   type ValidationMode = Value
   val SkipBadRecords = Value(ErrorMode.SkipBadRecords.toString)
@@ -88,13 +88,13 @@ case class ConvertParseOpts(parseMode: ParseMode,
                             validationMode: ValidationMode,
                             verbose: Boolean)
 
-@deprecated("org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory")
 trait SimpleFeatureConverterFactory[I] {
   def canProcess(conf: Config): Boolean
   def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I]
 }
 
-@deprecated("org.locationtech.geomesa.convert2.AbstractConverterFactory")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.AbstractConverterFactory")
 abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureConverterFactory[I] with LazyLogging {
 
   override def canProcess(conf: Config): Boolean =
@@ -218,7 +218,7 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
 
 }
 
-@deprecated("org.locationtech.geomesa.convert2.SimpleFeatureConverter")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverter")
 trait SimpleFeatureConverter[I] extends Closeable {
 
   /**
@@ -255,7 +255,7 @@ trait SimpleFeatureConverter[I] extends Closeable {
   override def close(): Unit = {}
 }
 
-@deprecated("org.locationtech.geomesa.convert2.SimpleFeatureConverter")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverter")
 object SimpleFeatureConverter {
 
   type Dag = scala.collection.mutable.Map[Field, Set[Field]]
@@ -301,7 +301,7 @@ object SimpleFeatureConverter {
 /**
  * Base trait to create a simple feature converter
  */
-@deprecated("org.locationtech.geomesa.convert2.AbstractConverter")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.AbstractConverter")
 trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLogging {
 
   def targetSFT: SimpleFeatureType
@@ -442,7 +442,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   }
 }
 
-@deprecated("org.locationtech.geomesa.convert2.AbstractConverter")
+@deprecated("Replaced with org.locationtech.geomesa.convert2.AbstractConverter")
 trait LinesToSimpleFeatureConverter extends ToSimpleFeatureConverter[String] {
 
   override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] =
