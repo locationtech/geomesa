@@ -6,7 +6,8 @@ Using SFT and Converter Definitions with Command-Line Tools
 The GeoMesa binary distributions ship with prepackaged feature type and
 converter definitions for common data types including Twitter, GeoNames, T-drive, and
 several more. These converters can be used with the GeoMesa command-line tools out of the box.
-See :ref:`prepackaged_converters`.
+See :ref:`prepackaged_converters`. In addition, common file formats such as GeoJSON, delimited text,
+or self-describing Avro can often be ingested without a converter. See :ref:`cli_ingest` for details.
 
 Users can add additional SimpleFeatureType and converter types by providing a ``reference.conf`` file
 embedded with a JAR within the ``lib`` directory, or by adding the types to the

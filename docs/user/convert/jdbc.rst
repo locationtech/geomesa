@@ -4,7 +4,7 @@ JDBC Converter
 ==============
 
 The JDBC converter allows you to create SimpleFeatures directly from a SQL select statement against an
-eixsting database, using standard JDBC libraries. To use the JDBC converter, specify ``type = "jdbc"``
+existing database, using standard JDBC libraries. To use the JDBC converter, specify ``type = "jdbc"``
 in your converter definition.
 
 Configuration

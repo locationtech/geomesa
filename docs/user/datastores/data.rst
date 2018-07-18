@@ -27,13 +27,6 @@ is self-describing, you do not need to specify any converter config or simple fe
 If your data is too large for a single file, you may run multiple exports and use CQL
 filters to separate your data.
 
-If you prefer to not use Avro files, you may do the same process with delimited text files:
-
-.. code-block:: bash
-
-    $ geomesa-accumulo export ... -f mySft --format tsv --gzip 6 -o myFeatures.tsv.gz
-    $ geomesa-accumulo ingest ... -f mySft myFeatures.tsv.gz
-
 If the schema does not already exist in the destination cluster, it will be created with the latest index formats
 available in GeoMesa, which may perform better. You could use this technique to migrate data between tables
 in a single cluster, as a way to benefit from indexing improvements. See :ref:`index_versioning` for more information.

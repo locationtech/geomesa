@@ -26,8 +26,10 @@ The ``fields`` element in a JSON converter supports two additional attributes, `
 and available in the ``transform`` element as ``$0``. Geometry types can handle either WKT strings or GeoJSON
 geometry objects.
 
-Transform Functions
--------------------
+.. _json_converter_functions:
+
+JSON Transform Functions
+------------------------
 
 The ``transform`` element supports referencing the JSON element through ``$0``. Each column will initially
 be typed according to the field's ``json-type``. Most types will be converted to the equivalent Java class,
