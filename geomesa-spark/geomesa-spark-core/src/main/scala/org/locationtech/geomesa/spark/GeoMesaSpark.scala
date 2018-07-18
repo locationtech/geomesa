@@ -57,7 +57,6 @@ trait Schema {
 
 class SpatialRDD(rdd: RDD[SimpleFeature], sft: SimpleFeatureType) extends RDD[SimpleFeature](rdd) with Schema {
 
-  GeoMesaSparkKryoRegistratorEndpoint.init()
   GeoMesaSparkKryoRegistrator.register(sft)
 
   private val sft_name = sft.getTypeName
@@ -70,6 +69,8 @@ class SpatialRDD(rdd: RDD[SimpleFeature], sft: SimpleFeatureType) extends RDD[Si
 }
 
 object SpatialRDD {
+
+  GeoMesaSparkKryoRegistratorEndpoint.init()
 
   def apply(rdd: RDD[SimpleFeature], schema: SimpleFeatureType) = new SpatialRDD(rdd, schema)
 

@@ -28,6 +28,11 @@ object JavaGeoMesaSpark {
     JavaSpatialRDDProvider(GeoMesaSpark.apply(params.asInstanceOf[java.util.Map[String, java.io.Serializable]]))
 }
 
+object JavaSpatialRDDProvider {
+
+  def apply(provider: SpatialRDDProvider) = new JavaSpatialRDDProvider(provider)
+}
+
 class JavaSpatialRDDProvider(provider: SpatialRDDProvider) {
 
   def rdd(conf: Configuration,
@@ -42,27 +47,6 @@ class JavaSpatialRDDProvider(provider: SpatialRDDProvider) {
     provider.save(jrdd, params.toMap, typeName)
 }
 
-object JavaSpatialRDDProvider {
-
-  def apply(provider: SpatialRDDProvider) = new JavaSpatialRDDProvider(provider)
-}
-
-class JavaSpatialRDD(rdd: SpatialRDD) extends JavaRDD[SimpleFeature](rdd) with Schema {
-  import JavaSpatialRDD._
-
-  def schema = rdd.schema
-
-  def asValueList:      JavaRDD[util.List[Object]]                          = toValueList(rdd)
-  def asKeyValueList:   JavaRDD[util.List[util.Map.Entry[String, Object]]]  = toKeyValueList(rdd)
-  def asKeyValueMap:    JavaRDD[util.Map[String, Object]]                   = toKeyValueJavaMap(rdd)
-  def asGeoJSONString:  JavaRDD[String]                                     = toGeoJSONString(rdd)
-
-  def asPyValueList:    JavaRDD[util.List[Object]]                          = toPyValueList(rdd)
-  def asPyKeyValueList: JavaRDD[util.List[Array[Object]]]                   = toPyKeyValueList(rdd)
-  def asPyKeyValueMap:  JavaRDD[util.Map[String,Object]]                    = toPyKeyValueMap(rdd)
-}
-
-
 object JavaSpatialRDD {
 
   def apply(rdd: SpatialRDD) = new JavaSpatialRDD(rdd)
@@ -72,8 +56,12 @@ object JavaSpatialRDD {
   implicit def toValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[AnyRef]] =
     in.map(sf => util.Arrays.asList(sf.getAttributes: _*))
 
-  implicit def toKeyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[util.Map.Entry[String, AnyRef]]] =
+  implicit def toKeyValueEntryList(in: RDD[SimpleFeature] with Schema): RDD[util.List[util.Map.Entry[String, AnyRef]]] =
     in.map(_.getProperties.map(p => new SimpleEntry(p.getName.getLocalPart, p.getValue)))
+      .map(i => util.Arrays.asList(i.toSeq: _*))
+
+  implicit def toKeyValueArrayList(in: RDD[SimpleFeature] with Schema): RDD[util.List[Array[AnyRef]]] =
+    in.map(_.getProperties.map(p => Array(p.getName.getLocalPart, p.getValue)))
       .map(i => util.Arrays.asList(i.toSeq: _*))
 
   implicit def toKeyValueJavaMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String, AnyRef]] =
@@ -83,21 +71,20 @@ object JavaSpatialRDD {
   implicit def toGeoJSONString(in: RDD[SimpleFeature] with Schema): RDD[String] =
     SpatialRDD.toGeoJSONString(in)
 
-  def toPyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[AnyRef]] = {
-    val i = in.schema.indexOf("geom")
-    toValueList(in)
-      .map(vl => {vl.set(i, vl.get(i).toString); vl})
-  }
-
-  def toPyKeyValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[Array[AnyRef]]] = {
-    val i = in.schema.indexOf("geom")
-    in.map(_.getProperties.map(p => Array(p.getName.getLocalPart, p.getValue)))
-      .map(i => util.Arrays.asList(i.toSeq: _*))
-      .map(kvl => { kvl.get(i)(1) = kvl.get(i)(1).toString; kvl})
-  }
-
-  def toPyKeyValueMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String,AnyRef]] = {
-    toKeyValueJavaMap(in)
-      .map(m => { m.put("geom", m.get("geom").toString); m })
-  }
 }
+
+class JavaSpatialRDD(val srdd: SpatialRDD) extends JavaRDD[SimpleFeature](srdd) with Schema {
+  import JavaSpatialRDD._
+
+  def schema = srdd.schema
+
+  def asValueList:          JavaRDD[util.List[Object]]                         = toValueList(srdd)
+  def asKeyValueEntryList:  JavaRDD[util.List[util.Map.Entry[String, Object]]] = toKeyValueEntryList(srdd)
+  def asKeyValueArrayList:  JavaRDD[util.List[Array[AnyRef]]]                  = toKeyValueArrayList(srdd)
+  def asKeyValueMap:        JavaRDD[util.Map[String, Object]]                  = toKeyValueJavaMap(srdd)
+  def asGeoJSONString:      JavaRDD[String]                                    = toGeoJSONString(srdd)
+
+  @deprecated
+  def asKeyValueList = asKeyValueEntryList
+}
+

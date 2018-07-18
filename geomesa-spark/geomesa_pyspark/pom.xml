@@ -78,7 +78,6 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <configuration>
                             <executable>python</executable>
-                            <workingDirectory>${project.build.directory}/python</workingDirectory>
                         </configuration>
                         <executions>
                             <execution>
@@ -88,11 +87,31 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
+                                    <workingDirectory>${project.build.directory}/python</workingDirectory>
                                     <arguments>
                                         <argument>setup.py</argument>
                                         <argument>sdist</argument>
                                         <argument>--dist-dir=${project.build.directory}</argument>
                                     </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>unittest</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <workingDirectory>${project.basedir}/src/test/python</workingDirectory>
+                                    <arguments>
+                                        <argument>-m</argument>
+                                        <argument>unittest</argument>
+                                        <argument>discover</argument>
+                                        <argument>-v</argument>
+                                    </arguments>
+                                    <environmentVariables>
+                                        <PYTHONPATH>${project.basedir}/src/main/python/</PYTHONPATH>
+                                    </environmentVariables>
                                 </configuration>
                             </execution>
                         </executions>

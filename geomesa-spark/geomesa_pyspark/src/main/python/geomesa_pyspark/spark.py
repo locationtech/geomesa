@@ -1,7 +1,5 @@
 from py4j.java_gateway import java_import
 from pyspark import RDD, SparkContext
-from pyspark.sql.types import UserDefinedType, StructField, BinaryType
-from pyspark.sql import Row
 
 
 class GeoMesaSpark:
@@ -12,12 +10,12 @@ class GeoMesaSpark:
         java_import(self.jvm, "org.apache.hadoop.conf.Configuration")
         java_import(self.jvm, "org.geotools.data.Query")
         java_import(self.jvm, "org.geotools.filter.text.ecql.ECQL")
-        java_import(self.jvm, "org.locationtech.geomesa.spark.api.java.JavaGeoMesaSpark")
-        java_import(self.jvm, "org.locationtech.geomesa.spark.api.java.JavaSpatialRDDProvider")
-        java_import(self.jvm, "org.locationtech.geomesa.spark.api.java.JavaSpatialRDD")
+        java_import(self.jvm, "org.locationtech.geomesa.spark.api.python.PythonGeoMesaSpark")
+        java_import(self.jvm, "org.locationtech.geomesa.spark.api.python.PythonSpatialRDDProvider")
+        java_import(self.jvm, "org.locationtech.geomesa.spark.api.python.PythonSpatialRDD")
 
     def apply(self, params):
-        provider = self.jvm.JavaGeoMesaSpark.apply(params)
+        provider = self.jvm.PythonGeoMesaSpark.apply(params)
         return SpatialRDDProvider(self.sc, params, provider)
 
 
@@ -33,15 +31,15 @@ class SpatialRDDProvider:
         return self.__pyrdd(jrdd)
 
     def rdd_dict(self, typename, ecql):
-        jrdd = self.__jrdd(typename, ecql).asPyKeyValueMap()
+        jrdd = self.__jrdd(typename, ecql).asKeyValueDict()
         return self.__pyrdd(jrdd)
 
     def rdd_tuples(self, typename, ecql):
-        jrdd = self.__jrdd(typename, ecql).asPyKeyValueList()
+        jrdd = self.__jrdd(typename, ecql).asKeyValueTupleList()
         return self.__pyrdd(jrdd)
 
     def rdd_values(self, typename, ecql):
-        jrdd = self.__jrdd(typename, ecql).asPyValueList()
+        jrdd = self.__jrdd(typename, ecql).asValueList()
         return self.__pyrdd(jrdd)
 
     def __jrdd(self, typename, ecql):
@@ -50,31 +48,4 @@ class SpatialRDDProvider:
         return self.provider.rdd(self.jvm.Configuration(), self.sc._jsc, self.params, query)
 
     def __pyrdd(self, jrdd):
-        return RDD(self.jvm.SerDe.javaToPython(jrdd), self.sc)
-
-
-class GeometryUDT(UserDefinedType):
-    jvm = None
-
-    @classmethod
-    def sqlType(self):
-        return StructField("wkb", BinaryType(), False)
-
-    @classmethod
-    def module(cls):
-        return 'geomesa_pyspark'
-
-    @classmethod
-    def scalaUDT(cls):
-        return 'org.apache.spark.sql.jts.GeometryUDT'
-
-    def serialize(self, obj):
-        if obj is None:
-            return None
-        return Row(obj.toBytes)
-
-    def deserialize(self, datum):
-        if self.jvm is None:
-            self.jvm = SparkContext._active_spark_context._gateway.jvm
-            java_import(self.jvm, "org.locationtech.geomesa.spark.jts.util.JavaAbstractGeometryUDT")
-        return self.jvm.JavaAbstractGeometryUDT.deserialize(datum[0])
+        return RDD(jrdd, self.sc)
