@@ -61,7 +61,7 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
       case Csv | Tsv      => new DelimitedExporter(getWriter(params), params.outputFormat, attributes, !params.noHeader)
       case Shp            => new ShapefileExporter(checkShpFile(params))
       case GeoJson | Json => new GeoJsonExporter(getWriter(params))
-      case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
+      case Gml | Xml      => new GmlExporter(createOutputStream(params.file, params.gzip))
       case Avro           => new AvroExporter(createOutputStream(params.file, null), avroCompression)
       case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params.file, params.gzip), ArrowExporter.queryDictionaries(ds, query))
       case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, params.gzip))

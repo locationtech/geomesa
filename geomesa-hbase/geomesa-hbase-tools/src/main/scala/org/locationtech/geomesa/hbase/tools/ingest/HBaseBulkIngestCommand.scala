@@ -56,9 +56,6 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
     }
   }
 
-  override protected def createAutoIngest(): Runnable =
-    throw new NotImplementedError("Bulk auto ingest not implemented")
-
   override protected def createShpIngest(): Runnable =
     throw new NotImplementedError("Bulk ShpFile ingest not implemented")
 }

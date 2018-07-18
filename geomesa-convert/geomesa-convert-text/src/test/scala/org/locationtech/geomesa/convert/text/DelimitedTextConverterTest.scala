@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
@@ -718,6 +718,32 @@ class DelimitedTextConverterTest extends Specification {
       res must haveSize(1)
       res(0).getAttribute("phrase") mustEqual "hello"
       res(0).getAttribute("geom").toString mustEqual "POINT (45 45)"
+    }
+
+    "infer a converter from input data" >> {
+      import scala.collection.JavaConverters._
+
+      val data =
+        """
+          |1,hello,45.0,45.0
+          |2,world,90.0,90.0
+        """.stripMargin
+
+      val factory = new DelimitedTextConverterFactory()
+      val inferred = factory.infer(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)))
+      inferred must beSome
+
+      val (sft, config) = inferred.get
+      sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+          Seq(classOf[Integer], classOf[String], classOf[java.lang.Float], classOf[java.lang.Float], classOf[Point])
+
+      val converter = factory.apply(sft, config)
+      converter must beSome
+
+      val features = converter.get.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+      features must haveLength(2)
+      features(0).getAttributes.asScala mustEqual Seq(1, "hello", 45f, 45f, WKTUtils.read("POINT (45 45)"))
+      features(1).getAttributes.asScala mustEqual Seq(2, "world", 90f, 90f, WKTUtils.read("POINT (90 90)"))
     }
   }
 }
