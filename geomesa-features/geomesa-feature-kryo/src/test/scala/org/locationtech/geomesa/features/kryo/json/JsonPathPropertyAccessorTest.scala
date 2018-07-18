@@ -25,7 +25,7 @@ class JsonPathPropertyAccessorTest extends Specification {
 
   sequential
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  private val filterFactory = CommonFactoryFinder.getFilterFactory2
   val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,s:String,dtg:Date,*geom:Point:srid=4326")
 
   "JsonPathPropertyAccessor" should {
@@ -38,7 +38,7 @@ class JsonPathPropertyAccessorTest extends Specification {
     }
 
     "access json values in simple features" in {
-      val property = ff.property("$.json.foo")
+      val property = filterFactory.property("$.json.foo")
       val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(0, """{ "foo" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
@@ -47,7 +47,7 @@ class JsonPathPropertyAccessorTest extends Specification {
     }
 
     "access json values in simple features with spaces in the json path" in {
-      val property = ff.property("""$.json.['foo path']""")
+      val property = filterFactory.property("""$.json.['foo path']""")
       val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(0, """{ "foo path" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
@@ -56,7 +56,7 @@ class JsonPathPropertyAccessorTest extends Specification {
     }
 
     "access nested json values in simple features with a json path" in {
-      val property = ff.property("""$.json.foo.bar""")
+      val property = filterFactory.property("""$.json.foo.bar""")
       val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(0, """{ "foo" : { "bar" : 0 } }""")
       property.evaluate(sf) mustEqual 0
@@ -65,7 +65,7 @@ class JsonPathPropertyAccessorTest extends Specification {
     }
 
     "access non-json strings in simple features" in {
-      val property = ff.property("$.s.foo")
+      val property = filterFactory.property("$.s.foo")
       val sf = new ScalaSimpleFeature(sft, "")
       sf.setAttribute(1, """{ "foo" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
@@ -74,7 +74,7 @@ class JsonPathPropertyAccessorTest extends Specification {
     }
 
     "access json values in kryo serialized simple features" in {
-      val property = ff.property("$.json.foo")
+      val property = filterFactory.property("$.json.foo")
       val serializer = KryoFeatureSerializer(sft)
       val sf = serializer.getReusableFeature
       sf.setBuffer(serializer.serialize(new ScalaSimpleFeature(sft, "", Array("""{ "foo" : "bar" }""", null, null, null))))
@@ -84,7 +84,7 @@ class JsonPathPropertyAccessorTest extends Specification {
     }
 
     "access json values with spaces in kryo serialized simple features" in {
-      val property = ff.property("$.json.['foo path']")
+      val property = filterFactory.property("$.json.['foo path']")
       val serializer = KryoFeatureSerializer(sft)
       val sf = serializer.getReusableFeature
       sf.setBuffer(serializer.serialize(new ScalaSimpleFeature(sft, "", Array("""{ "foo path" : "bar" }""", null, null, null))))
@@ -105,7 +105,7 @@ class JsonPathPropertyAccessorTest extends Specification {
     "access attribute descriptors in simple feature types" in {
       import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-      val property = ff.property("$.json.foo")
+      val property = filterFactory.property("$.json.foo")
       val result = property.evaluate(sft)
       result must beAnInstanceOf[AttributeDescriptor]
       result.asInstanceOf[AttributeDescriptor].getLocalName mustEqual "json"
@@ -128,7 +128,7 @@ class JsonPathPropertyAccessorTest extends Specification {
       }
       forall(Seq(sf0, sf1)) { sf =>
         forall(Seq("$baz", "$.baz", "baz", "$.baz/a")) { path =>
-          ff.property(path).evaluate(sf) must beNull
+          filterFactory.property(path).evaluate(sf) must beNull
           ECQL.toFilter(s""""$path" = 'bar'""").evaluate(sf) must beFalse
         }
       }

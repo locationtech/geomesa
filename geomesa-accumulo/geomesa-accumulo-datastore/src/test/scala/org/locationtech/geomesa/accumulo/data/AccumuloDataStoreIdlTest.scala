@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
@@ -20,6 +19,8 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreIdlTest extends Specification with TestWithDataStore {
+
+  import org.locationtech.geomesa.filter.ff
 
   sequential
 
@@ -32,7 +33,6 @@ class AccumuloDataStoreIdlTest extends Specification with TestWithDataStore {
     sf
   })
 
-  val ff = CommonFactoryFinder.getFilterFactory2
   val srs = CRS.toSRS(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
 
   "AccumuloDataStore" should {

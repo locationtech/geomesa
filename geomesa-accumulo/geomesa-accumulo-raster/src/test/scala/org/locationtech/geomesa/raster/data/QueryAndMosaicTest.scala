@@ -14,8 +14,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.BoundingBox
-import org.locationtech.geomesa.utils.stats.{NoOpTimings, Timings}
-import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -55,8 +53,6 @@ class QueryAndMosaicTest extends Specification {
     testIteration += 1
     s"testQAMT_Table_$testIteration"
   }
-
-  def allBeTrue: Matcher[Iterator[Boolean]] = be_==(true).forall
 
   "Our Mosaicing" should {
     "Return the same tile we store" in {
@@ -113,7 +109,7 @@ class QueryAndMosaicTest extends Specification {
         val (mosaic, _) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, lessPreciseQBox)
         compareIntBufferedImages(mosaic, testRasterIntVSplit)
       }
-      res must allBeTrue
+      forall(res.toSeq)(_ must beTrue)
     }
 
     "Return the Correct thing for all Vertical case permutations with less precise query" in {
@@ -129,7 +125,7 @@ class QueryAndMosaicTest extends Specification {
         val (mosaic, _) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, lessPreciseQBox)
         compareIntBufferedImages(mosaic, testRasterIntVSplit)
       }
-      res must allBeTrue
+      forall(res.toSeq)(_ must beTrue)
     }
 
     "Return the Correct thing for all NW to SE case permutations with less precise query" in {
@@ -145,7 +141,7 @@ class QueryAndMosaicTest extends Specification {
         val (mosaic, _) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, lessPreciseQBox)
         compareIntBufferedImages(mosaic, testRasterIntVSplit)
       }
-      res must allBeTrue
+      forall(res.toSeq)(_ must beTrue)
     }
 
     "Return the Correct thing for all SW to NE case permutations with less precise query" in {
@@ -161,9 +157,7 @@ class QueryAndMosaicTest extends Specification {
         val (mosaic, _) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, lessPreciseQBox)
         compareIntBufferedImages(mosaic, testRasterIntVSplit)
       }
-      res must allBeTrue
+      forall(res.toSeq)(_ must beTrue)
     }
-
   }
-
 }

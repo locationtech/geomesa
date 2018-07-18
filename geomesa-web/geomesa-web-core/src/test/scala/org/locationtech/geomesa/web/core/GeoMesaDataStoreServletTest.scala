@@ -20,7 +20,7 @@ import org.scalatra.Ok
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.core.Fragments
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
@@ -32,7 +32,7 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
   def urlEncode(s: String): String = URLEncoder.encode(s, "UTF-8")
 
   // cleanup tmp dir after tests run
-  override def map(fragments: => Fragments) = super.map(fragments) ^ Step {
+  override def map(fragments: => Fragments): Fragments = super.map(fragments) ^ step {
     PathUtils.deleteRecursively(tmpDir)
   }
 
@@ -50,7 +50,7 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
 
     get("/test") {
       try {
-        withDataStore((ds: DataStore) => { calledTest = true; Ok() })
+        withDataStore((_: DataStore) => { calledTest = true; Ok() })
       } catch {
         case e: Exception => handleError(s"Error creating index:", e)
       }

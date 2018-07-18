@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.Query
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -27,6 +26,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexFilteringIteratorTest extends Specification with TestWithDataStore {
+
+  import org.locationtech.geomesa.filter.ff
 
   sequential
 
@@ -45,8 +46,6 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
 
   addFeatures(features)
 
-  val ff = CommonFactoryFinder.getFilterFactory2
-
   def checkStrategies[T](query: Query, strategy: AccumuloFeatureIndexType): MatchResult[Any] = {
     val out = new ExplainString
     val plan = ds.getQueryPlan(query)
@@ -63,23 +62,23 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
       // % should return all features
       val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
       checkStrategies(wildCardQuery, AttributeIndex)
-      SelfClosingIterator(fs.getFeatures(wildCardQuery)) must haveLength(16)
+      SelfClosingIterator(fs.getFeatures(wildCardQuery)).toSeq must haveLength(16)
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
         val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
         checkStrategies(leftWildCard, Z3Index)
-        SelfClosingIterator(fs.getFeatures(leftWildCard)) must haveLength(4)
+        SelfClosingIterator(fs.getFeatures(leftWildCard)).toSeq must haveLength(4)
 
         // Double wildcards should be full table scan
         val doubleWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter%"))
         checkStrategies(doubleWildCard, Z3Index)
-        SelfClosingIterator(fs.getFeatures(doubleWildCard)) must haveLength(4)
+        SelfClosingIterator(fs.getFeatures(doubleWildCard)).toSeq must haveLength(4)
 
         // should return the 4 features for this letter
         val rightWildcard = new Query(sftName, ff.like(ff.property("name"),s"$letter%"))
         checkStrategies(rightWildcard, AttributeIndex)
-        SelfClosingIterator(fs.getFeatures(rightWildcard)) must haveLength(4)
+        SelfClosingIterator(fs.getFeatures(rightWildcard)).toSeq must haveLength(4)
       }
     }
 

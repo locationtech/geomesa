@@ -49,7 +49,7 @@ class AccumuloJobUtilsTest extends Specification with TestWithDataStore {
     "load list of jars from class resource" in {
       AccumuloJobUtils.defaultLibJars must not(beNull)
       AccumuloJobUtils.defaultLibJars must not(beEmpty)
-      AccumuloJobUtils.defaultLibJars must contain("accumulo")
+      AccumuloJobUtils.defaultLibJars must contain("accumulo-core")
       AccumuloJobUtils.defaultLibJars must contain("libthrift")
     }
     "not return join plans for getSingleQueryPlan" in {

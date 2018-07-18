@@ -16,12 +16,14 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
+import org.specs2.specification.core.{Env, Fragments}
 
 /**
   * Base class for running all hbase embedded tests
   */
 @RunWith(classOf[JUnitRunner])
-class HBaseTestRunnerTest extends Specification with LazyLogging {
+class HBaseTestRunnerTest extends Specification with BeforeAfterAll with LazyLogging {
 
   sequential
 
@@ -39,7 +41,7 @@ class HBaseTestRunnerTest extends Specification with LazyLogging {
     new HBaseVisibilityTest
   )
 
-  step {
+  override def beforeAll(): Unit = {
     logger.info("Starting embedded hbase")
     cluster.getConfiguration.set("hbase.superuser", "admin")
     cluster.getConfiguration.set(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY,
@@ -50,9 +52,10 @@ class HBaseTestRunnerTest extends Specification with LazyLogging {
     specs.foreach { s => s.cluster = cluster; s.connection = connection }
   }
 
-  specs.foreach(link)
+  override def map(fs: => Fragments, env: Env): Fragments =
+     specs.foldLeft(super.map(fs, env))((fragments, spec) => fragments ^ spec.fragments(env))
 
-  step {
+  override def afterAll(): Unit = {
     logger.info("Stopping embedded hbase")
     // note: HBaseTestingUtility says don't close the connection
     // connection.close()

@@ -17,7 +17,6 @@ import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
@@ -41,7 +40,6 @@ class ParquetFSTest extends Specification with AllExpectations {
 
   val gf = JTSFactoryFinder.getGeometryFactory
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-  val ff = CommonFactoryFinder.getFilterFactory2
 
   val tempDir = Files.createTempDirectory("geomesa")
   val fc = FileContext.getFileContext(tempDir.toUri)

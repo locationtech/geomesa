@@ -13,7 +13,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data.Query
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -108,9 +108,10 @@ class FilterTest extends Specification with TestWithDataStore with LazyLogging {
 @RunWith(classOf[JUnitRunner])
 class IdQueryTest extends Specification with TestWithDataStore {
 
+  import org.locationtech.geomesa.filter.ff
+
   override val spec = "age:Int:index=join,name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
-  val ff = CommonFactoryFinder.getFilterFactory2
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
   val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
   val data = List(

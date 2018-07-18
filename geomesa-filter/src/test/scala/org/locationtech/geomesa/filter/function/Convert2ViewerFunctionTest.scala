@@ -12,7 +12,6 @@ package org.locationtech.geomesa.filter.function
 import java.util.Date
 
 import org.geotools.data.Base64
-import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -24,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class Convert2ViewerFunctionTest extends Specification {
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  import org.locationtech.geomesa.filter.ff
 
   "Convert2ViewerFunction" should {
     "convert inputs" in {

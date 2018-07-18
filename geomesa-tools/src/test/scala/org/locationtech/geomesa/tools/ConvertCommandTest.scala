@@ -110,7 +110,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
           val ec = converter.createEvaluationContext(Map("inputFilePath" -> inputFile))
           val files = Iterator.single(inputFile).flatMap(PathUtils.interpretPath)
           val features = ConvertCommand.convertFeatures(files, converter, ec, None, None)
-          features must haveLength(3)
+          features.toSeq must haveLength(3)
         }
       }
       "export data" in {

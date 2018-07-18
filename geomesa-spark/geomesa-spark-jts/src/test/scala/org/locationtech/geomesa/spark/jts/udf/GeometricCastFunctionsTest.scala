@@ -37,7 +37,7 @@ class GeometricCastFunctionsTest extends Specification with TestEnvironment {
         val pointTxt = "POINT(1 1)"
         val point = s"st_geomFromWKT('$pointTxt')"
         val df = sc.sql(s"select st_castToPoint($point)")
-        df.collect.head(0) must haveClass[Point]
+        df.collect.head(0).asInstanceOf[AnyRef] must haveClass[Point]
         dfBlank.select(st_castToPoint(st_geomFromWKT(pointTxt))).first must haveClass[Point]
       }
     }
@@ -52,7 +52,7 @@ class GeometricCastFunctionsTest extends Specification with TestEnvironment {
         val polygonTxt = "POLYGON((1 1, 1 2, 2 2, 2 1, 1 1))"
         val polygon = s"st_geomFromWKT('$polygonTxt')"
         val df = sc.sql(s"select st_castToPolygon($polygon)")
-        df.collect.head(0) must haveClass[Polygon]
+        df.collect.head(0).asInstanceOf[AnyRef] must haveClass[Polygon]
         dfBlank.select(st_castToPolygon(st_geomFromWKT(polygonTxt))).first must haveClass[Polygon]
       }
     }
@@ -67,7 +67,7 @@ class GeometricCastFunctionsTest extends Specification with TestEnvironment {
         val lineTxt = "LINESTRING(1 1, 2 2)"
         val line = s"st_geomFromWKT('$lineTxt')"
         val df = sc.sql(s"select st_castToLineString($line)")
-        df.collect.head(0) must haveClass[LineString]
+        df.collect.head(0).asInstanceOf[AnyRef] must haveClass[LineString]
         dfBlank.select(st_castToLineString(st_geomFromWKT(lineTxt))).first must haveClass[LineString]
       }
     }

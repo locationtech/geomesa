@@ -19,26 +19,27 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class JTSQueryTest extends Specification with TestEnvironment {
 
-  "spark jts module" should {
-    sequential
+  sequential
 
-    var df: DataFrame = null
-    var newDF: DataFrame = null
+  var df: DataFrame = _
+  var newDF: DataFrame = _
 
-    // before
-    step {
-      val schema = StructType(Array(StructField("name",StringType, nullable=false),
-                                    StructField("pointText", StringType, nullable=false),
-                                    StructField("polygonText", StringType, nullable=false),
-                                    StructField("latitude", DoubleType, nullable=false),
-                                    StructField("longitude", DoubleType, nullable=false)))
+  // before
+  step {
+    val schema = StructType(Array(StructField("name",StringType, nullable=false),
+      StructField("pointText", StringType, nullable=false),
+      StructField("polygonText", StringType, nullable=false),
+      StructField("latitude", DoubleType, nullable=false),
+      StructField("longitude", DoubleType, nullable=false)))
 
-      val dataFile = this.getClass.getClassLoader.getResource("jts-example.csv").getPath
-      df = spark.read.schema(schema)
+    val dataFile = this.getClass.getClassLoader.getResource("jts-example.csv").getPath
+    df = spark.read.schema(schema)
         .option("sep", "-")
         .option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
         .csv(dataFile)
-    }
+  }
+
+  "spark jts module" should {
 
     "have rows with user defined types" >> {
 
@@ -68,10 +69,10 @@ class JTSQueryTest extends Specification with TestEnvironment {
         .count()
       countSQL mustEqual countDF
     }
+  }
 
-    // after
-    step {
-      spark.stop()
-    }
+  // after
+  step {
+    spark.stop()
   }
 }

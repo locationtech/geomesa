@@ -64,12 +64,12 @@
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-core_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
+            <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
 

@@ -73,7 +73,7 @@ class ProximitySearchProcessTest extends Specification {
       val prox = new ProximitySearchProcess
 
       // note: size returns an estimated amount, instead we need to actually count the features
-      def ex(p: Double) = SelfClosingIterator(prox.execute(inputFeatures, dataFeatures, p))
+      def ex(p: Double) = SelfClosingIterator(prox.execute(inputFeatures, dataFeatures, p)).toSeq
 
       ex(50.0)  must haveLength(0)
       ex(90.0)  must haveLength(0)

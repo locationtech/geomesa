@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.process.query
 
 import com.vividsolutions.jts.geom.{Coordinate, Point}
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -20,8 +20,7 @@ import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.GeometryUtils.geoFactory
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -34,7 +33,6 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
   sequential
 
   val geoFactory = JTSFactoryFinder.getGeometryFactory
-  val ff = CommonFactoryFinder.getFilterFactory2
 
   def getPoint(lat: Double, lon: Double, meters: Double): Point = {
     val calc = new GeodeticCalculator()
@@ -90,7 +88,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       val prox = new ProximitySearchProcess
 
       // note: size returns an estimated amount, instead we need to actually count the features
-      def ex(p: Double) = SelfClosingIterator(prox.execute(inputFeatures, dataFeatures, p))
+      def ex(p: Double) = SelfClosingIterator(prox.execute(inputFeatures, dataFeatures, p)).toSeq
 
       ex(50.0)  must haveLength(0)
       ex(90.0)  must haveLength(0)
@@ -127,7 +125,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
 
       val prox = new ProximitySearchProcess
       // note: size returns an estimated amount, instead we need to actually count the features
-      SelfClosingIterator(prox.execute(queryLine, dataFeatures, 150000.0)) must haveLength(50)
+      SelfClosingIterator(prox.execute(queryLine, dataFeatures, 150000.0)).toSeq must haveLength(50)
     }
   }
 

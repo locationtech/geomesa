@@ -13,7 +13,6 @@ import java.util.Date
 import com.google.common.primitives.Longs
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
@@ -53,7 +52,6 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
     }
   addFeatures(features)
 
-  val ff = CommonFactoryFinder.getFilterFactory2
   val strategy = Z2Index
   val queryPlanner = ds.queryPlanner
   val output = ExplainNull
@@ -197,7 +195,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       forall(aggregates) { a =>
         val window = a.grouped(16).map(BinaryOutputEncoder.decode(_).dtg).sliding(2).filter(_.length > 1)
-        forall(window)(w => w.head must beLessThanOrEqualTo(w(1)))
+        forall(window.toSeq)(w => w.head must beLessThanOrEqualTo(w(1)))
       }
       val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)

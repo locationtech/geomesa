@@ -194,31 +194,31 @@ class KuduDataStoreIntegrationTest extends Specification {
         ds.dispose()
       }
     }
+  }
 
-    def testQuery(ds: KuduDataStore,
-                  typeName: String,
-                  filter: String,
-                  transforms: Array[String],
-                  results: Seq[SimpleFeature],
-                  explain: Option[Explainer] = None): MatchResult[_] = {
-      QueryProperties.ScanRangesTarget.threadLocalValue.set("10")
-      try {
-        val query = new Query(typeName, ECQL.toFilter(filter), transforms)
-        explain.foreach(e => ds.getQueryPlan(query, explainer = e))
-        val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-        val features = SelfClosingIterator(fr).map(ScalaSimpleFeature.copy).toList // copy features as the same one is mutated
-        val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
-        features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
-        forall(features) { feature =>
-          feature.getAttributes must haveLength(attributes.length)
-          forall(attributes.zipWithIndex) { case (attribute, i) =>
-            feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
-            feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
-          }
+  def testQuery(ds: KuduDataStore,
+                typeName: String,
+                filter: String,
+                transforms: Array[String],
+                results: Seq[SimpleFeature],
+                explain: Option[Explainer] = None): MatchResult[_] = {
+    QueryProperties.ScanRangesTarget.threadLocalValue.set("10")
+    try {
+      val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+      explain.foreach(e => ds.getQueryPlan(query, explainer = e))
+      val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+      val features = SelfClosingIterator(fr).map(ScalaSimpleFeature.copy).toList // copy features as the same one is mutated
+      val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+      features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+      forall(features) { feature =>
+        feature.getAttributes must haveLength(attributes.length)
+        forall(attributes.zipWithIndex) { case (attribute, i) =>
+          feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
+          feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
         }
-      } finally {
-        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
       }
+    } finally {
+      QueryProperties.ScanRangesTarget.threadLocalValue.remove()
     }
   }
 }

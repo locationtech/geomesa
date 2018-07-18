@@ -74,14 +74,14 @@ class TypeInferenceTest extends Specification with LazyLogging {
     }
     "merge up number types" in {
       val types = Seq(Seq(1d), Seq(1f), Seq(1L), Seq(1))
-      foreach(types.drop(0).permutations)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(DOUBLE))
-      foreach(types.drop(1).permutations)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(FLOAT))
-      foreach(types.drop(2).permutations)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(LONG))
+      foreach(types.drop(0).permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(DOUBLE))
+      foreach(types.drop(1).permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(FLOAT))
+      foreach(types.drop(2).permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(LONG))
     }
     "merge up geometry types" in {
       val types = Seq(Seq(point), Seq(lineString), Seq(polygon), Seq(multiPoint), Seq(multiLineString),
         Seq(multiPolygon), Seq(geometryCollection))
-      foreach(types.permutations)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(GEOMETRY))
+      foreach(types.permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(GEOMETRY))
     }
     "merge up null values" in {
       val values = Seq("a", 1, 1L, 1f, 1d, true, new Date(), Seq[Byte](0), uuid, point, lineString,
