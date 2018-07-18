@@ -9,42 +9,23 @@
 package org.locationtech.geomesa.convert.json
 
 import com.google.gson.{JsonArray, JsonElement, JsonObject, JsonPrimitive}
-import org.geotools.util.Converters
 import org.json4s.JsonAST.{JNull, JValue}
 import org.json4s.{JBool, JDouble, JInt, JString}
-import org.locationtech.geomesa.convert.{EvaluationContext, MapListParsing, TransformerFn, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.CollectionParsing
+import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
 
-class JsonFunctionFactory extends TransformerFunctionFactory {
-  private val json2string = new TransformerFn {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      args(0).asInstanceOf[JsonElement].toString
-
-    override val names = Seq("json2string", "jsonToString")
-  }
-
-  override val functions: Seq[TransformerFn] = Seq(json2string)
-}
-
-class JsonMapListFunctionFactory extends TransformerFunctionFactory with MapListParsing {
-  override def functions = Seq(jsonListParser, jsonMapParser, mapToJson)
+class JsonFunctionFactory extends TransformerFunctionFactory with CollectionParsing {
 
   import scala.collection.JavaConverters._
 
-  private def getPrimitive(p: JsonPrimitive): Any = {
-    if (p.isBoolean) {
-      p.getAsBoolean
-    } else if (p.isNumber) {
-      p.getAsString
-    } else {
-      p.getAsString
-    }
+  override def functions: Seq[TransformerFunction] = Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson)
+
+  private val jsonToString = TransformerFunction("jsonToString", "json2string") {
+    args => args(0).asInstanceOf[JsonElement].toString
   }
 
-  private def convert(value: Any, clazz: Class[_]): Any =
-    Option(Converters.convert(value, clazz))
-      .getOrElse(throw new IllegalArgumentException(s"Could not convert value  '$value' to type ${clazz.getName})"))
-
-  private val jsonListParser = TransformerFn("jsonList") { args =>
+  private val jsonListParser = TransformerFunction("jsonList") { args =>
     val clazz = determineClazz(args(0).asInstanceOf[String])
     val jArr = args(1).asInstanceOf[JsonArray]
 
@@ -56,7 +37,7 @@ class JsonMapListFunctionFactory extends TransformerFunctionFactory with MapList
     }
   }
 
-  private val jsonMapParser = TransformerFn("jsonMap") { args =>
+  private val jsonMapParser = TransformerFunction("jsonMap") { args =>
     val kClass = determineClazz(args(0).asInstanceOf[String])
     val vClass = determineClazz(args(1).asInstanceOf[String])
     val jMap = args(2).asInstanceOf[JsonObject]
@@ -73,7 +54,7 @@ class JsonMapListFunctionFactory extends TransformerFunctionFactory with MapList
     }
   }
 
-  private val mapToJson = new TransformerFn {
+  private val mapToJson = new TransformerFunction {
     override val names = Seq("map2Json", "mapToJson")
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
@@ -96,4 +77,6 @@ class JsonMapListFunctionFactory extends TransformerFunctionFactory with MapList
       compact(render(ast))
     }
   }
+
+  private def getPrimitive(p: JsonPrimitive): Any = if (p.isBoolean) { p.getAsBoolean } else { p.getAsString }
 }

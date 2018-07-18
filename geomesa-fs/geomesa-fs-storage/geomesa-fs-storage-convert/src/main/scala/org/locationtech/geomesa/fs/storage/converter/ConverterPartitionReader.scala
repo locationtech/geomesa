@@ -11,17 +11,16 @@ package org.locationtech.geomesa.fs.storage.converter
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert.SimpleFeatureConverter
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.FileSystemReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.control.NonFatal
 
 class ConverterPartitionReader(storage: ConverterStorage,
                                partitions: Seq[String],
-                               converter: SimpleFeatureConverter[_],
+                               converter: SimpleFeatureConverter,
                                gtFilter: org.opengis.filter.Filter)
     extends FileSystemReader with LazyLogging {
 
@@ -43,10 +42,7 @@ class ConverterPartitionReader(storage: ConverterStorage,
 
   override def next(): SimpleFeature = iter.next
 
-  override def close(): Unit = {
-    CloseWithLogging(iter)
-    CloseWithLogging(converter)
-  }
+  override def close(): Unit = iter.close()
 
   override def close(wait: Long, unit: TimeUnit): Boolean = {
     close()

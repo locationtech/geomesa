@@ -15,18 +15,18 @@ Adding New Transformation Functions
 
 To add new transformation functions, create a
 ``TransformationFunctionFactory`` and register it in
-``META-INF/services/org.locationtech.geomesa.convert.TransformationFunctionFactory``.
+``META-INF/services/org.locationtech.geomesa.convert2.transforms.TransformerFunctionFactory``.
 For example, here's how to add a new transformation function that
 computes a SHA-256 hash.
 
 .. code-block:: scala
 
-    import org.locationtech.geomesa.convert.TransformerFunctionFactory
-    import org.locationtech.geomesa.convert.TransformerFn
+    import org.locationtech.geomesa.convert2.transforms.TransformerFunctionFactory
+    import org.locationtech.geomesa.convert2.transforms.TransformerFunction
 
     class SHAFunctionFactory extends TransformerFunctionFactory {
       override def functions = Seq(sha256fn)
-      val sha256fn = TransformerFn("sha256") { args =>
+      val sha256fn = TransformerFunction("sha256") { args =>
         Hashing.sha256().hashBytes(args(0).asInstanceOf[Array[Byte]])
       }
     }
@@ -45,7 +45,7 @@ Adding New Data Formats
 To add new data formats, implement the ``SimpleFeatureConverterFactory``
 and ``SimpleFeatureConverter`` interfaces and register them in
 ``META-INF/services`` appropriately. See
-``org.locationtech.geomesa.convert.avro.Avro2SimpleFeatureConverter``
+``org.locationtech.geomesa.convert.text.DelimitedTextConverter``
 for an example.
 
 Adding Functions to the Geomesa Classpath

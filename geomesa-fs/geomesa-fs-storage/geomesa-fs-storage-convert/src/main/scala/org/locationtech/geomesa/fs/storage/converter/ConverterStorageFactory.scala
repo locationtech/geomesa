@@ -14,7 +14,8 @@ import java.util.regex.Pattern
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
-import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory}
 import org.locationtech.geomesa.fs.storage.common.{FileMetadata, PartitionScheme}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
@@ -53,7 +54,7 @@ class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging 
             case Left(e) => throw new IllegalArgumentException("Could not load Converter with provided parameters", e)
             case Right(c) => c
           }
-          SimpleFeatureConverters.build(sft, converterConfig)
+          SimpleFeatureConverter(sft, converterConfig)
         }
 
         val partitionScheme = {

@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
-import org.locationtech.geomesa.convert.SimpleFeatureConverter
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorage.ConverterMetadata
@@ -23,7 +23,7 @@ import org.opengis.filter.Filter
 class ConverterStorage(fc: FileContext,
                        root: Path,
                        sft: SimpleFeatureType,
-                       converter: SimpleFeatureConverter[_],
+                       converter: SimpleFeatureConverter,
                        partitionScheme: PartitionScheme) extends FileSystemStorage {
 
   private val metadata = new ConverterMetadata(fc, root, sft, partitionScheme)

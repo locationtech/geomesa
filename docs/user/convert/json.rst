@@ -9,12 +9,10 @@ definition.
 Configuration
 -------------
 
-The JSON converter supports parsing files in single-line mode or in multi-line mode. In single-line mode, each line
-of an input file should be a valid JSON document; in multi-line mode, the entire input file should be a single valid
-JSON document. In order to support JSON path expressions, each JSON document is fully parsed into memory.
-For large documents, this may take considerable time and memory. Thus, it is usually better to use single-line mode
-when possible. Line mode may be specified by ``options.line-mode = "single"`` or ``options.line-mode = "multi"``
-in your converter definition. If nothing is specified, single-line mode is used.
+The JSON converter supports parsing multiple JSON documents out of a single file.
+In order to support JSON path expressions, each JSON document is fully parsed into memory.
+For large documents, this may take considerable time and memory. Thus, it is usually better to have multiple
+smaller JSON documents per file, when possible.
 
 Since a single JSON document may contain multiple features, the JSON parser supports a
 `JSONPath <http://goessner.net/articles/JsonPath/>`__ expression pointing to each feature element. This can
@@ -132,9 +130,6 @@ You could ingest with the following converter:
    type         = "json"
    id-field     = "$id"
    feature-path = "$.Features[*]"
-   options = {
-     line-mode = "multi"
-   }
    fields = [
      { name = "id",      json-type = "integer",  path = "$.id",               transform = "toString($0)"                }
      { name = "name",    json-type = "string",   path = "$.name",             transform = "trim($0)"                    }

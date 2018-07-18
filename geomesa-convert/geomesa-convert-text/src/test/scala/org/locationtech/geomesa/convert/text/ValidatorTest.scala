@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -55,20 +55,20 @@ class ValidatorTest extends Specification {
     "reject invalid parse mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "foobar" } """))
-      SimpleFeatureConverters.build[String](sft, conf) must throwA[IllegalArgumentException]
+      SimpleFeatureConverter(sft, conf) must throwAn[IllegalArgumentException]
     }
 
     "reject invalid validation mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.error-mode = "foobar" } """))
-      SimpleFeatureConverters.build[String](sft, conf) must throwA[IllegalArgumentException]
+      SimpleFeatureConverter(sft, conf) must throwAn[IllegalArgumentException]
     }
   }
 
   "Converters" should {
     "skip empty dtg with default mode" >> {
       val conf = baseConf
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
       converter.process(is("20160101,Point(2 2)")).toList.size mustEqual 1
@@ -83,7 +83,7 @@ class ValidatorTest extends Specification {
     "throw exception with parse mode raise-errors in incremental mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.error-mode = raise-errors } """))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
       converter.process(is(
@@ -97,7 +97,7 @@ class ValidatorTest extends Specification {
     "throw exception with parse mode raise-errors in batch mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.error-mode = raise-errors } """))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
       converter.process(is(
@@ -114,7 +114,7 @@ class ValidatorTest extends Specification {
     "raise errors on bad dates" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.error-mode = raise-errors, options.validators = ["z-index"] } """))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
       val format = DateTimeFormatter.BASIC_ISO_DATE.withZone(ZoneOffset.UTC)
@@ -130,7 +130,7 @@ class ValidatorTest extends Specification {
     "skip records with bad dates" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
       val format = DateTimeFormatter.BASIC_ISO_DATE.withZone(ZoneOffset.UTC)
@@ -142,7 +142,7 @@ class ValidatorTest extends Specification {
     "raise errors on bad geo" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.error-mode = raise-errors, options.validators = ["z-index"] } """))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
       converter.process(is("20120101,Point(2 2)")).toList.size mustEqual 1
@@ -154,7 +154,7 @@ class ValidatorTest extends Specification {
     "skip records with bad geo" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
       converter.process(is("20120101,Point(2 2)")).toList.size mustEqual 1
@@ -166,7 +166,7 @@ class ValidatorTest extends Specification {
     "skip bad geo records in batch mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
         """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
       val res = converter.process(is(

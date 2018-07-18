@@ -8,9 +8,12 @@
 
 package org.locationtech.geomesa.convert.text
 
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -19,8 +22,7 @@ import org.specs2.runner.JUnitRunner
 class CompositeTextConverterTest extends Specification {
 
   val data =
-    """
-      |1  ,hello,badvalue,45.0
+    """1  ,hello,badvalue,45.0
       |asfastofail,f
       |3
       |2  ,world,,90.0
@@ -64,10 +66,10 @@ class CompositeTextConverterTest extends Specification {
 
   "be built from a conf" >> {
     val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-    val converter = SimpleFeatureConverters.build[String](sft, conf)
-    converter must not beNull
+    val converter = SimpleFeatureConverter(sft, conf)
+    converter must not(beNull)
 
-    val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+    val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
 
     "and process some data" >> {
       res.size must be equalTo 2

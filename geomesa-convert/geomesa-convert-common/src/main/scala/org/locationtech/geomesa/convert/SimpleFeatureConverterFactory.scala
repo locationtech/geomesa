@@ -10,15 +10,17 @@ package org.locationtech.geomesa.convert
 
 import java.io.{Closeable, IOException, InputStream}
 import java.nio.charset.StandardCharsets
-import java.util.NoSuchElementException
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
 import org.locationtech.geomesa.convert.ParseMode.ParseMode
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.convert.ValidationMode.ValidationMode
+import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.transforms.Expression.LiteralNull
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -27,13 +29,29 @@ import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-trait Field {
+@deprecated("Replaced with org.locationtech.geomesa.convert2.Field")
+trait Field extends org.locationtech.geomesa.convert2.Field {
   def name: String
   def transform: Transformers.Expr
-  def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transform.eval(args)
+  override def transforms: Option[Expression] = Option(transform)
+  override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transform.eval(args)
 }
 
+/**
+  * Wrapper to present convert v2 fields as convert v1
+  *
+  * @param field v2 field
+  */
+case class FieldWrapper(field: org.locationtech.geomesa.convert2.Field) extends Field {
+  override def name: String = field.name
+  override def transform: Expr = field.transforms.map(ExpressionWrapper.apply).orNull
+  override def transforms: Option[Expression] = field.transforms
+  override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = field.eval(args)(ec)
+}
+
+@deprecated("Replaced with org.locationtech.geomesa.convert2.BasicField")
 case class SimpleField(name: String, transform: Transformers.Expr) extends Field {
+  override val transforms: Option[Expression] = Option(transform)
   override def toString: String = s"$name = $transform"
 }
 
@@ -57,17 +75,11 @@ object StandardOption extends Enumeration {
   }
 }
 
-object ParseMode extends Enumeration {
-  type ParseMode = Value
-  val Incremental = Value("incremental")
-  val Batch       = Value("batch")
-  val Default     = Incremental
-}
-
+@deprecated("Replaced with org.locationtech.geomesa.convert.ErrorMode")
 object ValidationMode extends Enumeration {
   type ValidationMode = Value
-  val SkipBadRecords = Value("skip-bad-records")
-  val RaiseErrors    = Value("raise-errors")
+  val SkipBadRecords = Value(ErrorMode.SkipBadRecords.toString)
+  val RaiseErrors    = Value(ErrorMode.RaiseErrors.toString)
   val Default        = SkipBadRecords
 }
 
@@ -76,11 +88,13 @@ case class ConvertParseOpts(parseMode: ParseMode,
                             validationMode: ValidationMode,
                             verbose: Boolean)
 
+@deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory")
 trait SimpleFeatureConverterFactory[I] {
   def canProcess(conf: Config): Boolean
   def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I]
 }
 
+@deprecated("Replaced with org.locationtech.geomesa.convert2.AbstractConverterFactory")
 abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureConverterFactory[I] with LazyLogging {
 
   override def canProcess(conf: Config): Boolean =
@@ -168,7 +182,9 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
       } else {
         Seq("has-geo", "has-dtg")
       }
-    ValidatorLoader.createValidator(validators, sft)
+    val validator = SimpleFeatureValidator(validators)
+    validator.init(sft)
+    validator
   }
 
   protected def getParseMode(conf: Config): ParseMode =
@@ -202,12 +218,19 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
 
 }
 
+@deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverter")
 trait SimpleFeatureConverter[I] extends Closeable {
 
   /**
    * Result feature type
    */
   def targetSFT: SimpleFeatureType
+
+  /**
+    * Enrichment caches
+    *
+    * @return
+    */
   def caches: Map[String, EnrichmentCache]
 
   /**
@@ -232,6 +255,7 @@ trait SimpleFeatureConverter[I] extends Closeable {
   override def close(): Unit = {}
 }
 
+@deprecated("Replaced with org.locationtech.geomesa.convert2.SimpleFeatureConverter")
 object SimpleFeatureConverter {
 
   type Dag = scala.collection.mutable.Map[Field, Set[Field]]
@@ -277,6 +301,7 @@ object SimpleFeatureConverter {
 /**
  * Base trait to create a simple feature converter
  */
+@deprecated("Replaced with org.locationtech.geomesa.convert2.AbstractConverter")
 trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLogging {
 
   def targetSFT: SimpleFeatureType
@@ -363,7 +388,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 
   private def buildFeature(t: Array[Any], sfValues: Array[AnyRef], ec: EvaluationContext): SimpleFeature = {
     val sf = idBuilder match {
-      case LitNull => new ScalaSimpleFeature(targetSFT, "", sfValues) // empty feature id will be replaced with an auto-gen one
+      case ExpressionWrapper(LiteralNull) => new ScalaSimpleFeature(targetSFT, "", sfValues) // empty feature id will be replaced with an auto-gen one
       case _       =>
         val id = idBuilder.eval(t)(ec).asInstanceOf[String]
         val res = new ScalaSimpleFeature(targetSFT, id, sfValues)
@@ -417,6 +442,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   }
 }
 
+@deprecated("Replaced with org.locationtech.geomesa.convert2.AbstractConverter")
 trait LinesToSimpleFeatureConverter extends ToSimpleFeatureConverter[String] {
 
   override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] =

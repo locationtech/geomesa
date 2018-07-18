@@ -17,7 +17,8 @@ import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.DefaultCounter
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -56,12 +57,11 @@ class DelimitedTextConverterTest extends Specification {
       """.stripMargin)
 
     val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-    "be built from a conf" >> {
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
 
-      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
-      converter.close()
+    "be built from a conf" >> {
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
 
       "and process some data" >> {
         res.size must be equalTo 2
@@ -90,10 +90,10 @@ class DelimitedTextConverterTest extends Specification {
           | }
         """.stripMargin)
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
-      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))).toList
-      converter.close()
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+      val stream = new ByteArrayInputStream(data.replaceAll(",", "\t").getBytes(StandardCharsets.UTF_8))
+      val res = converter.process(stream).toList
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
@@ -117,12 +117,11 @@ class DelimitedTextConverterTest extends Specification {
           | }
         """.stripMargin)
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
-      val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+      val stream = new ByteArrayInputStream(data.replaceAll(",", "\t").getBytes(StandardCharsets.UTF_8))
       val ec = converter.createEvaluationContext(Map("filename"-> "/some/file/path/testfile.txt"))
-      val res = converter.processInput(input, ec).toList
-      converter.close()
+      val res = converter.process(stream, ec).toList
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
       res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
@@ -151,12 +150,11 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
-      val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+      val stream = new ByteArrayInputStream(data.replaceAll(",", "\t").getBytes(StandardCharsets.UTF_8))
       val ec = converter.createEvaluationContext(Map("filename"-> "/some/file/path/testfile.txt"))
-      val res = converter.processInput(input, ec).toList
-      converter.close()
+      val res = converter.process(stream, ec).toList
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
       res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
@@ -169,9 +167,9 @@ class DelimitedTextConverterTest extends Specification {
     "handle projecting to just the attributes in the SFT (and associated input dependencies)" >> {
       // l3 has cascading dependencies
       val subsft = SimpleFeatureTypes.createType("subsettest", "l3:String,geom:Point:srid=4326")
-      val conv = SimpleFeatureConverters.build[String](subsft, conf)
-      val res = conv.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
-      conv.close()
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
 
       res.length must be equalTo 2
     }
@@ -192,14 +190,10 @@ class DelimitedTextConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      import scala.collection.JavaConversions._
-      val data = Resources.readLines(Resources.getResource("messydata.csv"), StandardCharsets.UTF_8)
-
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
-      val res = converter.processInput(data.iterator()).toList
-      converter.close()
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+      val res = converter.process(Resources.getResource("messydata.csv").openStream()).toList
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello, \"foo\""
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
@@ -228,8 +222,9 @@ class DelimitedTextConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, sizeConf)
-      converter.asInstanceOf[DelimitedTextConverter]
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+
       val data =
         """
           |1,hello,45.0,45.0
@@ -237,9 +232,7 @@ class DelimitedTextConverterTest extends Specification {
           |willfail,hello
         """.stripMargin
 
-      val nonEmptyData = data.split("\n").toIterator.filterNot(s => "^\\s*$".r.findFirstIn(s).size > 0)
-      val res = converter.processInput(nonEmptyData).toList
-      converter.close()
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
 
       res.size must be greaterThan 0
     }
@@ -266,11 +259,11 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val wktSft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](wktSft, wktConf)
+      val converter = SimpleFeatureConverter(wktSft, wktConf)
+      converter must not(beNull)
 
-      val res = converter.processInput(wktData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+      val res = converter.process(new ByteArrayInputStream(wktData.getBytes(StandardCharsets.UTF_8))).toList
       res.length mustEqual 2
-      converter.close()
 
       val geoFac = new GeometryFactory()
       res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -306,7 +299,7 @@ class DelimitedTextConverterTest extends Specification {
           """.stripMargin
 
         import scala.collection.JavaConversions._
-        val sz = format.parse(new InputStreamReader(new ByteArrayInputStream(trueData.getBytes))).iterator().toList.size
+        val sz = format.parse(new InputStreamReader(new ByteArrayInputStream(trueData.getBytes(StandardCharsets.UTF_8)))).iterator().toList.size
 
         // prove that skipHeader and empty lines doesn't work (at least as I think) and that we are safe to
         // consume the header record and empty lines as part of our config
@@ -315,18 +308,17 @@ class DelimitedTextConverterTest extends Specification {
       "with single line header" >> {
         val trueConf = ConfigFactory.parseString(conf.replaceAllLiterally("SKIP", "1"))
         val trueData =
-          """
-            |num,msg,geom
+          """num,msg,geom
             |1,hello,Point(46.0 45.0)
-            |2,world,Point(90.0 90.0)
-          """.stripMargin
-        val converter = SimpleFeatureConverters.build[String](wktSft, trueConf)
+            |2,world,Point(90.0 90.0)""".stripMargin
+        val converter = SimpleFeatureConverter(wktSft, trueConf)
+        converter must not(beNull)
 
         val counter = new DefaultCounter
         val ec = converter.createEvaluationContext(counter = counter)
-        val res = converter.processInput(trueData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), ec).toList
+        val stream = new ByteArrayInputStream(trueData.getBytes(StandardCharsets.UTF_8))
+        val res = converter.process(stream, ec).toList
         res.length mustEqual 2
-        converter.close()
 
         counter.getLineCount mustEqual 3
         counter.getSuccess mustEqual 2
@@ -340,17 +332,15 @@ class DelimitedTextConverterTest extends Specification {
       "with header set to 0" >> {
         val falseConf = ConfigFactory.parseString(conf.replaceAllLiterally("SKIP", "0"))
         val falseData =
-          """
-            |1,hello,Point(46.0 45.0)
-            |2,world,Point(90.0 90.0)
-          """.stripMargin
-        val converter = SimpleFeatureConverters.build[String](wktSft, falseConf)
+          """1,hello,Point(46.0 45.0)
+            |2,world,Point(90.0 90.0)""".stripMargin
+        val converter = SimpleFeatureConverter(wktSft, falseConf)
+        converter must not(beNull)
 
         val counter = new DefaultCounter
         val ec = converter.createEvaluationContext(counter = counter)
-        val res = converter.processInput(falseData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), ec).toList
+        val res = converter.process(new ByteArrayInputStream(falseData.getBytes(StandardCharsets.UTF_8)), ec).toList
         res.length mustEqual 2
-        converter.close()
 
         counter.getLineCount mustEqual 2
         counter.getSuccess mustEqual 2
@@ -363,20 +353,18 @@ class DelimitedTextConverterTest extends Specification {
       "with header set to 3" >> {
         val falseConf = ConfigFactory.parseString(conf.replaceAllLiterally("SKIP", "3"))
         val falseData =
-          """
-            |num,msg,geom
+          """num,msg,geom
             |some other garbage
             |that somebody placed in my file maybe as a comment
             |1,hello,Point(46.0 45.0)
-            |2,world,Point(90.0 90.0)
-          """.stripMargin
-        val converter = SimpleFeatureConverters.build[String](wktSft, falseConf)
+            |2,world,Point(90.0 90.0)""".stripMargin
+        val converter = SimpleFeatureConverter(wktSft, falseConf)
+        converter must not(beNull)
 
         val counter = new DefaultCounter
         val ec = converter.createEvaluationContext(counter = counter)
-        val res = converter.processInput(falseData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), ec).toList
+        val res = converter.process(new ByteArrayInputStream(falseData.getBytes(StandardCharsets.UTF_8)), ec).toList
         res.length mustEqual 2
-        converter.close()
 
         counter.getLineCount mustEqual 5
         counter.getSuccess mustEqual 2
@@ -408,10 +396,9 @@ class DelimitedTextConverterTest extends Specification {
           | }
         """.stripMargin)
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
-      val res = converter.processInput(data.split("\n").toIterator).toList
-      converter.close()
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
       res.size must be equalTo 2
       res(0).getUserData.get("my.first.key") mustEqual 1
       res(0).getUserData.get("my.second.key") mustEqual "hello"
@@ -448,10 +435,9 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
-      val res = converter.processInput(data.split("\n").toIterator).toList
-      converter.close()
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
       "must have size 2 " >> { res.size must be equalTo 2 }
       "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello" }
     }
@@ -484,10 +470,9 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
-      val res = converter.processInput(data.split("\n").toIterator).toList
-      converter.close()
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
       "must have size 2 " >> { res.size must be equalTo 2 }
       "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "he'llo" }
     }
@@ -519,10 +504,9 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
-      val res = converter.processInput(data.split("\n").toIterator).toList
-      converter.close()
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
       res must haveLength(2)
       res(0).getAttribute("phrase") mustEqual "hello"
       res(1).getAttribute("phrase") mustEqual "world"
@@ -549,7 +533,7 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
+      SimpleFeatureConverter(sft, conf) must throwAn[IllegalArgumentException]
     }
 
     "throw error on quote length > 1" >> {
@@ -572,7 +556,7 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
+      SimpleFeatureConverter(sft, conf) must throwAn[IllegalArgumentException]
     }
 
     "handle out-of-order attributes" >> {
@@ -603,9 +587,10 @@ class DelimitedTextConverterTest extends Specification {
 
       val sft = SimpleFeatureTypes.createType("test", "hello:String,*geom:Point:srid=4326")
 
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
 
-      val converted = converter.processSingleInput("myfid,foo,45.0,55.0").toSeq
+      val converted = converter.process(new ByteArrayInputStream("myfid,foo,45.0,55.0".getBytes(StandardCharsets.UTF_8))).toList
       converted must haveLength(1)
       converted.head.getID mustEqual "myfid"
       converted.head.getAttributes.toSeq mustEqual Seq("hello myfid", WKTUtils.read("POINT(45 55)"))
@@ -666,7 +651,7 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       foreach(Seq(conf1, conf2, conf3)) { conf =>
-        SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
+        SimpleFeatureConverter(sft, conf) must throwAn[IllegalArgumentException]
       }
     }
 
@@ -699,12 +684,40 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
-      val res = converter.process(new ByteArrayInputStream(data.getBytes)).toList
-      converter.close()
-      "must have size 2 " >> { res.size must be equalTo 2 }.pendingUntilFixed("GEOMESA-339,GEOMESA-1039")
-      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello" }.pendingUntilFixed("GEOMESA-339,GEOMESA-1039")
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+      "must have size 2 " >> { res.size must be equalTo 2 }
+      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "he\nllo" }
+    }
+
+    "handle skip lines without trailing newline" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "geom",   transform = "point($3::double, $4::double)" }
+          |   ]
+          |   options = {
+          |     skip-lines = 0
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType("test", "phrase:String,*geom:Point:srid=4326")
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+
+      val data = """1,hello,45.0,45.0"""
+
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+      res must haveSize(1)
+      res(0).getAttribute("phrase") mustEqual "hello"
+      res(0).getAttribute("geom").toString mustEqual "POINT (45 45)"
     }
   }
 }

@@ -9,19 +9,23 @@
 package org.locationtech.geomesa.convert.avro
 
 import org.apache.avro.generic.GenericRecord
-import org.locationtech.geomesa.convert.{EvaluationContext, TransformerFn, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
+import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
 
 class AvroPathFunctionFactory extends TransformerFunctionFactory {
 
-  override def functions = Seq(AvroPathFn())
+  override def functions: Seq[TransformerFunction] = Seq(avroPath)
 
-  case class AvroPathFn() extends TransformerFn {
-    override def getInstance: AvroPathFn = AvroPathFn()
-    override val names = Seq("avroPath")
+  private val avroPath = new AvroPathFn()
 
-    var path: AvroPath = null
+  class AvroPathFn extends NamedTransformerFunction(Seq("avroPath")) {
+    private var path: AvroPath = _
+    override def getInstance: AvroPathFn = new AvroPathFn()
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
-      if(path == null) path = AvroPath(args(1).asInstanceOf[String])
+      if (path == null) {
+        path = AvroPath(args(1).asInstanceOf[String])
+      }
       path.eval(args(0).asInstanceOf[GenericRecord]).orNull
     }
   }

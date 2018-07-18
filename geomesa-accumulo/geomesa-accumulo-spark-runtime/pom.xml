@@ -137,10 +137,15 @@
                                     <pattern>org.apache.commons.codec</pattern>
                                     <shadedPattern>org.locationtech.geomesa.accumulo.shaded.org.apache.commons.codec</shadedPattern>
                                 </relocation>
-                                <!-- shade thrift because spark depends on 0.9.2 and accumulo 1.8 depends on 0.9.3 -->
+                                <!-- relocate thrift because spark depends on 0.9.2 and accumulo 1.8 depends on 0.9.3 -->
                                 <relocation>
                                     <pattern>org.apache.thrift</pattern>
                                     <shadedPattern>org.locationtech.geomesa.accumulo.shaded.org.apache.thrift</shadedPattern>
+                                </relocation>
+                                <!-- spark also includes shapeless, relocate to avoid version conflicts -->
+                                <relocation>
+                                    <pattern>shapeless</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.accumulo.shaded.shapeless</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>

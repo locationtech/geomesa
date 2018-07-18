@@ -207,9 +207,9 @@ object RichSimpleFeatureType {
 
     def getGeomField: String = {
       val gd = sft.getGeometryDescriptor
-      if (gd == null) null else gd.getLocalName
+      if (gd == null) { null } else { gd.getLocalName }
     }
-    def getGeomIndex: Int = sft.indexOf(getGeomField)
+    def getGeomIndex: Int = Option(getGeomField).map(sft.indexOf).getOrElse(-1)
 
     def getDtgField: Option[String] = userData[String](DEFAULT_DATE_KEY)
     def getDtgIndex: Option[Int] = getDtgField.map(sft.indexOf).filter(_ != -1)

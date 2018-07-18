@@ -48,7 +48,7 @@ this example we'll use the following Avro schema in a file named
 
 This schema defines an avro file that has a field named ``content``
 which has a nested object which is either of type ``DataObj`` or
-``OtherObject``. As an exercise...using avro tools we can generate some
+``OtherObject``. As an exercise, we can use avro tools to generate some
 test data and view it:
 
 ::

@@ -9,22 +9,22 @@
 package org.locationtech.geomesa.convert.xml
 
 import java.io.StringWriter
+
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.{OutputKeys, Transformer, TransformerFactory}
-
-import org.locationtech.geomesa.convert.{EvaluationContext, TransformerFn, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
+import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.w3c.dom.Element
 
 class XmlFunctionFactory extends TransformerFunctionFactory {
 
-  override def functions = Seq(xml2string)
+  override def functions: Seq[TransformerFunction] = Seq(xmlToString)
 
-  val xml2string = new TransformerFn {
+  private val xmlToString = new NamedTransformerFunction(Seq("xmlToString", "xml2string")) {
     private val transformers = new SoftThreadLocal[Transformer]
-
-    override val names = Seq("xml2string", "xmlToString")
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       val element = args.head.asInstanceOf[Element]
