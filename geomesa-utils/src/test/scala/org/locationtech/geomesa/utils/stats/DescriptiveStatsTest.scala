@@ -87,7 +87,7 @@ class DescriptiveStatsTest extends Specification with StatTestHelper {
     "work with ints" >> {
       "be empty initiallly" >> {
         val descStats = newStat[java.lang.Integer]("intAttr", observe = false)
-        descStats.attributes(0) mustEqual intIndex
+        descStats.properties(0) mustEqual "intAttr"
         descStats.isEmpty must beTrue
         descStats.count mustEqual 0
       }
@@ -161,7 +161,7 @@ class DescriptiveStatsTest extends Specification with StatTestHelper {
     "work with longs" >> {
       "be empty initiallly" >> {
         val descStats = newStat[java.lang.Long]("longAttr", observe = false)
-        descStats.attributes(0) mustEqual longIndex
+        descStats.properties(0) mustEqual "longAttr"
         descStats.isEmpty must beTrue
         descStats.count mustEqual 0
       }
@@ -235,7 +235,7 @@ class DescriptiveStatsTest extends Specification with StatTestHelper {
     "work with floats" >> {
       "be empty initiallly" >> {
         val descStats = newStat[java.lang.Float]("floatAttr", observe = false)
-        descStats.attributes(0) mustEqual floatIndex
+        descStats.properties(0) mustEqual "floatAttr"
         descStats.isEmpty must beTrue
         descStats.count mustEqual 0
       }
@@ -309,7 +309,7 @@ class DescriptiveStatsTest extends Specification with StatTestHelper {
     "work with doubles" >> {
       "be empty initiallly" >> {
         val descStats = newStat[java.lang.Double]("doubleAttr", observe = false)
-        descStats.attributes(0) mustEqual doubleIndex
+        descStats.properties(0) mustEqual "doubleAttr"
         descStats.isEmpty must beTrue
         descStats.count mustEqual 0
       }

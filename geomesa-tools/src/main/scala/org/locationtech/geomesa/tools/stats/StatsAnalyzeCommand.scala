@@ -13,11 +13,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.simple.SimpleFeatureType
 
 trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
-
-  import StatsAnalyzeCommand.attributeName
 
   override val name = "stats-analyze"
   override def params: StatsAnalyzeParams
@@ -49,18 +46,17 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreComm
     val strings = stats.collect {
       case s: CountStat   => s"Total features: ${s.count}"
       case s: MinMax[Any] =>
-        val attribute = attributeName(sft, s.attribute)
         val bounds = if (s.isEmpty) {
           "[ no matching data ]"
-        } else if (sft.getGeomField == attribute) {
+        } else if (sft.getGeomField == s.property) {
           val e = s.min.asInstanceOf[Geometry].getEnvelopeInternal
           e.expandToInclude(s.max.asInstanceOf[Geometry].getEnvelopeInternal)
           s"[ ${e.getMinX}, ${e.getMinY}, ${e.getMaxX}, ${e.getMaxY} ] cardinality: ${s.cardinality}"
         } else {
-          val stringify = Stat.stringifier(sft.getDescriptor(attribute).getType.getBinding)
+          val stringify = Stat.stringifier(sft.getDescriptor(s.property).getType.getBinding)
           s"[ ${stringify(s.min)} to ${stringify(s.max)} ] cardinality: ${s.cardinality}"
         }
-        s"Bounds for $attribute: $bounds"
+        s"Bounds for ${s.property}: $bounds"
     }
 
     Command.user.info("Stats analyzed:")
@@ -71,7 +67,3 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreComm
 
 // @Parameters(commandDescription = "Analyze statistics on a GeoMesa feature type")
 trait StatsAnalyzeParams extends CatalogParam with TypeNameParam
-
-object StatsAnalyzeCommand {
-  private def attributeName(sft: SimpleFeatureType, index: Int): String = sft.getDescriptor(index).getLocalName
-}

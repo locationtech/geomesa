@@ -9,7 +9,8 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+import java.util.Collections
+import java.util.concurrent.{ConcurrentHashMap, Executors, ScheduledExecutorService, TimeUnit}
 
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TableOperations
@@ -35,6 +36,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -116,23 +118,27 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override protected def createQueryPlanner(): AccumuloQueryPlannerType = new AccumuloQueryPlanner(this)
 
-  override protected def getIteratorVersion: Set[String] = {
-    def getVersions(table: String): Set[String] = {
-      val scanner = connector.createScanner(table, new Authorizations())
-      try {
-        ProjectVersionIterator.scanProjectVersion(scanner)
-      } catch {
-        case NonFatal(_) => Set("unavailable")
-      } finally {
-        scanner.close()
+  override protected def loadIteratorVersions: Set[String] = {
+    val tables = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean])
+    val ops = connector.tableOperations()
+    val versions = getTypeNames.par.map(getSchema).flatMap { sft =>
+      manager.indices(sft).par.flatMap { index =>
+        try {
+          val table = index.getTableName(sft.getTypeName, this)
+          if (tables.add(table) && ops.exists(table)) {
+            WithClose(connector.createScanner(table, new Authorizations())) { scanner =>
+              ProjectVersionIterator.scanProjectVersion(scanner)
+            }
+          } else {
+            Seq.empty
+          }
+        } catch {
+          case NonFatal(_) => Seq.empty
+        }
       }
     }
-    val ops = connector.tableOperations()
-    getTypeNames.toSet.flatMap(getAllTableNames).filter(ops.exists).flatMap(getVersions)
+    versions.seq.toSet
   }
-
-  override protected val getVersionCheckKey: AnyRef =
-    (connector.getInstance.getZooKeepers, connector.getInstance.getInstanceName, catalog)
 
   @throws(classOf[IllegalArgumentException])
   override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
@@ -164,6 +170,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     }
 
     super.validateNewSchema(sft)
+
+    // validate column groups
+    AccumuloColumnGroups.validate(sft)
 
     if (sft.isTableSharing &&
         getTypeNames.map(getSchema).exists(t => t.isTableSharing && t.isLogicalTime != sft.isLogicalTime)) {

@@ -32,6 +32,7 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
     new AccumuloAgeOffCommand,
+    new AccumuloCompactCommand,
     new AccumuloCreateSchemaCommand,
     new AccumuloDeleteCatalogCommand,
     new AccumuloDeleteFeaturesCommand,

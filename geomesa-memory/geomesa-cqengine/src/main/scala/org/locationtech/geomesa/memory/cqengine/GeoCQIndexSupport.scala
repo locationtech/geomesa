@@ -11,6 +11,7 @@ package org.locationtech.geomesa.memory.cqengine
 import com.vividsolutions.jts.geom.Envelope
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport.GeoCQIndex
+import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.utils.index.SpatialIndex
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -28,9 +29,12 @@ class GeoCQIndexSupport(override val sft: SimpleFeatureType, override val index:
 
 object GeoCQIndexSupport {
 
-  def apply(sft: SimpleFeatureType, xResolution: Int, yResolution: Int): GeoCQIndexSupport = {
-    val engine = new GeoCQEngine(sft, enableFidIndex = true, enableGeomIndex = true, (xResolution, yResolution))
-    new GeoCQIndexSupport(sft, new GeoCQIndex(engine))
+  def apply(sft: SimpleFeatureType,
+            attributes: Seq[(String, CQIndexType)],
+            xResolution: Int,
+            yResolution: Int): GeoCQIndexSupport = {
+    val index = new GeoCQIndex(new GeoCQEngine(sft, attributes, enableFidIndex = true, (xResolution, yResolution)))
+    new GeoCQIndexSupport(sft, index)
   }
 
   /**

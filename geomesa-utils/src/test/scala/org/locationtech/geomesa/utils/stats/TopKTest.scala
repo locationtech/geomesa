@@ -89,7 +89,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -101,7 +101,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -114,7 +114,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
 
@@ -173,7 +173,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -196,7 +196,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -222,7 +222,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -248,7 +248,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }

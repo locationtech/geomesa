@@ -12,7 +12,7 @@ import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.AccumuloFeature.RowValue
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.AccumuloColumnGroups
 import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -55,10 +55,12 @@ trait AccumuloFeature extends WrappedFeature {
 
 object AccumuloFeature {
 
+  import org.locationtech.geomesa.accumulo.index.AccumuloColumnGroups.{AttributeColumnFamily, BinColumnFamily, IndexColumnFamily}
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+  val EmptyColumnQualifier = new Text()
+
   def wrapper(sft: SimpleFeatureType, defaultVisibility: String): (SimpleFeature) => AccumuloFeature = {
-    val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
     val serializerWithId = KryoFeatureSerializer(sft)
     val idSerializer = GeoMesaFeatureIndex.idToBytes(sft)
     val indexSerializer = IndexValueEncoder(sft)
@@ -67,9 +69,11 @@ object AccumuloFeature {
 
     sft.getVisibilityLevel match {
       case VisibilityLevel.Feature =>
-        (sf) => new AccumuloFeatureLevelFeature(sf, defaultVisibility, serializer, serializerWithId,
+        val serializers = AccumuloColumnGroups.serializers(sft)
+        (sf) => new AccumuloFeatureLevelFeature(sf, defaultVisibility, serializers, serializerWithId,
           idSerializer, indexSerializer, indexSerializerWithId, binEncoder)
       case VisibilityLevel.Attribute =>
+        val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
         (sf) => new AccumuloAttributeLevelFeature(sf, sft, defaultVisibility, serializer, serializerWithId,
           idSerializer, indexSerializer, indexSerializerWithId, binEncoder)
     }
@@ -81,24 +85,24 @@ object AccumuloFeature {
 
   class AccumuloFeatureLevelFeature(val feature: SimpleFeature,
                                     defaultVisibility: String,
-                                    serializer: SimpleFeatureSerializer,
+                                    serializers: Seq[(Text, SimpleFeatureSerializer)],
                                     serializerWithId: SimpleFeatureSerializer,
                                     idSerializer: (String) => Array[Byte],
                                     indexSerializer: SimpleFeatureSerializer,
                                     indexSerializerWithId: SimpleFeatureSerializer,
                                     binEncoder: Option[BinEncoder]) extends AccumuloFeature {
 
-    import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{BinColumnFamily, EmptyColumnQualifier, FullColumnFamily, IndexColumnFamily}
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
     private lazy val visibility =
       new ColumnVisibility(feature.userData[String](FEATURE_VISIBILITY).getOrElse(defaultVisibility))
 
-    override lazy val fullValues: Seq[RowValue] =
-      Seq(new RowValue(FullColumnFamily, EmptyColumnQualifier, visibility, new Value(serializer.serialize(feature))))
+    override lazy val fullValues: Seq[RowValue] = serializers.map { case (colFamily, serializer) =>
+      new RowValue(colFamily, EmptyColumnQualifier, visibility, new Value(serializer.serialize(feature)))
+    }
 
     override lazy val fullValuesWithId: Seq[RowValue] =
-      Seq(new RowValue(FullColumnFamily, EmptyColumnQualifier, visibility, new Value(serializerWithId.serialize(feature))))
+      Seq(new RowValue(AccumuloColumnGroups.default, EmptyColumnQualifier, visibility, new Value(serializerWithId.serialize(feature))))
 
     override lazy val indexValues: Seq[RowValue] =
       Seq(new RowValue(IndexColumnFamily, EmptyColumnQualifier, visibility, new Value(indexSerializer.serialize(feature))))
@@ -122,8 +126,6 @@ object AccumuloFeature {
                                       indexSerializer: SimpleFeatureSerializer,
                                       indexSerializerWithId: SimpleFeatureSerializer,
                                       binEncoder: Option[BinEncoder]) extends AccumuloFeature {
-
-    import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AttributeColumnFamily
 
     private lazy val visibilities: Array[String] = {
       import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
@@ -165,7 +167,6 @@ object AccumuloFeature {
     }
 
     override lazy val binValues: Seq[RowValue] = {
-      import AccumuloFeatureIndex.{BinColumnFamily, EmptyColumnQualifier}
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
       val rowOpt = for {

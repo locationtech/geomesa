@@ -8,13 +8,9 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import java.time.Instant
-
 import org.opengis.feature.simple.SimpleFeature
 
-sealed trait GeoMessage {
-  def timestamp: Instant
-}
+sealed trait GeoMessage
 
 object GeoMessage {
 
@@ -23,7 +19,7 @@ object GeoMessage {
     *
     * @return
     */
-  def clear(): Clear = Clear(Instant.now)
+  def clear(): Clear = Clear
 
   /**
     * Creates a `Delete` message with the current time
@@ -31,7 +27,7 @@ object GeoMessage {
     * @param id feature id being deleted
     * @return
     */
-  def delete(id: String): Delete = Delete(Instant.now, id)
+  def delete(id: String): GeoMessage = Delete(id)
 
   /**
     * Creates a `Change` message with the current time
@@ -39,29 +35,27 @@ object GeoMessage {
     * @param sf simple feature being added/updated
     * @return
     */
-  def change(sf: SimpleFeature): Change = Change(Instant.now, sf)
+  def change(sf: SimpleFeature): GeoMessage = Change(sf)
 
   /**
     * Message indicating a feature has been added/updated
     *
-    * @param timestamp time of the message
     * @param feature feature being added/updated
     */
-  case class Change(override val timestamp: Instant, feature: SimpleFeature) extends GeoMessage
+  case class Change(feature: SimpleFeature) extends GeoMessage
 
   /**
     * Message indicating a feature has been deleted
     *
-    * @param timestamp time of the message
     * @param id feature id of the feature being deleted
     */
-  case class Delete(override val timestamp: Instant, id: String) extends GeoMessage
+  case class Delete(id: String) extends GeoMessage
 
   /**
     * Message indicating all features have been deleted
     *
-    * @param timestamp time of the message
     */
-  case class Clear(override val timestamp: Instant) extends GeoMessage
+  trait Clear extends GeoMessage
 
+  case object Clear extends Clear
 }

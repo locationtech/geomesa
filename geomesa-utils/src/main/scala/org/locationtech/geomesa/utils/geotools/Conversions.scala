@@ -16,6 +16,7 @@ import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
+import org.locationtech.geomesa.utils.conf.SemanticVersion
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
@@ -132,6 +133,9 @@ object RichAttributeDescriptors {
     def isKeepStats(): Boolean = Option(ad.getUserData.get(OPT_STATS)).contains("true")
 
     def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).contains("true")
+
+    def getColumnGroups(): Set[String] =
+      Option(ad.getUserData.get(OPT_COL_GROUPS).asInstanceOf[String]).map(_.split(",").toSet).getOrElse(Set.empty)
 
     def setCardinality(cardinality: Cardinality): Unit =
       ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
@@ -295,9 +299,16 @@ object RichSimpleFeatureType {
     def setAttributeShards(splits: Int): Unit = sft.getUserData.put(ATTR_SPLITS_KEY, splits.toString)
     def getAttributeShards: Int = userData[String](ATTR_SPLITS_KEY).map(_.toInt).getOrElse(4)
 
+    def setIdShards(splits: Int): Unit = sft.getUserData.put(ID_SPLITS_KEY, splits.toString)
+    def getIdShards: Int = userData[String](ID_SPLITS_KEY).map(_.toInt).getOrElse(4)
+
     def setUuid(uuid: Boolean): Unit = sft.getUserData.put(FID_UUID_KEY, String.valueOf(uuid))
     def isUuid: Boolean = userData[String](FID_UUID_KEY).exists(java.lang.Boolean.parseBoolean)
     def isUuidEncoded: Boolean = isUuid && userData[String](FID_UUID_ENCODED_KEY).forall(java.lang.Boolean.parseBoolean)
+
+    def setRemoteVersion(version: SemanticVersion): Unit = sft.getUserData.put(REMOTE_VERSION, String.valueOf(version))
+    def getRemoteVersion: Option[SemanticVersion] =
+      Option(sft.getUserData.get(REMOTE_VERSION).asInstanceOf[String]).map(SemanticVersion.apply)
 
     def getKeywords: Set[String] =
       userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).getOrElse(Set.empty)

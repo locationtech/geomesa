@@ -37,6 +37,7 @@
         <module>geomesa-jobs</module>
         <module>geomesa-jupyter</module>
         <module>geomesa-kafka</module>
+        <module>geomesa-kudu</module>
         <module>geomesa-lambda</module>
         <module>geomesa-memory</module>
         <module>geomesa-metrics</module>
@@ -78,8 +79,8 @@
         <orc.version>1.4.4</orc.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
         <gdal.version>2.0.0</gdal.version>
-        <json4s.version>3.2.10</json4s.version>
-        <scalatra.version>2.3.0</scalatra.version>
+        <json4s.version>3.5.4</json4s.version>
+        <scalatra.version>2.6.3</scalatra.version>
         <kryo.version>3.0.3</kryo.version>
         <arrow.version>0.6.0</arrow.version>
         <netty.version>4.0.41.Final</netty.version>
@@ -1515,6 +1516,26 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kudu-datastore_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kudu-gs-plugin_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kudu-spark_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kudu-tools_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-lambda-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1761,17 +1782,12 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-csv_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-web-core_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-web-data_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-core_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1782,16 +1798,6 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-security_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-security_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-install_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2163,7 +2169,7 @@
             <dependency>
                 <groupId>com.typesafe</groupId>
                 <artifactId>config</artifactId>
-                <version>1.2.1</version>
+                <version>1.3.3</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.arrow</groupId>
@@ -2575,7 +2581,7 @@
             <dependency>
                 <groupId>org.scalatra</groupId>
                 <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
-                <version>${scalatra.version}</version>
+                <version>2.3.0</version> <!-- version that works with specs 2.3 -->
                 <scope>test</scope>
             </dependency>
         </dependencies>

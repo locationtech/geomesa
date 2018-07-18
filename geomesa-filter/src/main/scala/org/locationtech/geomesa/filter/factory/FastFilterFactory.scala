@@ -151,19 +151,21 @@ object FastFilterFactory {
 
   def toFilter(sft: SimpleFeatureType, ecql: String): Filter = {
     sfts.set(sft)
-    try {
-      ECQL.toFilter(ecql, factory)
-    } finally {
+    try { ECQL.toFilter(ecql, factory) } finally {
+      sfts.remove()
+    }
+  }
+
+  def toExpression(sft: SimpleFeatureType, ecql: String): Expression = {
+    sfts.set(sft)
+    try { ECQL.toExpression(ecql, factory) } finally {
       sfts.remove()
     }
   }
 
   def optimize(sft: SimpleFeatureType, filter: Filter): Filter = {
     sfts.set(sft)
-    try {
-      filter.accept(new BindingFilterVisitor(sft), null).asInstanceOf[Filter]
-          .accept(new QueryPlanFilterVisitor(sft), factory).asInstanceOf[Filter]
-    } finally {
+    try { filter.accept(new QueryPlanFilterVisitor(sft), factory).asInstanceOf[Filter] } finally {
       sfts.remove()
     }
   }

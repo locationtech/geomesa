@@ -18,9 +18,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.client.coprocessor.Batch.Call
 import org.apache.hadoop.hbase.client.{Scan, Table}
 import org.apache.hadoop.hbase.coprocessor.{CoprocessorException, CoprocessorService, RegionCoprocessorEnvironment}
-import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.FilterList
-import org.apache.hadoop.hbase.protobuf.ResponseConverter
+import org.apache.hadoop.hbase.protobuf.{ProtobufUtil, ResponseConverter}
+import org.apache.hadoop.hbase.util.Base64
 import org.apache.hadoop.hbase.{Coprocessor, CoprocessorEnvironment}
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
@@ -29,6 +29,7 @@ import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequ
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.control.NonFatal
 
 class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with CoprocessorService {
 
@@ -51,17 +52,17 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
   def getResult(controller: RpcController,
                 request: GeoMesaProto.GeoMesaCoprocessorRequest,
                 done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
-    val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
-    val aggregator = {
-      val classname = options(GeoMesaCoprocessor.AggregatorClass)
-      Class.forName(classname).newInstance().asInstanceOf[HBaseAggregator[_]]
-    }
-    aggregator.init(options)
-
-    val scanList: List[Scan] = getScanFromOptions(options)
-    val filterList: FilterList = getFilterListFromOptions(options)
-
     val response: GeoMesaCoprocessorResponse = try {
+      val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
+      val aggregator = {
+        val classname = options(GeoMesaCoprocessor.AggregatorClass)
+        Class.forName(classname).newInstance().asInstanceOf[HBaseAggregator[_]]
+      }
+      aggregator.init(options)
+
+      val scanList: List[Scan] = getScanFromOptions(options)
+      val filterList: FilterList = getFilterListFromOptions(options)
+
       val results = ArrayBuffer.empty[Array[Byte]]
       scanList.foreach { scan =>
         scan.setFilter(filterList)
@@ -85,13 +86,8 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       import scala.collection.JavaConversions._
       GeoMesaCoprocessorResponse.newBuilder.addAllPayload(results.map(ByteString.copyFrom)).build
     } catch {
-      case ioe: IOException =>
-        ResponseConverter.setControllerException(controller, ioe)
-        null
-      case cnfe: ClassNotFoundException =>
-        throw cnfe
-      case dse: DeserializationException =>
-        throw dse
+      case e: IOException => ResponseConverter.setControllerException(controller, e); null
+      case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e)); null
     }
 
     done.run(response)
@@ -112,12 +108,17 @@ object GeoMesaCoprocessor extends LazyLogging {
     * Executes a geomesa coprocessor
     *
     * @param table table to execute against
+    * @param scan scan to execute
     * @param options configuration options
     * @return serialized results
     */
-  def execute(table: Table, options: Array[Byte]): CloseableIterator[ByteString] = {
-
-    val request = GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(options)).build()
+  def execute(table: Table, scan: Scan, options: Map[String, String]): CloseableIterator[ByteString] = {
+    val request = {
+      val opts = options
+          .updated(FILTER_OPT, Base64.encodeBytes(scan.getFilter.toByteArray))
+          .updated(SCAN_OPT, Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray))
+      GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
+    }
 
     val calls = Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap[Future[_], java.lang.Boolean]())
 

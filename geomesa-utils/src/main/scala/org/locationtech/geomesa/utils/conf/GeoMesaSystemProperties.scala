@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.conf
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.utils.text.Suffixes
+import org.locationtech.geomesa.utils.text.{DurationParsing, Suffixes}
 
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
@@ -20,6 +20,8 @@ object GeoMesaSystemProperties extends LazyLogging {
 
     val threadLocalValue = new ThreadLocal[String]()
 
+    def set(value: String): Unit = System.setProperty(property, value)
+
     def get: String = ConfigLoader.Config.get(property) match {
       case Some((value, true))  => value // final value - can't be overridden
       case Some((value, false)) => fromSysProps.getOrElse(value)
@@ -29,7 +31,7 @@ object GeoMesaSystemProperties extends LazyLogging {
     def option: Option[String] = Option(get)
 
     def toDuration: Option[Duration] = option.flatMap { value =>
-      Try(Duration.apply(value)) match {
+      Try(DurationParsing.caseInsensitive(value)) match {
         case Success(v) => Some(v)
         case Failure(_) =>
           logger.warn(s"Invalid duration for property $property: $value")
@@ -42,6 +44,15 @@ object GeoMesaSystemProperties extends LazyLogging {
       if (bytes.nonEmpty) { bytes } else {
         logger.warn(s"Invalid duration for property $property: $value")
         Option(default).flatMap(Suffixes.Memory.bytes)
+      }
+    }
+
+    def toInt: Option[Int] = option.flatMap { value =>
+      Try(value.toInt) match {
+        case Success(v) => Some(v)
+        case Failure(_) =>
+          logger.warn(s"Invalid integer for property $property: $value")
+          Option(default).map(_.toInt)
       }
     }
 

@@ -17,7 +17,7 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.{AccumuloColumnGroups, AccumuloFeatureIndex}
 import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -25,7 +25,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait Z2WritableIndex extends AccumuloFeatureIndex {
 
-  import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
+  import AccumuloColumnGroups.BinColumnFamily
   import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1._
 
   override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
@@ -119,7 +119,7 @@ trait Z2WritableIndex extends AccumuloFeatureIndex {
 
     AccumuloVersion.ensureTableExists(ds.connector, table)
 
-    val localityGroups = Seq(BinColumnFamily, FullColumnFamily).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
+    val localityGroups = Seq(BinColumnFamily, AccumuloColumnGroups.default).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
     ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet

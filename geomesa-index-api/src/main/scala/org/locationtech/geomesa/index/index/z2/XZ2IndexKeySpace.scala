@@ -64,10 +64,11 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues, Long] {
     XZ2IndexValues(sfc, geometries, xy)
   }
 
-  override def getRanges(values: XZ2IndexValues): Iterator[ScanRange[Long]] = {
+  override def getRanges(values: XZ2IndexValues, multiplier: Int): Iterator[ScanRange[Long]] = {
     val XZ2IndexValues(sfc, _, xy) = values
-    val zs = sfc.ranges(xy, QueryProperties.ScanRangesTarget.option.map(_.toInt))
-    zs.iterator.map(r => BoundedRange(r.lower, r.upper))
+    // note: `target` will always be Some, as ScanRangesTarget has a default value
+    val target = QueryProperties.ScanRangesTarget.option.map(t => math.max(1, t.toInt / multiplier))
+    sfc.ranges(xy, target).iterator.map(r => BoundedRange(r.lower, r.upper))
   }
 
   override def getRangeBytes(ranges: Iterator[ScanRange[Long]],

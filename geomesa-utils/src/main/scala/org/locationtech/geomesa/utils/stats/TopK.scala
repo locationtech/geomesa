@@ -9,43 +9,51 @@
 package org.locationtech.geomesa.utils.stats
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.clearspring.StreamSummary
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
 
 /**
   * TopK stat
   *
-  * @param attribute index of the attribute to track
+  * @param sft simple feature type
+  * @param property property name of the attribute to track
   * @param summary stream summary object
   * @tparam T attribute type binding
   */
-class TopK[T](val attribute: Int, private [stats] val summary: StreamSummary[T] = StreamSummary[T](TopK.StreamCapacity))
+class TopK[T] private [stats] (val sft: SimpleFeatureType,
+                               val property: String,
+                               private [stats] val summary: StreamSummary[T] = StreamSummary[T](TopK.StreamCapacity))
     extends Stat with LazyLogging {
 
   import TopK.StreamCapacity
 
   override type S = TopK[T]
 
+  @deprecated("property")
+  lazy val attribute: Int = i
+
+  private val i = sft.indexOf(property)
+
   def topK(k: Int): Iterator[(T, Long)] = summary.topK(k)
   def size: Int = summary.size
 
   override def observe(sf: SimpleFeature): Unit = {
-    val value = sf.getAttribute(attribute).asInstanceOf[T]
+    val value = sf.getAttribute(i).asInstanceOf[T]
     if (value != null) {
       summary.offer(value)
     }
   }
 
   override def unobserve(sf: SimpleFeature): Unit = {
-    val value = sf.getAttribute(attribute).asInstanceOf[T]
+    val value = sf.getAttribute(i).asInstanceOf[T]
     if (value != null) {
       summary.offer(value, -1)
     }
   }
 
   override def +(other: TopK[T]): TopK[T] = {
-    val merged = new TopK[T](attribute)
+    val merged = new TopK[T](sft, property)
     merged += this
     merged += other
     merged
@@ -59,8 +67,8 @@ class TopK[T](val attribute: Int, private [stats] val summary: StreamSummary[T] 
   override def isEmpty: Boolean = summary.size == 0
 
   override def toJsonObject: Any = {
-    val maps = summary.topK(10).zipWithIndex.map { case ((item, count), i) =>
-      (i, ListMap( "value" -> item, "count" -> count))
+    val maps = summary.topK(10).zipWithIndex.map { case ((item, count), rank) =>
+      (rank, ListMap( "value" -> item, "count" -> count))
     }
     ListMap(maps.toSeq:_*)
   }

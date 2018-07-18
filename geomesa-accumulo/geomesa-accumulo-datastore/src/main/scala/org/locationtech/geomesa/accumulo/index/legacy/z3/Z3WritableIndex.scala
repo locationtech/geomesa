@@ -19,7 +19,7 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.{AccumuloColumnGroups, AccumuloFeatureIndex}
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -32,7 +32,7 @@ import scala.collection.JavaConversions._
 
 trait Z3WritableIndex extends AccumuloFeatureIndex {
 
-  import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
+  import AccumuloColumnGroups.BinColumnFamily
   import Z3IndexV2._
 
   def hasSplits: Boolean
@@ -140,7 +140,7 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
 
     AccumuloVersion.ensureTableExists(ds.connector, table)
 
-    val localityGroups = Seq(BinColumnFamily, FullColumnFamily).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
+    val localityGroups = Seq(BinColumnFamily, AccumuloColumnGroups.default).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
     ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet

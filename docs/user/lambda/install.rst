@@ -51,7 +51,7 @@ GeoMesa comes with a set of command line tools located in ``geomesa-lambda_2.11-
 
 .. note::
 
-    You can configure environment variables and classpath settings in geomesa-lambda_2.11-$VERSION/bin/geomesa-env.sh.
+    You can configure environment variables and classpath settings in geomesa-lambda_2.11-$VERSION/conf/geomesa-env.sh.
 
 In the ``geomesa-lambda_2.11-$VERSION`` directory, run ``bin/geomesa-lambda configure`` to set up the tools.
 

@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.web.core
 
-import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
-import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
+import org.geotools.data.DataAccessFactory.Param
+import org.geotools.data.{DataStore, DataStoreFinder}
 import org.scalatra.{BadRequest, NotFound, Ok}
 
 import scala.collection.JavaConversions._
@@ -20,43 +19,49 @@ import scala.util.Try
 
 trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
 
-  import AccumuloDataStoreParams.PasswordParam
+  import scala.collection.JavaConverters._
 
   type PasswordHandler = AnyRef { def encode(value: String): String; def decode(value: String): String }
 
   private var passwordHandler: Option[PasswordHandler] = None
 
-  private val dataStoreCache = new ConcurrentHashMap[String, AccumuloDataStore]
+  private val dataStoreCache = new ConcurrentHashMap[String, DataStore]
+
+  private val passwordKeys =
+    DataStoreFinder.getAllDataStores.asScala.flatMap(_.getParametersInfo).collect {
+      case p: Param if p.isPassword => p.key
+    }.toSet
 
   sys.addShutdownHook {
     import scala.collection.JavaConversions._
     dataStoreCache.values.foreach(_.dispose())
   }
 
-  protected def withDataStore[T](method: (AccumuloDataStore) => T): Any = {
+  protected def withDataStore[D <: DataStore, T](method: (D) => T): Any = {
     val dsParams = datastoreParams
     val key = dsParams.toSeq.sorted.mkString(",")
-    val ds = Option(dataStoreCache.get(key)).getOrElse {
-      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+    val ds = Option(dataStoreCache.get(key).asInstanceOf[D]).getOrElse {
+      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[D]
       if (ds != null) {
         dataStoreCache.put(key, ds)
       }
       ds
     }
     if (ds == null) {
-      BadRequest(reason = "Could not load data store using the provided parameters.")
+      BadRequest(body = "Could not load data store using the provided parameters")
     } else {
       method(ds)
     }
   }
 
   override def getPersistedDataStore(alias: String): Map[String, String] = {
-    val map = super.getPersistedDataStore(alias)
-    val withPassword = for { handler <- passwordHandler; pw <- Try(PasswordParam.lookupOpt(map)).getOrElse(None) } yield {
-      // noinspection LanguageFeature
-      map.updated(PasswordParam.getName, handler.decode(pw))
+    val params = super.getPersistedDataStore(alias)
+    // noinspection LanguageFeature
+    passwordHandler match {
+      case None => params
+      case Some(handler) =>
+        params.map { case (k, v) => (k, if (passwordKeys.contains(k)) { handler.decode(v) } else { v }) }
     }
-    withPassword.getOrElse(map)
   }
 
   /**
@@ -64,16 +69,19 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
    */
   post("/ds/:alias") {
     val dsParams = datastoreParams
-    val ds = Try(DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]).getOrElse(null)
+    val ds = Try(DataStoreFinder.getDataStore(dsParams)).getOrElse(null)
     if (ds == null) {
-      BadRequest(reason = "Could not load data store using the provided parameters.")
+      BadRequest(body = "Could not load data store using the provided parameters.")
     } else {
       dataStoreCache.put(dsParams.toSeq.sorted.mkString(","), ds)
       val alias = params("alias")
       val prefix = keyFor(alias)
       val toPersist = dsParams.map { case (k, v) =>
         // noinspection LanguageFeature
-        val value = if (k == PasswordParam.getName) { passwordHandler.map(_.encode(v)).getOrElse(v) } else { v }
+        val value = passwordHandler match {
+          case Some(handler) if passwordKeys.contains(k) => handler.encode(v)
+          case _ => v
+        }
         keyFor(alias, k) -> value
       }
       try {
@@ -126,7 +134,7 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
   }
 
   private def filterPasswords(map: Map[String, String]): Map[String, String] = map.map {
-    case (k, _) if k.toLowerCase(Locale.US).contains("password") => (k, "***")
+    case (k, _) if passwordKeys.contains(k) => (k, "***")
     case (k, v) => (k, v)
   }
 

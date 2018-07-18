@@ -14,7 +14,9 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.JsonPathFeatureAccessor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -32,8 +34,9 @@ class JsonPathPropertyAccessorTest extends Specification {
       val accessors =
         PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature(sft, ""), "$.json.foo", classOf[String], null)
       accessors must not(beNull)
-      accessors.asScala must contain(JsonPathPropertyAccessor)
+      accessors.asScala must contain(JsonPathFeatureAccessor)
     }
+
     "access json values in simple features" in {
       val property = ff.property("$.json.foo")
       val sf = new ScalaSimpleFeature(sft, "")
@@ -97,6 +100,18 @@ class JsonPathPropertyAccessorTest extends Specification {
       expression.evaluate(sf) must beTrue
       sf.setAttribute(0, """{ "foo" : "baz" }""")
       expression.evaluate(sf) must beFalse
+    }
+
+    "access attribute descriptors in simple feature types" in {
+      import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+      val property = ff.property("$.json.foo")
+      val result = property.evaluate(sft)
+      result must beAnInstanceOf[AttributeDescriptor]
+      result.asInstanceOf[AttributeDescriptor].getLocalName mustEqual "json"
+      result.asInstanceOf[AttributeDescriptor].getType.getBinding mustEqual classOf[String]
+      // verify that the json flag was removed, as this messes with json path transforms
+      result.asInstanceOf[AttributeDescriptor].isJson must beFalse
     }
 
     "return null for invalid paths" in {

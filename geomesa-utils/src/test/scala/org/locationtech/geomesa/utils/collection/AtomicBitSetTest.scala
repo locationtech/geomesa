@@ -11,14 +11,13 @@ package org.locationtech.geomesa.utils.collection
 import java.util.concurrent.CountDownLatch
 
 import org.junit.runner.RunWith
-import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AtomicBitSetTest extends Specification with Mockito {
+class AtomicBitSetTest extends Specification {
 
   "AtomicBitSet" should {
     "set and get values" >> {
@@ -33,6 +32,19 @@ class AtomicBitSetTest extends Specification with Mockito {
         bs.remove(i) must beTrue
         bs.contains(i) must beFalse
         bs.remove(i) must beFalse
+        bs.contains(i) must beFalse
+      }
+    }
+    "clear values" >> {
+      val bs = AtomicBitSet(16)
+      foreach(0 until 16) { i =>
+        bs.add(i) must beTrue
+      }
+      foreach(0 until 16) { i =>
+        bs.contains(i) must beTrue
+      }
+      bs.clear()
+      foreach(0 until 16) { i =>
         bs.contains(i) must beFalse
       }
     }

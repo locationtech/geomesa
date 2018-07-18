@@ -8,11 +8,12 @@
 
 package org.locationtech.geomesa.web.security
 
-import java.time.{ZoneOffset, ZonedDateTime}
 import java.time.format.DateTimeFormatter
+import java.time.{ZoneOffset, ZonedDateTime}
 
 import org.json4s.{DefaultFormats, Formats, JValue}
 import org.locationtech.geomesa.accumulo.audit.SerializedQueryEvent
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
@@ -23,7 +24,9 @@ import org.scalatra.{BadRequest, Ok}
 
 import scala.util.Try
 
-class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesaDataStoreServlet with NativeJsonSupport {
+@deprecated
+class QueryAuditEndpoint(val persistence: PropertiesPersistence)
+    extends GeoMesaDataStoreServlet with NativeJsonSupport {
 
   import QueryAuditEndpoint._
 
@@ -53,7 +56,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
    */
   get("/:alias/queries/?") {
     try {
-      withDataStore((ds) => {
+      withDataStore((ds: AccumuloDataStore) => {
         val sft = params.get("typeName").orNull
         // corresponds to 2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z - same as used by geotools
         val dates = params.get("dates").flatMap(d => Try(d.split("/").map(ZonedDateTime.parse(_, DtFormat))).toOption).orNull
@@ -73,7 +76,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
           if (arrowTry.isFailure) {
             reason.append("arrow is not a valid Boolean. ")
           }
-          BadRequest(reason = reason.toString())
+          BadRequest(body = reason.toString())
         } else {
           val reader = ds.config.audit.get._1
           val interval = (dates(0), dates(1))
@@ -106,7 +109,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
 
   delete("/:alias/queries/?") {
     try {
-      withDataStore((ds) => {
+      withDataStore((ds: AccumuloDataStore) => {
         val sft = params.get("typeName").orNull
         // corresponds to 2015-11-01T00:00:00.000Z/2015-12-5T00:00:00.000Z - same as used by geotools
         val dates = params.get("dates").flatMap(d => Try(d.split("/").map(ZonedDateTime.parse(_, DtFormat))).toOption).orNull
@@ -118,7 +121,7 @@ class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesa
           if (dates == null || dates.length != 2) {
             reason.append("date not specified or invalid. ")
           }
-          BadRequest(reason = reason.toString())
+          BadRequest(body = reason.toString())
         } else {
           val reader = ds.config.audit.get._1
           val interval = (dates(0), dates(1))

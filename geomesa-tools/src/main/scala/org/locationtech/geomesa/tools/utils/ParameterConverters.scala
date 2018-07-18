@@ -15,6 +15,7 @@ import com.beust.jcommander.converters.BaseConverter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
+import org.locationtech.geomesa.utils.text.DurationParsing
 import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
@@ -39,9 +40,7 @@ object ParameterConverters {
 
   class DurationConverter(name: String) extends BaseConverter[Duration](name) {
     override def convert(value: String): Duration = {
-      try {
-        Duration(value)
-      } catch {
+      try { DurationParsing.caseInsensitive(value) } catch {
         case NonFatal(e) => throw new ParameterException(getErrorString(value, s"duration: $e"))
       }
     }

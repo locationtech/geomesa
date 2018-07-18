@@ -107,7 +107,7 @@ object InMemoryQueryRunner {
                 hints: Hints,
                 filter: Option[Filter]): Iterator[SimpleFeature] = {
     if (hints.isBinQuery) {
-      val trackId = Option(hints.getBinTrackIdField).map(sft.indexOf)
+      val trackId = Option(hints.getBinTrackIdField).filter(_ != "id").map(sft.indexOf)
       val geom = hints.getBinGeomField.map(sft.indexOf)
       val dtg = hints.getBinDtgField.map(sft.indexOf)
       binTransform(features, sft, trackId, geom, dtg, hints.getBinLabelField.map(sft.indexOf), hints.isBinSorting)
@@ -180,9 +180,8 @@ object InMemoryQueryRunner {
     val dictionaryFields = hints.getArrowDictionaryFields
     val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
-      def name(i: Int): String = sft.getDescriptor(i).getLocalName
       val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => name(k.attribute) -> k).toMap
+      stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => k.property -> k).toMap
     }
 
     if (hints.isArrowDoublePass ||

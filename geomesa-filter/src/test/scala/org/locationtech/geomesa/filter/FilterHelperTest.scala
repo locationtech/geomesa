@@ -19,6 +19,7 @@ import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -26,9 +27,12 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification {
 
+  val sft = SimpleFeatureTypes.createType("FilterHelperTest",
+    "dtg:Date,number:Int,a:Int,b:Int,c:Int,*geom:Point:srid=4326")
+
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  def updateFilter(filter: Filter): Filter = filter.accept(new QueryPlanFilterVisitor(null), null).asInstanceOf[Filter]
+  def updateFilter(filter: Filter): Filter = QueryPlanFilterVisitor.apply(sft, filter)
 
   def toInterval(dt1: String, dt2: String, inclusive: Boolean = true): Bounds[ZonedDateTime] = {
     val s = Option(Converters.convert(dt1, classOf[Date])).map(d => ZonedDateTime.ofInstant(d.toInstant, ZoneOffset.UTC))

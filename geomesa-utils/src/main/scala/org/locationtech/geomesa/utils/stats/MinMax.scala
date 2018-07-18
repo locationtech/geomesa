@@ -15,18 +15,20 @@ import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.utils.clearspring.HyperLogLog
 import org.locationtech.geomesa.utils.stats.MinMax.CardinalityBits
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
 
 /**
- * The MinMax stat merely returns the min/max of an attribute's values.
- * Works with dates, integers, longs, doubles, and floats.
- *
- * @param attribute attribute index for the attribute the histogram is being made for
- * @tparam T the type of the attribute the stat is targeting (needs to be comparable)
+  * The MinMax stat merely returns the min/max of an attribute's values.
+  * Works with dates, integers, longs, doubles, and floats.
+  *
+  * @param sft simple feature type
+  * @param property property name for the attribute being min/maxed
+  * @tparam T the type of the attribute the stat is targeting (needs to be comparable)
  */
-class MinMax[T] private [stats] (val attribute: Int,
+class MinMax[T] private [stats] (val sft: SimpleFeatureType,
+                                 val property: String,
                                  private [stats] var minValue: T,
                                  private [stats] var maxValue: T,
                                  private [stats] val hpp: HyperLogLog)
@@ -34,10 +36,15 @@ class MinMax[T] private [stats] (val attribute: Int,
     extends Stat with LazyLogging with Serializable {
 
   // use a secondary constructor instead of companion apply to allow mixin types (i.e. ImmutableStat)
-  def this(attribute: Int)(implicit defaults: MinMax.MinMaxDefaults[T]) =
-    this(attribute, defaults.max, defaults.min, HyperLogLog(CardinalityBits))(defaults)
+  def this(sft: SimpleFeatureType, attribute: String)(implicit defaults: MinMax.MinMaxDefaults[T]) =
+    this(sft, attribute, defaults.max, defaults.min, HyperLogLog(CardinalityBits))(defaults)
 
   override type S = MinMax[T]
+
+  @deprecated("property")
+  lazy val attribute: Int = i
+
+  private val i = sft.indexOf(property)
 
   def min: T = if (isEmpty) { maxValue } else { minValue }
   def max: T = if (isEmpty) { minValue } else { maxValue }
@@ -46,7 +53,7 @@ class MinMax[T] private [stats] (val attribute: Int,
   def tuple: (T, T, Long) = (min, max, cardinality)
 
   override def observe(sf: SimpleFeature): Unit = {
-    val value = sf.getAttribute(attribute).asInstanceOf[T]
+    val value = sf.getAttribute(i).asInstanceOf[T]
     if (value != null) {
       try {
         minValue = defaults.min(value, minValue)
@@ -63,11 +70,11 @@ class MinMax[T] private [stats] (val attribute: Int,
 
   override def +(other: MinMax[T]): MinMax[T] = {
     if (other.isEmpty) {
-      new MinMax[T](attribute, minValue, maxValue, hpp.merge())
+      new MinMax[T](sft, property, minValue, maxValue, hpp.merge())
     } else if (this.isEmpty) {
-      new MinMax[T](attribute, other.minValue, other.maxValue, other.hpp.merge())
+      new MinMax[T](sft, property, other.minValue, other.maxValue, other.hpp.merge())
     } else {
-      val plus = new MinMax[T](attribute, minValue, maxValue, hpp.merge())
+      val plus = new MinMax[T](sft, property, minValue, maxValue, hpp.merge())
       plus += other
       plus
     }
@@ -104,7 +111,7 @@ class MinMax[T] private [stats] (val attribute: Int,
 
   override def isEquivalent(other: Stat): Boolean = other match {
     case that: MinMax[T] =>
-      attribute == that.attribute && minValue == that.minValue &&
+      property == that.property && minValue == that.minValue &&
           maxValue == that.maxValue && cardinality == that.cardinality
     case _ => false
   }

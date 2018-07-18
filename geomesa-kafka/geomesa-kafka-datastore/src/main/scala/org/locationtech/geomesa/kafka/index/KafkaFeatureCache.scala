@@ -9,15 +9,22 @@
 package org.locationtech.geomesa.kafka.index
 
 import java.io.Closeable
+import java.util.Date
 import java.util.concurrent._
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.locationtech.geomesa.filter.index.SpatialIndexSupport
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport, SpatialIndexSupport}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore
+import org.locationtech.geomesa.kafka.index.BasicFeatureCache.{ExtentOps, PointOps}
+import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
+import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.opengis.filter.expression.Expression
 
 import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
 
 trait KafkaFeatureCache extends Closeable {
   def put(feature: SimpleFeature): Unit
@@ -27,50 +34,68 @@ trait KafkaFeatureCache extends Closeable {
   def size(filter: Filter): Int
   def query(id: String): Option[SimpleFeature]
   def query(filter: Filter): Iterator[SimpleFeature]
+
+  protected def time: Option[Expression] = None
 }
 
 object KafkaFeatureCache extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  def empty(): KafkaFeatureCache = EmptyFeatureCache
+  def apply(sft: SimpleFeatureType,
+            config: KafkaDataStore.IndexConfig): KafkaFeatureCache = {
+    val eventTimeExpression = config.eventTime.map(e => (FastFilterFactory.toExpression(sft, e.expression), e.ordering))
+    val expiryMillis = if (config.expiry == Duration.Inf) { -1 } else { config.expiry.toMillis }
 
-  def apply(sft: SimpleFeatureType, expiry: Duration, support: SpatialIndexSupport): KafkaFeatureCache = {
-    if (sft.isPoints) {
-      new KafkaFeatureCachePoints(sft, support, expiry)
+    if (sft.nonPoints) {
+      // note: CQEngine handles points vs non-points internally
+      val support = if (config.cqAttributes.nonEmpty) { cqIndexSupport(sft, config) } else {
+        SizeSeparatedBucketIndexSupport(sft, config.resolutionX / 360d, config.resolutionY / 180d)
+      }
+      eventTimeExpression match {
+        case None         => new BasicFeatureCache(support, sft.getGeomIndex, expiryMillis) with ExtentOps
+        case Some((e, o)) => new EventTimeFeatureCache(support, sft.getGeomIndex, expiryMillis, e, o) with ExtentOps
+      }
     } else {
-      logger.warn("Kafka geometry index only supports points; features will be indexed by their centroids")
-      new KafkaFeatureCacheCentroids(sft, support, expiry)
+      val support = if (config.cqAttributes.nonEmpty) { cqIndexSupport(sft, config) } else {
+        BucketIndexSupport(sft, config.resolutionX, config.resolutionY)
+      }
+      eventTimeExpression match {
+        case None         => new BasicFeatureCache(support, sft.getGeomIndex, expiryMillis) with PointOps
+        case Some((e, o)) => new EventTimeFeatureCache(support, sft.getGeomIndex, expiryMillis, e, o) with PointOps
+      }
     }
   }
 
+  def empty(): KafkaFeatureCache = EmptyFeatureCache
+
+  def nonIndexing(cache: KafkaFeatureCache): KafkaFeatureCache = new NonIndexingFeatureCache(cache.time)
+
   /**
-    * Feature cache for point type geometries
+    * Create a CQEngine index support. Note that CQEngine handles points vs non-points internally
     *
     * @param sft simple feature type
-    * @param support spatial index
-    * @param expiry expiry
+    * @param config index config
+    * @return
     */
-  class KafkaFeatureCachePoints(sft: SimpleFeatureType, support: SpatialIndexSupport, expiry: Duration)
-      extends KafkaFeatureCache {
-
-    private val executor = {
-      val ex = new ScheduledThreadPoolExecutor(2)
-      // don't keep running scheduled tasks after shutdown
-      ex.setExecuteExistingDelayedTasksAfterShutdownPolicy(false)
-      // remove tasks when canceled, otherwise they will only be removed from the task queue
-      // when they would be executed. we expect frequent cancellations due to feature updates
-      ex.setRemoveOnCancelPolicy(true)
-      ex
+  private def cqIndexSupport(sft: SimpleFeatureType, config: KafkaDataStore.IndexConfig): SpatialIndexSupport = {
+    val attributes = if (config.cqAttributes == Seq(KafkaDataStore.CqIndexFlag)) {
+      // deprecated boolean config to enable indices based on the stored simple feature type
+      CQIndexType.getDefinedAttributes(sft) ++ Option(sft.getGeomField).map((_, CQIndexType.GEOMETRY))
+    } else {
+      config.cqAttributes
     }
+    GeoCQIndexSupport(sft, attributes, config.resolutionX, config.resolutionY)
+  }
 
-    private val expiryMillis = if (expiry == Duration.Inf) { -1 } else { expiry.toMillis }
+  /**
+    * Non-indexing feature cache that just tracks the most recent feature
+    *
+    * @param time event time expression
+    */
+  class NonIndexingFeatureCache(time: Option[Expression]) extends KafkaFeatureCache {
 
-    protected val geometryIndex: Int = sft.indexOf(sft.getGeomField)
-
-    // keeps location and expiry keyed by feature ID (we need a way to retrieve a feature based on ID for
-    // update/delete operations). to reduce contention, we never iterate over this map
-    protected val state = new ConcurrentHashMap[String, FeatureState]
+    protected val state = new ConcurrentHashMap[String, SimpleFeature]
 
     /**
       * WARNING: this method is not thread-safe
@@ -78,111 +103,36 @@ object KafkaFeatureCache extends LazyLogging {
       * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
       */
     override def put(feature: SimpleFeature): Unit = {
-      val pt = feature.getAttribute(geometryIndex).asInstanceOf[Point]
-      val featureState = new FeatureState(pt.getX, pt.getY, feature.getID)
-      logger.trace(s"${featureState.id} inserting with expiry $expiry")
-      val old = state.put(featureState.id, featureState)
-      if (old != null) {
-        if (old.expire != null) {
-          logger.trace(s"${featureState.id} cancelling old expiration")
-          old.expire.cancel(true)
+      val old = state.put(feature.getID, feature)
+      time.foreach { t =>
+        try {
+          if (old != null && t.evaluate(old).asInstanceOf[Date].after(t.evaluate(feature).asInstanceOf[Date])) {
+            state.replace(feature.getID, feature, old)
+          }
+        } catch {
+          case NonFatal(e) => logger.error(s"Error evaluating event time for $feature", e)
         }
-        logger.trace(s"${featureState.id} removing old feature")
-        support.index.remove(old.x, old.y, old.id)
       }
-      support.index.insert(featureState.x, featureState.y, featureState.id, feature)
-      logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
     }
 
-    /**
-      * WARNING: this method is not thread-safe
-      *
-      * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
-      */
-    override def remove(id: String): Unit = {
-      logger.trace(s"$id removing feature")
-      val old = state.remove(id)
-      if (old != null) {
-        if (old.expire != null) {
-          logger.trace(s"$id cancelling old expiration")
-          old.expire.cancel(true)
-        }
-        support.index.remove(old.x, old.y, old.id)
-      }
-      logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
-    }
+    override def remove(id: String): Unit = state.remove(id)
 
-    override def clear(): Unit = {
-      logger.trace("Clearing index")
-      state.clear()
-      support.index.clear()
-    }
+    override def clear(): Unit = state.clear()
+
+    override def close(): Unit = {}
 
     override def size(): Int = state.size()
 
-    // optimized for filter.include
-    override def size(f: Filter): Int = if (f == Filter.INCLUDE) { size() } else { query(f).length }
+    override def size(filter: Filter): Int = query(filter).length
 
-    override def query(id: String): Option[SimpleFeature] =
-      Option(state.get(id)).flatMap(f => Option(support.index.get(f.x, f.y, id)))
+    override def query(id: String): Option[SimpleFeature] = Option(state.get(id))
 
-    override def query(filter: Filter): Iterator[SimpleFeature] = support.query(filter)
-
-    override def close(): Unit = executor.shutdown()
-
-    /**
-      * Holder for our key feature values
-      *
-      * @param x x coord
-      * @param y y coord
-      * @param id feature id
-      */
-    protected class FeatureState(val x: Double, val y: Double, val id: String) extends Runnable {
-
-      val expire: ScheduledFuture[_] =
-        if (expiryMillis == -1) { null } else { executor.schedule(this, expiryMillis, TimeUnit.MILLISECONDS) }
-
-      override def run(): Unit = {
-        logger.trace(s"$id expiring from index")
-        state.remove(id)
-        support.index.remove(x, y, id)
-        logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
+    override def query(filter: Filter): Iterator[SimpleFeature] = {
+      import scala.collection.JavaConverters._
+      val features = state.asScala.valuesIterator
+      if (filter == Filter.INCLUDE) { features } else {
+        features.filter(filter.evaluate)
       }
-    }
-  }
-
-  /**
-    * Feature cache for non-point type geometries
-    *
-    * @param sft simple feature type
-    * @param support spatial index
-    * @param expiry expiry
-    */
-  class KafkaFeatureCacheCentroids(sft: SimpleFeatureType, support: SpatialIndexSupport, expiry: Duration)
-      extends KafkaFeatureCachePoints(sft, support, expiry) {
-
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-
-    /**
-      * WARNING: this method is not thread-safe
-      *
-      * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
-      */
-    override def put(feature: SimpleFeature): Unit = {
-      val pt = feature.getAttribute(geometryIndex).asInstanceOf[Geometry].safeCentroid()
-      val featureState = new FeatureState(pt.getX, pt.getY, feature.getID)
-      logger.trace(s"${featureState.id} inserting with expiry $expiry")
-      val old = state.put(featureState.id, featureState)
-      if (old != null) {
-        if (old.expire != null) {
-          logger.trace(s"${featureState.id} cancelling old expiration")
-          old.expire.cancel(false)
-        }
-        logger.trace(s"${featureState.id} removing old feature")
-        support.index.remove(old.x, old.y, old.id)
-      }
-      support.index.insert(featureState.x, featureState.y, featureState.id, feature)
-      logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
     }
   }
 

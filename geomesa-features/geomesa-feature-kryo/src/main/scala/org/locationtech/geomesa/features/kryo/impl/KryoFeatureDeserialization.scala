@@ -30,8 +30,8 @@ trait KryoFeatureDeserialization extends SimpleFeatureSerializer {
 
   private [kryo] def deserializeSft: SimpleFeatureType
 
-  private val withoutId = options.withoutId
   private val withoutUserData = !options.withUserData
+  protected val withoutId: Boolean = options.withoutId
 
   protected val readers: Array[Input => AnyRef] = getReaders(CacheKeyGenerator.cacheKey(deserializeSft), deserializeSft)
 
@@ -48,12 +48,6 @@ trait KryoFeatureDeserialization extends SimpleFeatureSerializer {
         }
       }
       KryoUserDataSerialization.deserialize(input)
-    }
-  }
-
-  protected def readId(input: Input): String = {
-    if (withoutId) { "" } else {
-      input.readString()
     }
   }
 
@@ -79,7 +73,7 @@ object KryoFeatureDeserialization {
     in
   }
 
-  private [kryo] def getReaders(key: String, sft: SimpleFeatureType): Array[(Input) => AnyRef] = {
+  private [geomesa] def getReaders(key: String, sft: SimpleFeatureType): Array[(Input) => AnyRef] = {
     import scala.collection.JavaConversions._
     readers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
       val bindings = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
@@ -87,7 +81,7 @@ object KryoFeatureDeserialization {
     }.toArray)
   }
 
-  private [kryo] def matchReader(bindings: Seq[ObjectType]): (Input) => AnyRef = {
+  private [geomesa] def matchReader(bindings: Seq[ObjectType]): (Input) => AnyRef = {
     bindings.head match {
       case ObjectType.STRING => (i: Input) => i.readString()
       case ObjectType.INT => readNullable((i: Input) => i.readInt().asInstanceOf[AnyRef])

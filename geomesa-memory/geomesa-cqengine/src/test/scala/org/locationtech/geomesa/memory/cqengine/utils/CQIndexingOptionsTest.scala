@@ -10,16 +10,15 @@ package org.locationtech.geomesa.memory.cqengine.utils
 
 import java.util.Date
 
+import com.googlecode.cqengine.index.AttributeIndex
 import com.googlecode.cqengine.index.hash.HashIndex
 import com.googlecode.cqengine.index.navigable.NavigableIndex
 import com.googlecode.cqengine.index.radix.RadixTreeIndex
-import com.googlecode.cqengine.index.support.AbstractAttributeIndex
 import com.googlecode.cqengine.index.unique.UniqueIndex
 import com.vividsolutions.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
-import org.locationtech.geomesa.memory.cqengine.utils.CQIndexingOptions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -33,63 +32,52 @@ class CQIndexingOptionsTest extends Specification {
   val spec = "Who:String:cq-index=default," +
              "What:Integer:cq-index=unique," +
              "When:Date:cq-index=navigable," +
-             "*Where:Point:srid=4326," +
-             "Why:String:cq-index=hash," +
-             "BadIndex:String:cq-index=foo"
+             "*Where:Point:srid=4326:cq-index=geometry," +
+             "Why:String:cq-index=hash"
 
   "CQ Indexing options" should {
-    "be configurable from SimpleFeatureTypes" >> {
-      "via SFT spec" >> {
-        val sft = SimpleFeatureTypes.createType("test", spec)
+    "be configurable via SFT spec" >> {
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      val types = CQIndexType.getDefinedAttributes(sft)
 
-        val whoDescriptor = sft.getDescriptor("Who")
-        getCQIndexType(whoDescriptor) mustEqual CQIndexType.DEFAULT
-
-        val whatDescriptor = sft.getDescriptor("What")
-        getCQIndexType(whatDescriptor) mustEqual CQIndexType.UNIQUE
-
-        val whenDescriptor = sft.getDescriptor("When")
-        getCQIndexType(whenDescriptor) mustEqual CQIndexType.NAVIGABLE
-
-        val whereDescriptor = sft.getDescriptor("Where")
-        getCQIndexType(whereDescriptor) mustEqual CQIndexType.NONE
-
-        val whyDescriptor = sft.getDescriptor("Why")
-        getCQIndexType(whyDescriptor) mustEqual CQIndexType.HASH
-
-        val badIndexDescriptor = sft.getDescriptor("BadIndex")
-        getCQIndexType(badIndexDescriptor) mustEqual CQIndexType.NONE
-      }
-
-      "via setCQIndexType" >> {
-        val sft = SimpleFeatureTypes.createType("test", spec)
-
-        val originalWhoDescriptor = sft.getDescriptor("Who")
-        getCQIndexType(originalWhoDescriptor) mustEqual CQIndexType.DEFAULT
-
-        setCQIndexType(originalWhoDescriptor, CQIndexType.HASH)
-        getCQIndexType(originalWhoDescriptor) mustEqual CQIndexType.HASH
-      }
+      types must contain(("Who", CQIndexType.DEFAULT))
+      types must contain(("What", CQIndexType.UNIQUE))
+      types must contain(("When", CQIndexType.NAVIGABLE))
+      types must contain(("Where", CQIndexType.GEOMETRY))
+      types must contain(("Why", CQIndexType.HASH))
     }
+
+    "be configurable via setCQIndexType" >> {
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      CQIndexType.getDefinedAttributes(sft) must contain(("Who", CQIndexType.DEFAULT))
+      sft.getDescriptor("Who").getUserData.put("cq-index", CQIndexType.HASH.toString)
+      CQIndexType.getDefinedAttributes(sft) must contain(("Who", CQIndexType.HASH))
+    }
+
+    "fail for invalid index types" in {
+      val sft = SimpleFeatureTypes.createType("test", spec + ",BadIndex:String:cq-index=foo")
+      CQIndexType.getDefinedAttributes(sft) must throwAn[Exception]
+    }
+
     "build IndexedCollections with indices" >> {
       val sft = SimpleFeatureTypes.createType("test", spec)
 
-      val cq = new GeoCQEngine(sft)
-      val indexes: List[AbstractAttributeIndex[_, SimpleFeature]] =
-        cq.cqcache.getIndexes.toList.collect{ case a: AbstractAttributeIndex[_, SimpleFeature] => a }
+      val nameToIndex = scala.collection.mutable.Map.empty[String, AttributeIndex[_, SimpleFeature]]
 
-      val nameToIndex: Map[String, AbstractAttributeIndex[_, SimpleFeature]] = indexes.map {
-        index => index.getAttribute.getAttributeName -> index
-      }.toMap
+      new GeoCQEngine(sft, CQIndexType.getDefinedAttributes(sft)) {
+        cqcache.getIndexes.foreach {
+          case a: AttributeIndex[_, SimpleFeature] => nameToIndex.put(a.getAttribute.getAttributeName, a)
+          case _ => // no-op
+        }
+      }
 
-      // NB: Where is the default geometry field, so it should be indexed with a GeoIndex
-      nameToIndex("Where") must beAnInstanceOf[GeoIndex[Geometry, SimpleFeature]]
+      nameToIndex.get("Where") must beSome[AttributeIndex[_, SimpleFeature]](beAnInstanceOf[GeoIndex[Geometry, SimpleFeature]])
 
       // Who is a string field and the 'default' hint is used.  This should be a Radix index
-      nameToIndex("Who")   must beAnInstanceOf[RadixTreeIndex[String, SimpleFeature]]
-      nameToIndex("What")  must beAnInstanceOf[UniqueIndex[Integer, SimpleFeature]]
-      nameToIndex("When")  must beAnInstanceOf[NavigableIndex[Date, SimpleFeature]]
-      nameToIndex("Why")   must beAnInstanceOf[HashIndex[String, SimpleFeature]]
+      nameToIndex.get("Who")  must beSome[AttributeIndex[_, SimpleFeature]](beAnInstanceOf[RadixTreeIndex[String, SimpleFeature]])
+      nameToIndex.get("What") must beSome[AttributeIndex[_, SimpleFeature]](beAnInstanceOf[UniqueIndex[Integer, SimpleFeature]])
+      nameToIndex.get("When") must beSome[AttributeIndex[_, SimpleFeature]](beAnInstanceOf[NavigableIndex[Date, SimpleFeature]])
+      nameToIndex.get("Why")  must beSome[AttributeIndex[_, SimpleFeature]](beAnInstanceOf[HashIndex[String, SimpleFeature]])
     }
 
   }

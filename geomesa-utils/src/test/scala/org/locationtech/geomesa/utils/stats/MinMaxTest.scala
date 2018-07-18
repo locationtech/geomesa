@@ -33,7 +33,7 @@ class MinMaxTest extends Specification with StatTestHelper {
     "work with strings" >> {
       "be empty initiallly" >> {
         val minMax = newStat[String]("strAttr", observe = false)
-        minMax.attribute mustEqual stringIndex
+        minMax.property mustEqual "strAttr"
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }
@@ -110,7 +110,7 @@ class MinMaxTest extends Specification with StatTestHelper {
     "work with ints" >> {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Integer]("intAttr", observe = false)
-        minMax.attribute mustEqual intIndex
+        minMax.property mustEqual "intAttr"
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }
@@ -184,7 +184,7 @@ class MinMaxTest extends Specification with StatTestHelper {
     "work with longs" >> {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Long]("longAttr", observe = false)
-        minMax.attribute mustEqual longIndex
+        minMax.property mustEqual "longAttr"
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }
@@ -258,7 +258,7 @@ class MinMaxTest extends Specification with StatTestHelper {
     "work with floats" >> {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Float]("floatAttr", observe = false)
-        minMax.attribute mustEqual floatIndex
+        minMax.property mustEqual "floatAttr"
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }
@@ -332,7 +332,7 @@ class MinMaxTest extends Specification with StatTestHelper {
     "work with doubles" >> {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr", observe = false)
-        minMax.attribute mustEqual doubleIndex
+        minMax.property mustEqual "doubleAttr"
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }
@@ -406,7 +406,7 @@ class MinMaxTest extends Specification with StatTestHelper {
     "work with dates" >> {
       "be empty initiallly" >> {
         val minMax = newStat[Date]("dtg", observe = false)
-        minMax.attribute mustEqual dateIndex
+        minMax.property mustEqual "dtg"
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }
@@ -483,7 +483,7 @@ class MinMaxTest extends Specification with StatTestHelper {
     "work with geometries" >> {
       "be empty initiallly" >> {
         val minMax = newStat[Geometry]("geom", observe = false)
-        minMax.attribute mustEqual geomIndex
+        minMax.property mustEqual "geom"
         minMax.isEmpty must beTrue
         minMax.cardinality mustEqual 0
       }

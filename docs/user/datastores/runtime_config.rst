@@ -44,9 +44,7 @@ geomesa.scan.ranges.target
 This property provides a rough upper-limit for the number of row ranges that will be scanned for a single
 query. It is specified as a number. In general, more ranges will result in fewer false-positive rows being
 scanned, which will speed up most queries. However, too many ranges can take a long time to generate, and
-overwhelm clients, causing slowdowns. The optimal value depends on the environment. Note that for temporal
-queries against the Z3 or XZ3 index, the number of ranges will be multiplied by the number of time periods
-(e.g. weeks by default) being queried.
+overwhelm clients, causing slowdowns. The optimal value depends on the environment.
 
 geomesa.query.timeout
 +++++++++++++++++++++
@@ -98,6 +96,8 @@ The class must have a no-arg constructor.
 By default GeoMesa will use cost-based query planning, which should work well for most situations. See
 :ref:`query_planning` for more details on query planning strategies.
 
+.. _id_generator_config:
+
 geomesa.feature.id-generator
 ++++++++++++++++++++++++++++
 
@@ -105,8 +105,9 @@ This property controls the default implementation used for generating IDs for si
 if the ``USE_PROVIDED_FIDS`` or ``PROVIDED_FID`` hint is not set in the feature. It should be set to
 the fully-qualified class name for a class implementing ``org.locationtech.geomesa.utils.uuid.FeatureIdGenerator``.
 
-By default GeoMesa creates a unique feature ID partially based on the default time and geometry for the feature,
-which should work well for most situations.
+GeoMesa includes an implementing class ``org.locationtech.geomesa.utils.uuid.Z3FeatureIdGenerator``, which creates
+a unique feature ID partially based on the default time and geometry for the feature. This class is used by
+default if nothing else is specified, and should work well for most situations.
 
 geomesa.metadata.expiry
 +++++++++++++++++++++++

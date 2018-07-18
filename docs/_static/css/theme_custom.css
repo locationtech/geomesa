@@ -331,6 +331,16 @@ div.admonition.warning, div.admonition.note {
   padding:0 2px !important;
 }
 
+.rst-content blockquote.pull-quote div {
+  background-color: #535353 !important;
+  font-style: italic;
+  padding: 5px 10px;
+}
+
+.rst-content blockquote.pull-quote div p:last-child {
+  margin-bottom: 0px;
+}
+
 .sphinx-tabs .sphinx-menu {
   background-color: #333;
 }

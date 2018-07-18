@@ -20,8 +20,8 @@ import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.reflect.ClassTag
 import scala.collection.JavaConverters._
+import scala.reflect.ClassTag
 
 /**
  * Stats used by the StatsIterator to compute various statistics server-side for a given query.
@@ -29,6 +29,13 @@ import scala.collection.JavaConverters._
 trait Stat {
 
   type S <: Stat
+
+  /**
+    * The simple feature type that this stat operates on
+    *
+    * @return
+    */
+  def sft: SimpleFeatureType
 
   /**
    * Compute statistics based upon the given simple feature.
@@ -146,21 +153,21 @@ object Stat {
       new JsonPrimitive(GeoToolsDateFormat.format(d.toInstant))
   }
   private val DoubleSerializer = new JsonSerializer[jDouble]() {
-    def serialize(d: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = d match {
+    def serialize(double: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = double match {
       /* NaN check, use null to mirror existing behavior for missing/invalid values */
       case d if jDouble.isNaN(d) => JsonNull.INSTANCE
       case d if d == jDouble.NEGATIVE_INFINITY => new JsonPrimitive("Infinity")
       case d if d == jDouble.POSITIVE_INFINITY => new JsonPrimitive("+Infinity")
-      case _ => new JsonPrimitive(d)
+      case _ => new JsonPrimitive(double)
     }
   }
   private val FloatSerializer = new JsonSerializer[jFloat]() {
-    def serialize(f: jFloat, t: Type, jsc: JsonSerializationContext): JsonElement = f match {
+    def serialize(float: jFloat, t: Type, jsc: JsonSerializationContext): JsonElement = float match {
       /* NaN check, use null to mirror existing behavior for missing/invalid values */
       case f if jFloat.isNaN(f) => JsonNull.INSTANCE
       case f if f == jFloat.NEGATIVE_INFINITY => new JsonPrimitive("Infinity")
       case f if f == jFloat.POSITIVE_INFINITY => new JsonPrimitive("+Infinity")
-      case _ => new JsonPrimitive(f)
+      case _ => new JsonPrimitive(float)
     }
   }
 

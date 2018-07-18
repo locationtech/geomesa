@@ -25,13 +25,12 @@ import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 trait HBaseIndexAdapter extends HBaseFeatureIndexType
-    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig] with ClientSideFiltering[Result] {
-
-  import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
+    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig] with ClientSideFiltering[Result] {
 
   override def rowAndValue(result: Result): RowAndValue = {
     val cell = result.rawCells()(0)
@@ -40,22 +39,24 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
   }
 
   override protected def createInsert(row: Array[Byte], feature: HBaseFeature): Mutation = {
-    val put = new Put(row).addImmutable(feature.fullValue.cf, feature.fullValue.cq, feature.fullValue.value)
-    feature.fullValue.vis.foreach(put.setCellVisibility)
+    val put = new Put(row)
+    feature.values.foreach(v => put.addImmutable(v.cf, v.cq, v.value))
+    feature.visibility.foreach(put.setCellVisibility)
     put
   }
 
   override protected def createDelete(row: Array[Byte], feature: HBaseFeature): Mutation = {
-    val del = new Delete(row).addFamily(feature.fullValue.cf)
-    feature.fullValue.vis.foreach(del.setCellVisibility)
+    val del = new Delete(row)
+    feature.values.foreach(v => del.addFamily(v.cf))
+    feature.visibility.foreach(del.setCellVisibility)
     del
   }
 
-  override protected def createRange(start: Array[Byte], end: Array[Byte]): Query =
-    new Scan(start, end).addColumn(DataColumnFamily, DataColumnQualifier)
+  override protected def createRange(start: Array[Byte], end: Array[Byte]): Scan =
+    new Scan(start, end)
 
-  override protected def createRange(row: Array[Byte]): Query =
-    new Get(row).addColumn(DataColumnFamily, DataColumnQualifier)
+  override protected def createRange(row: Array[Byte]): Scan =
+    new Scan(row, ByteArrays.rowFollowingRow(row)).setSmall(true)
 
   override protected def scanPlan(sft: SimpleFeatureType,
                                   ds: HBaseDataStore,
@@ -63,15 +64,15 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
                                   config: ScanConfig): HBaseQueryPlanType = {
     if (config.ranges.isEmpty) { EmptyPlan(filter) } else {
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
-      val ScanConfig(ranges, hbaseFilters, coprocessor, toFeatures) = config
-      buildPlatformScanPlan(ds, sft, filter, ranges, table, hbaseFilters, coprocessor, toFeatures)
+      val ScanConfig(ranges, colFamily, hbaseFilters, coprocessor, toFeatures) = config
+      buildPlatformScanPlan(ds, sft, filter, ranges, colFamily, table, hbaseFilters, coprocessor, toFeatures)
     }
   }
 
   override protected def scanConfig(sft: SimpleFeatureType,
                                     ds: HBaseDataStore,
                                     filter: HBaseFilterStrategyType,
-                                    ranges: Seq[Query],
+                                    ranges: Seq[Scan],
                                     ecql: Option[Filter],
                                     hints: Hints): ScanConfig = {
 
@@ -79,28 +80,32 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
 
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
+    val (colFamily, schema) = transform match {
+      case None => (HBaseColumnGroups.default, sft)
+      case Some((tdefs, _)) => HBaseColumnGroups.group(sft, tdefs, ecql)
+    }
+
     if (!ds.config.remoteFilter) {
       // everything is done client side
-      ScanConfig(ranges, Seq.empty, None, resultsToFeatures(sft, ecql, transform))
+      ScanConfig(ranges, colFamily, Seq.empty, None, resultsToFeatures(schema, ecql, transform))
     } else {
-
-      val (remoteTdefArg, returnSchema) = transform.getOrElse(("", sft))
+      val (tdefs, returnSchema) = transform.getOrElse(("", schema))
 
       // TODO not actually used for coprocessors
-      val toFeatures = resultsToFeatures(sft, returnSchema)
+      val toFeatures = resultsToFeatures(schema, returnSchema)
 
       val coprocessorConfig = if (hints.isDensityQuery) {
-        val options = HBaseDensityAggregator.configure(sft, this, ecql, hints)
+        val options = HBaseDensityAggregator.configure(schema, this, ecql, hints)
         Some(CoprocessorConfig(options, HBaseDensityAggregator.bytesToFeatures))
       } else if (hints.isArrowQuery) {
-        val (options, reduce) = HBaseArrowAggregator.configure(sft, this, ds.stats, filter.filter, ecql, hints)
+        val (options, reduce) = HBaseArrowAggregator.configure(schema, this, ds.stats, filter.filter, ecql, hints)
         Some(CoprocessorConfig(options, HBaseArrowAggregator.bytesToFeatures, reduce))
       } else if (hints.isStatsQuery) {
-        val options = HBaseStatsAggregator.configure(sft, filter.index, ecql, hints)
+        val options = HBaseStatsAggregator.configure(schema, filter.index, ecql, hints)
         val reduce = StatsScan.reduceFeatures(returnSchema, hints)(_)
         Some(CoprocessorConfig(options, HBaseStatsAggregator.bytesToFeatures, reduce))
       } else if (hints.isBinQuery) {
-        val options = HBaseBinAggregator.configure(sft, filter.index, ecql, hints)
+        val options = HBaseBinAggregator.configure(schema, filter.index, ecql, hints)
         Some(CoprocessorConfig(options, HBaseBinAggregator.bytesToFeatures))
       } else {
         None
@@ -110,13 +115,12 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
       val filters = if (coprocessorConfig.isDefined || (ecql.isEmpty && transform.isEmpty)) {
         Seq.empty
       } else {
-        val remoteCQLFilter: Filter = ecql.getOrElse(Filter.INCLUDE)
         val encodedSft = SimpleFeatureTypes.encodeType(returnSchema)
-        val filter = new JSimpleFeatureFilter(sft, remoteCQLFilter, remoteTdefArg, encodedSft)
+        val filter = new JSimpleFeatureFilter(schema, ecql.getOrElse(Filter.INCLUDE), tdefs, encodedSft)
         Seq((JSimpleFeatureFilter.Priority, filter))
       }
 
-      ScanConfig(ranges, filters, coprocessorConfig, toFeatures)
+      ScanConfig(ranges, colFamily, filters, coprocessorConfig, toFeatures)
     }
   }
 
@@ -125,7 +129,8 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
   protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                       sft: SimpleFeatureType,
                                       filter: HBaseFilterStrategyType,
-                                      ranges: Seq[Query],
+                                      ranges: Seq[Scan],
+                                      colFamily: Array[Byte],
                                       table: TableName,
                                       hbaseFilters: Seq[(Int, HFilter)],
                                       coprocessor: Option[CoprocessorConfig],
@@ -159,7 +164,8 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
 }
 
 object HBaseIndexAdapter {
-  case class ScanConfig(ranges: Seq[Query],
+  case class ScanConfig(ranges: Seq[Scan],
+                        colFamily: Array[Byte],
                         filters: Seq[(Int, HFilter)],
                         coprocessor: Option[CoprocessorConfig],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])

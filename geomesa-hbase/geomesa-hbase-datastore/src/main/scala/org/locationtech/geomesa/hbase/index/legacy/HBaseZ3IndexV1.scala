@@ -17,6 +17,6 @@ import org.locationtech.geomesa.index.index.legacy.Z3LegacyIndex
 case object HBaseZ3IndexV1 extends HBaseLikeZ3IndexV1 with HBasePlatform
 
 trait HBaseLikeZ3IndexV1 extends HBaseFeatureIndex with HBaseZ3PushDown
-    with Z3LegacyIndex[HBaseDataStore, HBaseFeature, Mutation, Query, ScanConfig]  {
+    with Z3LegacyIndex[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig]  {
   override val version: Int = 1
 }

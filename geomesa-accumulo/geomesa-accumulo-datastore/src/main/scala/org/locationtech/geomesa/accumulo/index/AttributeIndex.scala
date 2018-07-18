@@ -244,7 +244,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val dedupe = hasDuplicates(sft, filter.primary)
-    val cf = AccumuloFeatureIndex.IndexColumnFamily
+    val cf = AccumuloColumnGroups.IndexColumnFamily
 
     val indexSft = IndexValueEncoder.getIndexSft(sft)
     val transform = hints.getTransformSchema
@@ -380,7 +380,6 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
                         hints: Hints,
                         hasDupes: Boolean,
                         attributePlan: ScanConfigFn): JoinScanConfig = {
-    import AccumuloFeatureIndex.{AttributeColumnFamily, FullColumnFamily}
     import org.locationtech.geomesa.filter.ff
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -402,32 +401,40 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
         throw new RuntimeException("Record index does not exist for join query")
       }
     }
+
+    val isAttributeLevelVis = sft.getVisibilityLevel == VisibilityLevel.Attribute
+
+    val (recordColFamily, recordSchema) = hints.getTransformDefinition match {
+      case _  if isAttributeLevelVis => (AccumuloColumnGroups.AttributeColumnFamily, sft)
+      case Some(tdefs)               =>  AccumuloColumnGroups.group(sft, tdefs, ecql)
+      case None                      => (AccumuloColumnGroups.default, sft)
+    }
+
     val (recordIter, reduce, kvsToFeatures) = if (hints.isArrowQuery) {
-      val (iter, reduce) = ArrowIterator.configure(sft, recordIndex, ds.stats, filter.filter, ecqlFilter, hints, deduplicate = false)
+      val (iter, reduce) = ArrowIterator.configure(recordSchema, recordIndex, ds.stats, filter.filter, ecqlFilter, hints, deduplicate = false)
       (Seq(iter), Some(reduce), ArrowIterator.kvsToFeatures())
     } else if (hints.isStatsQuery) {
-      val iter = KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false)
-      val reduce = StatsScan.reduceFeatures(sft, hints)(_)
+      val iter = KryoLazyStatsIterator.configure(recordSchema, recordIndex, ecqlFilter, hints, deduplicate = false)
+      val reduce = StatsScan.reduceFeatures(recordSchema, hints)(_)
       (Seq(iter), Some(reduce), KryoLazyStatsIterator.kvsToFeatures())
     } else if (hints.isDensityQuery) {
-      val iter = KryoLazyDensityIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false)
+      val iter = KryoLazyDensityIterator.configure(recordSchema, recordIndex, ecqlFilter, hints, deduplicate = false)
       (Seq(iter), None, KryoLazyDensityIterator.kvsToFeatures())
     } else if (hints.isBinQuery) {
       // aggregating iterator wouldn't be very effective since each range is a single row
-      val iter = KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
-      val kvsToFeatures = BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO)
+      val iter = KryoLazyFilterTransformIterator.configure(recordSchema, recordIndex, ecqlFilter, hints).toSeq
+      val kvsToFeatures = BinAggregatingIterator.nonAggregatedKvsToFeatures(recordSchema, recordIndex, hints, SerializationType.KRYO)
       (iter, None, kvsToFeatures)
     } else {
-      val iter = KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
-      (iter, None, recordIndex.entriesToFeatures(sft, hints.getReturnSft))
+      val iter = KryoLazyFilterTransformIterator.configure(recordSchema, recordIndex, ecqlFilter, hints).toSeq
+      (iter, None, recordIndex.entriesToFeatures(recordSchema, hints.getReturnSft))
     }
-    val (visibilityIter, recordCf) = sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature   => (Seq.empty, FullColumnFamily)
-      case VisibilityLevel.Attribute => (Seq(KryoVisibilityRowEncoder.configure(sft)), AttributeColumnFamily)
-    }
-    val recordIterators = visibilityIter ++ recordIter
 
-    new JoinScanConfig(recordIndex, recordIterators, recordCf, attributeScan.ranges, attributeScan.columnFamily,
+    val recordIterators = if (!isAttributeLevelVis) { recordIter } else {
+      Seq(KryoVisibilityRowEncoder.configure(recordSchema)) ++ recordIter
+    }
+
+    new JoinScanConfig(recordIndex, recordIterators, recordColFamily, attributeScan.ranges, attributeScan.columnFamily,
       attributeScan.iterators, kvsToFeatures, reduce, hasDupes)
   }
 

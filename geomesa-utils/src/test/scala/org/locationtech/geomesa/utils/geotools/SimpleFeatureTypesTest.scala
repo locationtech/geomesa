@@ -312,6 +312,21 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getDescriptor("name").getIndexCoverage() mustEqual(IndexCoverage.JOIN)
     }
 
+    "allow attribute options with quoted commas" >> {
+      val spec = s"name:String:foo='bar,baz',dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      sft.getDescriptor("name").getUserData.get("foo") mustEqual "bar,baz"
+    }
+
+    "round trip attribute options with quoted commas" >> {
+      val spec = s"name:String:foo='bar,baz',dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      sft.getDescriptor("name").getUserData.get("foo") mustEqual "bar,baz"
+      val encoded = SimpleFeatureTypes.encodeType(sft)
+      val recovered = SimpleFeatureTypes.createType("test", encoded)
+      recovered.getDescriptor("name").getUserData.get("foo") mustEqual "bar,baz"
+    }
+
     "encode date attribute types" >> {
       val sft: SimpleFeatureType = {
         val builder = new SimpleFeatureTypeBuilder()

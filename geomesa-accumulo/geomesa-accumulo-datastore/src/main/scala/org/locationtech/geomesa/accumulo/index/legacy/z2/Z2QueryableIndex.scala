@@ -42,7 +42,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
                             hints: Hints,
                             explain: Explainer): AccumuloQueryPlan = {
 
-    import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
+    import AccumuloColumnGroups.BinColumnFamily
     import org.locationtech.geomesa.filter.FilterHelper._
     import org.locationtech.geomesa.filter._
     import org.locationtech.geomesa.index.conf.QueryHints._
@@ -88,26 +88,26 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
           (Seq(BinAggregatingIterator.configurePrecomputed(sft, this, ecql, hints, sft.nonPoints)), BinColumnFamily)
         } else {
           val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, sft.nonPoints)
-          (Seq(iter), FullColumnFamily)
+          (Seq(iter), AccumuloColumnGroups.default)
         }
       (iters, BinAggregatingIterator.kvsToFeatures(), None, cf, false)
     } else if (hints.isDensityQuery) {
       val iter = Z2DensityIterator.configure(sft, this, ecql, hints)
-      (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, FullColumnFamily, false)
+      (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, AccumuloColumnGroups.default, false)
     } else if (hints.isArrowQuery) {
       val (iter, reduce) = ArrowIterator.configure(sft, this, ds.stats, filter.filter, ecql, hints, sft.nonPoints)
-      (Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce), FullColumnFamily, false)
+      (Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce), AccumuloColumnGroups.default, false)
     } else if (hints.isStatsQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       val reduce = Some(StatsScan.reduceFeatures(sft, hints)(_))
-      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(), reduce, FullColumnFamily, false)
+      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(), reduce, AccumuloColumnGroups.default, false)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       val reduce = Some(KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(hints)(_))
-      (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), reduce, FullColumnFamily, false)
+      (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), reduce, AccumuloColumnGroups.default, false)
     } else {
       val iters = KryoLazyFilterTransformIterator.configure(sft, this, ecql, hints).toSeq
-      (iters, entriesToFeatures(sft, hints.getReturnSft), None, FullColumnFamily, sft.nonPoints)
+      (iters, entriesToFeatures(sft, hints.getReturnSft), None, AccumuloColumnGroups.default, sft.nonPoints)
     }
 
     val z2table = getTableName(sft.getTypeName, ds)
@@ -160,7 +160,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
       case VisibilityLevel.Feature   => Seq.empty
       case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft))
     }
-    val cf = if (perAttributeIter.isEmpty) colFamily else AccumuloFeatureIndex.AttributeColumnFamily
+    val cf = if (perAttributeIter.isEmpty) { colFamily } else { AccumuloColumnGroups.AttributeColumnFamily }
 
     val iters = perAttributeIter ++ iterators ++ z2Iter
     BatchScanPlan(filter, z2table, ranges, iters, Seq(cf), kvsToFeatures, reduce, numThreads, hasDupes)

@@ -141,8 +141,11 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
             writeMetadata(sft)
 
             // reload the sft so that we have any default metadata,
-            // then copy over any additional keys that were in the original sft
-            val reloadedSft = getSchema(sft.getTypeName)
+            // then copy over any additional keys that were in the original sft.
+            // avoid calling getSchema directly, as that may trigger a remote version
+            // check for indices that haven't been created yet
+            val attributes = metadata.readRequired(sft.getTypeName, ATTRIBUTES_KEY)
+            val reloadedSft = SimpleFeatureTypes.createType(sft.getTypeName, attributes)
             (sft.getUserData.keySet -- reloadedSft.getUserData.keySet)
               .foreach(k => reloadedSft.getUserData.put(k, sft.getUserData.get(k)))
 

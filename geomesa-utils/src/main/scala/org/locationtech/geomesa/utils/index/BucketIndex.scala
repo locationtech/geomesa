@@ -110,7 +110,7 @@ class BucketIndex[T](xBuckets: Int = 360,
 
     private var i = mini
     private var j = minj
-    private var iter = buckets(i)(j).values.iterator() // note: cached values view
+    private var iter = buckets(i)(j).values.iterator() // note: `.values` is a cached view
 
     @tailrec
     override final def hasNext: Boolean = iter.hasNext || {
@@ -121,7 +121,7 @@ class BucketIndex[T](xBuckets: Int = 360,
           j = minj
           i += 1
         }
-        iter = buckets(i)(j).values.iterator() // note: cached values view
+        iter = buckets(i)(j).values.iterator() // note: `.values` is a cached view
         hasNext
       }
     }

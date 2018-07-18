@@ -21,12 +21,10 @@ case class SemanticVersion(major: Int,
 
   // see https://semver.org/#spec-item-11
   override def compare(that: SemanticVersion): Int = {
-    if (this.major > that.major)      { 1 } else if (this.major < that.major) { -1 }
-    else if (this.minor > that.minor) { 1 } else if (this.minor < that.minor) { -1 }
-    else if (this.patch > that.patch) { 1 } else if (this.patch < that.patch) { -1 }
-    else {
-      comparePreReleases(this.preRelease, that.preRelease)
-    }
+    if (this.major > that.major) { 1 } else if (this.major < that.major) { -1 } else
+    if (this.minor > that.minor) { 1 } else if (this.minor < that.minor) { -1 } else
+    if (this.patch > that.patch) { 1 } else if (this.patch < that.patch) { -1 } else
+    { comparePreReleases(this.preRelease, that.preRelease) }
     // note: 'build' is not used for comparison
   }
 
@@ -60,6 +58,24 @@ object SemanticVersion {
         } else {
           throw e
         }
+    }
+  }
+
+  /**
+    * Comparison based only on the major version number
+    */
+  object MajorOrdering extends Ordering[SemanticVersion] {
+    override def compare(x: SemanticVersion, y: SemanticVersion): Int = Integer.compare(x.major, y.major)
+  }
+
+  /**
+    * Comparison based only on the major and minor version numbers
+    */
+  object MinorOrdering extends Ordering[SemanticVersion] {
+    override def compare(x: SemanticVersion, y: SemanticVersion): Int = {
+      if (x.major > y.major) { 1 } else if (x.major < y.major) { -1 } else
+      if (x.minor > y.minor) { 1 } else if (x.minor < y.minor) { -1 } else
+      { 0 }
     }
   }
 
