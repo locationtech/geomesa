@@ -127,16 +127,19 @@ object TypeInference {
       }
 
       if (lat == null || lon == null) {
-        // as a fallback, check for 2 consecutive floats or doubles - assume longitude first
+        // as a fallback, check for 2 consecutive numbers that could be valid lat/lon pairs
+        // if ambiguous, assume longitude first
         // note that this is pretty brittle, but hopefully better than nothing
         var i = 1
         while (i < types.length) {
           val left = types(i - 1)
           val right = types(i)
-          if ((left.typed == FLOAT || left.typed == DOUBLE) && left.typed == right.typed) {
-            lon = left.name
-            lat = right.name
-            i = types.length // break out of the loop
+          // note that valid latitudes are also valid longitudes
+          (left.latlon, right.latlon) match {
+            case (Lat, Lon) => lon = right.name; lat = left.name; i = types.length // break out of the loop
+            case (Lon, Lat) => lon = left.name; lat = right.name; i = types.length // break out of the loop
+            case (Lat, Lat) => lon = left.name; lat = right.name; i = types.length // break out of the loop
+            case _ => // no-op
           }
           i += 1
         }
@@ -247,15 +250,26 @@ object TypeInference {
     } else if (geometries.contains(left.typed) && geometries.contains(right.typed)) {
       Some(InferredType("", GEOMETRY, FunctionTransform("geometry(", ")")))
     } else {
+      lazy val latlon = merge(left.latlon, right.latlon)
       left.typed match {
-        case INT    if Seq(LONG, FLOAT, DOUBLE).contains(right.typed) => Some(right)
-        case LONG   if right.typed == INT                             => Some(left)
-        case LONG   if Seq(FLOAT, DOUBLE).contains(right.typed)       => Some(right)
-        case FLOAT  if Seq(INT, LONG).contains(right.typed)           => Some(left)
-        case FLOAT  if right.typed == DOUBLE                          => Some(right)
-        case DOUBLE if Seq(INT, LONG, FLOAT).contains(right.typed)    => Some(left)
+        case INT    if Seq(LONG, FLOAT, DOUBLE).contains(right.typed) => Some(right.copy(latlon = latlon))
+        case LONG   if right.typed == INT                             => Some(left.copy(latlon = latlon))
+        case LONG   if Seq(FLOAT, DOUBLE).contains(right.typed)       => Some(right.copy(latlon = latlon))
+        case FLOAT  if Seq(INT, LONG).contains(right.typed)           => Some(left.copy(latlon = latlon))
+        case FLOAT  if right.typed == DOUBLE                          => Some(right.copy(latlon = latlon))
+        case DOUBLE if Seq(INT, LONG, FLOAT).contains(right.typed)    => Some(left.copy(latlon = latlon))
         case _ => None
       }
+    }
+  }
+
+  private def merge(left: LatLon, right: LatLon): LatLon = {
+    if (left == NotLatLon || right == NotLatLon) {
+      NotLatLon
+    } else if (left == Lon || right == Lon) {
+      Lon
+    } else { // implies both equal Lat
+      Lat
     }
   }
 
@@ -294,8 +308,9 @@ object TypeInference {
     * @param name name of the field
     * @param typed type of the field
     * @param transform converter transform
+    * @param latlon possibility that this column could be a latitude or longitude
     */
-  case class InferredType(name: String, typed: ObjectType, transform: InferredTransform) {
+  case class InferredType(name: String, typed: ObjectType, transform: InferredTransform, latlon: LatLon = NotLatLon) {
     def binding: String = TypeInference.binding(typed)
   }
 
@@ -339,6 +354,39 @@ object TypeInference {
     def apply(i: Int): String = s"$name${fields.mkString("($", ",$", ")")}"
   }
 
+  /**
+    * Indicator that the field may be a latitude or longitude
+    */
+  sealed trait LatLon
+
+  // note that latitudes are also valid longitudes
+  case object Lat extends LatLon
+  case object Lon extends LatLon
+  case object NotLatLon extends LatLon
+
+  object LatLon {
+
+    def apply(value: Int): LatLon = {
+      val pos = math.abs(value)
+      if (pos <= 90) { Lat } else if (pos <= 180) { Lon } else { NotLatLon }
+    }
+
+    def apply(value: Long): LatLon = {
+      val pos = math.abs(value)
+      if (pos <= 90) { Lat } else if (pos <= 180) { Lon } else { NotLatLon }
+    }
+
+    def apply(value: Float): LatLon = {
+      val pos = math.abs(value)
+      if (pos <= 90f) { Lat } else if (pos <= 180f) { Lon } else { NotLatLon }
+    }
+
+    def apply(value: Double): LatLon = {
+      val pos = math.abs(value)
+      if (pos <= 90d) { Lat } else if (pos <= 180d) { Lon } else { NotLatLon }
+    }
+  }
+
   object InferredType {
 
     private val dateParsers = TransformerFunction.functions.values.collect { case f: StandardDateParser => f }.toSeq
@@ -352,10 +400,14 @@ object TypeInference {
     def infer(value: Any): InferredType = {
       value match {
         case null | ""                => InferredType("", null, IdentityTransform)
-        case _: Int | _: Integer      => InferredType("", INT, CastToInt)
-        case _: Long | _: jLong       => InferredType("", LONG, CastToLong)
-        case _: Float | _: jFloat     => InferredType("", FLOAT, CastToFloat)
-        case _: Double | _: jDouble   => InferredType("", DOUBLE, CastToDouble)
+        case v: Int                   => InferredType("", INT, CastToInt, LatLon(v))
+        case v: Integer               => InferredType("", INT, CastToInt, LatLon(v))
+        case v: Long                  => InferredType("", LONG, CastToLong, LatLon(v))
+        case v: jLong                 => InferredType("", LONG, CastToLong, LatLon(v))
+        case v: Float                 => InferredType("", FLOAT, CastToFloat, LatLon(v))
+        case v: jFloat                => InferredType("", FLOAT, CastToFloat, LatLon(v))
+        case v: Double                => InferredType("", DOUBLE, CastToDouble, LatLon(v))
+        case v: jDouble               => InferredType("", DOUBLE, CastToDouble, LatLon(v))
         case _: Boolean | _: jBoolean => InferredType("", BOOLEAN, CastToBoolean)
         case _: Date                  => InferredType("", DATE, IdentityTransform)
         case _: Array[Byte]           => InferredType("", BYTES, IdentityTransform)
@@ -377,17 +429,16 @@ object TypeInference {
               .orElse(tryUuidParsing(trimmed))
               .getOrElse(InferredType("", STRING, CastToString))
 
-        case _ =>
-          InferredType("", STRING, CastToString)
+        case _ => InferredType("", STRING, CastToString)
       }
     }
 
     private def tryNumberParsing(s: String): Option[InferredType] = {
       Try(BigDecimal(s)).toOption.collect {
-        case n if s.indexOf('.') == -1 && n.isValidInt  => InferredType("", INT, CastToInt)
-        case n if s.indexOf('.') == -1 && n.isValidLong => InferredType("", LONG, CastToLong)
-        case n if n.isDecimalFloat                      => InferredType("", FLOAT, CastToFloat)
-        case n if n.isDecimalDouble                     => InferredType("", DOUBLE, CastToDouble)
+        case n if s.indexOf('.') == -1 && n.isValidInt  => InferredType("", INT, CastToInt, LatLon(n.toInt))
+        case n if s.indexOf('.') == -1 && n.isValidLong => InferredType("", LONG, CastToLong, LatLon(n.toLong))
+        case n if n.isDecimalFloat                      => InferredType("", FLOAT, CastToFloat, LatLon(n.toFloat))
+        case n if n.isDecimalDouble                     => InferredType("", DOUBLE, CastToDouble, LatLon(n.toDouble))
       }
     }
 
