@@ -17,9 +17,11 @@ import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer.{NON_NULL_BYTE, NULL_BYTE, VERSION}
 import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.{KryoGeometrySerialization, KryoUserDataSerialization}
-import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.features.serialization.{ObjectType, TwkbSerialization}
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.geometry.GeometryPrecision
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait KryoFeatureSerialization extends SimpleFeatureSerializer {
@@ -100,11 +102,12 @@ object KryoFeatureSerialization {
     import scala.collection.JavaConversions._
     writers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
       val bindings = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
-      matchWriter(bindings)
+      matchWriter(bindings, ad)
     }.toArray)
   }
 
-  private [geomesa] def matchWriter(bindings: Seq[ObjectType]): (Output, AnyRef) => Unit = {
+  private [geomesa] def matchWriter(bindings: Seq[ObjectType], descriptor: AttributeDescriptor): (Output, AnyRef) => Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
     bindings.head match {
       case ObjectType.STRING =>
         (o: Output, v: AnyRef) => o.writeString(v.asInstanceOf[String]) // write string supports nulls
@@ -135,11 +138,16 @@ object KryoFeatureSerialization {
         writeNullable(w)
       case ObjectType.GEOMETRY =>
         // null checks are handled by geometry serializer
-        (o: Output, v: AnyRef) => KryoGeometrySerialization.serialize(o, v.asInstanceOf[Geometry])
+        descriptor.getPrecision match {
+          case GeometryPrecision.FullPrecision =>
+            (o: Output, v: AnyRef) => KryoGeometrySerialization.serializeWkb(o, v.asInstanceOf[Geometry])
+          case precision: GeometryPrecision.TwkbPrecision =>
+            (o: Output, v: AnyRef) => KryoGeometrySerialization.serialize(o, v.asInstanceOf[Geometry], precision)
+        }
       case ObjectType.JSON =>
         (o: Output, v: AnyRef) => KryoJsonSerialization.serialize(o, v.asInstanceOf[String])
       case ObjectType.LIST =>
-        val valueWriter = matchWriter(bindings.drop(1))
+        val valueWriter = matchWriter(bindings.drop(1), descriptor)
         (o: Output, v: AnyRef) => {
           val list = v.asInstanceOf[java.util.List[AnyRef]]
           if (list == null) {
@@ -153,8 +161,8 @@ object KryoFeatureSerialization {
           }
         }
       case ObjectType.MAP =>
-        val keyWriter = matchWriter(bindings.slice(1, 2))
-        val valueWriter = matchWriter(bindings.drop(2))
+        val keyWriter = matchWriter(bindings.slice(1, 2), descriptor)
+        val valueWriter = matchWriter(bindings.drop(2), descriptor)
         (o: Output, v: AnyRef) => {
           val map = v.asInstanceOf[java.util.Map[AnyRef, AnyRef]]
           if (map == null) {
