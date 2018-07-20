@@ -102,6 +102,7 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
+                                    <skip>${skipTests}</skip>
                                     <workingDirectory>${project.basedir}/src/test/python</workingDirectory>
                                     <arguments>
                                         <argument>-m</argument>
