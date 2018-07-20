@@ -66,7 +66,7 @@ object ConfigSftParsing {
   val ConfigPathProperty = SystemProperty("org.locationtech.geomesa.sft.config.path", "geomesa.sfts")
 
   // keep as function so its mutable
-  def path = ConfigPathProperty.get
+  def path: String = ConfigPathProperty.get
 }
 
 class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
