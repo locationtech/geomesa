@@ -60,14 +60,14 @@ class GeometryCollectionUDT(ShapelyGeometryUDT):
 
 def _serialize_to_wkb(data):
     if isinstance(data, BaseGeometry):
-        return bytearray(data.wkb)
+        return bytearray(data.wkb)  # bytearray(...) needed for Python 2 compat.
     return None
 
 
 def _deserialize_from_wkb(data):
     if data is None:
         return None
-    return wkb.loads(''.join(map(chr, data)))
+    return wkb.loads(bytes(data))  # bytes(...) needed for Python 2 compat.
 
 
 _deserialize_from_wkb.__safe_for_unpickling__ = True
@@ -82,5 +82,3 @@ MultiPolygon.__UDT__ = MultiPolygonUDT()
 BaseGeometry.__UDT__ = GeometryUDT()
 GeometryCollection.__UDT__ = GeometryCollectionUDT()
 
-# make Geometry dumps a little cleaner
-BaseGeometry.__repr__ = BaseGeometry.__str__
