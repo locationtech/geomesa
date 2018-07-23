@@ -64,7 +64,7 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
     val converter = getConverter(params, sft)
     val filter = Option(params.cqlFilter)
     filter.foreach(f => Command.user.debug(s"Applying CQL filter $f"))
-    val ec = converter.createEvaluationContext(Map("inputFilePath" -> ""))
+    val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(""))
     val maxFeatures = Option(params.maxFeatures).map(_.intValue())
 
     def features() = ConvertCommand.convertFeatures(files, converter, ec, filter, maxFeatures)
@@ -137,8 +137,11 @@ object ConvertCommand extends LazyLogging {
                       ec: EvaluationContext,
                       filter: Option[Filter],
                       maxFeatures: Option[Int]): CloseableIterator[SimpleFeature] = {
+
+    import EvaluationContext.RichEvaluationContext
+
     val all = CloseableIterator(files).flatMap { file =>
-      ec.set(ec.indexOf("inputFilePath"), file.path)
+      ec.setInputFilePath(file.path)
       val is = PathUtils.handleCompression(file.open, file.path)
       converter.process(is, ec)
     }

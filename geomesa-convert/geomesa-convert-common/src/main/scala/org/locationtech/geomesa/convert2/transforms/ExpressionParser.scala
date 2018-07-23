@@ -60,7 +60,7 @@ private [transforms] class ExpressionParser extends BasicParser {
   }
 
   private def column: Rule1[Expression] = rule("$col") {
-    "$" ~ int ~~> { i => if (i == 0) { WholeRecord } else { Column(i) } }
+    "$" ~ int ~~> { i => Column(i) }
   }
 
   private def field: Rule1[Expression] = rule("$field") {

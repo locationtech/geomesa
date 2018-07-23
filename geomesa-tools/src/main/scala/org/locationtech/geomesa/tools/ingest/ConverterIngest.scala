@@ -81,8 +81,10 @@ class ConverterIngest(sft: SimpleFeatureType,
   }
 }
 
-class LocalIngestConverterImpl(sft: SimpleFeatureType, path: String, converters: ObjectPool[SimpleFeatureConverter], failures: AtomicLong)
-    extends LocalIngestConverter {
+class LocalIngestConverterImpl(sft: SimpleFeatureType,
+                               path: String,
+                               converters: ObjectPool[SimpleFeatureConverter],
+                               failures: AtomicLong) extends LocalIngestConverter {
 
   class LocalIngestCounter extends DefaultCounter {
     // keep track of failure at a global level, keep line counts and success local
@@ -92,7 +94,7 @@ class LocalIngestConverterImpl(sft: SimpleFeatureType, path: String, converters:
 
   protected val converter: SimpleFeatureConverter = converters.borrowObject()
   protected val ec: EvaluationContext =
-    converter.createEvaluationContext(Map("inputFilePath" -> path), counter = new LocalIngestCounter)
+    converter.createEvaluationContext(EvaluationContext.inputFileParam(path), counter = new LocalIngestCounter)
 
   override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = (sft, converter.process(is, ec))
   override def close(): Unit = converters.returnObject(converter)

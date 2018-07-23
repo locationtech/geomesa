@@ -73,7 +73,7 @@ abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: Converte
     val names = requiredFields.map(_.name) ++ globalKeys
     val values = Array.ofDim[Any](names.length)
     // note, globalKeys are maintained even through EvaluationContext.clear()
-    globalKeys.foreachIndex { case (k, i) => values(requiredFields.length + i) = globalParams(k) }
+    globalKeys.foreachIndex { case (k, i) => values(requiredFieldsCount + i) = globalParams(k) }
     val configCaches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
     new EvaluationContextImpl(names, values, counter, configCaches ++ caches)
   }

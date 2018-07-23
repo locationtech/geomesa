@@ -119,12 +119,6 @@ object Expression {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = e.eval(args).toString
   }
 
-  case object WholeRecord extends Expression {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = args(0)
-    override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
-    override def toString: String = "$0"
-  }
-
   case class Column(i: Int) extends Expression {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = args(i)
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty

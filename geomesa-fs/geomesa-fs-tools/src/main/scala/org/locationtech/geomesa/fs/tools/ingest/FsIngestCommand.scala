@@ -24,7 +24,6 @@ import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest._
-import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -41,22 +40,6 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
     () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_FS_HOME"),
     () => ClassPathUtils.getJarsFromClasspath(classOf[FileSystemDataStore])
   )
-
-  override def execute(): Unit = {
-    // validate arguments
-    if (params.config == null) {
-      throw new ParameterException("Converter config argument is required")
-    }
-    if (params.spec == null) {
-      throw new ParameterException("SimpleFeatureType specification argument is required")
-    }
-    if (params.fmt == DataFormats.Shp) {
-      // TODO
-      throw new ParameterException("Shapefile ingest is not currently supported for FileDataStore")
-    }
-
-    super.execute()
-  }
 
   override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
     FsCreateSchemaCommand.setOptions(sft, params)
