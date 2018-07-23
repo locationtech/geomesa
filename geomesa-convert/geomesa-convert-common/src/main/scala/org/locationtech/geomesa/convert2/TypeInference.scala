@@ -24,6 +24,7 @@ import scala.util.Try
 
 object TypeInference {
 
+  import LatLon.{Lat, Lon, NotLatLon}
   import ObjectType._
 
   private val geometries =
@@ -359,12 +360,12 @@ object TypeInference {
     */
   sealed trait LatLon
 
-  // note that latitudes are also valid longitudes
-  case object Lat extends LatLon
-  case object Lon extends LatLon
-  case object NotLatLon extends LatLon
-
   object LatLon {
+
+    // note that latitudes are also valid longitudes
+    case object Lat extends LatLon
+    case object Lon extends LatLon
+    case object NotLatLon extends LatLon
 
     def apply(value: Int): LatLon = {
       val pos = math.abs(value)
