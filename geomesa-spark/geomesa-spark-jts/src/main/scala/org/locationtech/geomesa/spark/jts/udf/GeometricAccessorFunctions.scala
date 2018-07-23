@@ -59,9 +59,9 @@ object GeometricAccessorFunctions {
     geom match {
       case geom: LineString =>
         if (n < 0) {
-          geom.getPointN(n + geom.getLength.toInt)
+          geom.getPointN(n + geom.getNumPoints)
         } else {
-          geom.getPointN(n-1)
+          geom.getPointN(n - 1)
         }
       case _ => null
     }
