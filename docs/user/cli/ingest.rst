@@ -52,7 +52,8 @@ The ``--converter`` argument may be any of the following:
 If a converter is not specified, GeoMesa will attempt to infer a converter definition based on the input files.
 Currently this supports GeoJSON, self-describing Avro, delimited text (TSV, CSV) or Shapefiles. If GeoMesa is able
 to infer a schema and converter definition, the user can accept them as-is, or alternatively use them as the basis
-for a fully custom converter. When ingesting a large data set, it can be useful to ingest a single file in local
+for a fully custom converter. If desired, the user can persist the inferred converter to file, which allows for
+easy modification and reuse. When ingesting a large data set, it can be useful to ingest a single file in local
 mode, using schema inference to generate the converter. The converter definition can be persisted and tweaked to
 satisfaction, then used for the entire data set with a distributed ingest.
 
