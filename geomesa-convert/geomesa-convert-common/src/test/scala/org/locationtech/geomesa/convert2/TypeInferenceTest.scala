@@ -12,6 +12,7 @@ import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.convert2.TypeInference.{DerivedTransform, LatLon}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -47,12 +48,14 @@ class TypeInferenceTest extends Specification with LazyLogging {
 
   "TypeInference" should {
     "infer simple types" in {
-      val types = TypeInference.infer(Seq(Seq("a", 1, 1L, 1f, 1d, true)))
+      // note: don't put any valid lat/lon pairs next to each other or it will create a geometry type
+      val types = TypeInference.infer(Seq(Seq("a", 1, 200L, 1f, 200d, true)))
       types.map(_.typed) mustEqual Seq(STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN)
     }
     "infer simple types from strings" in {
-      val types = TypeInference.infer(Seq(Seq("a", "1", s"${Int.MaxValue.toLong + 1L}", "1.1", "1.00000001", "true")))
-      types.map(_.typed) mustEqual Seq(STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN)
+      // note: don't put any valid lat/lon pairs next to each other or it will create a geometry type
+      val types = TypeInference.infer(Seq(Seq("a", "1", s"${Int.MaxValue.toLong + 1L}", "1.1", "true", "1.00000001")))
+      types.map(_.typed) mustEqual Seq(STRING, INT, LONG, FLOAT, BOOLEAN, DOUBLE)
     }
     "infer complex types" in {
       val types = TypeInference.infer(Seq(Seq(new Date(), Array[Byte](0), uuid)))
@@ -91,8 +94,40 @@ class TypeInferenceTest extends Specification with LazyLogging {
       }
     }
     "create points from lon/lat pairs" in {
-      TypeInference.infer(Seq(Seq(45f, 55f, "foo"))).map(_.typed) mustEqual Seq(FLOAT, FLOAT, STRING, POINT)
-      TypeInference.infer(Seq(Seq(45d, 55d, "foo"))).map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, STRING, POINT)
+      import LatLon.{Lat, NotLatLon}
+
+      val floats = TypeInference.infer(Seq(Seq(45f, 55f, "foo")))
+      floats.map(_.typed) mustEqual Seq(FLOAT, FLOAT, STRING, POINT)
+      val doubles = TypeInference.infer(Seq(Seq(45d, 55d, "foo")))
+      doubles.map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, STRING, POINT)
+      foreach(Seq(floats, doubles)) { types =>
+        types.map(_.latlon) mustEqual Seq(Lat, Lat, NotLatLon, NotLatLon)
+        types(3).transform mustEqual DerivedTransform("point", types(0).name, types(1).name)
+      }
+    }
+    "create points from lat/lon pairs" in {
+      import LatLon.{Lat, Lon, NotLatLon}
+
+      val floats = TypeInference.infer(Seq(Seq(45f, 120f, "foo")))
+      floats.map(_.typed) mustEqual Seq(FLOAT, FLOAT, STRING, POINT)
+      val doubles = TypeInference.infer(Seq(Seq(45d, 120d, "foo")))
+      doubles.map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, STRING, POINT)
+      foreach(Seq(floats, doubles)) { types =>
+        types.map(_.latlon) mustEqual Seq(Lat, Lon, NotLatLon, NotLatLon)
+        types(3).transform mustEqual DerivedTransform("point", types(1).name, types(0).name)
+      }
+    }
+    "create points from named lat/lon fields" in {
+      import LatLon.{Lat, Lon, NotLatLon}
+
+      val floats = TypeInference.infer(Seq(Seq(45f, 120f, 121f, "foo")), Seq("lat", "bar", "lon", "foo"))
+      floats.map(_.typed) mustEqual Seq(FLOAT, FLOAT, FLOAT, STRING, POINT)
+      val doubles = TypeInference.infer(Seq(Seq(45d, 120d, 121d, "foo")), Seq("lat", "bar", "lon", "foo"))
+      doubles.map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, DOUBLE, STRING, POINT)
+      foreach(Seq(floats, doubles)) { types =>
+        types.map(_.latlon) mustEqual Seq(Lat, Lon, Lon, NotLatLon, NotLatLon)
+        types(4).transform mustEqual DerivedTransform("point", types(2).name, types(0).name)
+      }
     }
     "not create points from unpaired numbers" in {
       TypeInference.infer(Seq(Seq(45f, "foo", 55f))).map(_.typed) mustEqual Seq(FLOAT, STRING, FLOAT)
@@ -101,6 +136,10 @@ class TypeInferenceTest extends Specification with LazyLogging {
     "not create points if another geometry is present" in {
       TypeInference.infer(Seq(Seq(45f, 55f, "POINT (40 50)"))).map(_.typed) mustEqual Seq(FLOAT, FLOAT, POINT)
       TypeInference.infer(Seq(Seq(45d, 55d, "POINT (40 50)"))).map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, POINT)
+    }
+    "not create points if values are not valid lat/lons" in {
+      TypeInference.infer(Seq(Seq(145f, 155f, "foo"))).map(_.typed) mustEqual Seq(FLOAT, FLOAT, STRING)
+      TypeInference.infer(Seq(Seq(145d, 155d, "foo"))).map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, STRING)
     }
     "infer types despite some failures" in {
       TypeInference.infer(Seq.tabulate(11)(i => Seq(i)) :+ Seq("foo")).map(_.typed) mustEqual Seq(INT)
