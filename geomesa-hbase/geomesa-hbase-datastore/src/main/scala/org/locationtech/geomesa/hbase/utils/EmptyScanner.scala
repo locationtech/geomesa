@@ -12,10 +12,13 @@ import java.io.IOException
 import java.util.Collections
 
 import org.apache.hadoop.hbase.client.{Result, ResultScanner}
+import org.apache.hadoop.hbase.client.metrics.ScanMetrics
 
 object EmptyScanner extends ResultScanner {
   override def next(): Result = throw new IOException("Next on an empty iterator")
   override def next(i: Int): Array[Result] = throw new IOException("Next on an empty iterator")
   override def close(): Unit = {}
   override def iterator(): java.util.Iterator[Result] = Collections.emptyIterator()
+  def getScanMetrics(): ScanMetrics = null
+  def renewLease(): Boolean = false
 }

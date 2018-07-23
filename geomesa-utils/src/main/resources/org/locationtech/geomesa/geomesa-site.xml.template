@@ -313,4 +313,18 @@
         <final>false</final>
     </property>
 
+    <property>
+        <name>geomesa.hbase.wal.durability</name>
+        <value>USE_DEFAULT</value>
+        <description>HBase WAL durability setting. Available settings are:
+            ASYNC_WAL: Write the Mutation to the WAL asynchronously
+            FSYNC_WAL: Write the Mutation to the WAL synchronously and force the entries to disk.
+            SKIP_WAL: Do not write the Mutation to the WAL
+            SYNC_WAL: Write the Mutation to the WAL synchronously.
+            USE_DEFAULT: If this is for tables durability, use HBase's global default value (SYNC_WAL).
+            For addtional information see HBase docs. https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Durability.htm
+        </description>
+        <final>false</final>
+    </property>
+
 </configuration>

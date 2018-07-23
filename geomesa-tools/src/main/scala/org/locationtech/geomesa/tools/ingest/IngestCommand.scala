@@ -24,9 +24,11 @@ import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats, Prompt}
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
+import java.util.{List => jList}
 
 import scala.util.Try
 import scala.util.control.NonFatal
+import scala.io.Source
 
 trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with InteractiveCommand with LazyLogging {
 
@@ -41,7 +43,13 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
   override def execute(): Unit = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
-    ensureSameFs()
+    val ingestFiles: Seq[String] = if (params.srcList) {
+      params.files.flatMap(Source.fromFile(_).getLines().toList)
+    } else {
+      params.files
+    }
+
+    ensureSameFs(ingestFiles)
 
     // try to load the sft, first check for an existing schema, then load from the params/environment
     var sft: SimpleFeatureType =
@@ -51,11 +59,11 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
 
     var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
 
-    if (converter == null && params.files.nonEmpty) {
+    if (converter == null && ingestFiles.nonEmpty) {
       // if there is no converter passed in, try to infer the schema from the input files themselves
       Command.user.info("No converter defined - will attempt to detect schema from input files")
-      val file = params.files.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {
-        throw new ParameterException(s"<files> '${params.files.mkString(",")}' did not evaluate to anything" +
+      val file = ingestFiles.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {
+        throw new ParameterException(s"<files> '${ingestFiles.mkString(",")}' did not evaluate to anything" +
             "that could be read")
       }
       val (inferredSft, inferredConverter) = {
@@ -123,19 +131,19 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
       params.mode = RunModes.Local
     }
 
-    createConverterIngest(sft, converter).run()
+    createConverterIngest(sft, converter, ingestFiles).run()
   }
 
-  protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
-    new ConverterIngest(sft, connection, converterConfig, params.files, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads)
+  protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
+    new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode),
+      libjarsFile, libjarsPaths, params.threads, params.maxSplitSize)
   }
 
-  private def ensureSameFs(): Unit = {
-    if (params.files.exists(PathUtils.isRemote)) {
+  private def ensureSameFs(ingestFiles: Seq[String]): Unit = {
+    if (ingestFiles.exists(PathUtils.isRemote)) {
       // If we have a remote file, make sure they are all the same FS
-      val prefix = params.files.head.split("/")(0).toLowerCase
-      if (!params.files.forall(_.toLowerCase.startsWith(prefix))) {
+      val prefix = ingestFiles.head.split("/")(0).toLowerCase
+      if (!ingestFiles.forall(_.toLowerCase.startsWith(prefix))) {
         throw new ParameterException(s"Files must all be on the same file system: ($prefix) or all be local")
       }
     }
@@ -186,4 +194,10 @@ trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam w
     with OptionalConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
+
+  @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes")
+  var maxSplitSize: Integer = -1
+
+  @Parameter(names = Array("--src-list"), description = "Input files are text files with lists of files, one per line, to ingest.")
+  var srcList: Boolean = false
 }
