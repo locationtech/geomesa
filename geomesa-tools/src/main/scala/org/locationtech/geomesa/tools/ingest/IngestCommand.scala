@@ -8,22 +8,25 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.{Console, File}
+import java.io.{File, FileWriter, PrintWriter}
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.config.{Config, ConfigRenderOptions}
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
 import org.geotools.data.DataStore
+import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats, Prompt}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Try
+import scala.util.control.NonFatal
 
-trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with InteractiveCommand {
+trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with InteractiveCommand with LazyLogging {
 
   import scala.collection.JavaConversions._
 
@@ -61,6 +64,9 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
           throw new ParameterException("Could not determine converter from inputs - please specify a converter")
         }
 
+        val renderOptions = ConfigRenderOptions.concise().setFormatted(true)
+        var inferredSftString: Option[String] = None
+
         if (sft == null) {
           val typeName = Option(params.featureName).getOrElse {
             val existing = withDataStore(_.getTypeNames)
@@ -75,12 +81,15 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
             name
           }
           sft = SimpleFeatureTypes.renameSft(inferred._1, typeName)
+          inferredSftString = Some(SimpleFeatureTypes.toConfig(sft, includePrefix = false).root().render(renderOptions))
           Command.user.info(s"Inferred schema: $typeName identified ${SimpleFeatureTypes.encodeType(sft)}")
         }
-        Command.user.info("Inferred converter:\n" +
-            inferred._2.root().render(ConfigRenderOptions.concise().setFormatted(true)))
+        val converterString = inferred._2.root().render(renderOptions)
+        Command.user.info(s"Inferred converter:\n$converterString")
         if (Prompt.confirm("Use inferred converter (y/n)? ")) {
-          Command.user.info("For consistency, please use this converter definition for any future ingest")
+          if (Prompt.confirm("Persist this converter for future use (y/n)? ")) {
+            writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
+          }
           converter = inferred._2
         } else {
           Command.user.info("Please re-run with a valid converter")
@@ -112,6 +121,45 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
         !params.files.forall(_.toLowerCase.startsWith(s"$pre://"))) {
         throw new ParameterException(s"Files must all be on the same file system: ($pre) or all be local")
       }
+    }
+  }
+
+  private def writeInferredConverter(typeName: String, converterString: String, schemaString: Option[String]): Unit = {
+    try {
+      val conf = this.getClass.getClassLoader.getResources("reference.conf").find { u =>
+        "file".equalsIgnoreCase(u.getProtocol) && u.getPath.endsWith("/conf/reference.conf")
+      }
+      conf match {
+        case None => Command.user.error("Could not persist converter: could not find 'conf/reference.conf'")
+        case Some(r) =>
+          val reference = new File(r.toURI)
+          val folder = reference.getParentFile
+          val baseName = typeName.replaceAll("[^A-Za-z0-9_]+", "_")
+          var convert = new File(folder, s"$baseName.conf")
+          var i = 1
+          while (convert.exists()) {
+            convert = new File(folder, s"${baseName}_$i.conf")
+            i += 1
+          }
+          WithClose(new PrintWriter(new FileWriter(convert))) { writer =>
+            writer.println(s"${ConverterConfigLoader.path}.$baseName : $converterString")
+            schemaString.foreach(s => writer.println(s"${ConfigSftParsing.path}.$baseName : $s"))
+          }
+          WithClose(new PrintWriter(new FileWriter(reference, true))) { writer =>
+            writer.println(s"""include "${convert.getName}"""")
+          }
+          val (names, refs) = if (schemaString.isDefined) {
+            ("schema and converter", s"'--spec $baseName' and '--converter $baseName'")
+          } else {
+            ("converter", s"'--converter $baseName'")
+          }
+          Command.user.info(s"Added import in reference.conf and saved inferred $names to ${convert.getAbsolutePath}")
+          Command.user.info(s"In future commands, the $names may be invoked with $refs")
+      }
+    } catch {
+      case NonFatal(e) =>
+        logger.error("Error trying to persist inferred schema", e)
+        Command.user.error(s"Error trying to persist inferred schema: $e")
     }
   }
 }
