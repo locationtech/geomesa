@@ -11,19 +11,20 @@ package org.locationtech.geomesa.fs
 import java.io.{File, IOException}
 import java.nio.file.Files
 import java.time.temporal.ChronoUnit
+import java.util.Collections
 
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.FileUtils
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.filter.Filter
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -34,129 +35,157 @@ class FileSystemDataStoreTest extends Specification {
 
   sequential
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-  val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily.format, ChronoUnit.DAYS, 1, "dtg", false)
-  val sf = ScalaSimpleFeature.create(sft, "1", "test", 100, "2017-06-05T04:03:02.0001Z", "POINT(10 10)")
+  def createFormat(format: String): (String, SimpleFeatureType, Seq[SimpleFeature]) = {
+    val sft = SimpleFeatureTypes.createType(format, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+    PartitionScheme.addToSft(sft, new DateTimeScheme(DateTimeScheme.Formats.Daily.format, ChronoUnit.DAYS, 1, "dtg", false))
 
-  var dir: File = _
+    val features = Seq.tabulate(10) { i =>
+      ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", s"POINT(10 10.$i)")
+    }
+    (format, sft, features)
+  }
+
+  val formats = Seq("orc", "parquet").map(createFormat)
+
+  val dirs = scala.collection.mutable.Map.empty[String, File]
 
   step {
-    dir = Files.createTempDirectory("fsds-test").toFile
+    formats.foreach { case (f, _, _) => dirs.put(f, Files.createTempDirectory(s"fsds-test-$f").toFile) }
   }
 
   "FileSystemDataStore" should {
     "create a DS" >> {
-      val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> dir.getPath,
-        "fs.encoding" -> "parquet",
-        "fs.config" -> "parquet.compression=gzip"))
-      PartitionScheme.addToSft(sft, partitionScheme)
-      ds.createSchema(sft)
+      foreach(formats) { case (format, sft, features) =>
+        val dir = dirs(format)
+        val ds = DataStoreFinder.getDataStore(Map(
+          "fs.path" -> dir.getPath,
+          "fs.encoding" -> format,
+          "fs.config" -> "parquet.compression=gzip"))
 
-      val fw = ds.getFeatureWriterAppend("test", Transaction.AUTO_COMMIT)
-      val s = fw.next()
-      s.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
-      s.setAttributes(sf.getAttributes)
-      fw.write()
-      fw.close()
+        ds.createSchema(sft)
 
-      // metadata
-      new File(dir, "test/metadata.json").exists() must beTrue
+        WithClose(ds.getFeatureWriterAppend(format, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach { feature =>
+            FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
+            writer.write()
+          }
+        }
 
-      val conf = ConfigFactory.parseFile(new File(dir, "test/metadata.json"))
-      conf.hasPath("partitions") must beTrue
-      val p1 = conf.getConfig("partitions").getStringList("2017/06/05")
-      p1.size() mustEqual 1
-      p1.get(0).matches("W[0-9a-f]{32}\\.parquet") must beTrue
+        // metadata
+        new File(dir, s"$format/metadata.json").exists() must beTrue
 
-      // Metadata, schema, and partition file checks
-      new File(dir, "test/2017/06/05").exists() must beTrue
-      new File(dir, "test/2017/06/05").isDirectory must beTrue
-      new File(dir, s"test/2017/06/05/${p1.get(0)}").exists() must beTrue
-      new File(dir, s"test/2017/06/05/${p1.get(0)}").isFile must beTrue
+        val conf = ConfigFactory.parseFile(new File(dir, s"$format/metadata.json"))
+        conf.hasPath("partitions") must beTrue
+        foreach(Seq("05", "06", "07")) { day =>
+          val name = s"2017/06/$day"
+          val partition = conf.getConfig("partitions").getStringList(name)
+          partition.size() mustEqual 1
+          partition.get(0).matches(s"W[0-9a-f]{32}\\.$format") must beTrue
 
-      ds.getTypeNames must have size 1
-      val fs = ds.getFeatureSource("test")
-      fs must not(beNull)
+          // Metadata, schema, and partition file checks
+          new File(dir, s"$format/$name").exists() must beTrue
+          new File(dir, s"$format/$name").isDirectory must beTrue
+          new File(dir, s"$format/$name/${partition.get(0)}").exists() must beTrue
+          new File(dir, s"$format/$name/${partition.get(0)}").isFile must beTrue
+        }
 
-      val features = SelfClosingIterator(fs.getFeatures(new Query("test")).features()).toList
-      features must haveSize(1)
-      features.head mustEqual sf
+        ds.getTypeNames must have size 1
+        val fs = ds.getFeatureSource(format)
+        fs must not(beNull)
+
+        val results = SelfClosingIterator(fs.getFeatures(new Query(format)).features()).toList
+        results must containTheSameElementsAs(features)
+      }
     }
 
     "create a second ds with the same path" >> {
-      // Load a new datastore to read metadata and stuff
-      val ds2 = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> dir.getPath,
-        "fs.encoding" -> "parquet",
-        "fs.config" -> "parquet.compression=gzip")).asInstanceOf[FileSystemDataStore]
-      ds2.getTypeNames.toList must containTheSameElementsAs(Seq("test"))
+      foreach(formats) { case (format, sft, features) =>
+        val dir = dirs(format)
+        // Load a new datastore to read metadata and stuff
+        val ds = DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))
+        ds.getTypeNames.toList must containTheSameElementsAs(Seq(format))
 
-      val features = SelfClosingIterator(ds2.getFeatureSource("test").getFeatures(Filter.INCLUDE).features()).toList
+        val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
+        results must containTheSameElementsAs(features)
+      }
+    }
 
-      features must haveSize(1)
-      features.head mustEqual sf
+    "query with multiple threads" >> {
+      foreach(formats) { case (format, sft, features) =>
+        val dir = dirs(format)
+        // Load a new datastore to read metadata and stuff
+        val ds = DataStoreFinder.getDataStore(Map("fs.path" -> dir.getPath, "fs.read-threads" -> "4"))
+        ds.getTypeNames.toList must containTheSameElementsAs(Seq(format))
+
+        val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
+        results must containTheSameElementsAs(features)
+      }
     }
 
     "call create schema on existing type" >> {
-      val ds2 = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> dir.getPath,
-        "fs.encoding" -> "parquet",
-        "fs.config" -> "parquet.compression=gzip")).asInstanceOf[FileSystemDataStore]
-      val sameSft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val partitionScheme = new DateTimeScheme(DateTimeScheme.Formats.Daily.format, ChronoUnit.DAYS, 1, "dtg", false)
+      foreach(formats) { case (format, sft, features) =>
+        val dir = dirs(format)
+        val ds = DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))
+        val sameSft = SimpleFeatureTypes.createType(format, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+        PartitionScheme.addToSft(sameSft, PartitionScheme.extractFromSft(sft).get)
 
-      PartitionScheme.addToSft(sameSft, partitionScheme)
-
-      ds2.createSchema(sameSft) must not(throwA[Throwable])
+        ds.createSchema(sameSft) must not(throwA[Throwable])
+      }
     }
 
     "reject schemas with reserved words" >> {
-      val sft = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
-      val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> dir.getPath,
-        "fs.encoding" -> "parquet",
-        "fs.config" -> "parquet.compression=gzip"))
-      PartitionScheme.addToSft(sft, partitionScheme)
-      ds.createSchema(sft) must throwAn[IllegalArgumentException]
-      ds.getSchema(sft.getTypeName) must throwAn[IOException] // content data store schema does not exist
+      foreach(formats) { case (format, sft, features) =>
+        val dir = dirs(format)
+        val reserved = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
+        PartitionScheme.addToSft(reserved, PartitionScheme.extractFromSft(sft).get)
+        val ds = DataStoreFinder.getDataStore(Map(
+          "fs.path" -> dir.getPath,
+          "fs.encoding" -> format,
+          "fs.config" -> "parquet.compression=gzip"))
+        ds.createSchema(reserved) must throwAn[IllegalArgumentException]
+        ds.getSchema(reserved.getTypeName) must throwAn[IOException] // content data store schema does not exist
+      }
     }
 
     "support transforms" >> {
-      val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> dir.getPath,
-        "fs.encoding" -> "parquet",
-        "fs.config" -> "parquet.compression=gzip")).asInstanceOf[FileSystemDataStore]
-
       val filters = Seq(
         "INCLUDE",
-        "name = 'test'",
+        s"name IN ${(0 until 10).mkString("('test", "','test", "')")}",
         "bbox(geom, 5, 5, 15, 15)",
-        "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-05T04:04:00.0000Z",
-        "dtg > '2017-06-05T04:03:00.0000Z' AND dtg < '2017-06-05T04:04:00.0000Z'",
-        "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-05T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
+        "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z",
+        "dtg > '2017-06-05T04:03:00.0000Z' AND dtg < '2017-06-07T04:04:00.0000Z'",
+        "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
       ).map(ECQL.toFilter)
+
       val transforms = Seq(null, Array("name"), Array("dtg", "geom"))
 
-      foreach(filters) { filter =>
-        foreach(transforms) { transform =>
-          val query = new Query("test", filter, transform)
-          val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
-          features must haveLength(1)
-          val feature = features.head
-          if (transform == null) {
-            feature.getAttributeCount mustEqual 4
-            feature.getAttributes mustEqual sf.getAttributes
-          } else {
-            feature.getAttributeCount mustEqual transform.length
-            foreach(transform)(t => feature.getAttribute(t) mustEqual sf.getAttribute(t))
+      foreach(formats) { case (format, sft, features) =>
+        val dir = dirs(format)
+        val ds = DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))
+
+        filters.foreach { filter =>
+          transforms.foreach { transform =>
+            val query = new Query(format, filter, transform)
+            val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            results must haveLength(features.length)
+            if (transform == null) {
+              results must containTheSameElementsAs(features)
+            } else {
+              results.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
+              results.foreach { result =>
+                result.getAttributeCount mustEqual transform.length
+                val matched = features.find(_.getID == result.getID).get
+                transform.foreach(t => result.getAttribute(t) mustEqual matched.getAttribute(t))
+              }
+            }
           }
         }
+        ok
       }
     }
   }
 
   step {
-    FileUtils.deleteDirectory(dir)
+    dirs.foreach { case (_, dir) => FileUtils.deleteDirectory(dir) }
   }
 }

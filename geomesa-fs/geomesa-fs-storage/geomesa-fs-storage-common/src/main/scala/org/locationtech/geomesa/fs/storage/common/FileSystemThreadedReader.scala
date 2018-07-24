@@ -10,8 +10,9 @@ package org.locationtech.geomesa.fs.storage.common
 
 import java.util.concurrent.{Executors, LinkedBlockingQueue, TimeUnit}
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.fs.Path
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -59,7 +60,7 @@ object FileSystemThreadedReader {
   }
 
   class MultiThreadedFileSystemReader(factory: FileSystemPathReader, paths: Iterator[Path], threads: Int)
-      extends FileSystemReader {
+      extends FileSystemReader with StrictLogging {
 
     private val es = Executors.newFixedThreadPool(threads)
 
@@ -70,14 +71,15 @@ object FileSystemThreadedReader {
     private var current: SimpleFeature = _
 
     paths.foreach { file =>
-      val runnable = new Runnable with LazyLogging {
+      val runnable = new Runnable {
         override def run(): Unit = {
           var count = 0
           try {
             logger.debug(s"Reading file $file")
             WithClose(factory.read(file)) { reader =>
               while (reader.hasNext) {
-                queue.put(reader.next())
+                // need to copy the feature as it can be re-used
+                queue.put(ScalaSimpleFeature.copy(reader.next()))
                 count += 1
               }
             }
@@ -91,22 +93,29 @@ object FileSystemThreadedReader {
     }
     es.shutdown()
 
-    private def queueNext(): Unit = {
+    override def hasNext: Boolean = {
+      if (current != null) {
+        return true
+      }
       current = localQueue.pollFirst
-      while (current == null && (queue.size() > 0 || !es.isTerminated)) {
-        val tmp = queue.poll(100, TimeUnit.MILLISECONDS)
-        if (tmp != null) {
-          current = tmp
+      if (current != null) {
+        return true
+      }
+      while (!es.isTerminated) {
+        current = queue.poll(100, TimeUnit.MILLISECONDS)
+        if (current != null) {
           queue.drainTo(localQueue, 10000)
+          return true
         }
       }
-    }
-
-    override def hasNext: Boolean = {
-      if (current == null) {
-        queueNext()
+      // last check - if es.isTerminated, the queue should have whatever values are left
+      current = queue.poll()
+      if (current != null) {
+        queue.drainTo(localQueue, 10000)
+        true
+      } else {
+        false
       }
-      current != null
     }
 
     override def next(): SimpleFeature = {
