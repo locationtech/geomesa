@@ -8,18 +8,24 @@
 
 package org.locationtech.geomesa.kafka.index
 
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
+
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.kafka.ExpirationMocking.{ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
+import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.mockito.ArgumentMatchers
 import org.opengis.feature.simple.SimpleFeature
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KafkaFeatureCacheTest extends Specification {
+class KafkaFeatureCacheTest extends Specification with Mockito {
 
   import scala.concurrent.duration._
 
@@ -41,11 +47,17 @@ class KafkaFeatureCacheTest extends Specification {
 
   def track(id: String, track: String): SimpleFeature = ScalaSimpleFeature.create(sft, id, id, track)
 
-  def caches(expiry: Duration = Duration.Inf) =
+  def caches(expiry: Option[(Duration, ScheduledExecutorService, Ticker)] = None) = {
+    val config = expiry match {
+      case None => IndexConfig(Duration.Inf, None, 360, 180, Seq.empty, lazyDeserialization = true, None)
+      case Some((e, es, t)) => IndexConfig(e, None, 360, 180, Seq.empty, lazyDeserialization = true, Some((es, t)))
+    }
     Seq(
-      KafkaFeatureCache(sft, IndexConfig(expiry, None, 360, 180, Seq.empty, lazyDeserialization = true)),
-      KafkaFeatureCache(sft, IndexConfig(expiry, None, 360, 180, Seq(("geom", CQIndexType.GEOMETRY)), lazyDeserialization = true))
+      KafkaFeatureCache(sft, config),
+      KafkaFeatureCache(sft, config.copy(cqAttributes = Seq(("geom", CQIndexType.GEOMETRY))))
     )
+  }
+
 
   "KafkaFeatureCache" should {
 
@@ -119,16 +131,29 @@ class KafkaFeatureCacheTest extends Specification {
     }
 
     "expire" >> {
-      foreach(caches(Duration("100ms"))) { cache =>
+      val ex = mock[ScheduledExecutorService]
+      val ticker = Ticker.mock(System.currentTimeMillis())
+      foreach(caches(Some((Duration("100ms"), ex, ticker)))) { cache =>
         try {
+          val expire = new WrappedRunnable(100L)
+          ex.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
+            expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
+            new ScheduledExpiry(expire)
+          }
           cache.put(track0v0)
+          expire.runnable must not(beNull)
+          there was one(ex).schedule(ArgumentMatchers.eq(expire.runnable), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
 
           cache.size() mustEqual 1
           cache.query(track0v0.getID) must beSome(track0v0)
           cache.query(wholeWorldFilter).toSeq mustEqual Seq(track0v0)
 
-          eventually(40, 100.millis)(cache.query(track0v0.getID) must beNone)
-          eventually(40, 100.millis)(cache.query(wholeWorldFilter).toSeq must beEmpty)
+          // move time forward and run the expiration
+          ticker.millis += 100L
+          expire.runnable.run()
+
+          cache.query(track0v0.getID) must beNone
+          cache.query(wholeWorldFilter).toSeq must beEmpty
           cache.size() mustEqual 0
         } finally {
           cache.close()

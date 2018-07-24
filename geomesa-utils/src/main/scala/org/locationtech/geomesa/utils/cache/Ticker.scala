@@ -6,13 +6,21 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.kafka
+package org.locationtech.geomesa.utils.cache
 
-import com.github.benmanes.caffeine.cache.Ticker
+trait Ticker {
+  def currentTimeMillis(): Long
+}
 
-class MockTicker extends Ticker {
+object Ticker {
 
-  var millis: Long = 0L
+  def mock(start: Long = 0L): MockTicker = new MockTicker(start)
 
-  def read(): Long = millis * 1000000 // nanos
+  object SystemTicker extends Ticker {
+    override def currentTimeMillis(): Long = System.currentTimeMillis()
+  }
+
+  class MockTicker(var millis: Long = 0L) extends Ticker {
+    override def currentTimeMillis(): Long = millis
+  }
 }

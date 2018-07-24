@@ -19,6 +19,7 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{FeatureEvent, FeatureListener}
 import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.{GeoMessageSerializer, KafkaFeatureEvent}
@@ -75,7 +76,7 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
     }
   }
 
-  private def fireEvent(toEvent: (SimpleFeatureSource) => FeatureEvent): Unit = {
+  private def fireEvent(toEvent: SimpleFeatureSource => FeatureEvent): Unit = {
     val events = scala.collection.mutable.Map.empty[SimpleFeatureSource, FeatureEvent]
     listeners.foreach { case (source, listener) =>
       val event = events.getOrElseUpdate(source, toEvent(source))
@@ -101,7 +102,7 @@ object KafkaCacheLoader {
                              override protected val topic: String,
                              override protected val frequency: Long,
                              lazyDeserialization: Boolean,
-                             private val doInitialLoad: Boolean) extends ThreadedConsumer with KafkaCacheLoader {
+                             initialLoadConfig: Option[IndexConfig]) extends ThreadedConsumer with KafkaCacheLoader {
 
     private val serializer = new GeoMessageSerializer(sft, lazyDeserialization)
 
@@ -109,13 +110,13 @@ object KafkaCacheLoader {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
 
-    if (doInitialLoad) {
-      // for the initial load, don't bother indexing in the feature cache until we have the final state
-      val executor = Executors.newSingleThreadExecutor()
-      executor.submit(new InitialLoader(consumers, topic, frequency, serializer, this))
-      executor.shutdown()
-    } else {
-      startConsumers()
+    initialLoadConfig match {
+      case None => startConsumers()
+      case Some(config) =>
+        // for the initial load, don't bother spatially indexing until we have the final state
+        val executor = Executors.newSingleThreadExecutor()
+        executor.submit(new InitialLoader(sft, consumers, topic, frequency, serializer, config, this))
+        executor.shutdown()
     }
 
     override def close(): Unit = {
@@ -149,13 +150,15 @@ object KafkaCacheLoader {
     * @param serializer message serializer
     * @param toLoad main cache loader, used for callback when bulk loading is done
     */
-  private class InitialLoader(override protected val consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
+  private class InitialLoader(sft: SimpleFeatureType,
+                              override protected val consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
                               override protected val topic: String,
                               override protected val frequency: Long,
                               serializer: GeoMessageSerializer,
+                              config: IndexConfig,
                               toLoad: KafkaCacheLoaderImpl) extends ThreadedConsumer with Runnable {
 
-    private val cache = KafkaFeatureCache.nonIndexing(toLoad.cache)
+    private val cache = KafkaFeatureCache.nonIndexing(sft, config.eventTime)
 
     // track the offsets that we want to read to
     private val offsets = new ConcurrentHashMap[Int, Long]()
@@ -180,7 +183,7 @@ object KafkaCacheLoader {
         if (maxOffset <= record.offset) {
           offsets.remove(record.partition)
           latch.countDown()
-          logger.info(s"Initial load: consumed [$topic:${record.partition}:${record.offset}] of $maxOffset," +
+          logger.info(s"Initial load: consumed [$topic:${record.partition}:${record.offset}] of $maxOffset, " +
               s"${latch.getCount} partitions remaining")
         } else if (record.offset % 1048576 == 0) { // magic number 2^20
           logger.info(s"Initial load: consumed [$topic:${record.partition}:${record.offset}] of $maxOffset")
