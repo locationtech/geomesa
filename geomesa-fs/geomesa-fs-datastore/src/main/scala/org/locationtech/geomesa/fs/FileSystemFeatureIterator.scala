@@ -8,15 +8,24 @@
 
 package org.locationtech.geomesa.fs
 
+import java.io.Closeable
 import java.util.concurrent._
 
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api.{FileSystemReader, FileSystemStorage}
 import org.opengis.feature.simple.SimpleFeature
 
-class FileSystemFeatureIterator(storage: FileSystemStorage,
-                                query: Query,
-                                readThreads: Int) extends java.util.Iterator[SimpleFeature] with AutoCloseable {
+/**
+  * Iterator for querying file system storage
+  *
+  * Note: implements Closeable and not AutoCloseable so that DelegateFeatureIterator will close it properly
+  *
+  * @param storage storage impl
+  * @param query query
+  * @param readThreads threads
+  */
+class FileSystemFeatureIterator(storage: FileSystemStorage, query: Query, readThreads: Int)
+    extends java.util.Iterator[SimpleFeature] with Closeable {
 
   private val partitions = storage.getPartitions(query.getFilter)
 

@@ -16,10 +16,18 @@
     <category name="org.apache.parquet">
         <priority value="warn"/>
     </category>
+    <category name="org.apache.orc">
+        <priority value="warn"/>
+    </category>
+
+    <!--
+    <category name="org.locationtech.geomesa">
+        <priority value="trace"/>
+    </category>
+    -->
 
     <root>
         <priority value="info"/>
         <appender-ref ref="CONSOLE" />
     </root>
 </log4j:configuration>
-

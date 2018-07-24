@@ -103,6 +103,7 @@ class FileSystemFeatureStore(storage: FileSystemStorage,
     val transformSft = query.getHints.getTransformSchema.getOrElse(sft)
 
     val iter = new FileSystemFeatureIterator(storage, query, readThreads)
+    // note: DelegateSimpleFeatureIterator will close the iterator by checking that it implements Closeable
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 
