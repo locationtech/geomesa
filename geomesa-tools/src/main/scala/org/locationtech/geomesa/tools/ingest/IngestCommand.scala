@@ -87,12 +87,16 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
         }
         sft = SimpleFeatureTypes.renameSft(inferredSft, typeName)
         inferredSftString = Some(SimpleFeatureTypes.toConfig(sft, includePrefix = false).root().render(renderOptions))
-        Command.user.info(s"Inferred schema: $typeName identified ${SimpleFeatureTypes.encodeType(sft)}")
+        if (!params.force) {
+          Command.user.info(s"Inferred schema: $typeName identified ${SimpleFeatureTypes.encodeType(sft)}")
+        }
       }
       val converterString = inferredConverter.root().render(renderOptions)
-      Command.user.info(s"Inferred converter:\n$converterString")
-      if (Prompt.confirm("Use inferred converter (y/n)? ")) {
-        if (Prompt.confirm("Persist this converter for future use (y/n)? ")) {
+      if (!params.force) {
+        Command.user.info(s"Inferred converter:\n$converterString")
+      }
+      if (params.force || Prompt.confirm("Use inferred converter (y/n)? ")) {
+        if (!params.force && Prompt.confirm("Persist this converter for future use (y/n)? ")) {
           writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
         }
         converter = inferredConverter
@@ -174,7 +178,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
 }
 
 // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam
+trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam with OptionalForceParam
     with OptionalConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
