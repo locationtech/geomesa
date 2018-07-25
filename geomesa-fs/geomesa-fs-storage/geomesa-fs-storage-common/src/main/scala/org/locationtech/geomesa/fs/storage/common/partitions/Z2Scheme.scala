@@ -8,32 +8,63 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import java.util.{Collections, Optional}
 import java.util.regex.Pattern
+import java.util.{Collections, Optional}
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.common.partitions.SpatialPartitionSchemeConfig._
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class Z2Scheme(bits: Int, geom: String, leaf: Boolean) extends PartitionScheme {
-
-  require(bits % 2 == 0, "Resolution must be an even number")
-
-  // note: z2sfc resolution is per dimension
-  private val z2 = new Z2SFC(bits / 2)
-  private val digits = math.ceil(math.log10(math.pow(2, bits))).toInt
+class Z2Scheme(bits: Int, geom: String, leaf: Boolean) extends SpatialScheme(bits, geom, leaf) {
+  override protected val digits: Int = math.ceil(bits * math.log10(2)).toInt
 
   override def getName: String = Z2Scheme.Name
 
+  private val z2 = new Z2SFC(bits / 2)
+
   override def getPartition(feature: SimpleFeature): String = {
-    // TODO support non-point geoms
     val pt = feature.getAttribute(geom).asInstanceOf[Point]
     z2.index(pt.getX, pt.getY).z.formatted(s"%0${digits}d")
   }
+
+  override def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[Long] =
+    z2.ranges(xy).flatMap(ir => ir.lower to ir.upper)
+}
+
+class XZ2Scheme(bits: Int, geom: String, leaf: Boolean) extends SpatialScheme(bits, geom, leaf) {
+  // The max XZ2 value is (4^((bits/2)+1)-1)/3.  This calculates the number of digits in that value.
+  override protected val digits: Int = math.ceil(((bits/2)+1)* math.log10(4) - math.log10(3)).toInt
+
+  override def getName: String = XZ2Scheme.Name
+
+  private val xz2 = XZ2SFC((bits / 2).asInstanceOf[Short])
+
+  override def getPartition(feature: SimpleFeature): String = {
+    // TODO support non-point geoms
+    val geometry = feature.getAttribute(geom).asInstanceOf[Geometry]
+    val envelope = geometry.getEnvelopeInternal
+    xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY).formatted(s"%0${digits}d")
+  }
+
+  override def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[Long] =
+    xz2.ranges(xy).flatMap(ir => ir.lower to ir.upper)
+}
+
+abstract class SpatialScheme(bits: Int, geom: String, leaf: Boolean) extends PartitionScheme {
+
+  require(bits % 2 == 0, "Resolution must be an even number")
+
+  // TODO: The number of digits might be off for Z2 versus XZ2
+  protected val digits: Int // = math.ceil(math.log10(math.pow(2, bits))).toInt
+
+  val resolutionFieldName: String = s"$getName-resolution"
+
+  def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[Long]
 
   override def getPartitions(filter: Filter): java.util.List[String] = {
     import scala.collection.JavaConverters._
@@ -50,27 +81,24 @@ class Z2Scheme(bits: Int, geom: String, leaf: Boolean) extends PartitionScheme {
     if (geometries.disjoint) {
       Collections.emptyList()
     } else {
-      val xy = geometries.values.map(GeometryUtils.bounds)
-      val enumerations = z2.ranges(xy).flatMap(ir => ir.lower to ir.upper)
+      val xy: Seq[(Double, Double, Double, Double)] = geometries.values.map(GeometryUtils.bounds)
+      val enumerations: Seq[Long] = generateRanges(xy) //z2.ranges(xy).flatMap(ir => ir.lower to ir.upper)
       enumerations.map(_.formatted(s"%0${digits}d")).asJava
     }
+  }
+
+  override def getOptions: java.util.Map[String, String] = {
+    import scala.collection.JavaConverters._
+    Map(
+      GeomAttribute        -> geom,
+      resolutionFieldName  -> bits.toString,
+      LeafStorage          -> leaf.toString
+    ).asJava
   }
 
   override def getMaxDepth: Int = 1
 
   override def isLeafStorage: Boolean = leaf
-
-  override def getOptions: java.util.Map[String, String] = {
-    import Z2Scheme.Config.{GeomAttribute, LeafStorage, Z2Resolution}
-
-    import scala.collection.JavaConverters._
-
-    Map(
-      GeomAttribute -> geom,
-      Z2Resolution  -> bits.toString,
-      LeafStorage   -> leaf.toString
-    ).asJava
-  }
 
   override def equals(other: Any): Boolean = other match {
     case that: Z2Scheme => that.getOptions.equals(getOptions)
@@ -81,40 +109,59 @@ class Z2Scheme(bits: Int, geom: String, leaf: Boolean) extends PartitionScheme {
 }
 
 object Z2Scheme {
-
   val Name = "z2"
+  class Z2PartitionSchemeFactory extends SpatialPartitionSchemeFactory {
+    override val Name: String = Z2Scheme.Name
 
-  private val NamePattern = Pattern.compile(s"$Name(-([0-9]+)bits?)?")
-
-  object Config {
-    val GeomAttribute = "geom-attribute"
-    val Z2Resolution  = "z2-resolution"
-    val LeafStorage   = "leaf-storage"
+    override def buildPartitionScheme(bits: Int, geom: String, leaf: Boolean): SpatialScheme =
+      new Z2Scheme(bits, geom, leaf)
   }
+}
 
-  class Z2PartitionSchemeFactory extends PartitionSchemeFactory {
-    override def load(name: String,
-                      sft: SimpleFeatureType,
-                      options: java.util.Map[String, String]): Optional[PartitionScheme] = {
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+object XZ2Scheme {
+  val Name: String = "xz2"
+  class XZ2PartitionSchemeFactory extends SpatialPartitionSchemeFactory {
+    override val Name: String = XZ2Scheme.Name
 
-      val matcher = NamePattern.matcher(name)
-      if (!matcher.matches()) { Optional.empty() } else {
-        val geom = Option(options.get(Config.GeomAttribute)).getOrElse(sft.getGeomField)
-        if (sft.indexOf(geom) == -1) {
-          throw new IllegalArgumentException(s"Z2 scheme requires valid geometry field '${Config.GeomAttribute}'")
-        }
-        val res =
-          Option(matcher.group(2))
-            .filterNot(_.isEmpty)
-            .orElse(Option(options.get(Config.Z2Resolution)))
-            .map(Integer.parseInt)
-            .getOrElse {
-              throw new IllegalArgumentException(s"Z2 scheme requires bit resolution '${Config.Z2Resolution}'")
-            }
-        val leaf = Option(options.get(Config.LeafStorage)).forall(java.lang.Boolean.parseBoolean)
-        Optional.of(new Z2Scheme(res, geom, leaf))
+    override def buildPartitionScheme(bits: Int, geom: String, leaf: Boolean): SpatialScheme =
+      new XZ2Scheme(bits, geom, leaf)
+  }
+}
+
+object SpatialPartitionSchemeConfig {
+  val GeomAttribute: String = "geom-attribute"
+  val LeafStorage: String = "leaf-storage"
+}
+
+trait SpatialPartitionSchemeFactory extends PartitionSchemeFactory {
+  def Name: String
+  lazy val NamePattern: Pattern = Pattern.compile(s"$Name(-([0-9]+)bits?)?")
+  lazy val Resolution = s"$Name-resolution"
+
+
+  override def load(name: String,
+                    sft: SimpleFeatureType,
+                    options: java.util.Map[String, String]): Optional[PartitionScheme] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    val matcher = NamePattern.matcher(name)
+    if (!matcher.matches()) { Optional.empty() } else {
+      val geom = Option(options.get(GeomAttribute)).getOrElse(sft.getGeomField)
+      if (sft.indexOf(geom) == -1) {
+        throw new IllegalArgumentException(s"$Name scheme requires valid geometry field '${GeomAttribute}'")
       }
+      val res =
+        Option(matcher.group(2))
+          .filterNot(_.isEmpty)
+          .orElse(Option(options.get(Resolution)))
+          .map(Integer.parseInt)
+          .getOrElse {
+            throw new IllegalArgumentException(s"$Name scheme requires bit resolution '${Resolution}'")
+          }
+      val leaf = Option(options.get(LeafStorage)).forall(java.lang.Boolean.parseBoolean)
+      Optional.of(buildPartitionScheme(res, geom, leaf))
     }
   }
+
+  def buildPartitionScheme(bits: Int, geom: String, leaf: Boolean): SpatialScheme
 }
