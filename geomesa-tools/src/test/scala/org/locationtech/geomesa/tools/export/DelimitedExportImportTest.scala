@@ -21,8 +21,8 @@ import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportAttributes
 import org.locationtech.geomesa.tools.export.formats.DelimitedExporter
 import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
+import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
-import org.locationtech.geomesa.tools.utils.{DataFormats, Prompt}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -37,20 +37,20 @@ class DelimitedExportImportTest extends Specification {
 
   private val counter = new AtomicInteger(0)
 
-  def withCommand[T](ds: DataStore)(op: (IngestCommand[DataStore]) => T): T = {
+  def withCommand[T](ds: DataStore)(op: IngestCommand[DataStore] => T): T = {
     val key = s"${getClass.getName}:${counter.getAndIncrement()}"
     DataStoreRegistration.register(key, ds)
 
-    val command = new IngestCommand[DataStore]() {
-      override val console: Prompt.SystemConsole = new AnyRef {
-        def readLine(): String = "y" // accept prompt to use inferred schema
-        def readPassword(): Array[Char] = Array.empty
-      }
+    val command: IngestCommand[DataStore] = new IngestCommand[DataStore]() {
       override val params: IngestParams = new IngestParams(){}
       override def libjarsFile: String = ""
       override def libjarsPaths: Iterator[() => Seq[File]] = Iterator.empty
       override def connection: Map[String, String] = Map(DataStoreRegistration.param.key -> key)
     }
+    command.setConsole(new AnyRef {
+      def readLine(): String = "y" // accept prompt to use inferred schema
+      def readPassword(): Array[Char] = Array.empty
+    })
 
     try {
       op(command)

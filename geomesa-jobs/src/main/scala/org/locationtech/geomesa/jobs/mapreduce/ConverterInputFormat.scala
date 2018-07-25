@@ -19,6 +19,7 @@ import org.geotools.data.ReTypeFeatureReader
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -89,7 +90,10 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
       override def setLineCount(i: Long): Unit     = c = i
     }
 
-    val ec = converter.createEvaluationContext(Map("inputFilePath" -> filePath.toString), counter = new MapReduceCounter)
+    val ec = {
+      val params = EvaluationContext.inputFileParam(filePath.toString)
+      converter.createEvaluationContext(params, counter = new MapReduceCounter)
+    }
     val raw = converter.process(stream, ec)
     val iter = filter match {
       case Some(f) => raw.filter(f.evaluate)

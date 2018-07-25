@@ -9,25 +9,26 @@
 package org.locationtech.geomesa.accumulo.tools.ingest
 
 import java.io.File
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import java.util.Date
 
 import org.geotools.data.Transaction
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
+import org.locationtech.geomesa.accumulo.tools.AccumuloRunner
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class ShpIngestTest extends Specification {
+class ShpIngestTest extends Specification with BeforeAfterAll {
 
   sequential
 
@@ -42,81 +43,84 @@ class ShpIngestTest extends Specification {
   val baseArgs = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
     "--password", "mypassword", "--catalog", "testshpingestcatalog")
 
+  var dir: Path = _
+  var shpFile: File = _
+
   "ShpIngest" should {
 
     "should properly ingest a shapefile" in {
-      withShapeFile { file =>
-        val args = baseArgs :+ file.getAbsolutePath
+      val args = baseArgs :+ shpFile.getAbsolutePath
 
-        val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
-        command.execute()
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      command.setConsole(new AnyRef {
+        def readLine(): String = "y" // accept prompt to use inferred schema
+        def readPassword(): Array[Char] = Array.empty
+      })
+      command.execute()
 
-        val fs = command.withDataStore(_.getFeatureSource("shpingest"))
+      val fs = command.withDataStore(_.getFeatureSource("shpingest"))
 
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
-        val bounds = fs.getBounds
-        bounds.getMinX mustEqual 10.0
-        bounds.getMaxX mustEqual 20.0
-        bounds.getMinY mustEqual 30.0
-        bounds.getMaxY mustEqual 40.0
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual 10.0
+      bounds.getMaxX mustEqual 20.0
+      bounds.getMinY mustEqual 30.0
+      bounds.getMaxY mustEqual 40.0
 
-        command.withDataStore { (ds) =>
-          ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
-              beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
-        }
+      command.withDataStore { ds =>
+        ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
+            beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
       }
     }
 
     "should support renaming the feature type" in {
-      withShapeFile { file =>
-        val args = baseArgs ++ Array("--feature-name", "changed", file.getAbsolutePath)
+      val args = baseArgs ++ Array("--feature-name", "changed", shpFile.getAbsolutePath)
 
-        val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
-        command.execute()
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      command.setConsole(new AnyRef {
+        def readLine(): String = "y" // accept prompt to use inferred schema
+        def readPassword(): Array[Char] = Array.empty
+      })
+      command.execute()
 
-        val fs = command.withDataStore(_.getFeatureSource("changed"))
+      val fs = command.withDataStore(_.getFeatureSource("changed"))
 
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
-        val bounds = fs.getBounds
-        bounds.getMinX mustEqual 10.0
-        bounds.getMaxX mustEqual 20.0
-        bounds.getMinY mustEqual 30.0
-        bounds.getMaxY mustEqual 40.0
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual 10.0
+      bounds.getMaxX mustEqual 20.0
+      bounds.getMinY mustEqual 30.0
+      bounds.getMaxY mustEqual 40.0
 
-        command.withDataStore { (ds) =>
-          ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
-              beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
-        }
+      command.withDataStore { ds =>
+        ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
+            beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
       }
     }
   }
 
-  def withShapeFile[T](fn: (File) => T): T = {
-    val dir = Files.createTempDirectory("gm-shp-ingest-test")
-    val shpFile = new File(dir.toFile, "shpingest.shp")
+  override def beforeAll(): Unit = {
+    dir = Files.createTempDirectory("gm-shp-ingest-test")
+    shpFile = new File(dir.toFile, "shpingest.shp")
+
+    val shpStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFile.toURI.toURL))
     try {
-      val shpStoreFactory = new ShapefileDataStoreFactory
-      val shpStore = shpStoreFactory.createNewDataStore(Map("url" -> shpFile.toURI.toURL))
-      try {
-        shpStore.createSchema(schema)
-        WithClose(shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)) { writer =>
-          features.foreach { feature =>
-            val toWrite = writer.next()
-            toWrite.setAttributes(feature.getAttributes)
-            toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-            toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
-            writer.write()
-          }
+      shpStore.createSchema(schema)
+      WithClose(shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach { feature =>
+          val toWrite = writer.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+          writer.write()
         }
-      } finally {
-        shpStore.dispose()
       }
-
-      fn(shpFile)
     } finally {
-      PathUtils.deleteRecursively(dir)
+      shpStore.dispose()
     }
   }
+
+  override def afterAll(): Unit = PathUtils.deleteRecursively(dir)
 }

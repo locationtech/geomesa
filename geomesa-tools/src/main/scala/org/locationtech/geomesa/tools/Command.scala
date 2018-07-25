@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.Console
-
 import com.beust.jcommander.{JCommander, ParameterException}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.locationtech.geomesa.tools.utils.Prompt
@@ -56,7 +54,7 @@ trait DataStoreCommand[DS <: DataStore] extends Command {
   def connection: Map[String, String]
 
   @throws[ParameterException]
-  def withDataStore[T](method: (DS) => T): T = {
+  def withDataStore[T](method: DS => T): T = {
     val ds = Option(DataStoreFinder.getDataStore(connection).asInstanceOf[DS])
       .getOrElse(throw new ParameterException("Unable to create data store, please check your connection parameters."))
     try { method(ds) } finally {
@@ -66,5 +64,14 @@ trait DataStoreCommand[DS <: DataStore] extends Command {
 }
 
 trait InteractiveCommand {
-  implicit def console: Prompt.SystemConsole = Prompt.SystemConsole
+  private var _console: Prompt.SystemConsole = _
+
+  implicit def console: Prompt.SystemConsole = {
+    if (_console == null) {
+      _console = Prompt.SystemConsole
+    }
+    _console
+  }
+
+  def setConsole(c: Prompt.SystemConsole): Unit = _console = c
 }

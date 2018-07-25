@@ -23,6 +23,7 @@ details.
     json
     xml
     avro
+    shp
     fixed_width
     jdbc
     cache

@@ -55,9 +55,6 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
         throw new NotImplementedError("Bulk ingest not implemented for local mode")
     }
   }
-
-  override protected def createShpIngest(): Runnable =
-    throw new NotImplementedError("Bulk ShpFile ingest not implemented")
 }
 
 object HBaseBulkIngestCommand {

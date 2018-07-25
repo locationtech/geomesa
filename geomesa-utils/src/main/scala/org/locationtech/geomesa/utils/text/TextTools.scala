@@ -10,6 +10,8 @@ package org.locationtech.geomesa.utils.text
 
 import java.time.Duration
 
+import scala.collection.GenTraversableOnce
+
 object TextTools {
 
   def getPlural(i: Long, base: String): String = getPlural(i, base, s"${base}s")
@@ -31,6 +33,32 @@ object TextTools {
   def buildString(c: Char, length: Int): String = {
     if (length < 0) { "" } else {
       new String(Array.fill(length)(c))
+    }
+  }
+
+  /**
+    * Builds a natural word list, e.g. 'foo, bar, baz and blu'
+    *
+    * @param words words
+    * @return
+    */
+  def wordList(words: Iterable[String]): String = {
+    if (words.isEmpty) { "" } else {
+      val iter = words.iterator
+      var word: String = iter.next
+      if (iter.hasNext) {
+        val builder = new StringBuilder(word)
+        word = iter.next
+        while (iter.hasNext) {
+          builder.append(", ").append(word)
+          word = iter.next
+        }
+        builder.append(" and ").append(word)
+        builder.result()
+      } else {
+        word
+      }
+
     }
   }
 }
