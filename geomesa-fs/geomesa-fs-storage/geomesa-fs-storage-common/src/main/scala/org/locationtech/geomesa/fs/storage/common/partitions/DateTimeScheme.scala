@@ -85,7 +85,7 @@ object DateTimeScheme {
     val StepUnitOpt         = "step-unit"
     val StepOpt             = "step"
     val DtgAttribute        = "dtg-attribute"
-    val LeafStorage: String = Z2Scheme.Config.LeafStorage
+    val LeafStorage: String = SpatialPartitionSchemeConfig.LeafStorage
   }
 
   object Formats {
