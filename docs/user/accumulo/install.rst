@@ -333,11 +333,11 @@ The specific JARs needed for some common configurations are listed below:
 
     .. tab:: Accumulo 1.9
 
-        * accumulo-core-1.9.1.jar
-        * accumulo-fate-1.9.1.jar
-        * accumulo-server-base-1.9.1.jar
-        * accumulo-trace-1.9.1.jar
-        * accumulo-start-1.9.1.jar
+        * accumulo-core-1.9.2.jar
+        * accumulo-fate-1.9.2.jar
+        * accumulo-server-base-1.9.2.jar
+        * accumulo-trace-1.9.2.jar
+        * accumulo-start-1.9.2.jar
         * libthrift-0.9.3.jar
         * zookeeper-3.4.10.jar
         * htrace-core-3.1.0-incubating.jar
@@ -394,8 +394,8 @@ Accumulo Versions
 
 .. warning::
 
-    There are severe issues with Accumulo versions 1.8.0-1.9.0 and the Accumulo team recommends immediately 
-    upgrading to 1.9.1 or higher.
+    There are severe issues with Accumulo versions 1.8.0-1.9.1 and the Accumulo team recommends immediately 
+    upgrading to 1.9.2 or higher.
 
 .. _install_geomesa_process:
 
