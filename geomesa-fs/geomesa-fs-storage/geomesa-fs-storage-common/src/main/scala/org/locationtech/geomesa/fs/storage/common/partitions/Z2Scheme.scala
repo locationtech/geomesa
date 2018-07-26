@@ -45,7 +45,6 @@ class XZ2Scheme(bits: Int, geom: String, leaf: Boolean) extends SpatialScheme(bi
   private val xz2 = XZ2SFC((bits / 2).asInstanceOf[Short])
 
   override def getPartition(feature: SimpleFeature): String = {
-    // TODO support non-point geoms
     val geometry = feature.getAttribute(geom).asInstanceOf[Geometry]
     val envelope = geometry.getEnvelopeInternal
     xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY).formatted(s"%0${digits}d")
@@ -59,7 +58,6 @@ abstract class SpatialScheme(bits: Int, geom: String, leaf: Boolean) extends Par
 
   require(bits % 2 == 0, "Resolution must be an even number")
 
-  // TODO: The number of digits might be off for Z2 versus XZ2
   protected val digits: Int // = math.ceil(math.log10(math.pow(2, bits))).toInt
 
   val resolutionFieldName: String = s"$getName-resolution"
@@ -82,7 +80,7 @@ abstract class SpatialScheme(bits: Int, geom: String, leaf: Boolean) extends Par
       Collections.emptyList()
     } else {
       val xy: Seq[(Double, Double, Double, Double)] = geometries.values.map(GeometryUtils.bounds)
-      val enumerations: Seq[Long] = generateRanges(xy) //z2.ranges(xy).flatMap(ir => ir.lower to ir.upper)
+      val enumerations: Seq[Long] = generateRanges(xy)
       enumerations.map(_.formatted(s"%0${digits}d")).asJava
     }
   }
