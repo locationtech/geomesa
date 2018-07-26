@@ -64,28 +64,48 @@ class CompositeTextConverterTest extends Specification {
       | }
     """.stripMargin)
 
-  "be built from a conf" >> {
-    val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
-    val converter = SimpleFeatureConverter(sft, conf)
-    converter must not(beNull)
+  val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
 
-    val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+  "CompositeConverter" should {
 
-    "and process some data" >> {
+    "process some data" in {
+      val converter = SimpleFeatureConverter(sft, conf)
+      converter must not(beNull)
+
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+
       res.size must be equalTo 2
       res(0).getID must be equalTo "first1"
       res(1).getID must be equalTo "second2"
-    }
 
-    "and get correct line numbers" >> {
+      // and get correct line numbers
       res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
       res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
+
+      // and get default string to double values
+      res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+      res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
     }
 
-    "testing string2 function defaults" >> {
+    "be built using old api" in {
+      import org.locationtech.geomesa.convert.SimpleFeatureConverters
+
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not(beNull)
+
+      val res = converter.processInput(data.split("\n").iterator).toList
+
+      res.size must be equalTo 2
+      res(0).getID must be equalTo "first1"
+      res(1).getID must be equalTo "second2"
+
+      // and get correct line numbers
+      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
+      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
+
+      // and get default string to double values
       res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
       res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
     }
   }
-
 }
