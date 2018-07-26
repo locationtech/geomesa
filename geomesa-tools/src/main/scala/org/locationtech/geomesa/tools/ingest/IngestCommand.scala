@@ -96,10 +96,12 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
 
       if (!params.force) {
         Command.user.info(s"Inferred converter:\n$converterString")
-        if (Prompt.confirm("Persist this converter for future use (y/n)? "))  {
-          writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
-        }
-        if (!Prompt.confirm("Use inferred converter (y/n)? ")) {
+        if (Prompt.confirm("Use inferred converter (y/n)? ")) {
+          if (Prompt.confirm("Persist this converter for future use (y/n)? ")) {
+            writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
+          }
+        } else {
+          Command.user.info("Please re-run with a valid converter")
           return
         }
       }
