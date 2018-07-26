@@ -92,17 +92,16 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
         }
       }
       val converterString = inferredConverter.root().render(renderOptions)
+      converter = inferredConverter
+
       if (!params.force) {
         Command.user.info(s"Inferred converter:\n$converterString")
-      }
-      if (params.force || Prompt.confirm("Use inferred converter (y/n)? ")) {
-        if (!params.force && Prompt.confirm("Persist this converter for future use (y/n)? ")) {
+        if (Prompt.confirm("Persist this converter for future use (y/n)? "))  {
           writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
         }
-        converter = inferredConverter
-      } else {
-        Command.user.info("Please re-run with a valid converter")
-        return
+        if (!Prompt.confirm("Use inferred converter (y/n)? ")) {
+          return
+        }
       }
     }
 
