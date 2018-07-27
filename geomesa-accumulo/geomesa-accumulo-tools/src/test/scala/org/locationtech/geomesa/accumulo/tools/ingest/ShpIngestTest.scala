@@ -99,10 +99,6 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       val args = baseArgs :+ shpFileToReproject.getAbsolutePath
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.setConsole(new AnyRef {
-        def readLine(): String = "y" // accept prompt to use inferred schema
-        def readPassword(): Array[Char] = Array.empty
-      })
       command.execute()
 
       val fs = command.withDataStore(_.getFeatureSource("shpingest3857"))
