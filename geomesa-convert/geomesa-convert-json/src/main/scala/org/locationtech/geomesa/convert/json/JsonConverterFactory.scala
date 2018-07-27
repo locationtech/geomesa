@@ -105,7 +105,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
         // field definitions - call .toSeq first to ensure consistent ordering with types
         val fields = props.toSeq.map { case (path, values) =>
           val attr = name(path)
-          val inferred = TypeInference.infer(Seq(values)).head
+          val inferred = TypeInference.infer(values.map(Seq(_))).head
           inferredTypes += inferred.copy(name = attr) // note: side-effect in map
           // account for optional nodes by wrapping transform with a try/null
           val transform = Some(Expression(s"try(${inferred.transform.apply(0)},null)"))

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert.text
 import java.io.{ByteArrayInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 
+import com.google.common.hash.Hashing
 import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
@@ -71,6 +72,12 @@ class DelimitedTextConverterTest extends Specification {
 
       "handle more derived fields than input fields" >> {
         res(0).getAttribute("oneup").asInstanceOf[String] must be equalTo "1"
+      }
+
+      "correctly identify feature IDs based on lines" >> {
+        val hashing = Hashing.md5()
+        res(0).getID mustEqual hashing.hashBytes("1,hello,45.0,45.0".getBytes(StandardCharsets.UTF_8)).toString
+        res(1).getID mustEqual hashing.hashBytes("2,world,90.0,90.0".getBytes(StandardCharsets.UTF_8)).toString
       }
     }
 

@@ -43,7 +43,10 @@ class DelimitedTextConverter(targetSft: SimpleFeatureType,
   override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
     var array = Array.empty[Any]
     val writer = new StringWriter
-    val printer = format.print(writer)
+
+    // printer used to re-create the original line
+    // suppress the final newline so that we match the original behavior of splitting on newlines
+    val printer = format.withRecordSeparator(null).print(writer)
 
     val parser = format.parse(new InputStreamReader(is, options.encoding))
     val records = parser.iterator()

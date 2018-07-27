@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.common
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
+import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, SpatialPartitionSchemeConfig, Z2Scheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -78,10 +78,10 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
 
       scheme.isLeafStorage must beTrue
       val opts = scheme.getOptions
-      opts.get(Z2Scheme.Config.GeomAttribute) mustEqual "bar"
+      opts.get(SpatialPartitionSchemeConfig.GeomAttribute) mustEqual "bar"
       opts.get(DateTimeScheme.Config.DtgAttribute) mustEqual "foo"
       opts.get(DateTimeScheme.Config.StepOpt).toInt mustEqual 1
-      opts.get(Z2Scheme.Config.LeafStorage).toBoolean must beTrue
+      opts.get(SpatialPartitionSchemeConfig.LeafStorage).toBoolean must beTrue
     }
   }
 }
