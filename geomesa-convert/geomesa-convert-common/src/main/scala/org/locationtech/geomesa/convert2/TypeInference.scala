@@ -84,7 +84,7 @@ object TypeInference {
         name = base
       } else {
         // use the type with an _i, e.g. int_0, string_1
-        base = typ.typed.toString.toLowerCase(Locale.US)
+        base = String.valueOf(typ.typed).toLowerCase(Locale.US)
         name = s"${base}_0"
         i += 1
       }
