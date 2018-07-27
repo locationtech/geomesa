@@ -91,17 +91,19 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
           Command.user.info(s"Inferred schema: $typeName identified ${SimpleFeatureTypes.encodeType(sft)}")
         }
       }
-      val converterString = inferredConverter.root().render(renderOptions)
       converter = inferredConverter
 
       if (!params.force) {
+        val converterString = inferredConverter.root().render(renderOptions)
+        def persist(): Unit = if (Prompt.confirm("Persist this converter for future use (y/n)? ")) {
+          writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
+        }
         Command.user.info(s"Inferred converter:\n$converterString")
         if (Prompt.confirm("Use inferred converter (y/n)? ")) {
-          if (Prompt.confirm("Persist this converter for future use (y/n)? ")) {
-            writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
-          }
+          persist()
         } else {
           Command.user.info("Please re-run with a valid converter")
+          persist()
           return
         }
       }
