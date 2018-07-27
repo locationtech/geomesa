@@ -1272,5 +1272,39 @@ class JsonConverterTest extends Specification {
       )
       features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
     }
+
+    "infer schemas with three dimensional points" in {
+      val json = Seq(
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[164.2,-48.6732]},"properties":{"A":"foo"}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[154.3,-38.6832,500.2]},"properties":{"A":"bar"}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[152.3,-38.7832]},"properties":{"A":"baz"}}]}"""
+      ).mkString("\n")
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes)
+
+      inferred must beSome
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("A", classOf[String]), ("geom", classOf[Point]))
+
+      val converter = SimpleFeatureConverter(sft, inferred.get._2)
+      converter must not(beNull)
+
+      val features = converter.process(bytes).toList
+      features must haveLength(3)
+
+      val expected = Seq(
+        Seq("foo", WKTUtils.read("POINT (164.2 -48.6732)")),
+        Seq("bar", WKTUtils.read("POINT (154.3 -38.6832 500.2)")),
+        Seq("baz", WKTUtils.read("POINT (152.3 -38.7832)"))
+      )
+      features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+      foreach(features.zip(expected)) { case (f, e) =>
+        f.getAttribute(1).asInstanceOf[Point].getCoordinate.equals3D(e(1).asInstanceOf[Point].getCoordinate) must beTrue
+      }
+    }
   }
 }
