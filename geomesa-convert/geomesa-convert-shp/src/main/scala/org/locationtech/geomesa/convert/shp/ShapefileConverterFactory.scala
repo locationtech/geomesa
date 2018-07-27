@@ -13,17 +13,20 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.ShapefileDataStore
+import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.{ErrorMode, ParseMode, SimpleFeatureValidator}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
+import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
+import org.opengis.feature.`type`.GeometryType
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 
 class ShapefileConverterFactory
-    extends AbstractConverterFactory[ShapefileConverter, BasicConfig, BasicField, BasicOptions] {
+  extends AbstractConverterFactory[ShapefileConverter, BasicConfig, BasicField, BasicOptions] {
 
   override protected val typeToProcess: String = ShapefileConverterFactory.TypeToProcess
 
@@ -57,7 +60,19 @@ object ShapefileConverterFactory extends LazyLogging {
       val fields = sft match {
         case None =>
           ds.getSchema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
-            BasicField(d.getLocalName, Some(Column(i + 1)))
+            val expression: Expression =
+              if (d.getType.isInstanceOf[GeometryType] && ds.getSchema.getCoordinateReferenceSystem != null) {
+                val crsID = CRS.lookupEpsgCode(ds.getSchema.getCoordinateReferenceSystem, false)
+                if (crsID != 4326) {
+                  val str = s"projectFrom('EPSG:$crsID', $$${i+1})"
+                  Expression(str)
+                } else {
+                  Column(i + 1)
+                }
+              } else {
+                Column(i+1)
+              }
+            BasicField(d.getLocalName, Some(expression))
           }
 
         case Some(s) =>

@@ -425,8 +425,8 @@ class TransformersTest extends Specification {
         val transformed = trans.eval(Array("", geom))
         transformed must not(beNull)
         transformed.getClass mustEqual classOf[Point]
-        transformed.asInstanceOf[Point].getX must beCloseTo(15d, 0.001)
-        transformed.asInstanceOf[Point].getY must beCloseTo(10d, 0.001)
+        transformed.asInstanceOf[Point].getX must beCloseTo(10d, 0.001)
+        transformed.asInstanceOf[Point].getY must beCloseTo(15d, 0.001)
       }
 
       "handle identity functions" >> {

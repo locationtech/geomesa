@@ -12,13 +12,15 @@ import java.io.File
 import java.nio.file.{Files, Path}
 import java.util.Date
 
-import org.geotools.data.Transaction
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
+import org.geotools.data.store.ReprojectingFeatureCollection
+import org.geotools.data.{DataStore, Transaction}
 import org.geotools.factory.Hints
+import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.AccumuloRunner
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.specs2.mutable.Specification
@@ -41,10 +43,11 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
   )
 
   val baseArgs = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
-    "--password", "mypassword", "--catalog", "testshpingestcatalog")
+    "--password", "mypassword", "--catalog", "testshpingestcatalog", "--force")
 
   var dir: Path = _
   var shpFile: File = _
+  var shpFileToReproject: File = _
 
   "ShpIngest" should {
 
@@ -52,10 +55,6 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       val args = baseArgs :+ shpFile.getAbsolutePath
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.setConsole(new AnyRef {
-        def readLine(): String = "y" // accept prompt to use inferred schema
-        def readPassword(): Array[Char] = Array.empty
-      })
       command.execute()
 
       val fs = command.withDataStore(_.getFeatureSource("shpingest"))
@@ -78,10 +77,6 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       val args = baseArgs ++ Array("--feature-name", "changed", shpFile.getAbsolutePath)
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.setConsole(new AnyRef {
-        def readLine(): String = "y" // accept prompt to use inferred schema
-        def readPassword(): Array[Char] = Array.empty
-      })
       command.execute()
 
       val fs = command.withDataStore(_.getFeatureSource("changed"))
@@ -99,13 +94,38 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
             beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
       }
     }
+
+    "reproject to 4326 automatically on ingest" in {
+      val args = baseArgs :+ shpFileToReproject.getAbsolutePath
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      command.execute()
+
+      val fs = command.withDataStore(_.getFeatureSource("shpingest3857"))
+
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+
+      val bounds = fs.getBounds
+      bounds.getMinX must beCloseTo(10.0, 0.0001)
+      bounds.getMaxX must beCloseTo(20.0, 0.0001)
+      bounds.getMinY must beCloseTo(30.0, 0.0001)
+      bounds.getMaxY must beCloseTo(40.0, 0.0001)
+
+      command.withDataStore { ds =>
+        ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
+          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
+      }
+    }
   }
 
   override def beforeAll(): Unit = {
     dir = Files.createTempDirectory("gm-shp-ingest-test")
     shpFile = new File(dir.toFile, "shpingest.shp")
+    shpFileToReproject = new File(dir.toFile, "shpingest3857.shp")
 
     val shpStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFile.toURI.toURL))
+    val shpStoreToReproject: DataStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFileToReproject.toURI.toURL))
+
     try {
       shpStore.createSchema(schema)
       WithClose(shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)) { writer =>
@@ -117,8 +137,23 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
           writer.write()
         }
       }
+
+      val initialFeatures = shpStore.getFeatureSource("shpingest").getFeatures
+      val projectedFeatures = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:3857"))
+
+      shpStoreToReproject.createSchema(projectedFeatures.getSchema)
+      WithClose(shpStoreToReproject.getFeatureWriterAppend("shpingest3857", Transaction.AUTO_COMMIT)) { writer =>
+        CloseableIterator(projectedFeatures.features()).foreach { feature =>
+          val toWrite = writer.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+          writer.write()
+        }
+      }
     } finally {
       shpStore.dispose()
+      shpStoreToReproject.dispose()
     }
   }
 
