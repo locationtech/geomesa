@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
- 
+
     <name>GeoMesa</name>
     <description>A distributed spatio-temporal database built on a number of cloud data storage systems</description>
     <url>http://www.geomesa.org/</url>
@@ -82,8 +82,8 @@
         <json4s.version>3.5.4</json4s.version>
         <scalatra.version>2.6.3</scalatra.version>
         <kryo.version>3.0.3</kryo.version>
-        <arrow.version>0.6.0</arrow.version>
-        <netty.version>4.0.41.Final</netty.version>
+        <arrow.version>0.10.0</arrow.version>
+        <netty.version>4.1.17.Final</netty.version>
 
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
@@ -2197,14 +2197,6 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
-                     <exclusion>
-                         <groupId>io.netty</groupId>
-                         <artifactId>netty-codec</artifactId>
-                     </exclusion>
-                     <exclusion>
-                         <groupId>io.netty</groupId>
-                         <artifactId>netty-transport</artifactId>
-                     </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -2217,14 +2209,6 @@
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-transport</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

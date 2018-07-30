@@ -75,12 +75,9 @@ io.airlift:aircompressor	0.8	compile
 io.dropwizard.metrics:metrics-core	3.1.2	compile
 io.dropwizard.metrics:metrics-ganglia	3.1.2	compile
 io.dropwizard.metrics:metrics-graphite	3.1.2	compile
-io.netty:netty-all	4.0.41.Final	compile
-io.netty:netty-buffer	4.0.41.Final	compile
-io.netty:netty-codec	4.0.41.Final	compile
-io.netty:netty-common	4.0.41.Final	compile
-io.netty:netty-handler	4.0.41.Final	compile
-io.netty:netty-transport	4.0.41.Final	compile
+io.netty:netty-all	4.1.17.Final	compile
+io.netty:netty-buffer	4.1.17.Final	compile
+io.netty:netty-common	4.1.17.Final	compile
 it.geosolutions.jaiext.affine:jt-affine	1.0.16	compile
 it.geosolutions.jaiext.algebra:jt-algebra	1.0.16	compile
 it.geosolutions.jaiext.bandcombine:jt-bandcombine	1.0.16	compile
@@ -124,9 +121,9 @@ org.antlr:antlr4-runtime	4.5	compile
 org.apache.accumulo:accumulo-core	1.8.1	compile
 org.apache.accumulo:accumulo-fate	1.8.1	compile
 org.apache.accumulo:accumulo-start	1.8.1	compile
-org.apache.arrow:arrow-format	0.6.0	compile
-org.apache.arrow:arrow-memory	0.6.0	compile
-org.apache.arrow:arrow-vector	0.6.0	compile
+org.apache.arrow:arrow-format	0.10.0	compile
+org.apache.arrow:arrow-memory	0.10.0	compile
+org.apache.arrow:arrow-vector	0.10.0	compile
 org.apache.avro:avro	1.7.5	compile
 org.apache.camel:camel-core	2.15.1	compile
 org.apache.camel:camel-scala	2.15.1	compile
@@ -263,7 +260,7 @@ org.springframework:spring-web	4.3.7.RELEASE	provided
 
 junit:junit	4.12	test
 org.apache.accumulo:accumulo-test	1.8.1	test
-org.apache.arrow:arrow-vector	tests:0.6.0	test
+org.apache.arrow:arrow-vector	tests:0.10.0	test
 org.apache.camel:camel-netty4	2.15.1	test
 org.apache.cassandra:cassandra-all	3.0.0	test
 org.apache.curator:curator-test	2.7.1	test
