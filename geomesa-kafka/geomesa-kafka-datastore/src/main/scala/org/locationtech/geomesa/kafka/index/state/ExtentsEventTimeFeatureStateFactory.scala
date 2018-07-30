@@ -15,7 +15,7 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.expression.Expression
 
 /**
-  * Non-point feature state with even time ordering
+  * Non-point feature state with event time ordering
   *
   * @param index spatial index
   * @param geom geometry attribute
