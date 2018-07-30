@@ -18,7 +18,7 @@ import java.{util => ju}
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine, RemovalCause, RemovalListener}
 import com.google.common.collect.{Lists, Maps}
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.apache.camel.CamelContext
 import org.apache.camel.impl.DefaultCamelContext
 import org.geotools.data.DataAccessFactory.Param
@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
 
-case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
+case class FeatureHolder(sf: SimpleFeature, geom: Geometry) {
   override def hashCode(): Int = sf.hashCode()
 
   override def equals(obj: scala.Any): Boolean = obj match {
@@ -83,7 +83,7 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
     builder.removalListener(
       new RemovalListener[String, FeatureHolder] {
         override def onRemoval(k: String, v: FeatureHolder, removalCause: RemovalCause): Unit = {
-          qt.index.remove(v.env, v.sf.getID)
+          qt.index.remove(v.geom, v.sf.getID)
         }
       }
     )
@@ -100,9 +100,9 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
           try {
             val sf = source.next
             if(sf != null) {
-              val env = sf.geometry.getEnvelopeInternal
-              qt.index.insert(env, sf.getID, sf)
-              features.put(sf.getID, FeatureHolder(sf, env))
+              val geom = sf.geometry
+              qt.index.insert(geom, sf.getID, sf)
+              features.put(sf.getID, FeatureHolder(sf, geom))
               listeners.foreach { l =>
                 try {
                   l.onNext(sf)

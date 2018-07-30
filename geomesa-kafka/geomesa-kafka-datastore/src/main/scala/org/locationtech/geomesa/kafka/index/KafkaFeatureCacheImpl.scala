@@ -14,8 +14,7 @@ import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
-import org.locationtech.geomesa.kafka.index.state.FeatureStateFactory
-import org.locationtech.geomesa.kafka.index.state.FeatureStateFactory.{FeatureExpiration, FeatureState}
+import org.locationtech.geomesa.kafka.index.FeatureStateFactory.{FeatureExpiration, FeatureState}
 import org.locationtech.geomesa.utils.cache.Ticker
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -60,7 +59,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
       Some((this, executor, ticker, config.expiry.toMillis))
     }
     val eventTime = config.eventTime.map(e => (FastFilterFactory.toExpression(sft, e.expression), e.ordering))
-    FeatureStateFactory(support.index, expiry, eventTime, sft.isPoints, sft.getGeomIndex)
+    FeatureStateFactory(support.index, expiry, eventTime, sft.getGeomIndex)
   }
 
   /**

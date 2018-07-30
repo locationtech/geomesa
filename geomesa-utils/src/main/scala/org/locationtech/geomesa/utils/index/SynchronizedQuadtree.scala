@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.index
 
 import java.util.concurrent.locks.{Lock, ReentrantReadWriteLock}
 
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
 
 /**
@@ -29,15 +29,12 @@ class SynchronizedQuadtree[T] extends SpatialIndex[T] with Serializable {
     (readWriteLock.readLock(), readWriteLock.writeLock())
   }
 
-  override def insert(x: Double, y: Double, key: String, item: T): Unit =
-    insert(new Envelope(x, x, y, y), key, item)
 
-  override def insert(envelope: Envelope, key: String, item: T): Unit =
-    withLock(writeLock) { qt.insert(envelope, (key, item)) }
+  override def insert(geom: Geometry, key: String, value: T): Unit =
+    withLock(writeLock) { qt.insert(geom.getEnvelopeInternal, (key, value)) }
 
-  override def remove(x: Double, y: Double, key: String): T = remove(new Envelope(x, x, y, y), key)
-
-  override def remove(envelope: Envelope, key: String): T = {
+  override def remove(geom: Geometry, key: String): T = {
+    val envelope = geom.getEnvelopeInternal
     val result = withLock(readLock) { qt.query(envelope) }
     result.asScala.asInstanceOf[Seq[(String, T)]].find(_._1 == key) match {
       case None => null.asInstanceOf[T]
@@ -45,10 +42,8 @@ class SynchronizedQuadtree[T] extends SpatialIndex[T] with Serializable {
     }
   }
 
-  override def get(x: Double, y: Double, key: String): T = get(new Envelope(x, x, y, y), key)
-
-  override def get(envelope: Envelope, key: String): T = {
-    val result = withLock(readLock) { qt.query(envelope) }
+  override def get(geom: Geometry, key: String): T = {
+    val result = withLock(readLock) { qt.query(geom.getEnvelopeInternal) }
     result.asScala.asInstanceOf[Seq[(String, T)]].find(_._1 == key).map(_._2).getOrElse(null.asInstanceOf[T])
   }
 
