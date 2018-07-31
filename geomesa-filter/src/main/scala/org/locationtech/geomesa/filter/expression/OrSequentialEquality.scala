@@ -10,26 +10,22 @@ package org.locationtech.geomesa.filter.expression
 
 import java.util.Collections
 
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.{Filter, FilterVisitor, Or}
 
-import scala.collection.immutable.HashSet
-
 /**
-  * OR filter implementation for many OR'd equality filters that uses a hash lookup instead of evaluating
-  * equality for each filter serially
+  * OR filter implementation for several OR'd equality filters that evaluates a property against a list of values
   *
   * @param property property name
   * @param values values to check for equality
   */
-class OrHashEquality(property: PropertyName, values: HashSet[AnyRef]) extends Or {
+class OrSequentialEquality(property: PropertyName, values: Seq[AnyRef]) extends Or {
 
   import org.locationtech.geomesa.filter.factory.FastFilterFactory.factory
 
   import scala.collection.JavaConverters._
 
-  lazy private val children: Set[Filter] = values.map(value => factory.equals(property, factory.literal(value)))
+  lazy private val children: Seq[Filter] = values.map(value => factory.equals(property, factory.literal(value)))
 
   override def getChildren: java.util.List[Filter] = children.toList.asJava
 
@@ -41,7 +37,7 @@ class OrHashEquality(property: PropertyName, values: HashSet[AnyRef]) extends Or
 
   override def equals(obj: Any): Boolean = {
     obj match {
-      case o: Or => children == o.getChildren.asScala.toSet
+      case o: Or => children == o.getChildren.asScala
       case _ => false
     }
   }
@@ -50,12 +46,10 @@ class OrHashEquality(property: PropertyName, values: HashSet[AnyRef]) extends Or
   override def hashCode(): Int = children.hashCode()
 }
 
-object OrHashEquality {
+object OrSequentialEquality {
 
-  val OrHashThreshold = SystemProperty("geomesa.filter.hash.threshold", "5")
-
-  class OrHashListEquality(property: PropertyName, values: HashSet[AnyRef])
-      extends OrHashEquality(property: PropertyName, values: HashSet[AnyRef]) {
+  class OrSequentialListEquality(property: PropertyName, values: Seq[AnyRef])
+      extends OrSequentialEquality(property, values) {
 
     override def evaluate(obj: AnyRef): Boolean = {
       val list = property.evaluate(obj).asInstanceOf[java.util.List[AnyRef]]
