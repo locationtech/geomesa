@@ -8,12 +8,16 @@
 
 package org.locationtech.geomesa.fs.storage.orc
 
+import java.io.File
 import java.nio.file.Files
+import java.util.Collections
 
+import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.common.{FileMetadata, PartitionScheme}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -23,7 +27,10 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class OrcFileSystemWriterTest extends Specification {
 
+  lazy val fc = FileContext.getFileContext(new Configuration())
+  val encoding = "parquet"
   val sft = SimpleFeatureTypes.createType("orc-test", "name:String,age:Int,dtg:Date,*geom:LineString:srid=4326")
+  val scheme = PartitionScheme(sft, "z2-2bit", Collections.emptyMap())
 
   val features = Seq(
     ScalaSimpleFeature.create(sft, "0", "name0", "0", "2017-01-01T00:00:00.000Z", "LINESTRING (10 0, 5 0)"),
@@ -34,11 +41,16 @@ class OrcFileSystemWriterTest extends Specification {
 
   "OrcFileSystemWriter" should {
     "write and read simple features" in {
-      withTestFile { file =>
-        WithClose(new OrcFileSystemWriter(sft, config, file)) { writer => features.foreach(writer.write) }
-        val reader = new OrcFileSystemReader(sft, config, None, None)
-        val read = WithClose(reader.read(file)) { i => SelfClosingIterator(i).map(ScalaSimpleFeature.copy).toList }
-        read mustEqual features
+
+      withPath { path =>
+        val created = FileMetadata.create(fc, path, sft, encoding, scheme)
+
+        withTestFile { file =>
+          WithClose(new OrcFileSystemWriter(sft, config, file, created)) { writer => features.foreach(writer.write) }
+          val reader = new OrcFileSystemReader(sft, config, None, None)
+          val read = WithClose(reader.read(file)) { i => SelfClosingIterator(i).map(ScalaSimpleFeature.copy).toList }
+          read mustEqual features
+        }
       }
     }
   }
@@ -48,6 +60,13 @@ class OrcFileSystemWriterTest extends Specification {
     file.toFile.delete()
     try { code(new Path(file.toUri)) } finally {
       file.toFile.delete() || { file.toFile.deleteOnExit(); true }
+    }
+  }
+
+  def withPath[R](code: (Path) => R): R = {
+    val file = Files.createTempDirectory("geomesa").toFile.getPath
+    try { code(new Path(file)) } finally {
+      FileUtils.deleteDirectory(new File(file))
     }
   }
 }
