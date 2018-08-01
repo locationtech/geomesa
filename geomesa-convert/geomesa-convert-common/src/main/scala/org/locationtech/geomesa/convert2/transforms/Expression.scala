@@ -11,7 +11,6 @@ package org.locationtech.geomesa.convert2.transforms
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.Field
 
-import scala.collection.mutable.ListBuffer
 import scala.util.Try
 
 trait Expression {
@@ -47,16 +46,16 @@ object Expression {
   def apply(e: String): Expression = ExpressionParser.parse(e)
 
   /**
-    * Flattens a list of expressions by examining their children
+    * Returns the list of unique expressions in the input, including any descendants
     *
     * @param expressions expressions
     * @return
     */
   def flatten(expressions: Seq[Expression]): Seq[Expression] = {
-    val toCheck = ListBuffer(expressions: _*)
+    val toCheck = scala.collection.mutable.Queue(expressions: _*)
     val result = scala.collection.mutable.Set.empty[Expression]
     while (toCheck.nonEmpty) {
-      val next = toCheck.remove(0)
+      val next = toCheck.dequeue()
       if (result.add(next)) {
         toCheck ++= next.children()
       }
