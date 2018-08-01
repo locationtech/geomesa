@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert2.transforms
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.Field
 
+import scala.collection.mutable.ListBuffer
 import scala.util.Try
 
 trait Expression {
@@ -32,11 +33,36 @@ trait Expression {
     * @return dependencies
     */
   def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field]
+
+  /**
+    * Any nested expressions
+    *
+    * @return
+    */
+  def children(): Seq[Expression] = Seq.empty
 }
 
 object Expression {
 
   def apply(e: String): Expression = ExpressionParser.parse(e)
+
+  /**
+    * Flattens a list of expressions by examining their children
+    *
+    * @param expressions expressions
+    * @return
+    */
+  def flatten(expressions: Seq[Expression]): Seq[Expression] = {
+    val toCheck = ListBuffer(expressions: _*)
+    val result = scala.collection.mutable.Set.empty[Expression]
+    while (toCheck.nonEmpty) {
+      val next = toCheck.remove(0)
+      if (result.add(next)) {
+        toCheck ++= next.children()
+      }
+    }
+    result.toSeq
+  }
 
   sealed trait Literal[T <: Any] extends Expression {
     def value: T
@@ -64,6 +90,7 @@ object Expression {
   abstract class CastExpression(e: Expression, binding: String) extends Expression {
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       e.dependencies(stack, fieldMap)
+    override def children(): Seq[Expression] = Seq(e)
     override def toString: String = s"$e::$binding"
   }
 
@@ -126,7 +153,7 @@ object Expression {
   }
 
   case class FieldLookup(n: String) extends Expression {
-    private var doEval: EvaluationContext => Any = (ctx) => {
+    private var doEval: EvaluationContext => Any = ctx => {
       val idx = ctx.indexOf(n)
       // rewrite the eval to lookup by index
       doEval = if (idx < 0) { _  => null } else { ec => ec.get(idx) }
@@ -162,6 +189,7 @@ object Expression {
       f.eval(arguments.map(_.eval(args)))
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       arguments.flatMap(_.dependencies(stack, fieldMap)).toSet
+    override def children(): Seq[Expression] = arguments
     override def toString: String = s"${f.names.head}${arguments.mkString("(", ",", ")")}"
   }
 
@@ -170,6 +198,7 @@ object Expression {
       Try(toTry.eval(args)).getOrElse(fallback.eval(args))
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       toTry.dependencies(stack, fieldMap) ++ fallback.dependencies(stack, fieldMap)
+    override def children(): Seq[Expression] = Seq(toTry, fallback)
     override def toString: String = s"try($toTry,$fallback)"
   }
 }

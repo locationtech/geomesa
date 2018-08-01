@@ -466,6 +466,17 @@ class TransformersTest extends Specification {
         }
       }
 
+      "handle whitespace in functions" >> {
+        val variants = Seq(
+          "printf('%s-%s-%sT00:00:00.000Z', $1, $2, $3)",
+          "printf ( '%s-%s-%sT00:00:00.000Z' , $1 , $2 , $3 )"
+        )
+        foreach(variants) { t =>
+          val exp = Transformers.parseTransform(t)
+          exp.eval(Array("", "2015", "01", "01")) mustEqual "2015-01-01T00:00:00.000Z"
+        }
+      }
+
       "handle named values" >> {
         val ctx = EvaluationContext(IndexedSeq(null, "foo", null), Array[Any](null, "bar", null), null, Map.empty)
         val exp = Transformers.parseTransform("capitalize($foo)")
@@ -509,6 +520,15 @@ class TransformersTest extends Specification {
         exp.eval(Array("", secs)).asInstanceOf[Date] mustEqual new Date(secs*1000L)
         exp.eval(Array("", "")).asInstanceOf[Date] must beNull
         exp.eval(Array("", "abcd")).asInstanceOf[Date] must beNull
+      }
+
+      "allow spaces in try statements" >> {
+        foreach(Seq("try($1::int,0)", "try ( $1::int, 0 )")) { t =>
+          val exp = Transformers.parseTransform(t)
+          exp.eval(Array("", "1")).asInstanceOf[Int] mustEqual 1
+          exp.eval(Array("", "")).asInstanceOf[Int] mustEqual 0
+          exp.eval(Array("", "abcd")).asInstanceOf[Int] mustEqual 0
+        }
       }
     }
 

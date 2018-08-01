@@ -26,6 +26,7 @@ object TypeInference {
 
   import LatLon.{Lat, Lon, NotLatLon}
   import ObjectType._
+  import org.locationtech.geomesa.utils.text.TextTools.isWhitespace
 
   private val geometries =
     Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION, GEOMETRY)
@@ -49,7 +50,7 @@ object TypeInference {
     var i = 0
     data.iterator.foreach { row =>
       // skip empty rows or rows consisting of a single whitespace-only string
-      if (row.nonEmpty && (row.size > 1 || row.headOption.collect { case s: String if s.trim.isEmpty => s }.isEmpty)) {
+      if (row.nonEmpty && (row.size > 1 || row.headOption.collect { case s: String if isWhitespace(s) => s }.isEmpty)) {
         i = 0
         row.foreach { col =>
           if (i == rawTypes.length) {
