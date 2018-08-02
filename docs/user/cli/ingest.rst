@@ -40,6 +40,7 @@ Argument               Description
 ``-t, --threads``      Number of parallel threads used
 ``--input-format``     Format of input files (csv, tsv, avro, shp, json, etc)
 ``--run-mode``         Must be one of ``distributed`` or ``local``
+``--force``            Suppress any confirmation prompts
 ``<files>...``         Input files to ingest
 ====================== =========================================================
 
@@ -83,6 +84,9 @@ will be ingested in local mode, and input files in HDFS will be ingested in dist
 
 The ``--threads`` argument can be used to increase local ingest speed. However, there can not be more threads
 than there are input files. The ``--threads`` argument is ignored for distributed ingest.
+
+The ``--force`` argument can be used to suppress any confirmation prompts (generally from converter inference),
+which can be useful when scripting commands.
 
 The ``<files>...`` argument specifies the files to be ingested. ``*`` may be used as a wild card in file paths.
 GeoMesa can handle **gzip**, **bzip** and **xz** file compression as long as the file extensions match the

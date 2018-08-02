@@ -130,7 +130,7 @@ rst_epilog = """
 
 .. |cassandra_version| replace:: 3.x
 
-.. |spark_version| replace:: 2.2.x
+.. |spark_version| replace:: 2.2.x or 2.3.x
 
 .. |release_last| replace:: %(release_last)s
 
