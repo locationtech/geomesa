@@ -254,12 +254,12 @@ object TypeInference {
     } else {
       lazy val latlon = merge(left.latlon, right.latlon)
       left.typed match {
-        case INT    if Seq(LONG, FLOAT, DOUBLE).contains(right.typed) => Some(right.copy(latlon = latlon))
-        case LONG   if right.typed == INT                             => Some(left.copy(latlon = latlon))
-        case LONG   if Seq(FLOAT, DOUBLE).contains(right.typed)       => Some(right.copy(latlon = latlon))
-        case FLOAT  if Seq(INT, LONG).contains(right.typed)           => Some(left.copy(latlon = latlon))
-        case FLOAT  if right.typed == DOUBLE                          => Some(right.copy(latlon = latlon))
-        case DOUBLE if Seq(INT, LONG, FLOAT).contains(right.typed)    => Some(left.copy(latlon = latlon))
+        case INT    if Seq(INT, LONG, FLOAT, DOUBLE).contains(right.typed) => Some(right.copy(latlon = latlon))
+        case LONG   if right.typed == INT | right.typed == LONG            => Some(left.copy(latlon = latlon))
+        case LONG   if Seq(LONG, FLOAT, DOUBLE).contains(right.typed)      => Some(right.copy(latlon = latlon))
+        case FLOAT  if Seq(INT, FLOAT, LONG).contains(right.typed)         => Some(left.copy(latlon = latlon))
+        case FLOAT  if right.typed == FLOAT | right.typed == DOUBLE        => Some(right.copy(latlon = latlon))
+        case DOUBLE if Seq(INT, LONG, FLOAT, DOUBLE).contains(right.typed) => Some(left.copy(latlon = latlon))
         case _ => None
       }
     }
