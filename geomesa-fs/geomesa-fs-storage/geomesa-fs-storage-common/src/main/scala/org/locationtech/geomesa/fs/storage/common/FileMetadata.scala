@@ -17,6 +17,7 @@ import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Options.{CreateOpts, Rename}
 import org.apache.hadoop.fs._
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -139,6 +140,12 @@ class FileMetadata private (fc: FileContext,
       FileMetadata.save(this)
     }
   }
+
+  // TODO
+  override def getFeatureCount: Int = ???
+  override def increaseFeatureCount(count: Int): Unit = ???
+  override def getEnvelope: ReferencedEnvelope = ???
+  override def expandBounds(envelope: ReferencedEnvelope): Unit = ???
 }
 
 object FileMetadata extends MethodProfiling with LazyLogging {

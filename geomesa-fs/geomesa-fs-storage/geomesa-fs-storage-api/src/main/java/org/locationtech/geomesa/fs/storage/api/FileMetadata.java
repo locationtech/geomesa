@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.storage.api;
 
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.Path;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import java.util.List;
@@ -75,6 +76,32 @@ public interface FileMetadata {
      * @return partitions
      */
     List<String> getPartitions();
+
+    /**
+     * The number of features in this layer
+     *
+     * @return Feature count
+     */
+    int getFeatureCount();
+
+    /**
+     * Increase the number of features
+     *
+     * @param count Number of additional features
+     */
+    void increaseFeatureCount(int count);
+
+    /**
+     * Get the bounds for the layer
+     * @return Layer bounds
+     */
+    ReferencedEnvelope getEnvelope();
+
+    /**
+     * Takes a new set of bounds and uses it to expand the existing bounds by
+     * @param envelope Envelope to expand by.
+     */
+    void expandBounds(ReferencedEnvelope envelope);
 
     /**
      * The file names of any data files stored in the partition

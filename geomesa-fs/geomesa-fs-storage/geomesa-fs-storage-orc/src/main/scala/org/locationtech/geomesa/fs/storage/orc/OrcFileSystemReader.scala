@@ -49,7 +49,8 @@ class OrcFileSystemReader(sft: SimpleFeatureType,
       sf
     }
 
-    private val reader = OrcFile.createReader(file, OrcFile.readerOptions(config))
+    private val reader: Reader = OrcFile.createReader(file, OrcFile.readerOptions(config))
+
     private val rows = reader.rows(options)
     private val batch = reader.getSchema.createRowBatch()
     private val attributeReader = if (batch.cols.length > 0) { OrcAttributeReader(sft, batch, columns) } else { null }

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.orc
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch
-import org.apache.orc.OrcFile
+import org.apache.orc.{OrcFile, TypeDescription}
 import org.locationtech.geomesa.fs.storage.api.FileMetadata
 import org.locationtech.geomesa.fs.storage.common.MetadataObservingFileSystemWriter
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter
@@ -20,7 +20,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: Path, val metadata: FileMetadata)
   extends MetadataObservingFileSystemWriter {
 
-  private val schema = OrcFileSystemStorage.createTypeDescription(sft)
+  private val schema: TypeDescription = OrcFileSystemStorage.createTypeDescription(sft)
 
   private val options = OrcFile.writerOptions(config).setSchema(schema)
   private val writer = OrcFile.createWriter(file, options)
@@ -48,6 +48,8 @@ class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: P
 
   override def close(): Unit = {
     flush()
+
+    writer.addUserMetadata("foo", null)
     writer.close()
   }
 }
