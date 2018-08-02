@@ -45,9 +45,10 @@ Data written with 1.2.1 or earlier can be migrated to a newer data format. See :
 API Compatibility
 ^^^^^^^^^^^^^^^^^
 
-The GeoMesa public API is not currently well defined, so API compatibility is only guaranteed at the DataStore
-interface level. In the future, GeoMesa will clearly indicate which classes and methods are part of the public API.
-Non-public classes may change without warning between minor versions.
+The GeoMesa public API is not currently well defined, so API compatibility is only guaranteed at the GeoTools
+`DataStore <http://docs.geotools.org/stable/javadocs/org/geotools/data/DataStore.html>`__ level. In the future,
+GeoMesa will clearly indicate which classes and methods are part of the public API. Non-public classes may change
+without warning between minor versions.
 
 Binary Compatibility
 ^^^^^^^^^^^^^^^^^^^^

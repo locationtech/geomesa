@@ -324,6 +324,10 @@ div.admonition.warning, div.admonition.note {
   margin-bottom: 24px !important;
 }
 
+.rst-content .section .admonition ul:last-child {
+    margin-bottom: 0px !important;
+}
+
 .rst-content .highlighted {
   background: #c9781d !important;
   display:inline-block;
