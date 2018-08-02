@@ -77,16 +77,7 @@ object ShapefileConverter {
     * @return
     */
   def getDataStore(path: String): ShapefileDataStore = {
-    val url = if (PathUtils.isRemote(path)) {
-      // we need to add the hadoop url factories to the JVM to support hdfs, S3, or wasb
-      // we only want to call this once per jvm or it will throw an error
-      if (factorySet.compareAndSet(false, true)) {
-        URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory)
-      }
-      new URL(path)
-    } else {
-      new File(path).toURI.toURL
-    }
+    val url = PathUtils.getUrl(path)
     val params = Collections.singletonMap(ShapefileDataStoreFactory.URLP.key, url)
     val ds = DataStoreFinder.getDataStore(params).asInstanceOf[ShapefileDataStore]
     if (ds == null) {
