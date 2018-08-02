@@ -223,8 +223,9 @@ Installing GeoMesa Accumulo in GeoServer
 
 .. warning::
 
-    The GeoMesa Accumulo GeoServer plugin requires the use of GeoServer
-    |geoserver_version| and GeoTools |geotools_version|.
+   GeoServer 2.13.0 and 2.13.1 are not recommended due to two serious bugs:
+     * GeoMesa WPS processes are not triggered correctly, and will run slowly or not at all
+     * GeoMesa count optimizations are bypassed, potentially resulting in large duplicate scans for WFS queries
 
 As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 `GeoTools`_-compatible data store. This makes it possible
