@@ -40,6 +40,7 @@ import scala.util.control.NonFatal
 abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStore
     with HasGeoMesaMetadata[String] with DistributedLocking with LazyLogging {
 
+  // TODO: GEOMESA-2360 - Remove global axis order hint from MetadataBackedDataStore
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
   protected def catalog: String
