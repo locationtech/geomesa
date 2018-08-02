@@ -29,7 +29,7 @@ class Z2Scheme(bits: Int, geom: String, leaf: Boolean) extends SpatialScheme(bit
 
   override def getPartition(feature: SimpleFeature): String = {
     val pt = feature.getAttribute(geom).asInstanceOf[Point]
-    z2.index(pt.getX, pt.getY).z.formatted(s"%0${digits}d")
+    z2.index(pt.getX, pt.getY, true).z.formatted(s"%0${digits}d")
   }
 
   override def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[Long] =
@@ -47,7 +47,7 @@ class XZ2Scheme(bits: Int, geom: String, leaf: Boolean) extends SpatialScheme(bi
   override def getPartition(feature: SimpleFeature): String = {
     val geometry = feature.getAttribute(geom).asInstanceOf[Geometry]
     val envelope = geometry.getEnvelopeInternal
-    xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY).formatted(s"%0${digits}d")
+    xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY, true).formatted(s"%0${digits}d")
   }
 
   override def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[Long] =
