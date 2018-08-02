@@ -752,5 +752,22 @@ class DelimitedTextConverterTest extends Specification {
       features(0).getAttributes.asScala mustEqual Seq(1, "hello", 45f, 45f, WKTUtils.read("POINT (45 45)"))
       features(1).getAttributes.asScala mustEqual Seq(2, "world", 90f, 90f, WKTUtils.read("POINT (90 90)"))
     }
+
+    "ingest magic files" >> {
+      val data =
+        """id,name:String,age:Int,*geom:Point:srid=4326
+          |fid-0,name0,0,POINT(40 50)
+          |fid-1,name1,1,POINT(41 51)""".stripMargin
+      val is = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))
+      val features = DelimitedTextConverter.magicParsing("foo", is).toList
+      features must haveLength(2)
+      foreach(0 to 1) { i =>
+        features(i).getID mustEqual s"fid-$i"
+        features(i).getAttributeCount mustEqual 3
+        features(i).getAttribute(0) mustEqual s"name$i"
+        features(i).getAttribute(1) mustEqual i
+        features(i).getAttribute(2) mustEqual WKTUtils.read(s"POINT(4$i 5$i)")
+      }
+    }
   }
 }
