@@ -13,6 +13,7 @@ import java.net.URL
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, FeatureReader, Query}
@@ -104,10 +105,15 @@ object ShapefileConverter {
     * @param counter line counter
     */
   class ShapefileIterator(ds: ShapefileDataStore, array: Array[Any], counter: Counter)
-      extends CloseableIterator[Array[Any]] {
+      extends CloseableIterator[Array[Any]] with LazyLogging {
 
     val q = new Query
-    q.setCoordinateSystemReproject(CRS_EPSG_4326)
+    // Only ask to reproject if the Shapefile has a CRS
+    if (ds.getSchema.getCoordinateReferenceSystem != null) {
+      q.setCoordinateSystemReproject(CRS_EPSG_4326)
+    } else {
+      logger.warn(s"Shapefile does not have CRS info.")
+    }
     private val features: FeatureReader[SimpleFeatureType, SimpleFeature] =
       ds.getFeatureSource.getReader(q)
 
