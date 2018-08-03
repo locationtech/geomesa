@@ -9,23 +9,24 @@
 package org.locationtech.geomesa.utils.io
 
 import java.io._
-import java.nio.charset.StandardCharsets
+import java.net.{MalformedURLException, URL}
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 import java.util.zip.GZIPInputStream
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2Utils}
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.{XZCompressorInputStream, XZUtils}
+import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.{FileSystemDelegate, HadoopDelegate, LocalDelegate}
 
-import scala.io.Source
 import scala.util.Try
 
-object PathUtils extends FileSystemDelegate {
+object PathUtils extends FileSystemDelegate with LazyLogging {
 
   private val uriRegex = Pattern.compile("""\w+://.*""")
 
@@ -36,14 +37,49 @@ object PathUtils extends FileSystemDelegate {
   // delegate allows us to avoid a runtime dependency on hadoop
   private val hadoopDelegate = if (hadoopAvailable) { new HadoopDelegate } else { null }
 
-  val RemotePrefixes: Seq[String] = {
-    val is = getClass.getResourceAsStream("remote-prefixes.list")
-    WithClose(Source.fromInputStream(is, StandardCharsets.UTF_8.displayName)) { source =>
-      source.getLines.map(s => s"${s.toLowerCase(Locale.US)}://").toList
+  private val factorySet = new AtomicBoolean(false)
+
+  // Make sure that the Hadoop URL Factory is configured.
+  def configureURLFactory(): Unit = {
+    if (factorySet.compareAndSet(false, true)) {
+      try { // Calling this method twice in the same JVM causes a java.lang.Error
+        URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory)
+      } catch {
+        case _: Throwable =>
+          logger.warn("Could not register Hadoop URL Factory.  Some filesystems may not be available.")
+      }
     }
   }
 
-  def isRemote(path: String): Boolean = RemotePrefixes.exists(path.toLowerCase(Locale.US).startsWith)
+  /**
+    * Checks to see if the path uses a URL pattern and then if it is *not* file://
+    * @param path Input resource path
+    * @return     Whether or not the resource is remote.
+    */
+  def isRemote(path: String): Boolean =
+    uriRegex.matcher(path).matches() && !path.toLowerCase.startsWith("file://")
+
+  /**
+    * Registers Hadoop URL handlers via #configureURLFactory()
+    *
+    * @param path Input URL string
+    * @return     URL instance
+    */
+  def getUrl(path: String): URL = {
+    try {
+      if (isRemote(path)) {
+        // we need to add the hadoop url factories to the JVM to support hdfs, S3, or wasb
+        // we only want to call this once per jvm or it will throw an error
+        configureURLFactory()
+        new URL(path)
+      } else {
+        new File(path).toURI.toURL
+      }
+    }
+    catch {
+      case e: MalformedURLException => throw new IllegalArgumentException(s"Invalid URL $path: ", e)
+    }
+  }
 
   override def interpretPath(path: String): Seq[FileHandle] = chooseDelegate(path).interpretPath(path)
 

@@ -20,6 +20,7 @@ import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.tools.DataStoreCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
+import org.locationtech.geomesa.utils.io.PathUtils
 
 /**
  * Abstract class for FSDS commands
@@ -31,16 +32,7 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   override def params: FsParams
 
   override def connection: Map[String, String] = {
-    FsDataStoreCommand.configureURLFactory()
-    val url = try {
-      if (params.path.matches("""\w+://.*""")) {
-        new URL(params.path)
-      } else {
-        new File(params.path).toURI.toURL
-      }
-    } catch {
-      case e: MalformedURLException => throw new ParameterException(s"Invalid URL ${params.path}: ", e)
-    }
+    val url = PathUtils.getUrl(params.path)
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.getName -> url.toString)
     if (params.configuration != null && !params.configuration.isEmpty) {
@@ -51,15 +43,6 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
 }
 
 object FsDataStoreCommand {
-
-  private var urlStreamHandlerSet = false
-
-  def configureURLFactory(): Unit = synchronized {
-    if (!urlStreamHandlerSet) {
-      URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory())
-      urlStreamHandlerSet = true
-    }
-  }
 
   trait FsParams {
     @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
