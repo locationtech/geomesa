@@ -130,7 +130,7 @@ org.apache.arrow:arrow-vector	0.6.0	compile
 org.apache.avro:avro	1.7.5	compile
 org.apache.camel:camel-core	2.15.1	compile
 org.apache.camel:camel-scala	2.15.1	compile
-org.apache.commons:commons-compress	1.4.1	compile
+org.apache.commons:commons-compress	1.16	compile
 org.apache.commons:commons-csv	1.5	compile
 org.apache.commons:commons-lang3	3.6	compile
 org.apache.commons:commons-math	2.2	compile
@@ -233,7 +233,6 @@ org.scalatra:scalatra-json_2.11	2.6.3	compile
 org.scalatra:scalatra-swagger_2.11	2.6.3	compile
 org.slf4j:slf4j-api	1.7.21	compile
 org.slf4j:slf4j-log4j12	1.7.21	compile
-org.tukaani:xz	1.0	compile
 picocontainer:picocontainer	1.2	compile
 redis.clients:jedis	2.9.0	compile
 
