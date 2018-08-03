@@ -32,16 +32,7 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   override def params: FsParams
 
   override def connection: Map[String, String] = {
-    PathUtils.configureURLFactory()
-    val url = try {
-      if (params.path.matches("""\w+://.*""")) {
-        new URL(params.path)
-      } else {
-        new File(params.path).toURI.toURL
-      }
-    } catch {
-      case e: MalformedURLException => throw new ParameterException(s"Invalid URL ${params.path}: ", e)
-    }
+    val url = PathUtils.getUrl(params.path)
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.getName -> url.toString)
     if (params.configuration != null && !params.configuration.isEmpty) {

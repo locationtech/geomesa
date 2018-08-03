@@ -41,8 +41,6 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
   override def execute(): Unit = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
-    ensureSameFs(PathUtils.RemotePrefixes)
-
     // try to load the sft, first check for an existing schema, then load from the params/environment
     var sft: SimpleFeatureType =
       Option(params.featureName).flatMap(n => Try(withDataStore(_.getSchema(n))).filter(_ != null).toOption)
@@ -131,11 +129,12 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
       libjarsFile, libjarsPaths, params.threads)
   }
 
-  private def ensureSameFs(prefixes: Seq[String]): Unit = {
-    prefixes.foreach { pre =>
-      if (params.files.exists(_.toLowerCase.startsWith(s"$pre://")) &&
-        !params.files.forall(_.toLowerCase.startsWith(s"$pre://"))) {
-        throw new ParameterException(s"Files must all be on the same file system: ($pre) or all be local")
+  private def ensureSameFs(): Unit = {
+    if (params.files.exists(PathUtils.isRemote)) {
+      // If we have a remote file, make sure they are all the same FS
+      val prefix = params.files.head.split(":")(0)
+      if (!params.files.forall(_.toLowerCase.startsWith(prefix))) {
+        throw new ParameterException(s"Files must all be on the same file system: ($prefix) or all be local")
       }
     }
   }
