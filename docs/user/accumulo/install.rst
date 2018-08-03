@@ -72,7 +72,7 @@ each tablet server.
     $ scp dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar \
         tserver1:$ACCUMULO_HOME/lib/ext
     # or for raster support
-    $ scp dist/accumulo/geomesa-accumulo-distributed-runtime-raster_2.11-$VERSION.jar \
+    $ scp dist/accumulo/geomesa-accumulo-raster-distributed-runtime_2.11-$VERSION.jar \
         tserver1:$ACCUMULO_HOME/lib/ext
 
 .. note::

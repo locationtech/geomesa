@@ -137,14 +137,26 @@ Registering user-defined types and functions can also be done manually by invoki
 
     SQLTypes.init(sparkSession.sqlContext)
 
-It is also possible to write a Spark DataFrame to a GeoMesa table with
+It is also possible to write a Spark DataFrame to a GeoMesa table with:
 
 .. code-block:: scala
 
-    dataFrame.write.format("geomesa").options("dsParams").option("geomesa.feature", "featureName").save()
+    dataFrame.write.format("geomesa").options(dsParams).option("geomesa.feature", "featureName").save()
 
 This will automatically convert the data frame's underlying RDD[Row] into an RDD[SimpleFeature] and write to the
 data store in parallel. For this to work, the feature type `featureName` must already exist in the data store.
+
+When writing features back, it is possible to specify the feature ID through the special ``__fid__`` column:
+
+.. code-block:: scala
+
+    dataFrame
+        .withColumn("__fid__", $"custom_fid")
+        .write
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "featureName")
+        .save
 
 Geospatial User-defined Types and Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
