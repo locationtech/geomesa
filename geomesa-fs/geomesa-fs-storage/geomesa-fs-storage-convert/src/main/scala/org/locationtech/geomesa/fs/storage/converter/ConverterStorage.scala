@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage.converter
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.vividsolutions.jts.geom.Envelope
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -142,7 +143,7 @@ object ConverterStorage {
     override def getEnvelope: ReferencedEnvelope =
       throw new UnsupportedOperationException("Converter storage does not support bounds")
 
-    override def expandBounds(envelope: ReferencedEnvelope): Unit =
+    override def expandBounds(envelope: Envelope): Unit =
       throw new UnsupportedOperationException("Converter storage does not support bounds")
   }
 

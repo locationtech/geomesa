@@ -8,20 +8,41 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
+import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.fs.storage.api.FileSystemWriter
 import org.opengis.feature.simple.SimpleFeature
 
-abstract class MetadataObservingFileSystemWriter extends FileSystemWriter {
+trait MetadataObservingFileSystemWriter extends FileSystemWriter {
   def metadata: org.locationtech.geomesa.fs.storage.api.FileMetadata
+
+  private var count = 0
+  private var bounds: Envelope = _
 
   override def write(feature: SimpleFeature): Unit = {
     // Update internal count/bounds/etc
+    count += 1
+    if (bounds == null) {
+      bounds = feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
+    } else {
+      bounds = {
+        bounds.expandToInclude(feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal)
+        bounds
+      }
+    }
     writeInternal(feature)
   }
 
+
+
   def writeInternal(feature: SimpleFeature): Unit
+
+  def closeInternal(): Unit
 
   override def close(): Unit = {
     // Finalize metadata
+    metadata.increaseFeatureCount(count)
+    metadata.expandBounds(bounds)
+    closeInternal()
   }
 }

@@ -17,6 +17,7 @@ import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.FileUtils
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.PartitionScheme
@@ -44,6 +45,8 @@ class FileSystemDataStoreTest extends Specification {
     }
     (format, sft, features)
   }
+
+//  val formats = Seq("orc", "parquet").map(createFormat)
 
   val formats = Seq("orc", "parquet").map(createFormat)
 
@@ -92,6 +95,12 @@ class FileSystemDataStoreTest extends Specification {
         ds.getTypeNames must have size 1
         val fs = ds.getFeatureSource(format)
         fs must not(beNull)
+
+        fs.getCount(Query.ALL) must beEqualTo(10)
+        val bounds = fs.getBounds
+        import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+        fs.getBounds mustNotEqual(null)
+        fs.getBounds must equalTo(new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
 
         val results = SelfClosingIterator(fs.getFeatures(new Query(format)).features()).toList
         results must containTheSameElementsAs(features)

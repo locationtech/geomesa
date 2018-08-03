@@ -46,7 +46,7 @@ class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: P
     }
   }
 
-  override def close(): Unit = {
+  override def closeInternal(): Unit = {
     flush()
     writer.close()
   }

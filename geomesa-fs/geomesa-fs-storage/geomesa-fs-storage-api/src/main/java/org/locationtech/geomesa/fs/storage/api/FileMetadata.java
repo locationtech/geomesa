@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.api;
 
+import com.vividsolutions.jts.geom.Envelope;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.Path;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -101,7 +102,7 @@ public interface FileMetadata {
      * Takes a new set of bounds and uses it to expand the existing bounds by
      * @param envelope Envelope to expand by.
      */
-    void expandBounds(ReferencedEnvelope envelope);
+    void expandBounds(Envelope envelope);
 
     /**
      * The file names of any data files stored in the partition

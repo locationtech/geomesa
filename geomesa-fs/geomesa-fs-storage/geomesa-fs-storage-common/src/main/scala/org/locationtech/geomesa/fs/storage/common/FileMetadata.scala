@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.Envelope
 import org.apache.hadoop.fs.Options.{CreateOpts, Rename}
 import org.apache.hadoop.fs._
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -145,7 +146,7 @@ class FileMetadata private (fc: FileContext,
   // TODO
   var internalCount = data.map(_.getInt("count")).getOrElse(0)
   import scala.collection.JavaConversions._
-  var bounds: Option[ReferencedEnvelope] = None
+  var bounds: Envelope = _
 //  data.map(_.getDoubleList("bounds")).map( l =>
 //
 //    new ReferencedEnvelope(l(0), l(1), l(2), l(3), CRS_EPSG_4326)
@@ -154,12 +155,17 @@ class FileMetadata private (fc: FileContext,
   override def getFeatureCount: Int = internalCount
   override def increaseFeatureCount(count: Int): Unit = internalCount += count
 
-  override def getEnvelope: ReferencedEnvelope = bounds.getOrElse(ReferencedEnvelope.EVERYTHING)
-  override def expandBounds(envelope: ReferencedEnvelope): Unit = if (bounds.isEmpty) {
-    bounds = Some(envelope)
+  override def getEnvelope: ReferencedEnvelope =
+    if (bounds == null) {
+      ReferencedEnvelope.EVERYTHING
+    } else {
+      new ReferencedEnvelope(bounds, CRS_EPSG_4326)
+    }
+  override def expandBounds(envelope: Envelope): Unit = if (bounds == null) {
+    bounds = envelope
   } else {
     bounds = {
-      bounds.get.expandToInclude(envelope)
+      bounds.expandToInclude(envelope)
       bounds
     }
   }
