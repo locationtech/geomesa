@@ -60,19 +60,7 @@ object ShapefileConverterFactory extends LazyLogging {
       val fields = sft match {
         case None =>
           ds.getSchema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
-            val expression: Expression =
-              if (d.getType.isInstanceOf[GeometryType] && ds.getSchema.getCoordinateReferenceSystem != null) {
-                val crsID = CRS.lookupEpsgCode(ds.getSchema.getCoordinateReferenceSystem, false)
-                if (crsID != 4326) {
-                  val str = s"projectFrom('EPSG:$crsID', $$${i+1})"
-                  Expression(str)
-                } else {
-                  Column(i + 1)
-                }
-              } else {
-                Column(i+1)
-              }
-            BasicField(d.getLocalName, Some(expression))
+            BasicField(d.getLocalName, Some(Column(i + 1)))
           }
 
         case Some(s) =>

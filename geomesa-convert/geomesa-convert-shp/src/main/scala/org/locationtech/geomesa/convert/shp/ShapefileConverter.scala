@@ -13,17 +13,19 @@ import java.net.URL
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
-import org.geotools.data.DataStoreFinder
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
+import org.geotools.data.{DataStoreFinder, FeatureReader, Query}
 import org.locationtech.geomesa.convert.shp.ShapefileConverter.ShapefileIterator
 import org.locationtech.geomesa.convert.{Counter, EnrichmentCache, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractConverter
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 import org.locationtech.geomesa.utils.text.TextTools
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class ShapefileConverter(targetSft: SimpleFeatureType, config: BasicConfig, fields: Seq[BasicField], options: BasicOptions)
     extends AbstractConverter(targetSft, config, fields, options)  {
@@ -103,9 +105,17 @@ object ShapefileConverter {
     * @param counter line counter
     */
   class ShapefileIterator(ds: ShapefileDataStore, array: Array[Any], counter: Counter)
-      extends CloseableIterator[Array[Any]] {
+      extends CloseableIterator[Array[Any]] with LazyLogging {
 
-    private val features = ds.getFeatureReader
+    val q = new Query
+    // Only ask to reproject if the Shapefile has a CRS
+    if (ds.getSchema.getCoordinateReferenceSystem != null) {
+      q.setCoordinateSystemReproject(CRS_EPSG_4326)
+    } else {
+      logger.warn(s"Shapefile does not have CRS info.")
+    }
+    private val features: FeatureReader[SimpleFeatureType, SimpleFeature] =
+      ds.getFeatureSource.getReader(q)
 
     override def hasNext: Boolean = features.hasNext
 

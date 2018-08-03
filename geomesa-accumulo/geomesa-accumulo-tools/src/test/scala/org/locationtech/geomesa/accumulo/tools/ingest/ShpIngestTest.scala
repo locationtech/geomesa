@@ -38,8 +38,8 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
   val schema = SimpleFeatureTypes.createType("shpingest", "*geom:Point:srid=4326,age:Integer,dtg:Date")
 
   val features = Seq(
-    ScalaSimpleFeature.create(schema, "1", "POINT(10.0 30.0)", 1, "2011-01-01T00:00:00.000Z"),
-    ScalaSimpleFeature.create(schema, "2", "POINT(20.0 40.0)", 2, "2012-01-01T00:00:00.000Z")
+    ScalaSimpleFeature.create(schema, "1", "POINT(1.0 1.5)", 1, "2011-01-01T00:00:00.000Z"),
+    ScalaSimpleFeature.create(schema, "2", "POINT(2.0 2.5)", 2, "2012-01-01T00:00:00.000Z")
   )
 
   val baseArgs = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
@@ -48,6 +48,7 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
   var dir: Path = _
   var shpFile: File = _
   var shpFileToReproject: File = _
+  var shpFileToReproject2: File = _
 
   "ShpIngest" should {
 
@@ -62,10 +63,10 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
       val bounds = fs.getBounds
-      bounds.getMinX mustEqual 10.0
-      bounds.getMaxX mustEqual 20.0
-      bounds.getMinY mustEqual 30.0
-      bounds.getMaxY mustEqual 40.0
+      bounds.getMinX mustEqual 1.0
+      bounds.getMaxX mustEqual 2.0
+      bounds.getMinY mustEqual 1.5
+      bounds.getMaxY mustEqual 2.5
 
       command.withDataStore { ds =>
         ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
@@ -84,10 +85,10 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
       val bounds = fs.getBounds
-      bounds.getMinX mustEqual 10.0
-      bounds.getMaxX mustEqual 20.0
-      bounds.getMinY mustEqual 30.0
-      bounds.getMaxY mustEqual 40.0
+      bounds.getMinX mustEqual 1.0
+      bounds.getMaxX mustEqual 2.0
+      bounds.getMinY mustEqual 1.5
+      bounds.getMaxY mustEqual 2.5
 
       command.withDataStore { ds =>
         ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
@@ -101,15 +102,37 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
       command.execute()
 
-      val fs = command.withDataStore(_.getFeatureSource("shpingest3857"))
+      val fs = command.withDataStore(_.getFeatureSource("shpingest32631"))
 
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
       val bounds = fs.getBounds
-      bounds.getMinX must beCloseTo(10.0, 0.0001)
-      bounds.getMaxX must beCloseTo(20.0, 0.0001)
-      bounds.getMinY must beCloseTo(30.0, 0.0001)
-      bounds.getMaxY must beCloseTo(40.0, 0.0001)
+      bounds.getMinX must beCloseTo(1.0, 0.0001)
+      bounds.getMaxX must beCloseTo(2.0, 0.0001)
+      bounds.getMinY must beCloseTo(1.5, 0.0001)
+      bounds.getMaxY must beCloseTo(2.5, 0.0001)
+
+      command.withDataStore { ds =>
+        ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
+          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
+      }
+    }
+
+    "reproject to 4326 automatically on ingest with flipped inputs" in {
+      val args = baseArgs :+ shpFileToReproject2.getAbsolutePath
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      command.execute()
+
+      val fs = command.withDataStore(_.getFeatureSource("shpingest4269"))
+
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+
+      val bounds = fs.getBounds
+      bounds.getMinX must beCloseTo(1.0, 0.0001)
+      bounds.getMaxX must beCloseTo(2.0, 0.0001)
+      bounds.getMinY must beCloseTo(1.5, 0.0001)
+      bounds.getMaxY must beCloseTo(2.5, 0.0001)
 
       command.withDataStore { ds =>
         ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
@@ -121,10 +144,12 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
   override def beforeAll(): Unit = {
     dir = Files.createTempDirectory("gm-shp-ingest-test")
     shpFile = new File(dir.toFile, "shpingest.shp")
-    shpFileToReproject = new File(dir.toFile, "shpingest3857.shp")
+    shpFileToReproject = new File(dir.toFile, "shpingest32631.shp")
+    shpFileToReproject2 = new File(dir.toFile, "shpingest4269.shp")
 
     val shpStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFile.toURI.toURL))
     val shpStoreToReproject: DataStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFileToReproject.toURI.toURL))
+    val shpStoreToReproject2: DataStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFileToReproject2.toURI.toURL))
 
     try {
       shpStore.createSchema(schema)
@@ -139,10 +164,10 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       }
 
       val initialFeatures = shpStore.getFeatureSource("shpingest").getFeatures
-      val projectedFeatures = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:3857"))
+      val projectedFeatures = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:32631"))
 
       shpStoreToReproject.createSchema(projectedFeatures.getSchema)
-      WithClose(shpStoreToReproject.getFeatureWriterAppend("shpingest3857", Transaction.AUTO_COMMIT)) { writer =>
+      WithClose(shpStoreToReproject.getFeatureWriterAppend("shpingest32631", Transaction.AUTO_COMMIT)) { writer =>
         CloseableIterator(projectedFeatures.features()).foreach { feature =>
           val toWrite = writer.next()
           toWrite.setAttributes(feature.getAttributes)
@@ -151,9 +176,25 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
           writer.write()
         }
       }
+
+      val projectedFeatures2 = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:4269"))
+
+      shpStoreToReproject2.createSchema(projectedFeatures2.getSchema)
+      WithClose(shpStoreToReproject2.getFeatureWriterAppend("shpingest4269", Transaction.AUTO_COMMIT)) { writer =>
+        CloseableIterator(projectedFeatures2.features()).foreach { feature =>
+          val toWrite = writer.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+          writer.write()
+        }
+      }
+
+
     } finally {
       shpStore.dispose()
       shpStoreToReproject.dispose()
+      shpStoreToReproject2.dispose()
     }
   }
 
