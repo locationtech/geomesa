@@ -22,7 +22,6 @@ abstract class MetadataObservingFileSystemWriter extends FileSystemWriter {
   def writeInternal(feature: SimpleFeature): Unit
 
   override def close(): Unit = {
-    metadata
     // Finalize metadata
   }
 }

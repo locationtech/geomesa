@@ -48,8 +48,6 @@ class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: P
 
   override def close(): Unit = {
     flush()
-
-    writer.addUserMetadata("foo", null)
     writer.close()
   }
 }

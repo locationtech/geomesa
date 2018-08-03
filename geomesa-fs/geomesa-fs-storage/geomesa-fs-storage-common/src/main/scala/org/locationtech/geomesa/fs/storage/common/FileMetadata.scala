@@ -20,7 +20,7 @@ import org.apache.hadoop.fs._
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
@@ -39,7 +39,8 @@ class FileMetadata private (fc: FileContext,
                             root: Path,
                             sft: SimpleFeatureType,
                             scheme: PartitionScheme,
-                            encoding: String)
+                            encoding: String,
+                            data: Option[Config])
     extends org.locationtech.geomesa.fs.storage.api.FileMetadata {
 
   import scala.collection.JavaConverters._
@@ -142,10 +143,26 @@ class FileMetadata private (fc: FileContext,
   }
 
   // TODO
-  override def getFeatureCount: Int = ???
-  override def increaseFeatureCount(count: Int): Unit = ???
-  override def getEnvelope: ReferencedEnvelope = ???
-  override def expandBounds(envelope: ReferencedEnvelope): Unit = ???
+  var internalCount = data.map(_.getInt("count")).getOrElse(0)
+  import scala.collection.JavaConversions._
+  var bounds: Option[ReferencedEnvelope] = None
+//  data.map(_.getDoubleList("bounds")).map( l =>
+//
+//    new ReferencedEnvelope(l(0), l(1), l(2), l(3), CRS_EPSG_4326)
+//  )
+
+  override def getFeatureCount: Int = internalCount
+  override def increaseFeatureCount(count: Int): Unit = internalCount += count
+
+  override def getEnvelope: ReferencedEnvelope = bounds.getOrElse(ReferencedEnvelope.EVERYTHING)
+  override def expandBounds(envelope: ReferencedEnvelope): Unit = if (bounds.isEmpty) {
+    bounds = Some(envelope)
+  } else {
+    bounds = {
+      bounds.get.expandToInclude(envelope)
+      bounds
+    }
+  }
 }
 
 object FileMetadata extends MethodProfiling with LazyLogging {
@@ -187,7 +204,7 @@ object FileMetadata extends MethodProfiling with LazyLogging {
     if (PathCache.exists(fc, file)) {
       throw new IllegalArgumentException(s"Metadata file already exists at path '$file'")
     }
-    val metadata = new FileMetadata(fc, root, sft, scheme, encoding)
+    val metadata = new FileMetadata(fc, root, sft, scheme, encoding, None)
     cache.put((fc, file), metadata)
     save(metadata)
     metadata
@@ -235,12 +252,14 @@ object FileMetadata extends MethodProfiling with LazyLogging {
       // Load encoding
       val encoding = config.getString("encoding")
 
+      val data: Config = config.getConfig("data")
+
       // Load partition scheme - note we currently have to reload the SFT user data manually
       // which is why we have to add the partition scheme back to the SFT
       val scheme = PartitionScheme(sft, config.getConfig("partitionScheme"))
       PartitionScheme.addToSft(sft, scheme)
 
-      val metadata = new FileMetadata(fc, file.getParent, sft, scheme, encoding)
+      val metadata = new FileMetadata(fc, file.getParent, sft, scheme, encoding, Some(data))
 
       // Load Partitions
       profile {
@@ -268,6 +287,10 @@ object FileMetadata extends MethodProfiling with LazyLogging {
     val file = filePath(metadata.getRoot)
 
     val config = profile {
+      val dataConfig = ConfigFactory.empty()
+        .withValue("count", ConfigValueFactory.fromAnyRef(metadata.getFeatureCount)).root()
+
+
       val sft = metadata.getSchema
       val sftConfig = SimpleFeatureTypes.toConfig(sft, includePrefix = false, includeUserData = true).root()
       ConfigFactory.empty()
@@ -275,6 +298,7 @@ object FileMetadata extends MethodProfiling with LazyLogging {
         .withValue("encoding", ConfigValueFactory.fromAnyRef(metadata.getEncoding))
         .withValue("partitionScheme", PartitionScheme.toConfig(metadata.getPartitionScheme).root())
         .withValue("partitions", ConfigValueFactory.fromMap(metadata.getPartitionFiles))
+        .withValue("data", dataConfig)
         .root
         .render(options)
     } ((_, time) => logger.debug(s"Created config for persistence in ${time}ms"))
