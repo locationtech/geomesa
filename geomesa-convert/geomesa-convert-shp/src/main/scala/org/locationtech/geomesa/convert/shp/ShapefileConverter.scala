@@ -79,7 +79,9 @@ object ShapefileConverter {
     * @return
     */
   def getDataStore(path: String): ShapefileDataStore = {
+    println(s" In ShapefileConverter with path: $path")
     val url = PathUtils.getUrl(path)
+    println(s"URL: $url")
     val params = Collections.singletonMap(ShapefileDataStoreFactory.URLP.key, url)
     val ds = DataStoreFinder.getDataStore(params).asInstanceOf[ShapefileDataStore]
     if (ds == null) {

@@ -41,12 +41,17 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
 
   // Make sure that the Hadoop URL Factory is configured.
   def configureURLFactory(): Unit = {
+    println("Call configureURL Factory")
+    
     if (factorySet.compareAndSet(false, true)) {
       try { // Calling this method twice in the same JVM causes a java.lang.Error
         URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory)
+        logger.warn("Configured Hadoop URLs!")
+        println("Configured Hadoop URLs!")
       } catch {
         case _: Throwable =>
           logger.warn("Could not register Hadoop URL Factory.  Some filesystems may not be available.")
+          println("Could not register Hadoop URL Factory.  Some filesystems may not be available.")
       }
     }
   }
@@ -56,8 +61,12 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     * @param path Input resource path
     * @return     Whether or not the resource is remote.
     */
-  def isRemote(path: String): Boolean =
-    uriRegex.matcher(path).matches() && !path.toLowerCase.startsWith("file://")
+  def isRemote(path: String): Boolean = {
+    val ret = uriRegex.matcher(path).matches() && !path.toLowerCase.startsWith("file://")
+    println(s"isremote($path): $ret")
+    ret
+   }
+   
 
   /**
     * Registers Hadoop URL handlers via #configureURLFactory()
@@ -66,13 +75,16 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     * @return     URL instance
     */
   def getUrl(path: String): URL = {
+    println(s"getUrl($path)")
     try {
       if (isRemote(path)) {
+        println(s"path: $path is remote")
         // we need to add the hadoop url factories to the JVM to support hdfs, S3, or wasb
         // we only want to call this once per jvm or it will throw an error
         configureURLFactory()
         new URL(path)
       } else {
+        println(s"path: $path is not remote")
         new File(path).toURI.toURL
       }
     }

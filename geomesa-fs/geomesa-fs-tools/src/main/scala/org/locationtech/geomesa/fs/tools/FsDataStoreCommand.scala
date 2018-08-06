@@ -32,6 +32,7 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   override def params: FsParams
 
   override def connection: Map[String, String] = {
+    println(s"In FSDSCommand with path ${params.path}")
     val url = PathUtils.getUrl(params.path)
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.getName -> url.toString)
