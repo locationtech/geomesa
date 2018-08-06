@@ -26,6 +26,7 @@ object TypeInference {
 
   import LatLon.{Lat, Lon, NotLatLon}
   import ObjectType._
+  import org.locationtech.geomesa.utils.text.TextTools.isWhitespace
 
   private val geometries =
     Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION, GEOMETRY)
@@ -49,7 +50,7 @@ object TypeInference {
     var i = 0
     data.iterator.foreach { row =>
       // skip empty rows or rows consisting of a single whitespace-only string
-      if (row.nonEmpty && (row.size > 1 || row.headOption.collect { case s: String if s.trim.isEmpty => s }.isEmpty)) {
+      if (row.nonEmpty && (row.size > 1 || row.headOption.collect { case s: String if isWhitespace(s) => s }.isEmpty)) {
         i = 0
         row.foreach { col =>
           if (i == rawTypes.length) {
@@ -253,12 +254,12 @@ object TypeInference {
     } else {
       lazy val latlon = merge(left.latlon, right.latlon)
       left.typed match {
-        case INT    if Seq(LONG, FLOAT, DOUBLE).contains(right.typed) => Some(right.copy(latlon = latlon))
-        case LONG   if right.typed == INT                             => Some(left.copy(latlon = latlon))
-        case LONG   if Seq(FLOAT, DOUBLE).contains(right.typed)       => Some(right.copy(latlon = latlon))
-        case FLOAT  if Seq(INT, LONG).contains(right.typed)           => Some(left.copy(latlon = latlon))
-        case FLOAT  if right.typed == DOUBLE                          => Some(right.copy(latlon = latlon))
-        case DOUBLE if Seq(INT, LONG, FLOAT).contains(right.typed)    => Some(left.copy(latlon = latlon))
+        case INT    if Seq(INT, LONG, FLOAT, DOUBLE).contains(right.typed) => Some(right.copy(latlon = latlon))
+        case LONG   if right.typed == INT | right.typed == LONG            => Some(left.copy(latlon = latlon))
+        case LONG   if Seq(LONG, FLOAT, DOUBLE).contains(right.typed)      => Some(right.copy(latlon = latlon))
+        case FLOAT  if Seq(INT, FLOAT, LONG).contains(right.typed)         => Some(left.copy(latlon = latlon))
+        case FLOAT  if right.typed == FLOAT | right.typed == DOUBLE        => Some(right.copy(latlon = latlon))
+        case DOUBLE if Seq(INT, LONG, FLOAT, DOUBLE).contains(right.typed) => Some(left.copy(latlon = latlon))
         case _ => None
       }
     }

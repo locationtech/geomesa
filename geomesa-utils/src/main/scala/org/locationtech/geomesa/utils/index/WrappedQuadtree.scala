@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.index
 
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
 
 import scala.collection.JavaConverters._
@@ -20,23 +20,21 @@ class WrappedQuadtree[T] extends SpatialIndex[T] with Serializable {
 
   private var qt = new Quadtree
 
-  override def insert(x: Double, y: Double, key: String, item: T): Unit = insert(new Envelope(x, x, y, y), key, item)
 
-  override def insert(envelope: Envelope, key: String, item: T): Unit = qt.insert(envelope, (key, item))
+  override def insert(geom: Geometry, key: String, value: T): Unit = qt.insert(geom.getEnvelopeInternal, (key, value))
 
-  override def remove(x: Double, y: Double, key: String): T = remove(new Envelope(x, x, y, y), key)
-
-  override def remove(envelope: Envelope, key: String): T = {
+  override def remove(geom: Geometry, key: String): T = {
+    val envelope = geom.getEnvelopeInternal
     qt.query(envelope).asScala.asInstanceOf[Seq[(String, T)]].find(_._1 == key) match {
       case None => null.asInstanceOf[T]
       case Some(kv) => qt.remove(envelope, kv); kv._2
     }
   }
 
-  override def get(x: Double, y: Double, key: String): T = get(new Envelope(x, x, y, y), key)
-
-  override def get(envelope: Envelope, key: String): T =
-    qt.query(envelope).asScala.asInstanceOf[Seq[(String, T)]].find(_._1 == key).map(_._2).getOrElse(null.asInstanceOf[T])
+  override def get(geom: Geometry, key: String): T = {
+    val intersect = qt.query(geom.getEnvelopeInternal).asScala.asInstanceOf[Seq[(String, T)]]
+    intersect.find(_._1 == key).map(_._2).getOrElse(null.asInstanceOf[T])
+  }
 
   override def query(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Iterator[T] =
     qt.query(new Envelope(xmin, xmax, ymin, ymax)).iterator.asScala.asInstanceOf[Iterator[(String, T)]].map(_._2)

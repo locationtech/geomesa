@@ -32,6 +32,12 @@ be accomplished by placing the file in the ``conf`` folder. For more information
 Installing GeoMesa Bigtable in GeoServer
 ----------------------------------------
 
+.. warning::
+
+   GeoServer 2.13.0 and 2.13.1 are not recommended due to two serious bugs:
+     * GeoMesa WPS processes are not triggered correctly, and will run slowly or not at all
+     * GeoMesa count optimizations are bypassed, potentially resulting in large duplicate scans for WFS queries
+
 The HBase GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
 ``dist/gs-plugins/target/geomesa-bigtable-gs-plugin_2.11-$VERSION-install.tar.gz``
 into GeoServer's ``WEB-INF/lib`` directory. This distribution does not include HBase or Hadoop JARs - the following JARs

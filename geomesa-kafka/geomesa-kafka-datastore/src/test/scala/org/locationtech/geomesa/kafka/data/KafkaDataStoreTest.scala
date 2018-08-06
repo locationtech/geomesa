@@ -9,8 +9,9 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.nio.charset.StandardCharsets
-import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
+import java.util.{Collections, Date}
 import java.{io, util}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -26,20 +27,24 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
+import org.locationtech.geomesa.kafka.EmbeddedKafka
+import org.locationtech.geomesa.kafka.ExpirationMocking.{ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
-import org.locationtech.geomesa.kafka.{EmbeddedKafka, MockTicker}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
+import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.mockito.ArgumentMatchers
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends Specification with LazyLogging {
+class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
   import scala.collection.JavaConversions._
   import scala.concurrent.duration._
@@ -65,17 +70,16 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
   val gf = JTSFactoryFinder.getGeometryFactory
   val paths = new AtomicInteger(0)
 
-  def newPath: String = s"geomesa/kafka/test/${paths.getAndIncrement()}"
-
   def getStore(zkPath: String, consumers: Int, extras: Map[String, AnyRef] = Map.empty): KafkaDataStore = {
     val params = baseParams ++ Map("kafka.zk.path" -> zkPath, "kafka.consumer.count" -> consumers) ++ extras
     DataStoreFinder.getDataStore(params).asInstanceOf[KafkaDataStore]
   }
 
-  def createStorePair(params: Map[String, AnyRef] = Map.empty): (KafkaDataStore, KafkaDataStore, SimpleFeatureType) = {
+  def createStorePair(name: String,
+                      params: Map[String, AnyRef] = Map.empty): (KafkaDataStore, KafkaDataStore, SimpleFeatureType) = {
     // note: the topic gets set in the user data, so don't re-use the same sft instance
     val sft = SimpleFeatureTypes.createType("kafka", "name:String:cq-index=unique,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val path = newPath
+    val path = s"geomesa/$name/test/${paths.getAndIncrement()}"
     (getStore(path, 0, params), getStore(path, 1, params), sft)
   }
 
@@ -89,7 +93,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
     }
 
     "create unique topics based on zkPath" >> {
-      val path = newPath
+      val path = s"geomesa/topics/test/${paths.getAndIncrement()}"
       val ds = getStore(path, 0)
       try {
         ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
@@ -101,7 +105,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
 
     "use namespaces" >> {
       import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams._
-      val path = newPath
+      val path = s"geomesa/namespace/test/${paths.getAndIncrement()}"
       val ds = getStore(path, 0, Map(NamespaceParam.key -> "ns0"))
       try {
         ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
@@ -122,7 +126,9 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
     "allow schemas to be created and deleted" >> {
       foreach(Seq("true", "false")) { cqEngine =>
         CachedLazyMetadata.Expiry.threadLocalValue.set("10ms")
-        val (producer, consumer, _) = try { createStorePair(Map("kafka.cache.cqengine" -> cqEngine)) } finally {
+        val (producer, consumer, _) = try {
+          createStorePair("createdelete", Map("kafka.cache.cqengine" -> cqEngine))
+        } finally {
           CachedLazyMetadata.Expiry.threadLocalValue.remove()
         }
         consumer must not(beNull)
@@ -159,7 +165,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
 
     "write/update/read/delete features" >> {
       foreach(Seq("true", "false")) { cqEngine =>
-        val (producer, consumer, sft) = createStorePair(Map("kafka.cache.cqengine" -> cqEngine))
+        val (producer, consumer, sft) = createStorePair("writeupdatedelete", Map("kafka.cache.cqengine" -> cqEngine))
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
@@ -177,12 +183,12 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
 
           // update
-          f0.setAttributes(Array[AnyRef]("smith2", Int.box(32), "2017-01-01T00:00:02.000Z", "POINT (2 2)"))
+          val f2 = ScalaSimpleFeature.create(sft, "sm", "smith2", 32, "2017-01-01T00:00:02.000Z", "POINT (2 2)")
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            FeatureUtils.copyToWriter(writer, f0, useProvidedFid = true)
+            FeatureUtils.copyToWriter(writer, f2, useProvidedFid = true)
             writer.write()
           }
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f1, f2)))
 
           // query
           val queries = Seq(
@@ -215,7 +221,8 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
     }
 
     "write/read with visibilities" >> {
-      skipped("intermittent failures")
+      import org.locationtech.geomesa.security.AuthProviderParam
+
       foreach(Seq("true", "false")) { cqEngine =>
         var auths: Set[String] = null
         val provider = new AuthorizationsProvider() {
@@ -224,8 +231,8 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
           override def configure(params: util.Map[String, io.Serializable]): Unit = {}
         }
 
-        val (producer, consumer, sft) = createStorePair(Map("kafka.cache.cqengine" -> cqEngine,
-          org.locationtech.geomesa.security.AuthProviderParam.key -> provider))
+        val (producer, consumer, sft) = createStorePair("vis",
+          Map("kafka.cache.cqengine" -> cqEngine, AuthProviderParam.key -> provider))
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
@@ -262,11 +269,12 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
     }
 
     "expire entries" >> {
-      skipped("this test fails intermittently")
-      val ticker = new MockTicker
-      val expiry = Map("kafka.cache.expiry" -> "100ms", "kafka.cache.cleanup" -> "10ms", "kafka.cache.ticker" -> ticker)
       foreach(Seq("true", "false")) { cqEngine =>
-        val (producer, consumer, sft) = createStorePair(Map("kafka.cache.cqengine" -> cqEngine) ++ expiry)
+        val executor = mock[ScheduledExecutorService]
+        val ticker = Ticker.mock(System.currentTimeMillis())
+        val params = Map("kafka.cache.cqengine" -> cqEngine, "kafka.cache.expiry" -> "100ms",
+          "kafka.cache.executor" -> (executor, ticker))
+        val (producer, consumer, sft) = createStorePair("expire", params)
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
@@ -275,6 +283,14 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
           val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
 
           val bbox = ECQL.toFilter("bbox(geom,-10,-10,10,10)")
+
+          val expirations = Collections.synchronizedList(new java.util.ArrayList[WrappedRunnable](2))
+          executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.anyLong(), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
+            val expire = new WrappedRunnable(0L)
+            expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
+            expirations.add(expire)
+            new ScheduledExpiry(expire)
+          }
 
           // initial write
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
@@ -290,13 +306,13 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
               containTheSameElementsAs(Seq(f0, f1)))
 
-          // allow the cache to expire
-          ticker.millis += 1000
+          // expire the cache
+          expirations.foreach(_.runnable.run())
 
           // verify feature has expired - hit the cache directly
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features) must beEmpty)
+          SelfClosingIterator(store.getFeatures.features) must beEmpty
           // verify feature has expired - hit the spatial index
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features) must beEmpty)
+          SelfClosingIterator(store.getFeatures(bbox).features) must beEmpty
         } finally {
           consumer.dispose()
           producer.dispose()
@@ -305,10 +321,10 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
     }
 
     "support listeners" >> {
-      val (producer, consumer, sft) = createStorePair()
+      val (producer, consumer, sft) = createStorePair("listeners")
       try {
         val id = "fid-0"
-        val numUpdates = 100
+        val numUpdates = 1
         val maxLon = 80.0
 
         var latestLon = -1.0
@@ -349,7 +365,7 @@ class KafkaDataStoreTest extends Specification with LazyLogging {
     "migrate old kafka data store schemas" >> {
       val spec = "test:String,dtg:Date,*geom:Point:srid=4326"
 
-      val path = newPath
+      val path = s"geomesa/migrate/test/${paths.getAndIncrement()}"
       val client = CuratorFrameworkFactory.builder()
           .namespace(path)
           .connectString(kafka.zookeepers)

@@ -9,22 +9,18 @@
 package org.locationtech.geomesa.kafka.index
 
 import java.io.Closeable
-import java.util.Date
 import java.util.concurrent._
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport, SpatialIndexSupport}
+import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
-import org.locationtech.geomesa.kafka.index.BasicFeatureCache.{ExtentOps, PointOps}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, IndexConfig}
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
-
-import scala.concurrent.duration.Duration
-import scala.util.control.NonFatal
 
 trait KafkaFeatureCache extends Closeable {
   def put(feature: SimpleFeature): Unit
@@ -34,42 +30,41 @@ trait KafkaFeatureCache extends Closeable {
   def size(filter: Filter): Int
   def query(id: String): Option[SimpleFeature]
   def query(filter: Filter): Iterator[SimpleFeature]
-
-  protected def time: Option[Expression] = None
 }
 
 object KafkaFeatureCache extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  def apply(sft: SimpleFeatureType,
-            config: KafkaDataStore.IndexConfig): KafkaFeatureCache = {
-    val eventTimeExpression = config.eventTime.map(e => (FastFilterFactory.toExpression(sft, e.expression), e.ordering))
-    val expiryMillis = if (config.expiry == Duration.Inf) { -1 } else { config.expiry.toMillis }
+  /**
+    * Create a standard feature cache
+    *
+    * @param sft simple feature type
+    * @param config cache config
+    * @return
+    */
+  def apply(sft: SimpleFeatureType, config: IndexConfig): KafkaFeatureCache = new KafkaFeatureCacheImpl(sft, config)
 
-    if (sft.nonPoints) {
-      // note: CQEngine handles points vs non-points internally
-      val support = if (config.cqAttributes.nonEmpty) { cqIndexSupport(sft, config) } else {
-        SizeSeparatedBucketIndexSupport(sft, config.resolutionX / 360d, config.resolutionY / 180d)
-      }
-      eventTimeExpression match {
-        case None         => new BasicFeatureCache(support, sft.getGeomIndex, expiryMillis) with ExtentOps
-        case Some((e, o)) => new EventTimeFeatureCache(support, sft.getGeomIndex, expiryMillis, e, o) with ExtentOps
-      }
-    } else {
-      val support = if (config.cqAttributes.nonEmpty) { cqIndexSupport(sft, config) } else {
-        BucketIndexSupport(sft, config.resolutionX, config.resolutionY)
-      }
-      eventTimeExpression match {
-        case None         => new BasicFeatureCache(support, sft.getGeomIndex, expiryMillis) with PointOps
-        case Some((e, o)) => new EventTimeFeatureCache(support, sft.getGeomIndex, expiryMillis, e, o) with PointOps
-      }
-    }
-  }
-
+  /**
+    * No-op cache
+    *
+    * @return
+    */
   def empty(): KafkaFeatureCache = EmptyFeatureCache
 
-  def nonIndexing(cache: KafkaFeatureCache): KafkaFeatureCache = new NonIndexingFeatureCache(cache.time)
+  /**
+    * Cache that won't spatially index the features
+    *
+    * @param sft simple feature type
+    * @param eventTime event time config
+    * @return
+    */
+  def nonIndexing(sft: SimpleFeatureType, eventTime: Option[EventTimeConfig] = None): KafkaFeatureCache = {
+    eventTime.collect { case e if e.ordering => FastFilterFactory.toExpression(sft, e.expression) } match {
+      case None => new NonIndexingFeatureCache()
+      case Some(exp) => new NonIndexingEventTimeFeatureCache(exp)
+    }
+  }
 
   /**
     * Create a CQEngine index support. Note that CQEngine handles points vs non-points internally
@@ -78,7 +73,7 @@ object KafkaFeatureCache extends LazyLogging {
     * @param config index config
     * @return
     */
-  private def cqIndexSupport(sft: SimpleFeatureType, config: KafkaDataStore.IndexConfig): SpatialIndexSupport = {
+  private [index] def cqIndexSupport(sft: SimpleFeatureType, config: IndexConfig): SpatialIndexSupport = {
     val attributes = if (config.cqAttributes == Seq(KafkaDataStore.CqIndexFlag)) {
       // deprecated boolean config to enable indices based on the stored simple feature type
       CQIndexType.getDefinedAttributes(sft) ++ Option(sft.getGeomField).map((_, CQIndexType.GEOMETRY))
@@ -90,30 +85,12 @@ object KafkaFeatureCache extends LazyLogging {
 
   /**
     * Non-indexing feature cache that just tracks the most recent feature
-    *
-    * @param time event time expression
     */
-  class NonIndexingFeatureCache(time: Option[Expression]) extends KafkaFeatureCache {
+  class NonIndexingFeatureCache extends KafkaFeatureCache {
 
-    protected val state = new ConcurrentHashMap[String, SimpleFeature]
+    private val state = new ConcurrentHashMap[String, SimpleFeature]
 
-    /**
-      * WARNING: this method is not thread-safe
-      *
-      * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
-      */
-    override def put(feature: SimpleFeature): Unit = {
-      val old = state.put(feature.getID, feature)
-      time.foreach { t =>
-        try {
-          if (old != null && t.evaluate(old).asInstanceOf[Date].after(t.evaluate(feature).asInstanceOf[Date])) {
-            state.replace(feature.getID, feature, old)
-          }
-        } catch {
-          case NonFatal(e) => logger.error(s"Error evaluating event time for $feature", e)
-        }
-      }
-    }
+    override def put(feature: SimpleFeature): Unit = state.put(feature.getID, feature)
 
     override def remove(id: String): Unit = state.remove(id)
 
@@ -130,6 +107,51 @@ object KafkaFeatureCache extends LazyLogging {
     override def query(filter: Filter): Iterator[SimpleFeature] = {
       import scala.collection.JavaConverters._
       val features = state.asScala.valuesIterator
+      if (filter == Filter.INCLUDE) { features } else {
+        features.filter(filter.evaluate)
+      }
+    }
+  }
+
+  /**
+    * Non-indexing feature cache that just tracks the most recent feature, based on event time
+    *
+    * @param time event time expression
+    */
+  class NonIndexingEventTimeFeatureCache(time: Expression) extends KafkaFeatureCache {
+
+    private val state = new ConcurrentHashMap[String, (SimpleFeature, Long)]
+
+    /**
+      * Note: this method is not thread-safe. The `state` and can fail to replace the correct values
+      * if the same feature is updated simultaneously from two different threads
+      *
+      * In our usage, this isn't a problem, as a given feature ID is always operated on by a single thread
+      * due to kafka consumer partitioning
+      */
+    override def put(feature: SimpleFeature): Unit = {
+      val tuple = (feature, FeatureStateFactory.time(time, feature))
+      val old = state.put(feature.getID, tuple)
+      if (old != null && old._2 > tuple._2) {
+        state.replace(feature.getID, tuple, old)
+      }
+    }
+
+    override def remove(id: String): Unit = state.remove(id)
+
+    override def clear(): Unit = state.clear()
+
+    override def close(): Unit = {}
+
+    override def size(): Int = state.size()
+
+    override def size(filter: Filter): Int = query(filter).length
+
+    override def query(id: String): Option[SimpleFeature] = Option(state.get(id)).map(_._1)
+
+    override def query(filter: Filter): Iterator[SimpleFeature] = {
+      import scala.collection.JavaConverters._
+      val features = state.asScala.valuesIterator.map(_._1)
       if (filter == Filter.INCLUDE) { features } else {
         features.filter(filter.evaluate)
       }

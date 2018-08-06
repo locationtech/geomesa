@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.index
 
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Coordinate, Envelope, Geometry, GeometryFactory}
 
 /**
  * Trait for indexing and querying spatial data
@@ -16,59 +16,31 @@ import com.vividsolutions.jts.geom.Envelope
 trait SpatialIndex[T] {
 
   /**
-    * Insert a point item
+    * Insert a value indexed by a geometry and unique key
     *
-    * @param x x coordinate
-    * @param y y coordinate
-    * @param key key
-    * @param item item
+    * @param geom geometry used for indexing
+    * @param key unique value key
+    * @param value value to store
     */
-  def insert(x: Double, y: Double, key: String, item: T): Unit
+  def insert(geom: Geometry, key: String, value: T): Unit
 
   /**
-    * Insert an item with extents
+    * Remove a value based on its indexed geometry and unique key
     *
-    * @param envelope envelope
-    * @param key key
-    * @param item item
+    * @param geom geometry used for indexing
+    * @param key unique value key
+    * @return value, if it exists, or null
     */
-  def insert(envelope: Envelope, key: String, item: T): Unit
+  def remove(geom: Geometry, key: String): T
 
   /**
-    * Remove an item by location and key
+    * Retrieves a value by primary key
     *
-    * @param x x coordinate
-    * @param y y coordinate
-    * @param key key
-    * @return the item, if it existed
+    * @param geom geometry used for indexing
+    * @param key unique value key
+    * @return value, if it exists, or null
     */
-  def remove(x: Double, y: Double, key: String): T
-
-  /**
-    * Remove an item by location and key
-    *
-    * @param envelope envelope
-    * @param key key
-    */
-  def remove(envelope: Envelope, key: String): T
-
-  /**
-    * Retrieve an item by location and key
-    *
-    * @param x x coordinate
-    * @param y y coordinate
-    * @param key key
-    * @return
-    */
-  def get(x: Double, y: Double, key: String): T
-
-  /**
-    * Retrieves an item by location and key
-    *
-    * @param envelope envelope
-    * @param key key
-    */
-  def get(envelope: Envelope, key: String): T
+  def get(geom: Geometry, key: String): T
 
   /**
     * Query based on a bounding box
@@ -108,21 +80,55 @@ trait SpatialIndex[T] {
     */
   def clear(): Unit
 
-  @deprecated("insert(envelope, key, item)")
-  def insert(envelope: Envelope, item: T): Unit = insert(envelope, item.toString, item)
+  @deprecated("use insert(geometry, key, item)")
+  def insert(x: Double, y: Double, key: String, item: T): Unit = insert(SpatialIndex.geometry(x, y), key, item)
 
-  @deprecated("remove(envelope, key, item)")
-  def remove(envelope: Envelope, item: T): Boolean = remove(envelope, item.toString) != null
+  @deprecated("use insert(geometry, key, item)")
+  def insert(envelope: Envelope, key: String, item: T): Unit = insert(SpatialIndex.geometry(envelope), key, item)
+
+  @deprecated("use insert(geometry, key, item)")
+  def insert(envelope: Envelope, item: T): Unit = insert(SpatialIndex.geometry(envelope), item.toString, item)
+
+  @deprecated("use remove(geometry, key)")
+  def remove(x: Double, y: Double, key: String): T = remove(SpatialIndex.geometry(x, y), key)
+
+  @deprecated("use remove(geometry, key)")
+  def remove(envelope: Envelope, key: String): T = remove(SpatialIndex.geometry(envelope), key)
+
+  @deprecated("use remove(geometry, key)")
+  def remove(envelope: Envelope, item: T): Boolean = remove(SpatialIndex.geometry(envelope), item.toString) != null
+
+  @deprecated("use get(geometry, key)")
+  def get(x: Double, y: Double, key: String): T = get(SpatialIndex.geometry(x, y), key)
+
+  @deprecated("use get(geometry, key)")
+  def get(envelope: Envelope, key: String): T = get(SpatialIndex.geometry(envelope), key)
 
   @deprecated("query(bbox).filter(predicate)")
-  def query(envelope: Envelope, filter: (T) => Boolean): Iterator[T] = query(envelope).filter(filter.apply)
+  def query(envelope: Envelope, filter: T => Boolean): Iterator[T] = query(envelope).filter(filter.apply)
 }
 
 object SpatialIndex {
+
+  private val gf = new GeometryFactory()
+
   @deprecated
   def getCenter(envelope: Envelope): (Double, Double) = {
     val x = (envelope.getMinX + envelope.getMaxX) / 2.0
     val y = (envelope.getMinY + envelope.getMaxY) / 2.0
     (x, y)
+  }
+
+  private def geometry(x: Double, y: Double): Geometry = gf.createPoint(new Coordinate(x, y))
+
+  private def geometry(envelope: Envelope): Geometry = {
+    val coords = Array(
+      new Coordinate(envelope.getMinX, envelope.getMinY),
+      new Coordinate(envelope.getMaxX, envelope.getMinY),
+      new Coordinate(envelope.getMaxX, envelope.getMaxY),
+      new Coordinate(envelope.getMinX, envelope.getMaxY),
+      new Coordinate(envelope.getMinX, envelope.getMinY)
+    )
+    gf.createPolygon(coords)
   }
 }

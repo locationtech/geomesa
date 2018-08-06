@@ -9,10 +9,12 @@
 package org.locationtech.geomesa.convert.text
 
 import java.io._
-import java.nio.charset.Charset
+import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
+import org.geotools.factory.GeoTools
+import org.geotools.util.Converters
 import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
 import org.locationtech.geomesa.convert.ParseMode.ParseMode
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{DelimitedTextConfig, DelimitedTextOptions}
@@ -20,8 +22,11 @@ import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureValidat
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.converters.StringCollectionConverterFactory
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
 
@@ -121,6 +126,72 @@ object DelimitedTextConverter {
     val Quoted           : CSVFormat = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.ALL)
     val QuoteEscape      : CSVFormat = CSVFormat.DEFAULT.withEscape('"')
     val QuotedQuoteEscape: CSVFormat = CSVFormat.DEFAULT.withEscape('"').withQuoteMode(QuoteMode.ALL)
+    val QuotedMinimal    : CSVFormat = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL)
+    val TabsQuotedMinimal: CSVFormat = CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL)
+  }
+
+  /**
+    * Parses a delimited file with a 'magic' header. The first column must be the feature ID, and the header
+    * must be `id`. Subsequent columns must be the feature attributes, in order. For each attribute, the header
+    * must be a simple feature type attribute specification, consisting of the attribute name and the attribute
+    * binding
+    *
+    * For example:
+    *
+    * id,name:String,age:Int,*geom:Point:srid=4326
+    * fid-0,name0,0,POINT(40 50)
+    * fid-1,name1,1,POINT(41 51)
+    *
+    * @param typeName simple feature type name
+    * @param is input stream
+    * @param format parsing format
+    * @return
+    */
+  def magicParsing(typeName: String,
+                   is: InputStream,
+                   format: CSVFormat = Formats.QuotedMinimal): CloseableIterator[SimpleFeature] = {
+    import scala.collection.JavaConverters._
+
+    val parser = format.parse(new InputStreamReader(is, StandardCharsets.UTF_8))
+    val records = parser.iterator()
+
+    val header = if (records.hasNext) { records.next() } else { null }
+
+    require(header != null && header.get(0) == "id",
+      "Badly formatted file detected - expected header row with attributes")
+
+    // drop the 'id' field, at index 0
+    val sftString = (1 until header.size()).map(header.get).mkString(",")
+    val sft = SimpleFeatureTypes.createType(typeName, sftString)
+
+    val converters = sft.getAttributeDescriptors.asScala.map { ad =>
+      import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+      val hints = GeoTools.getDefaultHints
+      // for maps/lists, we have to pass along the subtype info during type conversion
+      if (ad.isList) {
+        hints.put(StringCollectionConverterFactory.ListTypeKey, ad.getListType())
+      } else if (ad.isMap) {
+        val (k, v) = ad.getMapTypes()
+        hints.put(StringCollectionConverterFactory.MapKeyTypeKey, k)
+        hints.put(StringCollectionConverterFactory.MapValueTypeKey, v)
+      }
+      (ad.getType.getBinding, hints)
+    }.toArray
+
+    val features = records.asScala.map { record =>
+      val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
+      var i = 1 // skip id field
+      while (i < record.size()) {
+        // convert the attributes directly so we can pass the collection hints
+        val (clas, hints) = converters(i - 1)
+        attributes(i - 1) = Converters.convert(record.get(i), clas, hints).asInstanceOf[AnyRef]
+        i += 1
+      }
+      // we can use the no-convert constructor since we've already converted everything
+      new ScalaSimpleFeature(sft, record.get(0), attributes)
+    }
+
+    CloseableIterator(features, parser.close())
   }
 
   private [text] val formats = Map(
@@ -134,7 +205,9 @@ object DelimitedTextConverter {
     "RFC4180"                  -> Formats.Rfc4180,
     "QUOTED"                   -> Formats.Quoted,
     "QUOTE_ESCAPE"             -> Formats.QuoteEscape,
-    "QUOTED_WITH_QUOTE_ESCAPE" -> Formats.QuotedQuoteEscape
+    "QUOTED_WITH_QUOTE_ESCAPE" -> Formats.QuotedQuoteEscape,
+    "QUOTED_MINIMAL"           -> Formats.QuotedMinimal,
+    "TSV_QUOTED_MINIMAL"       -> Formats.TabsQuotedMinimal
   )
 
   // check quoted before default - if values are quoted, we don't want the quotes to be captured as part of the value

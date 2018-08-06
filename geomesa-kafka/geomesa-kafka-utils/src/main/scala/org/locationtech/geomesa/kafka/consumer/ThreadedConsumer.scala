@@ -9,13 +9,12 @@
 package org.locationtech.geomesa.kafka.consumer
 
 import java.io.Closeable
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord, OffsetAndMetadata, OffsetCommitCallback}
 import org.apache.kafka.common.TopicPartition
-import org.apache.kafka.common.errors.WakeupException
+import org.apache.kafka.common.errors.{InterruptException, WakeupException}
 
 import scala.util.control.NonFatal
 
@@ -33,7 +32,8 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
 
   private val executor: ExecutorService = Executors.newFixedThreadPool(consumers.length)
 
-  private val closed = new AtomicBoolean(false)
+  @volatile
+  private var open = true
 
   private val commitCallback = new OffsetCommitCallback() {
     override def onComplete(offsets: java.util.Map[TopicPartition, OffsetAndMetadata], exception: Exception): Unit = {
@@ -57,10 +57,9 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
   }
 
   override def close(): Unit = {
-    closed.set(true)
-    consumers.foreach(_.wakeup())
-    executor.shutdownNow()
-    executor.awaitTermination(1, TimeUnit.SECONDS)
+    open = false
+    executor.shutdown()
+    executor.awaitTermination(Long.MaxValue, TimeUnit.SECONDS)
   }
 
   class ConsumerRunnable(consumer: Consumer[Array[Byte], Array[Byte]], frequency: Long, id: String) extends Runnable {
@@ -70,7 +69,7 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
     override def run(): Unit = {
       try {
         var interrupted = false
-        while (!closed.get() && !interrupted) {
+        while (open && !interrupted) {
           try {
             val result = consumer.poll(frequency)
             lazy val topics = result.partitions.asScala.map(tp => s"[${tp.topic}:${tp.partition}]").mkString(",")
@@ -86,7 +85,7 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
               errorCount = 0 // reset error count
             }
           } catch {
-            case _: WakeupException | _: InterruptedException => interrupted = true
+            case _: WakeupException | _: InterruptException | _: InterruptedException => interrupted = true
             case NonFatal(e) =>
               if (errorCount < 300) {
                 errorCount += 1
@@ -100,7 +99,9 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
         }
       } finally {
         if (closeConsumers) {
-          consumer.close()
+          try { consumer.close() } catch {
+            case NonFatal(e) => logger.warn(s"Error calling close on consumer: ", e)
+          }
         }
       }
     }

@@ -6,6 +6,12 @@ in GeoMesa data stores is to use `GeoServer`_,
 an open source server for sharing geospatial data. This chapter describes
 how to work with the GeoMesa GeoServer plugins.
 
+.. warning::
+
+   GeoServer 2.13.0 and 2.13.1 are not recommended due to two serious bugs:
+     * GeoMesa WPS processes are not triggered correctly, and will run slowly or not at all
+     * GeoMesa count optimizations are bypassed, potentially resulting in large duplicate scans for WFS queries
+
 Installation
 ------------
 

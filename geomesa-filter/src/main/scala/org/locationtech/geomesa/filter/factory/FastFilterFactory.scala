@@ -10,14 +10,14 @@ package org.locationtech.geomesa.filter.factory
 
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.filter.visitor.BindingFilterVisitor
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.expression.FastDWithin.DWithinLiteral
 import org.locationtech.geomesa.filter.expression.FastPropertyIsEqualTo.{FastIsEqualTo, FastIsEqualToIgnoreCase, FastListIsEqualToAny}
 import org.locationtech.geomesa.filter.expression.FastPropertyName.{FastPropertyNameAccessor, FastPropertyNameAttribute}
-import org.locationtech.geomesa.filter.expression.OrHashEquality
 import org.locationtech.geomesa.filter.expression.OrHashEquality.OrHashListEquality
+import org.locationtech.geomesa.filter.expression.OrSequentialEquality.OrSequentialListEquality
+import org.locationtech.geomesa.filter.expression.{OrHashEquality, OrSequentialEquality}
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor
 import org.opengis.feature.`type`.Name
@@ -68,10 +68,13 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
       return super.or(filters.asInstanceOf[java.util.List[_]])
     }
 
-    val literals = scala.collection.immutable.HashSet.newBuilder[AnyRef]
-    val props = scala.collection.mutable.HashSet.empty[String]
+    val predicates = FilterHelper.flattenOr(filters.asScala)
 
-    FilterHelper.flattenOr(filters.asScala).foreach {
+    val props = scala.collection.mutable.HashSet.empty[String]
+    val literals = scala.collection.immutable.HashSet.newBuilder[AnyRef]
+    literals.sizeHint(predicates)
+
+    predicates.foreach {
       case p: PropertyIsEqualTo if p.getMatchAction == MatchAction.ANY && p.isMatchingCase =>
         org.locationtech.geomesa.filter.checkOrder(p.getExpression1, p.getExpression2) match {
           case Some(PropertyLiteral(name, lit, _)) if !props.add(name) || props.size == 1 => literals += lit.getValue
@@ -82,11 +85,20 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
     }
 
     // if we've reached here, we have verified that all the child filters are equality matches on the same property
-    val descriptor = FastFilterFactory.sfts.get.getDescriptor(props.head)
-    if (descriptor != null && descriptor.isList) {
-      new OrHashListEquality(property(props.head), literals.result)
+    val prop = property(props.head)
+    val values = literals.result
+    val isListType = Option(FastFilterFactory.sfts.get.getDescriptor(props.head)).exists(_.isList)
+
+    if (values.size >= OrHashEquality.OrHashThreshold.get.toInt) {
+      if (isListType) {
+        new OrHashListEquality(prop, values)
+      } else {
+        new OrHashEquality(prop, values)
+      }
+    } else if (isListType) {
+      new OrSequentialListEquality(prop, values.toSeq)
     } else {
-      new OrHashEquality(property(props.head), literals.result)
+      new OrSequentialEquality(prop, values.toSeq)
     }
   }
 

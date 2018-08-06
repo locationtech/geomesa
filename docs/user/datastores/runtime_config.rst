@@ -116,6 +116,16 @@ This property controls how often simple feature type metadata is read from the u
 Calls to ``updateSchema`` on a data store will not show up in other instances until the metadata
 cache has expired. The expiry is specified as a duration, e.g. ``10 minutes`` or ``1 hour``.
 
+geomesa.filter.hash.threshold
++++++++++++++++++++++++++++++
+
+Evaluating a filter of the form ``name = 'john' OR name = 'jane' OR name = 'doe'`` can be slow if the number
+of clauses is high. GeoMesa will optimize such filters by turning them into a hash lookup instead of a sequential
+comparison. This property controls the threshold for switching to a hash lookup. By default, the threshold is ``5``.
+
+Note that for datastores with distributed filtering (e.g. HBase and Accumulo), this property needs to be set
+on the distributed processing nodes.
+
 geomesa.audit.provider.impl
 +++++++++++++++++++++++++++
 

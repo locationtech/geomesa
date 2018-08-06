@@ -31,6 +31,7 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, ConverterOptions, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.w3c.dom.{Element, NodeList}
 import org.xml.sax.InputSource
@@ -99,16 +100,16 @@ class XmlConverter(targetSft: SimpleFeatureType, config: XmlConfig, fields: Seq[
       val lines = IOUtils.lineIterator(is, options.encoding).asScala
       lines.flatMap { line =>
         ec.counter.incLineCount()
-        try {
-          Iterator.single(parseDocument(new StringReader(line)))
-        } catch {
-          case NonFatal(e) =>
-            ec.counter.incFailure()
-            options.errorMode match {
-              case ErrorMode.SkipBadRecords => logger.warn("Failed parsing input: ", e)
-              case ErrorMode.RaiseErrors => throw e
-            }
-            Iterator.empty
+        if (TextTools.isWhitespace(line)) { Iterator.empty } else {
+          try { Iterator.single(parseDocument(new StringReader(line))) } catch {
+            case NonFatal(e) =>
+              ec.counter.incFailure()
+              options.errorMode match {
+                case ErrorMode.SkipBadRecords => logger.warn("Failed parsing input: ", e)
+                case ErrorMode.RaiseErrors => throw e
+              }
+              Iterator.empty
+          }
         }
       }
     } else {

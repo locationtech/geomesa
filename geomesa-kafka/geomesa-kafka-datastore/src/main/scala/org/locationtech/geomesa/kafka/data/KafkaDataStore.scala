@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.io.IOException
+import java.util.concurrent.ScheduledExecutorService
 import java.util.{Properties, UUID}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
@@ -20,7 +21,6 @@ import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore, SimpleFeatureWriter}
 import org.geotools.data.{Query, Transaction}
-import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport, SpatialIndexSupport}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -31,11 +31,10 @@ import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatur
 import org.locationtech.geomesa.kafka.index._
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
-import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
-import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
+import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TABLE_SHARING_KEY
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.SHARING_PREFIX_KEY
@@ -49,7 +48,6 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
   import KafkaDataStore.{MetadataPath, TopicKey}
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override protected def catalog: String = config.catalog
 
@@ -81,8 +79,8 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
         val laz = config.indices.lazyDeserialization
-        val doInitialLoad = config.consumers.consumeFromBeginning
-        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, doInitialLoad)
+        val initialLoadConfig = if (config.consumers.consumeFromBeginning) { Some(config.indices) } else { None }
+        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, initialLoadConfig)
       }
     }
   })
@@ -274,7 +272,7 @@ object KafkaDataStore extends LazyLogging {
     }
   }
 
-  def withZk[T](zookeepers: String)(fn: (ZkUtils) => T): T = {
+  def withZk[T](zookeepers: String)(fn: ZkUtils => T): T = {
     val security = SystemProperty("geomesa.zookeeper.security.enabled").option.exists(_.toBoolean)
     val zkUtils = ZkUtils(zookeepers, 3000, 3000, security)
     try { fn(zkUtils) } finally {
@@ -305,7 +303,8 @@ object KafkaDataStore extends LazyLogging {
                          resolutionX: Int,
                          resolutionY: Int,
                          cqAttributes: Seq[(String, CQIndexType)],
-                         lazyDeserialization: Boolean)
+                         lazyDeserialization: Boolean,
+                         executor: Option[(ScheduledExecutorService, Ticker)])
 
   case class EventTimeConfig(expression: String, ordering: Boolean)
 }

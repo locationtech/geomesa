@@ -81,6 +81,11 @@ class TypeInferenceTest extends Specification with LazyLogging {
       foreach(types.drop(1).permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(FLOAT))
       foreach(types.drop(2).permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(LONG))
     }
+    "merge up number types with lat/lon" in {
+      TypeInference.infer(Seq(Seq(135), Seq(45))).map(_.typed) mustEqual Seq(INT)
+      TypeInference.infer(Seq(Seq(135f), Seq(45f))).map(_.typed) mustEqual Seq(FLOAT)
+      TypeInference.infer(Seq(Seq(135d), Seq(45d))).map(_.typed) mustEqual Seq(DOUBLE)
+    }
     "merge up geometry types" in {
       val types = Seq(Seq(point), Seq(lineString), Seq(polygon), Seq(multiPoint), Seq(multiLineString),
         Seq(multiPolygon), Seq(geometryCollection))

@@ -16,6 +16,7 @@ import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.convert
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -61,6 +62,13 @@ object SimpleFeatureConverter extends StrictLogging {
   logger.debug(s"Found ${factories.size + factoriesV1.size} factories: " +
       (factories ++ factoriesV1).map(_.getClass.getName).mkString(", "))
 
+  /**
+    * Create a converter
+    *
+    * @param sft simple feature type
+    * @param config converter configuration
+    * @return
+    */
   def apply(sft: SimpleFeatureType, config: Config): SimpleFeatureConverter = {
     val converters = factories.iterator.flatMap(_.apply(sft, config))
     if (converters.hasNext) { converters.next } else {
@@ -75,6 +83,41 @@ object SimpleFeatureConverter extends StrictLogging {
     }
   }
 
+  /**
+    * Create a converter by name
+    *
+    * @param typeName simple feature type name
+    * @param converterName converter name
+    * @return
+    */
+  def apply(typeName: String, converterName: String): SimpleFeatureConverter = {
+    val sft = SimpleFeatureTypeLoader.sftForName(typeName).getOrElse {
+      throw new IllegalArgumentException(s"Unable to load SimpleFeatureType for typeName '$typeName'")
+    }
+    apply(sft, converterName)
+  }
+
+  /**
+    * Create a converter by name
+    *
+    * @param sft simple feature type
+    * @param converterName converter name
+    * @return
+    */
+  def apply(sft: SimpleFeatureType, converterName: String): SimpleFeatureConverter = {
+    val converter = ConverterConfigLoader.configForName(converterName).getOrElse {
+      throw new IllegalArgumentException(s"Unable to load converter config for name '$converterName'")
+    }
+    apply(sft, converter)
+  }
+
+  /**
+    * Infer a converter based on a data sample
+    *
+    * @param is input stream to convert
+    * @param sft simple feature type, if known
+    * @return
+    */
   def infer(is: () => InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
     factories.foldLeft[Option[(SimpleFeatureType, Config)]](None) { (res, f) =>
       res.orElse(WithClose(is())(in => f.infer(in, sft)))

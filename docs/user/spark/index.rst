@@ -6,7 +6,9 @@ other GeoTools ``DataStore``\ s, or files readable by the GeoMesa converter libr
 The library allows creation of Spark ``RDD``\ s and ``DataFrame``\ s, writing of
 Spark ``RDD``\ s and ``DataFrame``\ s to GeoMesa Accumulo and other GeoTools ``DataStore``\ s, and serialization of ``SimpleFeature``\ s using Kryo.
 
-The current version of GeoMesa Spark supports Apache Spark |spark_version|.
+.. note::
+
+   The current version of GeoMesa supports Apache Spark |spark_version|.
 
 .. toctree::
    :maxdepth: 1

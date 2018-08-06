@@ -32,6 +32,10 @@
         <priority value="warn"/>
     </category>
 
+    <category name="org.locationtech.geomesa.kafka">
+        <priority value="warn"/>
+    </category>
+
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->
@@ -40,10 +44,6 @@
         <priority value="trace"/>
     </category>
     -->
-
-    <category name="org.locationtech.geomesa.kafka">
-        <priority value="info"/>
-    </category>
 
     <root>
         <priority value="info"/>

@@ -11,15 +11,21 @@ package org.locationtech.geomesa.utils.index
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Envelope, Geometry, Point}
 import org.locationtech.geomesa.utils.geotools.GridSnap
 
 import scala.annotation.tailrec
 
 /**
- * Spatial index that breaks up space into discrete buckets to index points.
- * Does not support non-point inserts.
- */
+  * Spatial index that breaks up space into discrete buckets to index points
+  *
+  * Does not support non-point inserts
+  *
+  * @param xBuckets number of x buckets
+  * @param yBuckets number of y buckets
+  * @param extents area to be indexed
+  * @tparam T index value binding
+  */
 class BucketIndex[T](xBuckets: Int = 360,
                      yBuckets: Int = 180,
                      extents: Envelope = new Envelope(-180.0, 180.0, -90.0, 90.0))
@@ -31,10 +37,11 @@ class BucketIndex[T](xBuckets: Int = 360,
 
   private val gridSnap = new GridSnap(extents, xBuckets, yBuckets)
 
-  override def insert(x: Double, y: Double, key: String, item: T): Unit = {
-    val i = snapX(x)
-    val j = snapY(y)
-    buckets(i)(j).put(key, item)
+  override def insert(geom: Geometry, key: String, value: T): Unit = {
+    val pt = geom.asInstanceOf[Point]
+    val i = snapX(pt.getX)
+    val j = snapY(pt.getY)
+    buckets(i)(j).put(key, value)
   }
 
   override def insert(envelope: Envelope, key: String, item: T): Unit = {
@@ -44,18 +51,20 @@ class BucketIndex[T](xBuckets: Int = 360,
     insert((envelope.getMinX + envelope.getMaxX) / 2.0, (envelope.getMinY + envelope.getMaxY) / 2.0, key, item)
   }
 
-  override def remove(x: Double, y: Double, key: String): T = {
-    val i = snapX(x)
-    val j = snapY(y)
+  override def remove(geom: Geometry, key: String): T = {
+    val pt = geom.asInstanceOf[Point]
+    val i = snapX(pt.getX)
+    val j = snapY(pt.getY)
     buckets(i)(j).remove(key)
   }
 
   override def remove(envelope: Envelope, key: String): T =
     remove((envelope.getMinX + envelope.getMaxX) / 2.0, (envelope.getMinY + envelope.getMaxY) / 2.0, key)
 
-  override def get(x: Double, y: Double, key: String): T = {
-    val i = snapX(x)
-    val j = snapY(y)
+  override def get(geom: Geometry, key: String): T = {
+    val pt = geom.asInstanceOf[Point]
+    val i = snapX(pt.getX)
+    val j = snapY(pt.getY)
     buckets(i)(j).get(key)
   }
 

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.memory.cqengine
 
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport.GeoCQIndex
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
@@ -44,13 +44,19 @@ object GeoCQIndexSupport {
     */
   class GeoCQIndex(val engine: GeoCQEngine) extends SpatialIndex[SimpleFeature] {
 
+    override def insert(geom: Geometry, key: String, value: SimpleFeature): Unit = engine.insert(value)
+
     override def insert(x: Double, y: Double, key: String, item: SimpleFeature): Unit = engine.insert(item)
 
     override def insert(envelope: Envelope, key: String, item: SimpleFeature): Unit = engine.insert(item)
 
+    override def remove(geom: Geometry, key: String): SimpleFeature = engine.remove(key)
+
     override def remove(x: Double, y: Double, key: String): SimpleFeature = engine.remove(key)
 
     override def remove(envelope: Envelope, key: String): SimpleFeature = engine.remove(key)
+
+    override def get(geom: Geometry, key: String): SimpleFeature = engine.get(key)
 
     override def get(x: Double, y: Double, key: String): SimpleFeature = engine.get(key)
 

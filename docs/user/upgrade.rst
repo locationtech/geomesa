@@ -12,11 +12,11 @@ Compatibility Across Versions
 Semantic Versioning
 -------------------
 
-Starting with 2.0.0, GeoMesa is trying to adhere to `semantic versioning <https://semver.org/>`__. Essentially,
+Starting with 2.0.0, GeoMesa is adhering to `semantic versioning <https://semver.org/>`__. Essentially,
 releases are broken down into major, minor and patch versions. For a version number like 2.0.1, 2 is the major
 version, 2.0 is the minor version, and 2.0.1 is the patch version.
 
-Major version updates contain breaking client API changes. Minor version updates contain new or updated functionality
+Major version updates contain breaking public API changes. Minor version updates contain new or updated functionality
 that is backwards-compatible. Patch versions contain only backwards-compatible bug fixes. This delineation allows
 users to gauge the potential impact of updating versions.
 
@@ -28,8 +28,7 @@ users to gauge the potential impact of updating versions.
 Compatibility
 -------------
 
-Semantic versioning only makes guarantees about the public API of a project, however the GeoMesa public API is not
-currently well defined. In addition, GeoMesa has several other compatibility vectors to consider:
+Semantic versioning makes API guarantees, but GeoMesa has several compatibility vectors to consider:
 
 Data Compatibility
 ^^^^^^^^^^^^^^^^^^
@@ -40,18 +39,27 @@ fully supports data written with version 1.2.2 or later, and mostly supports dat
 Note that although later versions can read earlier data, the reverse is not necessarily true. Data written
 with a newer client may not be readable by an older client.
 
-Data written with 1.2.1 or earlier can be migrated to a newer data format. See :ref:`index_upgrades` for details.
-Note that this functionality is currently only implemented for Accumulo.
+Data written with 1.2.1 or earlier can be migrated to a newer data format. See :ref:`index_upgrades` for details
+(note that this functionality is currently only implemented for Accumulo).
 
-Distributed Runtime Compatibility
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+API Compatibility
+^^^^^^^^^^^^^^^^^
 
-For data stores with a distributed component (e.g. Accumulo or HBase), distributed runtime compatibility refers
-to the ability to write or query data with a client that is a different version than the distributed code.
-Similarly, this also covers the ability to have different versions of the distributed code on different machines in
-a single cluster.
+The GeoMesa public API is not currently well defined, so API compatibility is only guaranteed at the GeoTools
+`DataStore <http://docs.geotools.org/stable/javadocs/org/geotools/data/DataStore.html>`__ level. In the future,
+GeoMesa will clearly indicate which classes and methods are part of the public API. Non-public classes may change
+without warning between minor versions.
 
-GeoMesa currently requires that all client and server JARs are the same minor version.
+Binary Compatibility
+^^^^^^^^^^^^^^^^^^^^
+
+Binary compatibility refers to the ability to have different GeoMesa versions in a single environment. An environment
+may be a single process or span multiple servers (for example an ingest pipeline, a query client, and an analytics
+platform). For data stores with a distributed component (HBase and Accumulo), the environment includes both the
+client and the distributed code.
+
+GeoMesa requires that all JARs in an environment are the same minor version, and that all JARs within a single JVM
+are the same patch version.
 
 Dependency Compatibility
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -60,18 +68,69 @@ Dependency compatibility refers to the ability to update GeoMesa without updatin
 (e.g. Accumulo, HBase, Hadoop, Spark, GeoServer, etc). Generally, GeoMesa supports a range of dependency versions
 (e.g. Accumulo 1.6 to 1.9). Spark versions are more tightly coupled, due to the use of private Spark APIs.
 
+Pre-Release Code
+^^^^^^^^^^^^^^^^
+
+GeoMesa sometimes provides modules in an alpha or beta state. Although they share the overall GeoMesa version number,
+such modules should be considered pre-1.0, and are not guaranteed to provide any forwards or backwards compatibility
+across versions. Pre-release modules will be clearly marked in the documentation.
+
 Compatibility Matrix
 --------------------
 
-+---------------------+-------+-------+-------+
-|                     | Major | Minor | Patch |
-+=====================+=======+=======+=======+
-| Data                | Y     | Y     | Y     |
-+---------------------+-------+-------+-------+
-| Distributed runtime | N     | N     | Y     |
-+---------------------+-------+-------+-------+
-| Dependencies        | N     | N     | Y     |
-+---------------------+-------+-------+-------+
++--------------+-------+-------+-------+
+|              | Major | Minor | Patch |
++==============+=======+=======+=======+
+| Data         | Y     | Y     | Y     |
++--------------+-------+-------+-------+
+| API          | N     | Y     | Y     |
++--------------+-------+-------+-------+
+| Binary       | N     | N     | Y     |
++--------------+-------+-------+-------+
+| Dependencies | N     | N     | Y     |
++--------------+-------+-------+-------+
+
+Version 2.1.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Converter Updates
+-----------------
+
+The GeoMesa converter API has been updated and simplified. The old API has been deprecated, and while custom
+converters written against it should still work, users are encouraged to migrate to
+``org.locationtech.geomesa.convert2.SimpleFeatureConverter``. A compatibility bridge is provided so that
+all converters registered with either the new or old API will be available to both.
+
+Converter definitions should continue to work the same, but some invalid definitions may start to fail due to
+stricter configuration parsing.
+
+Distributed Runtime Version Checks
+----------------------------------
+
+To prevent unexpected bugs due to JAR version mismatches, GeoMesa will now throw an exception if it detects
+incompatible versions on the distributed classpath. This behavior may be disbled by setting the system property
+``geomesa.distributed.version.check=false``.
+
+Shapefile Ingestion
+-------------------
+
+Shapefile ingestion through the GeoMesa command-line tools has changed to use a converter definition. This allows
+for on-the-fly modifications to the shapefile during ingestion, however the command now requires user confirmation.
+The previous behavior can be simulated by passing ``--force`` to the ingest command.
+
+Delimited Text Auto-Ingestion
+-----------------------------
+
+GeoMesa previously supported auto ingest of specially formatted delimited CSV and TSV files. This functionality
+has been replaced with standard ingest type inference, which works similarly but may create different results.
+Generally, the previous behavior can be replicated by using type inference to create a converter definition,
+then modifying the converter to set the feature ID to the first column (``$1``).
+
+Scalatra Version Updates
+------------------------
+
+The version of scalatra used for web servlets has been updated to 2.6.3. The new version requires json4s 3.5.4,
+which may require changes to the web server used to deploy the servlets.
 
 Version 2.0.0 Upgrade Guide
 +++++++++++++++++++++++++++

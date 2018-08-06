@@ -10,8 +10,6 @@ package org.locationtech.geomesa.utils.text
 
 import java.time.Duration
 
-import scala.collection.GenTraversableOnce
-
 object TextTools {
 
   def getPlural(i: Long, base: String): String = getPlural(i, base, s"${base}s")
@@ -58,7 +56,23 @@ object TextTools {
       } else {
         word
       }
-
     }
+  }
+
+  /**
+    * Checks if a string contains non-whitespace
+    *
+    * @param string string, not null
+    * @return
+    */
+  def isWhitespace(string: String): Boolean = {
+    var i = 0
+    while (i < string.length) {
+      if (!string.charAt(i).isWhitespace) {
+        return false
+      }
+      i += 1
+    }
+    true
   }
 }
