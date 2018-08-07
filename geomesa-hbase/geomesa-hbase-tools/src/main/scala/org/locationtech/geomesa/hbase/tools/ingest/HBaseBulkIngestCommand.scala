@@ -86,8 +86,6 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
     }
   }
 
-  override protected def createShpIngest(inputFiles: Seq[String]): Runnable =
-    throw new NotImplementedError("Bulk ShpFile ingest not implemented")
 }
 
 object HBaseBulkIngestCommand {

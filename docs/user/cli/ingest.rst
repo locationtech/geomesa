@@ -39,7 +39,7 @@ Argument               Description
 ``-f, --feature-name`` The name of the schema
 ``-t, --threads``      Number of parallel threads used
 ``--input-format``     Format of input files (csv, tsv, avro, shp, json, etc)
-``--run-mode``         Must be one of ``distributed`` or ``local``
+``--run-mode``         Must be one of ``local``, ``distributed``, or ``distributedcombine``
 ``--split-max-size``   Maximum size of a split in bytes (distributed jobs)
 ``--src-list``         Input files are text files with lists of files, one per line, to ingest.
 ``--force``            Suppress any confirmation prompts
@@ -82,19 +82,22 @@ will be used to determine the file type.
 
 The ``--run-mode`` argument can be used to run ingestion locally or distributed (using map/reduce). Note that in
 order to run in distributed mode, the input files must be in HDFS. By default, input files on the local filesystem
-will be ingested in local mode, and input files in HDFS will be ingested in distributed mode.
+will be ingested in local mode, and input files in HDFS will be ingested in distributed mode. If using the
+``distributedcombine`` mode, multiple files will be processes by each mapper up to the limit specified by
+``--split-max-size``.
 
 The ``--threads`` argument can be used to increase local ingest speed. However, there can not be more threads
 than there are input files. The ``--threads`` argument is ignored for distributed ingest.
 
 The ``--split-max-size`` argument can be used to control the amount of data each mapper processes. This is useful
-when input files are small and starting a mapper for each one becomes prohibitive or slow. For example, if you have
-100 5MB files then a setting of 100000000 (100MB) would schedule 5 mappers.
+when used in conjunction with the DistributedCombine ``--run-mode`` and if input files are small or starting a mapper
+for each one becomes prohibitively slow. For example, if you have 100 5MB files then a setting of 100000000 (100MB)
+would schedule 5 mappers.
 
 .. _src-list:
 
 The ``--src-list`` argument is useful when you have more files to ingest than the command line will allow you to
-specify. This file instructs the GeoMesa to treat input files as, new line separated, file lists. As this makes it very
+specify. This file instructs GeoMesa to treat input files as new-line-separated file lists. As this makes it very
 easy to run ingest jobs that can take days it's recommended to split lists into reasonable chunks that can be completed
 in a couple hours.
 
