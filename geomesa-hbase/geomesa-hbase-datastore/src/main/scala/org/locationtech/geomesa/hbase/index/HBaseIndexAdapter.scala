@@ -166,7 +166,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
   }
 }
 
-object HBaseIndexAdapter {
+object HBaseIndexAdapter extends LazyLogging {
   case class ScanConfig(ranges: Seq[Scan],
                         colFamily: Array[Byte],
                         filters: Seq[(Int, HFilter)],
