@@ -32,4 +32,5 @@ ingests where performance is of more concern than reliability. Available setting
 - SYNC_WAL: Write the Mutation to the WAL synchronously.
 - USE_DEFAULT: If this is for tables durability, use HBase's global default value (SYNC_WAL).
 
-For addtional information see HBase docs. https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Durability.htm
+For addtional information see `HBase documentation
+<https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Durability.html>`__.
