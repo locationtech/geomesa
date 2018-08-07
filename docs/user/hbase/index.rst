@@ -15,6 +15,7 @@ To get started with the HBase Data Store, try the :doc:`/tutorials/geomesa-quick
     :maxdepth: 1
 
     install
+    coprocessor_install
     configuration
     usage
     geoserver

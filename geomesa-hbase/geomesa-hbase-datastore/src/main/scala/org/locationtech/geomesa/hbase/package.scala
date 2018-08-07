@@ -28,6 +28,7 @@ package object hbase {
   type HBaseModifyFeatureWriterType = GeoMesaModifyFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
 
   object HBaseSystemProperties {
+    val CoprocessorPath = SystemProperty("geomesa.hbase.coprocessor.path")
     val WriteBatchSize = SystemProperty("geomesa.hbase.write.batch")
   }
 }
