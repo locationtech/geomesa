@@ -55,9 +55,13 @@ Parameter                            Type    Description
 ``kafka.cache.event-time``           String  Instead of message time, determine expiry based on feature data. See :ref:`kafka_event_time`
 ``kafka.cache.event-time.ordering``  Boolean Instead of message time, determine feature ordering based on the feature event time.
                                              See :ref:`kafka_event_time`
-``kafka.cache.cqengine.indices``     String  Use CQEngine-based attribute indices for the in-memory feature cache. See :ref:`kafka_cqengine`
-``kafka.index.resolution.x``         Integer Number of bins in the x-dimension of the spatial index, by default 360
-``kafka.index.resolution.y``         Integer Number of bins in the y-dimension of the spatial index, by default 180
+``kafka.index.cqengine``             String  Use CQEngine-based attribute indices for the in-memory feature cache. See :ref:`kafka_cqengine`
+``kafka.index.resolution.x``         Integer Number of bins in the x-dimension of the spatial index, by default 360. See
+                                             :ref:`kafka_index_resolution`
+``kafka.index.resolution.y``         Integer Number of bins in the y-dimension of the spatial index, by default 180. See
+                                             :ref:`kafka_index_resolution`
+``kafka.index.tiers``                String  Number and size of tiers used for indexing geometries with extents, in the form ``x1:y1,x2:y2``.
+                                             See :ref:`kafka_ssi`
 ``kafka.serialization.lazy``         Boolean Use lazy deserialization of features. This may improve processing load at
                                              the expense of slightly slower query times
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes, which offer improved performance but are not exact
