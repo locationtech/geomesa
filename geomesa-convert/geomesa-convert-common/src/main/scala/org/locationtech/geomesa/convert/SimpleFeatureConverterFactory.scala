@@ -159,7 +159,8 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
   protected def getParsingOptions(conf: Config, sft: SimpleFeatureType): ConvertParseOpts = {
     val verbose = if (conf.hasPath(StandardOption.VerboseOpt.path)) conf.getBoolean(StandardOption.VerboseOpt.path) else false
     val opts = ConvertParseOpts(getParseMode(conf), getValidator(conf, sft), getValidationMode(conf), verbose = verbose)
-    logger.info(s"Using ParseMode ${opts.parseMode} with error mode ${opts.validationMode} and validator ${opts.validator.name}")
+    lazy val SimpleFeatureValidator(validators@_*) = opts.validator // unapplySeq to extract names
+    logger.info(s"Using ParseMode ${opts.parseMode} with error mode ${opts.validationMode} and validator ${validators.mkString(", ")}")
     opts
   }
 
@@ -314,8 +315,9 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 
   protected val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
     (sf: SimpleFeature, ec: EvaluationContext) => {
-      if (parseOpts.validator.validate(sf)) { sf } else {
-        val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: ${parseOpts.validator.lastError}"
+      val error = parseOpts.validator.validate(sf)
+      if (error == null) { sf } else {
+        val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: $error"
         if (parseOpts.validationMode == ValidationMode.RaiseErrors) {
           throw new IOException(msg)
         } else {

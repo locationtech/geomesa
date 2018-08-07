@@ -8,8 +8,8 @@
       "lastseen": "20150506",
       "friends": "Will, Mark, Suzan",
       "talents": "patronus->10,expelliarmus->9",
-      "lat": -100.236523,
-      "lon": 23,
+      "lon": -100.236523,
+      "lat": 23,
       "vis": "user"
     },
     {
@@ -19,8 +19,8 @@
       "lastseen": "20150607",
       "friends": "Edward, Bill, Harry",
       "talents": "accio->10",
-      "lat": 40.232,
-      "lon": -53.2356,
+      "lon": 40.232,
+      "lat": -53.2356,
       "vis": "user"
     },
     {
@@ -30,8 +30,8 @@
       "lastseen": "20151023",
       "friends": "Tom, Riddle, Voldemort",
       "talents": "potions->10",
-      "lat": 3,
-      "lon": -62.23,
+      "lon": 3,
+      "lat": -62.23,
       "vis": "user&admin"
     }
   ]

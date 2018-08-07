@@ -85,10 +85,10 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[C, F, O]: ClassTa
   protected def withDefaults(conf: Config): Config = {
     import scala.collection.JavaConverters._
 
-    val updates = ArrayBuffer.empty[(Config => Config)]
+    val updates = ArrayBuffer.empty[Config => Config]
     if (conf.hasPath("options.validation-mode")) {
       logger.warn(s"Using deprecated option 'validation-mode'. Prefer 'error-mode'")
-      updates.append((c) => c.withValue("options.error-mode", conf.getValue("options.validation-mode")))
+      updates.append(c => c.withValue("options.error-mode", conf.getValue("options.validation-mode")))
     }
     if (conf.hasPath("options.validating")) {
       logger.warn(s"Using deprecated validation key 'validating'")
@@ -97,7 +97,7 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[C, F, O]: ClassTa
       } else {
         ConfigValueFactory.fromIterable(Collections.emptyList())
       }
-      updates.append((c) => c.withValue("options.validators", validators))
+      updates.append(c => c.withValue("options.validators", validators))
     }
 
     if (conf.hasPath("user-data")) {
@@ -105,7 +105,7 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[C, F, O]: ClassTa
       val kvs = new java.util.HashMap[String, AnyRef]
       conf.getConfig("user-data").entrySet.asScala.foreach(e => kvs.put(e.getKey, e.getValue.unwrapped()))
       val fallback = ConfigFactory.empty().withValue("user-data", ConfigValueFactory.fromMap(kvs))
-      updates.append((c) => c.withoutPath("user-data").withFallback(fallback))
+      updates.append(c => c.withoutPath("user-data").withFallback(fallback))
     }
 
     updates.foldLeft(conf)((c, mod) => mod.apply(c)).withFallback(ConfigFactory.load("base-converter-defaults"))
@@ -401,7 +401,10 @@ object AbstractConverterFactory {
       map.put("error-mode", options.errorMode.toString)
       map.put("encoding", options.encoding.name)
       map.put("verbose", Boolean.box(options.verbose))
-      map.put("validators", java.util.Arrays.asList(options.validators.name.split(","): _*))
+      options.validators match {
+        // use unapplySeq to extract names
+        case SimpleFeatureValidator(names@_*) => map.put("validators", names.asJava)
+      }
       encodeOptions(options, map)
       map
     }
