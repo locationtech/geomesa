@@ -195,9 +195,9 @@ trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam w
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
 
-  @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes")
+  @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes (distributed jobs)")
   var maxSplitSize: Integer = -1
 
-  @Parameter(names = Array("--src-list"), description = "Input files are text files with lists of files, one per line, to ingest.")
+  @Parameter(names = Array("--src-list"), description = "nput files are text files with lists of files, one per line, to ingest.")
   var srcList: Boolean = false
 }

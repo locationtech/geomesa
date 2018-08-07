@@ -151,6 +151,15 @@ class ConverterIngestJob(dsParams: Map[String, String],
   override val inputFormatClass: Class[ConverterInputFormat] = classOf[ConverterInputFormat]
 }
 
+/**
+ * Distributed job that uses converters to process input files in batches. This
+ * allows multiple files to be processed by one mapper. Batch size is controlled
+ * by the 'maxSplitSize' and should be scaled with mapper memory.
+ *
+ * @param sft simple feature type
+ * @param converterConfig converter definition
+ * @param maxSplitSize size in bytes for each map split 
+ */
 class ConverterCombineIngestJob(dsParams: Map[String, String],
                                 sft: SimpleFeatureType,
                                 converterConfig: Config,
