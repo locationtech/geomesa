@@ -10,14 +10,12 @@ package org.locationtech.geomesa.arrow.io.records
 
 import java.io.ByteArrayInputStream
 import java.nio.channels.Channels
-import java.util.Collections
 
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.file.ReadChannel
-import org.apache.arrow.vector.schema.ArrowRecordBatch
-import org.apache.arrow.vector.stream.MessageSerializer
+import org.apache.arrow.vector.ipc.ReadChannel
+import org.apache.arrow.vector.ipc.message.{ArrowRecordBatch, MessageSerializer}
 import org.apache.arrow.vector.types.pojo.Field
-import org.apache.arrow.vector.{FieldVector, VectorLoader, VectorSchemaRoot}
+import org.apache.arrow.vector.{FieldVector, VectorLoader}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowIO
 import org.locationtech.geomesa.utils.io.WithClose
 

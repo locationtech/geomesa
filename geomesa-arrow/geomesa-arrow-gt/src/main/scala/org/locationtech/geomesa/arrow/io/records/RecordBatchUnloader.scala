@@ -11,8 +11,8 @@ package org.locationtech.geomesa.arrow.io.records
 import java.io.ByteArrayOutputStream
 import java.nio.channels.Channels
 
-import org.apache.arrow.vector.file.WriteChannel
-import org.apache.arrow.vector.stream.MessageSerializer
+import org.apache.arrow.vector.ipc.WriteChannel
+import org.apache.arrow.vector.ipc.message.MessageSerializer
 import org.apache.arrow.vector.{VectorSchemaRoot, VectorUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
 import org.locationtech.geomesa.utils.io.WithClose
