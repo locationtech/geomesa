@@ -8,24 +8,28 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.nio.charset.Charset
+import java.io.ByteArrayInputStream
+import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
 import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.SimpleFeatureConverters.SimpleFeatureConverterWrapper
 import org.locationtech.geomesa.convert.xml.XmlConverter._
 import org.locationtech.geomesa.convert.xml.XmlConverterFactory.{XmlConfigConvert, XmlFieldConvert, XmlOptionsConvert}
-import org.locationtech.geomesa.convert.{LineMode, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.{EvaluationContext, LineMode, SimpleFeatureConverter, SimpleFeatureValidator}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
-class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions] {
+class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions]
+    with org.locationtech.geomesa.convert.SimpleFeatureConverterFactory[String] {
 
-  override protected def typeToProcess: String = "xml"
+  override protected val typeToProcess: String = "xml"
 
   override protected implicit def configConvert: ConverterConfigConvert[XmlConfig] = XmlConfigConvert
   override protected implicit def fieldConvert: FieldConvert[XmlField] = XmlFieldConvert
@@ -33,6 +37,28 @@ class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConf
 
   override protected def withDefaults(conf: Config): Config =
     super.withDefaults(conf).withFallback(ConfigFactory.load("xml-converter-defaults"))
+
+  // deprecated version one processing, needed to handle processInput and processSingleInput
+
+  override def canProcess(conf: Config): Boolean =
+    conf.hasPath("type") && conf.getString("type").equalsIgnoreCase(typeToProcess)
+
+  override def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[String] = {
+    val converter = apply(sft, conf).orNull.asInstanceOf[XmlConverter]
+    if (converter == null) {
+      throw new IllegalStateException("Could not create converter - did you call canProcess()?")
+    }
+    // used to handle processInput and processSingleInput, which are always multiline
+    lazy val multiline = if (converter.options.lineMode == LineMode.Multi) { converter } else {
+      new XmlConverter(converter.targetSft, converter.config, converter.fields,
+        converter.options.copy(lineMode = LineMode.Multi))
+    }
+
+    new SimpleFeatureConverterWrapper[String](converter) {
+      override def processSingleInput(i: String, ec: EvaluationContext): Iterator[SimpleFeature] =
+        register(multiline.process(new ByteArrayInputStream(i.getBytes(StandardCharsets.UTF_8)), ec))
+    }
+  }
 }
 
 object XmlConverterFactory {

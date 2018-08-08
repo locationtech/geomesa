@@ -56,7 +56,7 @@ class DelimitedTextConverter(targetSft: SimpleFeatureType,
     val parser = format.parse(new InputStreamReader(is, options.encoding))
     val records = parser.iterator()
 
-    val elements = new Iterator[Array[Any]] {
+    val elements: Iterator[Array[Any]] = new Iterator[Array[Any]] {
 
       private var lastLine = 0L
       private var staged: Array[Any] = _
