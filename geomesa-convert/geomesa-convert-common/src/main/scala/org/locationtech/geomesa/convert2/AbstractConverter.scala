@@ -42,7 +42,7 @@ import scala.util.control.NonFatal
   * @tparam O options binding
   */
 abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: ConverterOptions]
-  (override val targetSft: SimpleFeatureType, val config: C, fields: Seq[F], options: O)
+  (override val targetSft: SimpleFeatureType, val config: C, val fields: Seq[F], val options: O)
     extends SimpleFeatureConverter with LazyLogging {
 
   private val requiredFields: Array[Field] =
