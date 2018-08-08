@@ -35,6 +35,7 @@ import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.ArgumentMatchers
 import org.opengis.feature.simple.SimpleFeatureType
@@ -406,6 +407,14 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       getNamespace("/foo/bar/baz") mustEqual "foo/bar/baz" // leading slash
       getNamespace("/foo/bar/baz/") mustEqual "foo/bar/baz" // both leading and trailing slash
       forall(Seq("/", "//", "", null))(n => getNamespace(n) mustEqual KafkaDataStoreFactory.DefaultZkPath) // empty
+    }
+    "Parse SSI tiers" >> {
+      val key = KafkaDataStoreFactoryParams.IndexTiers.getName
+      KafkaDataStoreFactory.parseSsiTiers(Collections.emptyMap()) mustEqual SizeSeparatedBucketIndex.DefaultTiers
+      KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "foo")) mustEqual SizeSeparatedBucketIndex.DefaultTiers
+      KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "1:2")) mustEqual Seq((1d, 2d))
+      KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "1:2,3:4")) mustEqual Seq((1d, 2d), (3d, 4d))
+      KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "3:4,1:2")) mustEqual Seq((1d, 2d), (3d, 4d))
     }
   }
 

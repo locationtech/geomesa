@@ -49,8 +49,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
   def caches(expiry: Option[(Duration, ScheduledExecutorService, Ticker)] = None) = {
     val config = expiry match {
-      case None => IndexConfig(Duration.Inf, None, 360, 180, Seq.empty, lazyDeserialization = true, None)
-      case Some((e, es, t)) => IndexConfig(e, None, 360, 180, Seq.empty, lazyDeserialization = true, Some((es, t)))
+      case None => IndexConfig(Duration.Inf, None, 360, 180, Seq.empty, Seq.empty, lazyDeserialization = true, None)
+      case Some((e, es, t)) => IndexConfig(e, None, 360, 180, Seq.empty, Seq.empty, lazyDeserialization = true, Some((es, t)))
     }
     Seq(
       KafkaFeatureCache(sft, config),

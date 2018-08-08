@@ -42,7 +42,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
   } else if (sft.isPoints) {
     BucketIndexSupport(sft, config.resolutionX, config.resolutionY)
   } else {
-    SizeSeparatedBucketIndexSupport(sft, config.resolutionX / 360d, config.resolutionY / 180d)
+    SizeSeparatedBucketIndexSupport(sft, config.ssiTiers, config.resolutionX / 360d, config.resolutionY / 180d)
   }
 
   private val factory = {
