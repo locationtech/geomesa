@@ -199,8 +199,12 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     futures.foreach(_.get)
 
     Command.user.info(s"Local ingestion complete in ${TextTools.getTime(start)}")
-    Command.user.info(getStatInfo(written.get, failed.get))
-  }
+    if (files.size == 1) {
+      Command.user.info(getStatInfo(written.get, failed.get, input = s" for file: ${files.head.path}."))
+    } else {
+      Command.user.info(getStatInfo(written.get, failed.get))
+    }
+   }
 
   protected def runDistributed(): Unit = {
     beforeRunTasks()
@@ -237,13 +241,13 @@ object AbstractIngest {
   /**
    * Gets status as a string
    */
-  def getStatInfo(successes: Long, failures: Long, action: String = "Ingested"): String = {
+  def getStatInfo(successes: Long, failures: Long, action: String = "Ingested", input: String = ""): String = {
     val failureString = if (failures == 0) {
       "with no failures"
     } else {
       s"and failed to ingest ${TextTools.getPlural(failures, "feature")}"
     }
-    s"$action ${TextTools.getPlural(successes, "feature")} $failureString."
+    s"$action ${TextTools.getPlural(successes, "feature")} $failureString$input."
   }
 
   sealed trait StatusCallback {
