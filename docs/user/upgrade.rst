@@ -104,6 +104,12 @@ all converters registered with either the new or old API will be available to bo
 Converter definitions should continue to work the same, but some invalid definitions may start to fail due to
 stricter configuration parsing.
 
+XML Converter Namespaces
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+XML parsing is now namespace-aware. This shouldn't affect most operations, but any custom converter functions
+that operate on the XML element objects may need to take this into account (for example, custom XPath querying).
+
 Distributed Runtime Version Checks
 ----------------------------------
 
