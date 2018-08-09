@@ -83,14 +83,14 @@ public interface FileMetadata {
      *
      * @return Feature count
      */
-    int getFeatureCount();
+    long getFeatureCount();
 
     /**
      * Increase the number of features
      *
      * @param count Number of additional features
      */
-    void increaseFeatureCount(int count);
+    void incrementFeatureCount(long count);
 
     /**
      * Get the bounds for the layer

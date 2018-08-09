@@ -137,7 +137,7 @@ object ConverterStorage {
     override def getFeatureCount: Int =
       throw new UnsupportedOperationException("Converter storage does not support counts")
 
-    override def increaseFeatureCount(count: Int): Unit =
+    override def incrementFeatureCount(count: Long): Unit =
       throw new UnsupportedOperationException("Converter storage does not support counts")
 
     override def getEnvelope: ReferencedEnvelope =

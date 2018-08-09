@@ -93,10 +93,10 @@ class FileSystemFeatureStore(storage: FileSystemStorage,
   override def buildFeatureType(): SimpleFeatureType = sft
   override def getCountInternal(query: Query): Int = {
     if (query == Query.ALL || query.getFilter.isInstanceOf[IncludeFilter]) {
-      storage.getMetadata.getFeatureCount
+      storage.getMetadata.getFeatureCount.toInt
     } else {
-      -1
-    }
+      -1L
+    }.toInt
   }
 
   override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {

@@ -146,7 +146,7 @@ class FileMetadata private (fc: FileContext,
     }
   }
 
-  var internalCount = data.map(_.getInt("count")).getOrElse(0)
+  var internalCount = data.map(_.getLong("count")).getOrElse(0L)
   var bounds: Envelope = data.map { config =>
     if (config.hasPath("bounds")) {
     val doubles = config.getDoubleList("bounds")
@@ -154,28 +154,21 @@ class FileMetadata private (fc: FileContext,
     } else {
       null
     }
-  }.orNull
+  }.getOrElse(new Envelope())
 
-  override def getFeatureCount: Int = internalCount
-  override def increaseFeatureCount(count: Int): Unit = {
+  override def getFeatureCount: Long = internalCount
+  override def incrementFeatureCount(count: Long): Unit = {
     internalCount += count
   }
 
   override def getEnvelope: ReferencedEnvelope =
-    if (bounds == null) {
+    if (bounds.isNull) {
       ReferencedEnvelope.EVERYTHING
     } else {
       new ReferencedEnvelope(bounds, CRS_EPSG_4326)
     }
   override def expandBounds(envelope: Envelope): Unit = {
-    if (bounds == null) {
-      bounds = envelope
-    } else {
-      bounds = {
-        bounds.expandToInclude(envelope)
-        bounds
-      }
-    }
+      bounds.expandToInclude(envelope)
   }
 
   /**

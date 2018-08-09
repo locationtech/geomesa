@@ -45,7 +45,7 @@ trait MetadataObservingFileSystemWriter extends FileSystemWriter {
 
   override def close(): Unit = {
     // Finalize metadata
-    metadata.increaseFeatureCount(count)
+    metadata.incrementFeatureCount(count)
     metadata.expandBounds(bounds)
     metadata.persist()
     closeInternal()
