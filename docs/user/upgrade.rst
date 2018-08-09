@@ -126,6 +126,11 @@ has been replaced with standard ingest type inference, which works similarly but
 Generally, the previous behavior can be replicated by using type inference to create a converter definition,
 then modifying the converter to set the feature ID to the first column (``$1``).
 
+Spark Version Update
+--------------------
+
+GeoMesa now builds against Spark 2.3.1, and supports versions 2.2.x and 2.3.x.
+
 Arrow Version Update
 --------------------
 

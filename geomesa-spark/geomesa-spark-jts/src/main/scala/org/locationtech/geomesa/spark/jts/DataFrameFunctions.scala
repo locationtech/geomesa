@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.spark.jts
 
-import com.vividsolutions.jts.geom._
-import org.apache.spark.sql.{Column, Encoder, TypedColumn}
-import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import java.{lang => jl}
 
+import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.catalyst.expressions.Literal
-import org.apache.spark.sql.functions.{lit, array}
+import org.apache.spark.sql.functions.{array, lit}
 import org.apache.spark.sql.jts._
+import org.apache.spark.sql.{Column, Encoder, Encoders, TypedColumn}
+import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 
 
 /**
@@ -24,6 +24,8 @@ import org.apache.spark.sql.jts._
  */
 object DataFrameFunctions extends SpatialEncoders {
   import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders._
+
+  implicit def integerEncoder: Encoder[Integer] = Encoders.INT
 
   /**
    * Group of DataFrame DSL functions associated with constructing and encoding
@@ -179,10 +181,10 @@ object DataFrameFunctions extends SpatialEncoders {
     def st_boundary(geom: Column): TypedColumn[Any, Geometry] =
       udfToColumn(ST_Boundary, accessorNames, geom)
 
-    def st_coordDim(geom: Column): TypedColumn[Any, Int] =
+    def st_coordDim(geom: Column): TypedColumn[Any, Integer] =
       udfToColumn(ST_CoordDim, accessorNames, geom)
 
-    def st_dimension(geom: Column): TypedColumn[Any, Int] =
+    def st_dimension(geom: Column): TypedColumn[Any, Integer] =
       udfToColumn(ST_Dimension, accessorNames, geom)
 
     def st_envelope(geom: Column): TypedColumn[Any, Geometry] =
@@ -218,10 +220,10 @@ object DataFrameFunctions extends SpatialEncoders {
     def st_isValid(geom: Column): TypedColumn[Any, jl.Boolean] =
       udfToColumn(ST_IsValid, accessorNames, geom)
 
-    def st_numGeometries(geom: Column): TypedColumn[Any, Int] =
+    def st_numGeometries(geom: Column): TypedColumn[Any, Integer] =
       udfToColumn(ST_NumGeometries, accessorNames, geom)
 
-    def st_numPoints(geom: Column): TypedColumn[Any, Int] =
+    def st_numPoints(geom: Column): TypedColumn[Any, Integer] =
       udfToColumn(ST_NumPoints, accessorNames, geom)
 
     def st_pointN(geom: Column, n: Column): TypedColumn[Any, Point] =
