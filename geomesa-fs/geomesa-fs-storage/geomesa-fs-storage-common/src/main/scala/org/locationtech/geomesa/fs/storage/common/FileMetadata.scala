@@ -147,8 +147,13 @@ class FileMetadata private (fc: FileContext,
   }
 
   var internalCount = data.map(_.getInt("count")).getOrElse(0)
-  var bounds: Envelope = data.map(_.getDoubleList("bounds")).map { doubles =>
-    new ReferencedEnvelope(doubles(0), doubles(1), doubles(2), doubles(3), CRS_EPSG_4326)
+  var bounds: Envelope = data.map { config =>
+    if (config.hasPath("bounds")) {
+    val doubles = config.getDoubleList("bounds")
+      new ReferencedEnvelope(doubles(0), doubles(1), doubles(2), doubles(3), CRS_EPSG_4326)
+    } else {
+      null
+    }
   }.orNull
 
   override def getFeatureCount: Int = internalCount
@@ -303,11 +308,14 @@ object FileMetadata extends MethodProfiling with LazyLogging {
     val file = filePath(metadata.getRoot)
 
     val config = profile {
-      val dataConfig = ConfigFactory.empty()
+      var dataConfig: Config = ConfigFactory.empty()
         .withValue("count", ConfigValueFactory.fromAnyRef(metadata.getFeatureCount))
-        .withValue("bounds", ConfigValueFactory.fromIterable(
+
+      if (metadata.getEnvelope != ReferencedEnvelope.EVERYTHING) {
+        dataConfig = dataConfig.withValue("bounds", ConfigValueFactory.fromIterable(
           Seq[Double](metadata.getEnvelope.getMinX, metadata.getEnvelope.getMaxX,
-            metadata.getEnvelope.getMinY, metadata.getEnvelope.getMaxY).asJava)).root()
+            metadata.getEnvelope.getMinY, metadata.getEnvelope.getMaxY).asJava))
+      }
 
       val sft = metadata.getSchema
       val sftConfig = SimpleFeatureTypes.toConfig(sft, includePrefix = false, includeUserData = true).root()
@@ -316,7 +324,7 @@ object FileMetadata extends MethodProfiling with LazyLogging {
         .withValue("encoding", ConfigValueFactory.fromAnyRef(metadata.getEncoding))
         .withValue("partitionScheme", PartitionScheme.toConfig(metadata.getPartitionScheme).root())
         .withValue("partitions", ConfigValueFactory.fromMap(metadata.getPartitionFiles))
-        .withValue("data", dataConfig)
+        .withValue("data", dataConfig.root())
         .root
         .render(options)
     } ((_, time) => logger.debug(s"Created config for persistence in ${time}ms"))
