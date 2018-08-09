@@ -152,7 +152,7 @@ class FileMetadata private (fc: FileContext,
     val doubles = config.getDoubleList("bounds")
       new ReferencedEnvelope(doubles(0), doubles(1), doubles(2), doubles(3), CRS_EPSG_4326)
     } else {
-      null
+      new Envelope()
     }
   }.getOrElse(new Envelope())
 
