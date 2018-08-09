@@ -8,12 +8,18 @@
 
 package org.locationtech.geomesa.arrow.data
 
-import java.io.File
+import java.io.{File, FileOutputStream}
+import java.net.URL
 import java.nio.file.Files
 
+import org.apache.arrow.memory.BufferAllocator
+import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -28,6 +34,8 @@ class ArrowDataStoreTest extends Specification {
   import ArrowDataStoreFactory.{CachingParam, UrlParam}
   import scala.collection.JavaConversions._
 
+  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
+
   val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
 
   val features0 = (0 until 10).map { i =>
@@ -40,8 +48,7 @@ class ArrowDataStoreTest extends Specification {
 
   "ArrowDataStore" should {
     "write and read values" >> {
-      val file = Files.createTempFile("gm-arrow-ds", ".arrow").toUri.toURL
-      try {
+      withTempFile { file =>
         val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file))
         ds must not(beNull)
 
@@ -93,10 +100,6 @@ class ArrowDataStoreTest extends Specification {
         caching.dispose() must not(throwAn[Exception])
 
         ds.dispose() must not(throwAn[Exception])
-      } finally {
-        if (!new File(file.getPath).delete()) {
-          new File(file.getPath).deleteOnExit()
-        }
       }
     }
 
@@ -110,79 +113,124 @@ class ArrowDataStoreTest extends Specification {
       ).map(ecql => new Query(sftName, ECQL.toFilter(ecql)))
 
       "only schema" >> {
-        val file = getClass.getClassLoader.getResource("data/empty.arrow").toString
-        foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
-          ds.getSchema("test") mustEqual sft
-          WithClose(ds.getFeatureSource(sftName).getFeatures().features())(_.hasNext must beFalse)
-          ds.dispose() must not(throwAn[Exception])
+        withTempFile { url =>
+          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath))) { _ => }
+          foreach(Seq(true, false)) { caching =>
+            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            ds.getSchema("test") mustEqual sft
+            WithClose(ds.getFeatureSource(sftName).getFeatures().features())(_.hasNext must beFalse)
+            ds.dispose() must not(throwAn[Exception])
+          }
         }
       }
 
       "simple 2 batches" >> {
-        val file = getClass.getClassLoader.getResource("data/simple.arrow").toString
-        foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
-          ds.getSchema(sftName) mustEqual sft
-          foreach(queries) { query =>
-            WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
-              results.map(ScalaSimpleFeature.copy).toSeq mustEqual features.filter(query.getFilter.evaluate)
-            }
+        val encoding = SimpleFeatureEncoding.min(includeFids = true)
+        withTempFile { url =>
+          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath), encoding = encoding)) { writer =>
+            features0.foreach(writer.add)
+            writer.flush()
+            features1.foreach(writer.add)
           }
-          ds.dispose() must not(throwAn[Exception])
+          foreach(Seq(true, false)) { caching =>
+            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            ds.getSchema(sftName) mustEqual sft
+            foreach(queries) { query =>
+              WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
+                results.map(ScalaSimpleFeature.copy).toSeq mustEqual features.filter(query.getFilter.evaluate)
+              }
+            }
+            ds.dispose() must not(throwAn[Exception])
+          }
         }
       }
 
       "multiple logical files" >> {
-        val file = getClass.getClassLoader.getResource("data/multi-files.arrow").toString
-        foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
-          ds.getSchema(sftName) mustEqual sft
-          foreach(queries) { query =>
-            WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
-              results.map(ScalaSimpleFeature.copy).toSeq mustEqual features.filter(query.getFilter.evaluate)
-            }
+        val encoding = SimpleFeatureEncoding.min(includeFids = true)
+        withTempFile { url =>
+          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath), encoding = encoding)) { writer =>
+            features0.foreach(writer.add)
           }
-          ds.dispose() must not(throwAn[Exception])
+          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath, true), encoding = encoding)) { writer =>
+            features1.foreach(writer.add)
+          }
+          foreach(Seq(true, false)) { caching =>
+            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            ds.getSchema(sftName) mustEqual sft
+            foreach(queries) { query =>
+              WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
+                results.map(ScalaSimpleFeature.copy).toSeq mustEqual features.filter(query.getFilter.evaluate)
+              }
+            }
+            ds.dispose() must not(throwAn[Exception])
+          }
         }
       }
 
       "dictionary encoded files" >> {
-        val file = getClass.getClassLoader.getResource("data/dictionary.arrow").toString
-        foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
-          ds.getSchema(sftName) mustEqual sft
-          foreach(queries) { query =>
-            WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
-              results.map(ScalaSimpleFeature.copy).toSeq mustEqual features.filter(query.getFilter.evaluate)
-            }
+        val encoding = SimpleFeatureEncoding.min(includeFids = true)
+        val dicts = Map(
+          "name" -> ArrowDictionary.create(1L, features.map(_.getAttribute(0).asInstanceOf[String]).toArray),
+          "foo"  -> ArrowDictionary.create(2L, features.map(_.getAttribute(1).asInstanceOf[String]).toArray)
+        )
+        withTempFile { url =>
+          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath), dicts, encoding)) { writer =>
+            features.foreach(writer.add)
           }
-          ds.dispose() must not(throwAn[Exception])
+          foreach(Seq(true, false)) { caching =>
+            var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            ds.getSchema(sftName) mustEqual sft
+            foreach(queries) { query =>
+              WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
+                results.map(ScalaSimpleFeature.copy).toSeq mustEqual features.filter(query.getFilter.evaluate)
+              }
+            }
+            ds.dispose() must not(throwAn[Exception])
+          }
         }
       }
 
       "dictionary encoded files with default values" >> {
-        val file = getClass.getClassLoader.getResource("data/dictionary-defaults.arrow").toString
-        // the file has only 'foo0' and 'foo1' encoded
-        val dictionaryFeatures = features.map {
-          case f if f.getAttribute("foo") != "foo2" => f
-          case f =>
-            val updated = ScalaSimpleFeature.copy(f)
-            updated.setAttribute("foo", "[other]")
-            updated
-        }
-        foreach(Seq(true, false)) { caching =>
-          var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> caching))
-          ds.getSchema(sftName) mustEqual sft
-          foreach(queries) { query =>
-            WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
-              results.hasNext must beTrue // just check our filter was valid
-              results.map(ScalaSimpleFeature.copy).toSeq mustEqual dictionaryFeatures.filter(query.getFilter.evaluate)
-            }
+        val encoding = SimpleFeatureEncoding.min(includeFids = true)
+        val dicts = Map("foo"  -> ArrowDictionary.create(1L, Array("foo0", "foo1")))
+        withTempFile { url =>
+          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath), dicts, encoding)) { writer =>
+            features.foreach(writer.add)
           }
-          ds.dispose() must not(throwAn[Exception])
+          // the file has only 'foo0' and 'foo1' encoded
+          val dictionaryFeatures = features.map {
+            case f if f.getAttribute("foo") != "foo2" => f
+            case f =>
+              val updated = ScalaSimpleFeature.copy(f)
+              updated.setAttribute("foo", "[other]")
+              updated
+          }
+          foreach(Seq(true, false)) { caching =>
+            var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            ds.getSchema(sftName) mustEqual sft
+            foreach(queries) { query =>
+              WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
+                results.hasNext must beTrue // just check our filter was valid
+                results.map(ScalaSimpleFeature.copy).toSeq mustEqual dictionaryFeatures.filter(query.getFilter.evaluate)
+              }
+            }
+            ds.dispose() must not(throwAn[Exception])
+          }
         }
       }
     }
+  }
+
+  def withTempFile[T](f: URL => T): T = {
+    val url = Files.createTempFile("gm-arrow-ds", ".arrow").toUri.toURL
+    try { f(url) } finally {
+      if (!new File(url.getPath).delete()) {
+        new File(url.getPath).deleteOnExit()
+      }
+    }
+  }
+
+  step {
+    allocator.close()
   }
 }

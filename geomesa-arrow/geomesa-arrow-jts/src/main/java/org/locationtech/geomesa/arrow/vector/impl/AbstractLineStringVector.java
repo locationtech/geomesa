@@ -11,29 +11,25 @@ package org.locationtech.geomesa.arrow.vector.impl;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.BitVector;
-import org.apache.arrow.vector.UInt4Vector;
+import org.apache.arrow.vector.BitVectorHelper;
+import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
 import org.apache.arrow.vector.complex.FixedSizeListVector;
 import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.types.pojo.ArrowType;
-import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
-import org.locationtech.geomesa.arrow.vector.GeometryVector;
 
-import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractLineStringVector implements GeometryVector<LineString, ListVector> {
+public abstract class AbstractLineStringVector<T extends FieldVector>
+    extends AbstractGeometryVector<LineString, ListVector, T> {
 
   public static FieldType createFieldType(Map<String, String> metadata) {
     return new FieldType(true, ArrowType.List.INSTANCE, null, metadata);
   }
 
-  private final ListVector vector;
-  private final LineStringWriter writer;
-  private final LineStringReader reader;
+  private final FixedSizeListVector tuples;
 
   protected AbstractLineStringVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
     this(new ListVector(name, allocator, createFieldType(metadata), null));
@@ -43,145 +39,70 @@ public abstract class AbstractLineStringVector implements GeometryVector<LineStr
     this(container.addOrGet(name, createFieldType(metadata), ListVector.class));
   }
 
+  @SuppressWarnings("unchecked")
   protected AbstractLineStringVector(ListVector vector) {
+    super(vector);
     // create the fields we will write to up front
     if (vector.getDataVector().equals(BaseRepeatedValueVector.DEFAULT_DATA_VECTOR)) {
       vector.initializeChildrenFromFields(getFields());
       vector.allocateNew();
     }
-    this.vector = vector;
-    this.writer = createWriter(vector);
-    this.reader = createReader(vector);
-  }
-
-  protected abstract List<Field> getFields();
-  protected abstract LineStringWriter createWriter(ListVector vector);
-  protected abstract LineStringReader createReader(ListVector vector);
-
-  @Override
-  public LineStringWriter getWriter() {
-    return writer;
+    this.tuples = (FixedSizeListVector) vector.getChildrenFromFields().get(0);
+    setOrdinalVector((T) tuples.getChildrenFromFields().get(0));
   }
 
   @Override
-  public LineStringReader getReader() {
-    return reader;
-  }
-
-  @Override
-  public ListVector getVector() {
-    return vector;
-  }
-
-  @Override
-  public void close() throws Exception {
-    vector.close();
-  }
-
-  @Override
-  public void transfer(int fromIndex, int toIndex, GeometryVector<LineString, ListVector> to) {
-    to.getWriter().set(toIndex, reader.get(fromIndex));
-  }
-
-  public static abstract class LineStringWriter extends AbstractGeometryWriter<LineString> {
-
-    private final BitVector.Mutator nullSet;
-    private final ListVector.Mutator mutator;
-    private final FixedSizeListVector.Mutator tupleMutator;
-
-    protected LineStringWriter(ListVector vector) {
-      // the only way to access the bit vectors and set an index as null
-      this.nullSet = ((BitVector)vector.getFieldInnerVectors().get(0)).getMutator();
-      this.mutator = vector.getMutator();
-      FixedSizeListVector tuples = (FixedSizeListVector) vector.getChildrenFromFields().get(0);
-      this.tupleMutator = tuples.getMutator();
-      setOrdinalMutator(tuples.getChildrenFromFields().get(0).getMutator());
+  public void set(int index, LineString geom) {
+    if (index == 0) {
+      // need to do this to avoid issues with re-setting the value at index 0
+      vector.setLastSet(0);
     }
-
-    @Override
-    public void set(int index, LineString geom) {
-      if (index == 0) {
-        // need to do this to avoid issues with re-setting the value at index 0
-        mutator.setLastSet(0);
+    final int position = vector.startNewValue(index);
+    if (geom == null) {
+      vector.endValue(index, 0);
+      BitVectorHelper.setValidityBit(vector.getValidityBuffer(), index, 0);
+    } else {
+      for (int i = 0; i < geom.getNumPoints(); i++) {
+        final Coordinate p = geom.getCoordinateN(i);
+        tuples.setNotNull(position + i);
+        writeOrdinal((position + i) * 2, p.y);
+        writeOrdinal((position + i) * 2 + 1, p.x);
       }
-      int position = mutator.startNewValue(index);
-      if (geom == null) {
-        mutator.endValue(index, 0);
-        nullSet.setSafe(index, 0);
-      } else {
-        for (int i = 0; i < geom.getNumPoints(); i++) {
-          Coordinate p = geom.getCoordinateN(i);
-          tupleMutator.setNotNull(position + i);
-          writeOrdinal((position + i) * 2, p.y);
-          writeOrdinal((position + i) * 2 + 1, p.x);
-        }
-        mutator.endValue(index, geom.getNumPoints());
-      }
-    }
-
-    @Override
-    public void setValueCount(int count) {
-      mutator.setValueCount(count);
+      vector.endValue(index, geom.getNumPoints());
     }
   }
 
-  public static abstract class LineStringReader extends AbstractGeometryReader<LineString> {
-
-    private final ListVector.Accessor accessor;
-    private final UInt4Vector.Accessor offsets;
-
-    public LineStringReader(ListVector vector) {
-      this.accessor = vector.getAccessor();
-      this.offsets = ((UInt4Vector) vector.getFieldInnerVectors().get(1)).getAccessor();
-      setOrdinalAccessor(vector.getChildrenFromFields().get(0).getChildrenFromFields().get(0).getAccessor());
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public LineString get(int index) {
-      if (accessor.isNull(index)) {
-        return null;
-      } else {
-        int offsetStart = offsets.get(index);
-        Coordinate[] coordinates = new Coordinate[offsets.get(index + 1) - offsetStart];
-        for (int i = 0; i < coordinates.length; i++) {
-          double y = readOrdinal((offsetStart + i) * 2);
-          double x = readOrdinal((offsetStart + i) * 2 + 1);
-          coordinates[i] = new Coordinate(x, y);
-        }
-        return factory.createLineString(coordinates);
+  @Override
+  @SuppressWarnings("unchecked")
+  public LineString get(int index) {
+    if (vector.isNull(index)) {
+      return null;
+    } else {
+      final int offsetStart = vector.getOffsetBuffer().getInt(index * ListVector.OFFSET_WIDTH);
+      final int offsetEnd = vector.getOffsetBuffer().getInt((index + 1) * ListVector.OFFSET_WIDTH);
+      final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
+      for (int i = 0; i < coordinates.length; i++) {
+        final double y = readOrdinal((offsetStart + i) * 2);
+        final double x = readOrdinal((offsetStart + i) * 2 + 1);
+        coordinates[i] = new Coordinate(x, y);
       }
+      return factory.createLineString(coordinates);
     }
+  }
 
-    public int getStartOffset(int index) {
-      return offsets.get(index);
-    }
+  public int getStartOffset(int index) {
+    return vector.getOffsetBuffer().getInt(index * ListVector.OFFSET_WIDTH);
+  }
 
-    public int getEndOffset(int index) {
-      return offsets.get(index + 1);
-    }
+  public int getEndOffset(int index) {
+    return vector.getOffsetBuffer().getInt((index + 1) * ListVector.OFFSET_WIDTH);
+  }
 
-    public double getCoordinateY(int offset) {
-      return readOrdinal(offset * 2);
-    }
+  public double getCoordinateY(int offset) {
+    return readOrdinal(offset * 2);
+  }
 
-    public double getCoordinateX(int offset) {
-      return readOrdinal(offset * 2 + 1);
-    }
-
-    @Override
-    public int getValueCount() {
-      return accessor.getValueCount();
-    }
-
-    @Override
-    public int getNullCount() {
-      int count = accessor.getNullCount();
-      if (count < 0) {
-        return 0;
-      } else {
-        return count;
-      }
-    }
+  public double getCoordinateX(int offset) {
+    return readOrdinal(offset * 2 + 1);
   }
 }

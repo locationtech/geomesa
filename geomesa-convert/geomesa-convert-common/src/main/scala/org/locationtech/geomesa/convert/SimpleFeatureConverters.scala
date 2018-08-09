@@ -74,7 +74,7 @@ object SimpleFeatureConverters extends LazyLogging {
     private val open =
       Collections.newSetFromMap(new ConcurrentHashMap[CloseableIterator[SimpleFeature], java.lang.Boolean])
 
-    private def register(iter: CloseableIterator[SimpleFeature]): Iterator[SimpleFeature] = {
+    protected def register(iter: CloseableIterator[SimpleFeature]): Iterator[SimpleFeature] = {
       open.add(iter)
       SelfClosingIterator(iter, { iter.close(); open.remove(iter) })
     }
@@ -89,8 +89,8 @@ object SimpleFeatureConverters extends LazyLogging {
 
     override def processSingleInput(i: I, ec: EvaluationContext): Iterator[SimpleFeature] = {
       i match {
-        case s: String => register(converter.process(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)), ec))
-        case b: Array[Byte] => register(converter.process(new ByteArrayInputStream(b), ec))
+        case s: String => process(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)), ec)
+        case b: Array[Byte] => process(new ByteArrayInputStream(b), ec)
         case _ => throw new NotImplementedError()
       }
     }

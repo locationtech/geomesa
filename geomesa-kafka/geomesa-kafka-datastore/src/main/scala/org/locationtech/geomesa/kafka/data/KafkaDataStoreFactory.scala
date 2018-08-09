@@ -19,7 +19,7 @@ import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, IndexConfig, KafkaDataStoreConfig, TopicConfig}
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams.{Brokers, ZkPath, Zookeepers}
+import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams.{Brokers, IndexTiers, ZkPath, Zookeepers}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -27,6 +27,7 @@ import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAud
 import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam}
+import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -59,6 +60,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
       CqEngineIndices,
       IndexResolutionX,
       IndexResolutionY,
+      IndexTiers,
       EventTimeOrdering,
       LazyFeatures,
       ConsumeEarliest,
@@ -129,6 +131,7 @@ object KafkaDataStoreFactory extends LazyLogging {
       }
       val xBuckets = IndexResolutionX.lookup(params).intValue()
       val yBuckets = IndexResolutionY.lookup(params).intValue()
+      val ssiTiers = parseSsiTiers(params)
       val lazyDeserialization = LazyFeatures.lookup(params).booleanValue()
 
       val eventTime = EventTime.lookupOpt(params).map { e =>
@@ -137,7 +140,7 @@ object KafkaDataStoreFactory extends LazyLogging {
 
       val executor = ExecutorTicker.lookupOpt(params)
 
-      IndexConfig(cacheExpiry, eventTime, xBuckets, yBuckets, cqEngine, lazyDeserialization, executor)
+      IndexConfig(cacheExpiry, eventTime, xBuckets, yBuckets, ssiTiers, cqEngine, lazyDeserialization, executor)
     }
 
     val looseBBox = LooseBBox.lookup(params).booleanValue()
@@ -169,6 +172,28 @@ object KafkaDataStoreFactory extends LazyLogging {
 
   private def buildAuditProvider(params: java.util.Map[String, Serializable]): AuditProvider =
     Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider)
+
+  /**
+    * Parse SSI tiers from parameters
+    *
+    * @param params params
+    * @return
+    */
+  private [data] def parseSsiTiers(params: java.util.Map[String, Serializable]): Seq[(Double, Double)] = {
+    def parse(tiers: String): Option[Seq[(Double, Double)]] = {
+      try {
+        val parsed = tiers.split(",").map { xy =>
+          val Array(x, y) = xy.split(":")
+          (x.toDouble, y.toDouble)
+        }
+        Some(parsed.toSeq.sorted)
+      } catch {
+        case NonFatal(e) => logger.warn(s"Ignoring invalid index tiers '$tiers': $e"); None
+      }
+    }
+
+    IndexTiers.lookupOpt(params).flatMap(parse).getOrElse(SizeSeparatedBucketIndex.DefaultTiers)
+  }
 
   /**
     * Gets up a zk path parameter - trims, removes leading/trailing "/" if needed
@@ -226,7 +251,8 @@ object KafkaDataStoreFactory extends LazyLogging {
     val EventTime         = new GeoMesaParam[String]("kafka.cache.event-time", "Instead of message time, determine expiry based on feature data. This can be an attribute name or a CQL expression, but it must evaluate to a date")
     val IndexResolutionX  = new GeoMesaParam[Integer]("kafka.index.resolution.x", "Number of bins in the x-dimension of the spatial index", default = Int.box(360))
     val IndexResolutionY  = new GeoMesaParam[Integer]("kafka.index.resolution.y", "Number of bins in the y-dimension of the spatial index", default = Int.box(180))
-    val CqEngineIndices   = new GeoMesaParam[String]("kafka.cache.cqengine.indices", "Use CQEngine for indexing individual attributes. Specify as `name:type`, delimited by commas, where name is an attribute and type is one of `default`, `navigable`, `radix`, `unique`, `hash` or `geometry`")
+    val IndexTiers        = new GeoMesaParam[String]("kafka.index.tiers", "Number and size (in degrees) and of tiers to use when indexing geometries with extents", default = SizeSeparatedBucketIndex.DefaultTiers.map { case (x, y) => s"$x:$y"}.mkString(","))
+    val CqEngineIndices   = new GeoMesaParam[String]("kafka.index.cqengine", "Use CQEngine for indexing individual attributes. Specify as `name:type`, delimited by commas, where name is an attribute and type is one of `default`, `navigable`, `radix`, `unique`, `hash` or `geometry`", deprecatedKeys = Seq("kafka.cache.cqengine.indices"))
     val EventTimeOrdering = new GeoMesaParam[java.lang.Boolean]("kafka.cache.event-time.ordering", "Instead of message time, determine feature ordering based on event time data", default = Boolean.box(false))
     val LazyFeatures      = new GeoMesaParam[java.lang.Boolean]("kafka.serialization.lazy", "Use lazy deserialization of features. This may improve processing load at the expense of slightly slower query times", default = Boolean.box(true))
     val LooseBBox         = GeoMesaDataStoreFactory.LooseBBoxParam

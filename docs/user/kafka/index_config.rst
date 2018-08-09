@@ -50,6 +50,8 @@ To also enable event time ordering, set the ``kafka.cache.event-time.ordering`` 
 When enabled, if a feature update is read that has an older event time than the current feature, the message
 will be discarded. This can be useful for handling irregular update streams.
 
+.. _kafka_index_resolution:
+
 Spatial Index Resolution
 ------------------------
 
@@ -59,6 +61,21 @@ can be modified by setting the ``kafka.index.resolution.x`` and/or ``kafka.index
 store parameters. By default, the grid is 360 by 180 cells. Increasing the grid resolution may reduce the
 number of false-positive features that must be considered when querying, and can reduce contention between
 simultaneous updates, deletes and queries. However, it also requires more memory.
+
+.. _kafka_ssi:
+
+Spatial Index Tiering
+---------------------
+
+For geometries with extents (i.e. non-points), the Kafka consumer data store uses a tiered in-memory spatial index
+for querying. Geometries are stored in a tier based on their envelope size. The number and size (in degrees) of
+tiers can be modified by setting the ``kafka.index.tiers`` data store parameter. By default, four tiers are created
+of sizes ``1x1``, ``4x4``, ``32x32`` and ``360x180``. In general, you want the tiers to correspond to the size
+of the geometries you are indexing. Geometries which are larger than any of the available tiers will not be
+indexable; thus it is standard to include a 'catch-all' tier that encompases the whole world.
+
+Tiers may be specified by comma-separated pairs of numbers, where each pair is separated with a ``:``. For example,
+the default tiers would be specified as ``1:1,4:4,32:32,360:180``.
 
 .. _kafka_cqengine:
 

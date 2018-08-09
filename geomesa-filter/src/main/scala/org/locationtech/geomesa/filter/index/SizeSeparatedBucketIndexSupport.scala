@@ -16,8 +16,10 @@ class SizeSeparatedBucketIndexSupport
      override val index: SizeSeparatedBucketIndex[SimpleFeature]) extends SpatialIndexSupport
 
 object SizeSeparatedBucketIndexSupport {
-  def apply(sft: SimpleFeatureType, xResolution: Double, yResolution: Double): SizeSeparatedBucketIndexSupport = {
-    val index = new SizeSeparatedBucketIndex[SimpleFeature](xBucketMultiplier = xResolution, yBucketMultiplier = yResolution)
-    new SizeSeparatedBucketIndexSupport(sft, index)
+  def apply(sft: SimpleFeatureType,
+            tiers: Seq[(Double, Double)],
+            xBucketMultiplier: Double,
+            yBucketMultiplier: Double): SizeSeparatedBucketIndexSupport = {
+    new SizeSeparatedBucketIndexSupport(sft, new SizeSeparatedBucketIndex(tiers, xBucketMultiplier, yBucketMultiplier))
   }
 }

@@ -37,7 +37,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
   "EventTimeFeatureCache" should {
     "order by event time" in {
       val ev = Some(EventTimeConfig("dtg", ordering = true))
-      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, lazyDeserialization = true, None)
+      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, Seq.empty, lazyDeserialization = true, None)
 
       WithClose(KafkaFeatureCache(sft, config)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
@@ -60,7 +60,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
 
     "order by event time expression" in {
       val ev = Some(EventTimeConfig("dateToLong(dtg)", ordering = true))
-      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, lazyDeserialization = true, None)
+      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, Seq.empty, lazyDeserialization = true, None)
 
       WithClose(KafkaFeatureCache(sft, config)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
@@ -83,7 +83,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
 
     "order by message time" in {
       val ev = Some(EventTimeConfig("dtg", ordering = true))
-      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, lazyDeserialization = true, None)
+      val config = IndexConfig(Duration.Inf, ev, 180, 90, Seq.empty, Seq.empty, lazyDeserialization = true, None)
 
       WithClose(KafkaFeatureCache(sft, config)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
@@ -108,7 +108,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
       val ex = mock[ScheduledExecutorService]
       val ticker = new Ticker.MockTicker(System.currentTimeMillis())
       val ev = Some(EventTimeConfig("dtg", ordering = true))
-      val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
+      val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
 
       WithClose(KafkaFeatureCache(sft, config)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(ticker.millis), "POINT (-78.0 35.0)")
@@ -173,7 +173,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
       val ex = mock[ScheduledExecutorService]
       val ticker = new Ticker.MockTicker(System.currentTimeMillis())
       val ev = Some(EventTimeConfig("dtg", ordering = false))
-      val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
+      val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
 
       WithClose(KafkaFeatureCache(sft, config)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(ticker.millis), "POINT (-78.0 35.0)")

@@ -126,8 +126,14 @@ has been replaced with standard ingest type inference, which works similarly but
 Generally, the previous behavior can be replicated by using type inference to create a converter definition,
 then modifying the converter to set the feature ID to the first column (``$1``).
 
-Scalatra Version Updates
-------------------------
+Arrow Version Update
+--------------------
+
+The version of Apache Arrow used for Arrow-encoded results has been updated from 0.6.0 to 0.10.0. Due to changes
+in the Arrow inter-process communication (IPC) format, clients may need to update to the same Arrow version.
+
+Scalatra Version Update
+-----------------------
 
 The version of scalatra used for web servlets has been updated to 2.6.3. The new version requires json4s 3.5.4,
 which may require changes to the web server used to deploy the servlets.

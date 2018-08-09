@@ -302,6 +302,7 @@ object KafkaDataStore extends LazyLogging {
                          eventTime: Option[EventTimeConfig],
                          resolutionX: Int,
                          resolutionY: Int,
+                         ssiTiers: Seq[(Double, Double)],
                          cqAttributes: Seq[(String, CQIndexType)],
                          lazyDeserialization: Boolean,
                          executor: Option[(ScheduledExecutorService, Ticker)])
