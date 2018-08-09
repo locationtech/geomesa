@@ -88,9 +88,6 @@ object ShapefileConverterFactory extends LazyLogging {
     } catch {
       case NonFatal(e) =>
         logger.debug(s"Could not infer Shapefile converter from path '$path':", e)
-        if (logger.underlying.isTraceEnabled()) {
-          e.printStackTrace()
-        }
         None
     } finally {
       if (ds != null) {
