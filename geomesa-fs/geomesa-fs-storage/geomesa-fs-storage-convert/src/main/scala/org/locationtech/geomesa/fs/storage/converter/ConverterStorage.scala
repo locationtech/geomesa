@@ -11,8 +11,10 @@ package org.locationtech.geomesa.fs.storage.converter
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.vividsolutions.jts.geom.Envelope
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
@@ -131,6 +133,21 @@ object ConverterStorage {
 
     override def setFiles(partitionsToFiles: java.util.Map[String, java.util.List[String]]): Unit =
       throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
+    override def getFeatureCount: Int =
+      throw new UnsupportedOperationException("Converter storage does not support counts")
+
+    override def increaseFeatureCount(count: Int): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support counts")
+
+    override def getEnvelope: ReferencedEnvelope =
+      throw new UnsupportedOperationException("Converter storage does not support bounds")
+
+    override def expandBounds(envelope: Envelope): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support bounds")
+
+    override def persist(): Unit =
+      throw new UnsupportedOperationException("Converter storage does not support persisting metatdata")
   }
 
   private def buildPartitionList(fc: FileContext,
