@@ -134,7 +134,7 @@ object ConverterStorage {
     override def setFiles(partitionsToFiles: java.util.Map[String, java.util.List[String]]): Unit =
       throw new UnsupportedOperationException("Converter storage does not support updating metadata")
 
-    override def getFeatureCount: Int =
+    override def getFeatureCount: Long =
       throw new UnsupportedOperationException("Converter storage does not support counts")
 
     override def incrementFeatureCount(count: Long): Unit =
