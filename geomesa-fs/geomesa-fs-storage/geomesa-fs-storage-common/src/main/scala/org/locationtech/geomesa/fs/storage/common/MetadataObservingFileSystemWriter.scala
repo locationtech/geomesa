@@ -15,7 +15,7 @@ import org.opengis.feature.simple.SimpleFeature
 trait MetadataObservingFileSystemWriter extends FileSystemWriter {
   def metadata: org.locationtech.geomesa.fs.storage.api.FileMetadata
 
-  private var count = 0
+  private var count: Long= 0l
   private var bounds: Envelope = _
 
   override def write(feature: SimpleFeature): Unit = {
