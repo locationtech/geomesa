@@ -44,6 +44,7 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     if (factorySet.compareAndSet(false, true)) {
       try { // Calling this method twice in the same JVM causes a java.lang.Error
         URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory)
+        logger.trace("Configured Hadoop URL Factory.")
       } catch {
         case _: Throwable =>
           logger.warn("Could not register Hadoop URL Factory.  Some filesystems may not be available.")
